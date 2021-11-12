@@ -40,6 +40,7 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { ListIndexSubscriptions } from "./ListIndexSubscriptions";
 import { ListUserInteractedSuperTokens } from "./ListUserInteractedSuperTokens";
+import {ListSuperTokens} from "./ListSuperTokens";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -200,6 +201,7 @@ function App() {
     const [isCreateStreamOpen, setIsCreateStreamOpen] = useState(false);
     const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
     const [isListEventsOpen, setIsListEventsOpen] = useState(false);
+    const [isListSuperTokensOpen, setIsListSuperTokensOpen] = useState(false);
     const [
         isListUserInteractedSuperTokensOpen,
         setIsListUserInteractedSuperTokensOpen,
@@ -269,6 +271,35 @@ function App() {
                                 >
                                     <Box maxWidth="xl">
                                         <TransactionTable />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsListSuperTokensOpen(
+                                            !isListSuperTokensOpen
+                                        )
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="List SuperTokens" />
+                                    {isListSuperTokensOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isListSuperTokensOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <ListSuperTokens />
                                     </Box>
                                 </Collapse>
                             </Box>

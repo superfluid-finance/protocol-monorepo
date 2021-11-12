@@ -107,10 +107,9 @@ export const ListIndexes: FC = (): ReactElement => {
                             </Table>
                         </TableContainer>
                     )}
-                    {(pagedIndexes && !error) && (
+                    {pagedIndexes && !error && (
                         <Pagination
                             count={pagedIndexes.hasNextPage ? page + 1 : page}
-                            size="small"
                             onChange={(
                                 event: React.ChangeEvent<unknown>,
                                 value: number

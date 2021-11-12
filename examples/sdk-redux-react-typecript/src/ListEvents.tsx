@@ -1,4 +1,11 @@
-import React, {FC, ReactElement, SyntheticEvent, useContext, useState, useEffect} from "react";
+import React, {
+    FC,
+    ReactElement,
+    SyntheticEvent,
+    useContext,
+    useState,
+    useEffect,
+} from "react";
 import { AllEvents, useListEventsQuery } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {
@@ -13,7 +20,7 @@ import {
     TextField,
 } from "@mui/material";
 import { SignerContext } from "./SignerContext";
-import {Error} from "./Error";
+import { Error } from "./Error";
 
 const pageSize = 10;
 
@@ -22,12 +29,16 @@ export const ListEvents: FC = (): ReactElement => {
     const [page, setPage] = useState<number>(1);
     const [accountAddress, setAccountAddress] = useState<string>(signerAddress);
 
+    useEffect(() => {
+        setPage(1);
+    }, [chainId, accountAddress]);
+
     const {
         data: pagedEvents,
         isFetching,
         isLoading,
         error,
-        refetch
+        refetch,
     } = useListEventsQuery({
         chainId: chainId,
         account: accountAddress,
@@ -35,9 +46,9 @@ export const ListEvents: FC = (): ReactElement => {
         take: pageSize,
     });
 
-    useEffect(() => {
-        setPage(1);
-    }, [chainId, accountAddress]);
+    const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+        setPage(value);
+    };
 
     return (
         <>
@@ -68,27 +79,28 @@ export const ListEvents: FC = (): ReactElement => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {pagedEvents!.data.map((event: AllEvents, index: number) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                <pre>
-                                                    {JSON.stringify(event)}
-                                                </pre>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {pagedEvents!.data.map(
+                                        (event: AllEvents, index: number) => (
+                                            <TableRow key={index}>
+                                                <TableCell>
+                                                    <pre>
+                                                        {JSON.stringify(event)}
+                                                    </pre>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    )}
                                 </TableBody>
                             </Table>
                         </TableContainer>
                     )}
-                    {(pagedEvents && !error) && (
+                    {pagedEvents && !error && (
                         <Pagination
                             count={pagedEvents.hasNextPage ? page + 1 : page}
-                            size="small"
-                            onChange={(
-                                event: React.ChangeEvent<unknown>,
-                                value: number
-                            ) => setPage(value)}
+                            page={page}
+                            onChange={(event: React.ChangeEvent<unknown>, value: number) => {
+                                setPage(value);
+                            }}
                         />
                     )}
                 </>

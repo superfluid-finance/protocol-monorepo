@@ -12,8 +12,6 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 export interface ListSuperTokensArg
     extends PaginatedQueryArg,
         ISuperTokenRequestFilter {
-    // Get rid of undefined to be more about cache getting hit (cache doesn't know that "false" and "undefined" are the same).
-    isListed: boolean;
 }
 
 const extendedApi = rtkQuerySlice.injectEndpoints({

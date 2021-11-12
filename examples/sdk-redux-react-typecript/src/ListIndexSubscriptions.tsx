@@ -75,7 +75,6 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                     <FormControl component="fieldset">
                         <RadioGroup
                             row
-                            aria-label="gender"
                             name="row-radio-buttons-group"
                             value={isApproved}
                             onChange={handleChange}
@@ -137,7 +136,6 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                                     ? page + 1
                                     : page
                             }
-                            size="small"
                             onChange={(
                                 event: React.ChangeEvent<unknown>,
                                 value: number

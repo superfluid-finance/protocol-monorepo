@@ -16,14 +16,12 @@ export declare type BatchRequestDocument<V = Variables> = {
 export class SubgraphClient {
     constructor(readonly subgraphUrl: string) {}
 
-    // export declare function request<T = any, V = Variables>(url: string, document: RequestDocument, variables?: V, requestHeaders?: Dom.RequestInit['headers']): Promise<T>;
-
     async request<T = any, V = Variables>(
         document: RequestDocument,
         variables?: V
     ): Promise<T> {
         try {
-            return await request<T, V>(this.subgraphUrl, document, variables);
+            return await request<T, V>(this.subgraphUrl, document, cleanVariables(variables));
         } catch (err) {
             throw new SFError({
                 type: "SUBGRAPH_ERROR",
@@ -32,8 +30,6 @@ export class SubgraphClient {
             });
         }
     }
-
-    // export declare function batchRequests<T extends any = any, V = Variables>(url: string, documents: BatchRequestDocument<V>[], requestHeaders?: Dom.RequestInit['headers']): Promise<T>;
 
     async batchRequests<T = any, V = Variables>(
         documents: BatchRequestDocument<V>[]
@@ -48,4 +44,14 @@ export class SubgraphClient {
             });
         }
     }
+}
+
+// Inspired by: https://stackoverflow.com/a/38340730
+// Remove properties with null, undefined, empty string values.
+function cleanVariables<V = Variables>(variables: V): V {
+    return Object.fromEntries(
+        Object.entries(variables)
+            .filter(([_, value]) => value === 0 || !!value)
+            .map(([key, value]) => [key, value === Object(value) ? cleanVariables(value) : value])
+    ) as V;
 }

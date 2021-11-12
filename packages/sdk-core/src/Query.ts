@@ -84,6 +84,7 @@ export default class Query {
             GetTokensQueryVariables
         >(GetTokensDocument, {
             where: {
+                isListed: filter.isListed,
                 isSuperToken: true
             },
             skip: paging.skip,

@@ -102,10 +102,23 @@ module.exports = function getConfig(chainId) {
         },
 
         //
-        // ARBITRUM (testnet rinkeby)
+        // Optimistic Ethereum: https://community.optimism.io/docs/
         //
+        10: {
+            // op mainnet
+        },
+        69: {
+            // op kovan
+        },
+
+        //
+        // Arbitrum: https://developer.offchainlabs.com
+        //
+        42161: {
+            // arbitrum one mainnet
+        },
         421611: {
-            // arbitrum testnet
+            // arbitrum testnet (rinkeby)
         },
 
         //
@@ -113,6 +126,23 @@ module.exports = function getConfig(chainId) {
         //
         0x03c401: {
             // (artis) tau1 testnet
+        },
+
+        //
+        // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
+        //
+        43114: {
+            // avalanche mainnet
+        },
+        43113: {
+            // avalanche fuji testnet
+        },
+
+        //
+        // Celo: https://github.com/celo-org/celo-monorepo#docs
+        //
+        42220: {
+            // celo mainnet
         },
     };
 

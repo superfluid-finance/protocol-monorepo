@@ -120,11 +120,49 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         },
 
         //
-        // ARBITRUM (testnet rinkeby)
+        // Optimistic Ethereum: https://community.optimism.io/docs/
         //
+        10: {
+            // op mainnet
+            nativeTokenSymbol: "ETH",
+        },
+        69: {
+            // op kovan
+            nativeTokenSymbol: "ETH",
+        },
+
+        //
+        // Arbitrum: https://developer.offchainlabs.com
+        //
+        42161: {
+            // arbitrum one mainnet
+            nativeTokenSymbol: "ETH",
+        },
         421611: {
             // arbitrum testnet
+            nativeTokenSymbol: "ETH",
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
+        },
+
+        //
+        // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
+        //
+        43114: {
+            // avalanche c-chain mainnet
+            nativeTokenSymbol: "AVAX",
+        },
+        43113: {
+            // avalanche c-chain fuji testnet
+            nativeTokenSymbol: "AVAX",
+            resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A",
+        },
+
+        //
+        // Celo: https://github.com/celo-org/celo-monorepo#docs
+        //
+        42220: {
+            // celo mainnet
+            nativeTokenSymbol: "CELO",
         },
     };
 

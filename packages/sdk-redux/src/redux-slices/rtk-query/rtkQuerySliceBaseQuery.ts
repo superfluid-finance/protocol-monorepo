@@ -1,6 +1,7 @@
 import { BaseQueryFn } from '@reduxjs/toolkit/dist/query/react';
+import { SerializedError } from '@reduxjs/toolkit';
 
-import {MutationArg, QueryArg, TransactionInfo} from '../baseArg';
+import { MutationArg, QueryArg, TransactionInfo } from '../baseArg';
 
 export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;
@@ -25,3 +26,5 @@ export function rtkQuerySliceBaseQuery(): BaseQueryFn<
         );
     };
 }
+
+export type PossibleErrors = ValidationError | SerializedError;

@@ -2,13 +2,11 @@ import React, {
     FC,
     ReactElement,
     SyntheticEvent,
-    useContext, useEffect,
+    useContext,
+    useEffect,
     useState,
 } from "react";
-import {
-    useListIndexesQuery,
-    IIndex,
-} from "@superfluid-finance/sdk-redux";
+import { useListIndexesQuery, IIndex } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {
     FormGroup,
@@ -22,6 +20,7 @@ import {
     TextField,
 } from "@mui/material";
 import { SignerContext } from "./SignerContext";
+import { Error } from "./Error";
 
 const pageSize = 10;
 
@@ -42,6 +41,7 @@ export const ListIndexes: FC = (): ReactElement => {
         isFetching,
         isLoading,
         error,
+        refetch,
     } = useListIndexesQuery({
         chainId: chainId,
         indexId: indexId,
@@ -81,7 +81,7 @@ export const ListIndexes: FC = (): ReactElement => {
                     {isFetching ? (
                         <Loader />
                     ) : error ? (
-                        <>{error.message}</>
+                        <Error error={error} retry={refetch} />
                     ) : (
                         <TableContainer>
                             <Table aria-label="simple table">
@@ -104,7 +104,7 @@ export const ListIndexes: FC = (): ReactElement => {
                             </Table>
                         </TableContainer>
                     )}
-                    {pagedIndexes && (
+                    {(pagedIndexes && !error) && (
                         <Pagination
                             count={pagedIndexes.hasNextPage ? page + 1 : page}
                             size="small"

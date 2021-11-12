@@ -7,3 +7,4 @@ export * from './queries/listUserInteractedSuperTokens';
 export * from './mutations/createFlow';
 export * from './mutations/updateFlow';
 export * from './mutations/deleteFlow';
+export { ValidationError, PossibleErrors } from './rtkQuerySliceBaseQuery';

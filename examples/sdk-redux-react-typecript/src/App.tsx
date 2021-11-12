@@ -38,6 +38,7 @@ import Collapse from "@mui/material/Collapse";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import {ListIndexSubscriptions} from "./ListIndexSubscriptions";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -192,6 +193,7 @@ function App() {
     };
 
     const [isListIndexesOpen, setIsListIndexesOpen] = useState(false);
+    const [isListIndexSubscriptionsOpen, setIsListIndexSubscriptionsOpen] = useState(false);
     const [isActiveStreamsOpen, setIsActiveStreamsOpen] = useState(false);
     const [isCreateStreamOpen, setIsCreateStreamOpen] = useState(false);
     const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
@@ -346,6 +348,33 @@ function App() {
                                 >
                                     <Box maxWidth="xl">
                                         <ListIndexes />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsListIndexSubscriptionsOpen(!isListIndexSubscriptionsOpen)
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="List Index Subscriptions" />
+                                    {isListIndexSubscriptionsOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isListIndexSubscriptionsOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <ListIndexSubscriptions />
                                     </Box>
                                 </Collapse>
                             </Box>

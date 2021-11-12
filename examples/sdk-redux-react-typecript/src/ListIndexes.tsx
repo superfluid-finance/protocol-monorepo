@@ -34,7 +34,7 @@ export const ListIndexes: FC = (): ReactElement => {
 
     useEffect(() => {
         setPage(1);
-    }, [indexId, publisherAddress, superTokenAddress]);
+    }, [chainId, indexId, publisherAddress, superTokenAddress]);
 
     const {
         data: pagedIndexes,

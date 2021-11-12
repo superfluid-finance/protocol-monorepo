@@ -9,6 +9,7 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
+// TODO(KK): cache key?
 export interface ListIndexSubscriptionsArg
     extends PaginatedQueryArg,
         IIndexSubscriptionRequestFilter {}

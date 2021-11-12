@@ -3,7 +3,6 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
-    detectTruffleAndConfigure,
     builtTruffleContractLoader,
     ZERO_ADDRESS,
 } = require("./libs/common");
@@ -23,11 +22,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log(
-        "======== Deploying unlisted Matic bridged native super token ========"
-    );
-
-    await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+    console.log("== Deploying unlisted Matic bridged native super token ==");
     let { protocolReleaseVersion } = options;
 
     if (args.length !== 3) {

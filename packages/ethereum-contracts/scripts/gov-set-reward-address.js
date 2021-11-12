@@ -2,7 +2,6 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
-    detectTruffleAndConfigure,
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
@@ -22,8 +21,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Setting reward address ========");
-
-    await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
     let { protocolReleaseVersion } = options;
 
     if (args.length !== 2) {

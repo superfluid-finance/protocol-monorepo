@@ -275,6 +275,12 @@ const cfaV1 = new ConstantFlowAgreementV1({ options: config });
 
 #### CFAV1 Functions
 ```ts
+// read
+await sf.cfaV1.getFlow({ superToken: string, sender: string, receiver: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+await sf.cfaV1.getAccountFlowInfo({ superToken: string, account: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+await sf.cfaV1.getNetFlow({ superToken: string, account: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+
+// write
 await sf.cfaV1.createFlow({ sender: string, receiver: string, token: string, flowRate: string, userData?: string });
 await sf.cfaV1.updateFlow({ sender: string, receiver: string, token: string, flowRate: string, userData?: string });
 await sf.cfaV1.deleteFlow({ sender: string, receiver: string, token: string, userData?: string });
@@ -301,6 +307,11 @@ const idaV1 = new InstantDistributionAgreementV1({ options: config });
 
 #### IDAV1 Functions
 ```ts
+// read
+await sf.idaV1.getSubscription({ superToken: string, publisher: string, indexId: string, subscriber: string, providerOrSigner: string });
+await sf.idaV1.getIndex({ superToken: string, publisher: string, indexId: string, providerOrSigner: string });
+
+// write
 await sf.idaV1.createIndex({ indexId: string, userData: string });
 await sf.idaV1.distribute({ indexId: string, amount: string, userData: string });
 await sf.idaV1.updateIndexValue({ indexId: string, indexValue: string, userData: string });
@@ -359,19 +370,19 @@ const usdcx = new SuperToken({
 const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // SuperToken Read Functions
-await usdcx.balanceOf(address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer);
-await usdcx.realtimeBalanceOf(address: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer);
-await usdcx.realtimeBalanceOfNow(address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer);
+await usdcx.balanceOf({ address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+await usdcx.realtimeBalanceOf({ address: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+await usdcx.realtimeBalanceOfNow({ address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
 
 // Write Functions
 // All write functions return Promise<Operation>
 
 // SuperToken Write Functions
-await usdcx.approve(recipient: string, amount: string);
-await usdcx.downgrade(amount: string);
-await usdcx.transfer(recipient: string, amount: string);
-await usdcx.transferFrom(sender: string, recipient: string, amount: string);
-await usdcx.upgrade(amount: string);
+await usdcx.approve({ recipient: string, amount: string });
+await usdcx.downgrade({ amount: string });
+await usdcx.transfer({ recipient: string, amount: string });
+await usdcx.transferFrom({ sender: string, recipient: string, amount: string });
+await usdcx.upgrade({ amount: string });
 
 // SuperToken CFAV1/IDAV1 Functions are the same as the 
 // ConstantFlowAgreementV1/InstantDistributionAgreementV1 class functions

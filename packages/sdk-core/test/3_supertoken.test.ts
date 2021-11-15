@@ -71,7 +71,11 @@ describe("SuperToken Tests", () => {
 
         it("Should throw an error on SuperToken read operations when incorrect input is passed.", async () => {
             try {
-                await daix.realtimeBalanceOf(deployer, alpha.address, "-1");
+                await daix.realtimeBalanceOf({
+                    providerOrSigner: deployer,
+                    address: alpha.address,
+                    timestamp: "-1",
+                });
             } catch (err: any) {
                 expect(err.message).to.contain(
                     "SuperToken Read Error - There was an error getting realtimeBalanceOf"
@@ -93,17 +97,22 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to get realtimeBalanceOf", async () => {
-            await daix.realtimeBalanceOf(deployer, deployer.address);
+            await daix.realtimeBalanceOf({
+                providerOrSigner: deployer,
+                address: deployer.address,
+            });
         });
 
         it("Should be able to approve + downgrade", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                daix.approve(daix.options.address, amount).exec(deployer)
+                daix
+                    .approve({ receiver: daix.options.address, amount })
+                    .exec(deployer)
             )
                 .to.emit(superToken, "Approval")
                 .withArgs(deployer.address, daix.options.address, amount);
-            await expect(daix.downgrade(amount).exec(deployer))
+            await expect(daix.downgrade({ amount }).exec(deployer))
                 .to.emit(superToken, "TokenDowngraded")
                 .withArgs(deployer.address, amount);
         });
@@ -115,29 +124,41 @@ describe("SuperToken Tests", () => {
             )
                 .to.emit(token, "Approval")
                 .withArgs(deployer.address, daix.options.address, amount);
-            await expect(daix.upgrade(amount).exec(deployer))
+            await expect(daix.upgrade({ amount }).exec(deployer))
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(deployer.address, amount);
         });
 
         it("Should be able to approve + transfer", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
-            await expect(daix.approve(alpha.address, amount).exec(deployer))
+            await expect(
+                daix.approve({ receiver: alpha.address, amount }).exec(deployer)
+            )
                 .to.emit(superToken, "Approval")
                 .withArgs(deployer.address, alpha.address, amount);
-            await expect(daix.transfer(alpha.address, amount).exec(deployer))
+            await expect(
+                daix
+                    .transfer({ receiver: alpha.address, amount })
+                    .exec(deployer)
+            )
                 .to.emit(superToken, "Transfer")
                 .withArgs(deployer.address, alpha.address, amount);
         });
 
         it("Should be able to approve + transferFrom", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
-            await expect(daix.approve(alpha.address, amount).exec(deployer))
+            await expect(
+                daix.approve({ receiver: alpha.address, amount }).exec(deployer)
+            )
                 .to.emit(superToken, "Approval")
                 .withArgs(deployer.address, alpha.address, amount);
             await expect(
                 daix
-                    .transferFrom(deployer.address, alpha.address, amount)
+                    .transferFrom({
+                        sender: deployer.address,
+                        receiver: alpha.address,
+                        amount,
+                    })
                     .exec(deployer)
             )
                 .to.emit(superToken, "Transfer")

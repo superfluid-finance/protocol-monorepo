@@ -381,6 +381,13 @@ graph auth https://api.thegraph.com/deploy/ <ACCESS_TOKEN>
 
 If the subgraph has not been created yet, you must create it first using the dashboard.
 
+## Release Process
+
+- Bump minor or patch version for the subgraph package: `yarn manage-versions && git commit packages/subgraph/package.json`.
+- Select the appropriate Subgraph LTS branch: `release-subgraph-v1`.
+- Merge `origin/dev` to the LTS branch.
+- Create a new release in github.
+
 # Contributing
 
 Contributions, suggestions, and issues are welcome. At the moment, there are no strict guidelines to follow.

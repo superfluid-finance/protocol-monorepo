@@ -6,9 +6,6 @@ const host = '0xF0d7d1D47109bA426B9D8A3Cde1941327af1eea3';
 const cfa = '0xECa8056809e7e8db04A8fF6e4E82cD889a46FE2F';
 const fDAIx = '0xe3CB950Cb164a31C66e32c320A800D477019DCFF';
 
-//your address here...
-const owner = "0x5966aa11c794893774a382d9a19743B8be6BFFd1";
-
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
 

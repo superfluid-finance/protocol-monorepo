@@ -2,9 +2,6 @@ require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
 require("hardhat-deploy");
 
-//your account here...
-const acct = "0x9421FE8eCcAfad76C3A9Ec8f9779fAfA05A836B3"
-
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -14,16 +11,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
-
-task("unlock", "set up impersonating accounts", async () => {
-  //method to unlock the accounts
-  await hre.network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [acct],
-  });
-
-  console.log("impersonating account: " + acct);
-})
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more

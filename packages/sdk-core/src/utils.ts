@@ -1,5 +1,6 @@
 import { JsonFragment } from "@ethersproject/abi";
 import { ethers } from "ethers";
+import { IIndexSubscription } from "./interfaces";
 import {
     DAYS_PER_MONTH,
     HOURS_PER_DAY,
@@ -103,4 +104,109 @@ export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
             MINUTES_PER_HOUR *
             SECONDS_PER_MINUTE
     ).toString();
+};
+
+/**
+ * @dev The formula for calculating the flowed amount since updated using Subgraph data.
+ * @param netFlowRate the net flow rate of the user
+ * @param currentTimestamp the current timestamp
+ * @param updatedAtTimestamp the updated at timestamp of the `AccountTokenSnapshot` entity
+ * @returns the flowed amount since the updatedAt timestamp
+ */
+export const flowedAmountSinceUpdatedAt = ({
+    netFlowRate,
+    currentTimestamp,
+    updatedAtTimestamp,
+}: {
+    netFlowRate: string;
+    currentTimestamp: string;
+    updatedAtTimestamp: string;
+}) => {
+    return (
+        (Number(currentTimestamp) - Number(updatedAtTimestamp)) *
+        Number(netFlowRate)
+    );
+};
+
+/**
+ * @dev The formula for calculating the total amount distributed to the subscriber (pending or received).
+ * @param indexSubscriptions the index subscriptions of a single token from an account.
+ * @returns the total amount received since updated at (both pending and actually distributed)
+ */
+export const subscriptionTotalAmountDistributedSinceUpdated = (
+    indexSubscriptions: IIndexSubscription[]
+) => {
+    return indexSubscriptions.reduce(
+        (x, y) =>
+            x +
+            (Number(y.index.indexValue) - Number(y.indexValueUntilUpdatedAt)) *
+                Number(y.units),
+        0
+    );
+};
+
+/**
+ * @dev The formula for calculating the total amount received (approved subscriptions).
+ * @param indexSubscriptions the index subscriptions of a single token from an account.
+ * @returns the total amount received since updated at (actually distributed into wallet)
+ */
+export const subscriptionTotalAmountReceivedSinceUpdated = (
+    indexSubscriptions: IIndexSubscription[]
+) => {
+    return indexSubscriptions
+        .filter((x) => x.approved)
+        .reduce(
+            (x, y) =>
+                x +
+                (Number(y.index.indexValue) -
+                    Number(y.indexValueUntilUpdatedAt)) *
+                    Number(y.units),
+            0
+        );
+};
+
+/**
+ * @dev The formula for calculating the total amount that is claimable.
+ * @param indexSubscriptions the index subscriptions of a single token from an account.
+ * @returns the total amount that can be claimed since updated at
+ */
+export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
+    indexSubscriptions: IIndexSubscription[]
+) => {
+    return (
+        subscriptionTotalAmountDistributedSinceUpdated(indexSubscriptions) -
+        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
+    );
+};
+
+/**
+ * @dev The formula for calculating the balance until updated at of a user (claimable + received tokens from index)
+ * @param currentBalance the current balance until updated at from the `AccountTokenSnapshot` entity
+ * @param netFlowRate the net flow rate of the user
+ * @param currentTimestamp the current timestamp
+ * @param updatedAtTimestamp the updated at timestamp of the `AccountTokenSnapshot` entity
+ * @returns the balance since the updated at timestamp
+ */
+export const getBalance = ({
+    currentBalance,
+    netFlowRate,
+    currentTimestamp,
+    updatedAtTimestamp,
+    indexSubscriptions,
+}: {
+    currentBalance: string;
+    netFlowRate: string;
+    currentTimestamp: string;
+    updatedAtTimestamp: string;
+    indexSubscriptions: IIndexSubscription[];
+}) => {
+    return (
+        Number(currentBalance) +
+        flowedAmountSinceUpdatedAt({
+            netFlowRate,
+            currentTimestamp,
+            updatedAtTimestamp,
+        }) +
+        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
+    );
 };

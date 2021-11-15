@@ -23,7 +23,7 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import {createPagedResult, PagedResult, Paging} from "./pagination";
+import { createPagedResult, PagedResult, Paging } from "./pagination";
 import { SubgraphClient } from "./subgraph/SubgraphClient";
 import {
     GetTokensDocument,
@@ -52,6 +52,7 @@ import {
     GetAllEventsQueryVariables,
 } from "./subgraph/queries/getAllEvents.generated";
 import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
+import SFError from "./SFError";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -77,6 +78,13 @@ export default class Query {
         filter: ISuperTokenRequestFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<ISuperToken>> => {
+        if (this.options.dataMode === "WEB3_ONLY") {
+            throw new SFError({
+                type: "UNSUPPORTED_WEB_3_ONLY",
+                customMessage: "This query is not supported in WEB3_ONLY mode.",
+            });
+        }
+
         validateSuperTokenRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -85,7 +93,7 @@ export default class Query {
         >(GetTokensDocument, {
             where: {
                 isListed: filter.isListed,
-                isSuperToken: true
+                isSuperToken: true,
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -98,6 +106,13 @@ export default class Query {
         filter: IIndexRequestFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<IIndex>> => {
+        if (this.options.dataMode === "WEB3_ONLY") {
+            throw new SFError({
+                type: "UNSUPPORTED_WEB_3_ONLY",
+                customMessage: "This query is not supported in WEB3_ONLY mode.",
+            });
+        }
+
         validateIndexRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -107,10 +122,10 @@ export default class Query {
             where: {
                 indexId: filter.indexId,
                 publisher: filter.publisher?.toLowerCase(),
-                token: filter.token?.toLowerCase()
+                token: filter.token?.toLowerCase(),
             },
             skip: paging.skip,
-            first: paging.takePlusOne()
+            first: paging.takePlusOne(),
         });
 
         return createPagedResult<IIndex>(response.result, paging);
@@ -120,6 +135,13 @@ export default class Query {
         filter: IIndexSubscriptionRequestFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<IIndexSubscription>> => {
+        if (this.options.dataMode === "WEB3_ONLY") {
+            throw new SFError({
+                type: "UNSUPPORTED_WEB_3_ONLY",
+                customMessage: "This query is not supported in WEB3_ONLY mode.",
+            });
+        }
+
         validateIndexSubscriptionRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -128,7 +150,7 @@ export default class Query {
         >(GetIndexSubscriptionsDocument, {
             where: {
                 subscriber: filter.subscriber?.toLowerCase(),
-                approved: filter.approved
+                approved: filter.approved,
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -141,6 +163,13 @@ export default class Query {
         filter: IStreamRequestFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<IStream>> => {
+        if (this.options.dataMode === "WEB3_ONLY") {
+            throw new SFError({
+                type: "UNSUPPORTED_WEB_3_ONLY",
+                customMessage: "This query is not supported in WEB3_ONLY mode.",
+            });
+        }
+
         validateStreamRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -150,7 +179,7 @@ export default class Query {
             where: {
                 sender: filter.sender?.toLowerCase(),
                 receiver: filter.receiver?.toLowerCase(),
-                token: filter.token?.toLowerCase()
+                token: filter.token?.toLowerCase(),
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -163,6 +192,13 @@ export default class Query {
         filter: IAccountTokenSnapshotFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
+        if (this.options.dataMode === "WEB3_ONLY") {
+            throw new SFError({
+                type: "UNSUPPORTED_WEB_3_ONLY",
+                customMessage: "This query is not supported in WEB3_ONLY mode.",
+            });
+        }
+
         validateAccountTokenSnapshotRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -171,7 +207,7 @@ export default class Query {
         >(GetAccountTokenSnapshotsDocument, {
             where: {
                 account: filter.account?.toLowerCase(),
-                token: filter.token?.toLowerCase()
+                token: filter.token?.toLowerCase(),
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -187,6 +223,12 @@ export default class Query {
         filter: IEventFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<AllEvents>> => {
+        if (this.options.dataMode === "WEB3_ONLY") {
+            throw new SFError({
+                type: "UNSUPPORTED_WEB_3_ONLY",
+                customMessage: "This query is not supported in WEB3_ONLY mode.",
+            });
+        }
         const response = await this.subgraphClient.request<
             GetAllEventsQuery,
             GetAllEventsQueryVariables

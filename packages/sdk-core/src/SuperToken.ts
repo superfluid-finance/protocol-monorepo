@@ -72,29 +72,6 @@ export default class SuperToken {
     }
 
     // SuperToken Contract Read Functions
-    /**
-     * @dev Returns the token balance of `address`.
-     * @param address the target address
-     * @param providerOrSigner a provider or signer for executing a web3 call
-     * @returns SuperToken balance
-     */
-    balanceOf = async (
-        address: string,
-        providerOrSigner: ethers.providers.Provider | ethers.Signer
-    ) => {
-        try {
-            const balanceOf = await this.superTokenContract
-                .connect(providerOrSigner)
-                .balanceOf(address);
-            return balanceOf;
-        } catch (err) {
-            throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting balanceOf",
-                errorObject: err,
-            });
-        }
-    };
 
     /**
      * @dev Returns the real time balance of `address`.
@@ -112,7 +89,12 @@ export default class SuperToken {
             const realtimeBalanceOf = await this.superTokenContract
                 .connect(providerOrSigner)
                 .realtimeBalanceOf(address, timestamp);
-            return realtimeBalanceOf.availableBalance;
+            return {
+                availableBalance: realtimeBalanceOf.availableBalance,
+                deposit: realtimeBalanceOf.deposit,
+                owedDeposit: realtimeBalanceOf.owedDeposit,
+                timestamp,
+            };
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_READ",

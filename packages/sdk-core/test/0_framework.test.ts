@@ -41,7 +41,7 @@ describe("Framework Tests", () => {
                     provider: deployer.provider!,
                     dataMode: "WEB3_ONLY",
                     resolverAddress: RESOLVER_ADDRESS,
-                    protocolReleaseVersion: "test"
+                    protocolReleaseVersion: "test",
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -171,6 +171,19 @@ describe("Framework Tests", () => {
             await Framework.create({
                 chainId: 3,
                 provider: infuraProvider,
+            });
+        });
+
+        it("Should be able to create a framework with web3.js", async () => {
+            const provider = new ethers.providers.Web3Provider(
+                (global as any).web3.currentProvider
+            );
+            await Framework.create({
+                networkName: "custom",
+                provider,
+                dataMode: "WEB3_ONLY",
+                resolverAddress: RESOLVER_ADDRESS,
+                protocolReleaseVersion: "test",
             });
         });
     });

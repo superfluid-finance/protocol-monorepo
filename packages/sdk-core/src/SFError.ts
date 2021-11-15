@@ -17,7 +17,8 @@ type ErrorType =
     | "UNSUPPORTED_OPERATION"
     | "MISSING_TRANSACTION_PROPERTIES"
     | "BATCH_CALL_ERROR"
-    | "NETWORK_MISMATCH";
+    | "NETWORK_MISMATCH"
+    | "UNSUPPORTED_WEB_3_ONLY";
 
 const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["FRAMEWORK_INITIALIZATION", "Framework Initialization"],
@@ -39,6 +40,7 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
     ["NETWORK_MISMATCH", "Network Mismatch"],
+    ["UNSUPPORTED_WEB_3_ONLY", "Unsupported Web 3 Only"]
 ]);
 
 interface ISFErrorProps {

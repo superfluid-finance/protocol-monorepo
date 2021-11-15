@@ -79,7 +79,7 @@ export default class Framework {
      * @param options.networkName the desired network (e.g. "matic", "rinkeby", etc.)
      * @param options.resolverAddress a custom resolver address (advanced use for testing)
      * @param options.protocolReleaseVersion a custom release version (advanced use for testing)
-     * @param options.provider a provider object necessary ofr initializing the framework
+     * @param options.provider a provider object necessary for initializing the framework
      * @returns `Framework` class
      */
     static create = async (options: IFrameworkOptions) => {

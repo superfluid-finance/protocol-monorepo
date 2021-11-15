@@ -71,13 +71,6 @@ describe("SuperToken Tests", () => {
 
         it("Should throw an error on SuperToken read operations when incorrect input is passed.", async () => {
             try {
-                await daix.balanceOf(alpha.address + "x", deployer);
-            } catch (err: any) {
-                expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting balanceOf"
-                );
-            }
-            try {
                 await daix.realtimeBalanceOf(alpha.address, "-1", deployer);
             } catch (err: any) {
                 expect(err.message).to.contain(
@@ -107,15 +100,14 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to get balanceOf, realtimeBalanceOf, realtimeBalanceOfNow", async () => {
-            const balance = await daix.balanceOf(deployer.address, deployer);
             const { availableBalance, timestamp } =
                 await daix.realtimeBalanceOfNow(deployer.address, deployer);
-            const realtimeBalanceOf = await daix.realtimeBalanceOf(
-                deployer.address,
-                timestamp.toString(),
-                deployer
-            );
-            expect(balance.toString()).to.equal(realtimeBalanceOf.toString());
+            const { availableBalance: realtimeBalanceOf } =
+                await daix.realtimeBalanceOf(
+                    deployer.address,
+                    timestamp.toString(),
+                    deployer
+                );
             expect(realtimeBalanceOf.toString()).to.equal(
                 availableBalance.toString()
             );

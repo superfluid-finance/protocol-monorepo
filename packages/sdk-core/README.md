@@ -38,6 +38,7 @@ TypeScript / JavaScript (Module):
 
 ```ts
 import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
 
 const provider = new ethers.providers.InfuraProvider(
   "matic",
@@ -48,12 +49,21 @@ const sf = await Framework.create({
   provider
 });
 
+// web3.js + Hardhat provider initialization
+const web3jsProvider = new ethers.providers.Web3Provider(
+  (global as any).web3.currentProvider
+);
+const web3jsSf = await Framework.create({
+  networkName: "matic",
+  provider: web3jsProvider
+});
 ```
 
 JavaScript (CommonJS) - usually a Node.js environment:
 
 ```js
 const { Framework } = require("@superfluid-finance/sdk-core");
+const { ethers } = require("ethers");
 
 const provider = new ethers.providers.InfuraProvider(
   "matic",
@@ -62,6 +72,15 @@ const provider = new ethers.providers.InfuraProvider(
 const sf = await Framework.create({
   networkName: "matic",
   provider
+});
+
+// web3.js + Hardhat provider initialization
+const web3jsProvider = new ethers.providers.Web3Provider(
+  global.web3.currentProvider
+);
+const web3jsSf = await Framework.create({
+  networkName: "matic",
+  provider: web3jsProvider
 });
 ```
 
@@ -83,6 +102,7 @@ A list of the pre-defined queries:
 
 ```ts
 const { Framework } = require("@superfluid-finance/sdk-core");
+const { ethers } = require("ethers");
 
 const provider = new ethers.providers.InfuraProvider(
 	"matic",
@@ -165,8 +185,6 @@ const signer = sf.createSigner({
   provider: ethers.provider,
 });
 ```
-
-// TODO: web3.js/truffle
 
 #### Signer/Wallet Example
 

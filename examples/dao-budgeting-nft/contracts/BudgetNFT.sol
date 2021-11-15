@@ -176,7 +176,7 @@ contract BudgetNFT is ERC721, Ownable {
         // won't do anything if outFlowRate < flowRate
     } 
     
-     //this will increase the flow or delete it
+     //this will increase the flow or create it
     function _increaseFlow(address to, int96 flowRate) internal {
         (, int96 outFlowRate, , ) = _cfa.getFlow(_acceptedToken, address(this), to); //returns 0 if stream doesn't exist
         if (outFlowRate == 0) {

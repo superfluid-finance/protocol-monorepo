@@ -48,7 +48,7 @@ async function main() {
   const nonce = await web3.eth.getTransactionCount(_sender, 'latest'); // nonce starts counting from 0
 
 
-  const txData = (await budgetNFT.methods.issueNFT(_receiver, "38580246913")).encodeABI() //~100 per mo
+  const txData = (await budgetNFT.methods.issueNFT(_receiver, "38580246913")).encodeABI() //~0.1 DAI per mo
 
   //send the tx to the contract
   let tx = {

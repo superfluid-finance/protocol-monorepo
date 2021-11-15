@@ -22,6 +22,11 @@
     "build": "npx hardhat compile",
     "deploy:reset": "npx hardhat deploy --reset",
     "deploy": "npx hardhat deploy",
-    "verify": "npx hardhat etherscan-verify"
+    "verify": "npx hardhat etherscan-verify",
+    "issue": "npx hardhat run scripts/issueNFT.js",
+    "edit": "npx hardhat run scripts/editNFT.js",
+    "split": "npx hardhat run scripts/splitStreams.js",
+    "merge": "npx hardhat run scripts/mergeStreams.js",
+    "burn": "npx hardhat run scripts/burnNFT.js"
   }
 }

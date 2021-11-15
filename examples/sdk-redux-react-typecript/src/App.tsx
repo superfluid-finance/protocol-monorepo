@@ -41,6 +41,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import { ListIndexSubscriptions } from "./ListIndexSubscriptions";
 import { ListUserInteractedSuperTokens } from "./ListUserInteractedSuperTokens";
 import {ListSuperTokens} from "./ListSuperTokens";
+import {GetRealtimeBalance} from "./GetRealtimeBalance";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -195,6 +196,7 @@ function App() {
     };
 
     const [isListIndexesOpen, setIsListIndexesOpen] = useState(false);
+    const [isGetRealtimeBalanceOpen, setIsGetRealtimeBalanceOpen] = useState(false);
     const [isListIndexSubscriptionsOpen, setIsListIndexSubscriptionsOpen] =
         useState(false);
     const [isActiveStreamsOpen, setIsActiveStreamsOpen] = useState(false);
@@ -271,6 +273,35 @@ function App() {
                                 >
                                     <Box maxWidth="xl">
                                         <TransactionTable />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsGetRealtimeBalanceOpen(
+                                            !isGetRealtimeBalanceOpen
+                                        )
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Realtime Balance" />
+                                    {isGetRealtimeBalanceOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isGetRealtimeBalanceOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <GetRealtimeBalance />
                                     </Box>
                                 </Collapse>
                             </Box>

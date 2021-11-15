@@ -18,6 +18,7 @@ import Operation from "./Operation";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import SFError from "./SFError";
+import { getSanitizedTimestamp, getStringCurrentTimeInSeconds } from "./utils";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -81,9 +82,9 @@ export default class SuperToken {
      * @returns [the available balance, deposit, owed deposit amount]
      */
     realtimeBalanceOf = async (
+        providerOrSigner: ethers.providers.Provider | ethers.Signer,
         address: string,
-        timestamp: string,
-        providerOrSigner: ethers.providers.Provider | ethers.Signer
+        timestamp: string = getStringCurrentTimeInSeconds()
     ) => {
         try {
             const realtimeBalanceOf = await this.superTokenContract
@@ -93,7 +94,7 @@ export default class SuperToken {
                 availableBalance: realtimeBalanceOf.availableBalance,
                 deposit: realtimeBalanceOf.deposit,
                 owedDeposit: realtimeBalanceOf.owedDeposit,
-                timestamp,
+                timestamp: getSanitizedTimestamp(timestamp),
             };
         } catch (err) {
             throw new SFError({
@@ -104,46 +105,16 @@ export default class SuperToken {
         }
     };
 
-    /**
-     * @dev Returns the real time balance of `address`.
-     * @param address the target address
-     * @param providerOrSigner a provider or signer for executing a web3 call
-     * @returns [the available balance, deposit, owed deposit amount, timestamp]
-     */
-    realtimeBalanceOfNow = async (
-        address: string,
-        providerOrSigner: ethers.providers.Provider | ethers.Signer
-    ) => {
-        try {
-            const realtimeBalanceOfNow = await this.superTokenContract
-                .connect(providerOrSigner)
-                .realtimeBalanceOfNow(address);
-            return {
-                availableBalance: realtimeBalanceOfNow.availableBalance,
-                deposit: realtimeBalanceOfNow.deposit,
-                owedDeposit: realtimeBalanceOfNow.owedDeposit,
-                timestamp: realtimeBalanceOfNow.timestamp,
-            };
-        } catch (err) {
-            throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage:
-                    "There was an error getting realtimeBalanceOfNow",
-                errorObject: err,
-            });
-        }
-    };
-
     // SuperToken Contract Write Functions
     /**
-     * @dev Approve `recipient` to spend `amount` tokens.
-     * @param recipient The recipient approved.
+     * @dev Approve `receiver` to spend `amount` tokens.
+     * @param receiver The receiver approved.
      * @param amount The amount approved.
      * @returns An instance of Operation which can be executed or batched.
      */
-    approve = (recipient: string, amount: string): Operation => {
+    approve = (receiver: string, amount: string): Operation => {
         const txn = this.superTokenContract.populateTransaction.approve(
-            recipient,
+            receiver,
             amount
         );
         return new Operation(txn, "ERC20_APPROVE");
@@ -160,33 +131,35 @@ export default class SuperToken {
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
     };
 
-    /**     * @dev Transfer `recipient` `amount` tokens.
-     * @param recipient The recipient of the transfer.
+    /**
+     * @dev Transfer `receiver` `amount` tokens.
+     * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.
      * @returns An instance of Operation which can be executed or batched.
      */
-    transfer = (recipient: string, amount: string): Operation => {
+    transfer = (receiver: string, amount: string): Operation => {
         const txn = this.superTokenContract.populateTransaction.transfer(
-            recipient,
+            receiver,
             amount
         );
         return new Operation(txn, "UNSUPPORTED");
     };
 
     /**
-     * @dev Transfer from `sender` to `recipient` `amount` tokens.
+     * @dev Transfer from `sender` to `receiver` `amount` tokens.
      * @param sender The sender of the transfer.
-     * @param recipient The recipient of the transfer.
-     * @param amount The amount to be transferred.     * @returns An instance of Operation which can be executed or batched.
+     * @param receiver The receiver of the transfer.
+     * @param amount The amount to be transferred.
+     * @returns An instance of Operation which can be executed or batched.
      */
     transferFrom = (
         sender: string,
-        recipient: string,
+        receiver: string,
         amount: string
     ): Operation => {
         const txn = this.superTokenContract.populateTransaction.transferFrom(
             sender,
-            recipient,
+            receiver,
             amount
         );
         return new Operation(txn, "ERC20_TRANSFER_FROM");
@@ -202,7 +175,55 @@ export default class SuperToken {
         return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
-    // CFA Functions
+    // CFA Read Functions
+
+    getFlow = async ({
+        sender,
+        receiver,
+        providerOrSigner,
+    }: {
+        sender: string;
+        receiver: string;
+        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    }) => {
+        return await this.cfaV1.getFlow({
+            superToken: this.options.address,
+            sender,
+            receiver,
+            providerOrSigner,
+        });
+    };
+
+    getAccountFlowInfo = async ({
+        account,
+        providerOrSigner,
+    }: {
+        account: string;
+        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    }) => {
+        return await this.cfaV1.getAccountFlowInfo({
+            superToken: this.options.address,
+            account,
+            providerOrSigner,
+        });
+    };
+
+    getNetFlow = async ({
+        account,
+        providerOrSigner,
+    }: {
+        account: string;
+        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    }) => {
+        return await this.cfaV1.getNetFlow({
+            superToken: this.options.address,
+            account,
+            providerOrSigner,
+        });
+    };
+
+    // CFA Write Functions
+
     /**
      * @dev Create a flow of the token of this class.
      * @param sender The sender of the flow.

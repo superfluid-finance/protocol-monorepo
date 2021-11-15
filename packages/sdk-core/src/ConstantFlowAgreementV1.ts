@@ -7,8 +7,9 @@ import {
 } from "./interfaces";
 import Operation from "./Operation";
 import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
-import { normalizeAddress } from "./utils";
+import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 import Host from "./Host";
+import { IConstantFlowAgreementV1 } from "./typechain";
 
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
@@ -24,6 +25,72 @@ export default class ConstantFlowAgreementV1 {
         this.options = options;
         this.host = new Host(options.config.hostAddress);
     }
+
+    private get cfaContract() {
+        return new ethers.Contract(
+            this.options.config.cfaV1Address,
+            IConstantFlowAgreementV1ABI
+        ) as IConstantFlowAgreementV1;
+    }
+
+    // CFA Read Functions
+
+    getFlow = async ({
+        superToken,
+        sender,
+        receiver,
+        providerOrSigner,
+    }: {
+        superToken: string;
+        sender: string;
+        receiver: string;
+        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    }) => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedReceiver = normalizeAddress(receiver);
+        const flowData = await this.cfaContract
+            .connect(providerOrSigner)
+            .getFlow(normalizedToken, normalizedSender, normalizedReceiver);
+        return this._sanitizeflowInfo(flowData);
+    };
+
+    getAccountFlowInfo = async ({
+        superToken,
+        account,
+        providerOrSigner,
+    }: {
+        superToken: string;
+        account: string;
+        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    }) => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedAccount = normalizeAddress(account);
+        const flowData = await this.cfaContract
+            .connect(providerOrSigner)
+            .getAccountFlowInfo(normalizedToken, normalizedAccount);
+        return this._sanitizeflowInfo(flowData);
+    };
+
+    getNetFlow = async ({
+        superToken,
+        account,
+        providerOrSigner,
+    }: {
+        superToken: string;
+        account: string;
+        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    }) => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedAccount = normalizeAddress(account);
+        return (
+            await this.cfaContract
+                .connect(providerOrSigner)
+                .getNetFlow(normalizedToken, normalizedAccount)
+        ).toString();
+    };
+
+    // CFA Write Functions
 
     /**
      * @dev Create a flow.
@@ -118,4 +185,23 @@ export default class ConstantFlowAgreementV1 {
             userData
         );
     };
+
+    _sanitizeflowInfo({
+        timestamp,
+        flowRate,
+        deposit,
+        owedDeposit,
+    }: {
+        timestamp: ethers.BigNumber;
+        flowRate: ethers.BigNumber;
+        deposit: ethers.BigNumber;
+        owedDeposit: ethers.BigNumber;
+    }) {
+        return {
+            timestamp: getSanitizedTimestamp(timestamp),
+            flowRate: flowRate.toString(),
+            deposit: deposit.toString(),
+            owedDeposit: owedDeposit.toString(),
+        };
+    }
 }

@@ -179,6 +179,10 @@ export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
     );
 };
 
+export const getStringCurrentTimeInSeconds = () => Math.floor(new Date().getTime() / 1000).toString();
+
+export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) => new Date(Number(timestamp.toString()) * 1000);
+
 /**
  * @dev The formula for calculating the balance until updated at of a user (claimable + received tokens from index)
  * @param currentBalance the current balance until updated at from the `AccountTokenSnapshot` entity

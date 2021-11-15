@@ -14,5 +14,14 @@
     "dotenv": "^10.0.0",
     "hardhat-deploy": "^0.9.4",
     "web3": "^1.6.0"
+  },
+  "scripts": {
+    "accounts": "npx hardhat accounts",
+    "test": "npx hardhat test",
+    "lint": "npx hardhat check",
+    "build": "npx hardhat compile",
+    "deploy:reset": "npx hardhat deploy --reset",
+    "deploy": "npx hardhat deploy",
+    "verify": "npx hardhat etherscan-verify"
   }
 }

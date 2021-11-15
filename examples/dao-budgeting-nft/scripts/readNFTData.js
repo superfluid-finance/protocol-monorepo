@@ -30,7 +30,7 @@ const budgetNFTAddress = deployedBudgetNFT.address;
 
 
 //address of owner of option here..need to change this
-const _sender = "0x5966aa11c794893774a382d9a19743B8be6BFFd1";
+const _sender = "0x9C040e2d6Fd83A8b35069aa7154b69674961e0F7";
 
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.

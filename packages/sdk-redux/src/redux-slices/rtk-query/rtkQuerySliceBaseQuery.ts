@@ -6,7 +6,7 @@ import { MutationArg, QueryArg, TransactionInfo } from '../baseArg';
 export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;
 
-export interface ValidationError {
+export type ValidationError = {
     message: string; // Keep it named "message" to have same structure with Redux Toolkit's SerializedError.
 }
 

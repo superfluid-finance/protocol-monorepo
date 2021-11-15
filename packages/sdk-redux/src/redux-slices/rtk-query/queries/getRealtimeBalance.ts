@@ -2,13 +2,13 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface GetRealtimeBalanceArg extends QueryArg {
+export type GetRealtimeBalanceArg = QueryArg & {
     superTokenAddress: string;
     accountAddress: string;
     timestamp?: string;
 }
 
-export interface GetRealtimeBalanceResult {
+export type GetRealtimeBalanceResult = {
     availableBalance: string;
     netFlowRate: string;
     deposit: string;

@@ -9,9 +9,7 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface ListIndexesArg
-    extends PaginatedQueryArg,
-        IIndexRequestFilter {}
+export type ListIndexesArg = PaginatedQueryArg & IIndexRequestFilter;
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({

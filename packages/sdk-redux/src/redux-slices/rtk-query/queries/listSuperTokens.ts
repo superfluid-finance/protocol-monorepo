@@ -9,10 +9,7 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface ListSuperTokensArg
-    extends PaginatedQueryArg,
-        ISuperTokenRequestFilter {
-}
+export type ListSuperTokensArg = PaginatedQueryArg & ISuperTokenRequestFilter;
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({

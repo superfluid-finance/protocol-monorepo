@@ -4,7 +4,7 @@ import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import {invalidateTagsHandler} from "../invalidateTagsHandler";
 
-export interface UpdateFlowArg extends MutationArg {
+export type UpdateFlowArg = MutationArg & {
     superToken: string;
     sender: string;
     receiver: string;

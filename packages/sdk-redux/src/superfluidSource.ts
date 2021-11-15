@@ -4,7 +4,7 @@ import {Signer} from "ethers";
 const frameworks = new Map<number, Promise<Framework>>();
 const signers = new Map<number, Promise<Signer>>();
 
-export interface SuperfluidSource {
+export type SuperfluidSource = {
     getFramework: (chainId: number) => Promise<Framework>;
     setFramework: (chainId: number, frameworkPromise: Promise<Framework>) => void;
     getSigner: (chainId: number) => Promise<Signer>;

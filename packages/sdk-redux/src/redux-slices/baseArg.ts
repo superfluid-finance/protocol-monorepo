@@ -1,24 +1,24 @@
-export interface QueryArg extends Record<string, unknown> {
+export type QueryArg = Record<string, unknown> & {
     chainId: number;
 }
 
-export interface PaginatedQueryArg extends QueryArg {
+export type PaginatedQueryArg = QueryArg & {
     skip: number;
     take: number;
 }
 
-export interface PaginatedQueryResult {
+export type PaginatedQueryResult = {
     skip: number;
     take: number;
     hasNextPage: boolean;
 }
 
-export interface MutationArg extends Record<string, unknown> {
+export type MutationArg = Record<string, unknown> & {
     chainId: number;
     waitForConfirmation?: boolean;
 }
 
-export interface TransactionInfo {
+export type TransactionInfo = {
     chainId: number;
     hash: string;
 }

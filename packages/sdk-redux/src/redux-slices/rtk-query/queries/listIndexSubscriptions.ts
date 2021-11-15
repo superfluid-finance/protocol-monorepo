@@ -2,7 +2,7 @@ import {
     IIndexSubscription,
     Paging,
     PagedResult,
-    IIndexSubscriptionRequestFilter
+    IIndexSubscriptionRequestFilter,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
@@ -10,13 +10,15 @@ import { PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 // TODO(KK): cache key?
-export interface ListIndexSubscriptionsArg
-    extends PaginatedQueryArg,
-        IIndexSubscriptionRequestFilter {}
+export type ListIndexSubscriptionsArg = PaginatedQueryArg &
+    IIndexSubscriptionRequestFilter;
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        listIndexSubscriptions: builder.query<PagedResult<IIndexSubscription>, ListIndexSubscriptionsArg>({
+        listIndexSubscriptions: builder.query<
+            PagedResult<IIndexSubscription>,
+            ListIndexSubscriptionsArg
+        >({
             queryFn: async (arg) => {
                 const framework =
                     await initializedSuperfluidSource.getFramework(arg.chainId);
@@ -33,4 +35,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     overrideExisting: false,
 });
 
-export const { useListIndexSubscriptionsQuery, useLazyListIndexSubscriptionsQuery } = extendedApi;
+export const {
+    useListIndexSubscriptionsQuery,
+    useLazyListIndexSubscriptionsQuery,
+} = extendedApi;

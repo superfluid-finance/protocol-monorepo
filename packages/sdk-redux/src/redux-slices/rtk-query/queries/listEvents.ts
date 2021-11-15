@@ -1,11 +1,15 @@
-import { AllEvents, Paging, PagedResult, IEventFilter } from '@superfluid-finance/sdk-core';
+import {
+    AllEvents,
+    Paging,
+    PagedResult,
+    IEventFilter,
+} from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import {PaginatedQueryArg} from '../../baseArg';
+import { PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface ListEventsArg extends PaginatedQueryArg, IEventFilter {
-}
+export type ListEventsArg = PaginatedQueryArg & IEventFilter;
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -32,5 +36,4 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     overrideExisting: false,
 });
 
-export const { useListEventsQuery, useLazyListEventsQuery } =
-    extendedApi;
+export const { useListEventsQuery, useLazyListEventsQuery } = extendedApi;

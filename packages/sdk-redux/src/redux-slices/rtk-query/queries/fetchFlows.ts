@@ -4,8 +4,7 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface ListStreamsArg
-    extends QueryArg{
+export type ListStreamsArg = QueryArg & {
     accountAddress: string;
 }
 

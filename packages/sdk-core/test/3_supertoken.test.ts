@@ -62,7 +62,6 @@ describe("SuperToken Tests", () => {
                     },
                 });
             } catch (err: any) {
-                console.log(err.message);
                 expect(err.message).to.equal(
                     "SuperToken Initialization Error - You must input chainId or networkName."
                 );

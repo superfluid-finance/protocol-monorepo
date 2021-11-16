@@ -12,13 +12,12 @@ describe("Framework Tests", () => {
     let deployer: SignerWithAddress;
     let superToken: SuperToken;
     let framework: Framework;
-    let INFURA_API_KEY: string;
+    let INFURA_API_URL: string;
 
     if (process.env.MATIC_PROVIDER_URL) {
-        const splitProviderURL = process.env.MATIC_PROVIDER_URL.split("/");
-        INFURA_API_KEY = splitProviderURL[splitProviderURL.length - 1] || "";
+        INFURA_API_URL = process.env.MATIC_PROVIDER_URL || "";
     } else {
-        INFURA_API_KEY = process.env.INFURA_API_KEY || "";
+        INFURA_API_URL = process.env.INFURA_API_URL || "";
     }
 
     before(async () => {
@@ -153,9 +152,9 @@ describe("Framework Tests", () => {
 
         it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
-                const infuraProvider = new ethers.providers.InfuraProvider(
-                    "matic",
-                    INFURA_API_KEY
+                const infuraProvider = new ethers.providers.JsonRpcProvider(
+                    INFURA_API_URL,
+                    "matic"
                 );
                 await Framework.create({
                     networkName: "matic",
@@ -172,12 +171,12 @@ describe("Framework Tests", () => {
         });
 
         it("Should be able to create a framework with chain id only", async () => {
-            const infuraProvider = new ethers.providers.InfuraProvider(
-                "ropsten",
-                INFURA_API_KEY
+            const infuraProvider = new ethers.providers.JsonRpcProvider(
+                INFURA_API_URL,
+                "matic"
             );
             await Framework.create({
-                chainId: 3,
+                chainId: 137,
                 provider: infuraProvider,
             });
         });

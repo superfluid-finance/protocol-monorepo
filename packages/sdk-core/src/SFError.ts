@@ -3,12 +3,9 @@ type ErrorType =
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
     | "SUPERTOKEN_READ"
-    | "SUPERTOKEN_WRITE"
     | "SUBGRAPH_ERROR"
     | "CFAV1_READ"
-    | "CFAV1_WRITE"
     | "IDAV1_READ"
-    | "IDAV1_WRITE"
     | "INVALID_ADDRESS"
     | "INVALID_OBJECT"
     | "EXECUTE_TRANSACTION"
@@ -25,12 +22,9 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["SUPERTOKEN_INITIALIZATION", "SuperToken Initialization"],
     ["CREATE_SIGNER", "Create Signer"],
     ["SUPERTOKEN_READ", "SuperToken Read"],
-    ["SUPERTOKEN_WRITE", "SuperToken Write"],
     ["SUBGRAPH_ERROR", "Subgraph"],
     ["CFAV1_READ", "ConstantFlowAgreementV1 Read"],
-    ["CFAV1_WRITE", "ConstantFlowAgreementV1 Write"],
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
-    ["IDAV1_WRITE", "InstantDistributionAgreementV1 Write"],
     ["INVALID_ADDRESS", "Invalid Address"],
     ["INVALID_OBJECT", "Invalid Object"],
     ["POPULATE_TRANSACTION", "Populate Transaction"],

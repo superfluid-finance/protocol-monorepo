@@ -4,15 +4,23 @@ import { abi as SuperTokenABI } from "./abi/SuperToken.json";
 import { getNetworkName } from "./frameworkHelpers";
 import { SuperToken as ISuperToken } from "./typechain";
 import {
+    IBaseSuperTokenParams,
     IConfig,
+    IGetFlowParams,
+    IGetFlowInfoParams,
+    IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
     ISuperTokenBaseSubscriptionParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
+    ISuperTokenGetIndexParams,
+    ISuperTokenGetSubscriptionParams,
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
+    ITransferFromParams,
+    IWeb3Subscription,
 } from "./interfaces";
 import Operation from "./Operation";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -81,11 +89,11 @@ export default class SuperToken {
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns [the available balance, deposit, owed deposit amount]
      */
-    realtimeBalanceOf = async (
-        providerOrSigner: ethers.providers.Provider | ethers.Signer,
-        address: string,
-        timestamp: string = getStringCurrentTimeInSeconds()
-    ) => {
+    realtimeBalanceOf = async ({
+        providerOrSigner,
+        address,
+        timestamp = getStringCurrentTimeInSeconds(),
+    }: IRealtimeBalanceOfParams) => {
         try {
             const realtimeBalanceOf = await this.superTokenContract
                 .connect(providerOrSigner)
@@ -106,13 +114,14 @@ export default class SuperToken {
     };
 
     // SuperToken Contract Write Functions
+
     /**
      * @dev Approve `receiver` to spend `amount` tokens.
      * @param receiver The receiver approved.
      * @param amount The amount approved.
      * @returns An instance of Operation which can be executed or batched.
      */
-    approve = (receiver: string, amount: string): Operation => {
+    approve = ({ receiver, amount }: IBaseSuperTokenParams): Operation => {
         const txn = this.superTokenContract.populateTransaction.approve(
             receiver,
             amount
@@ -125,7 +134,7 @@ export default class SuperToken {
      * @param amount The amount to be downgraded.
      * @returns An instance of Operation which can be executed or batched.
      */
-    downgrade = (amount: string): Operation => {
+    downgrade = ({ amount }: { amount: string }): Operation => {
         const txn =
             this.superTokenContract.populateTransaction.downgrade(amount);
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
@@ -137,7 +146,7 @@ export default class SuperToken {
      * @param amount The amount to be transferred.
      * @returns An instance of Operation which can be executed or batched.
      */
-    transfer = (receiver: string, amount: string): Operation => {
+    transfer = ({ receiver, amount }: IBaseSuperTokenParams): Operation => {
         const txn = this.superTokenContract.populateTransaction.transfer(
             receiver,
             amount
@@ -152,11 +161,11 @@ export default class SuperToken {
      * @param amount The amount to be transferred.
      * @returns An instance of Operation which can be executed or batched.
      */
-    transferFrom = (
-        sender: string,
-        receiver: string,
-        amount: string
-    ): Operation => {
+    transferFrom = ({
+        sender,
+        receiver,
+        amount,
+    }: ITransferFromParams): Operation => {
         const txn = this.superTokenContract.populateTransaction.transferFrom(
             sender,
             receiver,
@@ -170,22 +179,25 @@ export default class SuperToken {
      * @param amount The amount to be upgraded.
      * @returns An instance of Operation which can be executed or batched.
      */
-    upgrade = (amount: string): Operation => {
+    upgrade = ({ amount }: { amount: string }): Operation => {
         const txn = this.superTokenContract.populateTransaction.upgrade(amount);
         return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
     // CFA Read Functions
 
+    /**
+     * @dev Get the details of a flow.
+     * @param sender the sender of the flow
+     * @param receiver the receiver of the flow
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Flow info object
+     */
     getFlow = async ({
         sender,
         receiver,
         providerOrSigner,
-    }: {
-        sender: string;
-        receiver: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }) => {
+    }: IGetFlowParams) => {
         return await this.cfaV1.getFlow({
             superToken: this.options.address,
             sender,
@@ -194,13 +206,16 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Get the flow info of an account (net flow).
+     * @param account the account we're querying
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Flow info object
+     */
     getAccountFlowInfo = async ({
         account,
         providerOrSigner,
-    }: {
-        account: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }) => {
+    }: IGetFlowInfoParams) => {
         return await this.cfaV1.getAccountFlowInfo({
             superToken: this.options.address,
             account,
@@ -208,13 +223,13 @@ export default class SuperToken {
         });
     };
 
-    getNetFlow = async ({
-        account,
-        providerOrSigner,
-    }: {
-        account: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }) => {
+    /**
+     * @dev Get the net flow of an account.
+     * @param account the account we're querying
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Flow info object
+     */
+    getNetFlow = async ({ account, providerOrSigner }: IGetFlowInfoParams) => {
         return await this.cfaV1.getNetFlow({
             superToken: this.options.address,
             account,
@@ -290,7 +305,53 @@ export default class SuperToken {
         });
     };
 
-    // IDA Functions
+    // IDA Read Functions
+
+    /**
+     * @dev Get the details of a `Subscription`.
+     * @param publisher the address of the publisher of the index
+     * @param indexId the index id
+     * @param subscriber the subscriber's address
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Subscription object
+     */
+    getSubscription = async ({
+        publisher,
+        indexId,
+        subscriber,
+        providerOrSigner,
+    }: ISuperTokenGetSubscriptionParams): Promise<IWeb3Subscription> => {
+        return await this.idaV1.getSubscription({
+            superToken: this.options.address,
+            publisher,
+            indexId,
+            subscriber,
+            providerOrSigner,
+        });
+    };
+
+    /**
+     * @dev Get the details of an `Index`.
+     * @param publisher the address of the publisher of the index
+     * @param indexId the index id
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Index object
+     */
+    getIndex = async ({
+        publisher,
+        indexId,
+        providerOrSigner,
+    }: ISuperTokenGetIndexParams) => {
+        return await this.idaV1.getIndex({
+            superToken: this.options.address,
+            publisher,
+            indexId,
+            providerOrSigner,
+        });
+    };
+
+    // IDA Write Functions
+
     /**
      * @dev Creates an IDA Index.
      * @param indexId The id of the index.

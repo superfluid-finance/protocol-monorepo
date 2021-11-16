@@ -187,7 +187,7 @@ export default class Framework {
                     "You must pass in a private key, provider or signer.",
             });
         }
-        
+
         /* istanbul ignore else  */
         if (options.privateKey) {
             if (!options.provider) {

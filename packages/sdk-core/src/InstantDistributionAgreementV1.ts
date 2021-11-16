@@ -5,12 +5,18 @@ import {
     IBaseIDAParams,
     IBaseSubscriptionParams,
     IDistributeParams,
+    IGetIndexParams,
+    IGetSubscriptionParams,
     IUpdateIndexValueParams,
     IUpdateSubscriptionUnitsParams,
+    IWeb3Index,
+    IWeb3Subscription,
 } from "./interfaces";
 import { normalizeAddress } from "./utils";
 import Operation from "./Operation";
 import Host from "./Host";
+import { IInstantDistributionAgreementV1 } from "./typechain";
+import SFError from "./SFError";
 
 const idaInterface = new ethers.utils.Interface(
     IInstantDistributionAgreementV1ABI
@@ -28,6 +34,97 @@ export default class InstantDistributionAgreementV1 {
         this.options = options;
         this.host = new Host(options.config.hostAddress);
     }
+
+    private get idaContract() {
+        return new ethers.Contract(
+            this.options.config.idaV1Address,
+            IInstantDistributionAgreementV1ABI
+        ) as IInstantDistributionAgreementV1;
+    }
+
+    // IDA Read Functions
+
+    /**
+     * @dev Get the details of a `Subscription`.
+     * @param superToken the superToken of the agreement
+     * @param publisher the address of the publisher of the index
+     * @param indexId the index id
+     * @param subscriber the subscriber's address
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Subscription object
+     */
+    getSubscription = async ({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        providerOrSigner,
+    }: IGetSubscriptionParams): Promise<IWeb3Subscription> => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedPublisher = normalizeAddress(publisher);
+        const normalizedSubscriber = normalizeAddress(subscriber);
+        try {
+            const subscription = await this.idaContract
+                .connect(providerOrSigner)
+                .getSubscription(
+                    normalizedToken,
+                    normalizedPublisher,
+                    indexId,
+                    normalizedSubscriber
+                );
+
+            return {
+                exist: subscription.exist,
+                approved: subscription.approved,
+                units: subscription.units.toString(),
+                pendingDistribution:
+                    subscription.pendingDistribution.toString(),
+            };
+        } catch (err) {
+            throw new SFError({
+                type: "IDAV1_READ",
+                customMessage: "There was an error getting the subscription",
+                errorObject: err,
+            });
+        }
+    };
+
+    /**
+     * @dev Get the details of an `Index`.
+     * @param superToken the superToken of the agreement
+     * @param publisher the address of the publisher of the index
+     * @param indexId the index id
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Index object
+     */
+    getIndex = async ({
+        superToken,
+        publisher,
+        indexId,
+        providerOrSigner,
+    }: IGetIndexParams): Promise<IWeb3Index> => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedPublisher = normalizeAddress(publisher);
+        try {
+            const index = await this.idaContract
+                .connect(providerOrSigner)
+                .getIndex(normalizedToken, normalizedPublisher, indexId);
+            return {
+                exist: index.exist,
+                indexValue: index.indexValue.toString(),
+                totalUnitsApproved: index.totalUnitsApproved.toString(),
+                totalUnitsPending: index.totalUnitsPending.toString(),
+            };
+        } catch (err) {
+            throw new SFError({
+                type: "IDAV1_READ",
+                customMessage: "There was an error getting the index",
+                errorObject: err,
+            });
+        }
+    };
+
+    // IDA Write Functions
 
     /**
      * @dev Creates an IDA Index.

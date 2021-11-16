@@ -55,6 +55,16 @@ export interface ISuperTokenBaseIDAParams {
     readonly publisher?: string;
     readonly userData?: string;
 }
+export interface ISuperTokenGetSubscriptionParams
+    extends ISuperTokenBaseIDAParams {
+    readonly publisher: string;
+    readonly subscriber: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface ISuperTokenGetIndexParams extends ISuperTokenBaseIDAParams {
+    readonly publisher: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
 export interface ISuperTokenBaseSubscriptionParams
     extends ISuperTokenBaseIDAParams {
     readonly subscriber: string;
@@ -86,6 +96,47 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
 }
 
+export interface IRealtimeBalanceOfParams {
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly address: string;
+    readonly timestamp?: string;
+}
+
+export interface IBaseSuperTokenParams {
+    readonly receiver: string;
+    readonly amount: string;
+}
+
+export interface ITransferFromParams {
+    readonly sender: string;
+    readonly receiver: string;
+    readonly amount: string;
+}
+
+export interface IGetFlowParams {
+    readonly sender: string;
+    readonly receiver: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetFlowInfoParams {
+    readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetFlowParams {
+    readonly superToken: string;
+    readonly sender: string;
+    readonly receiver: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetAccountFlowInfoParams {
+    readonly superToken: string;
+    readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
 export interface IBaseIDAParams {
     readonly indexId: string;
     readonly superToken: string;
@@ -94,6 +145,16 @@ export interface IBaseIDAParams {
 }
 export interface IBaseSubscriptionParams extends IBaseIDAParams {
     readonly subscriber: string;
+}
+
+export interface IGetSubscriptionParams extends IBaseIDAParams {
+    readonly publisher: string;
+    readonly subscriber: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface IGetIndexParams extends IBaseIDAParams {
+    readonly publisher: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
 export interface IDistributeParams extends IBaseIDAParams {
@@ -242,4 +303,34 @@ export interface IConfig {
 
 export interface IAgreementV1Options {
     readonly config: IConfig;
+}
+
+// Web3 Return Data
+
+export interface IWeb3Subscription {
+    readonly exist: boolean;
+    readonly approved: boolean;
+    readonly units: string;
+    readonly pendingDistribution: string;
+}
+
+export interface IWeb3Index {
+    readonly exist: boolean;
+    readonly indexValue: string;
+    readonly totalUnitsApproved: string;
+    readonly totalUnitsPending: string;
+}
+
+export interface IWeb3FlowInfoParams {
+    readonly timestamp: ethers.BigNumber;
+    readonly flowRate: ethers.BigNumber;
+    readonly deposit: ethers.BigNumber;
+    readonly owedDeposit: ethers.BigNumber;
+}
+
+export interface IWeb3FlowInfo {
+    readonly timestamp: Date;
+    readonly flowRate: string;
+    readonly deposit: string;
+    readonly owedDeposit: string;
 }

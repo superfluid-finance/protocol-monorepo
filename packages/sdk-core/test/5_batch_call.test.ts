@@ -25,10 +25,10 @@ describe("Batch Call Tests", () => {
 
     it("Should throw an error on unsupported operations", async () => {
         const daix = framework.loadSuperToken(superToken.address);
-        const transferOp = daix.transfer(
-            alpha.address,
-            ethers.utils.parseUnits("1000").toString()
-        );
+        const transferOp = daix.transfer({
+            receiver: alpha.address,
+            amount: ethers.utils.parseUnits("1000").toString(),
+        });
         const batchCall = framework.batchCall([transferOp]);
 
         try {
@@ -60,12 +60,12 @@ describe("Batch Call Tests", () => {
     it("Should be able to create and execute a batch call", async () => {
         const amount = ethers.utils.parseUnits("1000").toString();
         const daix = framework.loadSuperToken(superToken.address);
-        const approveOp = daix.approve(alpha.address, amount);
-        const transferFromOp = daix.transferFrom(
-            deployer.address,
-            alpha.address,
-            amount
-        );
+        const approveOp = daix.approve({ receiver: alpha.address, amount });
+        const transferFromOp = daix.transferFrom({
+            sender: deployer.address,
+            receiver: alpha.address,
+            amount,
+        });
         const batchCall = framework.batchCall([approveOp, transferFromOp]);
         await expect(batchCall.exec(deployer))
             .to.emit(superToken, "Transfer")

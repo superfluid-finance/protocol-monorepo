@@ -4,12 +4,17 @@ import {
     ICreateFlowParams,
     IDeleteFlowParams,
     IUpdateFlowParams,
+    IGetFlowParams,
+    IGetAccountFlowInfoParams,
+    IWeb3FlowInfoParams,
+    IWeb3FlowInfo,
 } from "./interfaces";
 import Operation from "./Operation";
 import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
 import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 import Host from "./Host";
 import { IConstantFlowAgreementV1 } from "./typechain";
+import SFError from "./SFError";
 
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
@@ -35,59 +40,93 @@ export default class ConstantFlowAgreementV1 {
 
     // CFA Read Functions
 
+    /**
+     * @dev Get the details of a flow.
+     * @param superToken the superToken of the agreement
+     * @param sender the sender of the flow
+     * @param receiver the receiver of the flow
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Flow info object
+     */
     getFlow = async ({
         superToken,
         sender,
         receiver,
         providerOrSigner,
-    }: {
-        superToken: string;
-        sender: string;
-        receiver: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }) => {
+    }: IGetFlowParams): Promise<IWeb3FlowInfo> => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSender = normalizeAddress(sender);
         const normalizedReceiver = normalizeAddress(receiver);
-        const flowData = await this.cfaContract
-            .connect(providerOrSigner)
-            .getFlow(normalizedToken, normalizedSender, normalizedReceiver);
-        return this._sanitizeflowInfo(flowData);
+        try {
+            const flowData = await this.cfaContract
+                .connect(providerOrSigner)
+                .getFlow(normalizedToken, normalizedSender, normalizedReceiver);
+            return this._sanitizeflowInfo(flowData);
+        } catch (err) {
+            throw new SFError({
+                type: "CFAV1_READ",
+                customMessage: "There was an error getting the flow",
+                errorObject: err,
+            });
+        }
     };
 
+    /**
+     * @dev Get the flow info of an account (net flow).
+     * @param superToken the superToken of the agreement
+     * @param account the account we're querying
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Flow info object
+     */
     getAccountFlowInfo = async ({
         superToken,
         account,
         providerOrSigner,
-    }: {
-        superToken: string;
-        account: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }) => {
+    }: IGetAccountFlowInfoParams): Promise<IWeb3FlowInfo> => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedAccount = normalizeAddress(account);
-        const flowData = await this.cfaContract
-            .connect(providerOrSigner)
-            .getAccountFlowInfo(normalizedToken, normalizedAccount);
-        return this._sanitizeflowInfo(flowData);
+        try {
+            const flowData = await this.cfaContract
+                .connect(providerOrSigner)
+                .getAccountFlowInfo(normalizedToken, normalizedAccount);
+            return this._sanitizeflowInfo(flowData);
+        } catch (err) {
+            throw new SFError({
+                type: "CFAV1_READ",
+                customMessage:
+                    "There was an error getting the account flow information",
+                errorObject: err,
+            });
+        }
     };
 
+    /**
+     * @dev Get the net flow of an account.
+     * @param superToken the superToken of the agreement
+     * @param account the account we're querying
+     * @param providerOrSigner a provider or signer object
+     * @returns Web3 Flow info object
+     */
     getNetFlow = async ({
         superToken,
         account,
         providerOrSigner,
-    }: {
-        superToken: string;
-        account: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }) => {
+    }: IGetAccountFlowInfoParams): Promise<string> => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedAccount = normalizeAddress(account);
-        return (
-            await this.cfaContract
-                .connect(providerOrSigner)
-                .getNetFlow(normalizedToken, normalizedAccount)
-        ).toString();
+        try {
+            return (
+                await this.cfaContract
+                    .connect(providerOrSigner)
+                    .getNetFlow(normalizedToken, normalizedAccount)
+            ).toString();
+        } catch (err) {
+            throw new SFError({
+                type: "CFAV1_READ",
+                customMessage: "There was an error getting net flow",
+                errorObject: err,
+            });
+        }
     };
 
     // CFA Write Functions
@@ -191,12 +230,7 @@ export default class ConstantFlowAgreementV1 {
         flowRate,
         deposit,
         owedDeposit,
-    }: {
-        timestamp: ethers.BigNumber;
-        flowRate: ethers.BigNumber;
-        deposit: ethers.BigNumber;
-        owedDeposit: ethers.BigNumber;
-    }) {
+    }: IWeb3FlowInfoParams): IWeb3FlowInfo {
         return {
             timestamp: getSanitizedTimestamp(timestamp),
             flowRate: flowRate.toString(),

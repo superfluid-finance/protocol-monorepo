@@ -15,12 +15,12 @@ describe("Framework Tests", () => {
     let INFURA_API_URL: string;
 
     if (process.env.MATIC_PROVIDER_URL) {
+        console.log("HENLO");
         INFURA_API_URL = process.env.MATIC_PROVIDER_URL || "";
     } else {
+        console.log("GOODBYE");
         INFURA_API_URL = process.env.INFURA_API_URL || "";
     }
-
-    console.error("***************** INFURA_API_URL: ", INFURA_API_URL, " *****************");
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({

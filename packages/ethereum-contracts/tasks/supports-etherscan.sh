@@ -1,7 +1,7 @@
 TRUFFLE_NETWORK=$1
 
 case $TRUFFLE_NETWORK in
-    goerli | rinkeby | ropsten | kovan | mumbai | matic | opmainnet | opkovan | arbone | arbrinkeby | avalanche | fuji )
+    goerli | rinkeby | ropsten | kovan | mumbai | matic | opmainnet | opkovan | arbone | arbrinkeby | avalanche | avafuji )
         echo "$TRUFFLE_NETWORK is supported by Etherscan"
         exit 0;
         ;;

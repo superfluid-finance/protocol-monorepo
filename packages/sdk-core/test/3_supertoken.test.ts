@@ -13,6 +13,8 @@ import { setup } from "./setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 
+const INITIAL_AMOUNT_PER_USER = "10000000000000";
+
 describe("SuperToken Tests", () => {
     let framework: Framework;
     let cfaV1: IConstantFlowAgreementV1;
@@ -23,6 +25,8 @@ describe("SuperToken Tests", () => {
     let token: TestToken;
     let daix: SuperToken;
     let bravo: SignerWithAddress;
+    let charlie: SignerWithAddress;
+    let signerCount: number;
 
     before(async () => {
         const {
@@ -32,11 +36,12 @@ describe("SuperToken Tests", () => {
             Deployer,
             Alpha,
             Bravo,
+            Charlie,
             SuperToken,
             Token,
+            SignerCount,
         } = await setup({
             subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
-            amount: "1000000",
         });
         framework = frameworkClass;
         cfaV1 = CFAV1;
@@ -45,15 +50,18 @@ describe("SuperToken Tests", () => {
         alpha = Alpha;
         bravo = Bravo;
         superToken = SuperToken;
-        daix = framework.loadSuperToken(superToken.address);
+        daix = await framework.loadSuperToken(superToken.address);
         token = Token;
+        charlie = Charlie;
+        signerCount = SignerCount;
     });
 
     describe("Pure Token Tests", () => {
-        it("Should throw an error if SuperToken isn't initialized properly.", () => {
+        it("Should throw an error if SuperToken isn't initialized properly.", async () => {
             try {
-                new SuperToken({
+                await SuperToken.create({
                     address: superToken.address,
+                    provider: deployer.provider!,
                     config: {
                         hostAddress: "",
                         cfaV1Address: "",
@@ -66,13 +74,31 @@ describe("SuperToken Tests", () => {
                     "SuperToken Initialization Error - You must input chainId or networkName."
                 );
             }
+
+            try {
+                await SuperToken.create({
+                    address: superToken.address,
+                    provider: "" as any,
+                    networkName: "custom",
+                    config: {
+                        hostAddress: "",
+                        cfaV1Address: "",
+                        idaV1Address: "",
+                        superTokenFactoryAddress: "",
+                    },
+                });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Initialization Error - There was an error initializing the SuperToken"
+                );
+            }
         });
 
         it("Should throw an error on SuperToken read operations when incorrect input is passed", async () => {
             try {
                 await daix.realtimeBalanceOf({
                     providerOrSigner: deployer,
-                    address: alpha.address,
+                    account: alpha.address,
                     timestamp: "-1",
                 });
             } catch (err: any) {
@@ -82,14 +108,126 @@ describe("SuperToken Tests", () => {
             }
         });
 
-        it("Should properly initialize SuperToken", () => {
-            const daixTest = framework.loadSuperToken(superToken.address);
+        it("Should throw an error on Token read operations when incorrect input is passed", async () => {
+            // NOTE: provider is string as any to get this to throw an error on read
+            try {
+                await daix.allowance({
+                    owner: deployer.address,
+                    spender: alpha.address,
+                    providerOrSigner: "" as any,
+                });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting allowance"
+                );
+            }
+
+            try {
+                await daix.balanceOf({
+                    account: deployer.address,
+                    providerOrSigner: "" as any,
+                });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting balanceOf"
+                );
+            }
+
+            try {
+                await daix.name({ providerOrSigner: "" as any });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting name"
+                );
+            }
+
+            try {
+                await daix.symbol({ providerOrSigner: "" as any });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting symbol"
+                );
+            }
+
+            try {
+                await daix.totalSupply({ providerOrSigner: "" as any });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting totalSupply"
+                );
+            }
+        });
+
+        it("Should properly return totalSupply", async () => {
+            const totalSupply = await daix.totalSupply({
+                providerOrSigner: deployer,
+            });
+            expect(totalSupply).to.equal(
+                ethers.utils
+                    .parseUnits(
+                        (
+                            Number(INITIAL_AMOUNT_PER_USER) * signerCount
+                        ).toString()
+                    )
+                    .toString()
+            );
+        });
+
+        it("Should properly return balanceOf", async () => {
+            const balance = await daix.balanceOf({
+                account: charlie.address,
+                providerOrSigner: deployer,
+            });
+            expect(balance).to.equal(
+                ethers.utils.parseUnits(INITIAL_AMOUNT_PER_USER).toString()
+            );
+        });
+
+        it("Should properly return allowance", async () => {
+            const initialAllowance = await daix.allowance({
+                owner: deployer.address,
+                spender: alpha.address,
+                providerOrSigner: deployer,
+            });
+            expect(initialAllowance).to.equal("0");
+            const allowanceAmount = ethers.utils.parseUnits("100").toString();
+            const operation = daix.approve({
+                receiver: alpha.address,
+                amount: allowanceAmount,
+            });
+            await operation.exec(deployer);
+            const approvedAllowance = await daix.allowance({
+                owner: deployer.address,
+                spender: alpha.address,
+                providerOrSigner: deployer,
+            });
+            expect(approvedAllowance).to.equal(allowanceAmount);
+        });
+
+        it("Should properly return name", async () => {
+            const name = await daix.name({
+                providerOrSigner: deployer,
+            });
+            expect(name).to.equal("Super fDAI Fake Token");
+
+        });
+
+        it("Should properly return symbol", async () => {
+            const symbol = await daix.symbol({
+                providerOrSigner: deployer,
+            });
+            expect(symbol).to.equal("fDAIx");
+        });
+
+        it("Should properly initialize SuperToken", async () => {
+            const daixTest = await framework.loadSuperToken(superToken.address);
             expect(superToken.address).to.equal(daixTest.options.address);
         });
 
         it("Should be able to initialize SuperToken with networkName.", () => {
-            new SuperToken({
+            SuperToken.create({
                 address: superToken.address,
+                provider: deployer.provider!,
                 config: framework.settings.config,
                 networkName: "custom",
             });
@@ -98,7 +236,7 @@ describe("SuperToken Tests", () => {
         it("Should be able to get realtimeBalanceOf", async () => {
             await daix.realtimeBalanceOf({
                 providerOrSigner: deployer,
-                address: deployer.address,
+                account: deployer.address,
             });
         });
 

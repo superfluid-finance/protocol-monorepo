@@ -20,7 +20,9 @@ import Query from "./Query";
 import Operation from "./Operation";
 import SFError from "./SFError";
 
-// there will be implications and this needs to be handled appropriately
+// TODO: add convenience function of utilizing provider (optional)
+// instead of having to pass it in every single time
+// Normalize addresses in constructor
 export interface IFrameworkOptions {
     chainId?: number;
     customSubgraphQueriesEndpoint?: string;
@@ -227,7 +229,7 @@ export default class Framework {
      * @param address the `SuperToken` address
      * @returns `SuperToken` class
      */
-    loadSuperToken = (address: string): SuperToken => {
-        return new SuperToken({ ...this.settings, address });
+    loadSuperToken = async (address: string): Promise<SuperToken> => {
+        return SuperToken.create({ ...this.settings, address });
     };
 }

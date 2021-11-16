@@ -16,10 +16,8 @@ describe("Framework Tests", () => {
     let customProvider: ethers.providers.Provider;
 
     if (process.env.MATIC_PROVIDER_URL) {
-        console.log("HENLO");
         INFURA_API_URL = process.env.MATIC_PROVIDER_URL || "";
     } else {
-        console.log("GOODBYE");
         INFURA_API_URL = process.env.INFURA_API_URL || "";
     }
     if (INFURA_API_URL.includes("wss:")) {
@@ -73,7 +71,6 @@ describe("Framework Tests", () => {
 
         it("Should throw an error if network and chainId don't match", async () => {
             try {
-                // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
                 await Framework.create({
                     networkName: "matic",
                     chainId: 4,
@@ -104,7 +101,7 @@ describe("Framework Tests", () => {
 
         it("Should throw an error if no provider", async () => {
             try {
-                // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
+                // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
                     networkName: "matic",
                 } as any);
@@ -241,8 +238,8 @@ describe("Framework Tests", () => {
             framework.batchCall([]);
         });
 
-        it("Should be able to create an instance of a supertoken with framework.", () => {
-            const daix = framework.loadSuperToken(superToken.address);
+        it("Should be able to create an instance of a supertoken with framework.", async () => {
+            const daix = await framework.loadSuperToken(superToken.address);
             expect(daix.options.address).to.equal(superToken.address);
         });
     });

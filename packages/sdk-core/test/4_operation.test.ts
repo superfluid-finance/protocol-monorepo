@@ -73,7 +73,7 @@ describe("Operation Tests", () => {
     });
 
     it("Should be able to get signed transaction", async () => {
-        const daix = framework.loadSuperToken(superToken.address);
+        const daix = await framework.loadSuperToken(superToken.address);
         const flowRate = getPerSecondFlowRateByMonth("100");
         // NOTE: the hardhat signer does not support signing transactions, therefore, we must create
         // our own signer with a custom private key

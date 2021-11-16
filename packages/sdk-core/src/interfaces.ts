@@ -98,7 +98,7 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
 
 export interface IRealtimeBalanceOfParams {
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    readonly address: string;
+    readonly account: string;
     readonly timestamp?: string;
 }
 

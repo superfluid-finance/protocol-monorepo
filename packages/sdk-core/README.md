@@ -349,6 +349,13 @@ const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 ```ts
 import { SuperToken } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+let usdcx: SuperToken;
 
 const config = {
   hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
@@ -357,10 +364,11 @@ const config = {
   idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
-const usdcx = new SuperToken({
+usdcx = await SuperToken.create({
   address: "0xCAa7349CEA390F89641fe306D93591f87595dc1F",
   config,
   networkName: "matic",
+  provider
 });
 ```
 
@@ -370,9 +378,13 @@ const usdcx = new SuperToken({
 const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // SuperToken Read Functions
-await usdcx.balanceOf({ address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
-await usdcx.realtimeBalanceOf({ address: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
-await usdcx.realtimeBalanceOfNow({ address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+// ERC20 `Token` function
+await usdcx.balanceOf({ account: string, providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
+await usdcx.allowance({ owner: string, spender: string, providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
+await usdcx.totalSupply({ providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
+
+// `SuperToken` only function 
+await usdcx.realtimeBalanceOf({ account: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
 
 // Write Functions
 // All write functions return Promise<Operation>
@@ -389,6 +401,13 @@ await usdcx.upgrade({ amount: string });
 // except instead of the sf.cfaV1/idaV1.function() signature, it is token.function()
 // and you don't need to pass in a token as a parameter as it uses the token address
 // of the instantiated class.
+```
+
+> Note: you can also get the underlying Token object which only has ERC20 token read/write methods-this is useful for things like approving token spend to a SuperToken contract prior to upgrading for example.
+
+```ts
+const usdc = usdcx.underlyingToken;
+const totalSupply = await usdc.totalSupply();
 ```
 
 ### Batch Call

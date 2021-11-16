@@ -226,6 +226,7 @@ jobs:
       subgraph-working-directory: ./packages/subgraph
       contracts-working-directory: ./packages/ethereum-contracts
       sdk-working-directory: ./packages/js-sdk
+      sdk-core-working-directory: ./packages/sdk-core
 
     needs: [check]
     if: needs.check.outputs.build_sdk_core

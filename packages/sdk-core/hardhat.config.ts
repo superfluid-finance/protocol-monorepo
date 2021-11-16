@@ -3,10 +3,8 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
-import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
-
-dotenvConfig({ path: resolve(__dirname, "./.env") });
+dotenvConfig();
 
 /**
  * This Hardhat config is only used for testing the subgraph.

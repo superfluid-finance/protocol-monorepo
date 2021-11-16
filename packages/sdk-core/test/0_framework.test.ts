@@ -24,7 +24,7 @@ describe("Framework Tests", () => {
     });
 
     describe("Validate Framework Constructor Options Tests", () => {
-        it("Should throw an error if no networkName or chainId.", async () => {
+        it("Should throw an error if no networkName or chainId", async () => {
             try {
                 await Framework.create({ provider: deployer.provider! });
             } catch (err: any) {
@@ -34,7 +34,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should be able to set up framework with networkName = custom.", async () => {
+        it("Should be able to set up framework with networkName = custom", async () => {
             try {
                 await Framework.create({
                     networkName: "custom",
@@ -50,7 +50,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if network and chainId don't match.", async () => {
+        it("Should throw an error if network and chainId don't match", async () => {
             try {
                 // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
                 await Framework.create({
@@ -65,7 +65,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if your provider network and selected chainId/networkName don't match.", async () => {
+        it("Should throw an error if your provider network and selected chainId/networkName don't match", async () => {
             try {
                 await Framework.create({
                     chainId: 4,
@@ -81,7 +81,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if no provider.", async () => {
+        it("Should throw an error if no provider", async () => {
             try {
                 // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
                 await Framework.create({
@@ -94,7 +94,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if subgraph endpoint is null on unsupported network and WEB3_ONLY isn't selected.", async () => {
+        it("Should throw an error if subgraph endpoint is null on unsupported network and WEB3_ONLY isn't selected", async () => {
             try {
                 await Framework.create({
                     networkName: "custom",
@@ -109,7 +109,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if resolver address is null on unsupported network.", async () => {
+        it("Should throw an error if resolver address is null on unsupported network", async () => {
             try {
                 await Framework.create({
                     networkName: "custom",
@@ -126,7 +126,7 @@ describe("Framework Tests", () => {
     });
 
     describe("Framework.create Tests", () => {
-        it("Should throw an error if loadFramework fails.", async () => {
+        it("Should throw an error if loadFramework fails", async () => {
             try {
                 await Framework.create({
                     chainId: 1337,
@@ -143,7 +143,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected.", async () => {
+        it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
                 const infuraProvider = new ethers.providers.InfuraProvider(
                     "matic",
@@ -163,7 +163,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should be able to create a framework with chain id only.", async () => {
+        it("Should be able to create a framework with chain id only", async () => {
             const infuraProvider = new ethers.providers.InfuraProvider(
                 "ropsten",
                 process.env.INFURA_API_KEY

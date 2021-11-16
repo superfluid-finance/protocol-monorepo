@@ -113,13 +113,13 @@ export interface ITransferFromParams {
     readonly amount: string;
 }
 
-export interface IGetFlowParams {
+export interface ISuperTokenGetFlowParams {
     readonly sender: string;
     readonly receiver: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface IGetFlowInfoParams {
+export interface ISuperTokenGetFlowInfoParams {
     readonly account: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }

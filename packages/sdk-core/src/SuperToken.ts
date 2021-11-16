@@ -6,14 +6,14 @@ import { SuperToken as ISuperToken } from "./typechain";
 import {
     IBaseSuperTokenParams,
     IConfig,
-    IGetFlowParams,
-    IGetFlowInfoParams,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
     ISuperTokenBaseSubscriptionParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
+    ISuperTokenGetFlowInfoParams,
+    ISuperTokenGetFlowParams,
     ISuperTokenGetIndexParams,
     ISuperTokenGetSubscriptionParams,
     ISuperTokenUpdateFlowParams,
@@ -197,7 +197,7 @@ export default class SuperToken {
         sender,
         receiver,
         providerOrSigner,
-    }: IGetFlowParams) => {
+    }: ISuperTokenGetFlowParams) => {
         return await this.cfaV1.getFlow({
             superToken: this.options.address,
             sender,
@@ -215,7 +215,7 @@ export default class SuperToken {
     getAccountFlowInfo = async ({
         account,
         providerOrSigner,
-    }: IGetFlowInfoParams) => {
+    }: ISuperTokenGetFlowInfoParams) => {
         return await this.cfaV1.getAccountFlowInfo({
             superToken: this.options.address,
             account,
@@ -229,7 +229,7 @@ export default class SuperToken {
      * @param providerOrSigner a provider or signer object
      * @returns Web3 Flow info object
      */
-    getNetFlow = async ({ account, providerOrSigner }: IGetFlowInfoParams) => {
+    getNetFlow = async ({ account, providerOrSigner }: ISuperTokenGetFlowInfoParams) => {
         return await this.cfaV1.getNetFlow({
             superToken: this.options.address,
             account,

@@ -13,6 +13,7 @@ describe("Framework Tests", () => {
     let superToken: SuperToken;
     let framework: Framework;
     let INFURA_API_URL: string;
+    let customProvider: ethers.providers.Provider;
 
     if (process.env.MATIC_PROVIDER_URL) {
         console.log("HENLO");
@@ -20,6 +21,17 @@ describe("Framework Tests", () => {
     } else {
         console.log("GOODBYE");
         INFURA_API_URL = process.env.INFURA_API_URL || "";
+    }
+    if (INFURA_API_URL.includes("wss:")) {
+        customProvider = new ethers.providers.WebSocketProvider(
+            INFURA_API_URL,
+            "matic"
+        );
+    } else {
+        customProvider = new ethers.providers.JsonRpcProvider(
+            INFURA_API_URL,
+            "matic"
+        );
     }
 
     before(async () => {
@@ -154,13 +166,9 @@ describe("Framework Tests", () => {
 
         it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
-                const infuraProvider = new ethers.providers.JsonRpcProvider(
-                    INFURA_API_URL,
-                    "matic"
-                );
                 await Framework.create({
                     networkName: "matic",
-                    provider: infuraProvider,
+                    provider: customProvider,
                     customSubgraphQueriesEndpoint: "",
                     resolverAddress:
                         "0xE0cc76334405EE8b39213E620587d815967af39C", // MATIC resolver address
@@ -173,13 +181,9 @@ describe("Framework Tests", () => {
         });
 
         it("Should be able to create a framework with chain id only", async () => {
-            const infuraProvider = new ethers.providers.JsonRpcProvider(
-                INFURA_API_URL,
-                "matic"
-            );
             await Framework.create({
                 chainId: 137,
-                provider: infuraProvider,
+                provider: customProvider,
             });
         });
 

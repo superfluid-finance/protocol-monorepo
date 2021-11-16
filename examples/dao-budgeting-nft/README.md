@@ -2,7 +2,7 @@
 
 Create a DAO budgeting system that is mediated by NFTs and Superfluid streams.
 
-Add your own rpc URL for the kovan testnet in hardhat.config, and add your own .env file with private keys for testing.
+Add your own rpc URL for the kovan testnet and your own private keys for testing in your own `.env` file by copying `.env.template` .
 
 1) Run ```npm install``` to install dependencies.
 2) Run ```npx hardhat deploy --reset``` to deploy a new instance of the contract.

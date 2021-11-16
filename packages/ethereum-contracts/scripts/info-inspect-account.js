@@ -1,6 +1,6 @@
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { getScriptRunnerFactory: S } = require("./libs/common");
+const { getScriptRunnerFactory: S, extractWeb3Options} = require("./libs/common");
 
 function normalizeFlowRate(fr) {
     return ((fr.toString() / 1e18) * 3600 * 24 * 30).toFixed(4) + " / mo";
@@ -23,8 +23,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     }
 
     const sf = new SuperfluidSDK.Framework({
+        ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        web3,
         loadSuperNativeToken: true,
     });
     await sf.initialize();

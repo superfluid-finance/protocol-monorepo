@@ -20,6 +20,8 @@ describe("Framework Tests", () => {
         INFURA_API_URL = process.env.INFURA_API_URL || "";
     }
 
+    console.error("***************** INFURA_API_URL: ", INFURA_API_URL, " *****************");
+
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({
             amount: "10000000000000",

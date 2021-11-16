@@ -6,7 +6,7 @@ import {
     SuperToken as SuperTokenType,
 } from "../src/typechain";
 import { getPerSecondFlowRateByMonth } from "../src/utils";
-import { setup } from "./setup";
+import { HARDHAT_PRIVATE_KEY, setup } from "./setup";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
@@ -78,7 +78,7 @@ describe("Operation Tests", () => {
         // NOTE: the hardhat signer does not support signing transactions, therefore, we must create
         // our own signer with a custom private key
         const signer = framework.createSigner({
-            privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
+            privateKey: HARDHAT_PRIVATE_KEY,
             provider: deployer.provider,
         });
         const createFlowOp = daix.createFlow({
@@ -107,7 +107,7 @@ describe("Operation Tests", () => {
             receiver: alpha.address,
         });
         const signer = framework.createSigner({
-            privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
+            privateKey: HARDHAT_PRIVATE_KEY,
             provider: deployer.provider,
         });
         const opTxnHash = await deleteFlowOp.getTransactionHash(signer);

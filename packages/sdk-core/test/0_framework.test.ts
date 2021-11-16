@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
-import { RESOLVER_ADDRESS, setup } from "./setup";
+import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "./setup";
 import { ethers } from "ethers";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
@@ -12,6 +12,14 @@ describe("Framework Tests", () => {
     let deployer: SignerWithAddress;
     let superToken: SuperToken;
     let framework: Framework;
+    let INFURA_API_KEY: string;
+
+    if (process.env.MATIC_PROVIDER_URL) {
+        const splitProviderURL = process.env.MATIC_PROVIDER_URL.split("/");
+        INFURA_API_KEY = splitProviderURL[splitProviderURL.length - 1] || "";
+    } else {
+        INFURA_API_KEY = process.env.INFURA_API_KEY || "";
+    }
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({
@@ -147,7 +155,7 @@ describe("Framework Tests", () => {
             try {
                 const infuraProvider = new ethers.providers.InfuraProvider(
                     "matic",
-                    process.env.INFURA_API_KEY
+                    INFURA_API_KEY
                 );
                 await Framework.create({
                     networkName: "matic",
@@ -158,7 +166,7 @@ describe("Framework Tests", () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
+                    "Framework Initialization Error - You cannot have a null subgraphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
                 );
             }
         });
@@ -166,7 +174,7 @@ describe("Framework Tests", () => {
         it("Should be able to create a framework with chain id only", async () => {
             const infuraProvider = new ethers.providers.InfuraProvider(
                 "ropsten",
-                process.env.INFURA_API_KEY
+                INFURA_API_KEY
             );
             await Framework.create({
                 chainId: 3,
@@ -202,7 +210,7 @@ describe("Framework Tests", () => {
         it("Should catch error when creating a signer with PK, but no provider.", () => {
             try {
                 framework.createSigner({
-                    privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
+                    privateKey: HARDHAT_PRIVATE_KEY,
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -214,7 +222,7 @@ describe("Framework Tests", () => {
         it("Should be able to create a signer successfully with all different inputs.", () => {
             // create signer with private key
             framework.createSigner({
-                privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
+                privateKey: HARDHAT_PRIVATE_KEY,
                 provider: deployer.provider!,
             });
 

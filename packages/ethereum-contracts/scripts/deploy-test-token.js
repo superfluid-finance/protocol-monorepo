@@ -26,7 +26,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     let { resetToken } = options;
 
     if (args.length !== 1) {
-        throw new Error("Not enough arguments");
+        throw new Error("Wrong number of arguments");
     }
     const tokenSymbol = args.pop();
     console.log("Token symbol", tokenSymbol);

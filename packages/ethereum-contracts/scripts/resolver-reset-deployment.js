@@ -13,7 +13,7 @@ const { getScriptRunnerFactory: S, rl } = require("./libs/common");
  */
 module.exports = eval(`(${S.toString()})()`)(async function (args) {
     if (args.length !== 1) {
-        throw new Error("Not enough arguments");
+        throw new Error("Wrong number of arguments");
     }
     const version = args.pop();
 

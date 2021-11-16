@@ -24,7 +24,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     let { resetToken, protocolReleaseVersion } = options;
 
     if (args.length !== 3) {
-        throw new Error("Not enough arguments");
+        throw new Error("Wrong number of arguments");
     }
     const superTokenSymbol = args.pop();
     const superTokenName = args.pop();

@@ -282,8 +282,8 @@ async function getPastEvents({ config, contract, eventName, filter, topics }) {
  * @dev Get script runner factory
  *
  * NOTE:
- * Due tue truffle only inject web3, artifacts, etc. in node execution context,
- * It is required that the script need to access these context within the same
+ * Due tue truffle only injecting web3, artifacts, etc. in node execution context,
+ * it is required that the script can access this context within the same
  * script file. Hence you would need to do something like this:
  * ```
  *  eval(`(${getScriptRunnerFactory.toString()})()`)

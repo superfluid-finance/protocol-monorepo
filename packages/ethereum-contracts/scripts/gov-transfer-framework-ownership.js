@@ -20,8 +20,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 ) {
     let { protocolReleaseVersion } = options;
 
-    if (args.length != 1) {
-        throw new Error("Not enough arguments");
+    if (args.length !== 1) {
+        throw new Error("Wrong number of arguments");
     }
     const newOwner = args.shift();
 

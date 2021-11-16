@@ -24,7 +24,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     let { protocolReleaseVersion } = options;
 
     if (args.length !== 2) {
-        throw new Error("Not enough arguments");
+        throw new Error("Wrong number of arguments");
     }
     const registrationkey = args.pop();
     const deployer = args.pop();

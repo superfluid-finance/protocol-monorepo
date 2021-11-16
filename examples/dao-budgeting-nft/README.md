@@ -4,10 +4,16 @@ Create a DAO budgeting system that is mediated by NFTs and Superfluid streams.
 
 Add your own rpc URL for the kovan testnet and your own private keys for testing in your own `.env` file by copying `.env.template` .
 
-1) Run ```npm install``` to install dependencies.
-2) Run ```npx hardhat deploy --reset``` to deploy a new instance of the contract.
+1) Run ```yarn install``` to install dependencies.
+2) Run ```yarn deploy:reset``` to deploy a new instance of the contract and run ```yarn verify``` to make Etherscan verify it.
 3) Open up a stream to the contract using the Superfluid dashboard.
-4) Run scripts to issue NFTs, edit NFTs, merge streams, and split streams. Make sure to input your own addresses as the sender & receiver.
+4) Run scripts to issue NFTs, edit NFTs, split streams, and merge streams. Make sure to input your own addresses as the sender & receiver.
+```shell
+yarn issue
+yarn edit
+yarn split
+yarn merge
+```
 
 NOTE: This contract is unaudited and only manually tested. Please use for instructional purposes only. 
 

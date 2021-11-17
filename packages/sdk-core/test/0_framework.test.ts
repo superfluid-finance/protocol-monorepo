@@ -240,7 +240,7 @@ describe("Framework Tests", () => {
 
         it("Should be able to create an instance of a supertoken with framework.", async () => {
             const daix = await framework.loadSuperToken(superToken.address);
-            expect(daix.options.address).to.equal(superToken.address);
+            expect(daix.settings.address).to.equal(superToken.address);
         });
     });
 });

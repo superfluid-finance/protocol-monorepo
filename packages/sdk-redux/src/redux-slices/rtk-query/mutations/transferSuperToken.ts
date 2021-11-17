@@ -3,17 +3,15 @@ import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
+import {ITransferFromParams} from "@superfluid-finance/sdk-core";
 
-export type CreateFlowArg = MutationArg & {
+export type TransferSuperTokenArg = MutationArg & ITransferFromParams & {
     superToken: string;
-    sender: string;
-    receiver: string;
-    flowRate: string;
-};
+}
 
-export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
+export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        createFlow: builder.mutation<TransactionInfo, CreateFlowArg>({
+        transferSuperToken: builder.mutation<TransactionInfo, TransferSuperTokenArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
                     await initializedSuperfluidSource.getFrameworkAndSigner(
@@ -22,14 +20,9 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
 
                 const superToken = framework.loadSuperToken(arg.superToken);
                 const transactionResponse = await superToken
-                    .createFlow({
-                        sender: arg.sender,
-                        receiver: arg.receiver,
-                        flowRate: arg.flowRate,
-                    })
+                    .transferFrom(arg)
                     .exec(signer);
 
-                // Fire and forget
                 queryApi.dispatch(
                     trackTransaction({
                         hash: transactionResponse.hash,
@@ -44,6 +37,7 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         60000
                     );
                 }
+
                 return {
                     data: {
                         hash: transactionResponse.hash,
@@ -60,7 +54,6 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                 // Should this be before "queryFulfilled"?
                 framework.query.on(
                     (events, unsubscribe) => {
-                        console.log('boom!');
                         for (const event of events) {
                             invalidateTagsHandler(arg.chainId, event, dispatch);
                         }
@@ -70,10 +63,6 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                     arg.sender.toLowerCase(),
                     30000
                 );
-
-                // TODO: Consider optimistic update.
-
-                // TODO: Subscribe to re-org issues here or at "track transaction"?
             },
         }),
     }),

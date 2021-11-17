@@ -8,4 +8,7 @@ export * from './queries/getRealtimeBalance';
 export * from './mutations/createFlow';
 export * from './mutations/updateFlow';
 export * from './mutations/deleteFlow';
+export * from './mutations/transferSuperToken';
+export * from './mutations/upgradeToSuperToken';
+export * from './mutations/downgradeFromSuperToken';
 export { ValidationError, PossibleErrors } from './rtkQuerySliceBaseQuery';

@@ -11,7 +11,7 @@ export type UpdateFlowArg = MutationArg & {
     flowRate: string;
 }
 
-const extendedApi = rtkQuerySlice.injectEndpoints({
+export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         updateFlow: builder.mutation<TransactionInfo, UpdateFlowArg>({
             queryFn: async (arg, api) => {
@@ -54,7 +54,6 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
 
                 framework.query.on(
                     (events, unsubscribe) => {
-                        console.log('boom!');
                         for (const event of events) {
                             invalidateTagsHandler(arg.chainId, event, dispatch);
                         }
@@ -69,5 +68,3 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
-
-export const { useUpdateFlowMutation } = extendedApi;

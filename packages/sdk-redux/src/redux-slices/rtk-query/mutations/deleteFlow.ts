@@ -8,9 +8,9 @@ export type DeleteFlowArg = MutationArg & {
     superToken: string;
     sender: string;
     receiver: string;
-}
+};
 
-const extendedApi = rtkQuerySlice.injectEndpoints({
+export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         deleteFlow: builder.mutation<TransactionInfo, DeleteFlowArg>({
             queryFn: async (arg, queryApi) => {
@@ -23,7 +23,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     .deleteFlow({
                         sender: arg.sender,
                         receiver: arg.receiver,
-                    }).exec(signer as any); // TODO(KK): "as any"
+                    })
+                    .exec(signer);
                 queryApi.dispatch(
                     trackTransaction({
                         hash: transactionResponse.hash,
@@ -51,7 +52,6 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     await initializedSuperfluidSource.getFramework(arg.chainId);
                 framework.query.on(
                     (events, unsubscribe) => {
-                        console.log('boom!');
                         for (const event of events) {
                             invalidateTagsHandler(arg.chainId, event, dispatch);
                         }
@@ -66,5 +66,3 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
-
-export const { useDeleteFlowMutation } = extendedApi;

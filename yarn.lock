@@ -4329,12 +4329,12 @@
     prop-types "^15.7.2"
     react-is "^17.0.2"
 
-"@mui/icons-material@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.1.0.tgz#f733c9505422398b9b56ec9ed04e53db5985e5e0"
-  integrity sha512-GD2cNZ2XTqoxX6DMUg+tos1fDUVg6kXWxwo9UuBiRIhK8N+B7CG7vjRDf28LLmewcqIjxqy+T2SEVqDLy1FOYQ==
+"@mui/icons-material@latest":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.1.1.tgz#f3f44275855e924cdf5e379da87299d633854b53"
+  integrity sha512-tLM1/QhVAgcetEscZa8BlM1IRRaoNxjhFzQOIs5wAuuVhHSrB8zZCKugpZVIZ1nKyQqLgVEa9TbtWpo5jLrnRQ==
   dependencies:
-    "@babel/runtime" "^7.16.0"
+    "@babel/runtime" "^7.16.3"
 
 "@mui/material@latest":
   version "5.1.0"
@@ -11681,7 +11681,7 @@ decamelize@^4.0.0:
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-4.0.0.tgz#aa472d7bf660eb15f3494efd531cab7f2a709837"
   integrity sha512-9iE1PgSik9HeIIw2JO94IidnE3eBoQrFJ3w7sFuzSX4DpmZ3v5sZpUiV5Swcf6mQEF+Y0ru8Neo+p+nyh2J+hQ==
 
-decimal.js@^10.2.1:
+decimal.js@^10.2.1, decimal.js@^10.3.1:
   version "10.3.1"
   resolved "https://registry.yarnpkg.com/decimal.js/-/decimal.js-10.3.1.tgz#d8c3a444a9c6774ba60ca6ad7261c3a94fd5e783"
   integrity sha512-V0pfhfr8suzyPGOx3nmq4aHqabehUZn6Ch9kyFpV79TGDTWFmHqUqXdabR7QHqxzrYolF4+tVmJhUG4OURg5dQ==
@@ -13766,7 +13766,7 @@ ethers@^4.0.32:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@^5.0.0, ethers@^5.0.1, ethers@^5.0.13, ethers@^5.0.2, ethers@^5.4.5, ethers@^5.4.6, ethers@^5.4.7, ethers@^5.5.1:
+ethers@^5.0.0, ethers@^5.0.1, ethers@^5.0.13, ethers@^5.0.2, ethers@^5.4.5, ethers@^5.4.6, ethers@^5.4.7, ethers@^5.5.1, ethers@latest:
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.5.1.tgz#d3259a95a42557844aa543906c537106c0406fbf"
   integrity sha512-RodEvUFZI+EmFcE6bwkuJqpCYHazdzeR1nMzg+YWQSmQEsNtfl1KHGfp/FWZYl48bI/g7cgBeP2IlPthjiVngw==

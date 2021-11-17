@@ -20,6 +20,8 @@ import {
 } from "@mui/material";
 import { SignerContext } from "./SignerContext";
 import { Error } from "./Error";
+import { FlowingBalance } from "./FlowingBalance";
+import { ethers } from 'ethers'
 
 export const GetRealtimeBalance: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
@@ -28,15 +30,10 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
 
     const [
         queryTrigger,
-        {
-            data: realtimeBalance,
-            isLoading,
-            error,
-            isUninitialized,
-        },
+        { data: realtimeBalance, isLoading, error, isUninitialized },
         ,
     ] = useLazyGetRealtimeBalanceQuery({
-        pollingInterval: 5000,
+        pollingInterval: 5000, // Polling is not necessary (once is enough), just for visualization.
     });
 
     const triggerQuery = () => {
@@ -73,7 +70,7 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                         }
                     />
                     <Button variant="contained" type="submit">
-                        Trigger
+                        Get
                     </Button>
                 </FormGroup>
             </form>
@@ -93,29 +90,56 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Timestamp</TableCell>
                                         <TableCell>Balance</TableCell>
+                                        <TableCell>Flow Rate</TableCell>
                                         <TableCell>Deposit</TableCell>
                                         <TableCell>Owed Deposit</TableCell>
-                                        <TableCell>Timestamp</TableCell>
-                                        <TableCell>Flow Rate</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     <TableRow>
                                         <TableCell>
+                                            {realtimeBalance!.timestamp}
+                                        </TableCell>
+                                        <TableCell>
                                             {realtimeBalance!.availableBalance}
+                                            <br />
+                                            <FlowingBalance
+                                                balance={
+                                                    realtimeBalance!
+                                                        .availableBalance
+                                                }
+                                                flowRate={
+                                                    realtimeBalance!.netFlowRate
+                                                }
+                                                balanceTimestamp={
+                                                    realtimeBalance!.timestamp
+                                                }
+                                            />
+                                            <br />
+                                            <FlowingBalance
+                                                format={(x) => ethers.utils.formatEther(x)}
+                                                balance={
+                                                    realtimeBalance!
+                                                        .availableBalance
+                                                }
+                                                flowRate={
+                                                    realtimeBalance!.netFlowRate
+                                                }
+                                                balanceTimestamp={
+                                                    realtimeBalance!.timestamp
+                                                }
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            {realtimeBalance!.netFlowRate}
                                         </TableCell>
                                         <TableCell>
                                             {realtimeBalance!.deposit}
                                         </TableCell>
                                         <TableCell>
                                             {realtimeBalance!.owedDeposit}
-                                        </TableCell>
-                                        <TableCell>
-                                            {realtimeBalance!.timestamp}
-                                        </TableCell>
-                                        <TableCell>
-                                            {realtimeBalance!.netFlowRate}
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>

@@ -19,6 +19,7 @@ import {
 } from "../../generated/Host/ISuperfluid";
 import { createEventID } from "../utils";
 import { commitHash, configuration, branch, tag } from "../meta.ignore";
+import { ethereum } from "@graphprotocol/graph-ts";
 
 export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     let ev = new GovernanceReplacedEvent(
@@ -125,7 +126,7 @@ export function handleJail(event: Jail): void {
     ev.save();
 }
 
-function initSFMetaOnce(event: AgreementClassRegistered): void {
+function initSFMetaOnce(event: ethereum.Event): void {
     let sfMeta = SFMeta.load(commitHash);
     if (sfMeta == null) {
         sfMeta = new SFMeta(commitHash);

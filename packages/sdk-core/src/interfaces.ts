@@ -31,6 +31,11 @@ export interface ISuperTokenRequestFilter {
     readonly isListed?: boolean;
 }
 
+// TODO: Major Cleanup needed for SuperToken interfaces
+// along with IDA/CFA interfaces
+// A better thought out inheritance pattern - SuperToken is parent
+// CFA/IDA inherits and tacks on superToken property
+
 // write request interfaces
 export interface ISuperTokenModifyFlowParams {
     readonly flowRate?: string;
@@ -52,18 +57,28 @@ export interface ISuperTokenDeleteFlowParams
 
 export interface ISuperTokenBaseIDAParams {
     readonly indexId: string;
-    readonly publisher?: string;
     readonly userData?: string;
 }
-export interface ISuperTokenGetSubscriptionParams
-    extends ISuperTokenBaseIDAParams {
+export interface ISuperTokenGetSubscriptionParams {
+    readonly indexId: string;
     readonly publisher: string;
     readonly subscriber: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
-export interface ISuperTokenGetIndexParams extends ISuperTokenBaseIDAParams {
+export interface ISuperTokenGetIndexParams {
+    readonly indexId: string;
     readonly publisher: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
+    readonly publisher: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface ISuperTokenPubSubParams extends ISuperTokenPublisherParams {
+    readonly subscriber: string;
+}
+export interface ISuperTokenPublisherOperationParams extends ISuperTokenBaseIDAParams {
+    readonly publisher: string;
 }
 export interface ISuperTokenBaseSubscriptionParams
     extends ISuperTokenBaseIDAParams {

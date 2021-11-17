@@ -7,7 +7,6 @@ import {
     IConfig,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
-    ISuperTokenBaseSubscriptionParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
@@ -15,6 +14,8 @@ import {
     ISuperTokenGetFlowParams,
     ISuperTokenGetIndexParams,
     ISuperTokenGetSubscriptionParams,
+    ISuperTokenPublisherOperationParams,
+    ISuperTokenPubSubParams,
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
@@ -439,7 +440,7 @@ export default class SuperToken extends Token {
         indexId,
         publisher,
         userData,
-    }: ISuperTokenBaseIDAParams): Operation => {
+    }: ISuperTokenPublisherOperationParams): Operation => {
         return this.idaV1.approveSubscription({
             indexId,
             superToken: this.settings.address,
@@ -459,7 +460,7 @@ export default class SuperToken extends Token {
         indexId,
         publisher,
         userData,
-    }: ISuperTokenBaseIDAParams): Operation => {
+    }: ISuperTokenPublisherOperationParams): Operation => {
         return this.idaV1.revokeSubscription({
             indexId,
             superToken: this.settings.address,
@@ -481,7 +482,7 @@ export default class SuperToken extends Token {
         subscriber,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Operation => {
+    }: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.deleteSubscription({
             indexId,
             superToken: this.settings.address,
@@ -504,7 +505,7 @@ export default class SuperToken extends Token {
         subscriber,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Operation => {
+    }: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.claim({
             indexId,
             superToken: this.settings.address,

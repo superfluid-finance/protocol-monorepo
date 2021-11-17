@@ -3,6 +3,8 @@ import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
+import { typeGuard } from '../../../utils';
+import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type CreateFlowArg = MutationArg & {
     superToken: string;
@@ -20,7 +22,9 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         arg.chainId
                     );
 
-                const superToken = await framework.loadSuperToken(arg.superToken);
+                const superToken = await framework.loadSuperToken(
+                    arg.superToken
+                );
                 const transactionResponse = await superToken
                     .createFlow({
                         sender: arg.sender,
@@ -45,35 +49,39 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                     );
                 }
                 return {
-                    data: {
+                    data: typeGuard<TransactionInfo>({
                         hash: transactionResponse.hash,
                         chainId: arg.chainId,
-                    },
+                    }),
+                    meta: typeGuard<MutationMeta>({
+                        observeAddress: arg.sender,
+                    }),
                 };
             },
+            // TODO(KK): Consider optimistic update.
+            // TODO(KK): Subscribe to re-org issues here or at "track transaction"?
             onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                const framework =
-                    await initializedSuperfluidSource.getFramework(arg.chainId);
-
-                await queryFulfilled;
-
-                // Should this be before "queryFulfilled"?
-                framework.query.on(
-                    (events, unsubscribe) => {
-                        console.log('boom!');
-                        for (const event of events) {
-                            invalidateTagsHandler(arg.chainId, event, dispatch);
-                        }
-                        unsubscribe();
-                    },
-                    2000,
-                    arg.sender.toLowerCase(),
-                    30000
-                );
-
-                // TODO: Consider optimistic update.
-
-                // TODO: Subscribe to re-org issues here or at "track transaction"?
+                queryFulfilled.then(async (queryResult) => {
+                    const framework =
+                        await initializedSuperfluidSource.getFramework(
+                            arg.chainId
+                        );
+                    framework.query.on(
+                        (events, unsubscribe) => {
+                            for (const event of events) {
+                                invalidateTagsHandler(
+                                    arg.chainId,
+                                    event,
+                                    dispatch
+                                );
+                            }
+                            unsubscribe();
+                        },
+                        2000,
+                        queryResult.meta!.observeAddress,
+                        30000
+                    );
+                });
             },
         }),
     }),

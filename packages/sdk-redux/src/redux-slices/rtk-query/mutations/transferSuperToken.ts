@@ -3,24 +3,34 @@ import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
-import {ITransferFromParams} from "@superfluid-finance/sdk-core";
+import { typeGuard } from '../../../utils';
+import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type TransferSuperTokenArg = MutationArg & ITransferFromParams & {
+export type TransferSuperTokenArg = MutationArg & {
     superToken: string;
-}
+    receiver: string;
+    amount: string;
+};
 
 export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        transferSuperToken: builder.mutation<TransactionInfo, TransferSuperTokenArg>({
+        transferSuperToken: builder.mutation<
+            TransactionInfo,
+            TransferSuperTokenArg
+        >({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
                     await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
 
-                const superToken = await framework.loadSuperToken(arg.superToken);
+                const [superToken, signerAddress] = await Promise.all([
+                    framework.loadSuperToken(arg.superToken),
+                    signer.getAddress(),
+                ]);
+
                 const transactionResponse = await superToken
-                    .transferFrom(arg)
+                    .transfer(arg)
                     .exec(signer);
 
                 queryApi.dispatch(
@@ -39,30 +49,37 @@ export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
                 }
 
                 return {
-                    data: {
+                    data: typeGuard<TransactionInfo>({
                         hash: transactionResponse.hash,
                         chainId: arg.chainId,
-                    },
+                    }),
+                    meta: typeGuard<MutationMeta>({
+                        observeAddress: signerAddress,
+                    }),
                 };
             },
             onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                const framework =
-                    await initializedSuperfluidSource.getFramework(arg.chainId);
-
-                await queryFulfilled;
-
-                // Should this be before "queryFulfilled"?
-                framework.query.on(
-                    (events, unsubscribe) => {
-                        for (const event of events) {
-                            invalidateTagsHandler(arg.chainId, event, dispatch);
-                        }
-                        unsubscribe();
-                    },
-                    2000,
-                    arg.sender.toLowerCase(),
-                    30000
-                );
+                queryFulfilled.then(async (queryResult) => {
+                    const framework =
+                        await initializedSuperfluidSource.getFramework(
+                            arg.chainId
+                        );
+                    framework.query.on(
+                        (events, unsubscribe) => {
+                            for (const event of events) {
+                                invalidateTagsHandler(
+                                    arg.chainId,
+                                    event,
+                                    dispatch
+                                );
+                            }
+                            unsubscribe();
+                        },
+                        2000,
+                        queryResult.meta!.observeAddress,
+                        30000
+                    );
+                });
             },
         }),
     }),

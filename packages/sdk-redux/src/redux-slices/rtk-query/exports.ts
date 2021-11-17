@@ -5,6 +5,7 @@ export * from './queries/listIndexes';
 export * from './queries/listIndexSubscriptions';
 export * from './queries/listUserInteractedSuperTokens';
 export * from './queries/getRealtimeBalance';
+export * from './queries/getAvailableAllowanceForUpgradeToSuperToken';
 export * from './mutations/createFlow';
 export * from './mutations/updateFlow';
 export * from './mutations/deleteFlow';

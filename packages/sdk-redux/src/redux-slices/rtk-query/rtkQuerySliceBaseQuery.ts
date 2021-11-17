@@ -8,11 +8,11 @@ export type NEVER = typeof _NEVER;
 
 export type ValidationError = {
     message: string; // Keep it named "message" to have same structure with Redux Toolkit's SerializedError.
-}
+};
 
 export type MutationMeta = {
-    signerAddress: string;
-}
+    observeAddress: string; // TODO(KK): Renam to "observeAddress", "subscribeToAddress", "followAddress"?
+};
 
 /**
  * Creates a "fake" baseQuery to be used if your api *only* uses the `queryFn` definition syntax.

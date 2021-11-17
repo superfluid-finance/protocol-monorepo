@@ -1,7 +1,7 @@
 import { SignerContext } from "./SignerContext";
 import { Loader } from "./Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useUpgradeToSuperTokenMutation } from "@superfluid-finance/sdk-redux";
+import { useUpgradeToSuperTokenMutation, useGetAvailableAllowanceForUpgradeToSuperTokenQuery } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "./Error";
 
@@ -14,6 +14,14 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] = useState<boolean>(false);
+
+    const { data: availableAllowance, isFetching: isAllowanceFetching, isError: isAllowanceQueryError } = useGetAvailableAllowanceForUpgradeToSuperTokenQuery({
+        accountAddress: signerAddress,
+        superTokenAddress: superToken,
+        chainId: chainId
+    }, {
+        skip: !superToken
+    });
 
     const handleUpgradeToSuperToken = (e: SyntheticEvent) => {
         upgradeToSuperToken({
@@ -30,6 +38,7 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
             ) : (
                 <>
                     {error && <Error error={error} />}
+                    {(availableAllowance && !isAllowanceFetching && !isAllowanceQueryError) && <p>Available allowance: {availableAllowance}</p>}
                     <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                         <FormGroup>
                             <TextField

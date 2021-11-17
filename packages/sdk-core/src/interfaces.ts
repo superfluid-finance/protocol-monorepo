@@ -178,6 +178,8 @@ export interface IRevokeSubscriptionParams extends IBaseSubscriptionParams {
     readonly publisher: string;
 }
 
+// Subgraph Return Data
+
 export interface ILightEntity {
     readonly id: string;
 }
@@ -306,6 +308,13 @@ export interface IAgreementV1Options {
 }
 
 // Web3 Return Data
+
+export interface IWeb3RealTimeBalanceOf {
+    readonly availableBalance: string;
+    readonly deposit: string;
+    readonly owedDeposit: string;
+    readonly timestamp: Date;
+}
 
 export interface IWeb3Subscription {
     readonly exist: boolean;

@@ -1,9 +1,9 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { trackTransaction } from '../../transactions/transactionSlice';
-import { invalidateTagsHandler } from '../invalidateTagsHandler';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import { observeAddressToInvalidateTags } from '../observeAddressToInvalidateTags';
+import { registerNewTransaction } from '../registerNewTransaction';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type CreateFlowArg = SuperTokenMutationArg & {
@@ -25,7 +25,9 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                     arg.superTokenAddress
                 );
 
-                const senderAddress = arg.senderAddress ? arg.senderAddress : await signer.getAddress();
+                const senderAddress = arg.senderAddress
+                    ? arg.senderAddress
+                    : await signer.getAddress();
 
                 const transactionResponse = await superToken
                     .createFlow({
@@ -35,21 +37,13 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                     })
                     .exec(signer);
 
-                // Fire and forget
-                queryApi.dispatch(
-                    trackTransaction({
-                        hash: transactionResponse.hash,
-                        chainId: arg.chainId,
-                    })
+                await registerNewTransaction(
+                    arg.chainId,
+                    transactionResponse.hash,
+                    !!arg.waitForConfirmation,
+                    queryApi.dispatch
                 );
 
-                if (arg.waitForConfirmation) {
-                    await framework.settings.provider.waitForTransaction(
-                        transactionResponse.hash,
-                        1,
-                        60000
-                    );
-                }
                 return {
                     data: typeGuard<TransactionInfo>({
                         hash: transactionResponse.hash,
@@ -62,28 +56,14 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
             },
             // TODO(KK): Consider optimistic update.
             // TODO(KK): Subscribe to re-org issues here or at "track transaction"?
-            onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                queryFulfilled.then(async (queryResult) => {
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
-                    framework.query.on(
-                        (events, unsubscribe) => {
-                            for (const event of events) {
-                                invalidateTagsHandler(
-                                    arg.chainId,
-                                    event,
-                                    dispatch
-                                );
-                            }
-                            unsubscribe();
-                        },
-                        2000,
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+                queryFulfilled.then(async (queryResult) =>
+                    observeAddressToInvalidateTags(
                         queryResult.meta!.observeAddress,
-                        30000
-                    );
-                });
+                        queryResult.data,
+                        dispatch
+                    )
+                );
             },
         }),
     }),

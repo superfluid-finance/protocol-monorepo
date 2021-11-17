@@ -1,5 +1,5 @@
-import { createApi } from '@reduxjs/toolkit/dist/query/react';
 import { isPlainObject } from '@reduxjs/toolkit';
+import { createApi } from '@reduxjs/toolkit/dist/query/react';
 
 import { rtkQuerySliceBaseQuery } from './rtkQuerySliceBaseQuery';
 

@@ -48,18 +48,19 @@ export const trackTransaction = createAsyncThunk<
     try {
         console.log({
             chainId: arg.chainId,
-            transactionHash: arg.hash
-        })
+            transactionHash: arg.hash,
+        });
 
         // TODO: Refactor to count more confirmations than 1. If there's a re-org then invalidate the whole cache.
 
         const framework = await superfluidSource.getFramework(arg.chainId);
         // TODO: What's the best confirmation amount and timeout?
-        const transactionReceipt = await framework.settings.provider.waitForTransaction(
-            arg.hash,
-            1,
-            60000
-        );
+        const transactionReceipt =
+            await framework.settings.provider.waitForTransaction(
+                arg.hash,
+                1,
+                60000
+            );
         if (transactionReceipt.status === 1) {
             return {
                 chainId: arg.chainId,

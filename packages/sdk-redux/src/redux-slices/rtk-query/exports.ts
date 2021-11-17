@@ -12,4 +12,7 @@ export * from './mutations/deleteFlow';
 export * from './mutations/transferSuperToken';
 export * from './mutations/upgradeToSuperToken';
 export * from './mutations/downgradeFromSuperToken';
+export * from './mutations/approveIndexSubscription';
+export * from './mutations/updateIndexSubscriptionUnits';
+export * from './mutations/createIndex';
 export { ValidationError, PossibleErrors } from './rtkQuerySliceBaseQuery';

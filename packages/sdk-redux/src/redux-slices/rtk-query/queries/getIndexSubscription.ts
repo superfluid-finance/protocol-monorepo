@@ -1,7 +1,8 @@
+import { IWeb3Subscription } from '@superfluid-finance/sdk-core';
+
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
-import { IWeb3Subscription } from '@superfluid-finance/sdk-core';
 
 export type GetIndexSubscriptionArg = QueryArg & {
     superTokenAddress: string;

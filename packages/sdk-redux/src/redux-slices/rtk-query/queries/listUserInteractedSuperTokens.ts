@@ -1,8 +1,8 @@
 import {
-    Paging,
-    PagedResult,
-    ILightAccountTokenSnapshot,
     IAccountTokenSnapshotFilter,
+    ILightAccountTokenSnapshot,
+    PagedResult,
+    Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';

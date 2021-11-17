@@ -1,8 +1,8 @@
 import {
     IIndexSubscription,
-    Paging,
-    PagedResult,
     IIndexSubscriptionRequestFilter,
+    PagedResult,
+    Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';

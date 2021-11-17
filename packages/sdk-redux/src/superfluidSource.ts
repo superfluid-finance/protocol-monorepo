@@ -1,5 +1,5 @@
 import { Framework } from '@superfluid-finance/sdk-core';
-import {Signer} from "ethers";
+import { Signer } from 'ethers';
 
 const frameworks = new Map<number, Promise<Framework>>();
 const signers = new Map<number, Promise<Signer>>();
@@ -27,12 +27,14 @@ export const superfluidSource = {
     setSigner: (chainId: number, signerPromise: Promise<Signer>) => {
         signers.set(chainId, signerPromise);
     },
-    getFrameworkAndSigner: async (chainId: number): Promise<[framework: Framework, signer: Signer]> => {
+    getFrameworkAndSigner: async (
+        chainId: number
+    ): Promise<[framework: Framework, signer: Signer]> => {
         return await Promise.all([
             superfluidSource.getFramework(chainId),
-            superfluidSource.getSigner(chainId)
+            superfluidSource.getSigner(chainId),
         ]);
-    }
+    },
 };
 
 export type SuperfluidSource = typeof superfluidSource;

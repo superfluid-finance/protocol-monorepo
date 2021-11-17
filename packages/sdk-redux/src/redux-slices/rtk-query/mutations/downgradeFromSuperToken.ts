@@ -1,9 +1,9 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { trackTransaction } from '../../transactions/transactionSlice';
-import { invalidateTagsHandler } from '../invalidateTagsHandler';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import { observeAddressToInvalidateTags } from '../observeAddressToInvalidateTags';
+import { registerNewTransaction } from '../registerNewTransaction';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type DowngradeFromSuperToken = SuperTokenMutationArg & {
@@ -30,25 +30,16 @@ export const { useDowngradeFromSuperTokenMutation } =
 
                     const transactionResponse = await superToken
                         .downgrade({
-                            amount: arg.amountWei
+                            amount: arg.amountWei,
                         })
                         .exec(signer);
 
-                    // Fire and forget
-                    queryApi.dispatch(
-                        trackTransaction({
-                            hash: transactionResponse.hash,
-                            chainId: arg.chainId,
-                        })
+                    await registerNewTransaction(
+                        arg.chainId,
+                        transactionResponse.hash,
+                        !!arg.waitForConfirmation,
+                        queryApi.dispatch
                     );
-
-                    if (arg.waitForConfirmation) {
-                        await framework.settings.provider.waitForTransaction(
-                            transactionResponse.hash,
-                            1,
-                            60000
-                        );
-                    }
 
                     return {
                         data: typeGuard<TransactionInfo>({
@@ -60,28 +51,14 @@ export const { useDowngradeFromSuperTokenMutation } =
                         }),
                     };
                 },
-                onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                    queryFulfilled.then(async (queryResult) => {
-                        const framework =
-                            await initializedSuperfluidSource.getFramework(
-                                arg.chainId
-                            );
-                        framework.query.on(
-                            (events, unsubscribe) => {
-                                for (const event of events) {
-                                    invalidateTagsHandler(
-                                        arg.chainId,
-                                        event,
-                                        dispatch
-                                    );
-                                }
-                                unsubscribe();
-                            },
-                            2000,
+                onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+                    queryFulfilled.then(async (queryResult) =>
+                        observeAddressToInvalidateTags(
                             queryResult.meta!.observeAddress,
-                            30000
-                        );
-                    });
+                            queryResult.data,
+                            dispatch
+                        )
+                    );
                 },
             }),
         }),

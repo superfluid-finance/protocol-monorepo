@@ -5,11 +5,14 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 export type GetAvailableAllowanceForUpgradeToSuperTokenArg = QueryArg & {
     accountAddress: string;
     superTokenAddress: string;
-}
+};
 
 // TODO(KK): Tags?
 
-export const { useGetAvailableAllowanceForUpgradeToSuperTokenQuery, useLazyGetAvailableAllowanceForUpgradeToSuperTokenQuery } = rtkQuerySlice.injectEndpoints({
+export const {
+    useGetAvailableAllowanceForUpgradeToSuperTokenQuery,
+    useLazyGetAvailableAllowanceForUpgradeToSuperTokenQuery,
+} = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         getAvailableAllowanceForUpgradeToSuperToken: builder.query<
             string,
@@ -19,18 +22,19 @@ export const { useGetAvailableAllowanceForUpgradeToSuperTokenQuery, useLazyGetAv
                 const framework =
                     await initializedSuperfluidSource.getFramework(arg.chainId);
 
-                const superToken = await framework.loadSuperToken(arg.superTokenAddress);
+                const superToken = await framework.loadSuperToken(
+                    arg.superTokenAddress
+                );
 
                 const underlyingTokenAllowance =
-                    await superToken.underlyingToken
-                        .allowance({
-                            providerOrSigner: framework.settings.provider,
-                            owner: arg.accountAddress,
-                            spender: superToken.address,
-                        });
+                    await superToken.underlyingToken.allowance({
+                        providerOrSigner: framework.settings.provider,
+                        owner: arg.accountAddress,
+                        spender: superToken.address,
+                    });
 
                 return {
-                    data: underlyingTokenAllowance
+                    data: underlyingTokenAllowance,
                 };
             },
         }),

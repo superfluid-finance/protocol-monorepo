@@ -103,15 +103,15 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                             {realtimeBalance!.timestamp}
                                         </TableCell>
                                         <TableCell>
-                                            {realtimeBalance!.availableBalance}
+                                            {realtimeBalance!.availableBalanceWei}
                                             <br />
                                             <FlowingBalance
                                                 balance={
                                                     realtimeBalance!
-                                                        .availableBalance
+                                                        .availableBalanceWei
                                                 }
                                                 flowRate={
-                                                    realtimeBalance!.netFlowRate
+                                                    realtimeBalance!.netFlowRateWei
                                                 }
                                                 balanceTimestamp={
                                                     realtimeBalance!.timestamp
@@ -122,10 +122,10 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                                 format={(x) => ethers.utils.formatEther(x)}
                                                 balance={
                                                     realtimeBalance!
-                                                        .availableBalance
+                                                        .availableBalanceWei
                                                 }
                                                 flowRate={
-                                                    realtimeBalance!.netFlowRate
+                                                    realtimeBalance!.netFlowRateWei
                                                 }
                                                 balanceTimestamp={
                                                     realtimeBalance!.timestamp
@@ -133,13 +133,13 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                             />
                                         </TableCell>
                                         <TableCell>
-                                            {realtimeBalance!.netFlowRate}
+                                            {realtimeBalance!.netFlowRateWei}
                                         </TableCell>
                                         <TableCell>
-                                            {realtimeBalance!.deposit}
+                                            {realtimeBalance!.depositWei}
                                         </TableCell>
                                         <TableCell>
-                                            {realtimeBalance!.owedDeposit}
+                                            {realtimeBalance!.owedDepositWei}
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>

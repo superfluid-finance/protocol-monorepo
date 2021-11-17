@@ -1,9 +1,9 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { trackTransaction } from '../../transactions/transactionSlice';
-import { rtkQuerySlice } from '../rtkQuerySlice';
-import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { typeGuard } from '../../../utils';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import { observeAddressToInvalidateTags } from '../observeAddressToInvalidateTags';
+import { registerNewTransaction } from '../registerNewTransaction';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type UpdateFlowArg = SuperTokenMutationArg & {
@@ -15,7 +15,7 @@ export type UpdateFlowArg = SuperTokenMutationArg & {
 export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         updateFlow: builder.mutation<TransactionInfo, UpdateFlowArg>({
-            queryFn: async (arg, api) => {
+            queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
                     await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
@@ -23,7 +23,9 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );
-                const senderAddress = arg.senderAddress ? arg.senderAddress : await signer.getAddress();
+                const senderAddress = arg.senderAddress
+                    ? arg.senderAddress
+                    : await signer.getAddress();
                 const transactionResponse = await superToken
                     .updateFlow({
                         sender: senderAddress,
@@ -31,19 +33,14 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         flowRate: arg.flowRateWei,
                     })
                     .exec(signer);
-                api.dispatch(
-                    trackTransaction({
-                        hash: transactionResponse.hash,
-                        chainId: arg.chainId,
-                    })
+
+                await registerNewTransaction(
+                    arg.chainId,
+                    transactionResponse.hash,
+                    !!arg.waitForConfirmation,
+                    queryApi.dispatch
                 );
-                if (arg.waitForConfirmation) {
-                    await framework.settings.provider.waitForTransaction(
-                        transactionResponse.hash,
-                        1,
-                        60000
-                    );
-                }
+
                 return {
                     data: typeGuard<TransactionInfo>({
                         hash: transactionResponse.hash,
@@ -54,28 +51,14 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
                     }),
                 };
             },
-            onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                queryFulfilled.then(async (queryResult) => {
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
-                    framework.query.on(
-                        (events, unsubscribe) => {
-                            for (const event of events) {
-                                invalidateTagsHandler(
-                                    arg.chainId,
-                                    event,
-                                    dispatch
-                                );
-                            }
-                            unsubscribe();
-                        },
-                        2000,
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+                queryFulfilled.then(async (queryResult) =>
+                    observeAddressToInvalidateTags(
                         queryResult.meta!.observeAddress,
-                        30000
-                    );
-                });
+                        queryResult.data,
+                        dispatch
+                    )
+                );
             },
         }),
     }),

@@ -5,14 +5,14 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 export type GetRealtimeBalanceArg = QueryArg & {
     superTokenAddress: string;
     accountAddress: string;
-    timestamp?: string;
+    estimationTimestamp?: string;
 };
 
 export type GetRealtimeBalanceResult = {
-    availableBalance: string;
-    netFlowRate: string;
-    deposit: string;
-    owedDeposit: string;
+    availableBalanceWei: string;
+    netFlowRateWei: string;
+    depositWei: string;
+    owedDepositWei: string;
     timestamp: string;
 };
 
@@ -40,8 +40,8 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                             superToken.realtimeBalanceOf({
                                 providerOrSigner: framework.settings.provider,
                                 account: arg.accountAddress,
-                                timestamp: arg.timestamp
-                                    ? arg.timestamp
+                                timestamp: arg.estimationTimestamp
+                                    ? arg.estimationTimestamp
                                     : Math.floor(
                                           new Date().getTime() / 1000
                                       ).toString(),
@@ -51,13 +51,14 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                                 providerOrSigner: framework.settings.provider,
                             }),
                         ]).then((x) => ({
-                            availableBalance: x[0].availableBalance.toString(),
-                            deposit: x[0].deposit.toString(),
-                            owedDeposit: x[0].owedDeposit.toString(),
+                            availableBalanceWei:
+                                x[0].availableBalance.toString(),
+                            depositWei: x[0].deposit.toString(),
+                            owedDepositWei: x[0].owedDeposit.toString(),
                             timestamp: Math.floor(
                                 x[0].timestamp.getTime() / 1000
                             ).toString(),
-                            netFlowRate: x[1],
+                            netFlowRateWei: x[1],
                         }));
                     return {
                         data: returnData,

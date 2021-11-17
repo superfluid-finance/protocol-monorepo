@@ -1,8 +1,8 @@
 import {
     AllEvents,
-    Paging,
-    PagedResult,
     IEventFilter,
+    PagedResult,
+    Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';

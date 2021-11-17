@@ -1,10 +1,11 @@
-import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { trackTransaction } from '../../transactions/transactionSlice';
-import { invalidateTagsHandler } from '../invalidateTagsHandler';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { ethers } from 'ethers';
+
+import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import { observeAddressToInvalidateTags } from '../observeAddressToInvalidateTags';
+import { registerNewTransaction } from '../registerNewTransaction';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type UpgradeToSuperToken = SuperTokenMutationArg & {
@@ -50,43 +51,29 @@ export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
                                 })
                                 .exec(signer);
 
-                        // TODO(KK): Consider a correlation ID here.
-                        // Fire and forget
-                        queryApi.dispatch(
-                            trackTransaction({
-                                hash: approveAllowanceTransactionResponse.hash,
-                                chainId: arg.chainId,
-                            })
-                        );
-
-                        // TODO(KK): Thinks about user experience here a bit...
-                        await framework.settings.provider.waitForTransaction(
+                        // NOTE: Always wait for transaction confirmation here.
+                        await registerNewTransaction(
+                            arg.chainId,
                             approveAllowanceTransactionResponse.hash,
-                            1,
-                            60000
+                            true,
+                            queryApi.dispatch
                         );
                     }
 
                     const upgradeToSuperTokenTransactionResponse =
-                        await superToken.upgrade({
-                            amount: arg.amountWei
-                        }).exec(signer);
+                        await superToken
+                            .upgrade({
+                                amount: arg.amountWei,
+                            })
+                            .exec(signer);
 
-                    // Fire and forget
-                    queryApi.dispatch(
-                        trackTransaction({
-                            hash: upgradeToSuperTokenTransactionResponse.hash,
-                            chainId: arg.chainId,
-                        })
+                    await registerNewTransaction(
+                        arg.chainId,
+                        upgradeToSuperTokenTransactionResponse.hash,
+                        !!arg.waitForConfirmation,
+                        queryApi.dispatch
                     );
 
-                    if (arg.waitForConfirmation) {
-                        await framework.settings.provider.waitForTransaction(
-                            upgradeToSuperTokenTransactionResponse.hash,
-                            1,
-                            60000
-                        );
-                    }
                     return {
                         data: typeGuard<TransactionInfo>({
                             hash: upgradeToSuperTokenTransactionResponse.hash,
@@ -97,28 +84,14 @@ export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
                         }),
                     };
                 },
-                onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                    queryFulfilled.then(async (queryResult) => {
-                        const framework =
-                            await initializedSuperfluidSource.getFramework(
-                                arg.chainId
-                            );
-                        framework.query.on(
-                            (events, unsubscribe) => {
-                                for (const event of events) {
-                                    invalidateTagsHandler(
-                                        arg.chainId,
-                                        event,
-                                        dispatch
-                                    );
-                                }
-                                unsubscribe();
-                            },
-                            2000,
+                onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+                    queryFulfilled.then(async (queryResult) =>
+                        observeAddressToInvalidateTags(
                             queryResult.meta!.observeAddress,
-                            30000
-                        );
-                    });
+                            queryResult.data,
+                            dispatch
+                        )
+                    );
                 },
             }),
         }),

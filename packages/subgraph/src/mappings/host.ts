@@ -66,6 +66,9 @@ export function handleAgreementClassUpdated(
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
+
+    // NOTE: It appears there are no AgreementClassRegisteredEvents on Goerli
+    initSFMetaOnce(event);
 }
 
 export function handleSuperTokenFactoryUpdated(

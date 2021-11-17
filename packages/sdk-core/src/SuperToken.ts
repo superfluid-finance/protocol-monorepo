@@ -83,7 +83,7 @@ export default class SuperToken extends Token {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.options.config,
         });
-        this.underlyingToken = new Token(ethers.constants.AddressZero);
+        this.underlyingToken = new Token(settings.underlyingTokenAddress);
     }
 
     static create = async (options: ITokenConstructorOptions) => {

@@ -1,7 +1,7 @@
 const Web3 = require("web3");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
-const { codeChanged } = require("../../scripts/utils");
+const { codeChanged } = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");

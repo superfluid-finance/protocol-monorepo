@@ -17,7 +17,7 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
-import { Int96SafeMath } from "../utils/Int96SafeMath.sol";
+import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 

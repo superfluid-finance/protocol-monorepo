@@ -3,7 +3,7 @@
 // ADAPTED FROM: https://github.com/Arachnid/solidity-stringutils/
 pragma solidity 0.7.6;
 
-import '../../../contracts/utils/Strings.sol';
+import '../../../contracts/libs/Strings.sol';
 import "truffle/Assert.sol";
 
 contract TestStrings  {

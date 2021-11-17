@@ -89,7 +89,7 @@ describe("Miscellaneous for test coverages", function () {
         });
     });
 
-    describe("Utils", () => {
+    describe("Libs", () => {
         it("Int96SafeMath", async () => {
             const MAX_INT96 = toBN("39614081257132168796771975167");
             const MAX_INT96_DIV_2 = toBN("19807040628566084398385987583");

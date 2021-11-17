@@ -5,6 +5,6 @@ module.exports = {
     skipFiles: [
         "mocks/",
         "apps",
-        "utils/Strings.sol", // solidity test cases not included in coverage
+        "libs/Strings.sol", // solidity test cases not included in coverage
     ]
 };

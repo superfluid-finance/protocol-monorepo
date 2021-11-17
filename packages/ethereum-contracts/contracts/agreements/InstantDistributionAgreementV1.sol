@@ -14,10 +14,10 @@ import {
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { UInt128SafeMath } from "../utils/UInt128SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 

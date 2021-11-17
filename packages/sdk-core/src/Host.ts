@@ -22,7 +22,7 @@ export default class Host {
      * @param agreementAddress the agreement address (cfa or ida address)
      * @param callData the encoded callData for the function
      * @param userData any additional user data
-     * @returns an `Operation` class
+     * @returns {Operation} an `Operation` class
      */
     populateCallAgreementTxnAndReturnOperation = (
         agreementAddress: string,

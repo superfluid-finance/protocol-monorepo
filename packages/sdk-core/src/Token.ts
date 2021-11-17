@@ -160,7 +160,7 @@ export default class Token {
      * @dev Approve `receiver` to spend `amount` tokens.
      * @param receiver The receiver approved.
      * @param amount The amount approved.
-     * @returns An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     approve = ({ receiver, amount }: IBaseSuperTokenParams): Operation => {
         const normalizedReceiver = normalizeAddress(receiver);
@@ -175,7 +175,7 @@ export default class Token {
      * @dev Transfer `receiver` `amount` tokens.
      * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.
-     * @returns An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     transfer = ({ receiver, amount }: IBaseSuperTokenParams): Operation => {
         const normalizedReceiver = normalizeAddress(receiver);
@@ -191,7 +191,7 @@ export default class Token {
      * @param sender The sender of the transfer.
      * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.
-     * @returns An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     transferFrom = ({
         sender,

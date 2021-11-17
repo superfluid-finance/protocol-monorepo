@@ -46,7 +46,7 @@ export default class ConstantFlowAgreementV1 {
      * @param sender the sender of the flow
      * @param receiver the receiver of the flow
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Flow info object
+     * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
     getFlow = async ({
         superToken,
@@ -76,7 +76,7 @@ export default class ConstantFlowAgreementV1 {
      * @param superToken the superToken of the agreement
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Flow info object
+     * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
     getAccountFlowInfo = async ({
         superToken,
@@ -105,7 +105,7 @@ export default class ConstantFlowAgreementV1 {
      * @param superToken the superToken of the agreement
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Flow info object
+     * @returns {Promise<string>} Web3 Flow info object
      */
     getNetFlow = async ({
         superToken,
@@ -225,12 +225,20 @@ export default class ConstantFlowAgreementV1 {
         );
     };
 
-    _sanitizeflowInfo({
+    /**
+     * @dev Sanitizes flow info, converting BigNumber to string.
+     * @param timestamp last updated timestamp of flow
+     * @param flowRate the current flow rate
+     * @param deposit the deposit amount
+     * @param owedDeposit any owed depsit
+     * @returns {IWeb3FlowInfo} sanitized web3 flow info
+     */
+    _sanitizeflowInfo = ({
         timestamp,
         flowRate,
         deposit,
         owedDeposit,
-    }: IWeb3FlowInfoParams): IWeb3FlowInfo {
+    }: IWeb3FlowInfoParams): IWeb3FlowInfo => {
         return {
             timestamp: getSanitizedTimestamp(timestamp),
             flowRate: flowRate.toString(),

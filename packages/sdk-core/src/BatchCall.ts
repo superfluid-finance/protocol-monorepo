@@ -42,16 +42,16 @@ export default class BatchCall {
     /**
      * @dev Gets the call agreement function arguments.
      * @param callData callData of the function
-     * @returns call agreement function arguments
+     * @returns {ethers.utils.Result} call agreement function arguments
      */
-    getCallAgreementFunctionArgs = (callData: string) =>
+    getCallAgreementFunctionArgs = (callData: string): ethers.utils.Result =>
         getTransactionDescription(SuperfluidABI, callData).args;
 
     /**
      * @dev Given an `Operation` object, gets the `OperationStruct` object.
      * @param operation an `Operation` object
      * @param index the index of the `Operation` in the batchCall
-     * @returns `OperationStruct`
+     * @returns {Promise<OperationStruct>} OperationStruct object for batchCall
      */
     getOperationStruct = async (
         operation: Operation,
@@ -100,8 +100,9 @@ export default class BatchCall {
 
     /**
      * @dev Gets an array of `OperationStruct` objects to be passed to batchCall.
+     * @returns {Promise<OperationStruct>[]} array of operation struct promises
      */
-    get getOperationStructArrayPromises() {
+    get getOperationStructArrayPromises(): Promise<OperationStruct>[] {
         return this.options.operations.map((x, i) =>
             this.getOperationStruct(x, i)
         );
@@ -110,9 +111,9 @@ export default class BatchCall {
     /**
      * @dev Executes a batch call given the operations on this class.
      * @param signer the signer of the transaction
-     * @returns ethers.ContractTransaction object
+     * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
-    exec = async (signer: ethers.Signer) => {
+    exec = async (signer: ethers.Signer): Promise<ethers.ContractTransaction> => {
         try {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
@@ -135,9 +136,9 @@ export default class BatchCall {
     /**
      * @dev Executes a forward batch call given the operations on this class.
      * @param signer the signer of the transaction
-     * @returns ethers.ContractTransaction object
+     * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
-    execForward = async (signer: ethers.Signer) => {
+    execForward = async (signer: ethers.Signer): Promise<ethers.ContractTransaction> => {
         try {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises

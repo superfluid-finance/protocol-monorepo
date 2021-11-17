@@ -18,6 +18,9 @@ import {
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
+    IWeb3FlowInfo,
+    IWeb3Index,
+    IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
 } from "./interfaces";
 import Operation from "./Operation";
@@ -132,22 +135,22 @@ export default class SuperToken extends Token {
      * @param account the target address
      * @param timestamp the timestamp you'd like to see the data
      * @param providerOrSigner a provider or signer for executing a web3 call
-     * @returns [the available balance, deposit, owed deposit amount]
+     * @returns {Promise<IWeb3RealTimeBalanceOf>} real time balance of data
      */
     realtimeBalanceOf = async ({
         providerOrSigner,
         account,
         timestamp = getStringCurrentTimeInSeconds(),
-    }: IRealtimeBalanceOfParams) => {
+    }: IRealtimeBalanceOfParams): Promise<IWeb3RealTimeBalanceOf> => {
         const normalizedAccount = normalizeAddress(account);
         try {
             const realtimeBalanceOf = await this.superTokenContract
                 .connect(providerOrSigner)
                 .realtimeBalanceOf(normalizedAccount, timestamp);
             return {
-                availableBalance: realtimeBalanceOf.availableBalance,
-                deposit: realtimeBalanceOf.deposit,
-                owedDeposit: realtimeBalanceOf.owedDeposit,
+                availableBalance: realtimeBalanceOf.availableBalance.toString(),
+                deposit: realtimeBalanceOf.deposit.toString(),
+                owedDeposit: realtimeBalanceOf.owedDeposit.toString(),
                 timestamp: getSanitizedTimestamp(timestamp),
             };
         } catch (err) {
@@ -164,7 +167,7 @@ export default class SuperToken extends Token {
     /**
      * @dev Downgrade `amount` SuperToken's.
      * @param amount The amount to be downgraded.
-     * @returns An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     downgrade = ({ amount }: { amount: string }): Operation => {
         const txn =
@@ -175,7 +178,7 @@ export default class SuperToken extends Token {
     /**
      * @dev Upgrade `amount` SuperToken's.
      * @param amount The amount to be upgraded.
-     * @returns An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     upgrade = ({ amount }: { amount: string }): Operation => {
         const txn = this.superTokenContract.populateTransaction.upgrade(amount);
@@ -189,13 +192,13 @@ export default class SuperToken extends Token {
      * @param sender the sender of the flow
      * @param receiver the receiver of the flow
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Flow info object
+     * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
     getFlow = async ({
         sender,
         receiver,
         providerOrSigner,
-    }: ISuperTokenGetFlowParams) => {
+    }: ISuperTokenGetFlowParams): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getFlow({
             superToken: this.options.address,
             sender,
@@ -208,12 +211,12 @@ export default class SuperToken extends Token {
      * @dev Get the flow info of an account (net flow).
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Flow info object
+     * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
     getAccountFlowInfo = async ({
         account,
         providerOrSigner,
-    }: ISuperTokenGetFlowInfoParams) => {
+    }: ISuperTokenGetFlowInfoParams): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getAccountFlowInfo({
             superToken: this.options.address,
             account,
@@ -225,12 +228,12 @@ export default class SuperToken extends Token {
      * @dev Get the net flow of an account.
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Flow info object
+     * @returns {Promise<string>} Web3 Flow info object
      */
     getNetFlow = async ({
         account,
         providerOrSigner,
-    }: ISuperTokenGetFlowInfoParams) => {
+    }: ISuperTokenGetFlowInfoParams): Promise<string> => {
         return await this.cfaV1.getNetFlow({
             superToken: this.options.address,
             account,
@@ -314,7 +317,7 @@ export default class SuperToken extends Token {
      * @param indexId the index id
      * @param subscriber the subscriber's address
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Subscription object
+     * @returns {Promise<IWeb3Subscription>} Web3 Subscription object
      */
     getSubscription = async ({
         publisher,
@@ -336,13 +339,13 @@ export default class SuperToken extends Token {
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Index object
+     * @returns {Promise<IWeb3Index>} Web3 Index object
      */
     getIndex = async ({
         publisher,
         indexId,
         providerOrSigner,
-    }: ISuperTokenGetIndexParams) => {
+    }: ISuperTokenGetIndexParams): Promise<IWeb3Index> => {
         return await this.idaV1.getIndex({
             superToken: this.options.address,
             publisher,

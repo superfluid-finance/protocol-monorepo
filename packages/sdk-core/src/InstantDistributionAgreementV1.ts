@@ -51,7 +51,7 @@ export default class InstantDistributionAgreementV1 {
      * @param indexId the index id
      * @param subscriber the subscriber's address
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Subscription object
+     * @returns {Promise<IWeb3Subscription>} Web3 Subscription object
      */
     getSubscription = async ({
         superToken,
@@ -95,7 +95,7 @@ export default class InstantDistributionAgreementV1 {
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param providerOrSigner a provider or signer object
-     * @returns Web3 Index object
+     * @returns {Promise<IWeb3Index>} Web3 Index object
      */
     getIndex = async ({
         superToken,

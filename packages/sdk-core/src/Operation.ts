@@ -52,7 +52,7 @@ export default class Operation {
     /**
      * @dev Get the populated transaction by awaiting `populateTransactionPromise`.
      * @description Note that we need to populate the txn with the signer.
-     * @returns {Promise<ethers.PopulatedTransaction>}
+     * @returns {Promise<TransactionRequest>}
      */
     getPopulatedTransactionRequest = async (
         signer: ethers.Signer
@@ -72,7 +72,7 @@ export default class Operation {
     /**
      * @dev Signs the populated transaction via the provided signer (what you intend on sending to the network).
      * @param signer The signer of the transacation
-     * @returns {string} Fully serialized, signed transaction
+     * @returns {Promise<string>} Fully serialized, signed transaction
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
         try {
@@ -95,7 +95,7 @@ export default class Operation {
      * @dev Gets the transaction hash of the transaction.
      * @description Calculates this by getting the keccak256 hash of the signedTxn.
      * @param signer The signer of the transacation
-     * @returns {string} The transaction hash of the transaction
+     * @returns {Promise<string>} The transaction hash of the transaction
      */
     getTransactionHash = async (signer: ethers.Signer): Promise<string> => {
         const signedTxn = await this.getSignedTransaction(signer);

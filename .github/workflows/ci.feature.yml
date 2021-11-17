@@ -210,7 +210,7 @@ jobs:
 
 
       - name: "Prepare, set network, build and deploy subgraph locally"
-        run: yarn prepare-local && yarn set-network-local && yarn codegen && yarn create-local && yarn deploy-local
+        run: yarn build-and-deploy-local
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run integration test suite"

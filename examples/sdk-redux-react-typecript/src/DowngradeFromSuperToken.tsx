@@ -18,8 +18,8 @@ export const DowngradeFromSuperToken: FC = (): ReactElement => {
     const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
         downgradeFromSuperToken({
             chainId,
-            superToken,
-            amount,
+            superTokenAddress: superToken,
+            amountWei: amount,
         });
     };
 

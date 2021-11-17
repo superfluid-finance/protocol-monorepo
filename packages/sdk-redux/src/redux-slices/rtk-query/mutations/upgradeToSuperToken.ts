@@ -1,5 +1,5 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { MutationArg, TransactionInfo } from '../../baseArg';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
@@ -7,9 +7,8 @@ import { ethers } from 'ethers';
 import { typeGuard } from '../../../utils';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type UpgradeToSuperToken = MutationArg & {
-    superToken: string;
-    amount: string;
+export type UpgradeToSuperToken = SuperTokenMutationArg & {
+    amountWei: string;
 };
 
 export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
@@ -26,7 +25,7 @@ export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
                         );
 
                     const [superToken, signerAddress] = await Promise.all([
-                        framework.loadSuperToken(arg.superToken),
+                        framework.loadSuperToken(arg.superTokenAddress),
                         signer.getAddress(),
                     ]);
 
@@ -40,13 +39,13 @@ export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
                             .then((x) => ethers.BigNumber.from(x));
 
                     const isAllowanceEnough = underlyingTokenAllowance.gte(
-                        ethers.BigNumber.from(arg.amount)
+                        ethers.BigNumber.from(arg.amountWei)
                     );
                     if (!isAllowanceEnough) {
                         const approveAllowanceTransactionResponse =
                             await superToken.underlyingToken
                                 .approve({
-                                    amount: arg.amount, // TODO(KK): Should we account for existing allowance amount here?
+                                    amount: arg.amountWei, // TODO(KK): Should we account for existing allowance amount here?
                                     receiver: superToken.address,
                                 })
                                 .exec(signer);
@@ -69,7 +68,9 @@ export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
                     }
 
                     const upgradeToSuperTokenTransactionResponse =
-                        await superToken.upgrade(arg).exec(signer);
+                        await superToken.upgrade({
+                            amount: arg.amountWei
+                        }).exec(signer);
 
                     // Fire and forget
                     queryApi.dispatch(

@@ -11,7 +11,7 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListIndexesArg = PaginatedQueryArg & IIndexRequestFilter;
 
-const extendedApi = rtkQuerySlice.injectEndpoints({
+export const { useListIndexesQuery, useLazyListIndexesQuery } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         listIndexes: builder.query<PagedResult<IIndex>, ListIndexesArg>({
             queryFn: async (arg) => {
@@ -29,5 +29,3 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
-
-export const { useListIndexesQuery, useLazyListIndexesQuery } = extendedApi;

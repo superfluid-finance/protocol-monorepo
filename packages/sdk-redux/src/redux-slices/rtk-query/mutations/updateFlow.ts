@@ -1,16 +1,15 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { MutationArg, TransactionInfo } from '../../baseArg';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { typeGuard } from '../../../utils';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type UpdateFlowArg = MutationArg & {
-    superToken: string;
-    sender: string;
-    receiver: string;
-    flowRate: string;
+export type UpdateFlowArg = SuperTokenMutationArg & {
+    senderAddress?: string;
+    receiverAddress: string;
+    flowRateWei: string;
 };
 
 export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
@@ -22,15 +21,16 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         arg.chainId
                     );
                 const superToken = await framework.loadSuperToken(
-                    arg.superToken
+                    arg.superTokenAddress
                 );
+                const senderAddress = arg.senderAddress ? arg.senderAddress : await signer.getAddress();
                 const transactionResponse = await superToken
                     .updateFlow({
-                        sender: arg.sender,
-                        receiver: arg.receiver,
-                        flowRate: arg.flowRate,
+                        sender: senderAddress,
+                        receiver: arg.receiverAddress,
+                        flowRate: arg.flowRateWei,
                     })
-                    .exec(signer as any); // TODO(KK): "as any"
+                    .exec(signer);
                 api.dispatch(
                     trackTransaction({
                         hash: transactionResponse.hash,
@@ -50,7 +50,7 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         chainId: arg.chainId,
                     }),
                     meta: typeGuard<MutationMeta>({
-                        observeAddress: arg.sender,
+                        observeAddress: senderAddress,
                     }),
                 };
             },

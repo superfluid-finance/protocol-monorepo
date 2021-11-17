@@ -19,10 +19,10 @@ export const DeleteStream: FC = (): ReactElement => {
 
     const handleDeleteStream = (e: SyntheticEvent) => {
         deleteFlow({
-            sender: signerAddress,
-            receiver,
+            senderAddress: signerAddress,
+            receiverAddress: receiver,
             chainId,
-            superToken,
+            superTokenAddress: superToken,
             waitForConfirmation
         });
     };

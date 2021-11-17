@@ -12,7 +12,10 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 export type ListUserInteractedSuperTokensArg = PaginatedQueryArg &
     IAccountTokenSnapshotFilter;
 
-const extendedApi = rtkQuerySlice.injectEndpoints({
+export const {
+    useListUserInteractedSuperTokensQuery,
+    useLazyListUserInteractedSuperTokensQuery,
+} = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         listUserInteractedSuperTokens: builder.query<
             PagedResult<ILightAccountTokenSnapshot>,
@@ -40,8 +43,3 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
-
-export const {
-    useListUserInteractedSuperTokensQuery,
-    useLazyListUserInteractedSuperTokensQuery,
-} = extendedApi;

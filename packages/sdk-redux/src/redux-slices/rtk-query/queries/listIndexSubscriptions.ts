@@ -13,7 +13,10 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 export type ListIndexSubscriptionsArg = PaginatedQueryArg &
     IIndexSubscriptionRequestFilter;
 
-const extendedApi = rtkQuerySlice.injectEndpoints({
+export const {
+    useListIndexSubscriptionsQuery,
+    useLazyListIndexSubscriptionsQuery,
+} = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         listIndexSubscriptions: builder.query<
             PagedResult<IIndexSubscription>,
@@ -34,8 +37,3 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
-
-export const {
-    useListIndexSubscriptionsQuery,
-    useLazyListIndexSubscriptionsQuery,
-} = extendedApi;

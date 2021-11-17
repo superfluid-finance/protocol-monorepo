@@ -18,11 +18,11 @@ export const UpdateStream: FC = (): ReactElement => {
 
     const handleUpdateStream = (e: SyntheticEvent) => {
         updateFlow({
-            sender: signerAddress,
-            receiver,
+            senderAddress: signerAddress,
+            receiverAddress: receiver,
             chainId,
-            superToken,
-            flowRate,
+            superTokenAddress: superToken,
+            flowRateWei: flowRate,
             waitForConfirmation,
         });
     };

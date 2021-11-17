@@ -1,31 +1,29 @@
 import { SignerContext } from "./SignerContext";
 import { Loader } from "./Loader";
-import {FC, ReactElement, SyntheticEvent, useContext, useState} from "react";
-import { useCreateFlowMutation} from "@superfluid-finance/sdk-redux";
+import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
+import { useCreateFlowMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import {Error} from "./Error";
+import { Error } from "./Error";
 
 export const CreateStream: FC = (): ReactElement => {
-    const [
-        createFlow,
-        { isLoading, error },
-    ] = useCreateFlowMutation();
+    const [createFlow, { isLoading, error }] = useCreateFlowMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
     const [flowRate, setFlowRate] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] = useState<boolean>(false);
+    const [waitForConfirmation, setWaitForConfirmation] =
+        useState<boolean>(false);
 
     const handleCreateStream = (e: SyntheticEvent) => {
         createFlow({
-            sender: signerAddress,
-            receiver,
-            flowRate,
+            senderAddress: signerAddress,
+            receiverAddress: receiver,
+            flowRateWei: flowRate,
             chainId,
-            superToken,
-            waitForConfirmation
+            superTokenAddress: superToken,
+            waitForConfirmation,
         });
     };
 
@@ -60,7 +58,13 @@ export const CreateStream: FC = (): ReactElement => {
                                     setFlowRate(e.currentTarget.value)
                                 }
                             />
-                            <Switch value={waitForConfirmation} title="Wait for confirmation" onChange={() => setWaitForConfirmation(!waitForConfirmation)} />
+                            <Switch
+                                value={waitForConfirmation}
+                                title="Wait for confirmation"
+                                onChange={() =>
+                                    setWaitForConfirmation(!waitForConfirmation)
+                                }
+                            />
                             <Button
                                 sx={{ m: 1 }}
                                 type="submit"

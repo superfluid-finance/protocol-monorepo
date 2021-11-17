@@ -1,15 +1,14 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { MutationArg, TransactionInfo } from '../../baseArg';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type DeleteFlowArg = MutationArg & {
-    superToken: string;
-    sender: string;
-    receiver: string;
+export type DeleteFlowArg = SuperTokenMutationArg & {
+    senderAddress?: string;
+    receiverAddress: string;
 };
 
 export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
@@ -21,12 +20,15 @@ export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
                         arg.chainId
                     );
                 const superToken = await framework.loadSuperToken(
-                    arg.superToken
+                    arg.superTokenAddress
                 );
+
+                const senderAddress = arg.senderAddress ? arg.senderAddress : await signer.getAddress();
+
                 const transactionResponse = await superToken
                     .deleteFlow({
-                        sender: arg.sender,
-                        receiver: arg.receiver,
+                        sender: senderAddress,
+                        receiver: arg.receiverAddress,
                     })
                     .exec(signer);
                 queryApi.dispatch(
@@ -48,7 +50,7 @@ export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
                         chainId: arg.chainId,
                     }),
                     meta: typeGuard<MutationMeta>({
-                        observeAddress: arg.sender,
+                        observeAddress: senderAddress,
                     }),
                 };
             },

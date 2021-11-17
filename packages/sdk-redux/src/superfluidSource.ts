@@ -4,18 +4,7 @@ import {Signer} from "ethers";
 const frameworks = new Map<number, Promise<Framework>>();
 const signers = new Map<number, Promise<Signer>>();
 
-export type SuperfluidSource = {
-    getFramework: (chainId: number) => Promise<Framework>;
-    setFramework: (chainId: number, frameworkPromise: Promise<Framework>) => void;
-    getSigner: (chainId: number) => Promise<Signer>;
-    setSigner: (
-        chainId: number,
-        frameworkPromise: Promise<Signer>
-    ) => void;
-    getFrameworkAndSigner: (chainId: number) => Promise<[framework: Framework, signer: Signer]>
-}
-
-export const superfluidSource: SuperfluidSource = {
+export const superfluidSource = {
     getFramework: (chainId: number): Promise<Framework> => {
         const frameworkPromise = frameworks.get(chainId);
         if (!frameworkPromise)
@@ -45,3 +34,5 @@ export const superfluidSource: SuperfluidSource = {
         ]);
     }
 };
+
+export type SuperfluidSource = typeof superfluidSource;

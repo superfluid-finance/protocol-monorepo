@@ -6,16 +6,20 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type DowngradeFromSuperToken = SuperTokenMutationArg & {
+export type UpdateIndexSubscriptionUnitsArg = SuperTokenMutationArg & {
+    subscriberAddress: string;
+    indexId: string;
+    unitsNumber: string;
     amountWei: string;
+    userDataBytes?: string;
 };
 
-export const { useDowngradeFromSuperTokenMutation } =
+export const { useUpdateIndexSubscriptionUnitsMutation } =
     rtkQuerySlice.injectEndpoints({
         endpoints: (builder) => ({
-            downgradeFromSuperToken: builder.mutation<
+            updateIndexSubscriptionUnits: builder.mutation<
                 TransactionInfo,
-                DowngradeFromSuperToken
+                UpdateIndexSubscriptionUnitsArg
             >({
                 queryFn: async (arg, queryApi) => {
                     const [framework, signer] =
@@ -29,8 +33,11 @@ export const { useDowngradeFromSuperTokenMutation } =
                     ]);
 
                     const transactionResponse = await superToken
-                        .downgrade({
-                            amount: arg.amountWei
+                        .updateSubscriptionUnits({
+                            indexId: arg.indexId,
+                            subscriber: arg.subscriberAddress,
+                            units: arg.unitsNumber,
+                            userData: arg.userDataBytes,
                         })
                         .exec(signer);
 
@@ -49,7 +56,6 @@ export const { useDowngradeFromSuperTokenMutation } =
                             60000
                         );
                     }
-
                     return {
                         data: typeGuard<TransactionInfo>({
                             hash: transactionResponse.hash,

@@ -6,32 +6,28 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type CreateFlowArg = SuperTokenMutationArg & {
-    senderAddress?: string;
-    receiverAddress: string;
-    flowRateWei: string;
+export type CreateIndexArg = SuperTokenMutationArg & {
+    indexId: string;
+    userDataBytes: string;
 };
 
-export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
+export const { useCreateIndexMutation } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        createFlow: builder.mutation<TransactionInfo, CreateFlowArg>({
+        createIndex: builder.mutation<TransactionInfo, CreateIndexArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
                     await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
 
-                const superToken = await framework.loadSuperToken(
-                    arg.superTokenAddress
-                );
-
-                const senderAddress = arg.senderAddress ? arg.senderAddress : await signer.getAddress();
-
+                const [superToken, signerAddress] = await Promise.all([
+                    framework.loadSuperToken(arg.superTokenAddress),
+                    signer.getAddress(),
+                ]);
                 const transactionResponse = await superToken
-                    .createFlow({
-                        sender: senderAddress,
-                        receiver: arg.receiverAddress,
-                        flowRate: arg.flowRateWei,
+                    .createIndex({
+                        indexId: arg.indexId,
+                        userData: arg.userDataBytes,
                     })
                     .exec(signer);
 
@@ -56,12 +52,10 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         chainId: arg.chainId,
                     }),
                     meta: typeGuard<MutationMeta>({
-                        observeAddress: senderAddress,
+                        observeAddress: signerAddress,
                     }),
                 };
             },
-            // TODO(KK): Consider optimistic update.
-            // TODO(KK): Subscribe to re-org issues here or at "track transaction"?
             onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
                 queryFulfilled.then(async (queryResult) => {
                     const framework =

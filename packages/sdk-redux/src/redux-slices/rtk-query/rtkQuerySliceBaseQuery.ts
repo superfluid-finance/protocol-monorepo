@@ -1,7 +1,7 @@
 import { BaseQueryFn } from '@reduxjs/toolkit/dist/query/react';
 import { SerializedError } from '@reduxjs/toolkit';
 
-import { MutationArg, QueryArg, TransactionInfo } from '../baseArg';
+import { SuperTokenMutationArg, QueryArg, TransactionInfo } from '../baseArg';
 
 export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;
@@ -19,7 +19,7 @@ export type MutationMeta = {
  * This also allows you to specify a specific error type to be shared by all your `queryFn` definitions.
  */
 export function rtkQuerySliceBaseQuery(): BaseQueryFn<
-    MutationArg | QueryArg,
+    SuperTokenMutationArg | QueryArg,
     TransactionInfo | Record<string, unknown>,
     ValidationError,
     unknown,

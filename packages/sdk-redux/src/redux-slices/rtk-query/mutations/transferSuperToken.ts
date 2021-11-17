@@ -1,15 +1,14 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { MutationArg, TransactionInfo } from '../../baseArg';
+import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type TransferSuperTokenArg = MutationArg & {
-    superToken: string;
-    receiver: string;
-    amount: string;
+export type TransferSuperTokenArg = SuperTokenMutationArg & {
+    receiverAddress: string;
+    amountWei: string;
 };
 
 export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
@@ -25,12 +24,15 @@ export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
                     );
 
                 const [superToken, signerAddress] = await Promise.all([
-                    framework.loadSuperToken(arg.superToken),
+                    framework.loadSuperToken(arg.superTokenAddress),
                     signer.getAddress(),
                 ]);
 
                 const transactionResponse = await superToken
-                    .transfer(arg)
+                    .transfer({
+                        amount: arg.amountWei,
+                        receiver: arg.receiverAddress
+                    })
                     .exec(signer);
 
                 queryApi.dispatch(

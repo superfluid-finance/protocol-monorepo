@@ -26,8 +26,8 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
     const handleUpgradeToSuperToken = (e: SyntheticEvent) => {
         upgradeToSuperToken({
             chainId,
-            superToken,
-            amount,
+            superTokenAddress: superToken,
+            amountWei: amount,
         });
     };
 

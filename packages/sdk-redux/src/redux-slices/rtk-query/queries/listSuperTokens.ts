@@ -11,7 +11,7 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListSuperTokensArg = PaginatedQueryArg & ISuperTokenRequestFilter;
 
-const extendedApi = rtkQuerySlice.injectEndpoints({
+export const { useListSuperTokensQuery, useLazyListSuperTokensQuery }  = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         listSuperTokens: builder.query<
             PagedResult<ISuperToken>,
@@ -32,6 +32,3 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
-
-export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
-    extendedApi;

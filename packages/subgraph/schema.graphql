@@ -301,27 +301,6 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
 
 #     Host    #
 
-type SFMeta @entity {
-    """
-    The id is the commit hash.
-    """
-    id: ID!
-    timestamp: BigInt!
-    blockNumber: BigInt!
-    """
-    Whether the branch is feature/dev/v1.
-    """
-    configuration: String!
-    """
-    The branch the current deployment is coming from.
-    """
-    branch: String!
-    """
-    The release tag if it exists.
-    """
-    tag: String
-}
-
 type AgreementClassRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
@@ -1139,4 +1118,29 @@ type TokenStatistic @entity {
 
     # ---------------------------------- links ----------------------------------
     token: Token!
+}
+
+####################
+#  Internal Entity #
+####################
+
+type SFMeta @entity {
+    """
+    The id is the commit hash.
+    """
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    """
+    Whether the branch is feature/dev/v1.
+    """
+    configuration: String!
+    """
+    The branch the current deployment is coming from.
+    """
+    branch: String!
+    """
+    The release tag if it exists.
+    """
+    tag: String
 }

@@ -15,6 +15,7 @@
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v1.0.0",
+        "build-and-deploy-local": "yarn prepare-local && yarn set-network-local && yarn getAbi && yarn generate-sf-meta-local && yarn codegen && yarn create-local && yarn deploy-local",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
         "deploy": "graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs --access-token $THEGRAPH_ACCESS_TOKEN",
         "deploy:feature": "run-s deploy:feature:*",
@@ -67,7 +68,9 @@
         "deploy:v1:matic": "yarn prepare:v1:matic && yarn set-network:v1:matic && SUBGRAPH_NAME=superfluid-finance/protocol-v1-matic yarn deploy",
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
-        "pre-commit": "true"
+        "pre-commit": "true",
+        "generate-sf-meta": "./tasks/getSFMeta.sh",
+        "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",

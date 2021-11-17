@@ -4,6 +4,7 @@ import {
     AppRegisteredEvent,
     GovernanceReplacedEvent,
     JailEvent,
+    SFMeta,
     SuperTokenFactoryUpdatedEvent,
     SuperTokenLogicUpdatedEvent,
 } from "../../generated/schema";
@@ -17,6 +18,7 @@ import {
     SuperTokenLogicUpdated,
 } from "../../generated/Host/ISuperfluid";
 import { createEventID } from "../utils";
+import { commitHash, configuration, branch, tag } from "../meta.ignore";
 
 export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     let ev = new GovernanceReplacedEvent(
@@ -46,6 +48,8 @@ export function handleAgreementClassRegistered(
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
+
+    initSFMetaOnce(event);
 }
 
 export function handleAgreementClassUpdated(
@@ -116,4 +120,17 @@ export function handleJail(event: Jail): void {
     ev.app = event.params.app;
     ev.reason = event.params.reason;
     ev.save();
+}
+
+function initSFMetaOnce(event: AgreementClassRegistered): void {
+    let sfMeta = SFMeta.load(commitHash);
+    if (sfMeta == null) {
+        sfMeta = new SFMeta(commitHash);
+        sfMeta.timestamp = event.block.timestamp;
+        sfMeta.blockNumber = event.block.number;
+        sfMeta.configuration = configuration;
+        sfMeta.branch = branch;
+        sfMeta.tag = tag;
+        sfMeta.save();
+    }
 }

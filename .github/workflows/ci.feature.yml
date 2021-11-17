@@ -14,10 +14,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
+# TODO(KK): Should there be anything about SDK-Redux here?
     outputs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
       build_js_sdk: ${{ env.BUILD_JS_SDK }}
-      build_subgraph: ${{ env.BUILD_SUBGRAH }}
+      build_subgraph: ${{ env.BUILD_SUBGRAPH }}
+      build_sdk_core: ${{ env.BUILD_SDK_CORE }}
 
     # triggered by internal pushes or external PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
@@ -62,7 +64,6 @@ jobs:
 
       - name: Install, lint and build
         run: |
-          echo "Sanity check"
           yarn install --frozen-lockfile
           yarn lint
           yarn build
@@ -172,7 +173,7 @@ jobs:
         run: docker-compose up &
         working-directory: ./graph-node/docker
 
-      - name: "Install yarn"
+      - name: "Install yarn and ganache-cli"
         run: npm install -g yarn ganache-cli
 
       - name: "Run ganache-cli node"
@@ -186,8 +187,6 @@ jobs:
       - name: "Build contracts"
         run: yarn run build:contracts
         working-directory: ${{ env.contracts-working-directory }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: "Generate Typechain files and move to subgraph directory"
         run: |
@@ -210,7 +209,7 @@ jobs:
         working-directory: ${{ env.sdk-working-directory }}
 
       - name: "Deploy contracts and token locally"
-        run: npx hardhat run scripts/deployContractsAndToken.ts --network localhost
+        run: yarn deploy-contracts-local
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Prepare, set network, build and deploy subgraph locally"
@@ -221,13 +220,75 @@ jobs:
         run: npx hardhat test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
 
+  test-sdk-core:
+    name: Test sdk-core (feature branch)
+
+    runs-on: ubuntu-latest
+
+    env:
+      subgraph-working-directory: ./packages/subgraph
+      contracts-working-directory: ./packages/ethereum-contracts
+      sdk-working-directory: ./packages/js-sdk
+      sdk-core-working-directory: ./packages/sdk-core
+
+    needs: [check]
+    if: needs.check.outputs.build_sdk_core
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: "Install yarn and ganache-cli"
+        run: npm install -g yarn ganache-cli
+
+      - name: "Run ganache-cli node"
+        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Install contract dependencies"
+        run: yarn install
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Build contracts"
+        run: yarn run build:contracts
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Get abi.js file for js-sdk to deploy locally"
+        run: |
+          chmod +x ./tasks/build-abi-js.sh
+          ./tasks/build-abi-js.sh
+        working-directory: ${{ env.sdk-working-directory }}
+
+      - name: "Deploy contracts and token locally"
+        run: yarn deploy-contracts-local
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Generate ABI and typechain files"
+        run: yarn generate-abi-files && yarn generate-web3-types
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: "Run test suite"
+        run: |
+          yarn test
+        working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}
+
   all-packages-tested:
     name: All packages tested (Feature Branch)
 
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core]
 
     steps:
       - name: Test Results
@@ -246,3 +307,4 @@ jobs:
           check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
           check_result js-sdk ${{ needs.test-js-sdk.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
+          check_result sdk-core ${{ needs.test-sdk-core.result }}

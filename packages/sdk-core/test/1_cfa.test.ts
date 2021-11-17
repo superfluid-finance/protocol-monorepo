@@ -24,7 +24,7 @@ describe("CFA V1 Tests", () => {
         superToken = SuperToken;
     });
 
-    it("Should throw an error if one of the input addresses is invalid.", async () => {
+    it("Should throw an error if one of the input addresses is invalid", async () => {
         const flowRate = getPerSecondFlowRateByMonth("100");
         try {
             framework.cfaV1.createFlow({
@@ -39,7 +39,50 @@ describe("CFA V1 Tests", () => {
         }
     });
 
-    it("Should create a flow properly.", async () => {
+    it("Should throw an error on the reads as expected", async () => {
+        // NOTE: using casting to pass in wrong input to force error
+        // get flow throw
+        try {
+            await framework.cfaV1.getFlow({
+                superToken: superToken.address,
+                sender: deployer.address,
+                receiver: alpha.address,
+                providerOrSigner: "" as any,
+            });
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "ConstantFlowAgreementV1 Read Error - There was an error getting the flow"
+            );
+        }
+
+        // get account flow info throw
+        try {
+            await framework.cfaV1.getAccountFlowInfo({
+                superToken: superToken.address,
+                account: deployer.address,
+                providerOrSigner: "" as any,
+            });
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "ConstantFlowAgreementV1 Read Error - There was an error getting the account flow information"
+            );
+        }
+
+        // get net flow throw
+        try {
+            await framework.cfaV1.getNetFlow({
+                superToken: superToken.address,
+                account: deployer.address,
+                providerOrSigner: "" as any,
+            });
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "ConstantFlowAgreementV1 Read Error - There was an error getting net flow"
+            );
+        }
+    });
+
+    it("Should create a flow properly and should get the newly created flow, account flow info and net flow", async () => {
         const flowRate = getPerSecondFlowRateByMonth("100");
         const operation = framework.cfaV1.createFlow({
             flowRate,
@@ -57,9 +100,51 @@ describe("CFA V1 Tests", () => {
                 Number(flowRate),
                 "0x"
             );
+
+        // get flow check
+        const flow = await framework.cfaV1.getFlow({
+            superToken: superToken.address,
+            sender: deployer.address,
+            receiver: alpha.address,
+            providerOrSigner: deployer,
+        });
+        expect(flow.flowRate).to.equal(flowRate);
+
+        // get account flow info check
+        const deployerAccountFlowInfo =
+            await framework.cfaV1.getAccountFlowInfo({
+                superToken: superToken.address,
+                account: deployer.address,
+                providerOrSigner: deployer,
+            });
+        const alphaAccountFlowInfo = await framework.cfaV1.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: alpha.address,
+            providerOrSigner: alpha,
+        });
+        expect(Number(deployerAccountFlowInfo.flowRate)).to.equal(
+            Number(flowRate) * -1
+        );
+        expect(Number(alphaAccountFlowInfo.flowRate)).to.equal(
+            Number(flowRate)
+        );
+
+        // get net flow check
+        const deployerNetFlow = await framework.cfaV1.getNetFlow({
+            superToken: superToken.address,
+            account: deployer.address,
+            providerOrSigner: deployer,
+        });
+        const alphaNetFlow = await framework.cfaV1.getNetFlow({
+            superToken: superToken.address,
+            account: alpha.address,
+            providerOrSigner: alpha,
+        });
+        expect(Number(deployerNetFlow)).to.equal(Number(flowRate) * -1);
+        expect(Number(alphaNetFlow)).to.equal(Number(flowRate));
     });
 
-    it("Should update a flow properly (increase flow rate).", async () => {
+    it("Should update a flow properly (increase flow rate)", async () => {
         const flowRate = getPerSecondFlowRateByMonth("150");
         const operation = framework.cfaV1.updateFlow({
             flowRate,
@@ -79,7 +164,7 @@ describe("CFA V1 Tests", () => {
             );
     });
 
-    it("Should update a flow properly (decrease flow rate).", async () => {
+    it("Should update a flow properly (decrease flow rate)", async () => {
         const flowRate = getPerSecondFlowRateByMonth("90");
         const operation = framework.cfaV1.updateFlow({
             flowRate,
@@ -99,7 +184,7 @@ describe("CFA V1 Tests", () => {
             );
     });
 
-    it("Should delete a flow.", async () => {
+    it("Should delete a flow", async () => {
         const operation = framework.cfaV1.deleteFlow({
             sender: deployer.address,
             receiver: alpha.address,

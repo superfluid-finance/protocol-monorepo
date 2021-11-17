@@ -35,7 +35,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                 const returnData: GetRealtimeBalanceResult = await Promise.all([
                     superToken.realtimeBalanceOf({
                         providerOrSigner: framework.settings.provider,
-                        address: arg.accountAddress,
+                        account: arg.accountAddress,
                         timestamp: arg.timestamp
                             ? arg.timestamp
                             : Math.floor(new Date().getTime() / 1000).toString()

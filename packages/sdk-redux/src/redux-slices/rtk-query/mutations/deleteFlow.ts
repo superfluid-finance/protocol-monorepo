@@ -18,7 +18,7 @@ export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
                     await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
-                const superToken = framework.loadSuperToken(arg.superToken);
+                const superToken = await framework.loadSuperToken(arg.superToken);
                 const transactionResponse = await superToken
                     .deleteFlow({
                         sender: arg.sender,

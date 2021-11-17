@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
-import { RESOLVER_ADDRESS, setup } from "./setup";
+import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "./setup";
 import { ethers } from "ethers";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
@@ -12,6 +12,25 @@ describe("Framework Tests", () => {
     let deployer: SignerWithAddress;
     let superToken: SuperToken;
     let framework: Framework;
+    let INFURA_API_URL: string;
+    let customProvider: ethers.providers.Provider;
+
+    if (process.env.MATIC_PROVIDER_URL) {
+        INFURA_API_URL = process.env.MATIC_PROVIDER_URL || "";
+    } else {
+        INFURA_API_URL = process.env.INFURA_API_URL || "";
+    }
+    if (INFURA_API_URL.includes("wss:")) {
+        customProvider = new ethers.providers.WebSocketProvider(
+            INFURA_API_URL,
+            "matic"
+        );
+    } else {
+        customProvider = new ethers.providers.JsonRpcProvider(
+            INFURA_API_URL,
+            "matic"
+        );
+    }
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({
@@ -24,7 +43,7 @@ describe("Framework Tests", () => {
     });
 
     describe("Validate Framework Constructor Options Tests", () => {
-        it("Should throw an error if no networkName or chainId.", async () => {
+        it("Should throw an error if no networkName or chainId", async () => {
             try {
                 await Framework.create({ provider: deployer.provider! });
             } catch (err: any) {
@@ -34,7 +53,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should be able to set up framework with networkName = custom.", async () => {
+        it("Should be able to set up framework with networkName = custom", async () => {
             try {
                 await Framework.create({
                     networkName: "custom",
@@ -50,9 +69,8 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if network and chainId don't match.", async () => {
+        it("Should throw an error if network and chainId don't match", async () => {
             try {
-                // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
                 await Framework.create({
                     networkName: "matic",
                     chainId: 4,
@@ -65,7 +83,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if your provider network and selected chainId/networkName don't match.", async () => {
+        it("Should throw an error if your provider network and selected chainId/networkName don't match", async () => {
             try {
                 await Framework.create({
                     chainId: 4,
@@ -81,9 +99,9 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if no provider.", async () => {
+        it("Should throw an error if no provider", async () => {
             try {
-                // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
+                // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
                     networkName: "matic",
                 } as any);
@@ -94,7 +112,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if subgraph endpoint is null on unsupported network and WEB3_ONLY isn't selected.", async () => {
+        it("Should throw an error if subgraph endpoint is null on unsupported network and WEB3_ONLY isn't selected", async () => {
             try {
                 await Framework.create({
                     networkName: "custom",
@@ -109,7 +127,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if resolver address is null on unsupported network.", async () => {
+        it("Should throw an error if resolver address is null on unsupported network", async () => {
             try {
                 await Framework.create({
                     networkName: "custom",
@@ -126,7 +144,7 @@ describe("Framework Tests", () => {
     });
 
     describe("Framework.create Tests", () => {
-        it("Should throw an error if loadFramework fails.", async () => {
+        it("Should throw an error if loadFramework fails", async () => {
             try {
                 await Framework.create({
                     chainId: 1337,
@@ -143,34 +161,26 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected.", async () => {
+        it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
-                const infuraProvider = new ethers.providers.InfuraProvider(
-                    "matic",
-                    process.env.INFURA_API_KEY
-                );
                 await Framework.create({
                     networkName: "matic",
-                    provider: infuraProvider,
+                    provider: customProvider,
                     customSubgraphQueriesEndpoint: "",
                     resolverAddress:
                         "0xE0cc76334405EE8b39213E620587d815967af39C", // MATIC resolver address
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
+                    "Framework Initialization Error - You cannot have a null subgraphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
                 );
             }
         });
 
-        it("Should be able to create a framework with chain id only.", async () => {
-            const infuraProvider = new ethers.providers.InfuraProvider(
-                "ropsten",
-                process.env.INFURA_API_KEY
-            );
+        it("Should be able to create a framework with chain id only", async () => {
             await Framework.create({
-                chainId: 3,
-                provider: infuraProvider,
+                chainId: 137,
+                provider: customProvider,
             });
         });
 
@@ -202,7 +212,7 @@ describe("Framework Tests", () => {
         it("Should catch error when creating a signer with PK, but no provider.", () => {
             try {
                 framework.createSigner({
-                    privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
+                    privateKey: HARDHAT_PRIVATE_KEY,
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -214,7 +224,7 @@ describe("Framework Tests", () => {
         it("Should be able to create a signer successfully with all different inputs.", () => {
             // create signer with private key
             framework.createSigner({
-                privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
+                privateKey: HARDHAT_PRIVATE_KEY,
                 provider: deployer.provider!,
             });
 
@@ -228,8 +238,8 @@ describe("Framework Tests", () => {
             framework.batchCall([]);
         });
 
-        it("Should be able to create an instance of a supertoken with framework.", () => {
-            const daix = framework.loadSuperToken(superToken.address);
+        it("Should be able to create an instance of a supertoken with framework.", async () => {
+            const daix = await framework.loadSuperToken(superToken.address);
             expect(daix.options.address).to.equal(superToken.address);
         });
     });

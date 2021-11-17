@@ -24,7 +24,7 @@ describe("IDA V1 Tests", () => {
         superToken = SuperToken;
     });
 
-    it("Should throw an error if one of the input addresses is invalid.", async () => {
+    it("Should throw an error if one of the input addresses is invalid", async () => {
         try {
             framework.idaV1.createIndex({
                 indexId: "0",
@@ -37,7 +37,37 @@ describe("IDA V1 Tests", () => {
         }
     });
 
-    it("Should create an index properly.", async () => {
+    it("Should throw an error on the reads as expected", async () => {
+        // NOTE: using casting to pass in wrong input to force error
+        try {
+            await framework.idaV1.getIndex({
+                superToken: superToken.address,
+                publisher: deployer.address,
+                indexId: "0",
+                providerOrSigner: "" as any,
+            });
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "InstantDistributionAgreementV1 Read Error - There was an error getting the index"
+            );
+        }
+
+        try {
+            await framework.idaV1.getSubscription({
+                superToken: superToken.address,
+                publisher: deployer.address,
+                indexId: "0",
+                subscriber: alpha.address,
+                providerOrSigner: "" as any,
+            });
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "InstantDistributionAgreementV1 Read Error - There was an error getting the subscription"
+            );
+        }
+    });
+
+    it("Should create an index properly and get the newly created index", async () => {
         await expect(
             framework.idaV1
                 .createIndex({
@@ -48,16 +78,28 @@ describe("IDA V1 Tests", () => {
         )
             .to.emit(idaV1, "IndexCreated")
             .withArgs(superToken.address, deployer.address, 0, "0x");
+
+        const index = await framework.idaV1.getIndex({
+            superToken: superToken.address,
+            publisher: deployer.address,
+            indexId: "0",
+            providerOrSigner: deployer,
+        });
+        expect(index.exist).to.equal(true);
+        expect(index.indexValue).to.equal("0");
+        expect(index.totalUnitsApproved).to.equal("0");
+        expect(index.totalUnitsPending).to.equal("0");
     });
 
-    it("Should be able to update subscription units.", async () => {
+    it("Should be able to update subscription units and get newly created subscriptions", async () => {
+        const units = ethers.utils.parseUnits("0.001").toString();
         await expect(
             framework.idaV1
                 .updateSubscriptionUnits({
                     indexId: "0",
                     superToken: superToken.address,
                     subscriber: alpha.address,
-                    units: ethers.utils.parseUnits("0.001").toString(),
+                    units,
                 })
                 .exec(deployer)
         )
@@ -67,9 +109,21 @@ describe("IDA V1 Tests", () => {
                 alpha.address,
                 deployer.address,
                 0,
-                ethers.utils.parseUnits("0.001").toString(),
+                units,
                 "0x"
             );
+        const alphaSubscription = await framework.idaV1.getSubscription({
+            superToken: superToken.address,
+            publisher: deployer.address,
+            indexId: "0",
+            subscriber: alpha.address,
+            providerOrSigner: deployer,
+        });
+
+        expect(alphaSubscription.exist).to.equal(true);
+        expect(alphaSubscription.approved).to.equal(false);
+        expect(alphaSubscription.units).to.equal(units);
+        expect(alphaSubscription.pendingDistribution).to.equal("0");
 
         await expect(
             framework.idaV1
@@ -77,7 +131,7 @@ describe("IDA V1 Tests", () => {
                     indexId: "0",
                     superToken: superToken.address,
                     subscriber: bravo.address,
-                    units: ethers.utils.parseUnits("0.001").toString(),
+                    units,
                 })
                 .exec(deployer)
         )
@@ -87,9 +141,22 @@ describe("IDA V1 Tests", () => {
                 deployer.address,
                 0,
                 bravo.address,
-                ethers.utils.parseUnits("0.001").toString(),
+                units,
                 "0x"
             );
+
+        const bravoSubscription = await framework.idaV1.getSubscription({
+            superToken: superToken.address,
+            publisher: deployer.address,
+            indexId: "0",
+            subscriber: bravo.address,
+            providerOrSigner: deployer,
+        });
+
+        expect(bravoSubscription.exist).to.equal(true);
+        expect(bravoSubscription.approved).to.equal(false);
+        expect(bravoSubscription.units).to.equal(units);
+        expect(bravoSubscription.pendingDistribution).to.equal("0");
     });
 
     it("Should be able to distribute to subscriptions", async () => {

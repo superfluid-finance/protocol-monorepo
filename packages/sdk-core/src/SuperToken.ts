@@ -4,36 +4,49 @@ import { abi as SuperTokenABI } from "./abi/SuperToken.json";
 import { getNetworkName } from "./frameworkHelpers";
 import { SuperToken as ISuperToken } from "./typechain";
 import {
-    IBaseSuperTokenParams,
     IConfig,
-    IGetFlowParams,
-    IGetFlowInfoParams,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
     ISuperTokenBaseSubscriptionParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
+    ISuperTokenGetFlowInfoParams,
+    ISuperTokenGetFlowParams,
     ISuperTokenGetIndexParams,
     ISuperTokenGetSubscriptionParams,
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
-    ITransferFromParams,
     IWeb3Subscription,
 } from "./interfaces";
 import Operation from "./Operation";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import SFError from "./SFError";
-import { getSanitizedTimestamp, getStringCurrentTimeInSeconds } from "./utils";
+import {
+    getSanitizedTimestamp,
+    getStringCurrentTimeInSeconds,
+    normalizeAddress,
+} from "./utils";
+import Token from "./Token";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
     readonly config: IConfig;
+    readonly provider: ethers.providers.Provider;
     readonly chainId?: number;
     readonly networkName?: string;
 }
+
+export interface ITokenSettings {
+    readonly address: string;
+    readonly config: IConfig;
+    readonly chainId: number;
+    readonly networkName: string;
+    readonly underlyingTokenAddress: string;
+}
+
 export interface ITokenOptions {
     readonly address: string;
     readonly config: IConfig;
@@ -45,25 +58,21 @@ export interface ITokenOptions {
  * @dev SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
  */
-export default class SuperToken {
+export default class SuperToken extends Token {
     readonly options: ITokenOptions;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
+    readonly underlyingToken: Token;
 
-    constructor(options: ITokenConstructorOptions) {
-        if (!options.chainId && !options.networkName) {
-            throw new SFError({
-                type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "You must input chainId or networkName.",
-            });
-        }
-        const networkName = getNetworkName(options);
+    private constructor(settings: ITokenSettings) {
+        // initialize ERC20 token functions here
+        super(settings.address);
+
         this.options = {
-            address: options.address,
-            chainId:
-                options.chainId || networkNameToChainIdMap.get(networkName)!,
-            config: options.config,
-            networkName,
+            address: settings.address,
+            chainId: settings.chainId,
+            networkName: settings.networkName,
+            config: settings.config,
         };
         this.cfaV1 = new ConstantFlowAgreementV1({
             config: this.options.config,
@@ -71,7 +80,43 @@ export default class SuperToken {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.options.config,
         });
+        this.underlyingToken = new Token(ethers.constants.AddressZero);
     }
+
+    static create = async (options: ITokenConstructorOptions) => {
+        if (!options.chainId && !options.networkName) {
+            throw new SFError({
+                type: "SUPERTOKEN_INITIALIZATION",
+                customMessage: "You must input chainId or networkName.",
+            });
+        }
+        const networkName = getNetworkName(options);
+        const chainId =
+            options.chainId || networkNameToChainIdMap.get(networkName)!;
+        try {
+            const superToken = new ethers.Contract(
+                options.address,
+                SuperTokenABI
+            ) as ISuperToken;
+            const underlyingTokenAddress = await superToken
+                .connect(options.provider)
+                .getUnderlyingToken();
+            const settings: ITokenSettings = {
+                address: options.address,
+                config: options.config,
+                chainId,
+                networkName,
+                underlyingTokenAddress,
+            };
+            return new SuperToken(settings);
+        } catch (err) {
+            throw new SFError({
+                type: "SUPERTOKEN_INITIALIZATION",
+                customMessage: "There was an error initializing the SuperToken",
+                errorObject: err,
+            });
+        }
+    };
 
     private get superTokenContract() {
         return new ethers.Contract(
@@ -84,20 +129,21 @@ export default class SuperToken {
 
     /**
      * @dev Returns the real time balance of `address`.
-     * @param address the target address
+     * @param account the target address
      * @param timestamp the timestamp you'd like to see the data
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns [the available balance, deposit, owed deposit amount]
      */
     realtimeBalanceOf = async ({
         providerOrSigner,
-        address,
+        account,
         timestamp = getStringCurrentTimeInSeconds(),
     }: IRealtimeBalanceOfParams) => {
+        const normalizedAccount = normalizeAddress(account);
         try {
             const realtimeBalanceOf = await this.superTokenContract
                 .connect(providerOrSigner)
-                .realtimeBalanceOf(address, timestamp);
+                .realtimeBalanceOf(normalizedAccount, timestamp);
             return {
                 availableBalance: realtimeBalanceOf.availableBalance,
                 deposit: realtimeBalanceOf.deposit,
@@ -116,20 +162,6 @@ export default class SuperToken {
     // SuperToken Contract Write Functions
 
     /**
-     * @dev Approve `receiver` to spend `amount` tokens.
-     * @param receiver The receiver approved.
-     * @param amount The amount approved.
-     * @returns An instance of Operation which can be executed or batched.
-     */
-    approve = ({ receiver, amount }: IBaseSuperTokenParams): Operation => {
-        const txn = this.superTokenContract.populateTransaction.approve(
-            receiver,
-            amount
-        );
-        return new Operation(txn, "ERC20_APPROVE");
-    };
-
-    /**
      * @dev Downgrade `amount` SuperToken's.
      * @param amount The amount to be downgraded.
      * @returns An instance of Operation which can be executed or batched.
@@ -138,40 +170,6 @@ export default class SuperToken {
         const txn =
             this.superTokenContract.populateTransaction.downgrade(amount);
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
-    };
-
-    /**
-     * @dev Transfer `receiver` `amount` tokens.
-     * @param receiver The receiver of the transfer.
-     * @param amount The amount to be transferred.
-     * @returns An instance of Operation which can be executed or batched.
-     */
-    transfer = ({ receiver, amount }: IBaseSuperTokenParams): Operation => {
-        const txn = this.superTokenContract.populateTransaction.transfer(
-            receiver,
-            amount
-        );
-        return new Operation(txn, "UNSUPPORTED");
-    };
-
-    /**
-     * @dev Transfer from `sender` to `receiver` `amount` tokens.
-     * @param sender The sender of the transfer.
-     * @param receiver The receiver of the transfer.
-     * @param amount The amount to be transferred.
-     * @returns An instance of Operation which can be executed or batched.
-     */
-    transferFrom = ({
-        sender,
-        receiver,
-        amount,
-    }: ITransferFromParams): Operation => {
-        const txn = this.superTokenContract.populateTransaction.transferFrom(
-            sender,
-            receiver,
-            amount
-        );
-        return new Operation(txn, "ERC20_TRANSFER_FROM");
     };
 
     /**
@@ -197,7 +195,7 @@ export default class SuperToken {
         sender,
         receiver,
         providerOrSigner,
-    }: IGetFlowParams) => {
+    }: ISuperTokenGetFlowParams) => {
         return await this.cfaV1.getFlow({
             superToken: this.options.address,
             sender,
@@ -215,7 +213,7 @@ export default class SuperToken {
     getAccountFlowInfo = async ({
         account,
         providerOrSigner,
-    }: IGetFlowInfoParams) => {
+    }: ISuperTokenGetFlowInfoParams) => {
         return await this.cfaV1.getAccountFlowInfo({
             superToken: this.options.address,
             account,
@@ -229,7 +227,10 @@ export default class SuperToken {
      * @param providerOrSigner a provider or signer object
      * @returns Web3 Flow info object
      */
-    getNetFlow = async ({ account, providerOrSigner }: IGetFlowInfoParams) => {
+    getNetFlow = async ({
+        account,
+        providerOrSigner,
+    }: ISuperTokenGetFlowInfoParams) => {
         return await this.cfaV1.getNetFlow({
             superToken: this.options.address,
             account,

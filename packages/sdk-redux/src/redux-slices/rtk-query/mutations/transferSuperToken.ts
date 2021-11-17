@@ -18,7 +18,7 @@ export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
                         arg.chainId
                     );
 
-                const superToken = framework.loadSuperToken(arg.superToken);
+                const superToken = await framework.loadSuperToken(arg.superToken);
                 const transactionResponse = await superToken
                     .transferFrom(arg)
                     .exec(signer);

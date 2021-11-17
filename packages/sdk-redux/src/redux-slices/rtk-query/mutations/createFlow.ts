@@ -20,7 +20,7 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                         arg.chainId
                     );
 
-                const superToken = framework.loadSuperToken(arg.superToken);
+                const superToken = await framework.loadSuperToken(arg.superToken);
                 const transactionResponse = await superToken
                     .createFlow({
                         sender: arg.sender,

@@ -27,10 +27,7 @@ export const { useUpdateIndexSubscriptionUnitsMutation } =
                             arg.chainId
                         );
 
-                    const [superToken, signerAddress] = await Promise.all([
-                        framework.loadSuperToken(arg.superTokenAddress),
-                        signer.getAddress(),
-                    ]);
+                    const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
                     const transactionResponse = await superToken
                         .updateSubscriptionUnits({
@@ -54,7 +51,7 @@ export const { useUpdateIndexSubscriptionUnitsMutation } =
                             chainId: arg.chainId,
                         }),
                         meta: typeGuard<MutationMeta>({
-                            observeAddress: signerAddress,
+                            observeAddress: arg.subscriberAddress,
                         }),
                     };
                 },

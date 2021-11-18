@@ -31,6 +31,9 @@ import { CreateIndex } from "./CreateIndex";
 import { DistributeToIndex } from "./DistributeToIndex";
 import { ApproveIndexSubscription } from "./ApproveIndexSubscription";
 import { UpdateIndexSubscriptionUnits } from "./UpdateIndexSubscriptionUnits";
+import {ClaimFromIndexSubscription} from "./ClaimFromIndexSubscription";
+import {DeleteIndexSubscription} from "./DeleteIndexSubscription";
+import {RevokeIndexSubscription} from "./RevokeIndexSubscription";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
@@ -111,6 +114,15 @@ function App() {
                             <SdkListItem title="Approve Index Subscription">
                                 <ApproveIndexSubscription />
                             </SdkListItem>
+                            <SdkListItem title="Claim From Index Subscription">
+                                <ClaimFromIndexSubscription />
+                            </SdkListItem>
+                            <SdkListItem title="Delete Index Subscription">
+                                <DeleteIndexSubscription />
+                            </SdkListItem>
+                            <SdkListItem title="Revoke Index Subscription">
+                                <RevokeIndexSubscription />
+                            </SdkListItem>
                             <SdkListItem title="Create Stream">
                                 <CreateStream />
                             </SdkListItem>
@@ -120,7 +132,7 @@ function App() {
                             <SdkListItem title="Delete Stream">
                                 <DeleteStream />
                             </SdkListItem>
-                            <SdkListItem title="Realtime Balance">
+                            <SdkListItem title="Real-Time Balance">
                                 <GetRealtimeBalance />
                             </SdkListItem>
                             <SdkListItem title="List Streams">

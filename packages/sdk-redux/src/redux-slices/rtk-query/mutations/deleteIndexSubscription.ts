@@ -6,18 +6,19 @@ import { registerNewTransaction } from '../registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
-export type ApproveIndexSubscriptionArg = SuperTokenMutationArg & {
+export type DeleteIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;
     publisherAddress: string;
+    subscriberAddress: string;
     userDataBytes?: string;
 };
 
-export const { useApproveIndexSubscriptionMutation } =
+export const { useDeleteIndexSubscriptionMutation } =
     rtkQuerySlice.injectEndpoints({
         endpoints: (builder) => ({
-            approveIndexSubscription: builder.mutation<
+            deleteIndexSubscription: builder.mutation<
                 TransactionInfo,
-                ApproveIndexSubscriptionArg
+                DeleteIndexSubscriptionArg
             >({
                 queryFn: async (arg, queryApi) => {
                     const [framework, signer] =
@@ -28,10 +29,12 @@ export const { useApproveIndexSubscriptionMutation } =
                     const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
                     const transactionResponse = await superToken
-                        .approveSubscription({
+                        .deleteSubscription({
                             indexId: arg.indexId,
                             publisher: arg.publisherAddress,
+                            subscriber: arg.subscriberAddress,
                             userData: arg.userDataBytes,
+                            providerOrSigner: framework.settings.provider
                         })
                         .exec(signer);
 

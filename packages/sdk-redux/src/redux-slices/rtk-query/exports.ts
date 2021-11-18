@@ -16,4 +16,7 @@ export * from './mutations/approveIndexSubscription';
 export * from './mutations/updateIndexSubscriptionUnits';
 export * from './mutations/createIndex';
 export * from './mutations/distributeToIndex';
+export * from './mutations/claimFromIndexSubscription';
+export * from './mutations/deleteIndexSubscription';
+export * from './mutations/revokeIndexSubscription';
 export { ValidationError, PossibleErrors } from './rtkQuerySliceBaseQuery';

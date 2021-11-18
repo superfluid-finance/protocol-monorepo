@@ -1139,8 +1139,4 @@ type SFMeta @entity {
     The branch the current deployment is coming from.
     """
     branch: String!
-    """
-    The release tag if it exists.
-    """
-    tag: String
 }

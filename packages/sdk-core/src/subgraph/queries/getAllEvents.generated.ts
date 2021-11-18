@@ -61,6 +61,7 @@ export type GetAllEventsQuery = {
               __typename: "CFAv1LiquidationPeriodChangedEvent";
               superToken: string;
               liquidationPeriod: string;
+              host: string;
               isSet: boolean;
               blockNumber: string;
               transactionHash: string;

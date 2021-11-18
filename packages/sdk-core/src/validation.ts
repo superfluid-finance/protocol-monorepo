@@ -1,5 +1,6 @@
 import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 import { ethers } from "ethers";
+import { IEventFilter } from ".";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
@@ -22,15 +23,27 @@ ajv.addFormat("stringNumber", {
 // Schemas
 const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
     type: "object",
-    additionalProperties: true,
+    additionalProperties: false,
     properties: {
         isListed: { type: "boolean", nullable: true },
+    },
+};
+const eventRequestSchema: JSONSchemaType<IEventFilter> = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        account: { type: "string", format: "addressOrEmpty", nullable: true },
+        timestamp_gte: {
+            type: "string",
+            format: "stringNumber",
+            nullable: true,
+        },
     },
 };
 
 const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     type: "object",
-    additionalProperties: true,
+    additionalProperties: false,
     properties: {
         indexId: { type: "string", format: "stringNumber", nullable: true },
         publisher: { type: "string", format: "addressOrEmpty", nullable: true },
@@ -38,35 +51,37 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     },
 };
 
-const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> = {
-    type: "object",
-    additionalProperties: true,
-    properties: {
-        account: {
-            type: "string",
-            format: "addressOrEmpty",
-            nullable: true,
+const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> =
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            account: {
+                type: "string",
+                format: "addressOrEmpty",
+                nullable: true,
+            },
+            token: { type: "string", format: "addressOrEmpty", nullable: true },
         },
-        token: { type: "string", format: "addressOrEmpty", nullable: true },
-    },
-};
+    };
 
-const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> = {
-    type: "object",
-    additionalProperties: true,
-    properties: {
-        subscriber: {
-            type: "string",
-            format: "stringNumber",
-            nullable: true,
+const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> =
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            subscriber: {
+                type: "string",
+                format: "stringNumber",
+                nullable: true,
+            },
+            approved: { type: "boolean", nullable: true },
         },
-        approved: { type: "boolean", nullable: true },
-    },
-};
+    };
 
 const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     type: "object",
-    additionalProperties: true,
+    additionalProperties: false,
     properties: {
         sender: { type: "string", format: "addressOrEmpty", nullable: true },
         receiver: { type: "string", format: "addressOrEmpty", nullable: true },
@@ -92,6 +107,9 @@ function wrapValidationWithCustomError<T>(
 export const validateSuperTokenRequest = wrapValidationWithCustomError(
     ajv.compile<ISuperTokenRequestFilter>(superTokenRequestSchema)
 );
+export const validateEventRequest = wrapValidationWithCustomError(
+    ajv.compile<IEventFilter>(eventRequestSchema)
+);
 export const validateIndexRequest = wrapValidationWithCustomError(
     ajv.compile<IIndexRequestFilter>(indexRequestSchema)
 );
@@ -101,6 +119,9 @@ export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(
 export const validateStreamRequest = wrapValidationWithCustomError(
     ajv.compile<IStreamRequestFilter>(streamRequestSchema)
 );
-export const validateAccountTokenSnapshotRequest = wrapValidationWithCustomError(
-    ajv.compile<IAccountTokenSnapshotFilter>(accountTokenSnapshotRequestSchema)
-);
+export const validateAccountTokenSnapshotRequest =
+    wrapValidationWithCustomError(
+        ajv.compile<IAccountTokenSnapshotFilter>(
+            accountTokenSnapshotRequestSchema
+        )
+    );

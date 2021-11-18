@@ -18,6 +18,7 @@ import {
 } from "./subgraph/queries/getIndexes.generated";
 import {
     validateAccountTokenSnapshotRequest,
+    validateEventRequest,
     validateIndexRequest,
     validateIndexSubscriptionRequest,
     validateStreamRequest,
@@ -53,6 +54,7 @@ import {
 } from "./subgraph/queries/getAllEvents.generated";
 import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
 import SFError from "./SFError";
+import { normalizeAddress } from ".";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -229,6 +231,9 @@ export default class Query {
                 customMessage: "This query is not supported in WEB3_ONLY mode.",
             });
         }
+
+        validateEventRequest(filter);
+
         const response = await this.subgraphClient.request<
             GetAllEventsQuery,
             GetAllEventsQueryVariables

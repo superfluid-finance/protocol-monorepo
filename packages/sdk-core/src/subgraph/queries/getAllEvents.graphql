@@ -209,6 +209,7 @@ query getAllEvents($where: Event_filter = {}, $skip: Int = 10, $first: Int = 10)
         ... on CFAv1LiquidationPeriodChangedEvent {
             ...eventFields
             superToken
+            host
             liquidationPeriod
             isSet
         }

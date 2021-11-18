@@ -119,12 +119,14 @@ export interface TokenDowngradedEvent extends EventBase {
     name: "TokenDowngraded";
     token: string;
     amount: string;
+    account: string;
 }
 
 export interface TokenUpgradedEvent extends EventBase {
     name: "TokenUpgraded";
     token: string;
     amount: string;
+    account: string;
 }
 
 export interface TransferEvent extends EventBase {

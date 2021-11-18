@@ -209,7 +209,6 @@ describe("SuperToken Tests", () => {
                 providerOrSigner: deployer,
             });
             expect(name).to.equal("Super fDAI Fake Token");
-
         });
 
         it("Should properly return symbol", async () => {

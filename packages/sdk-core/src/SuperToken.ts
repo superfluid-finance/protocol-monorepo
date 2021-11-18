@@ -161,9 +161,8 @@ export default class SuperToken extends Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     downgrade = ({ amount }: { amount: string }): Operation => {
-        const txn = this.superTokenContract.populateTransaction.downgrade(
-            amount
-        );
+        const txn =
+            this.superTokenContract.populateTransaction.downgrade(amount);
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
     };
 
@@ -474,7 +473,7 @@ export default class SuperToken extends Token {
      * @dev Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose subscription you want to delete.
-     * @param publisher The publisher address of the index you are targetting.
+     * @param publisher The publisher address of the index you are targeting.
      * @param userData Extra user data provided.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -496,8 +495,8 @@ export default class SuperToken extends Token {
     /**
      * @dev Claims any pending tokens allocated to the Subscription (unapproved).
      * @param indexId The id of the index.
-     * @param subscriber The subscriber address whose subscription you want to delete.
-     * @param publisher The publisher address of the index you are targetting.
+     * @param subscriber The subscriber address who you are claiming for.
+     * @param publisher The publisher address of the index you are targeting.
      * @param userData Extra user data provided.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */

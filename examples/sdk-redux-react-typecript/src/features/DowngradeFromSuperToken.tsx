@@ -21,6 +21,7 @@ export const DowngradeFromSuperToken: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             amountWei: amount,
+            waitForConfirmation
         });
     };
 

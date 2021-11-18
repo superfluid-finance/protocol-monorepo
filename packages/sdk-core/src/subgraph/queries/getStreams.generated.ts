@@ -46,7 +46,7 @@ export type GetStreamsQuery = {
     }>;
 };
 
-export const GetStreamsDocument = {
+export const GetStreamsDocument = ({
     kind: "Document",
     definitions: [
         {
@@ -129,6 +129,19 @@ export const GetStreamsDocument = {
                                     name: { kind: "Name", value: "first" },
                                 },
                             },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderBy" },
+                                value: {
+                                    kind: "EnumValue",
+                                    value: "createdAtBlockNumber",
+                                },
+                            },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderDirection" },
+                                value: { kind: "EnumValue", value: "desc" },
+                            },
                         ],
                         selectionSet: {
                             kind: "SelectionSet",
@@ -203,7 +216,8 @@ export const GetStreamsDocument = {
                                                 kind: "Field",
                                                 name: {
                                                     kind: "Name",
-                                                    value: "createdAtBlockNumber",
+                                                    value:
+                                                        "createdAtBlockNumber",
                                                 },
                                             },
                                             {
@@ -362,14 +376,16 @@ export const GetStreamsDocument = {
                                                 kind: "Field",
                                                 name: {
                                                     kind: "Name",
-                                                    value: "totalSenderFlowRate",
+                                                    value:
+                                                        "totalSenderFlowRate",
                                                 },
                                             },
                                             {
                                                 kind: "Field",
                                                 name: {
                                                     kind: "Name",
-                                                    value: "totalReceiverFlowRate",
+                                                    value:
+                                                        "totalReceiverFlowRate",
                                                 },
                                             },
                                             {
@@ -397,7 +413,8 @@ export const GetStreamsDocument = {
                                                 kind: "Field",
                                                 name: {
                                                     kind: "Name",
-                                                    value: "totalAmountStreamedUntilTimestamp",
+                                                    value:
+                                                        "totalAmountStreamedUntilTimestamp",
                                                 },
                                             },
                                         ],
@@ -410,4 +427,4 @@ export const GetStreamsDocument = {
             },
         },
     ],
-} as unknown as DocumentNode<GetStreamsQuery, GetStreamsQueryVariables>;
+} as unknown) as DocumentNode<GetStreamsQuery, GetStreamsQueryVariables>;

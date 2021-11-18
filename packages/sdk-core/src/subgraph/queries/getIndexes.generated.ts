@@ -34,7 +34,7 @@ export type GetIndexesQuery = {
     }>;
 };
 
-export const GetIndexesDocument = {
+export const GetIndexesDocument = ({
     kind: "Document",
     definitions: [
         {
@@ -117,6 +117,19 @@ export const GetIndexesDocument = {
                                     name: { kind: "Name", value: "first" },
                                 },
                             },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderBy" },
+                                value: {
+                                    kind: "EnumValue",
+                                    value: "createdAtBlockNumber",
+                                },
+                            },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderDirection" },
+                                value: { kind: "EnumValue", value: "desc" },
+                            },
                         ],
                         selectionSet: {
                             kind: "SelectionSet",
@@ -190,7 +203,8 @@ export const GetIndexesDocument = {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "totalAmountDistributedUntilUpdatedAt",
+                                        value:
+                                            "totalAmountDistributedUntilUpdatedAt",
                                     },
                                 },
                                 {
@@ -217,7 +231,8 @@ export const GetIndexesDocument = {
                                                 kind: "Field",
                                                 name: {
                                                     kind: "Name",
-                                                    value: "createdAtBlockNumber",
+                                                    value:
+                                                        "createdAtBlockNumber",
                                                 },
                                             },
                                             {
@@ -274,4 +289,4 @@ export const GetIndexesDocument = {
             },
         },
     ],
-} as unknown as DocumentNode<GetIndexesQuery, GetIndexesQueryVariables>;
+} as unknown) as DocumentNode<GetIndexesQuery, GetIndexesQueryVariables>;

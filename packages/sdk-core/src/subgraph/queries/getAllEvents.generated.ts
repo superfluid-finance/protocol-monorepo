@@ -651,7 +651,7 @@ export type EventFieldsFragment =
     | EventFields_TransferEvent_Fragment
     | EventFields_TrustedForwarderChangedEvent_Fragment;
 
-export const EventFieldsFragmentDoc = {
+export const EventFieldsFragmentDoc = ({
     kind: "Document",
     definitions: [
         {
@@ -684,8 +684,8 @@ export const EventFieldsFragmentDoc = {
             },
         },
     ],
-} as unknown as DocumentNode<EventFieldsFragment, unknown>;
-export const GetAllEventsDocument = {
+} as unknown) as DocumentNode<EventFieldsFragment, unknown>;
+export const GetAllEventsDocument = ({
     kind: "Document",
     definitions: [
         {
@@ -917,7 +917,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "IndexDistributionClaimedEvent",
+                                            value:
+                                                "IndexDistributionClaimedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -1415,7 +1416,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "SubscriptionDistributionClaimedEvent",
+                                            value:
+                                                "SubscriptionDistributionClaimedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -1567,7 +1569,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "SubscriptionUnitsUpdatedEvent",
+                                            value:
+                                                "SubscriptionUnitsUpdatedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -1848,7 +1851,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "AgreementClassRegisteredEvent",
+                                            value:
+                                                "AgreementClassRegisteredEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2028,7 +2032,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "SuperTokenFactoryUpdatedEvent",
+                                            value:
+                                                "SuperTokenFactoryUpdatedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2057,7 +2062,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "SuperTokenLogicUpdatedEvent",
+                                            value:
+                                                "SuperTokenLogicUpdatedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2222,7 +2228,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "CFAv1LiquidationPeriodChangedEvent",
+                                            value:
+                                                "CFAv1LiquidationPeriodChangedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2372,7 +2379,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "TrustedForwarderChangedEvent",
+                                            value:
+                                                "TrustedForwarderChangedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2678,7 +2686,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "CustomSuperTokenCreatedEvent",
+                                            value:
+                                                "CustomSuperTokenCreatedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2736,7 +2745,8 @@ export const GetAllEventsDocument = {
                                         kind: "NamedType",
                                         name: {
                                             kind: "Name",
-                                            value: "SuperTokenLogicCreatedEvent",
+                                            value:
+                                                "SuperTokenLogicCreatedEvent",
                                         },
                                     },
                                     selectionSet: {
@@ -2767,4 +2777,4 @@ export const GetAllEventsDocument = {
         },
         ...EventFieldsFragmentDoc.definitions,
     ],
-} as unknown as DocumentNode<GetAllEventsQuery, GetAllEventsQueryVariables>;
+} as unknown) as DocumentNode<GetAllEventsQuery, GetAllEventsQueryVariables>;

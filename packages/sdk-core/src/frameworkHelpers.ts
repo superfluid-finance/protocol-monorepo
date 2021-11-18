@@ -14,8 +14,8 @@ export const validateFrameworkConstructorOptions = (
     if (!options.chainId && !options.networkName) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
-            customMessage: "You must input chainId or networkName."}
-        );
+            customMessage: "You must input chainId or networkName.",
+        });
     }
     // if the user inputs a custom network (local, they have to specify this)
     if (
@@ -27,15 +27,17 @@ export const validateFrameworkConstructorOptions = (
     ) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
-            customMessage: "The network name and chainId you have selected don't match."}
-        );
+            customMessage:
+                "The network name and chainId you have selected don't match.",
+        });
     }
 
     if (!options.provider) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
-            customMessage: "You must pass in a provider when initializing the framework."}
-        );
+            customMessage:
+                "You must pass in a provider when initializing the framework.",
+        });
     }
 
     // if the user inputs a networkName or chainId that isn't part of the resolver
@@ -51,14 +53,16 @@ export const validateFrameworkConstructorOptions = (
         ) {
             throw new SFError({
                 type: "FRAMEWORK_INITIALIZATION",
-                customMessage: "You must input your own custom subgraph query endpoint if you use an unsupported network with dataMode set to SUBGRAPH_ONLY or SUBGRAPH_WEB3."}
-            );
+                customMessage:
+                    "You must input your own custom subgraph query endpoint if you use an unsupported network with dataMode set to SUBGRAPH_ONLY or SUBGRAPH_WEB3.",
+            });
         }
         if (isNullOrEmpty(options.resolverAddress)) {
             throw new SFError({
                 type: "FRAMEWORK_INITIALIZATION",
-                customMessage: "You must input your own resolver address if you use an unsupported network."}
-            );
+                customMessage:
+                    "You must input your own resolver address if you use an unsupported network.",
+            });
         }
     }
 };
@@ -85,8 +89,8 @@ export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
     /* istanbul ignore next */
     throw new SFError({
         type: "FRAMEWORK_INITIALIZATION",
-        customMessage: "Something went wrong, this should never occur."}
-    );
+        customMessage: "Something went wrong, this should never occur.",
+    });
 };
 
 interface INetworkNameParams {

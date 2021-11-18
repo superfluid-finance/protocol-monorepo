@@ -36,7 +36,7 @@ export type GetIndexSubscriptionsQuery = {
     }>;
 };
 
-export const GetIndexSubscriptionsDocument = {
+export const GetIndexSubscriptionsDocument = ({
     kind: "Document",
     definitions: [
         {
@@ -186,7 +186,8 @@ export const GetIndexSubscriptionsDocument = {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "totalAmountReceivedUntilUpdatedAt",
+                                        value:
+                                            "totalAmountReceivedUntilUpdatedAt",
                                     },
                                 },
                                 {
@@ -243,14 +244,16 @@ export const GetIndexSubscriptionsDocument = {
                                                             kind: "Field",
                                                             name: {
                                                                 kind: "Name",
-                                                                value: "createdAtTimestamp",
+                                                                value:
+                                                                    "createdAtTimestamp",
                                                             },
                                                         },
                                                         {
                                                             kind: "Field",
                                                             name: {
                                                                 kind: "Name",
-                                                                value: "createdAtBlockNumber",
+                                                                value:
+                                                                    "createdAtBlockNumber",
                                                             },
                                                         },
                                                         {
@@ -271,14 +274,16 @@ export const GetIndexSubscriptionsDocument = {
                                                             kind: "Field",
                                                             name: {
                                                                 kind: "Name",
-                                                                value: "isListed",
+                                                                value:
+                                                                    "isListed",
                                                             },
                                                         },
                                                         {
                                                             kind: "Field",
                                                             name: {
                                                                 kind: "Name",
-                                                                value: "underlyingAddress",
+                                                                value:
+                                                                    "underlyingAddress",
                                                             },
                                                         },
                                                     ],
@@ -294,7 +299,7 @@ export const GetIndexSubscriptionsDocument = {
             },
         },
     ],
-} as unknown as DocumentNode<
+} as unknown) as DocumentNode<
     GetIndexSubscriptionsQuery,
     GetIndexSubscriptionsQueryVariables
 >;

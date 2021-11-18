@@ -245,5 +245,5 @@ export default class ConstantFlowAgreementV1 {
             deposit: deposit.toString(),
             owedDeposit: owedDeposit.toString(),
         };
-    }
+    };
 }

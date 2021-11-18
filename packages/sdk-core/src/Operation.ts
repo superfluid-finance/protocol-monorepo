@@ -37,8 +37,9 @@ export default class Operation {
         signer: ethers.Signer
     ): Promise<ethers.providers.TransactionResponse> => {
         try {
-            const populatedTransaction =
-                await this.getPopulatedTransactionRequest(signer);
+            const populatedTransaction = await this.getPopulatedTransactionRequest(
+                signer
+            );
             return await signer.sendTransaction(populatedTransaction);
         } catch (err) {
             throw new SFError({
@@ -76,8 +77,9 @@ export default class Operation {
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
         try {
-            const populatedTransaction =
-                await this.getPopulatedTransactionRequest(signer);
+            const populatedTransaction = await this.getPopulatedTransactionRequest(
+                signer
+            );
             const signedTxn = await signer.signTransaction(
                 populatedTransaction
             );

@@ -2,7 +2,9 @@ query getIndexes($where: Index_filter!, $skip: Int!, $first: Int!){
     result: indexes(
         where: $where,
         skip: $skip,
-        first: $first
+        first: $first,
+        orderBy: createdAtBlockNumber,
+        orderDirection: desc
     ) {
         id
         createdAtTimestamp

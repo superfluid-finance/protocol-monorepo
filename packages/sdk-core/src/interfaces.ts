@@ -77,7 +77,8 @@ export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
 export interface ISuperTokenPubSubParams extends ISuperTokenPublisherParams {
     readonly subscriber: string;
 }
-export interface ISuperTokenPublisherOperationParams extends ISuperTokenBaseIDAParams {
+export interface ISuperTokenPublisherOperationParams
+    extends ISuperTokenBaseIDAParams {
     readonly publisher: string;
 }
 export interface ISuperTokenBaseSubscriptionParams

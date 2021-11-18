@@ -161,8 +161,9 @@ export default class SuperToken extends Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     downgrade = ({ amount }: { amount: string }): Operation => {
-        const txn =
-            this.superTokenContract.populateTransaction.downgrade(amount);
+        const txn = this.superTokenContract.populateTransaction.downgrade(
+            amount
+        );
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
     };
 

@@ -2,12 +2,10 @@ export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = {
     [K in keyof T]: T[K];
 };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-    [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-    [SubKey in K]: Maybe<T[SubKey]>;
-};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
+    { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
+    { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
     ID: string;
@@ -2077,7 +2075,9 @@ export type IndexSubscription = {
     subscriber: Account;
     /** IndexSubscription approved events on the subscription. */
     subscriptionApprovedEvents: Array<SubscriptionApprovedEvent>;
-    subscriptionDistributionClaimedEvents: Array<SubscriptionDistributionClaimedEvent>;
+    subscriptionDistributionClaimedEvents: Array<
+        SubscriptionDistributionClaimedEvent
+    >;
     subscriptionRevokedEvents: Array<SubscriptionRevokedEvent>;
     subscriptionUnitsUpdatedEvents: Array<SubscriptionUnitsUpdatedEvent>;
     /**
@@ -3090,8 +3090,12 @@ export type Query = {
     appRegisteredEvents: Array<AppRegisteredEvent>;
     burnedEvent?: Maybe<BurnedEvent>;
     burnedEvents: Array<BurnedEvent>;
-    cfav1LiquidationPeriodChangedEvent?: Maybe<CfAv1LiquidationPeriodChangedEvent>;
-    cfav1LiquidationPeriodChangedEvents: Array<CfAv1LiquidationPeriodChangedEvent>;
+    cfav1LiquidationPeriodChangedEvent?: Maybe<
+        CfAv1LiquidationPeriodChangedEvent
+    >;
+    cfav1LiquidationPeriodChangedEvents: Array<
+        CfAv1LiquidationPeriodChangedEvent
+    >;
     configChangedEvent?: Maybe<ConfigChangedEvent>;
     configChangedEvents: Array<ConfigChangedEvent>;
     customSuperTokenCreatedEvent?: Maybe<CustomSuperTokenCreatedEvent>;
@@ -3140,8 +3144,12 @@ export type Query = {
     streams: Array<Stream>;
     subscriptionApprovedEvent?: Maybe<SubscriptionApprovedEvent>;
     subscriptionApprovedEvents: Array<SubscriptionApprovedEvent>;
-    subscriptionDistributionClaimedEvent?: Maybe<SubscriptionDistributionClaimedEvent>;
-    subscriptionDistributionClaimedEvents: Array<SubscriptionDistributionClaimedEvent>;
+    subscriptionDistributionClaimedEvent?: Maybe<
+        SubscriptionDistributionClaimedEvent
+    >;
+    subscriptionDistributionClaimedEvents: Array<
+        SubscriptionDistributionClaimedEvent
+    >;
     subscriptionRevokedEvent?: Maybe<SubscriptionRevokedEvent>;
     subscriptionRevokedEvents: Array<SubscriptionRevokedEvent>;
     subscriptionUnitsUpdatedEvent?: Maybe<SubscriptionUnitsUpdatedEvent>;
@@ -4803,8 +4811,12 @@ export type Subscription = {
     appRegisteredEvents: Array<AppRegisteredEvent>;
     burnedEvent?: Maybe<BurnedEvent>;
     burnedEvents: Array<BurnedEvent>;
-    cfav1LiquidationPeriodChangedEvent?: Maybe<CfAv1LiquidationPeriodChangedEvent>;
-    cfav1LiquidationPeriodChangedEvents: Array<CfAv1LiquidationPeriodChangedEvent>;
+    cfav1LiquidationPeriodChangedEvent?: Maybe<
+        CfAv1LiquidationPeriodChangedEvent
+    >;
+    cfav1LiquidationPeriodChangedEvents: Array<
+        CfAv1LiquidationPeriodChangedEvent
+    >;
     configChangedEvent?: Maybe<ConfigChangedEvent>;
     configChangedEvents: Array<ConfigChangedEvent>;
     customSuperTokenCreatedEvent?: Maybe<CustomSuperTokenCreatedEvent>;
@@ -4853,8 +4865,12 @@ export type Subscription = {
     streams: Array<Stream>;
     subscriptionApprovedEvent?: Maybe<SubscriptionApprovedEvent>;
     subscriptionApprovedEvents: Array<SubscriptionApprovedEvent>;
-    subscriptionDistributionClaimedEvent?: Maybe<SubscriptionDistributionClaimedEvent>;
-    subscriptionDistributionClaimedEvents: Array<SubscriptionDistributionClaimedEvent>;
+    subscriptionDistributionClaimedEvent?: Maybe<
+        SubscriptionDistributionClaimedEvent
+    >;
+    subscriptionDistributionClaimedEvents: Array<
+        SubscriptionDistributionClaimedEvent
+    >;
     subscriptionRevokedEvent?: Maybe<SubscriptionRevokedEvent>;
     subscriptionRevokedEvents: Array<SubscriptionRevokedEvent>;
     subscriptionUnitsUpdatedEvent?: Maybe<SubscriptionUnitsUpdatedEvent>;

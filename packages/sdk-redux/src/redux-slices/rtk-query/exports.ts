@@ -15,4 +15,5 @@ export * from './mutations/downgradeFromSuperToken';
 export * from './mutations/approveIndexSubscription';
 export * from './mutations/updateIndexSubscriptionUnits';
 export * from './mutations/createIndex';
+export * from './mutations/distributeToIndex';
 export { ValidationError, PossibleErrors } from './rtkQuerySliceBaseQuery';

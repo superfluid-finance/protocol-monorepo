@@ -35,7 +35,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
 
-    const [subscriberAddress, setSubscriberAddress] = useState<string>("");
+    const [subscriberAddress, setSubscriberAddress] = useState<string>(signerAddress);
     const [isApproved, setIsApproved] = useState<boolean | undefined>();
 
     useEffect(() => {

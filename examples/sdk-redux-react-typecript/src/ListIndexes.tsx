@@ -29,7 +29,7 @@ export const ListIndexes: FC = (): ReactElement => {
     const [page, setPage] = useState<number>(1);
 
     const [indexId, setIndexId] = useState<string>("");
-    const [publisherAddress, setPublisherAddress] = useState<string>("");
+    const [publisherAddress, setPublisherAddress] = useState<string>(signerAddress);
     const [superTokenAddress, setSuperTokenAddress] = useState<string>("");
 
     useEffect(() => {

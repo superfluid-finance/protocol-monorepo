@@ -27,10 +27,13 @@ import { UpgradeToSuperToken } from "./UpgradeToSuperToken";
 import {UpdateStream} from "./UpdateStream";
 import {DeleteStream} from "./DeleteStream";
 import {DowngradeFromSuperToken} from "./DowngradeFromSuperToken";
+import {CreateIndex} from "./CreateIndex";
+import {DistributeToIndex} from "./DistributeToIndex";
+import {ApproveIndexSubscription} from "./ApproveIndexSubscription";
+import {UpdateIndexSubscriptionUnits} from "./UpdateIndexSubscriptionUnits";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
-
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
     const [chainId, setChainId] = useState<number | undefined>();
 
@@ -98,6 +101,18 @@ function App() {
                             </SdkListItem>
                             <SdkListItem title="Downgrade From SuperToken">
                                 <DowngradeFromSuperToken />
+                            </SdkListItem>
+                            <SdkListItem title="Create Index">
+                                <CreateIndex />
+                            </SdkListItem>
+                            <SdkListItem title="Update Index Subscription Units">
+                                <UpdateIndexSubscriptionUnits />
+                            </SdkListItem>
+                            <SdkListItem title="Distribute To Index">
+                                <DistributeToIndex />
+                            </SdkListItem>
+                            <SdkListItem title="Approve Index Subscription">
+                                <ApproveIndexSubscription />
                             </SdkListItem>
                             <SdkListItem title="Create Stream">
                                 <CreateStream />

@@ -33,8 +33,7 @@ export const { useDeleteIndexSubscriptionMutation } =
                             indexId: arg.indexId,
                             publisher: arg.publisherAddress,
                             subscriber: arg.subscriberAddress,
-                            userData: arg.userDataBytes,
-                            providerOrSigner: framework.settings.provider
+                            userData: arg.userDataBytes
                         })
                         .exec(signer);
 

@@ -1,4 +1,4 @@
-export * from './queries/fetchFlows';
+export * from './queries/listStreams';
 export * from './queries/listEvents';
 export * from './queries/listSuperTokens';
 export * from './queries/listIndexes';

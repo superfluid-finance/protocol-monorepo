@@ -4,7 +4,7 @@ import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import { Framework } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import { SignerContext } from "./SignerContext";
-import { StreamTable } from "./StreamTable";
+import { ListStreams } from "./ListStreams";
 import { TransactionTable } from "./TransactionTable";
 import { Web3Provider } from "@ethersproject/providers";
 import { ListEvents } from "./ListEvents";
@@ -24,13 +24,13 @@ import { ListSuperTokens } from "./ListSuperTokens";
 import { GetRealtimeBalance } from "./GetRealtimeBalance";
 import { CreateStream } from "./CreateStream";
 import { UpgradeToSuperToken } from "./UpgradeToSuperToken";
-import {UpdateStream} from "./UpdateStream";
-import {DeleteStream} from "./DeleteStream";
-import {DowngradeFromSuperToken} from "./DowngradeFromSuperToken";
-import {CreateIndex} from "./CreateIndex";
-import {DistributeToIndex} from "./DistributeToIndex";
-import {ApproveIndexSubscription} from "./ApproveIndexSubscription";
-import {UpdateIndexSubscriptionUnits} from "./UpdateIndexSubscriptionUnits";
+import { UpdateStream } from "./UpdateStream";
+import { DeleteStream } from "./DeleteStream";
+import { DowngradeFromSuperToken } from "./DowngradeFromSuperToken";
+import { CreateIndex } from "./CreateIndex";
+import { DistributeToIndex } from "./DistributeToIndex";
+import { ApproveIndexSubscription } from "./ApproveIndexSubscription";
+import { UpdateIndexSubscriptionUnits } from "./UpdateIndexSubscriptionUnits";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
@@ -93,9 +93,6 @@ function App() {
                             <SdkListItem title="Transactions">
                                 <TransactionTable />
                             </SdkListItem>
-                            <SdkListItem title="Realtime Balance">
-                                <GetRealtimeBalance />
-                            </SdkListItem>
                             <SdkListItem title="Upgrade To SuperToken">
                                 <UpgradeToSuperToken />
                             </SdkListItem>
@@ -123,8 +120,11 @@ function App() {
                             <SdkListItem title="Delete Stream">
                                 <DeleteStream />
                             </SdkListItem>
-                            <SdkListItem title="Active Streams">
-                                <StreamTable />
+                            <SdkListItem title="Realtime Balance">
+                                <GetRealtimeBalance />
+                            </SdkListItem>
+                            <SdkListItem title="List Streams">
+                                <ListStreams />
                             </SdkListItem>
                             <SdkListItem title="List SuperTokens">
                                 <ListSuperTokens />

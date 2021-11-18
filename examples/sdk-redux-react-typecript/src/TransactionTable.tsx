@@ -1,8 +1,7 @@
 import React, { FC, ReactElement, useContext } from "react";
 import {
     TransactionTracking,
-    superfluidTransactionSelectors,
-    useFetchFlowsQuery,
+    superfluidTransactionSelectors
 } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {

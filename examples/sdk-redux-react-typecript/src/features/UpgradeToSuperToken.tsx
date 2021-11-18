@@ -3,7 +3,7 @@ import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import {
     useUpgradeToSuperTokenMutation,
-    useGetAvailableAllowanceForUpgradeToSuperTokenQuery,
+    useGetAllowanceForUpgradeToSuperTokenQuery,
 } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
@@ -23,7 +23,7 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
         data: availableAllowance,
         isFetching: isAllowanceFetching,
         isError: isAllowanceQueryError,
-    } = useGetAvailableAllowanceForUpgradeToSuperTokenQuery(
+    } = useGetAllowanceForUpgradeToSuperTokenQuery(
         {
             accountAddress: signerAddress,
             superTokenAddress: superToken,

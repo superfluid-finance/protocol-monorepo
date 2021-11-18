@@ -2,7 +2,7 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export type GetAvailableAllowanceForUpgradeToSuperTokenArg = QueryArg & {
+export type GetAllowanceForUpgradeToSuperTokenArg = QueryArg & {
     accountAddress: string;
     superTokenAddress: string;
 };
@@ -10,13 +10,13 @@ export type GetAvailableAllowanceForUpgradeToSuperTokenArg = QueryArg & {
 // TODO(KK): Tags?
 
 export const {
-    useGetAvailableAllowanceForUpgradeToSuperTokenQuery,
-    useLazyGetAvailableAllowanceForUpgradeToSuperTokenQuery,
+    useGetAllowanceForUpgradeToSuperTokenQuery,
+    useLazyGetAllowanceForUpgradeToSuperTokenQuery,
 } = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        getAvailableAllowanceForUpgradeToSuperToken: builder.query<
+        getAllowanceForUpgradeToSuperToken: builder.query<
             string,
-            GetAvailableAllowanceForUpgradeToSuperTokenArg
+            GetAllowanceForUpgradeToSuperTokenArg
         >({
             queryFn: async (arg) => {
                 const framework =

@@ -1,9 +1,12 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useUpgradeToSuperTokenMutation, useGetAvailableAllowanceForUpgradeToSuperTokenQuery } from "@superfluid-finance/sdk-redux";
+import {
+    useUpgradeToSuperTokenMutation,
+    useGetAvailableAllowanceForUpgradeToSuperTokenQuery,
+} from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
-import { Error } from "./Error";
+import { Error } from "../Error";
 
 export const UpgradeToSuperToken: FC = (): ReactElement => {
     const [upgradeToSuperToken, { isLoading, error }] =
@@ -13,15 +16,23 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
 
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] = useState<boolean>(false);
+    const [waitForConfirmation, setWaitForConfirmation] =
+        useState<boolean>(false);
 
-    const { data: availableAllowance, isFetching: isAllowanceFetching, isError: isAllowanceQueryError } = useGetAvailableAllowanceForUpgradeToSuperTokenQuery({
-        accountAddress: signerAddress,
-        superTokenAddress: superToken,
-        chainId: chainId
-    }, {
-        skip: !superToken
-    });
+    const {
+        data: availableAllowance,
+        isFetching: isAllowanceFetching,
+        isError: isAllowanceQueryError,
+    } = useGetAvailableAllowanceForUpgradeToSuperTokenQuery(
+        {
+            accountAddress: signerAddress,
+            superTokenAddress: superToken,
+            chainId: chainId,
+        },
+        {
+            skip: !superToken,
+        }
+    );
 
     const handleUpgradeToSuperToken = (e: SyntheticEvent) => {
         upgradeToSuperToken({
@@ -38,7 +49,11 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
             ) : (
                 <>
                     {error && <Error error={error} />}
-                    {(availableAllowance && !isAllowanceFetching && !isAllowanceQueryError) && <p>Available allowance: {availableAllowance}</p>}
+                    {availableAllowance &&
+                        !isAllowanceFetching &&
+                        !isAllowanceQueryError && (
+                            <p>Available allowance: {availableAllowance}</p>
+                        )}
                     <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                         <FormGroup>
                             <TextField
@@ -55,7 +70,13 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
                                     setAmount(e.currentTarget.value)
                                 }
                             />
-                            <Switch value={waitForConfirmation} title="Wait for confirmation" onChange={() => setWaitForConfirmation(!waitForConfirmation)} />
+                            <Switch
+                                value={waitForConfirmation}
+                                title="Wait for confirmation"
+                                onChange={() =>
+                                    setWaitForConfirmation(!waitForConfirmation)
+                                }
+                            />
                             <Button
                                 sx={{ m: 1 }}
                                 type="submit"

@@ -7,7 +7,7 @@ import React, {
     useEffect,
 } from "react";
 import { AllEvents, useListEventsQuery } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     FormGroup,
     Pagination,
@@ -19,8 +19,8 @@ import {
     TableRow,
     TextField,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { Error } from "./Error";
+import { SignerContext } from "../SignerContext";
+import { Error } from "../Error";
 
 const pageSize = 10;
 
@@ -46,7 +46,10 @@ export const ListEvents: FC = (): ReactElement => {
         take: pageSize,
     });
 
-    const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    const handlePageChange = (
+        event: React.ChangeEvent<unknown>,
+        value: number
+    ) => {
         setPage(value);
     };
 
@@ -98,7 +101,10 @@ export const ListEvents: FC = (): ReactElement => {
                         <Pagination
                             count={pagedEvents.hasNextPage ? page + 1 : page}
                             page={page}
-                            onChange={(event: React.ChangeEvent<unknown>, value: number) => {
+                            onChange={(
+                                event: React.ChangeEvent<unknown>,
+                                value: number
+                            ) => {
                                 setPage(value);
                             }}
                         />

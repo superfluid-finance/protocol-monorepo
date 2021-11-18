@@ -1,29 +1,26 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useUpdateFlowMutation } from "@superfluid-finance/sdk-redux";
-import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import { Error } from "./Error";
+import { useDowngradeFromSuperTokenMutation } from "@superfluid-finance/sdk-redux";
+import { Button, FormGroup, TextField, Switch } from "@mui/material";
+import { Error } from "../Error";
 
-export const UpdateStream: FC = (): ReactElement => {
-    const [updateFlow, { isLoading, error }] = useUpdateFlowMutation();
+export const DowngradeFromSuperToken: FC = (): ReactElement => {
+    const [downgradeFromSuperToken, { isLoading, error }] =
+        useDowngradeFromSuperTokenMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 
-    const [receiver, setReceiver] = useState<string>("");
+    const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [flowRate, setFlowRate] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const handleUpdateStream = (e: SyntheticEvent) => {
-        updateFlow({
-            senderAddress: signerAddress,
-            receiverAddress: receiver,
+    const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
+        downgradeFromSuperToken({
             chainId,
             superTokenAddress: superToken,
-            flowRateWei: flowRate,
-            waitForConfirmation,
+            amountWei: amount,
         });
     };
 
@@ -38,13 +35,6 @@ export const UpdateStream: FC = (): ReactElement => {
                         <FormGroup>
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Receiver"
-                                onChange={(e) =>
-                                    setReceiver(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
                                 label="SuperToken"
                                 onChange={(e) =>
                                     setSuperToken(e.currentTarget.value)
@@ -52,10 +42,9 @@ export const UpdateStream: FC = (): ReactElement => {
                             />
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Flow Rate"
-                                type="number"
+                                label="Amount"
                                 onChange={(e) =>
-                                    setFlowRate(e.currentTarget.value)
+                                    setAmount(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -70,9 +59,9 @@ export const UpdateStream: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleUpdateStream}
+                                onClick={handleDowngradeFromSuperToken}
                             >
-                                Update
+                                Downgrade
                             </Button>
                         </FormGroup>
                     </form>

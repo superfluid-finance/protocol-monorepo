@@ -10,7 +10,7 @@ import {
     useListIndexSubscriptionsQuery,
     IIndexSubscription,
 } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     FormControl,
     FormControlLabel,
@@ -26,8 +26,8 @@ import {
     RadioGroup,
     Radio,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { Error } from "./Error";
+import { SignerContext } from "../SignerContext";
+import { Error } from "../Error";
 
 const pageSize = 10;
 
@@ -35,7 +35,8 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
 
-    const [subscriberAddress, setSubscriberAddress] = useState<string>(signerAddress);
+    const [subscriberAddress, setSubscriberAddress] =
+        useState<string>(signerAddress);
     const [isApproved, setIsApproved] = useState<boolean | undefined>();
 
     useEffect(() => {

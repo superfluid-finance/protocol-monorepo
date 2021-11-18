@@ -7,7 +7,7 @@ import React, {
     useState,
 } from "react";
 import { useListIndexesQuery, IIndex } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     FormGroup,
     Pagination,
@@ -19,8 +19,8 @@ import {
     TableRow,
     TextField,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { Error } from "./Error";
+import { SignerContext } from "../SignerContext";
+import { Error } from "../Error";
 
 const pageSize = 10;
 
@@ -29,7 +29,8 @@ export const ListIndexes: FC = (): ReactElement => {
     const [page, setPage] = useState<number>(1);
 
     const [indexId, setIndexId] = useState<string>("");
-    const [publisherAddress, setPublisherAddress] = useState<string>(signerAddress);
+    const [publisherAddress, setPublisherAddress] =
+        useState<string>(signerAddress);
     const [superTokenAddress, setSuperTokenAddress] = useState<string>("");
 
     useEffect(() => {

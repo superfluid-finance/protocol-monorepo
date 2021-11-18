@@ -1,27 +1,27 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useCreateIndexMutation } from "@superfluid-finance/sdk-redux";
+import { useDeleteFlowMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import { Error } from "./Error";
+import { Error } from "../Error";
 
-export const CreateIndex: FC = (): ReactElement => {
-    const [createIndex, { isLoading, error }] = useCreateIndexMutation();
+export const DeleteStream: FC = (): ReactElement => {
+    const [deleteFlow, { isLoading, error }] = useDeleteFlowMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
+
+    const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [indexId, setIndexId] = useState<string>("");
-    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const handleOperation = (e: SyntheticEvent) => {
-        createIndex({
-            waitForConfirmation,
+    const handleDeleteStream = (e: SyntheticEvent) => {
+        deleteFlow({
+            senderAddress: signerAddress,
+            receiverAddress: receiver,
             chainId,
             superTokenAddress: superToken,
-            indexId,
-            userDataBytes
+            waitForConfirmation,
         });
     };
 
@@ -36,23 +36,16 @@ export const CreateIndex: FC = (): ReactElement => {
                         <FormGroup>
                             <TextField
                                 sx={{ m: 1 }}
+                                label="Receiver"
+                                onChange={(e) =>
+                                    setReceiver(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
                                 label="SuperToken"
                                 onChange={(e) =>
                                     setSuperToken(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="Index ID"
-                                onChange={(e) =>
-                                    setIndexId(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="User Data"
-                                onChange={(e) =>
-                                    setUserDataBytes(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -67,9 +60,9 @@ export const CreateIndex: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleOperation}
+                                onClick={handleDeleteStream}
                             >
-                                Create
+                                Delete
                             </Button>
                         </FormGroup>
                     </form>

@@ -1,9 +1,9 @@
 import React, { FC, ReactElement, useContext } from "react";
 import {
     TransactionTracking,
-    superfluidTransactionSelectors
+    superfluidTransactionSelectors,
 } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     Table,
     TableBody,
@@ -12,8 +12,8 @@ import {
     TableHead,
     TableRow,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { useAppSelector } from "./redux/hooks";
+import { SignerContext } from "../SignerContext";
+import { useAppSelector } from "../redux/hooks";
 
 export const TransactionTable: FC = (): ReactElement => {
     const [networkName, signerAddress] = useContext(SignerContext);

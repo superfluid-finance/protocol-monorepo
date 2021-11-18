@@ -6,7 +6,7 @@ import React, {
     useState,
 } from "react";
 import { useLazyGetRealtimeBalanceQuery } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     Button,
     FormGroup,
@@ -18,10 +18,10 @@ import {
     TableRow,
     TextField,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { Error } from "./Error";
-import { FlowingBalance } from "./FlowingBalance";
-import { ethers } from 'ethers'
+import { SignerContext } from "../SignerContext";
+import { Error } from "../Error";
+import { FlowingBalance } from "../FlowingBalance";
+import { ethers } from "ethers";
 
 export const GetRealtimeBalance: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
@@ -103,7 +103,10 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                             {realtimeBalance!.timestamp}
                                         </TableCell>
                                         <TableCell>
-                                            {realtimeBalance!.availableBalanceWei}
+                                            {
+                                                realtimeBalance!
+                                                    .availableBalanceWei
+                                            }
                                             <br />
                                             <FlowingBalance
                                                 balanceWei={
@@ -111,25 +114,29 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                                         .availableBalanceWei
                                                 }
                                                 flowRateWei={
-                                                    realtimeBalance!.netFlowRateWei
+                                                    realtimeBalance!
+                                                        .netFlowRateWei
                                                 }
-                                                balanceTimestamp={
-                                                    Number(realtimeBalance!.timestamp)
-                                                }
+                                                balanceTimestamp={Number(
+                                                    realtimeBalance!.timestamp
+                                                )}
                                             />
                                             <br />
                                             <FlowingBalance
-                                                format={(x) => ethers.utils.formatUnits(x)}
+                                                format={(x) =>
+                                                    ethers.utils.formatUnits(x)
+                                                }
                                                 balanceWei={
                                                     realtimeBalance!
                                                         .availableBalanceWei
                                                 }
                                                 flowRateWei={
-                                                    realtimeBalance!.netFlowRateWei
+                                                    realtimeBalance!
+                                                        .netFlowRateWei
                                                 }
-                                                balanceTimestamp={
-                                                    Number(realtimeBalance!.timestamp)
-                                                }
+                                                balanceTimestamp={Number(
+                                                    realtimeBalance!.timestamp
+                                                )}
                                             />
                                         </TableCell>
                                         <TableCell>

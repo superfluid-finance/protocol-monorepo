@@ -1,29 +1,29 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
-import {FC, ReactElement, SyntheticEvent, useContext, useState} from "react";
-import { useDeleteFlowMutation } from "@superfluid-finance/sdk-redux";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
+import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
+import { useCreateFlowMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import {Error} from "./Error";
+import { Error } from "../Error";
 
-export const DeleteStream: FC = (): ReactElement => {
-    const [
-        deleteFlow,
-        { isLoading, error },
-    ] = useDeleteFlowMutation();
+export const CreateStream: FC = (): ReactElement => {
+    const [createFlow, { isLoading, error }] = useCreateFlowMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] = useState<boolean>(false);
+    const [flowRate, setFlowRate] = useState<string>("");
+    const [waitForConfirmation, setWaitForConfirmation] =
+        useState<boolean>(false);
 
-    const handleDeleteStream = (e: SyntheticEvent) => {
-        deleteFlow({
+    const handleCreateStream = (e: SyntheticEvent) => {
+        createFlow({
             senderAddress: signerAddress,
             receiverAddress: receiver,
+            flowRateWei: flowRate,
             chainId,
             superTokenAddress: superToken,
-            waitForConfirmation
+            waitForConfirmation,
         });
     };
 
@@ -50,15 +50,29 @@ export const DeleteStream: FC = (): ReactElement => {
                                     setSuperToken(e.currentTarget.value)
                                 }
                             />
-                            <Switch value={waitForConfirmation} title="Wait for confirmation" onChange={() => setWaitForConfirmation(!waitForConfirmation)} />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Flow Rate"
+                                type="number"
+                                onChange={(e) =>
+                                    setFlowRate(e.currentTarget.value)
+                                }
+                            />
+                            <Switch
+                                value={waitForConfirmation}
+                                title="Wait for confirmation"
+                                onChange={() =>
+                                    setWaitForConfirmation(!waitForConfirmation)
+                                }
+                            />
                             <Button
                                 sx={{ m: 1 }}
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleDeleteStream}
+                                onClick={handleCreateStream}
                             >
-                                Delete
+                                Create
                             </Button>
                         </FormGroup>
                     </form>

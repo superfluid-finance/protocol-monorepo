@@ -1,12 +1,13 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { useApproveIndexSubscriptionMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import { Error } from "./Error";
+import { Error } from "../Error";
 
 export const ApproveIndexSubscription: FC = (): ReactElement => {
-    const [approve, { isLoading, error }] = useApproveIndexSubscriptionMutation();
+    const [approve, { isLoading, error }] =
+        useApproveIndexSubscriptionMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
@@ -23,7 +24,7 @@ export const ApproveIndexSubscription: FC = (): ReactElement => {
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
-            publisherAddress
+            publisherAddress,
         });
     };
 

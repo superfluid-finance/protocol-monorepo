@@ -1,6 +1,13 @@
-import React, {FC, ReactElement, SyntheticEvent, useContext, useEffect, useState} from "react";
+import React, {
+    FC,
+    ReactElement,
+    SyntheticEvent,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { IStream, useListStreamsQuery } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     FormGroup,
     Pagination,
@@ -12,8 +19,8 @@ import {
     TableRow,
     TextField,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { Error } from "./Error";
+import { SignerContext } from "../SignerContext";
+import { Error } from "../Error";
 
 const pageSize = 10;
 

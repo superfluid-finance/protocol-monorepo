@@ -10,7 +10,7 @@ import {
     useListSuperTokensQuery,
     ISuperToken,
 } from "@superfluid-finance/sdk-redux";
-import { Loader } from "./Loader";
+import { Loader } from "../Loader";
 import {
     FormControl,
     FormControlLabel,
@@ -25,8 +25,8 @@ import {
     TableHead,
     TableRow,
 } from "@mui/material";
-import { SignerContext } from "./SignerContext";
-import { Error } from "./Error";
+import { SignerContext } from "../SignerContext";
+import { Error } from "../Error";
 
 const pageSize = 10;
 
@@ -97,9 +97,7 @@ export const ListSuperTokens: FC = (): ReactElement => {
                                 </TableHead>
                                 <TableBody>
                                     {pagedSuperTokens!.data.map(
-                                        (
-                                            superToken: ISuperToken
-                                        ) => (
+                                        (superToken: ISuperToken) => (
                                             <TableRow key={superToken.id}>
                                                 <TableCell>
                                                     <pre>
@@ -118,9 +116,7 @@ export const ListSuperTokens: FC = (): ReactElement => {
                     {pagedSuperTokens && !error && (
                         <Pagination
                             count={
-                                pagedSuperTokens.hasNextPage
-                                    ? page + 1
-                                    : page
+                                pagedSuperTokens.hasNextPage ? page + 1 : page
                             }
                             onChange={(
                                 event: React.ChangeEvent<unknown>,

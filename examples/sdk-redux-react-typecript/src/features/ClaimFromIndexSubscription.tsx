@@ -1,12 +1,13 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useRevokeIndexSubscriptionMutation } from "@superfluid-finance/sdk-redux";
+import { useClaimFromIndexSubscriptionMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import { Error } from "./Error";
+import { Error } from "../Error";
 
-export const RevokeIndexSubscription: FC = (): ReactElement => {
-    const [trigger, { isLoading, error }] = useRevokeIndexSubscriptionMutation();
+export const ClaimFromIndexSubscription: FC = (): ReactElement => {
+    const [claim, { isLoading, error }] =
+        useClaimFromIndexSubscriptionMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
@@ -17,14 +18,14 @@ export const RevokeIndexSubscription: FC = (): ReactElement => {
         useState<boolean>(false);
 
     const handleOperation = (e: SyntheticEvent) => {
-        trigger({
+        claim({
             waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
             publisherAddress,
-            subscriberAddress: signerAddress
+            subscriberAddress: signerAddress,
         });
     };
 
@@ -79,7 +80,7 @@ export const RevokeIndexSubscription: FC = (): ReactElement => {
                                 fullWidth={true}
                                 onClick={handleOperation}
                             >
-                                Revoke
+                                Claim
                             </Button>
                         </FormGroup>
                     </form>

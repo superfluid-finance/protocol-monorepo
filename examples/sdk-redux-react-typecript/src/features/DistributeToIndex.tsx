@@ -1,29 +1,29 @@
-import { SignerContext } from "./SignerContext";
-import { Loader } from "./Loader";
+import { SignerContext } from "../SignerContext";
+import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useCreateFlowMutation } from "@superfluid-finance/sdk-redux";
+import { useDistributeToIndexMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
-import { Error } from "./Error";
+import { Error } from "../Error";
 
-export const CreateStream: FC = (): ReactElement => {
-    const [createFlow, { isLoading, error }] = useCreateFlowMutation();
+export const DistributeToIndex: FC = (): ReactElement => {
+    const [distribute, { isLoading, error }] = useDistributeToIndexMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
-
-    const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [flowRate, setFlowRate] = useState<string>("");
+    const [indexId, setIndexId] = useState<string>("");
+    const [amountWei, setAmountWei] = useState<string>("");
+    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const handleCreateStream = (e: SyntheticEvent) => {
-        createFlow({
-            senderAddress: signerAddress,
-            receiverAddress: receiver,
-            flowRateWei: flowRate,
+    const handleOperation = (e: SyntheticEvent) => {
+        distribute({
+            waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
-            waitForConfirmation,
+            indexId,
+            amountWei,
+            userDataBytes,
         });
     };
 
@@ -38,13 +38,6 @@ export const CreateStream: FC = (): ReactElement => {
                         <FormGroup>
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Receiver"
-                                onChange={(e) =>
-                                    setReceiver(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
                                 label="SuperToken"
                                 onChange={(e) =>
                                     setSuperToken(e.currentTarget.value)
@@ -52,10 +45,23 @@ export const CreateStream: FC = (): ReactElement => {
                             />
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Flow Rate"
-                                type="number"
+                                label="Index ID"
                                 onChange={(e) =>
-                                    setFlowRate(e.currentTarget.value)
+                                    setIndexId(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="User Data"
+                                onChange={(e) =>
+                                    setUserDataBytes(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Amount"
+                                onChange={(e) =>
+                                    setAmountWei(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -70,9 +76,9 @@ export const CreateStream: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleCreateStream}
+                                onClick={handleOperation}
                             >
-                                Create
+                                Distribute
                             </Button>
                         </FormGroup>
                     </form>

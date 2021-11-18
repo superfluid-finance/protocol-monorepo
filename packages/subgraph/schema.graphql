@@ -594,6 +594,7 @@ type SentEvent implements Event @entity {
     addresses: [Bytes!]!
     blockNumber: BigInt!
     operator: Bytes!
+    from: Bytes!
     to: Bytes!
     amount: BigInt!
     data: Bytes!

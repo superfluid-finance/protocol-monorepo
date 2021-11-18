@@ -66,7 +66,7 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           if ./tasks/supports-etherscan.sh ${{ matrix.network }};then
-            npx truffle exec --network ${{ matrix.network }} scripts/print-addresses.js : addresses.vars
+            npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
             source addresses.vars
             source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
           fi

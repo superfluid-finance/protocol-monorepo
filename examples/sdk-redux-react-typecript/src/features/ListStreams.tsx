@@ -92,41 +92,41 @@ export const ListStreams: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Index</TableCell>
+                                        <TableCell>Chain ID</TableCell>
+                                        <TableCell>SuperToken</TableCell>
+                                        <TableCell>Sender</TableCell>
+                                        <TableCell>Receiver</TableCell>
+                                        <TableCell>Flow Rate</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    <TableBody>
-                                        {pagedStreams!.data.map(
-                                            (flow: IStream, index: number) => (
-                                                <TableRow
-                                                    key={index}
-                                                    sx={{
-                                                        "&:last-child td, &:last-child th":
-                                                            {
-                                                                border: 0,
-                                                            },
-                                                    }}
-                                                >
-                                                    <TableCell>
-                                                        {chainId}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {flow.token.id}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {flow.sender.id}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {flow.receiver.id}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {flow.currentFlowRate}
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        )}
-                                    </TableBody>
+                                    {pagedStreams!.data.map(
+                                        (flow: IStream, index: number) => (
+                                            <TableRow
+                                                key={index}
+                                                sx={{
+                                                    "&:last-child td, &:last-child th":
+                                                        {
+                                                            border: 0,
+                                                        },
+                                                }}
+                                            >
+                                                <TableCell>{chainId}</TableCell>
+                                                <TableCell>
+                                                    {flow.token.id}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {flow.sender.id}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {flow.receiver.id}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {flow.currentFlowRate}
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    )}
                                 </TableBody>
                             </Table>
                         </TableContainer>

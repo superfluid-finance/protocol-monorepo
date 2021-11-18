@@ -3,6 +3,8 @@ query getTokens($where: Token_filter!, $skip: Int!, $first: Int!) {
         where: $where,
         skip: $skip
         first: $first,
+        orderBy: createdAtBlockNumber,
+        orderDirection: desc
     ) {
         id
         createdAtTimestamp

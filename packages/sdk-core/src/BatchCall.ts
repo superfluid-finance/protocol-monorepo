@@ -113,7 +113,9 @@ export default class BatchCall {
      * @param signer the signer of the transaction
      * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
-    exec = async (signer: ethers.Signer): Promise<ethers.ContractTransaction> => {
+    exec = async (
+        signer: ethers.Signer
+    ): Promise<ethers.ContractTransaction> => {
         try {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
@@ -121,7 +123,7 @@ export default class BatchCall {
             return await this.host.hostContract
                 .connect(signer)
                 .batchCall(operationStructArray);
-        } catch (err: any) {
+        } catch (err) {
             throw new SFError({
                 type: "BATCH_CALL_ERROR",
                 customMessage: "There was an error executing your batch call:",
@@ -138,7 +140,9 @@ export default class BatchCall {
      * @param signer the signer of the transaction
      * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
-    execForward = async (signer: ethers.Signer): Promise<ethers.ContractTransaction> => {
+    execForward = async (
+        signer: ethers.Signer
+    ): Promise<ethers.ContractTransaction> => {
         try {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
@@ -146,7 +150,7 @@ export default class BatchCall {
             return await this.host.hostContract
                 .connect(signer)
                 .forwardBatchCall(operationStructArray);
-        } catch (err: any) {
+        } catch (err) {
             throw new SFError({
                 type: "BATCH_CALL_ERROR",
                 customMessage: "There was an error executing your batch call:",

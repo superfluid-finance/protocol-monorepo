@@ -254,7 +254,6 @@ export default class Query {
         account: string,
         timeout?: number
     ): () => void {
-        console.log("on");
         if (ms < 1000) throw Error("Let's not go crazy with the queries...");
 
         // TODO: Wait for answer before next query...
@@ -263,7 +262,6 @@ export default class Query {
 
         let nextUtcNow = new Date().getTime() - timeSkew;
         const intervalId = setInterval(async () => {
-            console.log("interval");
             const utcNow = nextUtcNow;
             nextUtcNow += ms;
 
@@ -271,7 +269,7 @@ export default class Query {
             const accountEvents: AccountEvents[] = await this.listEvents({
                 account: account,
                 timestamp_gte: subgraphTime.toString(),
-            }).then((x) => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
+            }).then(x => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
 
             if (accountEvents.length) {
                 console.log("callback");
@@ -280,13 +278,11 @@ export default class Query {
         }, ms);
 
         const unsubscribe = () => {
-            console.log("unsubscribe");
             clearInterval(intervalId);
         };
 
         if (timeout) {
             setTimeout(() => {
-                console.log("timeout");
                 unsubscribe();
             }, timeout);
         }

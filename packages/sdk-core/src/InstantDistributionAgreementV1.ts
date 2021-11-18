@@ -77,8 +77,7 @@ export default class InstantDistributionAgreementV1 {
                 exist: subscription.exist,
                 approved: subscription.approved,
                 units: subscription.units.toString(),
-                pendingDistribution:
-                    subscription.pendingDistribution.toString(),
+                pendingDistribution: subscription.pendingDistribution.toString(),
             };
         } catch (err) {
             throw new SFError({

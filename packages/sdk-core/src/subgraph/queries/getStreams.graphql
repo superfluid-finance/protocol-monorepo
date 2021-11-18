@@ -2,7 +2,9 @@ query getStreams($where: Stream_filter!, $skip: Int!, $first: Int!) {
     result: streams(
         where: $where,
         skip: $skip,
-        first: $first
+        first: $first,
+        orderBy: createdAtBlockNumber,
+        orderDirection: desc
     ) {
         id
         createdAtTimestamp

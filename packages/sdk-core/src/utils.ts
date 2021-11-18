@@ -154,7 +154,7 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
     indexSubscriptions: IIndexSubscription[]
 ) => {
     return indexSubscriptions
-        .filter((x) => x.approved)
+        .filter(x => x.approved)
         .reduce(
             (x, y) =>
                 x +
@@ -179,9 +179,11 @@ export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
     );
 };
 
-export const getStringCurrentTimeInSeconds = () => Math.floor(new Date().getTime() / 1000).toString();
+export const getStringCurrentTimeInSeconds = () =>
+    Math.floor(new Date().getTime() / 1000).toString();
 
-export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) => new Date(Number(timestamp.toString()) * 1000);
+export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) =>
+    new Date(Number(timestamp.toString()) * 1000);
 
 /**
  * @dev The formula for calculating the balance until updated at of a user (claimable + received tokens from index)

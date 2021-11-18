@@ -19,7 +19,7 @@ export type GetTokensQuery = {
     }>;
 };
 
-export const GetTokensDocument = {
+export const GetTokensDocument = ({
     kind: "Document",
     definitions: [
         {
@@ -102,6 +102,19 @@ export const GetTokensDocument = {
                                     name: { kind: "Name", value: "first" },
                                 },
                             },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderBy" },
+                                value: {
+                                    kind: "EnumValue",
+                                    value: "createdAtBlockNumber",
+                                },
+                            },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderDirection" },
+                                value: { kind: "EnumValue", value: "desc" },
+                            },
                         ],
                         selectionSet: {
                             kind: "SelectionSet",
@@ -150,4 +163,4 @@ export const GetTokensDocument = {
             },
         },
     ],
-} as unknown as DocumentNode<GetTokensQuery, GetTokensQueryVariables>;
+} as unknown) as DocumentNode<GetTokensQuery, GetTokensQueryVariables>;

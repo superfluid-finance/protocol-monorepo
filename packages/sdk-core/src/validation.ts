@@ -12,8 +12,7 @@ import SFError from "./SFError";
 const ajv = new Ajv();
 ajv.addFormat("addressOrEmpty", {
     type: "string",
-    validate: (x: string) =>
-        x === "" || (ethers.utils.isAddress(x)),
+    validate: (x: string) => x === "" || ethers.utils.isAddress(x),
 });
 ajv.addFormat("stringNumber", {
     type: "string",
@@ -39,33 +38,31 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     },
 };
 
-const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> =
-    {
-        type: "object",
-        additionalProperties: true,
-        properties: {
-            account: {
-                type: "string",
-                format: "addressOrEmpty",
-                nullable: true,
-            },
-            token: { type: "string", format: "addressOrEmpty", nullable: true },
+const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> = {
+    type: "object",
+    additionalProperties: true,
+    properties: {
+        account: {
+            type: "string",
+            format: "addressOrEmpty",
+            nullable: true,
         },
-    };
+        token: { type: "string", format: "addressOrEmpty", nullable: true },
+    },
+};
 
-const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> =
-    {
-        type: "object",
-        additionalProperties: true,
-        properties: {
-            subscriber: {
-                type: "string",
-                format: "stringNumber",
-                nullable: true,
-            },
-            approved: { type: "boolean", nullable: true },
+const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> = {
+    type: "object",
+    additionalProperties: true,
+    properties: {
+        subscriber: {
+            type: "string",
+            format: "stringNumber",
+            nullable: true,
         },
-    };
+        approved: { type: "boolean", nullable: true },
+    },
+};
 
 const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     type: "object",
@@ -104,9 +101,6 @@ export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(
 export const validateStreamRequest = wrapValidationWithCustomError(
     ajv.compile<IStreamRequestFilter>(streamRequestSchema)
 );
-export const validateAccountTokenSnapshotRequest =
-    wrapValidationWithCustomError(
-        ajv.compile<IAccountTokenSnapshotFilter>(
-            accountTokenSnapshotRequestSchema
-        )
-    );
+export const validateAccountTokenSnapshotRequest = wrapValidationWithCustomError(
+    ajv.compile<IAccountTokenSnapshotFilter>(accountTokenSnapshotRequestSchema)
+);

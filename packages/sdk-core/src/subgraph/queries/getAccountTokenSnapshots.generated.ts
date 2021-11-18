@@ -35,7 +35,7 @@ export type GetAccountTokenSnapshotsQuery = {
     }>;
 };
 
-export const GetAccountTokenSnapshotsDocument = {
+export const GetAccountTokenSnapshotsDocument = ({
     kind: "Document",
     definitions: [
         {
@@ -203,14 +203,16 @@ export const GetAccountTokenSnapshotsDocument = {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "totalAmountStreamedUntilUpdatedAt",
+                                        value:
+                                            "totalAmountStreamedUntilUpdatedAt",
                                     },
                                 },
                                 {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "totalAmountTransferredUntilUpdatedAt",
+                                        value:
+                                            "totalAmountTransferredUntilUpdatedAt",
                                     },
                                 },
                                 {
@@ -253,7 +255,8 @@ export const GetAccountTokenSnapshotsDocument = {
                                                 kind: "Field",
                                                 name: {
                                                     kind: "Name",
-                                                    value: "createdAtBlockNumber",
+                                                    value:
+                                                        "createdAtBlockNumber",
                                                 },
                                             },
                                             {
@@ -294,7 +297,7 @@ export const GetAccountTokenSnapshotsDocument = {
             },
         },
     ],
-} as unknown as DocumentNode<
+} as unknown) as DocumentNode<
     GetAccountTokenSnapshotsQuery,
     GetAccountTokenSnapshotsQueryVariables
 >;

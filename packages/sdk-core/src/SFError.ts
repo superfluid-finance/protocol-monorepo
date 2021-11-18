@@ -34,7 +34,7 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
     ["NETWORK_MISMATCH", "Network Mismatch"],
-    ["UNSUPPORTED_WEB_3_ONLY", "Unsupported Web 3 Only"]
+    ["UNSUPPORTED_WEB_3_ONLY", "Unsupported Web 3 Only"],
 ]);
 
 interface ISFErrorProps {
@@ -52,7 +52,9 @@ export default class SFError {
         const { type, errorObject, customMessage } = props;
 
         const title = errorTypeToTitleMap.get(type);
-        const formattedErrorObject = errorObject ? ": " + JSON.stringify(errorObject) : "";
+        const formattedErrorObject = errorObject
+            ? ": " + JSON.stringify(errorObject)
+            : "";
         this.type = type;
         this.errorObject = errorObject;
         this.message =

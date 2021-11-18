@@ -7,7 +7,6 @@ import {
     IConfig,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
-    ISuperTokenBaseSubscriptionParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
@@ -15,6 +14,8 @@ import {
     ISuperTokenGetFlowParams,
     ISuperTokenGetIndexParams,
     ISuperTokenGetSubscriptionParams,
+    ISuperTokenPublisherOperationParams,
+    ISuperTokenPubSubParams,
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
@@ -34,14 +35,6 @@ import {
 } from "./utils";
 import Token from "./Token";
 
-export interface ITokenConstructorOptions {
-    readonly address: string;
-    readonly config: IConfig;
-    readonly provider: ethers.providers.Provider;
-    readonly chainId?: number;
-    readonly networkName?: string;
-}
-
 export interface ITokenSettings {
     readonly address: string;
     readonly config: IConfig;
@@ -53,8 +46,9 @@ export interface ITokenSettings {
 export interface ITokenOptions {
     readonly address: string;
     readonly config: IConfig;
-    readonly chainId: number;
-    readonly networkName: string;
+    readonly provider: ethers.providers.Provider;
+    readonly chainId?: number;
+    readonly networkName?: string;
 }
 
 /**
@@ -63,30 +57,27 @@ export interface ITokenOptions {
  */
 export default class SuperToken extends Token {
     readonly options: ITokenOptions;
+    readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
     readonly underlyingToken: Token;
 
-    private constructor(settings: ITokenSettings) {
+    private constructor(options: ITokenOptions, settings: ITokenSettings) {
         // initialize ERC20 token functions here
         super(settings.address);
 
-        this.options = {
-            address: settings.address,
-            chainId: settings.chainId,
-            networkName: settings.networkName,
-            config: settings.config,
-        };
+        this.options = options;
+        this.settings = settings;
         this.cfaV1 = new ConstantFlowAgreementV1({
-            config: this.options.config,
+            config: this.settings.config,
         });
         this.idaV1 = new InstantDistributionAgreementV1({
-            config: this.options.config,
+            config: this.settings.config,
         });
         this.underlyingToken = new Token(settings.underlyingTokenAddress);
     }
 
-    static create = async (options: ITokenConstructorOptions) => {
+    static create = async (options: ITokenOptions) => {
         if (!options.chainId && !options.networkName) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -111,7 +102,7 @@ export default class SuperToken extends Token {
                 networkName,
                 underlyingTokenAddress,
             };
-            return new SuperToken(settings);
+            return new SuperToken(options, settings);
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -123,7 +114,7 @@ export default class SuperToken extends Token {
 
     private get superTokenContract() {
         return new ethers.Contract(
-            this.options.address,
+            this.settings.address,
             SuperTokenABI
         ) as ISuperToken;
     }
@@ -170,8 +161,9 @@ export default class SuperToken extends Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     downgrade = ({ amount }: { amount: string }): Operation => {
-        const txn =
-            this.superTokenContract.populateTransaction.downgrade(amount);
+        const txn = this.superTokenContract.populateTransaction.downgrade(
+            amount
+        );
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
     };
 
@@ -200,7 +192,7 @@ export default class SuperToken extends Token {
         providerOrSigner,
     }: ISuperTokenGetFlowParams): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getFlow({
-            superToken: this.options.address,
+            superToken: this.settings.address,
             sender,
             receiver,
             providerOrSigner,
@@ -218,7 +210,7 @@ export default class SuperToken extends Token {
         providerOrSigner,
     }: ISuperTokenGetFlowInfoParams): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getAccountFlowInfo({
-            superToken: this.options.address,
+            superToken: this.settings.address,
             account,
             providerOrSigner,
         });
@@ -235,7 +227,7 @@ export default class SuperToken extends Token {
         providerOrSigner,
     }: ISuperTokenGetFlowInfoParams): Promise<string> => {
         return await this.cfaV1.getNetFlow({
-            superToken: this.options.address,
+            superToken: this.settings.address,
             account,
             providerOrSigner,
         });
@@ -261,7 +253,7 @@ export default class SuperToken extends Token {
             flowRate,
             receiver,
             sender,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             userData,
         });
     };
@@ -284,7 +276,7 @@ export default class SuperToken extends Token {
             flowRate,
             receiver,
             sender,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             userData,
         });
     };
@@ -302,7 +294,7 @@ export default class SuperToken extends Token {
         userData,
     }: ISuperTokenDeleteFlowParams): Operation => {
         return this.cfaV1.deleteFlow({
-            superToken: this.options.address,
+            superToken: this.settings.address,
             sender,
             receiver,
             userData,
@@ -326,7 +318,7 @@ export default class SuperToken extends Token {
         providerOrSigner,
     }: ISuperTokenGetSubscriptionParams): Promise<IWeb3Subscription> => {
         return await this.idaV1.getSubscription({
-            superToken: this.options.address,
+            superToken: this.settings.address,
             publisher,
             indexId,
             subscriber,
@@ -347,7 +339,7 @@ export default class SuperToken extends Token {
         providerOrSigner,
     }: ISuperTokenGetIndexParams): Promise<IWeb3Index> => {
         return await this.idaV1.getIndex({
-            superToken: this.options.address,
+            superToken: this.settings.address,
             publisher,
             indexId,
             providerOrSigner,
@@ -368,7 +360,7 @@ export default class SuperToken extends Token {
     }: ISuperTokenBaseIDAParams): Operation => {
         return this.idaV1.createIndex({
             indexId,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             userData,
         });
     };
@@ -388,7 +380,7 @@ export default class SuperToken extends Token {
         return this.idaV1.distribute({
             indexId,
             amount,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             userData,
         });
     };
@@ -410,7 +402,7 @@ export default class SuperToken extends Token {
         return this.idaV1.updateIndexValue({
             indexId,
             indexValue,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             userData,
         });
     };
@@ -431,7 +423,7 @@ export default class SuperToken extends Token {
     }: ISuperTokenUpdateSubscriptionUnitsParams): Operation => {
         return this.idaV1.updateSubscriptionUnits({
             indexId,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             subscriber,
             units,
             userData,
@@ -449,10 +441,10 @@ export default class SuperToken extends Token {
         indexId,
         publisher,
         userData,
-    }: ISuperTokenBaseIDAParams): Operation => {
+    }: ISuperTokenPublisherOperationParams): Operation => {
         return this.idaV1.approveSubscription({
             indexId,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             publisher,
             userData,
         });
@@ -469,10 +461,10 @@ export default class SuperToken extends Token {
         indexId,
         publisher,
         userData,
-    }: ISuperTokenBaseIDAParams): Operation => {
+    }: ISuperTokenPublisherOperationParams): Operation => {
         return this.idaV1.revokeSubscription({
             indexId,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             publisher,
             userData,
         });
@@ -491,10 +483,10 @@ export default class SuperToken extends Token {
         subscriber,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Operation => {
+    }: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.deleteSubscription({
             indexId,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             subscriber,
             publisher,
             userData,
@@ -514,10 +506,10 @@ export default class SuperToken extends Token {
         subscriber,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Operation => {
+    }: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.claim({
             indexId,
-            superToken: this.options.address,
+            superToken: this.settings.address,
             subscriber,
             publisher,
             userData,

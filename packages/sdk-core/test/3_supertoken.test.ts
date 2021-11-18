@@ -221,7 +221,7 @@ describe("SuperToken Tests", () => {
 
         it("Should properly initialize SuperToken", async () => {
             const daixTest = await framework.loadSuperToken(superToken.address);
-            expect(superToken.address).to.equal(daixTest.options.address);
+            expect(superToken.address).to.equal(daixTest.settings.address);
         });
 
         it("Should be able to initialize SuperToken with networkName.", () => {
@@ -244,11 +244,11 @@ describe("SuperToken Tests", () => {
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 daix
-                    .approve({ receiver: daix.options.address, amount })
+                    .approve({ receiver: daix.settings.address, amount })
                     .exec(deployer)
             )
                 .to.emit(superToken, "Approval")
-                .withArgs(deployer.address, daix.options.address, amount);
+                .withArgs(deployer.address, daix.settings.address, amount);
             await expect(daix.downgrade({ amount }).exec(deployer))
                 .to.emit(superToken, "TokenDowngraded")
                 .withArgs(deployer.address, amount);
@@ -257,10 +257,10 @@ describe("SuperToken Tests", () => {
         it("Should be able to approve + upgrade", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                token.connect(deployer).approve(daix.options.address, amount)
+                token.connect(deployer).approve(daix.settings.address, amount)
             )
                 .to.emit(token, "Approval")
-                .withArgs(deployer.address, daix.options.address, amount);
+                .withArgs(deployer.address, daix.settings.address, amount);
             await expect(daix.upgrade({ amount }).exec(deployer))
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(deployer.address, amount);

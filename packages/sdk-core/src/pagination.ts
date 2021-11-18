@@ -29,7 +29,10 @@ export interface PagedResult<T> {
     readonly data: T[];
 }
 
-export const createPagedResult = <T>(dataPlusOne: T[], paging: Paging): PagedResult<T> => ({
+export const createPagedResult = <T>(
+    dataPlusOne: T[],
+    paging: Paging
+): PagedResult<T> => ({
     take: paging.take,
     skip: paging.skip,
     hasNextPage: dataPlusOne.length > paging.take,
@@ -40,7 +43,8 @@ export const createPagedResult = <T>(dataPlusOne: T[], paging: Paging): PagedRes
  * @dev Gets the next page given the skip/take used to initialize the `PagedResult` interface.
  * @returns the `Paging` class with the next page
  */
-export const nextPage = (paging: Paging) => new Paging({
-    skip: paging.take,
-    take: paging.take + (paging.take - paging.skip),
-});
+export const nextPage = (paging: Paging) =>
+    new Paging({
+        skip: paging.take,
+        take: paging.take + (paging.take - paging.skip),
+    });

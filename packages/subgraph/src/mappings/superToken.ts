@@ -255,6 +255,7 @@ function createSentEntity(event: Sent): void {
     ev.data = event.params.data;
     ev.operator = event.params.operator;
     ev.operatorData = event.params.operatorData;
+    ev.from = event.params.from;
     ev.to = event.params.to;
     ev.save();
 }

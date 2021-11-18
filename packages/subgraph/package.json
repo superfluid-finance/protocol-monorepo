@@ -71,7 +71,8 @@
         "deploy:v1:matic": "yarn prepare:v1:matic && yarn set-network:v1:matic && SUBGRAPH_NAME=superfluid-finance/protocol-v1-matic yarn deploy",
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
-        "pre-commit": "true",
+        "pre-commit": "run-s pre-commit:*",
+        "pre-commit:lint": "yarn lint",
         "generate-sf-meta": "./tasks/getSFMeta.sh",
         "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh"
     },

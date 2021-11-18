@@ -1,6 +1,10 @@
 #!/bin/bash
+TAG="$(git describe --abbrev=0 --tag)"
+BRANCH="$(git branch --show-current)"
 
-echo "export let commitHash = \"${COMMIT_HASH}\";
-export let configuration = \"${CONFIGURATION}\";
-export let branch = \"${BRANCH}\";
-export let tag = \"${TAG}\";" > src/meta.ignore.ts
+cat > src/meta.ignore.ts << EOF
+export let commitHash = ${COMMIT_HASH};
+export let configuration = ${CONFIGURATION};
+export let branch = ${BRANCH};
+export let tag = ${TAG};
+EOF

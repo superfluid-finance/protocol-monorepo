@@ -46,11 +46,6 @@ jobs:
       - name: "Generate subgraph manifest"
         run: "yarn prepare-local" # NOTE: A hack to make codegen work
         working-directory: ${{ env.subgraph-working-directory }}
-      
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
 
       - name: "Generate meta.ignore.ts file"
         run: "yarn generate-sf-meta"
@@ -58,8 +53,6 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
           CONFIGURATION: ${{ github.event.inputs.release_branch }}
-          BRANCH: ${{ steps.extract_branch.outputs.branch }}
-          TAG: ${{ github.event.release.tag_name }}
 
       - name: "Generate AssemblyScript types"
         run: "yarn codegen"

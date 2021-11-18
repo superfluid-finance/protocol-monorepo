@@ -1,38 +1,40 @@
-import React, { FC, ReactElement, createRef, useEffect } from "react";
-import { Decimal } from "decimal.js";
+import React, {FC, ReactElement, useEffect, useState} from "react";
+import { ethers} from 'ethers';
+
+const ANIMATION_MINIMUM_STEP_TIME = 100;
 
 export const FlowingBalance: FC<{
-    balance: string;
-    balanceTimestamp: string;
-    flowRate: string;
-    format?: (flowingBalance: string) => string;
-}> = ({ balance, balanceTimestamp, flowRate, format = x => x }): ReactElement => {
-    const ref = createRef<HTMLSpanElement>();
+    balanceWei: string;
+    balanceTimestamp: number;
+    flowRateWei: string;
+    format?: (flowingBalanceWei: string) => string;
+}> = ({ balanceWei, balanceTimestamp, flowRateWei, format = x => x }): ReactElement => {
+    const [formattedValue, setFormattedValue] = useState("");
     useEffect(() => {
-        const balanceDecimal = new Decimal(balance);
-        const flowRateDecimal = new Decimal(flowRate).div(1000);
-        const balanceTimestampDecimal = new Decimal(balanceTimestamp).mul(1000);
+        const balanceBigNumber = ethers.BigNumber.from(balanceWei);
+        const flowRateBigNumber = ethers.BigNumber.from(flowRateWei);
+        const balanceTimestampBigNumber = ethers.BigNumber.from(balanceTimestamp).mul(1000);
 
         let stopAnimation = false;
         let lastAnimationTimestamp: DOMHighResTimeStamp = 0;
 
         const animationStep = (currentAnimationTimestamp: DOMHighResTimeStamp) => {
-            if (currentAnimationTimestamp - lastAnimationTimestamp > 100) {
-                if (stopAnimation || !ref.current) {
+            if (currentAnimationTimestamp - lastAnimationTimestamp > ANIMATION_MINIMUM_STEP_TIME) {
+                if (stopAnimation) {
                     return;
                 }
 
-                const currentTimestampDecimal = new Decimal(
-                    new Date().getTime()
-                );
+                const currentTimestampBigNumber =
+                    ethers.BigNumber.from(new Date().getTime());
 
-                ref.current.innerHTML = format(balanceDecimal
+                setFormattedValue(format(balanceBigNumber
                     .add(
-                        currentTimestampDecimal
-                            .sub(balanceTimestampDecimal)
-                            .mul(flowRateDecimal)
+                        currentTimestampBigNumber
+                            .sub(balanceTimestampBigNumber)
+                            .mul(flowRateBigNumber)
+                            .div(1000)
                     )
-                    .toString());
+                    .toString()));
 
                 lastAnimationTimestamp = currentAnimationTimestamp;
             }
@@ -44,6 +46,6 @@ export const FlowingBalance: FC<{
         return () => {
             stopAnimation = true;
         };
-    });
-    return <span ref={ref}>{""}</span>;
+    }, [balanceTimestamp]);
+    return <span>{formattedValue}</span>;
 };

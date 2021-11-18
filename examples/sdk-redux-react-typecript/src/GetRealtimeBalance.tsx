@@ -106,29 +106,29 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                             {realtimeBalance!.availableBalanceWei}
                                             <br />
                                             <FlowingBalance
-                                                balance={
+                                                balanceWei={
                                                     realtimeBalance!
                                                         .availableBalanceWei
                                                 }
-                                                flowRate={
+                                                flowRateWei={
                                                     realtimeBalance!.netFlowRateWei
                                                 }
                                                 balanceTimestamp={
-                                                    realtimeBalance!.timestamp
+                                                    Number(realtimeBalance!.timestamp)
                                                 }
                                             />
                                             <br />
                                             <FlowingBalance
-                                                format={(x) => ethers.utils.formatEther(x)}
-                                                balance={
+                                                format={(x) => ethers.utils.formatUnits(x)}
+                                                balanceWei={
                                                     realtimeBalance!
                                                         .availableBalanceWei
                                                 }
-                                                flowRate={
+                                                flowRateWei={
                                                     realtimeBalance!.netFlowRateWei
                                                 }
                                                 balanceTimestamp={
-                                                    realtimeBalance!.timestamp
+                                                    Number(realtimeBalance!.timestamp)
                                                 }
                                             />
                                         </TableCell>

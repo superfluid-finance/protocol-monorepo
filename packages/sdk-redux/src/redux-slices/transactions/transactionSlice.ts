@@ -5,6 +5,9 @@ import {
 } from '@reduxjs/toolkit';
 
 import { superfluidSource } from '../../superfluidSource';
+import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
+import ethers from 'ethers';
+import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 
 export type TransactionId = {
     chainId: number; // TODO(KK): Can I use "extends" here?
@@ -15,6 +18,7 @@ export enum TransactionStatus {
     Pending = 'Pending',
     Succeeded = 'Succeeded',
     Failed = 'Failed',
+    ReOrg = 'Re-org',
 }
 
 // "Redux" stuff needs to be serializable. Blockchain transaction object is unserializable.
@@ -25,7 +29,7 @@ export interface TransactionTracking {
     error?: string;
 }
 
-// Not strictly necessary to use: https://redux-toolkit.js.org/api/createEntityAdapter
+// Not strictly necessary to use: https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse
 export const transactionsAdapter = createEntityAdapter<TransactionTracking>({
     selectId: (transaction) => transaction.hash,
     sortComparer: (a, b) => a.hash.localeCompare(b.hash),
@@ -39,79 +43,102 @@ export interface TrackTransactionArg {
     hash: string;
 }
 
-// Having a single "track" action makes it easy to use transaction tracking logic.
-export const trackTransaction = createAsyncThunk<
-    TransactionTracking,
-    TrackTransactionArg,
-    { rejectValue: TransactionTracking }
->('trackTransaction', async (arg, thunkAPI) => {
-    try {
-        console.log({
-            chainId: arg.chainId,
-            transactionHash: arg.hash,
-        });
+// TODO(KK): https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse
 
-        // TODO: Refactor to count more confirmations than 1. If there's a re-org then invalidate the whole cache.
+// Having a single "track" action makes it easy to use transaction tracking logic.
+export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
+    'trackTransaction',
+    async (arg, thunkAPI) => {
+        thunkAPI.dispatch(
+            transactionSlice.actions.upsertTransaction({
+                chainId: arg.chainId,
+                hash: arg.hash,
+                status: TransactionStatus.Pending,
+            })
+        );
 
         const framework = await superfluidSource.getFramework(arg.chainId);
-        // TODO: What's the best confirmation amount and timeout?
-        const transactionReceipt =
-            await framework.settings.provider.waitForTransaction(
-                arg.hash,
-                1,
-                60000
-            );
-        if (transactionReceipt.status === 1) {
-            return {
-                chainId: arg.chainId,
-                hash: arg.hash,
-                status: TransactionStatus.Succeeded,
-            };
-        } else {
-            return thunkAPI.rejectWithValue({
-                chainId: arg.chainId,
-                hash: arg.hash,
-                status: TransactionStatus.Failed,
-                error: 'Whatever error...',
-            });
-        }
-    } catch (e) {
-        console.error(e);
 
-        return thunkAPI.rejectWithValue({
-            chainId: arg.chainId,
-            hash: arg.hash,
-            status: TransactionStatus.Failed,
-            error: 'Whatever error...',
-        });
+        framework.settings.provider
+            .waitForTransaction(arg.hash, 1, 60000)
+            .then((receipt) => {
+                if (receipt.status === 1) {
+                    thunkAPI.dispatch(
+                        transactionSlice.actions.upsertTransaction({
+                            chainId: arg.chainId,
+                            hash: arg.hash,
+                            status: TransactionStatus.Succeeded,
+                        })
+                    );
+                    listenForReOrg(
+                        framework.settings.provider,
+                        arg,
+                        thunkAPI.dispatch
+                    );
+                } else {
+                    notifyOfError()
+                }
+            })
+            .catch(() => {
+                // TODO(KK): Could be timeout as well...
+                notifyOfError()
+            });
+
+        const notifyOfError = () => {
+            thunkAPI.dispatch(
+                transactionSlice.actions.upsertTransaction({
+                    chainId: arg.chainId,
+                    hash: arg.hash,
+                    status: TransactionStatus.Failed,
+                    error: 'Whatever error...',
+                })
+            );
+        };
     }
-});
+);
+
+const listenForReOrg = (
+    provider: ethers.providers.Provider,
+    { chainId, hash }: TrackTransactionArg,
+    dispatch: ThunkDispatch<any, any, AnyAction>
+) => {
+    provider
+        .waitForTransaction(hash, 10, 600000)
+        .then((receipt: ethers.providers.TransactionReceipt) => {
+            // TODO(KK): Investigate how re-orgs exactly look like from Ethers perspective...
+            if (receipt.status !== 1) {
+                notifyOfReOrg();
+            } else {
+                console.log("re-org didn't happen")
+            }
+        })
+        .catch(() => {
+            // TODO(KK): Investigate how re-orgs exactly look like from Ethers perspective...
+            // TODO(KK): Could be timeout as well...
+            notifyOfReOrg();
+        });
+
+    const notifyOfReOrg = () => {
+        console.log("re-org happened")
+
+        dispatch(
+            transactionSlice.actions.upsertTransaction({
+                chainId: chainId,
+                hash: hash,
+                status: TransactionStatus.ReOrg,
+            })
+        );
+
+        // Completely reset API cache.
+        dispatch(rtkQuerySlice.util.resetApiState());
+    };
+};
 
 export const transactionSlice = createSlice({
     name: 'transactions',
     initialState: transactionsAdapter.getInitialState(),
     reducers: {
         upsertTransaction: transactionsAdapter.upsertOne,
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(trackTransaction.pending, (state, action) => {
-                transactionsAdapter.upsertOne(state, {
-                    chainId: action.meta.arg.chainId,
-                    hash: action.meta.arg.hash,
-                    status: TransactionStatus.Pending,
-                });
-            })
-            .addCase(trackTransaction.fulfilled, (state, action) => {
-                transactionsAdapter.upsertOne(state, action.payload);
-            })
-            .addCase(trackTransaction.rejected, (state, action) => {
-                if (action.payload) {
-                    transactionsAdapter.upsertOne(state, action.payload);
-                } else {
-                    throw Error("Haven't handled this use-case yet.");
-                }
-            });
     },
 });
 

@@ -54,7 +54,6 @@ import {
 } from "./subgraph/queries/getAllEvents.generated";
 import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
 import SFError from "./SFError";
-import { normalizeAddress } from ".";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;

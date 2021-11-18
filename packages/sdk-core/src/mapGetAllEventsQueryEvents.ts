@@ -356,6 +356,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: x.timestamp,
                     amount: x.amount,
                     token: x.token,
+                    account: x.account.id,
                 });
             case "TokenUpgradedEvent":
                 return typeGuard<events.TokenUpgradedEvent>({
@@ -365,6 +366,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: x.timestamp,
                     amount: x.amount,
                     token: x.token,
+                    account: x.account.id,
                 });
             case "TransferEvent":
                 return typeGuard<events.TransferEvent>({

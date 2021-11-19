@@ -288,7 +288,7 @@ module.exports = {
                 );
             },
             network_id: 42161,
-            gas: 250e6, // arbgas is calculated differently, approx. 30x
+            //gas: 250e6, // arbgas is calculated differently, approx. 30x
             gasPrice: +process.env.ARBONE_GAS_PRICE,
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
@@ -304,7 +304,7 @@ module.exports = {
                 );
             },
             network_id: 421611,
-            gas: 250e6, // arbgas is calculated differently, approx. 30x
+            //gas: 250e6, // arbgas is calculated differently, approx. 30x
             gasPrice: +process.env.ARBRINKEBY_GAS_PRICE,
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },

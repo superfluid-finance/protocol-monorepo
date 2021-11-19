@@ -5,22 +5,22 @@ if (typeof module === "undefined") module = {};
 Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
     const DEFAULT_CONFIGS = {
         //
-        // Testing environemts
+        // Local testing
         //
-        31337: {
-            // for local testing hardhat
-            nativeTokenSymbol: "ETH",
-        },
         1337: {
-            // for local testing localhost
+            // for default ganache setup
             nativeTokenSymbol: "ETH",
         },
         4447: {
-            // for local testing (truffle internal ganache)
+            // for local testing (truffle internal ganache and TestEnvironment)
             nativeTokenSymbol: "ETH",
         },
         5777: {
             // for local testing (external ganache)
+            nativeTokenSymbol: "ETH",
+        },
+        31337: {
+            // for local testing hardhat
             nativeTokenSymbol: "ETH",
         },
 
@@ -120,11 +120,50 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         },
 
         //
-        // ARBITRUM (testnet rinkeby)
+        // Optimistic Ethereum: https://community.optimism.io/docs/
         //
+        10: {
+            // op mainnet
+            nativeTokenSymbol: "ETH",
+        },
+        69: {
+            // op kovan
+            nativeTokenSymbol: "ETH",
+            resolverAddress: "0xE5ed6b5bFcDBcae6BA32082adaB05A6F21e7B923",
+        },
+
+        //
+        // Arbitrum: https://developer.offchainlabs.com
+        //
+        42161: {
+            // arbitrum one mainnet
+            nativeTokenSymbol: "ETH",
+        },
         421611: {
             // arbitrum testnet
+            nativeTokenSymbol: "ETH",
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
+        },
+
+        //
+        // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
+        //
+        43114: {
+            // avalanche c-chain mainnet
+            nativeTokenSymbol: "AVAX",
+        },
+        43113: {
+            // avalanche c-chain fuji testnet
+            nativeTokenSymbol: "AVAX",
+            resolverAddress: "0xb76d7c14caD40Cc434655Ce0a9B5b49220C362cA",
+        },
+
+        //
+        // Celo: https://github.com/celo-org/celo-monorepo#docs
+        //
+        42220: {
+            // celo mainnet
+            nativeTokenSymbol: "CELO",
         },
     };
 

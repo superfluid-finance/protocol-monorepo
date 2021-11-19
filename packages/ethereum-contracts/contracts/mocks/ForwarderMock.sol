@@ -2,7 +2,7 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import { CallUtils } from "../utils/CallUtils.sol";
+import { CallUtils } from "../libs/CallUtils.sol";
 import { IRelayRecipient } from "../interfaces/ux/IRelayRecipient.sol";
 
 

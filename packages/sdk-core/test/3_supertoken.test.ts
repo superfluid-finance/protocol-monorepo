@@ -99,7 +99,7 @@ describe("SuperToken Tests", () => {
                 await daix.realtimeBalanceOf({
                     providerOrSigner: deployer,
                     account: alpha.address,
-                    timestamp: "-1",
+                    timestamp: -1,
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(

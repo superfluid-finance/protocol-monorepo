@@ -20,7 +20,7 @@ import {
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import { CallUtils } from "../utils/CallUtils.sol";
+import { CallUtils } from "../libs/CallUtils.sol";
 
 import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
 

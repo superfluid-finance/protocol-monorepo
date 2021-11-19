@@ -11,7 +11,7 @@ npx truffle --network $TRUFFLE_NETWORK run etherscan Superfluid@${SUPERFLUID_HOS
 
 echo SUPERFLUID_GOVERNANCE
 case $TRUFFLE_NETWORK in
-    goerli | rinkeby | ropsten | kovan | mumbai )
+    goerli | rinkeby | ropsten | kovan | mumbai | opkovan | arbrinkeby | avafuji )
         IS_TESTNET=1
 esac
 

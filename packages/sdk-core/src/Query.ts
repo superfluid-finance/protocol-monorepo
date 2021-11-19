@@ -100,7 +100,15 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return createPagedResult<ISuperToken>(response.result, paging);
+        const mappedResult = response.result.map((x) =>
+            typeGuard<ISuperToken>({
+                ...x,
+                createdAtTimestamp: Number(x.createdAtTimestamp),
+                createdAtBlockNumber: Number(x.createdAtBlockNumber),
+            })
+        );
+
+        return createPagedResult<ISuperToken>(mappedResult, paging);
     };
 
     listIndexes = async (
@@ -133,6 +141,15 @@ export default class Query {
             typeGuard<IIndex>({
                 ...x,
                 publisher: x.publisher.id,
+                createdAtTimestamp: Number(x.createdAtTimestamp),
+                createdAtBlockNumber: Number(x.createdAtBlockNumber),
+                updatedAtTimestamp: Number(x.updatedAtTimestamp),
+                updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+                token: {
+                    ...x.token,
+                    createdAtTimestamp: Number(x.token.createdAtTimestamp),
+                    createdAtBlockNumber: Number(x.token.createdAtBlockNumber),
+                },
             })
         );
 
@@ -168,6 +185,22 @@ export default class Query {
             typeGuard<IIndexSubscription>({
                 ...x,
                 subscriber: x.subscriber.id,
+                createdAtTimestamp: Number(x.createdAtTimestamp),
+                createdAtBlockNumber: Number(x.createdAtBlockNumber),
+                updatedAtTimestamp: Number(x.updatedAtTimestamp),
+                updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+                index: {
+                    ...x.index,
+                    token: {
+                        ...x.index.token,
+                        createdAtTimestamp: Number(
+                            x.index.token.createdAtTimestamp
+                        ),
+                        createdAtBlockNumber: Number(
+                            x.index.token.createdAtBlockNumber
+                        ),
+                    },
+                },
             })
         );
 
@@ -205,6 +238,20 @@ export default class Query {
                 ...x,
                 sender: x.sender.id,
                 receiver: x.receiver.id,
+                createdAtTimestamp: Number(x.createdAtTimestamp),
+                createdAtBlockNumber: Number(x.createdAtBlockNumber),
+                updatedAtTimestamp: Number(x.updatedAtTimestamp),
+                updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+                token: {
+                    ...x.token,
+                    createdAtTimestamp: Number(x.token.createdAtTimestamp),
+                    createdAtBlockNumber: Number(x.token.createdAtBlockNumber),
+                },
+                flowUpdatedEvents: x.flowUpdatedEvents.map((y) => ({
+                    ...y,
+                    blockNumber: Number(y.blockNumber),
+                    timestamp: Number(y.timestamp),
+                })),
             })
         );
 
@@ -240,6 +287,13 @@ export default class Query {
             typeGuard<ILightAccountTokenSnapshot>({
                 ...x,
                 account: x.account.id,
+                updatedAtTimestamp: Number(x.updatedAtTimestamp),
+                updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+                token: {
+                    ...x.token,
+                    createdAtTimestamp: Number(x.token.createdAtTimestamp),
+                    createdAtBlockNumber: Number(x.token.createdAtBlockNumber),
+                },
             })
         );
 
@@ -270,7 +324,7 @@ export default class Query {
                 addresses_contains: filter.account
                     ? [filter.account?.toLowerCase()]
                     : undefined,
-                timestamp_gte: filter.timestamp_gte,
+                timestamp_gte: filter.timestamp_gte?.toString(),
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -302,7 +356,7 @@ export default class Query {
             const subgraphTime = Math.floor(utcNow / 1000);
             const accountEvents: AccountEvents[] = await this.listEvents({
                 account: account,
-                timestamp_gte: subgraphTime.toString(),
+                timestamp_gte: subgraphTime,
             }).then((x) => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
 
             if (accountEvents.length) {

@@ -2,7 +2,11 @@ import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
-import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "./setup";
+import {
+    HARDHAT_PRIVATE_KEY,
+    RESOLVER_ADDRESS,
+    setup,
+} from "../src/scripts/setup";
 import { ethers } from "ethers";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =

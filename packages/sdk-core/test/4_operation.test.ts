@@ -6,7 +6,7 @@ import {
     SuperToken as SuperTokenType,
 } from "../src/typechain";
 import { getPerSecondFlowRateByMonth } from "../src/utils";
-import { HARDHAT_PRIVATE_KEY, setup } from "./setup";
+import { HARDHAT_PRIVATE_KEY, setup } from "../src/scripts/setup";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
@@ -101,7 +101,7 @@ describe("Operation Tests", () => {
     });
 
     // TODO: figure out why this is not consistently passing
-    it.skip("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
+    it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
         const deleteFlowOp = framework.cfaV1.deleteFlow({
             superToken: superToken.address,
             sender: deployer.address,

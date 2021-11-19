@@ -1,16 +1,17 @@
 import {
-    IAccountTokenSnapshotFilter,
     ILightAccountTokenSnapshot,
     PagedResult,
     Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { PaginatedQueryArg } from '../../baseArg';
+import {NothingString, PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export type ListUserInteractedSuperTokensArg = PaginatedQueryArg &
-    IAccountTokenSnapshotFilter;
+export type ListUserInteractedSuperTokensArg = PaginatedQueryArg & {
+    accountAddress: string | NothingString;
+    superTokenAddress: string | NothingString;
+}
 
 export const {
     useListUserInteractedSuperTokensQuery,
@@ -26,7 +27,10 @@ export const {
                     await initializedSuperfluidSource.getFramework(arg.chainId);
                 const pagedResult =
                     await framework.query.listUserInteractedSuperTokens(
-                        arg,
+                        {
+                            token: arg.superTokenAddress,
+                            account: arg.accountAddress
+                        },
                         new Paging({ skip: arg.skip, take: arg.take })
                     );
                 return {

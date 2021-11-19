@@ -1,13 +1,13 @@
 import { IStream, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { PaginatedQueryArg } from '../../baseArg';
+import {NothingString, PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListStreamsArg = PaginatedQueryArg & {
-    senderAddress?: string;
-    receiverAddress?: string;
-    tokenAddress?: string;
+    senderAddress: string | NothingString;
+    receiverAddress: string | NothingString;
+    superTokenAddress: string | NothingString;
 };
 
 export const { useListStreamsQuery, useLazyListStreamsQuery } =
@@ -25,7 +25,7 @@ export const { useListStreamsQuery, useLazyListStreamsQuery } =
                             {
                                 sender: arg.senderAddress,
                                 receiver: arg.receiverAddress,
-                                token: arg.tokenAddress,
+                                token: arg.superTokenAddress,
                             },
                             new Paging(arg)
                         ),

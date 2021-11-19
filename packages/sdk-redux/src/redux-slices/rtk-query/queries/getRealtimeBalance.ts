@@ -5,7 +5,7 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 export type GetRealtimeBalanceArg = QueryArg & {
     superTokenAddress: string;
     accountAddress: string;
-    estimationTimestamp?: string;
+    estimationTimestamp?: number;
 };
 
 export type GetRealtimeBalanceResult = {
@@ -13,7 +13,7 @@ export type GetRealtimeBalanceResult = {
     netFlowRateWei: string;
     depositWei: string;
     owedDepositWei: string;
-    timestamp: string;
+    timestamp: number;
 };
 
 // TODO(KK): Clean up the timestamp flooring here...
@@ -44,7 +44,7 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                                     ? arg.estimationTimestamp
                                     : Math.floor(
                                           new Date().getTime() / 1000
-                                      ).toString(),
+                                      ),
                             }),
                             superToken.getNetFlow({
                                 account: arg.accountAddress,
@@ -57,7 +57,7 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                             owedDepositWei: x[0].owedDeposit.toString(),
                             timestamp: Math.floor(
                                 x[0].timestamp.getTime() / 1000
-                            ).toString(),
+                            ),
                             netFlowRateWei: x[1],
                         }));
                     return {

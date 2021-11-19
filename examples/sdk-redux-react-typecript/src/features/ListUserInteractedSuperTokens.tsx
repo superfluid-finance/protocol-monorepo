@@ -45,8 +45,8 @@ export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
         error,
         refetch,
     } = useListUserInteractedSuperTokensQuery({
-        account: accountAddress,
-        token: superTokenAddress,
+        accountAddress,
+        superTokenAddress,
         chainId: chainId,
         skip: (page - 1) * pageSize,
         take: pageSize,

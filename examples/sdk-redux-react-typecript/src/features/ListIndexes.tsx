@@ -46,8 +46,8 @@ export const ListIndexes: FC = (): ReactElement => {
     } = useListIndexesQuery({
         chainId: chainId,
         indexId: indexId,
-        publisher: publisherAddress,
-        token: superTokenAddress,
+        publisherAddress,
+        superTokenAddress,
         skip: (page - 1) * pageSize,
         take: pageSize,
     });

@@ -1,15 +1,17 @@
 import {
     AllEvents,
-    IEventFilter,
     PagedResult,
     Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { PaginatedQueryArg } from '../../baseArg';
+import {NothingNumber, NothingString, PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export type ListEventsArg = PaginatedQueryArg & IEventFilter;
+export type ListEventsArg = PaginatedQueryArg & {
+    accountAddress: string | NothingString;
+    timestamp_gte: number | NothingNumber;
+};
 
 export const { useListEventsQuery, useLazyListEventsQuery } =
     rtkQuerySlice.injectEndpoints({
@@ -21,7 +23,10 @@ export const { useListEventsQuery, useLazyListEventsQuery } =
                             arg.chainId
                         );
                     const pagedResult = await framework.query.listEvents(
-                        arg,
+                        {
+                            account: arg.accountAddress,
+                            timestamp_gte: arg.timestamp_gte
+                        },
                         new Paging({ skip: arg.skip, take: arg.take })
                     );
                     return {

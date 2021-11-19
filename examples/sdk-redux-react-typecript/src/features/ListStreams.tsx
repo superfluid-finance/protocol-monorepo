@@ -113,7 +113,7 @@ export const ListStreams: FC = (): ReactElement => {
                                             >
                                                 <TableCell>{chainId}</TableCell>
                                                 <TableCell>
-                                                    {flow.token}
+                                                    {flow.token.id}
                                                 </TableCell>
                                                 <TableCell>
                                                     {flow.sender}

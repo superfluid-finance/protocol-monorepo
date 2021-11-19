@@ -51,7 +51,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
         refetch,
     } = useListIndexSubscriptionsQuery({
         chainId: chainId,
-        subscriber: subscriberAddress,
+        subscriberAddress,
         approved: isApproved,
         skip: (page - 1) * pageSize,
         take: pageSize,

@@ -3,8 +3,8 @@ export type QueryArg = Record<string, unknown> & {
 };
 
 export type PaginatedQueryArg = QueryArg & {
-    skip: number;
-    take: number;
+    skip: number | NothingNumber;
+    take: number | NothingNumber;
 };
 
 export type PaginatedQueryResult = {
@@ -16,10 +16,14 @@ export type PaginatedQueryResult = {
 export type SuperTokenMutationArg = Record<string, unknown> & {
     chainId: number;
     superTokenAddress: string;
-    waitForConfirmation?: boolean;
+    waitForConfirmation: boolean | NothingBoolean;
 };
 
 export type TransactionInfo = {
     chainId: number;
     hash: string;
 };
+
+export type NothingString = "" | undefined;
+export type NothingNumber = undefined;
+export type NothingBoolean = undefined;

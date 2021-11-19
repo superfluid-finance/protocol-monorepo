@@ -1,17 +1,18 @@
 import {
     IIndexSubscription,
-    IIndexSubscriptionRequestFilter,
     PagedResult,
     Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { PaginatedQueryArg } from '../../baseArg';
+import {NothingBoolean, NothingString, PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 // TODO(KK): cache key?
-export type ListIndexSubscriptionsArg = PaginatedQueryArg &
-    IIndexSubscriptionRequestFilter;
+export type ListIndexSubscriptionsArg = PaginatedQueryArg & {
+    subscriberAddress: string | NothingString;
+    approved: boolean | NothingBoolean;
+}
 
 export const {
     useListIndexSubscriptionsQuery,
@@ -28,7 +29,10 @@ export const {
 
                 return {
                     data: await framework.query.listIndexSubscriptions(
-                        arg,
+                        {
+                            subscriber: arg.subscriberAddress,
+                            approved: arg.approved
+                        },
                         new Paging(arg)
                     ),
                 };

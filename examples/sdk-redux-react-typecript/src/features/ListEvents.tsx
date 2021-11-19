@@ -41,7 +41,8 @@ export const ListEvents: FC = (): ReactElement => {
         refetch,
     } = useListEventsQuery({
         chainId: chainId,
-        account: accountAddress,
+        accountAddress,
+        timestamp_gte: undefined,
         skip: (page - 1) * pageSize,
         take: pageSize,
     });

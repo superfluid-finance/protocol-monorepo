@@ -1,15 +1,16 @@
 import {
     ISuperToken,
-    ISuperTokenRequestFilter,
     PagedResult,
     Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { PaginatedQueryArg } from '../../baseArg';
+import {NothingBoolean, PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export type ListSuperTokensArg = PaginatedQueryArg & ISuperTokenRequestFilter;
+export type ListSuperTokensArg = PaginatedQueryArg & {
+    isListed: boolean | NothingBoolean;
+};
 
 export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
     rtkQuerySlice.injectEndpoints({
@@ -26,7 +27,9 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
 
                     return {
                         data: await framework.query.listAllSuperTokens(
-                            arg,
+                            {
+                                isListed: arg.isListed
+                            },
                             new Paging(arg)
                         ),
                     };

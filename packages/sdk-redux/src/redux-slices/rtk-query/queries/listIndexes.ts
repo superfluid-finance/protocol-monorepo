@@ -1,15 +1,18 @@
 import {
     IIndex,
-    IIndexRequestFilter,
     PagedResult,
     Paging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { PaginatedQueryArg } from '../../baseArg';
+import {NothingString, PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export type ListIndexesArg = PaginatedQueryArg & IIndexRequestFilter;
+export type ListIndexesArg = PaginatedQueryArg & {
+    indexId: string | NothingString;
+    publisherAddress: string | NothingString;
+    superTokenAddress: string | NothingString;
+};
 
 export const { useListIndexesQuery, useLazyListIndexesQuery } =
     rtkQuerySlice.injectEndpoints({
@@ -23,7 +26,11 @@ export const { useListIndexesQuery, useLazyListIndexesQuery } =
 
                     return {
                         data: await framework.query.listIndexes(
-                            arg,
+                            {
+                                indexId: arg.indexId,
+                                publisher: arg.publisherAddress,
+                                token: arg.superTokenAddress
+                            },
                             new Paging(arg)
                         ),
                     };

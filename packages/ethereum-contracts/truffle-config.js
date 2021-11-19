@@ -188,7 +188,6 @@ module.exports = {
             },
             network_id: 137,
             //gas: 8e6,
-            gas: 500000,
             gasPrice: +process.env.MATIC_GAS_PRICE || 30e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -206,7 +205,7 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 80001,
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: +process.env.MUMBAI_GAS_PRICE || 20e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)

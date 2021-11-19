@@ -10,8 +10,8 @@ on:
       - '.github/workflows/ci.canary.yml'
 
 jobs:
-  build:
-    name: Build and test of dev branch
+  essential-build:
+    name: Build and test essential packages of dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
@@ -47,8 +47,8 @@ jobs:
         env:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
-  coverage:
-    name: Run coverage test of dev branch
+  ethereum-contracts-coverage:
+    name: Run coverage test of ethereum-contracts of dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
@@ -155,9 +155,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
-    name: NPM publish dev branch
+    name: Publish canary pakcages to registries
 
-    needs: [build, coverage]
+    needs: [essential-build, js-sdk-build, ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 
@@ -191,10 +191,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-  deploy-dev:
-    name: Deploy Canary to dev-testnets
+  deploy:
+    name: Deploy and upgrade testnets with canary ethereum-contracts build
 
-    needs: [build, coverage]
+    needs: [essential-build, js-sdk-build, ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 

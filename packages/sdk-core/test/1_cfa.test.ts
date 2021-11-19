@@ -3,7 +3,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { getPerSecondFlowRateByMonth } from "../src/utils";
 import { IConstantFlowAgreementV1, SuperToken } from "../src/typechain";
-import { setup } from "./setup";
+import { setup } from "../src/scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 
 describe("CFA V1 Tests", () => {

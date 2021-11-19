@@ -2,6 +2,7 @@
     "exclude": [
         "hardhat.config.ts",
         "test",
+        "src/scripts",
         "src/subgraph",
         "src/Query.ts",
         "src/pagination.ts",

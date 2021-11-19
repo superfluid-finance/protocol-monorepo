@@ -7,7 +7,7 @@ import {
     ISuperApp
 } from "../superfluid/Superfluid.sol";
 
-import { CallUtils } from "../utils/CallUtils.sol";
+import { CallUtils } from "../libs/CallUtils.sol";
 
 
 contract SuperfluidUpgradabilityTester is Superfluid {

@@ -594,6 +594,7 @@ type SentEvent implements Event @entity {
     addresses: [Bytes!]!
     blockNumber: BigInt!
     operator: Bytes!
+    from: Bytes!
     to: Bytes!
     amount: BigInt!
     data: Bytes!
@@ -1118,4 +1119,25 @@ type TokenStatistic @entity {
 
     # ---------------------------------- links ----------------------------------
     token: Token!
+}
+
+####################
+#  Internal Entity #
+####################
+
+type SFMeta @entity {
+    """
+    The id is the commit hash.
+    """
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    """
+    Whether the branch is feature/dev/v1.
+    """
+    configuration: String!
+    """
+    The branch the current deployment is coming from.
+    """
+    branch: String!
 }

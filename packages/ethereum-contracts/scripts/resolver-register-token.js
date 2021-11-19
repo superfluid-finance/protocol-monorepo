@@ -1,5 +1,6 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+
 const getConfig = require("./libs/getConfig");
 
 const {
@@ -16,62 +17,52 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.resetToken Reset the token deployment
  *
- * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_SYMBOL}
+ * Usage: npx truffle exec scripts/resolver-register-token.js : {TOKEN_NAME} {TOKEN_ADDRESS}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("======== Deploying test token ========");
+    console.log("======== Register test token ========");
     let { resetToken } = options;
 
-    if (args.length !== 1) {
+    if (args.length !== 2) {
         throw new Error("Wrong number of arguments");
     }
-    const tokenSymbol = args.pop();
-    console.log("Token symbol", tokenSymbol);
+    const tokenAddress = args.pop();
+    const tokenName = args.pop();
+    console.log("Token name", tokenName);
+    console.log("Token name", tokenAddress);
 
     resetToken = resetToken || !!process.env.RESET_TOKEN;
-    console.log("reset token: ", resetToken);
-
-    const networkType = await this.web3.eth.net.getNetworkType();
-    const networkId = await web3.eth.net.getId();
-    const chainId = await this.web3.eth.getChainId();
-    console.log("network Type: ", networkType);
-    console.log("network ID: ", networkId);
-    console.log("chain ID: ", chainId);
+    const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
     const config = getConfig(chainId);
+    console.log("reset token: ", resetToken);
+    console.log("chain ID: ", chainId);
 
-    const { TestResolver, TestToken } = await SuperfluidSDK.loadContracts({
+    const { TestResolver } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
-        additionalContracts: ["TestResolver", "TestToken"],
+        additionalContracts: ["TestResolver"],
         contractLoader: builtTruffleContractLoader,
     });
 
     const testResolver = await TestResolver.at(config.resolverAddress);
     console.log("Resolver address", testResolver.address);
 
-    // deploy test token and its super token
-    const name = `tokens.${tokenSymbol}`;
+    const name = `tokens.${tokenName}`;
     let testTokenAddress = await testResolver.get(name);
+
     if (
         resetToken ||
         testTokenAddress === "0x0000000000000000000000000000000000000000"
     ) {
-        const testToken = await web3tx(TestToken.new, "TestToken.new")(
-            tokenSymbol + " Fake Token",
-            tokenSymbol,
-            18
-        );
-        testTokenAddress = testToken.address;
         await web3tx(testResolver.set, `TestResolver set ${name}`)(
             name,
-            testTokenAddress
+            tokenAddress
         );
     } else {
-        console.log("Token already deployed");
+        console.log("Token already set");
     }
-    console.log(`Token ${tokenSymbol} address`, testTokenAddress);
 
-    console.log("======== Test token deployed ========");
+    console.log("======== Test token registered ======");
 });

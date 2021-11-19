@@ -1,17 +1,17 @@
 import { ethers } from "hardhat";
-import { abi as TestTokenABI } from "../src/abi/TestToken.json";
-import { abi as IResolverABI } from "../src/abi/IResolver.json";
-import { abi as SuperTokenABI } from "../src/abi/SuperToken.json";
-import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
-import { abi as IInstantDistributionAgreementV1ABI } from "../src/abi/IInstantDistributionAgreementV1.json";
+import { abi as TestTokenABI } from "../abi/TestToken.json";
+import { abi as IResolverABI } from "../abi/IResolver.json";
+import { abi as SuperTokenABI } from "../abi/SuperToken.json";
+import { abi as IConstantFlowAgreementV1ABI } from "../abi/IConstantFlowAgreementV1.json";
+import { abi as IInstantDistributionAgreementV1ABI } from "../abi/IInstantDistributionAgreementV1.json";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
     IResolver,
     SuperToken,
     TestToken,
-} from "../src/typechain";
-import { DataMode, Framework } from "../src";
+} from "../typechain";
+import { DataMode, Framework } from "..";
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
 // test test test test test test test test test test test junk

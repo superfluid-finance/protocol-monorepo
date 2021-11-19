@@ -48,7 +48,7 @@ jobs:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
   coverage:
-    name: Run coverage test of dev branch
+    name: Run coverage test of ethereum-contracts on dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
@@ -83,7 +83,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   sdk-core-coverage:
-    name: Run coverage test of sdk-core of dev branch
+    name: Run coverage test of sdk-core on dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 

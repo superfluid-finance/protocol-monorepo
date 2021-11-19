@@ -1,10 +1,8 @@
 import {
     IAccountTokenSnapshotFilter,
-    IFlowUpdatedEvent,
     IIndex,
     IIndexRequestFilter,
     IIndexSubscription,
-    IIndexSubscriptionIndex,
     IIndexSubscriptionRequestFilter,
     ILightAccountTokenSnapshot,
     IStream,
@@ -102,11 +100,13 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        const mappedResult = response.result.map(x => typeGuard<ISuperToken>({
-            ...x,
-            createdAtTimestamp: Number(x.createdAtTimestamp),
-            createdAtBlockNumber: Number(x.createdAtBlockNumber),
-        }));
+        const mappedResult = response.result.map((x) =>
+            typeGuard<ISuperToken>({
+                ...x,
+                createdAtTimestamp: Number(x.createdAtTimestamp),
+                createdAtBlockNumber: Number(x.createdAtBlockNumber),
+            })
+        );
 
         return createPagedResult<ISuperToken>(mappedResult, paging);
     };
@@ -145,11 +145,11 @@ export default class Query {
                 createdAtBlockNumber: Number(x.createdAtBlockNumber),
                 updatedAtTimestamp: Number(x.updatedAtTimestamp),
                 updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-                token: typeGuard<ISuperToken>({
+                token: {
                     ...x.token,
                     createdAtTimestamp: Number(x.token.createdAtTimestamp),
                     createdAtBlockNumber: Number(x.token.createdAtBlockNumber),
-                }),
+                },
             })
         );
 
@@ -189,14 +189,18 @@ export default class Query {
                 createdAtBlockNumber: Number(x.createdAtBlockNumber),
                 updatedAtTimestamp: Number(x.updatedAtTimestamp),
                 updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-                index: typeGuard<IIndexSubscriptionIndex>({
+                index: {
                     ...x.index,
-                    token: typeGuard<ISuperToken>({
+                    token: {
                         ...x.index.token,
-                        createdAtTimestamp: Number(x.index.token.createdAtTimestamp),
-                        createdAtBlockNumber: Number(x.index.token.createdAtBlockNumber),
-                    })
-                })
+                        createdAtTimestamp: Number(
+                            x.index.token.createdAtTimestamp
+                        ),
+                        createdAtBlockNumber: Number(
+                            x.index.token.createdAtBlockNumber
+                        ),
+                    },
+                },
             })
         );
 
@@ -230,7 +234,7 @@ export default class Query {
         });
 
         const mappedResult = response.result.map((x) =>
-            typeGuard<IStream>(typeGuard<IStream>({
+            typeGuard<IStream>({
                 ...x,
                 sender: x.sender.id,
                 receiver: x.receiver.id,
@@ -238,17 +242,17 @@ export default class Query {
                 createdAtBlockNumber: Number(x.createdAtBlockNumber),
                 updatedAtTimestamp: Number(x.updatedAtTimestamp),
                 updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-                token: typeGuard<ISuperToken>({
+                token: {
                     ...x.token,
                     createdAtTimestamp: Number(x.token.createdAtTimestamp),
                     createdAtBlockNumber: Number(x.token.createdAtBlockNumber),
-                }),
-                flowUpdatedEvents: x.flowUpdatedEvents.map(y => typeGuard<IFlowUpdatedEvent>({
+                },
+                flowUpdatedEvents: x.flowUpdatedEvents.map((y) => ({
                     ...y,
                     blockNumber: Number(y.blockNumber),
                     timestamp: Number(y.timestamp),
-                }))
-            }))
+                })),
+            })
         );
 
         return createPagedResult<IStream>(mappedResult, paging);
@@ -285,11 +289,11 @@ export default class Query {
                 account: x.account.id,
                 updatedAtTimestamp: Number(x.updatedAtTimestamp),
                 updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-                token: typeGuard<ISuperToken>({
+                token: {
                     ...x.token,
                     createdAtTimestamp: Number(x.token.createdAtTimestamp),
                     createdAtBlockNumber: Number(x.token.createdAtBlockNumber),
-                })
+                },
             })
         );
 

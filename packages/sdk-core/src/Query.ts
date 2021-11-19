@@ -128,7 +128,14 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return createPagedResult<IIndex>(response.result, paging);
+        const mappedResult = response.result.map((x) =>
+            typeGuard<IIndex>({
+                ...x,
+                publisher: x.publisher.id,
+            })
+        );
+
+        return createPagedResult<IIndex>(mappedResult, paging);
     };
 
     listIndexSubscriptions = async (
@@ -156,7 +163,14 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return createPagedResult<IIndexSubscription>(response.result, paging);
+        const mappedResult = response.result.map((x) =>
+            typeGuard<IIndexSubscription>({
+                ...x,
+                subscriber: x.subscriber.id,
+            })
+        );
+
+        return createPagedResult<IIndexSubscription>(mappedResult, paging);
     };
 
     listStreams = async (
@@ -185,7 +199,15 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return createPagedResult<IStream>(response.result, paging);
+        const mappedResult = response.result.map((x) =>
+            typeGuard<IStream>({
+                ...x,
+                sender: x.sender.id,
+                receiver: x.receiver.id,
+            })
+        );
+
+        return createPagedResult<IStream>(mappedResult, paging);
     };
 
     listUserInteractedSuperTokens = async (
@@ -213,8 +235,15 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
+        const mappedResult = response.result.map((x) =>
+            typeGuard<ILightAccountTokenSnapshot>({
+                ...x,
+                account: x.account.id,
+            })
+        );
+
         return createPagedResult<ILightAccountTokenSnapshot>(
-            response.result,
+            mappedResult,
             paging
         );
     };
@@ -258,9 +287,10 @@ export default class Query {
 
         // TODO: Wait for answer before next query...
 
-        const timeSkew = 25000;
+        // Account for the fact that Subgraph has lag and will insert events with the timestamp of the event from blockchain.
+        const clockSkew = 25000;
 
-        let nextUtcNow = new Date().getTime() - timeSkew;
+        let nextUtcNow = new Date().getTime() - clockSkew;
         const intervalId = setInterval(async () => {
             const utcNow = nextUtcNow;
             nextUtcNow += ms;
@@ -269,10 +299,9 @@ export default class Query {
             const accountEvents: AccountEvents[] = await this.listEvents({
                 account: account,
                 timestamp_gte: subgraphTime.toString(),
-            }).then(x => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
+            }).then((x) => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
 
             if (accountEvents.length) {
-                console.log("callback");
                 callback(accountEvents, unsubscribe);
             }
         }, ms);
@@ -290,3 +319,6 @@ export default class Query {
         return unsubscribe;
     }
 }
+
+// Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
+const typeGuard = <T>(obj: T) => obj;

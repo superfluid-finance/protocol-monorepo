@@ -240,11 +240,11 @@ export interface IIndex extends IHOLUpdateable {
     readonly totalUnits: string;
     readonly totalAmountDistributedUntilUpdatedAt: string;
     readonly token: ISuperToken;
-    readonly publisher: ILightEntity;
+    readonly publisher: string;
 }
 
 export interface IIndexSubscription extends IHOLUpdateable {
-    readonly subscriber: ILightEntity;
+    readonly subscriber: string;
     readonly approved: boolean;
     readonly units: string;
     readonly totalAmountReceivedUntilUpdatedAt: string;
@@ -263,8 +263,8 @@ export interface IStream extends IHOLUpdateable {
     readonly currentFlowRate: string;
     readonly streamedUntilUpdatedAt: string;
     readonly token: ISuperToken;
-    readonly sender: ILightEntity;
-    readonly receiver: ILightEntity;
+    readonly sender: string;
+    readonly receiver: string;
     readonly flowUpdatedEvents: IStreamFlowUpdatedEvent[];
 }
 export interface IStreamFlowUpdatedEvent extends IFlowUpdatedEvent {}
@@ -293,7 +293,7 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
     readonly totalOutflowRate: string;
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
-    readonly account: ILightEntity;
+    readonly account: string;
     readonly token: ISuperToken;
 }
 

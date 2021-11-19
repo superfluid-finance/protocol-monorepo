@@ -134,7 +134,7 @@ jobs:
     env:
       subgraph-working-directory: ./packages/subgraph
       contracts-working-directory: ./packages/ethereum-contracts
-      sdk-working-directory: ./packages/js-sdk
+      js-sdk-working-directory: ./packages/js-sdk
 
     needs: [check]
     if: needs.check.outputs.build_subgraph
@@ -203,7 +203,7 @@ jobs:
         run: |
           chmod +x ./tasks/build-abi-js.sh
           ./tasks/build-abi-js.sh
-        working-directory: ${{ env.sdk-working-directory }}
+        working-directory: ${{ env.js-sdk-working-directory }}
 
       - name: "Deploy contracts and token locally"
         run: yarn deploy-contracts-local
@@ -225,7 +225,7 @@ jobs:
     env:
       subgraph-working-directory: ./packages/subgraph
       contracts-working-directory: ./packages/ethereum-contracts
-      sdk-working-directory: ./packages/js-sdk
+      js-sdk-working-directory: ./packages/js-sdk
       sdk-core-working-directory: ./packages/sdk-core
 
     needs: [check]
@@ -262,7 +262,7 @@ jobs:
         run: |
           chmod +x ./tasks/build-abi-js.sh
           ./tasks/build-abi-js.sh
-        working-directory: ${{ env.sdk-working-directory }}
+        working-directory: ${{ env.js-sdk-working-directory }}
 
       - name: "Deploy contracts and token locally"
         run: yarn deploy-contracts-local

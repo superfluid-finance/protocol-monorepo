@@ -122,7 +122,7 @@ jobs:
         run: |
           chmod +x ./tasks/build-abi-js.sh
           ./tasks/build-abi-js.sh
-        working-directory: ${{ env.sdk-working-directory }}
+        working-directory: ${{ env.js-sdk-working-directory }}
 
       - name: "Deploy contracts and token locally"
         run: yarn deploy-contracts-local
@@ -137,7 +137,7 @@ jobs:
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Run coverage"
-        run: yarn coverage
+        run: npx nyc report --reporter=text-lcov > coverage/lcov.info
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: Create coverage artifact

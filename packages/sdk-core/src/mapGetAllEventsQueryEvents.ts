@@ -7,7 +7,7 @@ const typeGuard = <T>(obj: T) => obj;
 export const mapGetAllEventsQueryEvents = (
     queryResponse: GetAllEventsQuery
 ): events.AllEvents[] => {
-    return queryResponse.events.map(x => {
+    return queryResponse.events.map((x) => {
         switch (x.__typename) {
             case "AppRegisteredEvent":
                 return typeGuard<events.AppRegisteredEvent>({
@@ -15,6 +15,7 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    app: x.app,
                 });
             case "AgreementClassRegisteredEvent":
                 return typeGuard<events.AgreementClassRegisteredEvent>({
@@ -22,6 +23,8 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    agreementType: x.agreementType,
+                    code: x.code,
                 });
             case "AgreementClassUpdatedEvent":
                 return typeGuard<events.AgreementClassUpdatedEvent>({
@@ -29,6 +32,8 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    agreementType: x.agreementType,
+                    code: x.code,
                 });
             case "AgreementLiquidatedByEvent":
                 return typeGuard<events.AgreementLiquidatedByEvent>({
@@ -36,6 +41,14 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    agreementClass: x.agreementClass,
+                    agreementId: x.agreementId,
+                    bailoutAmount: x.bailoutAmount,
+                    bondAccount: x.bondAccount,
+                    liquidatorAccount: x.liquidatorAccount,
+                    penaltyAccount: x.penaltyAccount,
+                    rewardAmount: x.rewardAmount,
+                    token: x.token,
                 });
             case "BurnedEvent":
                 return typeGuard<events.BurnedEvent>({
@@ -43,6 +56,11 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    amount: x.amount,
+                    data: x.data,
+                    from: x.from,
+                    operator: x.operator,
+                    operatorData: x.operatorData,
                 });
             case "CFAv1LiquidationPeriodChangedEvent":
                 return typeGuard<events.CFAv1LiquidationPeriodChangedEvent>({
@@ -50,6 +68,10 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    host: x.host,
+                    isSet: x.isSet,
+                    liquidationPeriod: x.liquidationPeriod,
+                    superToken: x.superToken,
                 }) as events.CFAv1LiquidationPeriodChangedEvent;
             case "ConfigChangedEvent":
                 return typeGuard<events.ConfigChangedEvent>({
@@ -57,6 +79,11 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    host: x.host,
+                    isSet: x.isSet,
+                    key: x.key,
+                    superToken: x.superToken,
+                    value: x.value,
                 }) as events.ConfigChangedEvent;
             case "CustomSuperTokenCreatedEvent":
                 return typeGuard<events.CustomSuperTokenCreatedEvent>({
@@ -64,6 +91,7 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
                 }) as events.CustomSuperTokenCreatedEvent;
             case "FlowUpdatedEvent":
                 return typeGuard<events.FlowUpdatedEvent>({
@@ -82,6 +110,8 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    oldGovernance: x.oldGovernance,
+                    newGovernance: x.newGovernance,
                 });
             case "IndexCreatedEvent":
                 return typeGuard<events.IndexCreatedEvent>({
@@ -164,6 +194,8 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    app: x.app,
+                    reason: x.reason,
                 });
             case "MintedEvent":
                 return typeGuard<events.MintedEvent>({
@@ -171,6 +203,11 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    operator: x.operator,
+                    to: x.to,
+                    amount: x.amount,
+                    data: x.data,
+                    operatorData: x.operatorData,
                 });
             case "RewardAddressChangedEvent":
                 return typeGuard<events.RewardAddressChangedEvent>({
@@ -178,6 +215,10 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    host: x.host,
+                    superToken: x.superToken,
+                    isSet: x.isSet,
+                    rewardAddress: x.rewardAddress,
                 });
             case "RoleAdminChangedEvent":
                 return typeGuard<events.RoleAdminChangedEvent>({
@@ -185,6 +226,9 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    role: x.role,
+                    previousAdminRole: x.previousAdminRole,
+                    newAdminRole: x.newAdminRole,
                 });
             case "RoleGrantedEvent":
                 return typeGuard<events.RoleGrantedEvent>({
@@ -192,6 +236,9 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    role: x.role,
+                    account: x.account,
+                    sender: x.sender,
                 });
             case "RoleRevokedEvent":
                 return typeGuard<events.RoleRevokedEvent>({
@@ -199,6 +246,9 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    role: x.role,
+                    account: x.account,
+                    sender: x.sender,
                 });
             case "SentEvent":
                 return typeGuard<events.SentEvent>({
@@ -206,6 +256,11 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    operator: x.operator,
+                    to: x.to,
+                    amount: x.amount,
+                    data: x.data,
+                    operatorData: x.operatorData,
                 });
             case "SubscriptionApprovedEvent":
                 return typeGuard<events.SubscriptionApprovedEvent>({
@@ -213,6 +268,12 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
+                    subscriber: x.subscriber,
+                    publisher: x.publisher,
+                    indexId: x.indexId,
+                    userData: x.userData,
+                    subscription: x.subscription.id,
                 });
             case "SubscriptionDistributionClaimedEvent":
                 return typeGuard<events.SubscriptionDistributionClaimedEvent>({
@@ -220,6 +281,12 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
+                    subscriber: x.subscriber,
+                    publisher: x.publisher,
+                    indexId: x.indexId,
+                    amount: x.amount,
+                    subscription: x.subscription.id,
                 });
             case "SubscriptionRevokedEvent":
                 return typeGuard<events.SubscriptionRevokedEvent>({
@@ -227,6 +294,12 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
+                    subscriber: x.subscriber,
+                    publisher: x.publisher,
+                    indexId: x.indexId,
+                    userData: x.userData,
+                    subscription: x.subscription.id,
                 });
             case "SubscriptionUnitsUpdatedEvent":
                 return typeGuard<events.SubscriptionUnitsUpdatedEvent>({
@@ -234,6 +307,13 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
+                    subscriber: x.subscriber,
+                    publisher: x.publisher,
+                    indexId: x.indexId,
+                    units: x.units,
+                    userData: x.userData,
+                    subscription: x.subscription.id,
                 });
             case "SuperTokenCreatedEvent":
                 return typeGuard<events.SuperTokenCreatedEvent>({
@@ -241,6 +321,7 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
                 });
             case "SuperTokenFactoryUpdatedEvent":
                 return typeGuard<events.SuperTokenFactoryUpdatedEvent>({
@@ -248,6 +329,7 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    newFactory: x.newFactory,
                 });
             case "SuperTokenLogicCreatedEvent":
                 return typeGuard<events.SuperTokenLogicCreatedEvent>({
@@ -255,6 +337,7 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    tokenLogic: x.tokenLogic,
                 });
             case "SuperTokenLogicUpdatedEvent":
                 return typeGuard<events.SuperTokenLogicUpdatedEvent>({
@@ -262,6 +345,8 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    token: x.token,
+                    code: x.code,
                 }) as events.SuperTokenLogicUpdatedEvent;
             case "TokenDowngradedEvent":
                 return typeGuard<events.TokenDowngradedEvent>({
@@ -271,6 +356,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: x.timestamp,
                     amount: x.amount,
                     token: x.token,
+                    account: x.account.id,
                 });
             case "TokenUpgradedEvent":
                 return typeGuard<events.TokenUpgradedEvent>({
@@ -280,6 +366,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: x.timestamp,
                     amount: x.amount,
                     token: x.token,
+                    account: x.account.id,
                 });
             case "TransferEvent":
                 return typeGuard<events.TransferEvent>({
@@ -298,6 +385,11 @@ export const mapGetAllEventsQueryEvents = (
                     blockNumber: x.blockNumber,
                     transactionHash: x.transactionHash,
                     timestamp: x.timestamp,
+                    host: x.host,
+                    superToken: x.superToken,
+                    isSet: x.isSet,
+                    forwarder: x.forwarder,
+                    enabled: x.enabled,
                 });
             default:
                 throw Error("Unknown error.");

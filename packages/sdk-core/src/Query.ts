@@ -18,6 +18,7 @@ import {
 } from "./subgraph/queries/getIndexes.generated";
 import {
     validateAccountTokenSnapshotRequest,
+    validateEventRequest,
     validateIndexRequest,
     validateIndexSubscriptionRequest,
     validateStreamRequest,
@@ -258,6 +259,9 @@ export default class Query {
                 customMessage: "This query is not supported in WEB3_ONLY mode.",
             });
         }
+
+        validateEventRequest(filter);
+
         const response = await this.subgraphClient.request<
             GetAllEventsQuery,
             GetAllEventsQueryVariables

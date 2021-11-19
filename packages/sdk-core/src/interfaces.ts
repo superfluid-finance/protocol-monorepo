@@ -74,26 +74,31 @@ export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
     readonly publisher: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
-export interface ISuperTokenPubSubParams extends ISuperTokenPublisherParams {
-    readonly subscriber: string;
-}
-export interface ISuperTokenPublisherOperationParams
-    extends ISuperTokenBaseIDAParams {
+export interface ISuperTokenPubSubParams {
+    readonly indexId: string;
+    readonly userData?: string;
     readonly publisher: string;
-}
-export interface ISuperTokenBaseSubscriptionParams
-    extends ISuperTokenBaseIDAParams {
     readonly subscriber: string;
 }
-export interface ISuperTokenDistributeParams extends ISuperTokenBaseIDAParams {
+export interface ISuperTokenPublisherOperationParams {
+    readonly indexId: string;
+    readonly publisher: string;
+    readonly userData?: string;
+}
+export interface ISuperTokenDistributeParams {
+    readonly indexId: string;
+    readonly userData?: string;
     readonly amount: string;
 }
-export interface ISuperTokenUpdateIndexValueParams
-    extends ISuperTokenBaseIDAParams {
+export interface ISuperTokenUpdateIndexValueParams {
+    readonly indexId: string;
+    readonly userData?: string;
     readonly indexValue: string;
 }
-export interface ISuperTokenUpdateSubscriptionUnitsParams
-    extends ISuperTokenBaseSubscriptionParams {
+export interface ISuperTokenUpdateSubscriptionUnitsParams {
+    readonly indexId: string;
+    readonly subscriber: string;
+    readonly userData?: string;
     readonly units: string;
 }
 export interface IModifyFlowParams {

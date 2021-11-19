@@ -1,12 +1,12 @@
 export type EventBase = {
-    blockNumber: string;
+    blockNumber: number;
     transactionHash: string;
-    timestamp: string;
+    timestamp: number;
 };
 
 export interface IEventFilter {
     readonly account?: string;
-    readonly timestamp_gte?: string;
+    readonly timestamp_gte?: number;
 }
 
 export type AccountEvents =
@@ -179,7 +179,7 @@ export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
     name: "CFAv1LiquidationPeriodChanged";
     host: string;
     isSet: boolean;
-    liquidationPeriod: string;
+    liquidationPeriod: number;
     superToken: string;
 }
 

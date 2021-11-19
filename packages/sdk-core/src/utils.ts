@@ -180,7 +180,7 @@ export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
 };
 
 export const getStringCurrentTimeInSeconds = () =>
-    Math.floor(new Date().getTime() / 1000).toString();
+    Math.floor(new Date().getTime() / 1000);
 
 export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) =>
     new Date(Number(timestamp.toString()) * 1000);

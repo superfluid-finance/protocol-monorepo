@@ -11,7 +11,7 @@ export interface IAccountTokenSnapshotFilter {
 
 export interface IAccountEventsFilter {
     readonly account: string;
-    readonly timestamp_gte: string;
+    readonly timestamp_gte: number;
 }
 export interface IIndexRequestFilter {
     readonly indexId?: string;
@@ -120,7 +120,7 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
 export interface IRealtimeBalanceOfParams {
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
     readonly account: string;
-    readonly timestamp?: string;
+    readonly timestamp?: number;
 }
 
 export interface IBaseSuperTokenParams {
@@ -207,8 +207,8 @@ export interface ILightEntity {
 
 export interface IEventEntityBase {
     readonly id: string;
-    readonly blockNumber: string;
-    readonly timestamp: string;
+    readonly blockNumber: number;
+    readonly timestamp: number;
     readonly transactionHash: string;
 }
 
@@ -227,13 +227,13 @@ export interface IFlowUpdatedEvent extends IEventEntityBase {
 
 export interface IHOLEntityBase {
     readonly id: string;
-    readonly createdAtTimestamp: string;
-    readonly createdAtBlockNumber: string;
+    readonly createdAtTimestamp: number;
+    readonly createdAtBlockNumber: number;
 }
 
 export interface IHOLUpdateable extends IHOLEntityBase {
-    readonly updatedAtTimestamp: string;
-    readonly updatedAtBlockNumber: string;
+    readonly updatedAtTimestamp: number;
+    readonly updatedAtBlockNumber: number;
 }
 
 export interface IIndex extends IHOLUpdateable {
@@ -257,7 +257,7 @@ export interface IIndexSubscription extends IHOLUpdateable {
     readonly index: IIndexSubscriptionIndex;
 }
 
-interface IIndexSubscriptionIndex {
+export interface IIndexSubscriptionIndex {
     readonly id: string;
     readonly indexId: string;
     readonly indexValue: string;
@@ -283,8 +283,8 @@ export interface ISuperToken extends IHOLEntityBase {
 
 export interface IAggregateEntityBase {
     readonly id: string;
-    readonly updatedAtTimestamp: string;
-    readonly updatedAtBlockNumber: string;
+    readonly updatedAtTimestamp: number;
+    readonly updatedAtBlockNumber: number;
 }
 
 export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {

@@ -1,4 +1,4 @@
-export type QueryArg = Record<string, unknown> & {
+export type QueryArg = {
     chainId: number;
 };
 
@@ -13,7 +13,7 @@ export type PaginatedQueryResult = {
     hasNextPage: boolean;
 };
 
-export type SuperTokenMutationArg = Record<string, unknown> & {
+export type SuperTokenMutationArg = {
     chainId: number;
     superTokenAddress: string;
     waitForConfirmation: boolean | NothingBoolean;

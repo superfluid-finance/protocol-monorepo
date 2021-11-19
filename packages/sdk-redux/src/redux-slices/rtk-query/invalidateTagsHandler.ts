@@ -1,107 +1,131 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { AllEvents } from '@superfluid-finance/sdk-core';
 
-import { rtkQuerySlice } from './rtkQuerySlice';
+import {
+    eventTag,
+    indexTag,
+    rtkQuerySlice,
+    streamTag,
+    tokenTag,
+} from './rtkQuerySlice';
 
 export const invalidateTagsHandler = (
     chainId: number,
     event: AllEvents,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    // TODO: Make it single dispatch every time.
     dispatch(
         rtkQuerySlice.util.invalidateTags([
-            {
-                type: 'Event',
-                id: `${chainId}`.toLowerCase(),
-            },
+            eventTag(chainId),
+            ...getConcreteEventTags(event, chainId),
         ])
     );
+};
 
+function getConcreteEventTags(event: AllEvents, chainId: number) {
     switch (event.name) {
         case 'SubscriptionApproved':
-            break;
-        case 'FlowUpdated':
-            dispatch(
-                rtkQuerySlice.util.invalidateTags([
-                    {
-                        type: 'Stream',
-                        id: `${chainId}_${event.sender}`.toLowerCase(),
-                    },
-                    {
-                        type: 'Stream',
-                        id: `${chainId}_${event.receiver}`.toLowerCase(),
-                    },
-                ])
-            );
-            break;
-        case 'IndexCreated':
-            break;
         case 'IndexDistributionClaimed':
-            break;
         case 'IndexSubscribed':
-            break;
         case 'IndexUnitsUpdated':
-            break;
         case 'IndexUnsubscribed':
-            break;
-        case 'IndexUpdated':
-            break;
-        case 'TokenDowngraded':
-            break;
-        case 'Transfer':
-            break;
-        case 'TokenUpgraded':
-            break;
         case 'SubscriptionDistributionClaimed':
-            break;
         case 'SubscriptionRevoked':
-            break;
         case 'SubscriptionUnitsUpdated':
-            break;
-        case 'AgreementClassRegistered':
-            break;
-        case 'AgreementClassUpdated':
-            break;
+            return [
+                indexTag(chainId),
+                indexTag(chainId, event.token),
+                indexTag(chainId, event.publisher),
+                indexTag(chainId, event.indexId),
+                indexTag(chainId, event.subscriber),
+                indexTag(
+                    chainId,
+                    event.token,
+                    event.publisher,
+                    event.indexId,
+                    event.subscriber
+                ),
+            ];
+        case 'IndexCreated':
+        case 'IndexUpdated':
+            return [
+                indexTag(chainId),
+                indexTag(chainId, event.token),
+                indexTag(chainId, event.publisher),
+                indexTag(chainId, event.indexId),
+                indexTag(chainId, event.token, event.publisher, event.indexId),
+            ];
+        case 'FlowUpdated':
+            return [
+                streamTag(chainId),
+                streamTag(chainId, event.token),
+                streamTag(chainId, event.sender),
+                streamTag(chainId, event.receiver),
+                streamTag(chainId, event.token, event.sender, event.receiver),
+            ];
+        case 'TokenUpgraded':
+        case 'TokenDowngraded':
+            return [
+                tokenTag(chainId),
+                tokenTag(chainId, event.token),
+                tokenTag(chainId, event.account),
+                tokenTag(chainId, event.token, event.account),
+            ];
+        case 'Transfer':
+            return [
+                tokenTag(chainId),
+                tokenTag(chainId, event.token),
+                tokenTag(chainId, event.from),
+                tokenTag(chainId, event.to),
+                tokenTag(chainId, event.token, event.from, event.to),
+            ];
         case 'AgreementLiquidatedBy':
-            break;
+            return [
+                streamTag(chainId),
+                streamTag(chainId, event.token),
+                streamTag(chainId, event.penaltyAccount),
+                streamTag(chainId, event.token, event.penaltyAccount),
+            ];
+        case 'AgreementClassRegistered':
+            return [];
+        case 'AgreementClassUpdated':
+            return [];
         case 'AppRegistered':
-            break;
+            return [];
         case 'Burned':
-            break;
+            return [];
         case 'CFAv1LiquidationPeriodChanged':
-            break;
+            return [];
         case 'ConfigChanged':
-            break;
+            return [];
         case 'CustomSuperTokenCreated':
-            break;
+            return [tokenTag(chainId), tokenTag(chainId, event.token)];
         case 'GovernanceReplaced':
-            break;
+            return [];
         case 'Jail':
-            break;
+            return [];
         case 'Minted':
-            break;
+            return [tokenTag(chainId), tokenTag(chainId, event.to)];
         case 'RewardAddressChanged':
-            break;
+            return [];
         case 'RoleAdminChanged':
-            break;
+            return [];
         case 'RoleGranted':
-            break;
+            return [];
         case 'RoleRevoked':
-            break;
+            return [];
         case 'Sent':
-            break;
-        case 'SuperTokenCreated':
-            break;
-        case 'SuperTokenFactoryUpdated':
-            break;
-        case 'SuperTokenLogicCreated':
-            break;
+            return [tokenTag(chainId), tokenTag(chainId, event.to)];
         case 'SuperTokenLogicUpdated':
-            break;
+        case 'SuperTokenCreated':
+            return [tokenTag(chainId), tokenTag(chainId, event.token)];
+        case 'SuperTokenFactoryUpdated':
+            return [];
+        case 'SuperTokenLogicCreated':
+            return [];
         case 'TrustedForwarderChanged':
-            break;
+            return [tokenTag(chainId), tokenTag(chainId, event.superToken)];
         default:
             throw Error('Unknown event type!');
     }
-};
+}

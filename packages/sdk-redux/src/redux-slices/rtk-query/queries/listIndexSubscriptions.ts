@@ -6,7 +6,8 @@ import {
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import {NothingBoolean, NothingString, PaginatedQueryArg} from '../../baseArg';
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import { indexTag, rtkQuerySlice } from '../rtkQuerySlice';
+import { insertIf } from '../../../utils';
 
 // TODO(KK): cache key?
 export type ListIndexSubscriptionsArg = PaginatedQueryArg & {
@@ -23,6 +24,16 @@ export const {
             PagedResult<IIndexSubscription>,
             ListIndexSubscriptionsArg
         >({
+            providesTags: (_1, _2, arg) => [
+                ...insertIf(
+                    !arg.subscriberAddress,
+                    indexTag(arg.chainId)
+                ),
+                ...insertIf(
+                    arg.subscriberAddress,
+                    indexTag(arg.chainId, arg.subscriberAddress!)
+                ),
+            ],
             queryFn: async (arg) => {
                 const framework =
                     await initializedSuperfluidSource.getFramework(arg.chainId);

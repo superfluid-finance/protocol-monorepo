@@ -41,6 +41,7 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
             chainId: chainId,
             accountAddress: accountAddress,
             superTokenAddress: superTokenAddress,
+            estimationTimestamp: undefined
         });
     };
 

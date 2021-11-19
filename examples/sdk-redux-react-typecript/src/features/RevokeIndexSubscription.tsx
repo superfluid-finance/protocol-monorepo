@@ -24,8 +24,7 @@ export const RevokeIndexSubscription: FC = (): ReactElement => {
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
-            publisherAddress,
-            subscriberAddress: signerAddress,
+            publisherAddress
         });
     };
 

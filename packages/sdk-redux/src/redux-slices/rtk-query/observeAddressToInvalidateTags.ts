@@ -21,7 +21,7 @@ export const observeAddressToInvalidateTags = async (
             }
             unsubscribe();
         },
-        2000,
+        3000,
         observeAddress,
         30000
     );

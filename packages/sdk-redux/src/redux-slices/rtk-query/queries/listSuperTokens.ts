@@ -6,7 +6,7 @@ import {
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import {NothingBoolean, PaginatedQueryArg} from '../../baseArg';
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import { rtkQuerySlice, tokenTag} from '../rtkQuerySlice';
 
 export type ListSuperTokensArg = PaginatedQueryArg & {
     isListed: boolean | NothingBoolean;
@@ -19,6 +19,9 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
                 PagedResult<ISuperToken>,
                 ListSuperTokensArg
             >({
+                providesTags: (_result, _error, arg) => [
+                    tokenTag(arg.chainId)
+                ],
                 queryFn: async (arg) => {
                     const framework =
                         await initializedSuperfluidSource.getFramework(
@@ -34,6 +37,7 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
                         ),
                     };
                 },
+
             }),
         }),
         overrideExisting: false,

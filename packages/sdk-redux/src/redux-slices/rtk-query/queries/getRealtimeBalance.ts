@@ -1,11 +1,12 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { QueryArg } from '../../baseArg';
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import {NothingNumber, QueryArg} from '../../baseArg';
+import { indexTag, rtkQuerySlice, streamTag, tokenTag} from '../rtkQuerySlice';
+import { typeGuard } from '../../../utils';
 
 export type GetRealtimeBalanceArg = QueryArg & {
     superTokenAddress: string;
     accountAddress: string;
-    estimationTimestamp?: number;
+    estimationTimestamp: number | NothingNumber;
 };
 
 export type GetRealtimeBalanceResult = {
@@ -27,6 +28,11 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                 GetRealtimeBalanceArg
             >({
                 keepUnusedDataFor: 0, // We don't want to cache balance because it changes every second.
+                providesTags: (_1, _2, arg) => [
+                    indexTag(arg.chainId, arg.superTokenAddress, arg.accountAddress),
+                    streamTag(arg.chainId, arg.superTokenAddress, arg.accountAddress),
+                    tokenTag(arg.chainId, arg.superTokenAddress, arg.accountAddress),
+                ],
                 queryFn: async (arg) => {
                     const framework =
                         await initializedSuperfluidSource.getFramework(
@@ -35,33 +41,33 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                     const superToken = await framework.loadSuperToken(
                         arg.superTokenAddress
                     );
-                    const returnData: GetRealtimeBalanceResult =
-                        await Promise.all([
-                            superToken.realtimeBalanceOf({
-                                providerOrSigner: framework.settings.provider,
-                                account: arg.accountAddress,
-                                timestamp: arg.estimationTimestamp
-                                    ? arg.estimationTimestamp
-                                    : Math.floor(
-                                          new Date().getTime() / 1000
-                                      ),
-                            }),
-                            superToken.getNetFlow({
-                                account: arg.accountAddress,
-                                providerOrSigner: framework.settings.provider,
-                            }),
-                        ]).then((x) => ({
-                            availableBalanceWei:
-                                x[0].availableBalance.toString(),
-                            depositWei: x[0].deposit.toString(),
-                            owedDepositWei: x[0].owedDeposit.toString(),
-                            timestamp: Math.floor(
-                                x[0].timestamp.getTime() / 1000
-                            ),
-                            netFlowRateWei: x[1],
-                        }));
+                    const [realtimeBalance, netFlow] = await Promise.all([
+                        superToken.realtimeBalanceOf({
+                            providerOrSigner: framework.settings.provider,
+                            account: arg.accountAddress,
+                            timestamp: arg.estimationTimestamp
+                                ? arg.estimationTimestamp
+                                : Math.floor(
+                                      new Date().getTime() / 1000
+                                  ),
+                        }),
+                        superToken.getNetFlow({
+                            account: arg.accountAddress,
+                            providerOrSigner: framework.settings.provider,
+                        }),
+                    ]);
                     return {
-                        data: returnData,
+                        data: typeGuard<GetRealtimeBalanceResult>({
+                            availableBalanceWei:
+                                realtimeBalance.availableBalance.toString(),
+                            depositWei: realtimeBalance.deposit.toString(),
+                            owedDepositWei:
+                                realtimeBalance.owedDeposit.toString(),
+                            timestamp: Math.floor(
+                                realtimeBalance.timestamp.getTime() / 1000
+                            ),
+                            netFlowRateWei: netFlow,
+                        }),
                     };
                 },
             }),

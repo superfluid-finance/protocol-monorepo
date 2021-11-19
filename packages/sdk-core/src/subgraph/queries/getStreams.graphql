@@ -1,0 +1,48 @@
+query getStreams($where: Stream_filter!, $skip: Int!, $first: Int!) {
+    result: streams(
+        where: $where,
+        skip: $skip,
+        first: $first,
+        orderBy: createdAtBlockNumber,
+        orderDirection: desc
+    ) {
+        id
+        createdAtTimestamp
+        createdAtBlockNumber
+        updatedAtTimestamp
+        updatedAtBlockNumber
+        currentFlowRate
+        streamedUntilUpdatedAt
+        token {
+            id
+            createdAtTimestamp
+            createdAtBlockNumber
+            name
+            symbol
+            isListed
+            underlyingAddress
+        }
+        sender {
+            id
+        }
+        receiver {
+            id
+        }
+        flowUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
+            id
+            blockNumber
+            timestamp
+            transactionHash
+            token
+            sender
+            receiver
+            flowRate
+            totalSenderFlowRate
+            totalReceiverFlowRate
+            userData
+            oldFlowRate
+            type
+            totalAmountStreamedUntilTimestamp
+        }
+    }
+}

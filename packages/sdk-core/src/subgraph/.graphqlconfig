@@ -1,0 +1,15 @@
+{
+  "name": "Subgraph GraphQL Schema",
+  "schemaPath": "schema.graphql",
+  "extensions": {
+    "endpoints": {
+      "Default GraphQL Endpoint": {
+        "url": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli",
+        "headers": {
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": true
+      }
+    }
+  }
+}

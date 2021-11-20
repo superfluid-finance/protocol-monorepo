@@ -20,5 +20,6 @@ if [ "$CMD" == "start" ];then
     # Prepare, set network, build and deploy subgraph locally
     yarn build-and-deploy-local
 elif [ "$CMD" == "stop" ];then
+    cd ../sdk-core
     ./tasks/startGanacheAndDeployContracts.sh $CMD
 fi

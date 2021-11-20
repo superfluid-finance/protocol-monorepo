@@ -172,6 +172,9 @@ jobs:
       
       - name: "Install yarn and ganache-cli"
         run: npm install -g yarn ganache-cli
+      
+      - name: "Run ganache-cli node"
+        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
       - name: "Install contract dependencies"
         run: yarn install

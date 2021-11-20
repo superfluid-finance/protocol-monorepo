@@ -3,8 +3,6 @@
 CMD=$1
 
 if [ "$CMD" == "start" ];then
-    cd ../sdk-core
-    ./tasks/startGanacheAndDeployContracts.sh ganache-only
     # Generate Typechain files and move to subgraph directory
     cd ../ethereum-contracts
     yarn run generate-ethers-types

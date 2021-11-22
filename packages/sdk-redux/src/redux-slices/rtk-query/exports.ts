@@ -19,4 +19,5 @@ export * from './mutations/distributeToIndex';
 export * from './mutations/claimFromIndexSubscription';
 export * from './mutations/deleteIndexSubscription';
 export * from './mutations/revokeIndexSubscription';
+export * from './mutations/observeForEventsToInvalidateCache';
 export { ValidationError, PossibleErrors } from './rtkQuerySliceBaseQuery';

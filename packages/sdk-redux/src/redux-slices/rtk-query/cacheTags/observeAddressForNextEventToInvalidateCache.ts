@@ -4,9 +4,10 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { TransactionInfo } from '../../baseArg';
 
-import { invalidateCacheTagsForEvent } from './invalidateCacheTagsForEvent';
+import { invalidateCacheTagsForEvents } from './invalidateCacheTagsForEvents';
+import {MsTimes} from "../../../utils";
 
-export const observeAddressForEventsToInvalidateCache = async (
+export const observeAddressForNextEventToInvalidateCache = async (
     observeAddress: string,
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
@@ -16,17 +17,15 @@ export const observeAddressForEventsToInvalidateCache = async (
     );
     framework.query.on(
         (events, unsubscribe) => {
-            for (const event of events) {
-                invalidateCacheTagsForEvent(
-                    transactionInfo.chainId,
-                    event,
-                    dispatch
-                );
-            }
+            invalidateCacheTagsForEvents(
+                transactionInfo.chainId,
+                events,
+                dispatch
+            );
             unsubscribe();
         },
-        3000,
+        MsTimes.OneSecond,
         observeAddress,
-        30000
+        MsTimes.OneMinute
     );
 };

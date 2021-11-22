@@ -4,3 +4,11 @@ export const typeGuard = <T>(obj: T) => obj;
 export function insertIf<T>(condition: boolean | unknown, ...elements: T[]) {
     return !!condition ? elements : [];
 }
+
+export enum MsTimes {
+    OneSecond = 1000,
+    FiveSeconds = 5000,
+    TwentySeconds = 20000,
+    OneMinute = 60000,
+    TenMinutes = 600000,
+}

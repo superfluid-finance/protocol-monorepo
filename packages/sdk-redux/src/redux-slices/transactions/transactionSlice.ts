@@ -8,6 +8,7 @@ import { superfluidSource } from '../../superfluidSource';
 import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
 import ethers from 'ethers';
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
+import {MsTimes} from "../../utils";
 
 export type TransactionId = {
     chainId: number; // TODO(KK): Can I use "extends" here?
@@ -60,7 +61,7 @@ export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
         const framework = await superfluidSource.getFramework(arg.chainId);
 
         framework.settings.provider
-            .waitForTransaction(arg.hash, 1, 60000)
+            .waitForTransaction(arg.hash, 1, MsTimes.OneMinute)
             .then((receipt) => {
                 if (receipt.status === 1) {
                     thunkAPI.dispatch(
@@ -103,7 +104,7 @@ const listenForReOrg = (
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
     provider
-        .waitForTransaction(hash, 10, 600000)
+        .waitForTransaction(hash, 10, MsTimes.TenMinutes)
         .then((receipt: ethers.providers.TransactionReceipt) => {
             // TODO(KK): Investigate how re-orgs exactly look like from Ethers perspective...
             if (receipt.status !== 1) {

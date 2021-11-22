@@ -6,16 +6,15 @@ import { createIndexTags } from './indexTags';
 import { createStreamsTags } from './streamTags';
 import { createTokenTags } from './tokenTags';
 
-export const invalidateCacheTagsForEvent = (
+export const invalidateCacheTagsForEvents = (
     chainId: number,
-    event: AllEvents,
+    events: AllEvents[],
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    dispatch(
-        rtkQuerySlice.util.invalidateTags([
-            ...getEventSpecificTags(event, chainId),
-        ])
-    );
+    const tagsToInvalidate = events
+        .map((event) => [...getEventSpecificTags(event, chainId)])
+        .flat();
+    dispatch(rtkQuerySlice.util.invalidateTags(tagsToInvalidate));
 };
 
 const getEventSpecificTags = (event: AllEvents, chainId: number) => {

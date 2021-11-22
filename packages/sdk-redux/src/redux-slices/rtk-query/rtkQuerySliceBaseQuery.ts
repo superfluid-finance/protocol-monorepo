@@ -7,10 +7,16 @@ export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;
 
 export type ValidationError = {
-    message: string; // Keep it named "message" to have same structure with Redux Toolkit's SerializedError.
+    /**
+     * NOTE: Keep it named "message" to have same structure with Redux Toolkit's SerializedError.
+     */
+    message: string;
 };
 
 export type MutationMeta = {
+    /**
+     * The address will be observed for events to invalidate cache.
+     */
     observeAddress: string;
 };
 

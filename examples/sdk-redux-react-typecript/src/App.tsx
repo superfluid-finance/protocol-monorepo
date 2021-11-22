@@ -34,6 +34,7 @@ import { UpdateIndexSubscriptionUnits } from "./features/UpdateIndexSubscription
 import { ClaimFromIndexSubscription } from "./features/ClaimFromIndexSubscription";
 import { DeleteIndexSubscription } from "./features/DeleteIndexSubscription";
 import { RevokeIndexSubscription } from "./features/RevokeIndexSubscription";
+import {ObserveForEventsToInvalidateCache} from "./features/ObserveForEventsToInvalidateCache";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
@@ -152,6 +153,9 @@ function App() {
                             </SdkListItem>
                             <SdkListItem title="List Events">
                                 <ListEvents />
+                            </SdkListItem>
+                            <SdkListItem title="Observe For Events To Invalidate Cache">
+                                <ObserveForEventsToInvalidateCache />
                             </SdkListItem>
                         </List>
                     </SignerContext.Provider>

@@ -76,11 +76,13 @@ jobs:
             packages/ethereum-contracts/coverage/
             packages/ethereum-contracts/coverage.json
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - name: Codecov
+        uses: codecov/codecov-action@v2
         with:
-          path-to-lcov: packages/ethereum-contracts/coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: packages/ethereum-contracts/coverage/lcov.info
+          fail_ci_if_error: true
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
@@ -128,13 +130,17 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: coverage
-          path: packages/sdk-core/coverage/
+          path: |
+            packages/sdk-core/coverage/
+            packages/sdk-core/coverage/coverage-final.json
       
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - name: Codecov 
+        uses: codecov/codecov-action@v2
         with:
-          path-to-lcov: packages/sdk-core/coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: packages/sdk-core/coverage/lcov.info
+          fail_ci_if_error: true
+          name: sdk-core-coverage
+          flags: sdk-core
 
   publish:
     name: Publish canary pakcages to registries

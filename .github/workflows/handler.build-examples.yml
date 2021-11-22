@@ -53,7 +53,7 @@ jobs:
       - name: Install, build and test
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         run: |
-          cp -R examples/${{ matrix.example }} .
+          cp -R monorepo/examples/${{ matrix.example }} .
           cd ${{ matrix.example }}
           [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
           ./build-and-test.sh

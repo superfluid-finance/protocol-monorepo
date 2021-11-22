@@ -1,5 +1,9 @@
-#!/bin/env bash
+#!/bin/env bash -xe
 
+# make sure that if any step fails, the script fails
+set -xe
+
+# build contracts
 yarn install --frozen-lockfile
 yarn build
 

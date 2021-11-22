@@ -55,7 +55,13 @@ jobs:
         run: |
           cp -R monorepo/examples/${{ matrix.example }} .
           cd ${{ matrix.example }}
-          [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
+          # cleanup all yarn.lock file and force updating dependencies per
+          # package.json semver semantic
+          if [ "${{ matrix.install }}" == clean-install ];then
+            find . yarn.lock | xargs rm -f
+          fi
+          # ready to build and test, each example project must provide
+          # their instructions here
           ./build-and-test.sh
 
   build-examples-done:

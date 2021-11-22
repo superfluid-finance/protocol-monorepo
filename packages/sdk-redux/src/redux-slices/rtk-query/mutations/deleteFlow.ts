@@ -1,7 +1,7 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { monitorAddressEventsToInvalidateCache } from '../cacheTags/monitorAddressEventsToInvalidateCache';
+import { observeAddressForEventsToInvalidateCache } from '../cacheTags/observeAddressForEventsToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
@@ -53,7 +53,7 @@ export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
             },
             onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                 queryFulfilled.then(async (queryResult) =>
-                    monitorAddressEventsToInvalidateCache(
+                    observeAddressForEventsToInvalidateCache(
                         queryResult.meta!.observeAddress,
                         queryResult.data,
                         dispatch

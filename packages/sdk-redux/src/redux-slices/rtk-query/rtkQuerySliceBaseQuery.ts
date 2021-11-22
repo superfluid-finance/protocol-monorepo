@@ -11,7 +11,7 @@ export type ValidationError = {
 };
 
 export type MutationMeta = {
-    observeAddress: string; // TODO(KK): Renam to "observeAddress", "subscribeToAddress", "followAddress"?
+    observeAddress: string;
 };
 
 /**

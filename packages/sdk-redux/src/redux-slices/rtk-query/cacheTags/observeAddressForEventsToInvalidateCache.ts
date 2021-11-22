@@ -6,7 +6,7 @@ import { TransactionInfo } from '../../baseArg';
 
 import { invalidateCacheTagsForEvent } from './invalidateCacheTagsForEvent';
 
-export const monitorAddressEventsToInvalidateCache = async (
+export const observeAddressForEventsToInvalidateCache = async (
     observeAddress: string,
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>

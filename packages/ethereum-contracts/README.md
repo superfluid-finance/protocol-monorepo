@@ -6,8 +6,8 @@
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
-  <a href='https://coveralls.io/github/superfluid-finance/protocol-monorepo?branch=dev'>
-    <img src='https://coveralls.io/repos/github/superfluid-finance/protocol-monorepo/badge.svg?branch=dev' alt='Coverage Status' />
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />

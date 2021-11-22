@@ -2,7 +2,7 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { monitorAddressEventsToInvalidateCache } from '../cacheTags/monitorAddressEventsToInvalidateCache';
-import { registerNewTransaction } from '../registerNewTransaction';
+import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 

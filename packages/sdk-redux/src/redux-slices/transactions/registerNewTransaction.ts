@@ -1,7 +1,7 @@
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
 import { initializedSuperfluidSource } from '../../superfluidApi';
-import { trackTransaction } from '../transactions/transactionSlice';
+import { trackTransaction } from './transactionSlice';
 
 // WARNING: Ethers TransactionResponse has initially wrong chain ID.
 export const registerNewTransaction = async (

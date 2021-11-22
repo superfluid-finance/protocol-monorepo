@@ -46,7 +46,21 @@ For technical document, references and tutorials, etc, refer to the
   </a>
 </p>
 
-To build with Superfluid, you can use the Javascript SDK package.
+#### [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core)
+
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-core" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core.svg">
+  </a>
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=sdk-core"/>
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+</p>
+
+To build with Superfluid, you can use the Javascript SDK package or the SDK core package.
 
 #### [`@superfluid-finance/ethereum-contracts`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts)
 <p>
@@ -54,7 +68,7 @@ To build with Superfluid, you can use the Javascript SDK package.
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
   <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9"/>
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />

@@ -76,14 +76,16 @@ jobs:
             packages/ethereum-contracts/coverage/
             packages/ethereum-contracts/coverage.json
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - name: Codecov
+        uses: codecov/codecov-action@v2
         with:
-          path-to-lcov: packages/ethereum-contracts/coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: packages/ethereum-contracts/coverage/lcov.info
+          fail_ci_if_error: true
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
 
   sdk-core-coverage:
-    name: Run coverage test of sdk-core of dev branch
+    name: Run coverage test of sdk-core on dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
@@ -106,10 +108,6 @@ jobs:
       - name: "Install yarn and ganache-cli"
         run: npm install -g yarn ganache-cli
 
-      - name: "Run ganache-cli node"
-        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
-        working-directory: ${{ env.subgraph-working-directory }}
- 
       - name: "Install contract dependencies"
         run: yarn install
         working-directory: ${{ env.contracts-working-directory }}
@@ -117,20 +115,6 @@ jobs:
       - name: "Build contracts"
         run: yarn run build:contracts
         working-directory: ${{ env.contracts-working-directory }}
-     
-      - name: "Get abi.js file for js-sdk to deploy locally"
-        run: |
-          chmod +x ./tasks/build-abi-js.sh
-          ./tasks/build-abi-js.sh
-        working-directory: ${{ env.js-sdk-working-directory }}
-
-      - name: "Deploy contracts and token locally"
-        run: yarn deploy-contracts-local
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: "Generate ABI and typechain files"
-        run: yarn generate-abi-files && yarn generate-web3-types
-        working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Run test suite"
         run: yarn test
@@ -146,13 +130,17 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: coverage
-          path: packages/sdk-core/coverage/
+          path: |
+            packages/sdk-core/coverage/
+            packages/sdk-core/coverage/coverage-final.json
       
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - name: Codecov 
+        uses: codecov/codecov-action@v2
         with:
-          path-to-lcov: packages/sdk-core/coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: packages/sdk-core/coverage/lcov.info
+          fail_ci_if_error: true
+          name: sdk-core-coverage
+          flags: sdk-core
 
   publish:
     name: Publish canary pakcages to registries

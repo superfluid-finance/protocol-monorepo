@@ -1,0 +1,16 @@
+[
+    "arbitrum-one",
+    "arbitrum-rinkeby",
+    "avalanche-fuji",
+    "avalanche-main",
+    "ganache",
+    "goerli",
+    "kovan",
+    "matic",
+    "mumbai",
+    "optimism-kovan",
+    "optimism-main",
+    "rinkeby",
+    "ropsten",
+    "xdai"
+]

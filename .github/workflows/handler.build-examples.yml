@@ -5,6 +5,7 @@ on:
     branches-ignore: ["master", "dev"]
     paths:
       - 'examples/**'
+      - '.github/workflows/handler.build-examples.yml'
   # after a new release is published
   workflow_run:
     workflows: ["Publish Release Package"]

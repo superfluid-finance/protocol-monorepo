@@ -24,7 +24,7 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import { createPagedResult, PagedResult, Paging } from "./pagination";
+import {createPagedResult, nextPage, PagedResult, Paging} from "./pagination";
 import { SubgraphClient } from "./subgraph/SubgraphClient";
 import {
     GetTokensDocument,
@@ -46,7 +46,7 @@ import {
     GetAccountTokenSnapshotsQuery,
     GetAccountTokenSnapshotsQueryVariables,
 } from "./subgraph/queries/getAccountTokenSnapshots.generated";
-import { AccountEvents, AllEvents, IEventFilter } from "./events";
+import { AllEvents, IEventFilter } from "./events";
 import {
     GetAllEventsDocument,
     GetAllEventsQuery,
@@ -335,44 +335,72 @@ export default class Query {
         );
     };
 
+    // TODO(KK): error callback?
+    // TODO(KK): retries?
+    // TODO(KK): consider workers
+    // TODO(KK): tests
     on(
-        callback: (events: AccountEvents[], unsubscribe: () => void) => void,
+        callback: (events: AllEvents[], unsubscribe: () => void) => void,
         ms: number,
-        account: string,
+        account?: string,
         timeout?: number
     ): () => void {
         if (ms < 1000) throw Error("Let's not go crazy with the queries...");
-
-        // TODO: Wait for answer before next query...
 
         // Account for the fact that Subgraph has lag and will insert events with the timestamp of the event from blockchain.
         const clockSkew = 25000;
 
         let nextUtcNow = new Date().getTime() - clockSkew;
-        const intervalId = setInterval(async () => {
+
+        const invokeCallbackForAllPages = async (paging: Paging, timestamp_gte: number) => {
+            let pagedEvents = await this.listEvents({
+                account: account,
+                timestamp_gte: timestamp_gte,
+            }, paging);
+
+            if (pagedEvents.data.length) {
+                callback(pagedEvents.data, unsubscribe);
+            }
+
+            if (pagedEvents.hasNextPage) {
+                await invokeCallbackForAllPages(nextPage(paging), timestamp_gte);
+            }
+        }
+
+        let isUnsubscribed = false;
+        const unsubscribe = () => {
+            isUnsubscribed = true;
+        };
+
+        const pollingStep = async () => {
+            if (isUnsubscribed) {
+                return;
+            }
+
             const utcNow = nextUtcNow;
             nextUtcNow += ms;
 
             const subgraphTime = Math.floor(utcNow / 1000);
-            const accountEvents: AccountEvents[] = await this.listEvents({
-                account: account,
-                timestamp_gte: subgraphTime,
-            }).then((x) => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
+            const paging = new Paging({ skip: 0, take: 25 });
 
-            if (accountEvents.length) {
-                callback(accountEvents, unsubscribe);
-            }
-        }, ms);
+            await invokeCallbackForAllPages(paging, subgraphTime);
 
-        const unsubscribe = () => {
-            clearInterval(intervalId);
-        };
+            // This solution sets the interval based on last query returning, opposed to not taking request-response cycles into account at all.
+            // This solution is more friendly to the Subgraph & more effective resource-wise with slow internet.
+            return setTimeout(() => {
+                // Fire and forget
+                pollingStep();
+            }, ms);
+        }
 
         if (timeout) {
             setTimeout(() => {
                 unsubscribe();
             }, timeout);
         }
+
+        // Fire and forget
+        pollingStep();
 
         return unsubscribe;
     }

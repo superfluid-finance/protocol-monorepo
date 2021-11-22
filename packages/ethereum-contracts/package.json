@@ -14,15 +14,14 @@
         "/build/abi.js",
         "artifacts/**/*",
         "scripts/**/*",
-        "tasks/**/*",
         "test/TestEnvironment.js"
     ],
     "scripts": {
         "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
-        "testenv:start": "tasks/testenv-ctl.sh start",
-        "testenv:stop": "tasks/testenv-ctl.sh stop",
+        "testenv:start": "test/testenv-ctl.sh start",
+        "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",

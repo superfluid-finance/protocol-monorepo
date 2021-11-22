@@ -1,12 +1,13 @@
-import {
-    AllEvents,
-    PagedResult,
-    Paging} from '@superfluid-finance/sdk-core';
+import { AllEvents, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import {NothingNumber, NothingString, PaginatedQueryArg} from '../../baseArg';
-import {eventTag, indexTag, rtkQuerySlice, streamTag, tokenTag} from '../rtkQuerySlice';
-import { insertIf } from '../../../utils';
+import { NothingNumber, NothingString, PaginatedQueryArg } from '../../baseArg';
+import {
+    getMostSpecificIndexTag,
+    getMostSpecificStreamTag,
+    getMostSpecificTokenTag,
+    rtkQuerySlice,
+} from '../rtkQuerySlice';
 
 export type ListEventsArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
@@ -17,14 +18,26 @@ export const { useListEventsQuery, useLazyListEventsQuery } =
     rtkQuerySlice.injectEndpoints({
         endpoints: (builder) => ({
             listEvents: builder.query<PagedResult<AllEvents>, ListEventsArg>({
-                providesTags: (_1, _2, arg) => [
-                    ...insertIf(!arg.accountAddress, eventTag(arg.chainId)),
-                    ...insertIf(
-                        arg.accountAddress,
-                        streamTag(arg.chainId, arg.accountAddress!),
-                        indexTag(arg.chainId, arg.accountAddress!),
-                        tokenTag(arg.chainId, arg.accountAddress!),
-                    ),
+                providesTags: (_result, _error, arg) => [
+                    getMostSpecificIndexTag({
+                        chainId: arg.chainId,
+                        address1: arg.accountAddress,
+                        address2: undefined,
+                        address3: undefined,
+                        indexId: undefined,
+                    }),
+                    getMostSpecificStreamTag({
+                        chainId: arg.chainId,
+                        address1: arg.accountAddress,
+                        address2: undefined,
+                        address3: undefined,
+                    }),
+                    getMostSpecificTokenTag({
+                        chainId: arg.chainId,
+                        address1: arg.accountAddress,
+                        address2: undefined,
+                        address3: undefined,
+                    }),
                 ],
                 queryFn: async (arg) => {
                     const framework =
@@ -34,7 +47,7 @@ export const { useListEventsQuery, useLazyListEventsQuery } =
                     const pagedResult = await framework.query.listEvents(
                         {
                             account: arg.accountAddress,
-                            timestamp_gte: arg.timestamp_gte
+                            timestamp_gte: arg.timestamp_gte,
                         },
                         new Paging({ skip: arg.skip, take: arg.take })
                     );

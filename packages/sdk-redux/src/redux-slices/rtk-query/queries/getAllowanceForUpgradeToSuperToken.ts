@@ -1,6 +1,6 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
-import {rtkQuerySlice, tokenTag} from '../rtkQuerySlice';
+import {getMostSpecificTokenTag, rtkQuerySlice } from '../rtkQuerySlice';
 
 export type GetAllowanceForUpgradeToSuperTokenArg = QueryArg & {
     accountAddress: string;
@@ -17,8 +17,13 @@ export const {
             GetAllowanceForUpgradeToSuperTokenArg
         >({
             keepUnusedDataFor: 0, // We can't listen for "approval" event from Subgraph currently.
-            providesTags: (_1, _2, arg) => [
-                tokenTag(arg.chainId, arg.superTokenAddress, arg.accountAddress!),
+            providesTags: (_result, _error, arg) => [
+                getMostSpecificTokenTag({
+                    chainId: arg.chainId,
+                    address1: arg.superTokenAddress,
+                    address2: arg.accountAddress,
+                    address3: undefined
+                }),
             ],
             queryFn: async (arg) => {
                 const framework =

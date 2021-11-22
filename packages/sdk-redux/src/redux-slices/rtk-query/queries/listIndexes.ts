@@ -2,8 +2,7 @@ import { IIndex, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
-import { indexTag, rtkQuerySlice } from '../rtkQuerySlice';
-import { insertIf } from '../../../utils';
+import {getMostSpecificIndexTag, rtkQuerySlice} from '../rtkQuerySlice';
 
 export type ListIndexesArg = PaginatedQueryArg & {
     indexId: string | NothingString;
@@ -15,27 +14,14 @@ export const { useListIndexesQuery, useLazyListIndexesQuery } =
     rtkQuerySlice.injectEndpoints({
         endpoints: (builder) => ({
             listIndexes: builder.query<PagedResult<IIndex>, ListIndexesArg>({
-                providesTags: (_1, _2, arg) => [
-                    ...insertIf(
-                        !(
-                            arg.superTokenAddress ||
-                            arg.publisherAddress ||
-                            arg.indexId
-                        ),
-                        indexTag(arg.chainId)
-                    ),
-                    ...insertIf(
-                        arg.publisherAddress,
-                        indexTag(arg.chainId, arg.publisherAddress!)
-                    ),
-                    ...insertIf(
-                        arg.indexId,
-                        indexTag(arg.chainId, arg.indexId!)
-                    ),
-                    ...insertIf(
-                        arg.superTokenAddress,
-                        indexTag(arg.chainId, arg.superTokenAddress!)
-                    ),
+                providesTags: (_result, _error, arg) => [
+                    getMostSpecificIndexTag({
+                        chainId: arg.chainId,
+                        address1: arg.superTokenAddress,
+                        address2: arg.publisherAddress,
+                        address3: undefined,
+                        indexId: arg.indexId
+                    })
                 ],
                 queryFn: async (arg) => {
                     const framework =

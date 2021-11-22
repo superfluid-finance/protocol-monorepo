@@ -6,8 +6,12 @@ import {
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
-import { rtkQuerySlice, tokenTag} from '../rtkQuerySlice';
-import { insertIf } from '../../../utils';
+import {
+    getMostSpecificIndexTag,
+    getMostSpecificStreamTag,
+    getMostSpecificTokenTag,
+    rtkQuerySlice
+} from '../rtkQuerySlice';
 
 export type ListUserInteractedSuperTokensArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
@@ -24,18 +28,25 @@ export const {
             ListUserInteractedSuperTokensArg
         >({
             providesTags: (_result, _error, arg) => [
-                ...insertIf(
-                    !(arg.accountAddress || arg.superTokenAddress),
-                    tokenTag(arg.chainId)
-                ),
-                ...insertIf(
-                    arg.superTokenAddress,
-                    tokenTag(arg.chainId, arg.superTokenAddress!)
-                ),
-                ...insertIf(
-                    arg.accountAddress,
-                    tokenTag(arg.chainId, arg.accountAddress!)
-                ),
+                getMostSpecificTokenTag({
+                    chainId: arg.chainId,
+                    address1: arg.superTokenAddress,
+                    address2: arg.accountAddress,
+                    address3: undefined,
+                }),
+                getMostSpecificIndexTag({
+                    chainId: arg.chainId,
+                    address1: arg.superTokenAddress,
+                    address2: arg.accountAddress,
+                    address3: undefined,
+                    indexId: undefined,
+                }),
+                getMostSpecificStreamTag({
+                    chainId: arg.chainId,
+                    address1: arg.superTokenAddress,
+                    address2: arg.accountAddress,
+                    address3: undefined,
+                }),
             ],
             queryFn: async (arg) => {
                 const framework =

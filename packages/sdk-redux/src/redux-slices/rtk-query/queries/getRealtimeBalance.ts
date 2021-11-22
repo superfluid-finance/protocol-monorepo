@@ -1,6 +1,10 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import {NothingNumber, QueryArg} from '../../baseArg';
-import { indexTag, rtkQuerySlice, streamTag, tokenTag} from '../rtkQuerySlice';
+import {
+    getMostSpecificIndexTag,
+    getMostSpecificStreamTag, getMostSpecificTokenTag,
+    rtkQuerySlice,
+} from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
 
 export type GetRealtimeBalanceArg = QueryArg & {
@@ -28,10 +32,26 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                 GetRealtimeBalanceArg
             >({
                 keepUnusedDataFor: 0, // We don't want to cache balance because it changes every second.
-                providesTags: (_1, _2, arg) => [
-                    indexTag(arg.chainId, arg.superTokenAddress, arg.accountAddress),
-                    streamTag(arg.chainId, arg.superTokenAddress, arg.accountAddress),
-                    tokenTag(arg.chainId, arg.superTokenAddress, arg.accountAddress),
+                providesTags: (_result, _error, arg) => [
+                    getMostSpecificIndexTag({
+                        chainId: arg.chainId,
+                        address1: arg.superTokenAddress,
+                        address2: arg.accountAddress,
+                        address3: undefined,
+                        indexId: undefined,
+                    }),
+                    getMostSpecificStreamTag({
+                        chainId: arg.chainId,
+                        address1: arg.superTokenAddress,
+                        address2: arg.accountAddress,
+                        address3: undefined,
+                    }),
+                    getMostSpecificTokenTag({
+                        chainId: arg.chainId,
+                        address1: arg.superTokenAddress,
+                        address2: arg.accountAddress,
+                        address3: undefined,
+                    })
                 ],
                 queryFn: async (arg) => {
                     const framework =

@@ -2,11 +2,10 @@ import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { AllEvents } from '@superfluid-finance/sdk-core';
 
 import {
-    eventTag,
-    indexTag,
+    createIndexTags,
     rtkQuerySlice,
-    streamTag,
-    tokenTag,
+    createStreamsTags,
+    createTokenTags,
 } from './rtkQuerySlice';
 
 export const invalidateTagsHandler = (
@@ -16,13 +15,12 @@ export const invalidateTagsHandler = (
 ) => {
     dispatch(
         rtkQuerySlice.util.invalidateTags([
-            eventTag(chainId),
-            ...getConcreteEventTags(event, chainId),
+            ...getEventSpecificTags(event, chainId),
         ])
     );
 };
 
-function getConcreteEventTags(event: AllEvents, chainId: number) {
+function getEventSpecificTags(event: AllEvents, chainId: number) {
     switch (event.name) {
         case 'SubscriptionApproved':
         case 'IndexDistributionClaimed':
@@ -32,60 +30,51 @@ function getConcreteEventTags(event: AllEvents, chainId: number) {
         case 'SubscriptionDistributionClaimed':
         case 'SubscriptionRevoked':
         case 'SubscriptionUnitsUpdated':
-            return [
-                indexTag(chainId),
-                indexTag(chainId, event.token),
-                indexTag(chainId, event.publisher),
-                indexTag(chainId, event.indexId),
-                indexTag(chainId, event.subscriber),
-                indexTag(
-                    chainId,
-                    event.token,
-                    event.publisher,
-                    event.indexId,
-                    event.subscriber
-                ),
-            ];
+            return createIndexTags({
+                chainId,
+                address1: event.token,
+                address2: event.publisher,
+                address3: event.subscriber,
+                indexId: event.indexId,
+            });
         case 'IndexCreated':
         case 'IndexUpdated':
-            return [
-                indexTag(chainId),
-                indexTag(chainId, event.token),
-                indexTag(chainId, event.publisher),
-                indexTag(chainId, event.indexId),
-                indexTag(chainId, event.token, event.publisher, event.indexId),
-            ];
+            return createIndexTags({
+                chainId,
+                address1: event.token,
+                address2: event.publisher,
+                address3: undefined,
+                indexId: event.indexId,
+            });
         case 'FlowUpdated':
-            return [
-                streamTag(chainId),
-                streamTag(chainId, event.token),
-                streamTag(chainId, event.sender),
-                streamTag(chainId, event.receiver),
-                streamTag(chainId, event.token, event.sender, event.receiver),
-            ];
+            return createStreamsTags({
+                chainId,
+                address1: event.token,
+                address2: event.sender,
+                address3: event.receiver,
+            });
         case 'TokenUpgraded':
         case 'TokenDowngraded':
-            return [
-                tokenTag(chainId),
-                tokenTag(chainId, event.token),
-                tokenTag(chainId, event.account),
-                tokenTag(chainId, event.token, event.account),
-            ];
+            return createTokenTags({
+                chainId,
+                address1: event.token,
+                address2: event.account,
+                address3: undefined,
+            });
         case 'Transfer':
-            return [
-                tokenTag(chainId),
-                tokenTag(chainId, event.token),
-                tokenTag(chainId, event.from),
-                tokenTag(chainId, event.to),
-                tokenTag(chainId, event.token, event.from, event.to),
-            ];
+            return createTokenTags({
+                chainId,
+                address1: event.token,
+                address2: event.from,
+                address3: event.to,
+            });
         case 'AgreementLiquidatedBy':
-            return [
-                streamTag(chainId),
-                streamTag(chainId, event.token),
-                streamTag(chainId, event.penaltyAccount),
-                streamTag(chainId, event.token, event.penaltyAccount),
-            ];
+            return createStreamsTags({
+                chainId,
+                address1: event.token,
+                address2: event.penaltyAccount,
+                address3: undefined,
+            });
         case 'AgreementClassRegistered':
             return [];
         case 'AgreementClassUpdated':
@@ -99,13 +88,23 @@ function getConcreteEventTags(event: AllEvents, chainId: number) {
         case 'ConfigChanged':
             return [];
         case 'CustomSuperTokenCreated':
-            return [tokenTag(chainId), tokenTag(chainId, event.token)];
+            return createTokenTags({
+                chainId,
+                address1: event.token,
+                address3: undefined,
+                address2: undefined,
+            });
         case 'GovernanceReplaced':
             return [];
         case 'Jail':
             return [];
         case 'Minted':
-            return [tokenTag(chainId), tokenTag(chainId, event.to)];
+            return createTokenTags({
+                chainId,
+                address1: event.to,
+                address2: undefined,
+                address3: undefined,
+            });
         case 'RewardAddressChanged':
             return [];
         case 'RoleAdminChanged':
@@ -115,16 +114,31 @@ function getConcreteEventTags(event: AllEvents, chainId: number) {
         case 'RoleRevoked':
             return [];
         case 'Sent':
-            return [tokenTag(chainId), tokenTag(chainId, event.to)];
+            return createTokenTags({
+                chainId,
+                address1: event.to,
+                address2: undefined,
+                address3: undefined,
+            });
         case 'SuperTokenLogicUpdated':
         case 'SuperTokenCreated':
-            return [tokenTag(chainId), tokenTag(chainId, event.token)];
+            return createTokenTags({
+                chainId,
+                address1: event.token,
+                address2: undefined,
+                address3: undefined,
+            });
         case 'SuperTokenFactoryUpdated':
             return [];
         case 'SuperTokenLogicCreated':
             return [];
         case 'TrustedForwarderChanged':
-            return [tokenTag(chainId), tokenTag(chainId, event.superToken)];
+            return createTokenTags({
+                chainId,
+                address1: event.superToken,
+                address2: undefined,
+                address3: undefined,
+            });
         default:
             throw Error('Unknown event type!');
     }

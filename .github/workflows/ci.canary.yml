@@ -122,10 +122,6 @@ jobs:
         env: 
           MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}
 
-      - name: "Run coverage"
-        run: npx nyc report --reporter=text-lcov > coverage/lcov.info
-        working-directory: ${{ env.sdk-core-working-directory }}
-
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
         with:

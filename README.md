@@ -1,7 +1,9 @@
 <h1 align="center">Welcome to superfluid protocol-monorepo 👋</h1>
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 <p>
   <a href="#superfluid-financeethereum-contracts" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts?label=ethereum-contracts">
@@ -53,7 +55,7 @@ For technical document, references and tutorials, etc, refer to the
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core.svg">
   </a>
   <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=sdk-core"/>
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=sdk-core"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
@@ -68,7 +70,7 @@ To build with Superfluid, you can use the Javascript SDK package or the SDK core
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
   <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=ethereum-contracts"/>
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />

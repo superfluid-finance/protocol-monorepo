@@ -3,10 +3,7 @@
     "version": "1.0.0",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
-    },
+    "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "main": "dist/main/index.js",
     "module": "dist/module/index.js",

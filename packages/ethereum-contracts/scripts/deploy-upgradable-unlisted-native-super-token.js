@@ -20,7 +20,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("======== Deploying upgradable unlisted native super token ========");
+    console.log(
+        "======== Deploying upgradable unlisted native super token ========"
+    );
     let { protocolReleaseVersion } = options;
 
     if (args.length !== 3) {
@@ -36,26 +38,36 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        additionalContracts: ["AuxNativeSuperTokenLogic", "UpgradableNativeSuperTokenProxy", "INativeSuperToken"],
+        additionalContracts: [
+            "AuxNativeSuperTokenLogicV1",
+            "UpgradableNativeSuperTokenProxy",
+            "INativeSuperToken",
+        ],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const { AuxNativeSuperTokenLogic, UpgradableNativeSuperTokenProxy, INativeSuperToken } = sf.contracts;
+    const {
+        AuxNativeSuperTokenLogicV1,
+        UpgradableNativeSuperTokenProxy,
+        INativeSuperToken,
+    } = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()
     );
 
     console.log("Deploying AuxNativeSuperTokenLogic...");
-    const auxLogic = await AuxNativeSuperTokenLogic.new();
+    const auxLogic = await AuxNativeSuperTokenLogicV1.new();
 
     console.log("Deploying UpgradableNativeSuperTokenProxy...");
     const proxy = await UpgradableNativeSuperTokenProxy.new(auxLogic.address);
 
-    const tokenAux = await AuxNativeSuperTokenLogic.at(proxy.address);
+    const tokenAux = await AuxNativeSuperTokenLogicV1.at(proxy.address);
     console.log("Initializing AuxNativeSuperTokenLogic...");
     await tokenAux.initializeAux(42);
+    // this would fail (already initialized)
+    //await tokenAux.initializeAux(52);
 
     const token = await INativeSuperToken.at(proxy.address);
 
@@ -71,9 +83,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     console.log(`Upgradable Native SuperToken deployed at ${token.address}`);
 
+    // calls routed to auxLogic
     await tokenAux.randomFun();
-    const secret = await tokenAux.getSecret();
-    console.log(`secret: ${secret}`);
+    const theAnswer = await tokenAux.getSecret();
+    console.log(`the answer to the question: ${theAnswer}`);
+
+    // call routed to SuperToken implementation
     const totalSupply = await token.totalSupply();
     console.log(`totalSupply: ${totalSupply}`);
 });

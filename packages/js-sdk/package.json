@@ -21,8 +21,8 @@
     "scripts": {
         "dev": "nodemon -e js,ts -i build -x 'truffle test 2>&1'",
         "build": "tasks/build-abi-js.sh && webpack",
-        "testenv:start": "../ethereum-contracts/tasks/testenv-ctl.sh start",
-        "testenv:stop": "../ethereum-contracts/tasks/testenv-ctl.sh stop",
+        "testenv:start": "../ethereum-contracts/test/testenv-ctl.sh start",
+        "testenv:stop": "../ethereum-contracts/test/testenv-ctl.sh stop",
         "pretest": "{ run-s testenv:start > /dev/null& } && sleep 5",
         "test": "truffle test",
         "posttest": "yarn testenv:stop",

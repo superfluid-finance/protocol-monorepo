@@ -2,7 +2,8 @@ import { IIndex, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
-import {getMostSpecificIndexTag, rtkQuerySlice} from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 
 export type ListIndexesArg = PaginatedQueryArg & {
     indexId: string | NothingString;
@@ -20,8 +21,8 @@ export const { useListIndexesQuery, useLazyListIndexesQuery } =
                         address1: arg.superTokenAddress,
                         address2: arg.publisherAddress,
                         address3: undefined,
-                        indexId: arg.indexId
-                    })
+                        indexId: arg.indexId,
+                    }),
                 ],
                 queryFn: async (arg) => {
                     const framework =

@@ -6,12 +6,10 @@ import {
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
-import {
-    getMostSpecificIndexTag,
-    getMostSpecificStreamTag,
-    getMostSpecificTokenTag,
-    rtkQuerySlice
-} from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 
 export type ListUserInteractedSuperTokensArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;

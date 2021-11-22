@@ -2,12 +2,10 @@ import { AllEvents, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { NothingNumber, NothingString, PaginatedQueryArg } from '../../baseArg';
-import {
-    getMostSpecificIndexTag,
-    getMostSpecificStreamTag,
-    getMostSpecificTokenTag,
-    rtkQuerySlice,
-} from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 
 export type ListEventsArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;

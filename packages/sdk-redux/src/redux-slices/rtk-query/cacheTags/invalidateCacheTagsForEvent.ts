@@ -1,14 +1,12 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { AllEvents } from '@superfluid-finance/sdk-core';
 
-import {
-    createIndexTags,
-    rtkQuerySlice,
-    createStreamsTags,
-    createTokenTags,
-} from './rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { createIndexTags } from './indexTags';
+import { createStreamsTags } from './streamTags';
+import { createTokenTags } from './tokenTags';
 
-export const invalidateTagsHandler = (
+export const invalidateCacheTagsForEvent = (
     chainId: number,
     event: AllEvents,
     dispatch: ThunkDispatch<any, any, AnyAction>
@@ -20,7 +18,7 @@ export const invalidateTagsHandler = (
     );
 };
 
-function getEventSpecificTags(event: AllEvents, chainId: number) {
+const getEventSpecificTags = (event: AllEvents, chainId: number) => {
     switch (event.name) {
         case 'SubscriptionApproved':
         case 'IndexDistributionClaimed':
@@ -142,4 +140,4 @@ function getEventSpecificTags(event: AllEvents, chainId: number) {
         default:
             throw Error('Unknown event type!');
     }
-}
+};

@@ -1,11 +1,10 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import {NothingNumber, QueryArg} from '../../baseArg';
-import {
-    getMostSpecificIndexTag,
-    getMostSpecificStreamTag, getMostSpecificTokenTag,
-    rtkQuerySlice,
-} from '../rtkQuerySlice';
+import { NothingNumber, QueryArg } from '../../baseArg';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 
 export type GetRealtimeBalanceArg = QueryArg & {
     superTokenAddress: string;
@@ -51,7 +50,7 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                         address1: arg.superTokenAddress,
                         address2: arg.accountAddress,
                         address3: undefined,
-                    })
+                    }),
                 ],
                 queryFn: async (arg) => {
                     const framework =
@@ -67,9 +66,7 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                             account: arg.accountAddress,
                             timestamp: arg.estimationTimestamp
                                 ? arg.estimationTimestamp
-                                : Math.floor(
-                                      new Date().getTime() / 1000
-                                  ),
+                                : Math.floor(new Date().getTime() / 1000),
                         }),
                         superToken.getNetFlow({
                             account: arg.accountAddress,

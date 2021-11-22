@@ -1,6 +1,7 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
-import {getMostSpecificTokenTag, rtkQuerySlice } from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 
 export type GetAllowanceForUpgradeToSuperTokenArg = QueryArg & {
     accountAddress: string;
@@ -22,7 +23,7 @@ export const {
                     chainId: arg.chainId,
                     address1: arg.superTokenAddress,
                     address2: arg.accountAddress,
-                    address3: undefined
+                    address3: undefined,
                 }),
             ],
             queryFn: async (arg) => {

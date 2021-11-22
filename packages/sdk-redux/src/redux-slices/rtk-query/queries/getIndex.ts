@@ -2,7 +2,8 @@ import { IWeb3Index } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
-import { getMostSpecificIndexTag, rtkQuerySlice } from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 
 export type GetIndexArg = QueryArg & {
     superTokenAddress: string;

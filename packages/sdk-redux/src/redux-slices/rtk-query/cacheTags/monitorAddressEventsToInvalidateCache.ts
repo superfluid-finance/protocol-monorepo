@@ -1,12 +1,12 @@
 import { AnyAction } from '@reduxjs/toolkit';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedSuperfluidSource } from '../../superfluidApi';
-import { TransactionInfo } from '../baseArg';
+import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { TransactionInfo } from '../../baseArg';
 
-import { invalidateTagsHandler } from './invalidateTagsHandler';
+import { invalidateCacheTagsForEvent } from './invalidateCacheTagsForEvent';
 
-export const observeAddressToInvalidateTags = async (
+export const monitorAddressEventsToInvalidateCache = async (
     observeAddress: string,
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
@@ -17,7 +17,11 @@ export const observeAddressToInvalidateTags = async (
     framework.query.on(
         (events, unsubscribe) => {
             for (const event of events) {
-                invalidateTagsHandler(transactionInfo.chainId, event, dispatch);
+                invalidateCacheTagsForEvent(
+                    transactionInfo.chainId,
+                    event,
+                    dispatch
+                );
             }
             unsubscribe();
         },

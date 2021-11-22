@@ -1,12 +1,9 @@
-import {
-    ISuperToken,
-    PagedResult,
-    Paging,
-} from '@superfluid-finance/sdk-core';
+import { ISuperToken, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import {NothingBoolean, PaginatedQueryArg} from '../../baseArg';
-import {getMostSpecificTokenTag, rtkQuerySlice } from '../rtkQuerySlice';
+import { NothingBoolean, PaginatedQueryArg } from '../../baseArg';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 
 export type ListSuperTokensArg = PaginatedQueryArg & {
     isListed: boolean | NothingBoolean;
@@ -24,8 +21,8 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
                         chainId: arg.chainId,
                         address1: undefined,
                         address2: undefined,
-                        address3: undefined
-                    })
+                        address3: undefined,
+                    }),
                 ],
                 queryFn: async (arg) => {
                     const framework =
@@ -36,13 +33,12 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
                     return {
                         data: await framework.query.listAllSuperTokens(
                             {
-                                isListed: arg.isListed
+                                isListed: arg.isListed,
                             },
                             new Paging(arg)
                         ),
                     };
                 },
-
             }),
         }),
         overrideExisting: false,

@@ -2,7 +2,8 @@ import { IWeb3Subscription } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
-import {getMostSpecificIndexTag, rtkQuerySlice} from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 
 export type GetIndexSubscriptionArg = QueryArg & {
     superTokenAddress: string;
@@ -26,8 +27,8 @@ export const {
                     address1: arg.superTokenAddress,
                     address2: arg.publisherAddress,
                     address3: arg.subscriberAddress,
-                    indexId: arg.indexId
-                })
+                    indexId: arg.indexId,
+                }),
             ],
             queryFn: async (arg) => {
                 const framework =

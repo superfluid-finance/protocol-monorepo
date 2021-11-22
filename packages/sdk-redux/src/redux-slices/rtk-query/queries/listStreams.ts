@@ -2,7 +2,8 @@ import { IStream, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
-import { getMostSpecificStreamTag, rtkQuerySlice } from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
 
 export type ListStreamsArg = PaginatedQueryArg & {
     senderAddress: string | NothingString;

@@ -10,7 +10,8 @@ import {
     NothingString,
     PaginatedQueryArg,
 } from '../../baseArg';
-import {getMostSpecificIndexTag, rtkQuerySlice} from '../rtkQuerySlice';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 
 // TODO(KK): cache key?
 export type ListIndexSubscriptionsArg = PaginatedQueryArg & {
@@ -33,8 +34,8 @@ export const {
                     address1: arg.subscriberAddress,
                     address2: undefined,
                     address3: undefined,
-                    indexId: undefined
-                })
+                    indexId: undefined,
+                }),
             ],
             queryFn: async (arg) => {
                 const framework =

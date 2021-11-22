@@ -1,7 +1,7 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { observeAddressToInvalidateTags } from '../observeAddressToInvalidateTags';
+import { monitorAddressEventsToInvalidateCache } from '../cacheTags/monitorAddressEventsToInvalidateCache';
 import { registerNewTransaction } from '../registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
@@ -25,13 +25,15 @@ export const { useRevokeIndexSubscriptionMutation } =
                             arg.chainId
                         );
 
-                    const superToken = await framework.loadSuperToken(arg.superTokenAddress)
+                    const superToken = await framework.loadSuperToken(
+                        arg.superTokenAddress
+                    );
 
                     const transactionResponse = await superToken
                         .revokeSubscription({
                             indexId: arg.indexId,
                             publisher: arg.publisherAddress,
-                            userData: arg.userDataBytes
+                            userData: arg.userDataBytes,
                         })
                         .exec(signer);
 
@@ -54,7 +56,7 @@ export const { useRevokeIndexSubscriptionMutation } =
                 },
                 onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                     queryFulfilled.then(async (queryResult) =>
-                        observeAddressToInvalidateTags(
+                        monitorAddressEventsToInvalidateCache(
                             queryResult.meta!.observeAddress,
                             queryResult.data,
                             dispatch

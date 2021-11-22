@@ -58,7 +58,7 @@ jobs:
           # cleanup all yarn.lock file and force updating dependencies per
           # package.json semver semantic
           if [ "${{ matrix.install }}" == clean-install ];then
-            find . yarn.lock | xargs rm -f
+            find . -name yarn.lock | xargs rm -f
           fi
           # ready to build and test, each example project must provide
           # their instructions here

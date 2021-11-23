@@ -6,6 +6,8 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
+import {insertIf} from "../../../utils";
+import {createEventTag} from "../cacheTags/eventTags";
 
 export type ListEventsArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
@@ -17,6 +19,7 @@ export const { useListEventsQuery, useLazyListEventsQuery } =
         endpoints: (builder) => ({
             listEvents: builder.query<PagedResult<AllEvents>, ListEventsArg>({
                 providesTags: (_result, _error, arg) => [
+                    ...insertIf(!arg.accountAddress, createEventTag(arg.chainId)),
                     getMostSpecificIndexTag({
                         chainId: arg.chainId,
                         address1: arg.accountAddress,

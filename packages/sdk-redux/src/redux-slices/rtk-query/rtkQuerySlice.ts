@@ -9,6 +9,7 @@ export const rtkQuerySlice = createApi({
     reducerPath: 'superfluidApi',
     baseQuery: rtkQuerySliceBaseQuery(),
     tagTypes: [
+        typeGuard<CacheTagTypes>('Event'),
         typeGuard<CacheTagTypes>('Index'),
         typeGuard<CacheTagTypes>('Stream'),
         typeGuard<CacheTagTypes>('Token'),

@@ -89,6 +89,7 @@
         "@types/node": "^16.9.1",
         "chai": "^4.3.4",
         "chai-ethers": "^0.0.1",
+        "coingecko-api": "^1.0.10",
         "ethereum-waffle": "^3.4.0",
         "ethers": "^5.4.6",
         "graphql": "^15.5.3",

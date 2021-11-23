@@ -41,7 +41,7 @@ For technical document, references and tutorials, etc, refer to the
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts">
     <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
@@ -68,7 +68,7 @@ If you're interest in peeking under the hood, then check out the contracts packa
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-core" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core.svg">
   </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core">
     <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=sdk-core"/>
   </a>
   <a href="#" target="_blank">

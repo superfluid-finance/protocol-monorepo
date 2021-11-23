@@ -1,5 +1,5 @@
-import { initializedContext } from '../../../superfluidApi';
-import { NothingNumber, QueryArg } from '../../baseArg';
+import { initializedContext } from '../../../createSdkReduxParts';
+import { NothingNumber, QueryArg } from '../../argTypes';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';

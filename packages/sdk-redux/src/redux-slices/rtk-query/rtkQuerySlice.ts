@@ -33,6 +33,8 @@ export const rtkQuerySlice = createApi({
     },
 });
 
+export type SuperfluidApiReduxSliceType = typeof rtkQuerySlice;
+
 // NOTE: Regex taken from Ethers.
 const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
 

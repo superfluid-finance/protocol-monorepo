@@ -1,5 +1,5 @@
-import { initializedContext } from '../../../superfluidApi';
-import { QueryArg } from '../../baseArg';
+import { initializedContext } from '../../../createSdkReduxParts';
+import { QueryArg } from '../../argTypes';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 

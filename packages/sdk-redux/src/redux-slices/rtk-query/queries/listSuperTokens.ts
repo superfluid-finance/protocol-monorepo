@@ -1,7 +1,7 @@
 import { ISuperToken, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
-import { initializedContext } from '../../../superfluidApi';
-import { NothingBoolean, PaginatedQueryArg } from '../../baseArg';
+import { initializedContext } from '../../../createSdkReduxParts';
+import { NothingBoolean, PaginatedQueryArg } from '../../argTypes';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
 

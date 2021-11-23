@@ -1,7 +1,11 @@
 import { AllEvents, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
-import { initializedContext } from '../../../superfluidApi';
-import { NothingNumber, NothingString, PaginatedQueryArg } from '../../baseArg';
+import { initializedContext } from '../../../createSdkReduxParts';
+import {
+    NothingNumber,
+    NothingString,
+    PaginatedQueryArg,
+} from '../../argTypes';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 import { getMostSpecificStreamTag } from '../cacheTags/streamTags';

@@ -1,8 +1,8 @@
 import { AnyAction } from '@reduxjs/toolkit';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedContext } from '../../../superfluidApi';
-import { TransactionInfo } from '../../baseArg';
+import { initializedContext } from '../../../createSdkReduxParts';
+import { TransactionInfo } from '../../argTypes';
 
 import { invalidateCacheTagsForEvents } from './invalidateCacheTagsForEvents';
 import { MsTimes } from '../../../utils';

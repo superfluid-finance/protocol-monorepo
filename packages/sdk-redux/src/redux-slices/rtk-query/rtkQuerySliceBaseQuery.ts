@@ -1,7 +1,7 @@
 import { SerializedError } from '@reduxjs/toolkit';
 import { BaseQueryFn } from '@reduxjs/toolkit/dist/query/react';
 
-import { QueryArg, SuperTokenMutationArg, TransactionInfo } from '../baseArg';
+import { QueryArg, SuperTokenMutationArg, TransactionInfo } from '../argTypes';
 
 export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;

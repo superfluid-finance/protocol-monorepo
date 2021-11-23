@@ -3,8 +3,9 @@ import { createAsyncThunk, Dispatch } from '@reduxjs/toolkit';
 import { superfluidContext } from '../../superfluidContext';
 import { MsTimes } from '../../utils';
 import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
-import {transactionSlice, transactionSlicePrefix} from './transactionSlice';
+import { transactionSlice, transactionSlicePrefix } from './transactionSlice';
 import { ethers } from 'ethers';
+import { TransactionInfo } from '../argTypes';
 
 type EthersError = Error & {
     code: ethers.errors;
@@ -12,18 +13,13 @@ type EthersError = Error & {
     cancelled?: boolean;
 };
 
-export interface TrackTransactionArg {
-    chainId: number;
-    hash: string;
-}
-
 export const waitForOneConfirmation = (
     provider: ethers.providers.Provider,
     transactionHash: string
 ): Promise<ethers.providers.TransactionReceipt> =>
     provider.waitForTransaction(transactionHash, 1, MsTimes.TenMinutes);
 
-export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
+export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
     `${transactionSlicePrefix}/trackTransaction`,
     async (arg, { dispatch }) => {
         dispatch(
@@ -65,7 +61,7 @@ export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
 // i.e. monitor for re-orgs...
 const monitorForLateErrors = (
     provider: ethers.providers.Provider,
-    { chainId, hash }: TrackTransactionArg,
+    { chainId, hash }: TransactionInfo,
     dispatch: Dispatch
 ) => {
     provider
@@ -84,7 +80,7 @@ const monitorForLateErrors = (
 
 const notifyOfError = (
     ethersError: EthersError,
-    { chainId, hash }: TrackTransactionArg,
+    { chainId, hash }: TransactionInfo,
     dispatch: Dispatch
 ) => {
     dispatch(

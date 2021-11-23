@@ -1,10 +1,10 @@
-import { initializedContext } from '../../../superfluidApi';
+import { initializedContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import {
     NothingString,
     SuperTokenMutationArg,
     TransactionInfo,
-} from '../../baseArg';
+} from '../../argTypes';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';

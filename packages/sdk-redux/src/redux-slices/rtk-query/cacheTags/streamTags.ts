@@ -1,4 +1,4 @@
-import { NothingString } from '../../baseArg';
+import { NothingString } from '../../argTypes';
 import { insertIf } from '../../../utils';
 import { createTag } from './CacheTagTypes';
 

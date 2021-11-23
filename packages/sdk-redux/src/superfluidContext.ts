@@ -9,7 +9,7 @@ export const superfluidContext = {
         const frameworkGetter = frameworks.get(chainId);
         if (!frameworkGetter)
             throw Error(
-                `Don't know how to get Superfluid. :( Please set up a *read* source for chain [${chainId}].`
+                `Don't know how to get Superfluid Framework. :( Please set up a *framework* source for chain [${chainId}].`
             );
         return frameworkGetter();
     },
@@ -17,7 +17,7 @@ export const superfluidContext = {
         const signerGetter = signers.get(chainId);
         if (!signerGetter)
             throw Error(
-                `Don't know how to get Superfluid. :( Please set up a *write* source for chain [${chainId}].` // TODO(KK): error messages
+                `Don't know how to get a signer. :( Please set up a *signer* source for chain [${chainId}].`
             );
         return signerGetter();
     },

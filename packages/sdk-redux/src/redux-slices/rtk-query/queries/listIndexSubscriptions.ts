@@ -4,12 +4,12 @@ import {
     Paging,
 } from '@superfluid-finance/sdk-core';
 
-import { initializedContext } from '../../../superfluidApi';
+import { initializedContext } from '../../../createSdkReduxParts';
 import {
     NothingBoolean,
     NothingString,
     PaginatedQueryArg,
-} from '../../baseArg';
+} from '../../argTypes';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 

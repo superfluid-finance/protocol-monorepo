@@ -1,4 +1,7 @@
-import { rtkQuerySlice } from './redux-slices/rtk-query/rtkQuerySlice';
+import {
+    rtkQuerySlice,
+    SuperfluidApiReduxSliceType,
+} from './redux-slices/rtk-query/rtkQuerySlice';
 import {
     SuperfluidTransactionReduxSlice,
     transactionSlice,
@@ -9,8 +12,6 @@ import {
 } from './superfluidContext';
 
 export let initializedContext: SuperfluidContext = null!;
-
-export type SuperfluidApiReduxSliceType = typeof rtkQuerySlice;
 
 export const createSdkReduxParts = (
     context?: SuperfluidContext

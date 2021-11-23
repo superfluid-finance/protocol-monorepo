@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 
-import { initializedContext } from '../../../superfluidApi';
+import { initializedContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';

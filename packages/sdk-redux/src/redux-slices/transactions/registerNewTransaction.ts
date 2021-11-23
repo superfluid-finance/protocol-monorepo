@@ -1,6 +1,6 @@
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedContext } from '../../superfluidApi';
+import { initializedContext } from '../../createSdkReduxParts';
 import { trackTransaction, waitForOneConfirmation } from './trackTransaction';
 
 // WARNING: Ethers TransactionResponse has initially wrong chain ID.

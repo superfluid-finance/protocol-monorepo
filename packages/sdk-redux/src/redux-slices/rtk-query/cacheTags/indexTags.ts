@@ -1,5 +1,5 @@
 import { insertIf } from '../../../utils';
-import { NothingString } from '../../baseArg';
+import { NothingString } from '../../argTypes';
 import { createTag } from './CacheTagTypes';
 
 type IndexTagArg = {

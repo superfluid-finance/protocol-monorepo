@@ -117,8 +117,15 @@ const loadContracts = async ({
             }
             await Promise.all(
                 allContractNames.map(async (name) => {
+                    const _normalizedObject = await contractLoader(name);
+                    Object.assign(_normalizedObject, {
+                        networks:{
+                            [networkId]:{}
+                            // setting it for truffle contract detectNetwork method
+                        }
+                    })
                     const c = (contracts[name] = TruffleContract(
-                        await contractLoader(name)
+                        _normalizedObject
                     ));
                     c.setProvider(web3.currentProvider);
                     setTruffleContractDefaults(c, networkId, from);

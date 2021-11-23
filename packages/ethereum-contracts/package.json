@@ -20,8 +20,8 @@
         "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
-        "testenv:start": "tasks/testenv-ctl.sh start",
-        "testenv:stop": "tasks/testenv-ctl.sh stop",
+        "testenv:start": "test/testenv-ctl.sh start",
+        "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
@@ -39,31 +39,31 @@
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint": "yarn lint",
         "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
-        "check-updates": "ncu --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
-        "@openzeppelin/contracts": "3.4.1",
-        "@superfluid-finance/js-sdk": "0.5.5",
-        "@truffle/contract": "4.3.35",
+        "@openzeppelin/contracts": "3.4.2",
+        "@superfluid-finance/js-sdk": "0.5.6",
+        "@truffle/contract": "4.3.42",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.1.0",
+        "ethereumjs-util": "7.1.3",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
-        "@openzeppelin/test-helpers": "0.5.13",
-        "@truffle/hdwallet-provider": "^1.5.0",
-        "@typechain/ethers-v5": "^7.2.0",
-        "async": "^3.2.1",
+        "@openzeppelin/test-helpers": "0.5.15",
+        "@truffle/hdwallet-provider": "^1.7.0",
+        "@typechain/ethers-v5": "^8.0.3",
+        "async": "^3.2.2",
         "dotenv": "10.0.0",
-        "ethers": "^5.4.7",
+        "ethers": "^5.5.1",
         "ganache-time-traveler": "1.0.16",
         "readline": "1.3.0",
         "solhint": "3.3.6",
         "solidity-coverage": "0.7.17",
-        "truffle": "5.4.11",
+        "truffle": "5.4.21",
         "truffle-flattener": "^1.5.0",
-        "truffle-plugin-verify": "^0.5.15",
-        "typechain": "^5.2.0"
+        "truffle-plugin-verify": "^0.5.18",
+        "typechain": "^6.0.3"
     }
 }

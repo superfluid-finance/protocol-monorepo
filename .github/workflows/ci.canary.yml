@@ -10,8 +10,8 @@ on:
       - '.github/workflows/ci.canary.yml'
 
 jobs:
-  build:
-    name: Build and test of dev branch
+  essential-build:
+    name: Build and test essential packages of dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
@@ -46,9 +46,10 @@ jobs:
           yarn test
         env:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}
 
-  coverage:
-    name: Run coverage test of dev branch
+  ethereum-contracts-coverage:
+    name: Run coverage test of ethereum-contracts of dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
@@ -76,16 +77,72 @@ jobs:
             packages/ethereum-contracts/coverage/
             packages/ethereum-contracts/coverage.json
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - name: Codecov
+        uses: codecov/codecov-action@v2
         with:
-          path-to-lcov: packages/ethereum-contracts/coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: packages/ethereum-contracts/coverage/lcov.info
+          fail_ci_if_error: true
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+
+  sdk-core-coverage:
+    name: Run coverage test of sdk-core on dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    runs-on: ubuntu-latest
+
+    env:
+      subgraph-working-directory: ./packages/subgraph
+      contracts-working-directory: ./packages/ethereum-contracts
+      js-sdk-working-directory: ./packages/js-sdk
+      sdk-core-working-directory: ./packages/sdk-core
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: "Install yarn and ganache-cli"
+        run: npm install -g yarn ganache-cli
+
+      - name: "Install contract dependencies"
+        run: yarn install
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Build contracts"
+        run: yarn run build:contracts
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Run test suite"
+        run: yarn test
+        working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: |
+            packages/sdk-core/coverage/
+            packages/sdk-core/coverage/coverage-final.json
+
+      - name: Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: packages/sdk-core/coverage/lcov.info
+          fail_ci_if_error: true
+          name: sdk-core-coverage
+          flags: sdk-core
 
   publish:
-    name: NPM publish dev branch
+    name: Publish canary pakcages to registries
 
-    needs: [build, coverage]
+    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 
@@ -114,14 +171,15 @@ jobs:
         run: |
           tasks/npm-publish.sh packages/ethereum-contracts dev
           tasks/npm-publish.sh packages/js-sdk dev
+          tasks/npm-publish.sh packages/sdk-core dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-  deploy-dev:
-    name: Deploy Canary to dev-testnets
+  deploy:
+    name: Deploy and upgrade testnets with canary ethereum-contracts build
 
-    needs: [build, coverage]
+    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 

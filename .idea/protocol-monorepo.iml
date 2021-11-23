@@ -21,6 +21,9 @@
     <content url="file://$MODULE_DIR$/packages/js-sdk">
       <sourceFolder url="file://$MODULE_DIR$/packages/js-sdk/test" isTestSource="true" />
     </content>
+    <content url="file://$MODULE_DIR$/packages/sdk-core">
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
+    </content>
     <content url="file://$MODULE_DIR$/packages/subgraph">
       <sourceFolder url="file://$MODULE_DIR$/packages/subgraph/test" isTestSource="true" />
     </content>

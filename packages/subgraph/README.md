@@ -196,7 +196,7 @@ Once the contracts and token have been deployed, you can run the following one l
 
 ```bash
 # To build and deploy the Subgraph in a single line:
-yarn prepare-local && yarn set-network-local && yarn getAbi && yarn codegen && yarn create-local && yarn deploy-local
+yarn prepare-local && yarn set-network-local && yarn getAbi && yarn generate-sf-meta-local && yarn codegen && yarn create-local && yarn deploy-local
 
 # Step by step
 # Generate `subgraph.yaml` using the test-subgraph.template.yaml
@@ -207,6 +207,9 @@ yarn set-network-local
 
 # Get the ABIs
 yarn getAbi
+
+# Generate the SFMeta file (this is used internally for to generate an internally used entity in prod, but still necessary for building/deploying the subgraph)
+yarn generate-sf-meta-local
 
 # Generate the subgraph schema
 yarn codegen
@@ -380,6 +383,13 @@ graph auth https://api.thegraph.com/deploy/ <ACCESS_TOKEN>
 ```
 
 If the subgraph has not been created yet, you must create it first using the dashboard.
+
+## Release Process
+
+- Bump minor or patch version for the subgraph package: `yarn manage-versions && git commit packages/subgraph/package.json`.
+- Select the appropriate Subgraph LTS branch: `release-subgraph-v1`.
+- Merge `origin/dev` to the LTS branch.
+- Create a new release in github.
 
 # Contributing
 

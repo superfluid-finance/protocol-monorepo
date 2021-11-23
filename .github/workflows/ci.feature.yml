@@ -233,8 +233,6 @@ jobs:
         run: | 
           yarn test
         working-directory: ${{ env.sdk-core-working-directory }}
-        env: 
-          MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}
 
   all-packages-tested:
     name: All packages tested (Feature Branch)

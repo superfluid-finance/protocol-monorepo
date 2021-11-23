@@ -4,6 +4,7 @@ import { createApi } from '@reduxjs/toolkit/dist/query/react';
 import { rtkQuerySliceBaseQuery } from './rtkQuerySliceBaseQuery';
 import { typeGuard } from '../../utils';
 import { CacheTagTypes } from './cacheTags/CacheTagTypes';
+import _ from 'lodash';
 
 export const rtkQuerySlice = createApi({
     reducerPath: 'sfApi',
@@ -16,20 +17,41 @@ export const rtkQuerySlice = createApi({
     ],
     endpoints: () => ({}),
     serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        // TODO(KK): Normalize addresses here? Maybe also default skip/take.
-
         // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
 
-        // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
+        // Comment from RTK-Query: Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
         return `${endpointName}(${JSON.stringify(queryArgs, (_key, value) =>
             isPlainObject(value)
                 ? Object.keys(value)
                       .sort()
                       .reduce<any>((acc, key) => {
-                          acc[key] = (value as any)[key];
+                          acc[key] = normalizeValue((value as any)[key]);
                           return acc;
                       }, {})
-                : value
+                : normalizeValue(value)
         )})`;
     },
 });
+
+// NOTE: Regex taken from Ethers.
+const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
+
+// Normalize addresses and empty strings for cache keys.
+const normalizeValue = (value: unknown) =>
+    lowerCaseIfAddress(undefinedIfEmpty(value));
+
+const undefinedIfEmpty = (value: unknown) => {
+    if (value === '') {
+        return undefined;
+    }
+    return value;
+};
+
+const lowerCaseIfAddress = (value: unknown) => {
+    if (_.isString(value)) {
+        if (value.match(isAddressRegex)) {
+            return value.toLowerCase();
+        }
+    }
+    return value;
+};

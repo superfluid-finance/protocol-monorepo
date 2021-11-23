@@ -3,8 +3,8 @@ export type QueryArg = {
 };
 
 export type PaginatedQueryArg = QueryArg & {
-    skip: number | NothingNumber;
-    take: number | NothingNumber;
+    skip: number;
+    take: number;
 };
 
 export type PaginatedQueryResult = {

@@ -23,7 +23,7 @@ export const MonitorForEventsToInvalidateCache: FC = (): ReactElement => {
 
     return (
         <>
-            {isSuccess && <Alert severity="success">Subscribed!</Alert>}
+            {isSuccess && <Alert severity="success">Monitoring! (Every ~20 seconds polling for changes to the blockchain. If you close this component then it stops.)</Alert>}
             {error && <Error error={error} />}
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>

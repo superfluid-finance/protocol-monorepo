@@ -28,6 +28,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { IIndexSubscriptionIndex } from "../../../../packages/sdk-core/src";
 
 const pageSize = 10;
 
@@ -114,7 +115,28 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Index Subscription</TableCell>
+                                        <TableCell>
+                                            createdAtTimestamp
+                                        </TableCell>
+                                        <TableCell>
+                                            createdAtBlockNumber
+                                        </TableCell>
+                                        <TableCell>
+                                            updatedAtTimestamp
+                                        </TableCell>
+                                        <TableCell>
+                                            updatedAtBlockNumber
+                                        </TableCell>
+                                        <TableCell>subscriber</TableCell>
+                                        <TableCell>approved</TableCell>
+                                        <TableCell>units</TableCell>
+                                        <TableCell>
+                                            totalAmountReceivedUntilUpdatedAt
+                                        </TableCell>
+                                        <TableCell>
+                                            indexValueUntilUpdatedAt
+                                        </TableCell>
+                                        <TableCell>index</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -126,11 +148,48 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                                                 key={indexSubscription.id}
                                             >
                                                 <TableCell>
-                                                    <pre>
-                                                        {JSON.stringify(
-                                                            indexSubscription
-                                                        )}
-                                                    </pre>
+                                                    {
+                                                        indexSubscription.createdAtTimestamp
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        indexSubscription.createdAtBlockNumber
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        indexSubscription.updatedAtTimestamp
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        indexSubscription.updatedAtBlockNumber
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        indexSubscription.subscriber
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {indexSubscription.approved}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {indexSubscription.units}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        indexSubscription.totalAmountReceivedUntilUpdatedAt
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        indexSubscription.indexValueUntilUpdatedAt
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {indexSubscription.index.id}
                                                 </TableCell>
                                             </TableRow>
                                         )

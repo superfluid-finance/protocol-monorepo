@@ -102,20 +102,24 @@ export const ListSuperTokens: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Index</TableCell>
+                                        <TableCell>createdAtTimestamp</TableCell>
+                                        <TableCell>createdAtBlockNumber</TableCell>
+                                        <TableCell>name</TableCell>
+                                        <TableCell>symbol</TableCell>
+                                        <TableCell>isListed</TableCell>
+                                        <TableCell>underlyingAddress</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {pagedSuperTokens!.data.map(
                                         (superToken: ISuperToken) => (
                                             <TableRow key={superToken.id}>
-                                                <TableCell>
-                                                    <pre>
-                                                        {JSON.stringify(
-                                                            superToken
-                                                        )}
-                                                    </pre>
-                                                </TableCell>
+                                                <TableCell>{superToken.createdAtTimestamp}</TableCell>
+                                                <TableCell>{superToken.createdAtBlockNumber}</TableCell>
+                                                <TableCell>{superToken.name}</TableCell>
+                                                <TableCell>{superToken.symbol}</TableCell>
+                                                <TableCell>{superToken.isListed}</TableCell>
+                                                <TableCell>{superToken.underlyingAddress}</TableCell>
                                             </TableRow>
                                         )
                                     )}

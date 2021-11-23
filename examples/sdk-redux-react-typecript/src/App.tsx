@@ -182,7 +182,7 @@ export const SdkListItem: FC<{ title: string }> = ({
                 {isOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
             <Collapse in={isOpen} timeout="auto" unmountOnExit>
-                <Box maxWidth="xl">{children}</Box>
+                {children}
             </Collapse>
         </Box>
     );

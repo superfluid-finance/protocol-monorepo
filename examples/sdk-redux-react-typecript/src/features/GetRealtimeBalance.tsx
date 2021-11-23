@@ -41,7 +41,7 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
             chainId: chainId,
             accountAddress: accountAddress,
             superTokenAddress: superTokenAddress,
-            estimationTimestamp: undefined
+            estimationTimestamp: undefined,
         });
     };
 
@@ -118,9 +118,9 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                                     realtimeBalance!
                                                         .netFlowRateWei
                                                 }
-                                                balanceTimestamp={Number(
+                                                balanceTimestamp={
                                                     realtimeBalance!.timestamp
-                                                )}
+                                                }
                                             />
                                             <br />
                                             <FlowingBalance
@@ -135,9 +135,9 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
                                                     realtimeBalance!
                                                         .netFlowRateWei
                                                 }
-                                                balanceTimestamp={Number(
+                                                balanceTimestamp={
                                                     realtimeBalance!.timestamp
-                                                )}
+                                                }
                                             />
                                         </TableCell>
                                         <TableCell>

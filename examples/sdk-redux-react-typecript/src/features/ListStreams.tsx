@@ -21,6 +21,9 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { ISuperToken } from "../../../../packages/sdk-core/src";
+import { FlowingBalance } from "../FlowingBalance";
+import { ethers } from "ethers";
 
 const pageSize = 10;
 
@@ -105,6 +108,7 @@ export const ListStreams: FC = (): ReactElement => {
                                         <TableCell>Sender</TableCell>
                                         <TableCell>Receiver</TableCell>
                                         <TableCell>Flow Rate</TableCell>
+                                        <TableCell>Total Streamed</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -130,6 +134,24 @@ export const ListStreams: FC = (): ReactElement => {
                                                 </TableCell>
                                                 <TableCell>
                                                     {flow.currentFlowRate}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <FlowingBalance
+                                                        format={(x) =>
+                                                            ethers.utils.formatUnits(
+                                                                x
+                                                            )
+                                                        }
+                                                        balanceWei={
+                                                            flow.streamedUntilUpdatedAt
+                                                        }
+                                                        balanceTimestamp={
+                                                            flow.updatedAtTimestamp
+                                                        }
+                                                        flowRateWei={
+                                                            flow.currentFlowRate
+                                                        }
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         )

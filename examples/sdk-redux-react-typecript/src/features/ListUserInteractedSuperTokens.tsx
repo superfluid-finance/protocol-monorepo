@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { ISuperToken } from "../../../../packages/sdk-core/src";
 
 const pageSize = 10;
 
@@ -94,7 +95,38 @@ export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Index</TableCell>
+                                        <TableCell>
+                                            updatedAtTimestamp
+                                        </TableCell>
+                                        <TableCell>
+                                            updatedAtBlockNumber
+                                        </TableCell>
+                                        <TableCell>
+                                            totalNumberOfActiveStreams
+                                        </TableCell>
+                                        <TableCell>
+                                            totalNumberOfClosedStreams
+                                        </TableCell>
+                                        <TableCell>
+                                            totalSubscriptionsWithUnits
+                                        </TableCell>
+                                        <TableCell>
+                                            totalApprovedSubscriptions
+                                        </TableCell>
+                                        <TableCell>
+                                            balanceUntilUpdatedAt
+                                        </TableCell>
+                                        <TableCell>totalNetFlowRate</TableCell>
+                                        <TableCell>totalInflowRate</TableCell>
+                                        <TableCell>totalOutflowRate</TableCell>
+                                        <TableCell>
+                                            totalAmountStreamedUntilUpdatedAt
+                                        </TableCell>
+                                        <TableCell>
+                                            totalAmountTransferredUntilUpdatedAt
+                                        </TableCell>
+                                        <TableCell>account</TableCell>
+                                        <TableCell>token</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -104,11 +136,71 @@ export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
                                         ) => (
                                             <TableRow key={tokenSnapshot.id}>
                                                 <TableCell>
-                                                    <pre>
-                                                        {JSON.stringify(
-                                                            tokenSnapshot
-                                                        )}
-                                                    </pre>
+                                                    {
+                                                        tokenSnapshot.updatedAtTimestamp
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.updatedAtBlockNumber
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalNumberOfActiveStreams
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalNumberOfClosedStreams
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalSubscriptionsWithUnits
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalApprovedSubscriptions
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.balanceUntilUpdatedAt
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalNetFlowRate
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalInflowRate
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalOutflowRate
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalAmountStreamedUntilUpdatedAt
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        tokenSnapshot.totalAmountTransferredUntilUpdatedAt
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {tokenSnapshot.account}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {tokenSnapshot.token.name} (
+                                                    {tokenSnapshot.token.id})
                                                 </TableCell>
                                             </TableRow>
                                         )

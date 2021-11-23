@@ -23,7 +23,8 @@ describe("User helper class", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             nAccounts: 4,
         });
 
@@ -34,7 +35,8 @@ describe("User helper class", function () {
             carol: carolAddress,
         } = t.aliases);
         ({ superToken } = await t.deployNewToken("TEST2", {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             doUpgrade: true,
         }));
         sf = t.sf;

@@ -82,27 +82,33 @@ library SlotsBitmapLibrary {
        uint256 bitmapStateSlotId,
        uint256 dataStateSlotIDStart
     )
-       public view
-       returns (bytes32[] memory dataList)
+        public view
+        returns (
+            uint32[] memory slotIds,
+            bytes32[] memory dataList)
     {
-       uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-           address(this),
-           account,
-           bitmapStateSlotId, 1)[0]);
+        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
+            address(this),
+            account,
+            bitmapStateSlotId, 1)[0]);
 
-       dataList = new bytes32[](_MAX_NUM_SLOTS);
-       // read all slots
-       uint nSlots;
-       for (uint32 slotId = 0; slotId < _MAX_NUM_SLOTS; ++slotId) {
-           if ((uint256(subsBitmap >> slotId) & 1) == 0) continue;
-           dataList[nSlots++] = token.getAgreementStateSlot(
-               address(this),
-               account,
-               dataStateSlotIDStart + slotId, 1)[0];
-       }
-       // resize memory arrays
-       assembly {
-           mstore(dataList, nSlots)
-       }
+        slotIds = new uint32[](_MAX_NUM_SLOTS);
+        dataList = new bytes32[](_MAX_NUM_SLOTS);
+        // read all slots
+        uint nSlots;
+        for (uint32 slotId = 0; slotId < _MAX_NUM_SLOTS; ++slotId) {
+            if ((uint256(subsBitmap >> slotId) & 1) == 0) continue;
+            slotIds[nSlots] = slotId;
+            dataList[nSlots] = token.getAgreementStateSlot(
+                address(this),
+                account,
+                dataStateSlotIDStart + slotId, 1)[0];
+            ++nSlots;
+        }
+        // resize memory arrays
+        assembly {
+            mstore(slotIds, nSlots)
+            mstore(dataList, nSlots)
+        }
     }
 }

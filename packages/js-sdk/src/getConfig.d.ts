@@ -3,4 +3,4 @@ export interface NetworkConfig {
     resolverAddress?: string
 }
 
-export function getConfig(chainId: number): NetworkConfig;
+export function getConfig(chainId: number, version: string): NetworkConfig;

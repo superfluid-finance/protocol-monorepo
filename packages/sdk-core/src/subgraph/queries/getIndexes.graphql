@@ -1,0 +1,34 @@
+query getIndexes($where: Index_filter!, $skip: Int!, $first: Int!){
+    result: indexes(
+        where: $where,
+        skip: $skip,
+        first: $first,
+        orderBy: createdAtBlockNumber,
+        orderDirection: desc
+    ) {
+        id
+        createdAtTimestamp
+        createdAtBlockNumber
+        updatedAtTimestamp
+        updatedAtBlockNumber
+        indexId
+        indexValue
+        totalSubscriptionsWithUnits
+        totalUnitsPending
+        totalUnitsApproved
+        totalUnits
+        totalAmountDistributedUntilUpdatedAt
+        token {
+            id
+            createdAtTimestamp
+            createdAtBlockNumber
+            name
+            symbol
+            isListed
+            underlyingAddress
+        }
+        publisher {
+            id
+        }
+    }
+}

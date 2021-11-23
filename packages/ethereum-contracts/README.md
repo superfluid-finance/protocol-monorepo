@@ -6,8 +6,8 @@
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
-  <a href='https://coveralls.io/github/superfluid-finance/protocol-monorepo?branch=dev'>
-    <img src='https://coveralls.io/repos/github/superfluid-finance/protocol-monorepo/badge.svg?branch=dev' alt='Coverage Status' />
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
@@ -209,7 +209,11 @@ TESTENV_EVM_SNAPSHOT_ID=0x1
 
 Next, you should choose the tests relevant for what you're working on using the [only keyword](https://mochajs.org/#exclusive-tests).
 You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`) and individual testcases (`it`).
-`yarn dev` has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
+With the testing scope defined, run:
+```
+yarn dev
+```
+This has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
 The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
 After finishing the session, you can stop the ganache instance you started in the first step (Ctrl-C).

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.7.6;
 
-import { CallUtils } from "../utils/CallUtils.sol";
+import { CallUtils } from "../libs/CallUtils.sol";
 
 
 contract FakeSuperfluidMock {

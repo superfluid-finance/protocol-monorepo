@@ -39,11 +39,11 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         superfluidFrameworkSource.setFramework(
             chainId,
-            Promise.resolve(superfluidSdk)
+            () => Promise.resolve(superfluidSdk)
         );
         superfluidFrameworkSource.setSigner(
             chainId,
-            Promise.resolve(ethersWeb3Provider.getSigner())
+            () => Promise.resolve(ethersWeb3Provider.getSigner())
         );
 
         onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);

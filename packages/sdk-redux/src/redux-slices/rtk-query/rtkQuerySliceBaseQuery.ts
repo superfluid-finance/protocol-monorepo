@@ -15,9 +15,9 @@ export type ValidationError = {
 
 export type MutationMeta = {
     /**
-     * The address will be observed for events to invalidate cache.
+     * The address will be monitored for events to invalidate cache.
      */
-    observeAddress: string;
+    monitorAddress: string;
 };
 
 /**

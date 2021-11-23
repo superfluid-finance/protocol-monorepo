@@ -7,8 +7,8 @@ import { TransactionInfo } from '../../baseArg';
 import { invalidateCacheTagsForEvents } from './invalidateCacheTagsForEvents';
 import {MsTimes} from "../../../utils";
 
-export const observeAddressForNextEventToInvalidateCache = async (
-    observeAddress: string,
+export const monitorAddressForNextEventToInvalidateCache = async (
+    address: string,
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
@@ -25,7 +25,7 @@ export const observeAddressForNextEventToInvalidateCache = async (
             unsubscribe();
         },
         MsTimes.OneSecond,
-        observeAddress,
+        address,
         MsTimes.OneMinute
     );
 };

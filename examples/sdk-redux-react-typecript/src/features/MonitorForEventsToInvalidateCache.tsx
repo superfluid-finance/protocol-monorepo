@@ -1,12 +1,12 @@
 import { SignerContext } from "../SignerContext";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useObserveForEventsToInvalidateCacheMutation } from "@superfluid-finance/sdk-redux";
+import { useMonitorForEventsToInvalidateCacheMutation } from "@superfluid-finance/sdk-redux";
 import { Alert, Button, FormGroup, TextField } from "@mui/material";
 import { Error } from "../Error";
 
-export const ObserveForEventsToInvalidateCache: FC = (): ReactElement => {
+export const MonitorForEventsToInvalidateCache: FC = (): ReactElement => {
     const [trigger, { error, isSuccess }] =
-        useObserveForEventsToInvalidateCacheMutation();
+        useMonitorForEventsToInvalidateCacheMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [address, setAddress] = useState<string>(signerAddress);
@@ -39,7 +39,7 @@ export const ObserveForEventsToInvalidateCache: FC = (): ReactElement => {
                         fullWidth={true}
                         onClick={handleButtonClick}
                     >
-                        Observe
+                        Monitor
                     </Button>
                 </FormGroup>
             </form>

@@ -4,17 +4,17 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import {invalidateCacheTagsForEvents} from "../cacheTags/invalidateCacheTagsForEvents";
 import {MsTimes} from "../../../utils";
 
-export type ObserveForEventsToInvalidateCacheArg = {
+export type MonitorForEventsToInvalidateCacheArg = {
     chainId: number;
     address: string | NothingString;
 };
 
-export const { useObserveForEventsToInvalidateCacheMutation } =
+export const { useMonitorForEventsToInvalidateCacheMutation } =
     rtkQuerySlice.injectEndpoints({
         endpoints: (builder) => ({
-            observeForEventsToInvalidateCache: builder.mutation<
+            monitorForEventsToInvalidateCache: builder.mutation<
                 true,
-                ObserveForEventsToInvalidateCacheArg
+                MonitorForEventsToInvalidateCacheArg
             >({
                 queryFn: () => {
                     // No-op

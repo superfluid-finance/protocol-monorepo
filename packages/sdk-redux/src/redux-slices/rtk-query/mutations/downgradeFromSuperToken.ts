@@ -1,7 +1,7 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
-import { observeAddressForNextEventToInvalidateCache } from '../cacheTags/observeAddressForNextEventToInvalidateCache';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
@@ -47,14 +47,14 @@ export const { useDowngradeFromSuperTokenMutation } =
                             chainId: arg.chainId,
                         }),
                         meta: typeGuard<MutationMeta>({
-                            observeAddress: signerAddress,
+                            monitorAddress: signerAddress,
                         }),
                     };
                 },
                 onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                     queryFulfilled.then(async (queryResult) =>
-                        observeAddressForNextEventToInvalidateCache(
-                            queryResult.meta!.observeAddress,
+                        monitorAddressForNextEventToInvalidateCache(
+                            queryResult.meta!.monitorAddress,
                             queryResult.data,
                             dispatch
                         )

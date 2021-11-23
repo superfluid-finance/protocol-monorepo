@@ -1,8 +1,8 @@
 import { NothingString } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
-import { initializedSuperfluidSource } from '../../../superfluidApi';
-import {invalidateCacheTagsForEvents} from "../cacheTags/invalidateCacheTagsForEvents";
-import {MsTimes} from "../../../utils";
+import { initializedContext } from '../../../superfluidApi';
+import { invalidateCacheTagsForEvents } from '../cacheTags/invalidateCacheTagsForEvents';
+import { MsTimes } from '../../../utils';
 
 export type MonitorForEventsToInvalidateCacheArg = {
     chainId: number;
@@ -28,16 +28,23 @@ export const { useMonitorForEventsToInvalidateCacheMutation } =
                 ) => {
                     // TODO(KK): Consider how changing of networks inside the application can affect this.
 
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
+                    const framework = await initializedContext.getFramework(
+                        arg.chainId
+                    );
 
                     await cacheDataLoaded;
 
-                    const unsubscribe = framework.query.on((events) => {
-                        invalidateCacheTagsForEvents(arg.chainId, events, dispatch)
-                    }, MsTimes.TwentySeconds, arg.address)
+                    const unsubscribe = framework.query.on(
+                        (events) => {
+                            invalidateCacheTagsForEvents(
+                                arg.chainId,
+                                events,
+                                dispatch
+                            );
+                        },
+                        MsTimes.TwentySeconds,
+                        arg.address
+                    );
 
                     try {
                         await cacheEntryRemoved;

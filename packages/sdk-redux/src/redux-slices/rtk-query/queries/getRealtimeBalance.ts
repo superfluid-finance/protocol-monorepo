@@ -1,4 +1,4 @@
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { NothingNumber, QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { typeGuard } from '../../../utils';
@@ -53,10 +53,9 @@ export const { useGetRealtimeBalanceQuery, useLazyGetRealtimeBalanceQuery } =
                     }),
                 ],
                 queryFn: async (arg) => {
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
+                    const framework = await initializedContext.getFramework(
+                        arg.chainId
+                    );
                     const superToken = await framework.loadSuperToken(
                         arg.superTokenAddress
                     );

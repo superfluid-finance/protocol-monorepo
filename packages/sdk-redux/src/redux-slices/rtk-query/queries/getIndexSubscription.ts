@@ -1,6 +1,6 @@
 import { IWeb3Subscription } from '@superfluid-finance/sdk-core';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
@@ -31,8 +31,9 @@ export const {
                 }),
             ],
             queryFn: async (arg) => {
-                const framework =
-                    await initializedSuperfluidSource.getFramework(arg.chainId);
+                const framework = await initializedContext.getFramework(
+                    arg.chainId
+                );
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );

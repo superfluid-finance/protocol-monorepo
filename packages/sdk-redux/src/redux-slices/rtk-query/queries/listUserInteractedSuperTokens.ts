@@ -4,7 +4,7 @@ import {
     Paging,
 } from '@superfluid-finance/sdk-core';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
@@ -47,8 +47,9 @@ export const {
                 }),
             ],
             queryFn: async (arg) => {
-                const framework =
-                    await initializedSuperfluidSource.getFramework(arg.chainId);
+                const framework = await initializedContext.getFramework(
+                    arg.chainId
+                );
                 const pagedResult =
                     await framework.query.listUserInteractedSuperTokens(
                         {

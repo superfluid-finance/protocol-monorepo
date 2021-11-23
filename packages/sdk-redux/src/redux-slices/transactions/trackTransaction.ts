@@ -1,9 +1,9 @@
 // Having a single "track" action makes it easy to use transaction tracking logic.
 import { createAsyncThunk, Dispatch } from '@reduxjs/toolkit';
-import { superfluidSource } from '../../superfluidSource';
+import { superfluidContext } from '../../superfluidContext';
 import { MsTimes } from '../../utils';
 import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
-import { transactionSlice } from './transactionSlice';
+import {transactionSlice, transactionSlicePrefix} from './transactionSlice';
 import { ethers } from 'ethers';
 
 type EthersError = Error & {
@@ -24,7 +24,7 @@ export const waitForOneConfirmation = (
     provider.waitForTransaction(transactionHash, 1, MsTimes.TenMinutes);
 
 export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
-    'trackTransaction',
+    `${transactionSlicePrefix}/trackTransaction`,
     async (arg, { dispatch }) => {
         dispatch(
             transactionSlice.actions.upsertTransaction({
@@ -34,7 +34,7 @@ export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
             })
         );
 
-        const framework = await superfluidSource.getFramework(arg.chainId);
+        const framework = await superfluidContext.getFramework(arg.chainId);
 
         waitForOneConfirmation(framework.settings.provider, arg.hash)
             .then(

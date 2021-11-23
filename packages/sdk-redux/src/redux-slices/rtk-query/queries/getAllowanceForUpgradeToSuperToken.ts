@@ -1,4 +1,4 @@
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
@@ -27,8 +27,9 @@ export const {
                 }),
             ],
             queryFn: async (arg) => {
-                const framework =
-                    await initializedSuperfluidSource.getFramework(arg.chainId);
+                const framework = await initializedContext.getFramework(
+                    arg.chainId
+                );
 
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress

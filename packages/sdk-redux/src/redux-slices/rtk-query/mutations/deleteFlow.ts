@@ -1,4 +1,4 @@
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
@@ -16,9 +16,7 @@ export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
         deleteFlow: builder.mutation<TransactionInfo, DeleteFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedSuperfluidSource.getFrameworkAndSigner(
-                        arg.chainId
-                    );
+                    await initializedContext.getFrameworkAndSigner(arg.chainId);
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );

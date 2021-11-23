@@ -6,7 +6,7 @@ import { typeGuard } from '../../utils';
 import { CacheTagTypes } from './cacheTags/CacheTagTypes';
 
 export const rtkQuerySlice = createApi({
-    reducerPath: 'superfluidApi',
+    reducerPath: 'sfApi',
     baseQuery: rtkQuerySliceBaseQuery(),
     tagTypes: [
         typeGuard<CacheTagTypes>('Event'),

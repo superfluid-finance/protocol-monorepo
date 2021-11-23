@@ -1,25 +1,25 @@
 import {configureStore, Dispatch} from "@reduxjs/toolkit";
-import { createPieces } from "@superfluid-finance/sdk-redux";
+import { createSdkReduxParts } from "@superfluid-finance/sdk-redux";
 import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
 
-const [
-    superfluidFrameworkSource,
-    superfluidApiSlice,
-    superfluidTransactionSlice,
-] = createPieces();
+const {
+    context,
+    apiSlice,
+    transactionSlice,
+} = createSdkReduxParts();
 
 export const store = configureStore({
     reducer: {
-        [superfluidApiSlice.reducerPath]: superfluidApiSlice.reducer,
-        "transactions": superfluidTransactionSlice.reducer,
+        [apiSlice.reducerPath]: apiSlice.reducer,
+        [transactionSlice.reducerPath]: transactionSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(superfluidApiSlice.middleware),
+        getDefaultMiddleware().concat(apiSlice.middleware),
 });
 
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;
-export { superfluidFrameworkSource };
+export const superfluidContext = context;
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const useAppDispatch = () => useDispatch<Dispatch>();

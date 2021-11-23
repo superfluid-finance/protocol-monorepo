@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
@@ -21,7 +21,7 @@ export const { useUpgradeToSuperTokenMutation } = rtkQuerySlice.injectEndpoints(
             >({
                 queryFn: async (arg, queryApi) => {
                     const [framework, signer] =
-                        await initializedSuperfluidSource.getFrameworkAndSigner(
+                        await initializedContext.getFrameworkAndSigner(
                             arg.chainId
                         );
 

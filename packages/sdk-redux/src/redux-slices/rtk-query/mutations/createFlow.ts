@@ -1,4 +1,4 @@
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
@@ -17,9 +17,7 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
         createFlow: builder.mutation<TransactionInfo, CreateFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedSuperfluidSource.getFrameworkAndSigner(
-                        arg.chainId
-                    );
+                    await initializedContext.getFrameworkAndSigner(arg.chainId);
 
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
@@ -55,7 +53,6 @@ export const { useCreateFlowMutation } = rtkQuerySlice.injectEndpoints({
                 };
             },
             // TODO(KK): Consider optimistic update.
-            // TODO(KK): Subscribe to re-org issues here or at "track transaction"?
             onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                 queryFulfilled.then(async (queryResult) =>
                     monitorAddressForNextEventToInvalidateCache(

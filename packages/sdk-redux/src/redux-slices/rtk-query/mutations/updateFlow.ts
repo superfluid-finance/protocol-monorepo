@@ -1,4 +1,4 @@
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
@@ -17,9 +17,7 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
         updateFlow: builder.mutation<TransactionInfo, UpdateFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedSuperfluidSource.getFrameworkAndSigner(
-                        arg.chainId
-                    );
+                    await initializedContext.getFrameworkAndSigner(arg.chainId);
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );

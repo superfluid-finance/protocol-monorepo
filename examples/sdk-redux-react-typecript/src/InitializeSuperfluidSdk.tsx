@@ -4,7 +4,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import { Button } from "@mui/material";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
-import { superfluidFrameworkSource } from "./redux/store";
+import { superfluidContext } from "./redux/store";
 
 interface Props {
     onSuperfluidSdkInitialized: (sf: Framework, provider: Web3Provider) => void;
@@ -41,7 +41,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         }));
 
         infuraProviders.map((x) =>
-            superfluidFrameworkSource.setFramework(x.chainId, x.frameworkGetter)
+            superfluidContext.setFramework(x.chainId, x.frameworkGetter)
         );
 
         const web3Modal = new Web3Modal({
@@ -60,14 +60,14 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         });
 
         // Set active provider & signer from MetaMask
-        superfluidFrameworkSource
+        superfluidContext
             .setFramework(currentNetwork.chainId, superfluidSdk)
             .setSigner(currentNetwork.chainId, ethersWeb3Provider.getSigner());
 
         onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
 
         web3ModalProvider.on("accountsChanged", (accounts: string[]) => {
-            superfluidFrameworkSource
+            superfluidContext
                 .setSigner(currentNetwork.chainId, ethersWeb3Provider.getSigner());
 
             onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
@@ -86,14 +86,14 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
             // Re-set INFURA providers
             infuraProviders.map((x) =>
-                superfluidFrameworkSource.setFramework(
+                superfluidContext.setFramework(
                     x.chainId,
                     x.frameworkGetter
                 )
             );
 
             // Set active provider & signer from MetaMask
-            superfluidFrameworkSource
+            superfluidContext
                 .setFramework(parsedChainId, newSdk)
                 .setSigner(parsedChainId, ethersWeb3Provider.getSigner());
 

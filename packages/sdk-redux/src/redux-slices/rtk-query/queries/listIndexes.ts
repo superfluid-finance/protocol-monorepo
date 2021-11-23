@@ -1,6 +1,6 @@
 import { IIndex, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
@@ -25,10 +25,9 @@ export const { useListIndexesQuery, useLazyListIndexesQuery } =
                     }),
                 ],
                 queryFn: async (arg) => {
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
+                    const framework = await initializedContext.getFramework(
+                        arg.chainId
+                    );
 
                     return {
                         data: await framework.query.listIndexes(

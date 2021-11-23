@@ -1,7 +1,7 @@
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedSuperfluidSource } from '../../superfluidApi';
-import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
+import { initializedContext } from '../../superfluidApi';
+import { trackTransaction, waitForOneConfirmation } from './trackTransaction';
 
 // WARNING: Ethers TransactionResponse has initially wrong chain ID.
 export const registerNewTransaction = async (
@@ -10,7 +10,7 @@ export const registerNewTransaction = async (
     waitForConfirmation: boolean,
     dispatch: ThunkDispatch<any, any, any>
 ) => {
-    const framework = await initializedSuperfluidSource.getFramework(chainId);
+    const framework = await initializedContext.getFramework(chainId);
 
     dispatch(
         trackTransaction({
@@ -20,6 +20,9 @@ export const registerNewTransaction = async (
     );
 
     if (waitForConfirmation) {
-        await waitForOneConfirmation(framework.settings.provider, transactionHash)
+        await waitForOneConfirmation(
+            framework.settings.provider,
+            transactionHash
+        );
     }
 };

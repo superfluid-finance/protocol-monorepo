@@ -1,5 +1,5 @@
 export * from './superfluidApi';
-export * from './superfluidSource';
+export * from './superfluidContext';
 
 export * from './redux-slices/rtk-query/queries/listStreams';
 export * from './redux-slices/rtk-query/queries/listEvents';
@@ -23,7 +23,10 @@ export * from './redux-slices/rtk-query/mutations/claimFromIndexSubscription';
 export * from './redux-slices/rtk-query/mutations/deleteIndexSubscription';
 export * from './redux-slices/rtk-query/mutations/revokeIndexSubscription';
 export * from './redux-slices/rtk-query/mutations/monitorForEventsToInvalidateCache';
-export { ValidationError, PossibleErrors } from './redux-slices/rtk-query/rtkQuerySliceBaseQuery';
+export {
+    ValidationError,
+    PossibleErrors,
+} from './redux-slices/rtk-query/rtkQuerySliceBaseQuery';
 
 export * from './redux-slices/transactions/transactionSlice';
 export * from './redux-slices/transactions/trackTransaction';

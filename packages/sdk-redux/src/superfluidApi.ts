@@ -1,33 +1,37 @@
 import { rtkQuerySlice } from './redux-slices/rtk-query/rtkQuerySlice';
 import {
-    SuperfluidReduxTransactionSliceType,
+    SuperfluidTransactionReduxSlice,
     transactionSlice,
 } from './redux-slices/transactions/transactionSlice';
 import {
-    superfluidSource as superfluidFrameworkSourcePreinitialized,
-    SuperfluidSource,
-} from './superfluidSource';
+    superfluidContext as contextPreinitialized,
+    SuperfluidContext,
+} from './superfluidContext';
 
-export let initializedSuperfluidSource: SuperfluidSource = null!;
+export let initializedContext: SuperfluidContext = null!;
 
-export type SuperfluidReduxApiSliceType = typeof rtkQuerySlice;
+export type SuperfluidApiReduxSliceType = typeof rtkQuerySlice;
 
-export const createPieces = (
-    frameworkSource?: SuperfluidSource
-): [
-    superfluidFrameworkSource: SuperfluidSource,
-    superfluidApiSlice: SuperfluidReduxApiSliceType,
-    superfluidTransactionSlice: SuperfluidReduxTransactionSliceType
-] => {
-    if (initializedSuperfluidSource) {
+export const createSdkReduxParts = (
+    context?: SuperfluidContext
+): {
+    context: SuperfluidContext;
+    apiSlice: SuperfluidApiReduxSliceType;
+    transactionSlice: SuperfluidTransactionReduxSlice;
+} => {
+    if (initializedContext) {
         throw Error("You shouldn't create the slice multiple times.");
     }
 
-    if (frameworkSource) {
-        initializedSuperfluidSource = frameworkSource;
+    if (context) {
+        initializedContext = context;
     } else {
-        initializedSuperfluidSource = superfluidFrameworkSourcePreinitialized;
+        initializedContext = contextPreinitialized;
     }
 
-    return [initializedSuperfluidSource, rtkQuerySlice, transactionSlice];
+    return {
+        context: initializedContext,
+        apiSlice: rtkQuerySlice,
+        transactionSlice: transactionSlice,
+    };
 };

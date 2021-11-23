@@ -49,17 +49,17 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 >;
 ```
 
-We need to plug in the Superfluid pieces.
+We need to plug in the Superfluid SDK-Redux parts.
 
-Import this function: `import { createPieces } from "@superfluid-finance/sdk-redux";`
+Import this function: `import { createSdkReduxParts } from "@superfluid-finance/sdk-redux";`
 
 Then create the pieces:
 ```
-const [
-    superfluidFrameworkSource,
-    superfluidApiSlice,
-    superfluidTransactionSlice,
-] = createPieces();
+const {
+    context,
+    apiSlice,
+    transactionSlice,
+} = createSdkReduxParts();
 ```
 
 Plug in the reducer slices:
@@ -67,8 +67,8 @@ Plug in the reducer slices:
 export const store = configureStore({
   reducer: {
     //
-    "superfluidApi": superfluidApiSlice.reducer,
-    "superfluidTransactions": superfluidTransactionSlice.reducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
+    [transactionSlice.reducerPath]: transactionSlice.reducer,
     //
   },
 });
@@ -78,31 +78,32 @@ Add the middleware:
 ```
 export const store = configureStore({
   reducer: {
-    "superfluidApi": superfluidApiSlice.reducer,
-    "superfluidTransactions": superfluidTransactionSlice.reducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
+    [transactionSlice.reducerPath]: transactionSlice.reducer,
   },
   //
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(superfluidApiSlice.middleware)
+    getDefaultMiddleware().concat(apiSlice.middleware)
   //
 });
 ```
 
-Export the SDK-Core source:
+Export the Superfluid Context:
 ```
-export { superfluidFrameworkSource };
+export const superfluidContext = context;
 ```
 
-Somewhere in your code, give instructions to the `superfluidFrameworkSource` to locate `Framework` and `Signer`:
+Somewhere in your code, give instructions to the `superfluidContext` to locate `Framework` and `Signer`:
 ```
-superfluidFrameworkSource.setFramework(
-    chainId,
-    Promise.resolve(superfluidSdk)
-);
-superfluidFrameworkSource.setSigner(
-    chainId,
-    Promise.resolve(ethersWeb3Provider.getSigner())
-);
+superfluidContext
+    .setFramework(
+        chainId,
+        superfluidFramework
+    )
+    .setSigner(
+        chainId,
+        ethersWeb3Provider.getSigner()
+    );
 ```
 
 That should be it! You should now be able to dispatch messages to Superfluid reducers & use the React hooks.

@@ -1,6 +1,6 @@
 import { ISuperToken, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { NothingBoolean, PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
@@ -25,10 +25,9 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
                     }),
                 ],
                 queryFn: async (arg) => {
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
+                    const framework = await initializedContext.getFramework(
+                        arg.chainId
+                    );
 
                     return {
                         data: await framework.query.listAllSuperTokens(

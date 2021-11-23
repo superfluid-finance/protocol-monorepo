@@ -4,7 +4,7 @@ import { Signer } from 'ethers';
 const frameworks = new Map<number, () => Promise<Framework>>();
 const signers = new Map<number, () => Promise<Signer>>();
 
-export const superfluidSource = {
+export const superfluidContext = {
     getFramework: (chainId: number): Promise<Framework> => {
         const frameworkGetter = frameworks.get(chainId);
         if (!frameworkGetter)
@@ -27,7 +27,7 @@ export const superfluidSource = {
         } else {
             frameworks.set(chainId, framework);
         }
-        return superfluidSource;
+        return superfluidContext;
     },
     setSigner: (chainId: number, signer: (() => Promise<Signer>) | Signer) => {
         if (signer instanceof Signer) {
@@ -35,16 +35,16 @@ export const superfluidSource = {
         } else {
             signers.set(chainId, signer);
         }
-        return superfluidSource;
+        return superfluidContext;
     },
     getFrameworkAndSigner: async (
         chainId: number
     ): Promise<[framework: Framework, signer: Signer]> => {
         return await Promise.all([
-            superfluidSource.getFramework(chainId),
-            superfluidSource.getSigner(chainId),
+            superfluidContext.getFramework(chainId),
+            superfluidContext.getSigner(chainId),
         ]);
     },
 };
 
-export type SuperfluidSource = typeof superfluidSource;
+export type SuperfluidContext = typeof superfluidContext;

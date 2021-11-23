@@ -1,6 +1,6 @@
 import { IStream, PagedResult, Paging } from '@superfluid-finance/sdk-core';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { NothingString, PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
@@ -24,10 +24,9 @@ export const { useListStreamsQuery, useLazyListStreamsQuery } =
                     }),
                 ],
                 queryFn: async (arg) => {
-                    const framework =
-                        await initializedSuperfluidSource.getFramework(
-                            arg.chainId
-                        );
+                    const framework = await initializedContext.getFramework(
+                        arg.chainId
+                    );
 
                     return {
                         data: await framework.query.listStreams(

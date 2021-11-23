@@ -1,18 +1,18 @@
 import { AnyAction } from '@reduxjs/toolkit';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { initializedContext } from '../../../superfluidApi';
 import { TransactionInfo } from '../../baseArg';
 
 import { invalidateCacheTagsForEvents } from './invalidateCacheTagsForEvents';
-import {MsTimes} from "../../../utils";
+import { MsTimes } from '../../../utils';
 
 export const monitorAddressForNextEventToInvalidateCache = async (
     address: string,
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    const framework = await initializedSuperfluidSource.getFramework(
+    const framework = await initializedContext.getFramework(
         transactionInfo.chainId
     );
     framework.query.on(

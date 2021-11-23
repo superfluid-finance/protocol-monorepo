@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useContext } from "react";
 import {
-    TransactionTracking,
-    superfluidTransactionSelectors,
+    TrackedTransaction,
+    transactionSelectors,
 } from "@superfluid-finance/sdk-redux";
 import { Loader } from "../Loader";
 import {
@@ -19,7 +19,7 @@ export const TransactionTable: FC = (): ReactElement => {
     const [networkName, signerAddress] = useContext(SignerContext);
 
     const transactions = useAppSelector((state) =>
-        superfluidTransactionSelectors.selectAll(state.transactions)
+        transactionSelectors.selectAll(state.transactions)
     );
 
     return (
@@ -36,7 +36,7 @@ export const TransactionTable: FC = (): ReactElement => {
                         </TableHead>
                         <TableBody>
                             {transactions!.map(
-                                (transaction: TransactionTracking) => (
+                                (transaction: TrackedTransaction) => (
                                     <TableRow
                                         key={transaction.hash}
                                         sx={{

@@ -11,4 +11,6 @@ export enum MsTimes {
     TwentySeconds = 20000,
     OneMinute = 60000,
     TenMinutes = 600000,
+    ThreeMinutes = 180000,
+    FiveMinutes = 300000,
 }

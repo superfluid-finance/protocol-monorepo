@@ -24,6 +24,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TextField,
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
@@ -33,11 +34,12 @@ const pageSize = 10;
 export const ListSuperTokens: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
+    const [queryChainId, setQueryChainId] = useState<number>(chainId);
     const [isListed, setIsListed] = useState<boolean | undefined>();
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, isListed]);
+    }, [queryChainId, isListed]);
 
     const {
         data: pagedSuperTokens,
@@ -47,7 +49,7 @@ export const ListSuperTokens: FC = (): ReactElement => {
         refetch,
     } = useListSuperTokensQuery({
         isListed: isListed,
-        chainId: chainId,
+        chainId: queryChainId,
         skip: (page - 1) * pageSize,
         take: pageSize,
     });
@@ -60,6 +62,14 @@ export const ListSuperTokens: FC = (): ReactElement => {
         <>
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>
+                    <TextField
+                        sx={{ m: 1 }}
+                        label="Chain ID"
+                        value={queryChainId}
+                        onChange={(e) =>
+                            setQueryChainId(Number(e.currentTarget.value))
+                        }
+                    />
                     <FormControl component="fieldset">
                         <RadioGroup
                             row

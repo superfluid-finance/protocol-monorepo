@@ -27,6 +27,7 @@ const pageSize = 10;
 export const ListIndexes: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
+    const [queryChainId, setQueryChainId] = useState<number>(chainId);
 
     const [indexId, setIndexId] = useState<string>("");
     const [publisherAddress, setPublisherAddress] =
@@ -35,7 +36,7 @@ export const ListIndexes: FC = (): ReactElement => {
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, indexId, publisherAddress, superTokenAddress]);
+    }, [queryChainId, indexId, publisherAddress, superTokenAddress]);
 
     const {
         data: pagedIndexes,
@@ -44,7 +45,7 @@ export const ListIndexes: FC = (): ReactElement => {
         error,
         refetch,
     } = useListIndexesQuery({
-        chainId: chainId,
+        chainId: queryChainId,
         indexId: indexId,
         publisherAddress,
         superTokenAddress,
@@ -56,6 +57,14 @@ export const ListIndexes: FC = (): ReactElement => {
         <>
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>
+                    <TextField
+                        sx={{ m: 1 }}
+                        label="Chain ID"
+                        value={queryChainId}
+                        onChange={(e) =>
+                            setQueryChainId(Number(e.currentTarget.value))
+                        }
+                    />
                     <TextField
                         sx={{ m: 1 }}
                         label="Index ID"

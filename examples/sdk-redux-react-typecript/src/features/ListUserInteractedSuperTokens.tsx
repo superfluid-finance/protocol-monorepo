@@ -30,13 +30,14 @@ const pageSize = 10;
 export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
+    const [queryChainId, setQueryChainId] = useState<number>(chainId);
 
     const [accountAddress, setAccountAddress] = useState<string>(signerAddress);
     const [superTokenAddress, setSuperTokenAddress] = useState("");
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, superTokenAddress, accountAddress]);
+    }, [queryChainId, superTokenAddress, accountAddress]);
 
     const {
         data: pagedIndexSubscriptions,
@@ -47,7 +48,7 @@ export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
     } = useListUserInteractedSuperTokensQuery({
         accountAddress,
         superTokenAddress,
-        chainId: chainId,
+        chainId: queryChainId,
         skip: (page - 1) * pageSize,
         take: pageSize,
     });
@@ -56,6 +57,14 @@ export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
         <>
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>
+                    <TextField
+                        sx={{ m: 1 }}
+                        label="Chain ID"
+                        value={queryChainId}
+                        onChange={(e) =>
+                            setQueryChainId(Number(e.currentTarget.value))
+                        }
+                    />
                     <TextField
                         sx={{ m: 1 }}
                         value={accountAddress}

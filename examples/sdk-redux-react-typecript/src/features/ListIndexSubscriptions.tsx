@@ -34,6 +34,7 @@ const pageSize = 10;
 export const ListIndexSubscriptions: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
+    const [queryChainId, setQueryChainId] = useState<number>(chainId);
 
     const [subscriberAddress, setSubscriberAddress] =
         useState<string>(signerAddress);
@@ -41,7 +42,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, isApproved, subscriberAddress]);
+    }, [queryChainId, isApproved, subscriberAddress]);
 
     const {
         data: pagedIndexSubscriptions,
@@ -50,7 +51,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
         error,
         refetch,
     } = useListIndexSubscriptionsQuery({
-        chainId: chainId,
+        chainId: queryChainId,
         subscriberAddress,
         approved: isApproved,
         skip: (page - 1) * pageSize,
@@ -65,6 +66,14 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
         <>
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>
+                    <TextField
+                        sx={{ m: 1 }}
+                        label="Chain ID"
+                        value={queryChainId}
+                        onChange={(e) =>
+                            setQueryChainId(Number(e.currentTarget.value))
+                        }
+                    />
                     <TextField
                         sx={{ m: 1 }}
                         label="Subscriber Address"
@@ -105,7 +114,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Index</TableCell>
+                                        <TableCell>Index Subscription</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>

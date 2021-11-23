@@ -27,11 +27,12 @@ const pageSize = 10;
 export const ListEvents: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
+    const [queryChainId, setQueryChainId] = useState<number>(chainId);
     const [accountAddress, setAccountAddress] = useState<string>(signerAddress);
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, accountAddress]);
+    }, [queryChainId, accountAddress]);
 
     const {
         data: pagedEvents,
@@ -39,25 +40,31 @@ export const ListEvents: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListEventsQuery({
-        chainId: chainId,
-        accountAddress,
-        timestamp_gte: undefined,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-    });
-
-    const handlePageChange = (
-        event: React.ChangeEvent<unknown>,
-        value: number
-    ) => {
-        setPage(value);
-    };
+    } = useListEventsQuery(
+        {
+            chainId: queryChainId,
+            accountAddress,
+            timestamp_gte: undefined,
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        },
+        {
+            pollingInterval: 7500,
+        }
+    );
 
     return (
         <>
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>
+                    <TextField
+                        sx={{ m: 1 }}
+                        label="Chain ID"
+                        value={queryChainId}
+                        onChange={(e) =>
+                            setQueryChainId(Number(e.currentTarget.value))
+                        }
+                    />
                     <TextField
                         sx={{ m: 1 }}
                         label="Address"
@@ -70,7 +77,7 @@ export const ListEvents: FC = (): ReactElement => {
             </form>
             {
                 <>
-                    {isFetching ? (
+                    {isLoading ? (
                         <Loader />
                     ) : error ? (
                         <Error error={error} retry={refetch} />
@@ -79,7 +86,7 @@ export const ListEvents: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Index</TableCell>
+                                        <TableCell>Event</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>

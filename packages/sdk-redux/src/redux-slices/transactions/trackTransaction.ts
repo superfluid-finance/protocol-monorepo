@@ -25,8 +25,8 @@ export const waitForOneConfirmation = (
 
 export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
     'trackTransaction',
-    async (arg, thunkAPI) => {
-        thunkAPI.dispatch(
+    async (arg, { dispatch }) => {
+        dispatch(
             transactionSlice.actions.upsertTransaction({
                 chainId: arg.chainId,
                 hash: arg.hash,
@@ -41,7 +41,7 @@ export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
                 (_transactionReceipt: ethers.providers.TransactionReceipt) => {
                     // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
-                    thunkAPI.dispatch(
+                    dispatch(
                         transactionSlice.actions.upsertTransaction({
                             chainId: arg.chainId,
                             hash: arg.hash,
@@ -52,12 +52,12 @@ export const trackTransaction = createAsyncThunk<void, TrackTransactionArg>(
                     monitorForLateErrors(
                         framework.settings.provider,
                         arg,
-                        thunkAPI.dispatch
+                        dispatch
                     );
                 }
             )
             .catch((ethersError: EthersError) => {
-                notifyOfError(ethersError, arg, thunkAPI.dispatch);
+                notifyOfError(ethersError, arg, dispatch);
             });
     }
 );

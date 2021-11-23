@@ -27,6 +27,7 @@ const pageSize = 10;
 export const ListStreams: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
+    const [queryChainId, setQueryChainId] = useState<number>(chainId);
 
     const [superTokenAddress, setSuperTokenAddress] = useState<string>("");
     const [senderAddress, setSenderAddress] = useState<string>("");
@@ -34,7 +35,7 @@ export const ListStreams: FC = (): ReactElement => {
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, senderAddress, receiverAddress, superTokenAddress]);
+    }, [queryChainId, senderAddress, receiverAddress, superTokenAddress]);
 
     const {
         data: pagedStreams,
@@ -43,7 +44,7 @@ export const ListStreams: FC = (): ReactElement => {
         error,
         refetch,
     } = useListStreamsQuery({
-        chainId: chainId,
+        chainId: queryChainId,
         senderAddress,
         receiverAddress,
         superTokenAddress,
@@ -55,6 +56,14 @@ export const ListStreams: FC = (): ReactElement => {
         <>
             <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                 <FormGroup>
+                    <TextField
+                        sx={{ m: 1 }}
+                        label="Chain ID"
+                        value={queryChainId}
+                        onChange={(e) =>
+                            setQueryChainId(Number(e.currentTarget.value))
+                        }
+                    />
                     <TextField
                         sx={{ m: 1 }}
                         label="SuperToken"
@@ -92,7 +101,6 @@ export const ListStreams: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Chain ID</TableCell>
                                         <TableCell>SuperToken</TableCell>
                                         <TableCell>Sender</TableCell>
                                         <TableCell>Receiver</TableCell>
@@ -111,7 +119,6 @@ export const ListStreams: FC = (): ReactElement => {
                                                         },
                                                 }}
                                             >
-                                                <TableCell>{chainId}</TableCell>
                                                 <TableCell>
                                                     {flow.token.id}
                                                 </TableCell>

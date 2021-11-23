@@ -1,6 +1,6 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import {NothingString, SuperTokenMutationArg, TransactionInfo} from '../../baseArg';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
@@ -9,7 +9,7 @@ import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 export type RevokeIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;
     publisherAddress: string;
-    userDataBytes?: string;
+    userDataBytes: string | NothingString;
 };
 
 export const { useRevokeIndexSubscriptionMutation } =

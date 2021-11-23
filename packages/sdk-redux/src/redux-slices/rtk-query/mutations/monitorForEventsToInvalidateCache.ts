@@ -33,11 +33,7 @@ export const { useMonitorForEventsToInvalidateCacheMutation } =
                             arg.chainId
                         );
 
-                    console.log("onCacheEntryAdded")
-
                     await cacheDataLoaded;
-
-                    console.log("cacheDataLoaded")
 
                     const unsubscribe = framework.query.on((events) => {
                         invalidateCacheTagsForEvents(arg.chainId, events, dispatch)
@@ -45,7 +41,6 @@ export const { useMonitorForEventsToInvalidateCacheMutation } =
 
                     try {
                         await cacheEntryRemoved;
-                        console.log("cacheEntryRemoved")
                     } finally {
                         unsubscribe();
                     }

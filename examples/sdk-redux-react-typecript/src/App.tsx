@@ -61,6 +61,7 @@ function App() {
                 <Typography variant="h2" component="h2" gutterBottom>
                     SDK-Redux example
                 </Typography>
+                <p>Chain ID-s: {[3,4,5,42,137,80001].join(", ")}</p>
                 {!superfluidSdk ? (
                     <InitializeSuperfluidSdk
                         onSuperfluidSdkInitialized={(x, provider) =>

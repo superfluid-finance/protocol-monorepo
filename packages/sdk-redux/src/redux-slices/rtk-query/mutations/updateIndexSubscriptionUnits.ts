@@ -1,6 +1,6 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { typeGuard } from '../../../utils';
-import { SuperTokenMutationArg, TransactionInfo } from '../../baseArg';
+import {NothingString, SuperTokenMutationArg, TransactionInfo} from '../../baseArg';
 import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
 import { rtkQuerySlice } from '../rtkQuerySlice';
@@ -11,7 +11,7 @@ export type UpdateIndexSubscriptionUnitsArg = SuperTokenMutationArg & {
     indexId: string;
     unitsNumber: string;
     amountWei: string;
-    userDataBytes?: string;
+    userDataBytes: string | NothingString;
 };
 
 export const { useUpdateIndexSubscriptionUnitsMutation } =

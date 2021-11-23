@@ -21,11 +21,21 @@ export const superfluidSource = {
             );
         return signerGetter();
     },
-    setFramework: (chainId: number, getFramework: () => Promise<Framework>) => {
-        frameworks.set(chainId, getFramework);
+    setFramework: (chainId: number, framework: (() => Promise<Framework>) | Framework) => {
+        if (framework instanceof Framework) {
+            frameworks.set(chainId, () => Promise.resolve(framework));
+        } else {
+            frameworks.set(chainId, framework);
+        }
+        return superfluidSource;
     },
-    setSigner: (chainId: number, getSigner: () => Promise<Signer>) => {
-        signers.set(chainId, getSigner);
+    setSigner: (chainId: number, signer: (() => Promise<Signer>) | Signer) => {
+        if (signer instanceof Signer) {
+            signers.set(chainId, () => Promise.resolve(signer));
+        } else {
+            signers.set(chainId, signer);
+        }
+        return superfluidSource;
     },
     getFrameworkAndSigner: async (
         chainId: number

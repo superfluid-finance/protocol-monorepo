@@ -1,14 +1,10 @@
 import { ethers } from "ethers";
-// TODO (0xdavinchee): reorganize this
-// Maybe moving these into categorical files
-// makes more sense than stuffing them all here
 
-// read request interfaces
+// Filter Interfaces
 export interface IAccountTokenSnapshotFilter {
     readonly account?: string;
     readonly token?: string;
 }
-
 export interface IAccountEventsFilter {
     readonly account: string;
     readonly timestamp_gte: number;
@@ -31,12 +27,7 @@ export interface ISuperTokenRequestFilter {
     readonly isListed?: boolean;
 }
 
-// TODO: Major Cleanup needed for SuperToken interfaces
-// along with IDA/CFA interfaces
-// A better thought out inheritance pattern - SuperToken is parent
-// CFA/IDA inherits and tacks on superToken property
-
-// write request interfaces
+// Web3 SuperToken Write Request Interfaces
 export interface ISuperTokenModifyFlowParams {
     readonly flowRate?: string;
     readonly receiver: string;
@@ -54,31 +45,9 @@ export interface ISuperTokenDeleteFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly sender: string;
 }
-
 export interface ISuperTokenBaseIDAParams {
     readonly indexId: string;
     readonly userData?: string;
-}
-export interface ISuperTokenGetSubscriptionParams {
-    readonly indexId: string;
-    readonly publisher: string;
-    readonly subscriber: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
-}
-export interface ISuperTokenGetIndexParams {
-    readonly indexId: string;
-    readonly publisher: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
-}
-export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
-    readonly publisher: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
-}
-export interface ISuperTokenPubSubParams {
-    readonly indexId: string;
-    readonly userData?: string;
-    readonly publisher: string;
-    readonly subscriber: string;
 }
 export interface ISuperTokenPublisherOperationParams {
     readonly indexId: string;
@@ -101,28 +70,6 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams {
     readonly userData?: string;
     readonly units: string;
 }
-export interface IModifyFlowParams {
-    readonly receiver: string;
-    readonly superToken: string;
-    readonly flowRate?: string;
-    readonly sender?: string;
-    readonly userData?: string;
-}
-export interface ICreateFlowParams extends IModifyFlowParams {
-    readonly flowRate: string;
-}
-
-export interface IUpdateFlowParams extends ICreateFlowParams {}
-export interface IDeleteFlowParams extends IModifyFlowParams {
-    readonly sender: string;
-}
-
-export interface IRealtimeBalanceOfParams {
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    readonly account: string;
-    readonly timestamp?: number;
-}
-
 export interface IBaseSuperTokenParams {
     readonly receiver: string;
     readonly amount: string;
@@ -134,30 +81,69 @@ export interface ITransferFromParams {
     readonly amount: string;
 }
 
+// Web3 SuperToken Read Request Interfaces
+export interface ISuperTokenGetSubscriptionParams {
+    readonly indexId: string;
+    readonly publisher: string;
+    readonly subscriber: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface ISuperTokenGetIndexParams {
+    readonly indexId: string;
+    readonly publisher: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface ISuperTokenPubSubParams {
+    readonly indexId: string;
+    readonly userData?: string;
+    readonly publisher: string;
+    readonly subscriber: string;
+}
+export interface IModifyFlowParams {
+    readonly receiver: string;
+    readonly superToken: string;
+    readonly flowRate?: string;
+    readonly sender?: string;
+    readonly userData?: string;
+}
+
+// Web3 CFA Write Request Interfaces
+export interface ICreateFlowParams extends IModifyFlowParams {
+    readonly flowRate: string;
+}
+export interface IUpdateFlowParams extends ICreateFlowParams {}
+export interface IDeleteFlowParams extends IModifyFlowParams {
+    readonly sender: string;
+}
+
+// Web3 CFA Read Request Interfaces
+export interface IRealtimeBalanceOfParams {
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly account: string;
+    readonly timestamp?: number;
+}
 export interface ISuperTokenGetFlowParams {
     readonly sender: string;
     readonly receiver: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
-
 export interface ISuperTokenGetFlowInfoParams {
     readonly account: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
-
 export interface IGetFlowParams {
     readonly superToken: string;
     readonly sender: string;
     readonly receiver: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
-
 export interface IGetAccountFlowInfoParams {
     readonly superToken: string;
     readonly account: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
+// Web3 IDA Write Request Interfaces
 export interface IBaseIDAParams {
     readonly indexId: string;
     readonly superToken: string;
@@ -167,7 +153,24 @@ export interface IBaseIDAParams {
 export interface IBaseSubscriptionParams extends IBaseIDAParams {
     readonly subscriber: string;
 }
+export interface IDistributeParams extends IBaseIDAParams {
+    readonly amount: string;
+}
+export interface IUpdateIndexValueParams extends IBaseIDAParams {
+    readonly indexValue: string;
+}
+export interface IUpdateSubscriptionUnitsParams
+    extends IBaseSubscriptionParams {
+    readonly units: string;
+}
+export interface IApproveSubscriptionParams extends IBaseSubscriptionParams {
+    readonly publisher: string;
+}
+export interface IRevokeSubscriptionParams extends IBaseSubscriptionParams {
+    readonly publisher: string;
+}
 
+// Web3 IDA Read Request Interfaces
 export interface IGetSubscriptionParams extends IBaseIDAParams {
     readonly publisher: string;
     readonly subscriber: string;
@@ -176,27 +179,6 @@ export interface IGetSubscriptionParams extends IBaseIDAParams {
 export interface IGetIndexParams extends IBaseIDAParams {
     readonly publisher: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
-}
-
-export interface IDistributeParams extends IBaseIDAParams {
-    readonly amount: string;
-}
-
-export interface IUpdateIndexValueParams extends IBaseIDAParams {
-    readonly indexValue: string;
-}
-
-export interface IUpdateSubscriptionUnitsParams
-    extends IBaseSubscriptionParams {
-    readonly units: string;
-}
-
-export interface IApproveSubscriptionParams extends IBaseSubscriptionParams {
-    readonly publisher: string;
-}
-
-export interface IRevokeSubscriptionParams extends IBaseSubscriptionParams {
-    readonly publisher: string;
 }
 
 // Subgraph Return Data

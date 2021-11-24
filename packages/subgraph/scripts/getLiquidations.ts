@@ -3,12 +3,15 @@ import _ from "lodash";
 import { ethers } from "hardhat";
 import { IMeta } from "../test/interfaces";
 import { chainIdToData } from "./maps";
-import { toBN } from "../test/helpers/helpers";
 import CoinGecko from "coingecko-api";
 /**
  * NOTE: Run this file using `npx hardhat run scripts/getLiquidations.ts`.
  *
  */
+
+interface ILightEntity {
+    readonly id: string;
+}
 
 interface IAgreementLiquidatedByEvent {
     readonly id: string;
@@ -36,7 +39,11 @@ interface ISuperToken {
 }
 
 interface IStream {
+    readonly id: string;
     readonly createdAtTimestamp: string;
+    readonly sender: ILightEntity;
+    readonly receiver: ILightEntity;
+    readonly token: ILightEntity;
     readonly flowUpdatedEvents: {
         readonly flowRate: string;
         readonly receiver: string;
@@ -89,57 +96,60 @@ export const getMostRecentIndexedBlockNumber = async (
     return data._meta.block.number;
 };
 
-async function getAllResults<T extends { timestamp: string }>(
+async function getAllResults<T>(
     query: string,
     endpoint: string,
     resultsPerPage: number,
-    earliestTimestamp: number,
-    mostRecentTimestamp: number,
-    block: number
+    variables: any
 ): Promise<T[]> {
     const initialResults = await subgraphRequest<{ response: T[] }>(
         query,
         endpoint,
-        {
-            first: resultsPerPage,
-            lt_timestamp: mostRecentTimestamp,
-            gt_timestamp: earliestTimestamp,
-            block,
-        }
+        variables
     );
 
     if (initialResults.response.length < resultsPerPage) {
         return initialResults.response;
     }
     let newTimestamp =
-        initialResults.response[initialResults.response.length - 1].timestamp;
+        (
+            initialResults.response[initialResults.response.length - 1] as T & {
+                timestamp: string;
+            }
+        ).timestamp ||
+        (
+            initialResults.response[initialResults.response.length - 1] as T & {
+                createdAtTimestamp: string;
+            }
+        ).createdAtTimestamp;
+    const newVariables = {
+        ...variables,
+        gte_timestamp: Number(newTimestamp),
+    };
     const data = [
         ...initialResults.response,
         ...((await getAllResults(
             query,
             endpoint,
             resultsPerPage,
-            Number(newTimestamp),
-            mostRecentTimestamp,
-            block
+            newVariables
         )) as T[]),
     ];
-    console.log("total results retrieved: ", data.length);
     return data;
 }
 
 const liquidatedByQuery = gql`
     query getLiquidatedByEvents(
-        $lt_timestamp: Int!
-        $gt_timestamp: Int!
+        $lte_timestamp: Int!
+        $gte_timestamp: Int!
         $first: Int!
         $block: Int!
     ) {
         response: agreementLiquidatedByEvents(
             block: { number: $block }
             where: {
-                timestamp_lte: $lt_timestamp
-                timestamp_gte: $gt_timestamp
+                timestamp_lte: $lte_timestamp
+                timestamp_gte: $gte_timestamp
             }
             first: $first
             orderBy: timestamp
@@ -182,9 +192,11 @@ const liquidatedStreamsQuery = gql`
     query getStreams(
         $sender_in: [String!]
         $createdAtTimestamp_gte: BigInt!
+        $first: Int!
         $block: Int!
     ) {
         response: streams(
+            first: $first
             block: { number: $block }
             where: {
                 sender_in: $sender_in
@@ -192,7 +204,17 @@ const liquidatedStreamsQuery = gql`
                 currentFlowRate: 0
             }
         ) {
+            id
             createdAtTimestamp
+            sender {
+                id
+            }
+            receiver {
+                id
+            }
+            token {
+                id
+            }
             flowUpdatedEvents(
                 orderBy: timestamp
                 orderDirection: desc
@@ -211,8 +233,12 @@ const liquidatedStreamsQuery = gql`
     }
 `;
 
-(async () => {
-    const chainId = 137;
+const getLiquidatedStreams = async (
+    chainId: number,
+    providerEndpoint: string,
+    startTime: number,
+    endTime: number
+) => {
     const chainIdData = chainIdToData.get(chainId);
     if (chainIdData == null) {
         throw new Error("chainId " + chainId + " is not a supported chainId.");
@@ -222,32 +248,45 @@ const liquidatedStreamsQuery = gql`
     const recentBlock = await getMostRecentIndexedBlockNumber(
         chainIdData.subgraphAPIEndpoint
     );
-    const provider = new ethers.providers.JsonRpcProvider(
-        "https://polygon-rpc.com/"
-    );
+    const provider = new ethers.providers.JsonRpcProvider(providerEndpoint);
     const block = await provider.getBlock(recentBlock);
 
-    // get the most recent timestamp (given the most recent block from provider)
-    const mostRecentBlockTimestamp = block.timestamp;
-    const monthInSeconds = DAY_IN_SECS * 30;
+    if (endTime > block.timestamp) {
+        console.error(
+            "The end time is greater than the most recently indexed block."
+        );
+        return;
+    }
 
-    // get the earliest timestamp we will query by
-    const earliestTimestamp = mostRecentBlockTimestamp - monthInSeconds;
+    const formattedStart = Math.round(startTime);
+    const formattedEnd = Math.round(endTime);
+
+    const earliestDate = new Date(startTime * 1000).toLocaleDateString();
+    const currentDate = new Date(endTime * 1000).toLocaleDateString();
+    console.log("Covered Range:", earliestDate, "to", currentDate);
 
     // get all the AgreementLiquidatedByEvents in the last month
+
     const agreementLiquidatedByEvents =
         await getAllResults<IAgreementLiquidatedByEvent>(
             liquidatedByQuery,
             chainIdData.subgraphAPIEndpoint,
             1000,
-            earliestTimestamp,
-            mostRecentBlockTimestamp,
-            block.number
+            {
+                first: 1000,
+                lte_timestamp: formattedEnd,
+                gte_timestamp: formattedStart,
+                block: block.number,
+            }
         );
 
     const uniqueLiquidatedByEvents = _.uniqBy(
         agreementLiquidatedByEvents,
         (x) => x.id
+    );
+    console.log(
+        "Number of unique AgreementLiquidatedBy events:",
+        uniqueLiquidatedByEvents.length
     );
 
     // get coingecko's list of tokens
@@ -318,7 +357,7 @@ const liquidatedStreamsQuery = gql`
             MIN_DOLLAR_AMOUNT
     );
 
-    const filteredPenaltyAccountToTimestampsDict =
+    const filteredPenaltyAccountToTxnHashDict =
         filteredAgreementLiquidatedByEvents.reduce((acc, obj) => {
             const { transactionHash, penaltyAccount, token } = obj;
             return {
@@ -334,24 +373,45 @@ const liquidatedStreamsQuery = gql`
     const liquidatedIndividuals = filteredAgreementLiquidatedByEvents.map(
         (x) => x.penaltyAccount
     );
+    const uniqueLiquidatedIndividuals = _.uniq(liquidatedIndividuals);
+
+    console.log(
+        "Unique Liquidated Individuals Length:",
+        uniqueLiquidatedIndividuals.length
+    );
 
     // do a query of the possible liquidated streams
-    const possibleLiquidatedStreams = await subgraphRequest<{
-        response: IStream[];
-    }>(liquidatedStreamsQuery, chainIdData.subgraphAPIEndpoint, {
-        sender_in: liquidatedIndividuals,
-        createdAtTimestamp_gte: earliestTimestamp,
-        block: block.number,
-    });
+    const possibleLiquidatedStreams = await getAllResults<IStream>(
+        liquidatedStreamsQuery,
+        chainIdData.subgraphAPIEndpoint,
+        1000,
+        {
+            sender_in: uniqueLiquidatedIndividuals,
+            first: 1000,
+            createdAtTimestamp_gte: formattedStart,
+            block: block.number,
+        }
+    );
+
+    const uniquePossibleLiquidatedStreams = _.uniqBy(
+        possibleLiquidatedStreams,
+        (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
+    );
+
+    console.log(
+        "Unique Possible Liquidated Streams Length:",
+        uniquePossibleLiquidatedStreams.length
+    );
 
     // filter possible liquidated streams <= a week old
-    const weekOldPossiblyLiquidatedStreams = possibleLiquidatedStreams.response
+    const weekOldLikelyLiquidatedStreams = uniquePossibleLiquidatedStreams
+        .filter((x) => x.flowUpdatedEvents[0].type === 2) // the last event must be a closed stream
         .filter(
             (x) =>
                 Number(x.flowUpdatedEvents[0].timestamp) -
                     Number(x.createdAtTimestamp) <=
                 WEEK_IN_SECS
-        )
+        ) // the stream should be less than a week old
         .map((x) => ({
             createdAtTimestamp: x.createdAtTimestamp,
             sender: x.flowUpdatedEvents[0].sender,
@@ -362,18 +422,26 @@ const liquidatedStreamsQuery = gql`
             transactionHash: x.flowUpdatedEvents[0].transactionHash,
             terminatedAtTimestamp: x.flowUpdatedEvents[0].timestamp,
         }))
-        // last check to ensure that the stream closure occurred at the same time as a liquidation
-        // it is not 100% proof because the user could've possibly closed their own stream with the
-        // same token at the exact moment they got liquidated
         .filter((x) =>
             (
-                filteredPenaltyAccountToTimestampsDict[
-                    x.sender + "-" + x.token
-                ] || []
+                filteredPenaltyAccountToTxnHashDict[x.sender + "-" + x.token] ||
+                []
             ).includes(x.transactionHash)
         );
     console.log(
-        "Total Streams Liquidated (1 week or less + > $5 deposit lost): ",
-        weekOldPossiblyLiquidatedStreams.length
+        "Total Streams Liquidated (1 week or less + > $5 deposit lost):",
+        weekOldLikelyLiquidatedStreams.length + "\n"
     );
+};
+
+(async () => {
+    const nowInSecs = new Date().getTime() / 1000;
+    for (let i = 7; i < 30; i += 7) {
+        await getLiquidatedStreams(
+            137,
+            "https://polygon-rpc.com/",
+            nowInSecs - (30 - i + 7) * DAY_IN_SECS, // lagging start time
+            nowInSecs - (30 - i) * DAY_IN_SECS
+        );
+    }
 })();

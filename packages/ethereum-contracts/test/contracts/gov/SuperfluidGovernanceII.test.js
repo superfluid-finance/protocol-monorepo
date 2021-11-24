@@ -1,5 +1,5 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
@@ -11,7 +11,7 @@ describe("Superfluid Ownable Governance Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const { ZERO_ADDRESS } = t.constants;
+    const {ZERO_ADDRESS} = t.constants;
     const FAKE_TOKEN_ADDRESS1 = "0x" + "e".repeat(40);
     const FAKE_TOKEN_ADDRESS2 = "0x" + "f".repeat(40);
     const FAKE_ADDRESS1 = "0x" + "1".repeat(40);
@@ -28,8 +28,8 @@ describe("Superfluid Ownable Governance Contract", function () {
             nAccounts: 2,
         });
 
-        ({ alice } = t.aliases);
-        ({ superfluid, governance } = t.contracts);
+        ({alice} = t.aliases);
+        ({superfluid, governance} = t.contracts);
 
         const newGovProxy = await SuperfluidGovernanceIIProxy.new({
             from: alice,
@@ -100,7 +100,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.updateCode,
                 "governance.updateCode to new logic contract"
-            )(newLogic.address, { from: alice });
+            )(newLogic.address, {from: alice});
             assert.equal(await governance.getCodeAddress(), newLogic.address);
         });
 
@@ -134,7 +134,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.setRewardAddress,
                 "governance.setRewardAddress DEFAULT FAKE_ADDRESS1"
-            )(superfluid.address, ZERO_ADDRESS, FAKE_ADDRESS1, { from: alice });
+            )(superfluid.address, ZERO_ADDRESS, FAKE_ADDRESS1, {from: alice});
             await web3tx(
                 governance.setRewardAddress,
                 "governance.setRewardAddress FAKE_TOKEN_ADDRESS1 FAKE_ADDRESS2"
@@ -159,7 +159,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.clearRewardAddress,
                 "governance.clearRewardAddress FAKE_TOKEN_ADDRESS1"
-            )(superfluid.address, FAKE_TOKEN_ADDRESS1, { from: alice });
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
             assert.equal(
                 await governance.getRewardAddress(
                     superfluid.address,
@@ -189,7 +189,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.setCFAv1LiquidationPeriod,
                 "governance.setCFAv1LiquidationPeriod DEFAULT 42"
-            )(superfluid.address, ZERO_ADDRESS, 42, { from: alice });
+            )(superfluid.address, ZERO_ADDRESS, 42, {from: alice});
             await web3tx(
                 governance.setCFAv1LiquidationPeriod,
                 "governance.setCFAv1LiquidationPeriod FAKE_TOKEN_ADDRESS1 888"
@@ -218,7 +218,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.clearCFAv1LiquidationPeriod,
                 "governance.clearCFAv1LiquidationPeriod FAKE_TOKEN_ADDRESS1"
-            )(superfluid.address, FAKE_TOKEN_ADDRESS1, { from: alice });
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
             assert.equal(
                 (
                     await governance.getCFAv1LiquidationPeriod(
@@ -251,7 +251,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.enableTrustedForwarder,
                 "governance.enableTrustedForwarder DEFAULT FAKE_ADDRESS1"
-            )(superfluid.address, ZERO_ADDRESS, FAKE_ADDRESS1, { from: alice });
+            )(superfluid.address, ZERO_ADDRESS, FAKE_ADDRESS1, {from: alice});
             await web3tx(
                 governance.enableTrustedForwarder,
                 "governance.enableTrustedForwarder FAKE_TOKEN_ADDRESS1 FAKE_ADDRESS2"
@@ -325,7 +325,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await web3tx(
                 governance.disableTrustedForwarder,
                 "governance.disableTrustedForwarder DEFAULT FAKE_ADDRESS1"
-            )(superfluid.address, ZERO_ADDRESS, FAKE_ADDRESS1, { from: alice });
+            )(superfluid.address, ZERO_ADDRESS, FAKE_ADDRESS1, {from: alice});
             assert.isFalse(
                 await governance.isTrustedForwarder(
                     superfluid.address,
@@ -392,7 +392,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 governance.authorizeAppFactory(
                     superfluid.address,
                     FAKE_ADDRESS1,
-                    { from: alice }
+                    {from: alice}
                 ),
                 "SFGov: factory must be a contract"
             );
@@ -406,7 +406,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await governance.authorizeAppFactory(
                 superfluid.address,
                 appFactory.address,
-                { from: alice }
+                {from: alice}
             );
             assert.isTrue(
                 await governance.isAuthorizedAppFactory(
@@ -426,7 +426,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             await governance.unauthorizeAppFactory(
                 superfluid.address,
                 appFactory.address,
-                { from: alice }
+                {from: alice}
             );
             assert.isFalse(
                 await governance.isAuthorizedAppFactory(

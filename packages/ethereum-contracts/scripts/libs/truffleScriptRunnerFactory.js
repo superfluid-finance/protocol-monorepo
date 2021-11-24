@@ -20,16 +20,20 @@ function parseColonArgs(argv) {
  * @dev Script runner for logic function
  *
  * This is development framework dependent, and it's currently for Truffle.
+ *
+ * runnerOpts.skipArgv:
+ *   - most scripts supports argv followed by an options, but for compatibility issue
+ *     some script wants to skip the argv. This option enables the hack.
  */
 module.exports = function (ctxFn, logicFn, runnerOpts) {
     return async function (cb, argv, options = {}) {
         try {
-            const { artifacts, web3, truffleDetected } = ctxFn();
+            const {artifacts, web3, truffleDetected} = ctxFn();
 
             let args;
             if (runnerOpts.skipArgv) {
                 // skip argv arguments
-                options = argv;
+                options = argv || {};
             } else {
                 // Parse colon indicated arguments
                 args = parseColonArgs(argv || process.argv);

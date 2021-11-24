@@ -6,7 +6,7 @@ const {
     getBatchCallHelpText,
 } = require("../src/utils/error");
 
-const { batchCall } = require("../src/batchCall");
+const {batchCall} = require("../src/batchCall");
 
 describe("batchCall helper class", function () {
     this.timeout(300e3);
@@ -24,15 +24,15 @@ describe("batchCall helper class", function () {
             nAccounts: 2,
         });
 
-        ({ admin: adminAddress, alice: aliceAddress } = t.aliases);
+        ({admin: adminAddress, alice: aliceAddress} = t.aliases);
         testToken = t.sf.tokens.TEST;
         superToken = t.sf.tokens.TESTx;
 
         sf = t.sf;
         sf.batchCall = (calls) => {
-            console.log(batchCall({ agreements: sf.agreements, calls: calls }));
+            console.log(batchCall({agreements: sf.agreements, calls: calls}));
             return sf.host.batchCall(
-                batchCall({ agreements: sf.agreements, calls: calls })
+                batchCall({agreements: sf.agreements, calls: calls})
             );
         };
     });
@@ -65,7 +65,7 @@ describe("batchCall helper class", function () {
 
         it("Data not provided", async () => {
             try {
-                await sf.batchCall([{ type: 1 }]);
+                await sf.batchCall([{type: 1}]);
             } catch (err) {
                 assert.equal(
                     err.message,
@@ -77,7 +77,7 @@ describe("batchCall helper class", function () {
 
         it("Type not provided", async () => {
             try {
-                await sf.batchCall([{ data: exampleERC20TransferFromData }]);
+                await sf.batchCall([{data: exampleERC20TransferFromData}]);
             } catch (err) {
                 assert.equal(
                     err.message,
@@ -468,7 +468,7 @@ describe("batchCall helper class", function () {
                 adminAddress,
                 aliceAddress,
                 "1000000000000000000",
-                { from: aliceAddress }
+                {from: aliceAddress}
             );
             assert.equal(
                 (await superToken.balanceOf(aliceAddress)).toString(),

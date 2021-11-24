@@ -6,7 +6,7 @@ import {
     SuperToken as SuperTokenType,
 } from "../src/typechain";
 import { getPerSecondFlowRateByMonth } from "../src/utils";
-import { HARDHAT_PRIVATE_KEY, setup } from "./setup";
+import { HARDHAT_PRIVATE_KEY, setup } from "../src/scripts/setup";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";

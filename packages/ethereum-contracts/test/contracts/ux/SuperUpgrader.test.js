@@ -1,9 +1,9 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 
 const TestEnvironment = require("../../TestEnvironment");
 const SuperUpgrader = artifacts.require("SuperUpgrader");
 
-const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
+const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -13,7 +13,7 @@ describe("Superfluid Super Upgrader Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const { ZERO_ADDRESS } = t.constants;
+    const {ZERO_ADDRESS} = t.constants;
 
     let admin, alice, bob, carol, dan, eve;
     let backend;
@@ -26,7 +26,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             nAccounts: 6,
         });
 
-        ({ admin, alice, bob, carol, dan, eve } = t.aliases);
+        ({admin, alice, bob, carol, dan, eve} = t.aliases);
         backend = new Array(bob, carol, dan);
         testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
         superToken = t.sf.tokens.TESTx;
@@ -258,7 +258,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             await web3tx(
                 upgrader.optoutAutoUpgrades,
                 "Alice opt-out"
-            )({ from: alice });
+            )({from: alice});
 
             await expectRevert(
                 upgrader.upgrade(superToken.address, alice, toWad("3"), {
@@ -270,7 +270,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             await web3tx(
                 upgrader.optinAutoUpgrades,
                 "Alice opt-in"
-            )({ from: alice });
+            )({from: alice});
 
             await web3tx(upgrader.upgrade, "Backend upgrade alice tokens")(
                 superToken.address,
@@ -327,17 +327,17 @@ describe("Superfluid Super Upgrader Contract", function () {
             );
 
             await expectRevert(
-                upgrader.grantBackendAgent(ZERO_ADDRESS, { from: admin }),
+                upgrader.grantBackendAgent(ZERO_ADDRESS, {from: admin}),
                 "operation not allowed"
             );
 
             await expectRevert(
-                upgrader.grantBackendAgent(eve, { from: eve }),
+                upgrader.grantBackendAgent(eve, {from: eve}),
                 "AccessControl: sender must be an admin to grant"
             );
 
             await expectRevert(
-                upgrader.revokeBackendAgent(backend[1], { from: eve }),
+                upgrader.revokeBackendAgent(backend[1], {from: eve}),
                 "AccessControl: sender must be an admin to revoke."
             );
         });

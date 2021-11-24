@@ -3,10 +3,7 @@
     "version": "1.0.0",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
-    },
+    "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "main": "dist/main/index.js",
     "module": "dist/module/index.js",
@@ -17,8 +14,11 @@
     ],
     "scripts": {
         "build": "yarn generate-abi-files && yarn generate-web3-types && rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript",
-        "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter=html --reporter=text npx hardhat test --network localhost",
-        "coverage": "nyc report --reporter=text-lcov | coveralls",
+        "testenv:start": "tasks/testenv-ctl.sh start",
+        "testenv:stop": "tasks/testenv-ctl.sh stop",
+        "pretest": "yarn testenv:start",
+        "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter=html --reporter=lcov --reporter=json npx hardhat test --network localhost",
+        "posttest": "yarn testenv:stop",
         "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
         "fix": "run-s fix:*",
         "fix:prettier": "prettier \"src/**/*.ts\" --write",

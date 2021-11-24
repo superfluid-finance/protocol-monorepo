@@ -9,7 +9,7 @@ import {
 } from "../src/typechain";
 import { SuperToken } from "../src";
 import { getPerSecondFlowRateByMonth } from "../src/utils";
-import { setup } from "./setup";
+import { setup } from "../src/scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 
@@ -99,7 +99,7 @@ describe("SuperToken Tests", () => {
                 await daix.realtimeBalanceOf({
                     providerOrSigner: deployer,
                     account: alpha.address,
-                    timestamp: "-1",
+                    timestamp: -1,
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(

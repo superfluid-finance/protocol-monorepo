@@ -12,7 +12,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),

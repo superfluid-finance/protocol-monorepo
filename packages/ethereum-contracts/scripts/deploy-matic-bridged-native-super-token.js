@@ -23,7 +23,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("== Deploying unlisted Matic bridged native super token ==");
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     if (args.length !== 3) {
         throw new Error("Wrong number of arguments");
@@ -39,12 +39,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     }
     console.log("Child chain manager", childChainManager);
 
-    protocolReleaseVersion =
-        protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-    const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-    console.log("chain ID: ", chainId);
-    console.log("protocol release version:", protocolReleaseVersion);
-
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
@@ -56,7 +50,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const { MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken } =
+    const {MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken} =
         sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(

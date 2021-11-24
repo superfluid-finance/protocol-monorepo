@@ -46,7 +46,7 @@ describe("Batch Call Tests", () => {
         const createFlowOp = daix.createFlow({
             sender: alpha.address,
             receiver: deployer.address,
-            flowRate: getPerSecondFlowRateByMonth("10000000000"),
+            flowRate: getPerSecondFlowRateByMonth("10000"),
         });
         try {
             await framework.batchCall([createFlowOp]).exec(deployer);

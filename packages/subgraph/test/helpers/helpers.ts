@@ -42,11 +42,12 @@ export const beforeSetup = async (tokenAmount: number) => {
     console.log("\n");
     await sf.initialize();
 
+    const daix = sf.tokens.fDAIx;
+
     // types not properly handling this case
     const dai = await (sf.contracts as any).TestToken.at(
-        sf.tokens.fDAI.address
+        daix.underlyingToken.address
     );
-    const daix = sf.tokens.fDAIx;
 
     console.log(
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."

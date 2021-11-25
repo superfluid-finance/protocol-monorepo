@@ -85,7 +85,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
         bytes32 key,
-		bool isSet,
+		bool isKeySet,
         uint256 value);
 
     function _setConfig(

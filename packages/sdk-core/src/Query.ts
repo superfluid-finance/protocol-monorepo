@@ -24,7 +24,7 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import {createPagedResult, nextPage, PagedResult, Paging} from "./pagination";
+import { createPagedResult, nextPage, PagedResult, Paging } from "./pagination";
 import { SubgraphClient } from "./subgraph/SubgraphClient";
 import {
     GetTokensDocument,
@@ -74,6 +74,19 @@ export default class Query {
             this.options.customSubgraphQueriesEndpoint
         );
     }
+
+    // NOTE: Maximum ~5000 results
+    listAllResults = async <T>(
+        pagedQuery: (paging: Paging) => Promise<PagedResult<T>>
+    ): Promise<T[]> => {
+        const listAllRecursively = async (paging: Paging): Promise<T[]> => {
+            const pagedResult = await pagedQuery(paging);
+            if (!pagedResult.hasNextPage) return pagedResult.data;
+            const nextResults = await listAllRecursively(nextPage(paging));
+            return pagedResult.data.concat(nextResults);
+        };
+        return listAllRecursively(new Paging({ skip: 0, take: 999 }));
+    };
 
     listAllSuperTokens = async (
         filter: ISuperTokenRequestFilter,
@@ -352,20 +365,29 @@ export default class Query {
 
         let nextUtcNow = new Date().getTime() - clockSkew;
 
-        const invokeCallbackForAllPages = async (paging: Paging, timestamp_gte: number) => {
-            let pagedEvents = await this.listEvents({
-                account: account,
-                timestamp_gte: timestamp_gte,
-            }, paging);
+        const invokeCallbackForAllPages = async (
+            paging: Paging,
+            timestamp_gte: number
+        ) => {
+            let pagedEvents = await this.listEvents(
+                {
+                    account: account,
+                    timestamp_gte: timestamp_gte,
+                },
+                paging
+            );
 
             if (pagedEvents.data.length) {
                 callback(pagedEvents.data, unsubscribe);
             }
 
             if (pagedEvents.hasNextPage) {
-                await invokeCallbackForAllPages(nextPage(paging), timestamp_gte);
+                await invokeCallbackForAllPages(
+                    nextPage(paging),
+                    timestamp_gte
+                );
             }
-        }
+        };
 
         let isUnsubscribed = false;
         const unsubscribe = () => {
@@ -391,7 +413,7 @@ export default class Query {
                 // Fire and forget
                 pollingStep();
             }, ms);
-        }
+        };
 
         if (timeout) {
             setTimeout(() => {

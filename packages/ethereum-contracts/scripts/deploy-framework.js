@@ -537,8 +537,6 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
         console.log(
             "=============== TEST ENVIRONMENT RESOLVER ======================"
         );
-        console.log(
-            `export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`
-        );
+        console.log(`export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`);
     }
 });

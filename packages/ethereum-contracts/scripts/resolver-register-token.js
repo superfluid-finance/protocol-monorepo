@@ -56,10 +56,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         resetToken ||
         testTokenAddress === "0x0000000000000000000000000000000000000000"
     ) {
-        await web3tx(resolver.set, `Resolver set ${name}`)(
-            name,
-            tokenAddress
-        );
+        await web3tx(resolver.set, `Resolver set ${name}`)(name, tokenAddress);
     } else {
         console.log("Token already set");
     }

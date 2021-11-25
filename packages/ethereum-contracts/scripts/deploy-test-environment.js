@@ -74,9 +74,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (args) {
         console.log(
             "=============== TEST ENVIRONMENT VARS ======================"
         );
-        console.log(
-            `export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`
-        );
+        console.log(`export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`);
     }
 
     if (process.env.TESTENV_SNAPSHOT_VARS) {

@@ -166,7 +166,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     event RewardAddressChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
-        bool isSet,
+        bool isKeySet,
         address rewardAddress);
 
     function getRewardAddress(
@@ -210,7 +210,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     event CFAv1LiquidationPeriodChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
-        bool isSet,
+        bool isKeySet,
         uint256 liquidationPeriod);
 
     function getCFAv1LiquidationPeriod(
@@ -255,7 +255,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     event TrustedForwarderChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
-        bool isSet,
+        bool isKeySet,
         address forwarder,
         bool enabled);
 

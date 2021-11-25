@@ -7,6 +7,7 @@ CMD=$1
 
 if [ "$CMD" == "start" ];then
     # Generate Typechain files and move to subgraph directory
+    rm -rf typechain
     cd ../ethereum-contracts
     yarn run generate-ethers-types
     mv typechain ../subgraph

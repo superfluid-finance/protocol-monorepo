@@ -10,7 +10,7 @@ describe("Framework subgraph (goerli) support", function () {
 
     before(async function () {
         // make sure no test resolver passed to the testsuite
-        delete process.env.TEST_RESOLVER_ADDRESS;
+        delete process.env.RESOLVER_ADDRESS;
 
         try {
             require("dotenv").config({

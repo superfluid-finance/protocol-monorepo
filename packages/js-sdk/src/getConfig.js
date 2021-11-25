@@ -179,8 +179,8 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         delete configs.versions;
     }
     // overriding environment variables
-    if (global && global.process && global.process.env.TEST_RESOLVER_ADDRESS) {
-        configs.resolverAddress = global.process.env.TEST_RESOLVER_ADDRESS;
+    if (global && global.process && global.process.env.RESOLVER_ADDRESS) {
+        configs.resolverAddress = global.process.env.RESOLVER_ADDRESS;
     }
 
     return configs;

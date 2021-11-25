@@ -70,18 +70,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (args) {
         console.log(`======== Super token for ${tokens[i]} deployed ========`);
     }
 
-    if (process.env.TEST_RESOLVER_ADDRESS) {
+    if (process.env.RESOLVER_ADDRESS) {
         console.log(
             "=============== TEST ENVIRONMENT VARS ======================"
         );
         console.log(
-            `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
+            `export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`
         );
     }
 
     if (process.env.TESTENV_SNAPSHOT_VARS) {
         let output = "";
-        output += `TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}\n`;
+        output += `RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}\n`;
         output += `TESTENV_EVM_SNAPSHOT_ID=${await takeEvmSnapshot()}\n`;
         await util.promisify(fs.writeFile)(
             process.env.TESTENV_SNAPSHOT_VARS,

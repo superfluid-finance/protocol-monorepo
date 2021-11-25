@@ -41,7 +41,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
             "SuperToken",
-            "TestResolver",
+            "Resolver",
         ],
         contractLoader: builtTruffleContractLoader,
     });
@@ -60,7 +60,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
     console.log("Super token key", superTokenKey);
 
-    const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
+    const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
     if (
         (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
         !resetToken

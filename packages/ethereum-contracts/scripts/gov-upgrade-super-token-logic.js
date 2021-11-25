@@ -37,7 +37,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "Ownable",
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
-            "TestResolver",
+            "Resolver",
             "UUPSProxiable",
             "SETHProxy",
         ],

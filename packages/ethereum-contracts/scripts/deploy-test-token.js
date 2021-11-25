@@ -42,18 +42,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
 
-    const { TestResolver, TestToken } = await SuperfluidSDK.loadContracts({
+    const { Resolver, TestToken } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
-        additionalContracts: ["TestResolver", "TestToken"],
+        additionalContracts: ["Resolver", "TestToken"],
         contractLoader: builtTruffleContractLoader,
     });
 
-    const testResolver = await TestResolver.at(config.resolverAddress);
-    console.log("Resolver address", testResolver.address);
+    const resolver = await Resolver.at(config.resolverAddress);
+    console.log("Resolver address", resolver.address);
 
     // deploy test token and its super token
     const name = `tokens.${tokenSymbol}`;
-    let testTokenAddress = await testResolver.get(name);
+    let testTokenAddress = await resolver.get(name);
     if (
         resetToken ||
         testTokenAddress === "0x0000000000000000000000000000000000000000"
@@ -64,7 +64,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             18
         );
         testTokenAddress = testToken.address;
-        await web3tx(testResolver.set, `TestResolver set ${name}`)(
+        await web3tx(resolver.set, `Resolver set ${name}`)(
             name,
             testTokenAddress
         );

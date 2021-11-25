@@ -154,7 +154,7 @@ async function getCodeAddress(UUPSProxiable, proxyAddress) {
  */
 async function setResolver(sf, key, value) {
     console.log(`Setting resolver ${key} -> ${value} ...`);
-    const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
+    const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
     switch (process.env.RESOLVER_ADMIN_TYPE) {
         case "MULTISIG": {
             console.log("Resolver Admin type: MultiSig");

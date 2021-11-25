@@ -111,7 +111,7 @@ module.exports = class TestEnvironment {
         let evmSnapshotId = await this._takeEvmSnapshot();
         this._evmSnapshots.push({
             id: evmSnapshotId,
-            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+            resolverAddress: process.env.RESOLVER_ADDRESS,
         });
         console.debug(
             "pushEvmSnapshot",
@@ -129,7 +129,7 @@ module.exports = class TestEnvironment {
         let oldEvmSnapshotId;
         ({
             id: oldEvmSnapshotId,
-            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+            resolverAddress: process.env.RESOLVER_ADDRESS,
         } = this._evmSnapshots.pop());
         await this._revertToEvmSnapShot(oldEvmSnapshotId);
         // move the time to now
@@ -137,7 +137,7 @@ module.exports = class TestEnvironment {
         const newEvmSnapshotId = await this._takeEvmSnapshot();
         this._evmSnapshots.push({
             id: newEvmSnapshotId,
-            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+            resolverAddress: process.env.RESOLVER_ADDRESS,
         });
         console.debug(
             "useLastEvmSnapshot",
@@ -184,7 +184,7 @@ module.exports = class TestEnvironment {
                 });
                 await this._evmSnapshots.push({
                     id: process.env.TESTENV_EVM_SNAPSHOT_ID,
-                    resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+                    resolverAddress: process.env.RESOLVER_ADDRESS,
                 });
                 await this.useLastEvmSnapshot();
                 await this.mintTestTokensAndApprove("TEST", {

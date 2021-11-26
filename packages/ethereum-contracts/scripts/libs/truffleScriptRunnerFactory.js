@@ -11,7 +11,6 @@ function parseColonArgs(argv) {
         return [];
     } else {
         const args = argv.slice(argIndex + 1);
-        console.log("Colon arguments", args);
         return args;
     }
 }
@@ -37,6 +36,8 @@ module.exports = function (ctxFn, logicFn, runnerOpts) {
             } else {
                 // Parse colon indicated arguments
                 args = parseColonArgs(argv || process.argv);
+                runnerOpts.doNotPrintColonArgs ||
+                    console.log("Colon arguments", args);
             }
 
             // if isTruffle is not set explicitly

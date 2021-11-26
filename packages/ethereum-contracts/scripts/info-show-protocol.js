@@ -48,7 +48,7 @@ async function printGovernanceInformation({sf}) {
                     }),
                 {}
             )
-        ).filter((i) => !!i.isSet);
+        ).filter((i) => !!i.isKeySet);
     };
 
     let gov;

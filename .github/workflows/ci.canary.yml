@@ -136,7 +136,7 @@ jobs:
             packages/sdk-core/coverage/
             packages/sdk-core/coverage/coverage-final.json
 
-      - name: Codecov
+      - name: Upload SDK-Core Coverage Results to codecov
         uses: codecov/codecov-action@v2
         with:
           files: packages/sdk-core/coverage/lcov.info

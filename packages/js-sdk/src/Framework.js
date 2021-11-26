@@ -232,7 +232,6 @@ module.exports = class Framework {
         // validate if the underlying token matches its corresponding
         // listed super token underlying token
         let doValidateUnderlyingToken = false;
-        let isLoadingByAddress = false;
 
         if (!isAddress(tokenKey)) {
             if (
@@ -278,7 +277,6 @@ module.exports = class Framework {
         } else {
             superTokenAddress = superTokenKey = tokenKey.toLowerCase();
             superTokenContractType = this.contracts.ISuperToken;
-            isLoadingByAddress = true;
         }
 
         superToken = await superTokenContractType.at(superTokenAddress);
@@ -308,12 +306,6 @@ module.exports = class Framework {
                 underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
                     underlyingTokenAddress
                 );
-                if (!isLoadingByAddress) {
-                    // do not pollute the tokens namespace if loading a potentially
-                    // unlisted token
-                    const symbol = await underlyingToken.symbol();
-                    this.tokens[symbol] = underlyingToken;
-                }
             }
         }
         superToken.underlyingToken = underlyingToken;

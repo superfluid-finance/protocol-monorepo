@@ -103,6 +103,15 @@ describe("Subgraph Tests", () => {
         };
     }
 
+    /**
+     * @dev if num is 100 it returns: "100000000000000000000" for BN
+     * @param num
+     * @returns
+     */
+    function get18DecimalNumber(num: number) {
+        return num.toString() + "0".repeat(18);
+    }
+
     function getDistributionLocalData(): IDistributionLocalData {
         return {
             accountTokenSnapshots,
@@ -409,7 +418,7 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = new BN((100 ** 18).toString());
+                let units = new BN(get18DecimalNumber(100));
 
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
@@ -420,7 +429,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN((150 ** 18).toString());
+                units = new BN(get18DecimalNumber(150));
 
                 // update sub units again
                 updateGlobalObjectsForIDAEvents(
@@ -469,7 +478,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0 ** 18).toString()),
+                        units: new BN((0).toString()),
                     })
                 );
 
@@ -488,7 +497,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((100 ** 18).toString()),
+                        units: new BN(get18DecimalNumber(100)),
                     })
                 );
 
@@ -497,7 +506,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0 ** 18).toString()),
+                        units: new BN((0).toString()),
                     })
                 );
             }
@@ -533,7 +542,7 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = new BN((100 ** 18).toString());
+                let units = new BN(get18DecimalNumber(100));
 
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
@@ -552,7 +561,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN((0 ** 18).toString());
+                units = new BN((0).toString());
 
                 // update approved sub units to 0
                 updateGlobalObjectsForIDAEvents(
@@ -587,7 +596,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((150 ** 18).toString()),
+                        units: new BN(get18DecimalNumber(150)),
                     })
                 );
 
@@ -614,7 +623,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((175 ** 18).toString()),
+                        units: new BN(get18DecimalNumber(175)),
                     })
                 );
 
@@ -623,7 +632,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0 ** 18).toString()),
+                        units: new BN((0).toString()),
                     })
                 );
                 // update revoked sub w/o units to 0
@@ -631,7 +640,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0 ** 18).toString()),
+                        units: new BN((0).toString()),
                     })
                 );
             }
@@ -678,7 +687,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((100 ** 18).toString()),
+                        units: new BN(get18DecimalNumber(100)),
                     })
                 );
 
@@ -687,12 +696,12 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((150 ** 18).toString()),
+                        units: new BN(get18DecimalNumber(150)),
                     })
                 );
 
                 // distribute units to approved subscribers
-                const amountOrIndexValue = new BN((100 ** 18).toString());
+                const amountOrIndexValue = new BN(get18DecimalNumber(100));
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(
@@ -720,7 +729,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0 ** 18).toString()),
+                        units: new BN((0).toString()),
                     })
                 );
 
@@ -729,7 +738,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0 ** 18).toString()),
+                        units: new BN((0).toString()),
                     })
                 );
 
@@ -746,7 +755,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((150 ** 18).toString()),
+                        units: new BN(get18DecimalNumber(150)),
                     })
                 );
             }
@@ -786,7 +795,7 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update sub units
-                let units = new BN((100 ** 18).toString());
+                let units = new BN(get18DecimalNumber(100));
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -795,7 +804,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN((150 ** 18).toString());
+                units = new BN(get18DecimalNumber(150));
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -818,7 +827,7 @@ describe("Subgraph Tests", () => {
                 };
 
                 // update sub units
-                let units = new BN((100 ** 18).toString());
+                let units = new BN(get18DecimalNumber(100));
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -827,7 +836,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN((150 ** 18).toString());
+                units = new BN(get18DecimalNumber(150));
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -839,7 +848,7 @@ describe("Subgraph Tests", () => {
             }
 
             // distribute units to pending + claimed users
-            const amountOrIndexValue = new BN((200 ** 18).toString());
+            const amountOrIndexValue = new BN(get18DecimalNumber(200));
             updateGlobalObjectsForIDAEvents(
                 await testModifyIDA({
                     ...getBaseIDAData(

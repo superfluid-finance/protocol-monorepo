@@ -11,9 +11,6 @@ if [ "$CMD" == "start" ];then
     cd ../ethereum-contracts
     yarn run generate-ethers-types
     mv typechain ../subgraph
-    cd ../subgraph
-    # Get ABI for subgraph.yaml
-    node scripts/getAbi.js
     cd ../js-sdk
     # Get abi.js file for js-sdk to deploy locally
     chmod +x ./tasks/build-abi-js.sh

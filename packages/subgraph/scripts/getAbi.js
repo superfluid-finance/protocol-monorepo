@@ -10,7 +10,7 @@ const contracts = [
     "TestResolver",
     "IInstantDistributionAgreementV1",
     "SuperfluidGovernanceBase",
-    "TestToken"
+    "TestToken",
 ];
 
 const directoryPath = path.join(

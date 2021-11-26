@@ -115,7 +115,8 @@ export function getOrInitSuperToken(
             underlyingAddress.notEqual(new Address(0)) &&
             underlyingToken == null
         ) {
-            getOrInitToken(underlyingAddress as Address, block);
+            let address = Address.fromString(underlyingAddress.toHexString());
+            getOrInitToken(address, block);
         }
 
         return token as Token;

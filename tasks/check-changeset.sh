@@ -31,24 +31,25 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_JS_SDK=1
         BUILD_JS_SDK=1
         BUILD_SUBGRAPH=1
+        echo Everything will be tested.
     fi
     # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1
         BUILD_SUBGRAPH=1
-        echo Ethereum contracts will be tested.
+        echo Ethereum contracts, JS-SDK and Subgraph will be tested.
     fi
     # if js-sdk package changed
     if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_JS_SDK=1
         BUILD_SUBGRAPH=1
-        echo JS SDK will be tested.
+        echo JS-SDK and Subgraph will be tested.
     fi
 	# if sdk-core package changed
 	if grep -E "^packages/sdk-core/(src/|test/|package.json)" changed-files.list;then
 		BUILD_SDK_CORE=1
-		echo SDK CORE will be tested.
+		echo SDK-CORE will be tested.
 	fi
     # if subgraph package changed
     if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|test|truffle-config.js|package.json)" changed-files.list;then

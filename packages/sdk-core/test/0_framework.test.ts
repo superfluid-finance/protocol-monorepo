@@ -6,7 +6,7 @@ import {
     HARDHAT_PRIVATE_KEY,
     RESOLVER_ADDRESS,
     setup,
-} from "../src/scripts/setup";
+} from "../scripts/setup";
 import { ethers } from "ethers";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =

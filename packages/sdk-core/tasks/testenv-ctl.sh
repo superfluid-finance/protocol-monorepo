@@ -7,6 +7,7 @@ CMD=$1
 
 if [ "$CMD" == "start" ];then
     ./tasks/startGanacheAndDeployContracts.sh $CMD
+    # Come back to sdk-core after going to subgraph folder
     cd ../sdk-core
     yarn generate-graphql-types
     yarn generate-abi-files

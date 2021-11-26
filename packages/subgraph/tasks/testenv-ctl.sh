@@ -7,8 +7,12 @@ CMD=$1
 
 if [ "$CMD" == "start" ];then
     # Generate Typechain files and move to subgraph directory
-    rm -rf typechain
     cd ../ethereum-contracts
+    # Install contract dependencies and build contracts
+    yarn install
+    yarn run build:contracts
+    # Generate and move typechain to subgraph folder
+    rm -rf typechain
     yarn run generate-ethers-types
     mv typechain ../subgraph
     cd ../js-sdk
@@ -16,6 +20,8 @@ if [ "$CMD" == "start" ];then
     chmod +x ./tasks/build-abi-js.sh
     ./tasks/build-abi-js.sh
     cd ../subgraph
+    # Install subgraph dependencies
+    yarn install
     # Deploy contracts and token locally
     yarn deploy-contracts-local
     # Prepare, set network, build and deploy subgraph locally

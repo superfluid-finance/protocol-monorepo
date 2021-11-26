@@ -1,4 +1,4 @@
-const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
+const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -6,7 +6,7 @@ const WETH9Mock = artifacts.require("WETH9Mock");
 const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
 
-const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
+const {web3tx, toBN, toWad} = require("@decentral.ee/web3-helpers");
 
 describe("Super ETH (SETH) Contract", function () {
     this.timeout(300e3);
@@ -41,7 +41,7 @@ describe("Super ETH (SETH) Contract", function () {
 
         await t.pushEvmSnapshot();
 
-        ({ alice, bob } = t.aliases);
+        ({alice, bob} = t.aliases);
     });
 
     after(async () => {
@@ -116,7 +116,7 @@ describe("Super ETH (SETH) Contract", function () {
         });
 
         await expectRevert(
-            seth.downgradeToETH(toWad(1).addn(1), { from: alice }),
+            seth.downgradeToETH(toWad(1).addn(1), {from: alice}),
             "SuperfluidToken: burn amount exceeds balance"
         );
 

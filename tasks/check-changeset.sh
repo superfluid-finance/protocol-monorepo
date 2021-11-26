@@ -17,6 +17,7 @@ cat changed-files.list
 echo ---
 
 # set BUILD_* variables to GITHUB_ENV
+# (dependency graph implied below)
 if ! [ -z "$GITHUB_ENV" ];then
     # if ci workflow changed
     if grep -E "^.github/workflows/ci.yml$" changed-files.list;then
@@ -27,12 +28,14 @@ if ! [ -z "$GITHUB_ENV" ];then
     # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1
-        BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
+        BUILD_JS_SDK=1
+        BUILD_SUBGRAPH=1
         echo Ethereum contracts will be tested.
     fi
     # if js-sdk package changed
     if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_JS_SDK=1
+        BUILD_SUBGRAPH=1
         echo JS SDK will be tested.
     fi
 	# if sdk-core package changed

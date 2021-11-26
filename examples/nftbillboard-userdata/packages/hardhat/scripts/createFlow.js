@@ -20,7 +20,7 @@ const deployedTradeableCashflow = require("../deployments/polytest/TradeableCash
 const tradeableCashflowAddress = deployedTradeableCashflow.address;
 
 //your address here:
-const _sender = "0x...";
+const _sender = process.env.MUMBAI_DEPLOYER_PUB_KEY;
 
 //create a flow
 async function main() {
@@ -34,7 +34,7 @@ async function main() {
   const tradeableCashflow = new web3.eth.Contract(tradeableCashflowABI, tradeableCashflowAddress);
   
   const fDAIx = "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
-  const userData = web3.eth.abi.encodeParameter('string', 'HODL BTC');
+  const userData = web3.eth.abi.encodeParameter('string', 'HODL MATIC');
 
   const nonce = await web3.eth.getTransactionCount(_sender, 'latest'); // nonce starts counting from 0
 

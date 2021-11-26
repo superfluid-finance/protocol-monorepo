@@ -29,7 +29,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(process.env.MUMBAI_ALCHEMY
   const tradeableCashflow = new web3.eth.Contract(tradeableCashflowABI, tradeableCashflowAddress);
 
   //your address here
-  const _sender = "0x..."
+  const _sender = process.env.MUMBAI_DEPLOYER_PUB_KEY
 
 
   const accts = await web3.eth.getAccounts();

@@ -6,15 +6,13 @@ In this tutorial, you'll use Superfluid UserData to pay to post a message on an 
 
 Note: this code has not been audited and is for example purposes only. 
 
-We're exited to see what you build 💻
+We're excited to see what you build 💻
 
 Usage
 
 1) Go get some test DAIx tokens at app.superfluid.finance
-2) Add your own private key and rpc URL for Mumbai inside of a .env file using the format in ```packages/hardhat/example.env```
-3) Set Ethereum address with the test tokens to the _sender variable inside of the ```createFlow.js```, ```updateFlow.js```, and ```deleteFlow```.js scripts inside of the hardhat package
-4) Add one of your Ethereum addresses as the owner within the deployment script ```00_deploy_tradeable_cashflow.js```
-5) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable
+2) Add your own private key, public address and rpc URL for Mumbai inside of a ```.env``` file using the format in ```packages/hardhat/env.example```
+3) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable
 
 
 
@@ -27,16 +25,16 @@ To run the react app
 ```yarn start```
 
 To create flows and set an initial message
-```npx hardhat run scripts/createFlow.js```
+```yarn createFlow```
 
 To update flows and change the message
-```npx hardhat run scripts/updateFlow.js```
+```yarn updateFlow```
 
 To delete flows
-```npx hardhat run scripts/deleteFlow.js```
+```yarn deleteFlow```
 
 To read data and see userData logged in the console
-```npx hardhat run scripts/readData.js```
+```yarn readData```
 
 
 NOTE: be careful with your private keys! Do not publish them to github. 

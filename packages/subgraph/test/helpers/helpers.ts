@@ -78,10 +78,9 @@ export const beforeSetup = async (tokenAmount: number) => {
     const txn = await resolver.set("supertokens.test.fDAIx", daix.address);
     const receipt = await txn.wait();
     await waitUntilBlockIndexed(receipt.blockNumber);
+    const resolverFDAIxAddress = await resolver.get("supertokens.test.fDAIx");
 
-    const resolverAddress = await resolver.get("supertokens.test.fDAIx");
-
-    if (resolverAddress !== daix.address) {
+    if (resolverFDAIxAddress !== daix.address) {
         throw new Error("fDAIx not set properly in resolver.");
     }
 

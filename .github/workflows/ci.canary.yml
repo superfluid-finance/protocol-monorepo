@@ -154,9 +154,6 @@ jobs:
       contracts-working-directory: ./packages/ethereum-contracts
       js-sdk-working-directory: ./packages/js-sdk
 
-    needs: [check]
-    if: needs.check.outputs.build_subgraph
-
     strategy:
       matrix:
         node-version: [14.x]
@@ -201,7 +198,7 @@ jobs:
   publish:
     name: Publish canary pakcages to registries
 
-    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 
@@ -238,7 +235,7 @@ jobs:
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build
 
-    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 

@@ -304,6 +304,8 @@ describe("Framework class", function () {
                     version: "test",
                 });
                 await sf.initialize();
+                assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
+                assert.equal(await sf.tokens.fDAI.symbol(), "fDAI");
                 assert.equal(await sf.tokens.fUSDCx.symbol(), "fUSDCx");
                 assert.equal(await sf.tokens.fDAIx.symbol(), "fDAIx");
             });

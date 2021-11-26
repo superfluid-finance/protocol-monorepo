@@ -42,11 +42,12 @@ export const beforeSetup = async (tokenAmount: number) => {
     console.log("\n");
     await sf.initialize();
 
+    const daix = sf.tokens.fDAIx;
+
     // types not properly handling this case
     const dai = await (sf.contracts as any).TestToken.at(
-        sf.tokens.fDAI.address
+        daix.underlyingToken.address
     );
-    const daix = sf.tokens.fDAIx;
 
     console.log(
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."
@@ -77,10 +78,9 @@ export const beforeSetup = async (tokenAmount: number) => {
     const txn = await resolver.set("supertokens.test.fDAIx", daix.address);
     const receipt = await txn.wait();
     await waitUntilBlockIndexed(receipt.blockNumber);
+    const resolverFDAIxAddress = await resolver.get("supertokens.test.fDAIx");
 
-    const resolverAddress = await resolver.get("supertokens.test.fDAIx");
-
-    if (resolverAddress !== daix.address) {
+    if (resolverFDAIxAddress !== daix.address) {
         throw new Error("fDAIx not set properly in resolver.");
     }
 

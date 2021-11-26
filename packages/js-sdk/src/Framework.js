@@ -223,7 +223,7 @@ module.exports = class Framework {
      * - Additionally, superTokenObject.underlyingToken is the underlying token object.
      * - If tokenKey is a super token address, it is normalized to lower case.
      */
-    async loadToken(tokenKey, { skipTokens } = { skipTokens }) {
+    async loadToken(tokenKey, { skipTokens } = {}) {
         let underlyingToken;
         let superTokenKey;
         let superTokenContractType;

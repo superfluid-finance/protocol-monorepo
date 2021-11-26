@@ -216,13 +216,14 @@ module.exports = class Framework {
      *    - underlying token resolver key (tokens.{KEY}),
      *    - super token key (supertokens.{protocol_release_version}.{KEY})
      *    - super token address
+     * @param options.skipTokens skips .tokens object, to save some network calls
      *
      * As a result:
      * - sf.tokens[tokenKey] and sf.superTokens[tokenKey] is the loaded SuperToken Object.
      * - Additionally, superTokenObject.underlyingToken is the underlying token object.
      * - If tokenKey is a super token address, it is normalized to lower case.
      */
-    async loadToken(tokenKey) {
+    async loadToken(tokenKey, { skipTokens } = { skipTokens }) {
         let underlyingToken;
         let superTokenKey;
         let superTokenContractType;
@@ -232,6 +233,7 @@ module.exports = class Framework {
         // validate if the underlying token matches its corresponding
         // listed super token underlying token
         let doValidateUnderlyingToken = false;
+        let isLoadingByAddress = false;
 
         if (!isAddress(tokenKey)) {
             if (
@@ -253,7 +255,7 @@ module.exports = class Framework {
                         await this.contracts.ERC20WithTokenInfo.at(
                             tokenAddress
                         );
-                    this.tokens[tokenKey] = underlyingToken;
+                    if (!skipTokens) this.tokens[tokenKey] = underlyingToken;
                     console.debug(
                         `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"]`,
                         tokenAddress
@@ -277,11 +279,12 @@ module.exports = class Framework {
         } else {
             superTokenAddress = superTokenKey = tokenKey.toLowerCase();
             superTokenContractType = this.contracts.ISuperToken;
+            isLoadingByAddress = true;
         }
 
         superToken = await superTokenContractType.at(superTokenAddress);
         superToken.superTokenCustomType = superTokenCustomType;
-        this.tokens[superTokenKey] = superToken;
+        if (!skipTokens) this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
         let underlyingTokenAddress = await superToken.getUnderlyingToken.call();
         if (doValidateUnderlyingToken) {
@@ -306,6 +309,12 @@ module.exports = class Framework {
                 underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
                     underlyingTokenAddress
                 );
+                if (!isLoadingByAddress && !skipTokens) {
+                    // do not pollute the tokens namespace if loading a potentially
+                    // unlisted token
+                    const symbol = await underlyingToken.symbol();
+                    this.tokens[symbol] = underlyingToken;
+                }
             }
         }
         superToken.underlyingToken = underlyingToken;

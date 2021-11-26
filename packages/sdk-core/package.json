@@ -19,6 +19,7 @@
         "pretest": "yarn testenv:start",
         "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter=html --reporter=lcov --reporter=json npx hardhat test --network localhost",
         "posttest": "yarn testenv:stop",
+        "check-updates": "ncu --target minor --dep prod,dev",
         "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
         "fix": "run-s fix:*",
         "fix:prettier": "prettier \"src/**/*.ts\" --write",
@@ -43,7 +44,7 @@
     "devDependencies": {
         "@graphql-codegen/cli": "2.3.0",
         "@graphql-codegen/introspection": "2.1.0",
-        "@graphql-codegen/near-operation-file-preset": "^1.18.6",
+        "@graphql-codegen/near-operation-file-preset": "^2.2.2",
         "@graphql-codegen/typed-document-node": "^2.2.1",
         "@graphql-codegen/typescript": "2.4.1",
         "@graphql-codegen/typescript-operations": "2.2.1",

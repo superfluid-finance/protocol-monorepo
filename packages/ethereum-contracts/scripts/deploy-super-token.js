@@ -32,7 +32,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Deploying super token ========");
-    let {resetToken, protocolReleaseVersion} = options;
+    let { resetToken, protocolReleaseVersion } = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");

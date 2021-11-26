@@ -21,7 +21,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Setting reward address ========");
-    let {protocolReleaseVersion} = options;
+    let { protocolReleaseVersion } = options;
 
     if (args.length !== 2) {
         throw new Error("Wrong number of arguments");

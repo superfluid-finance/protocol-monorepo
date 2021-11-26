@@ -1,5 +1,5 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const {web3tx} = require("@decentral.ee/web3-helpers");
+const { web3tx } = require("@decentral.ee/web3-helpers");
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
@@ -18,7 +18,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let {protocolReleaseVersion} = options;
+    let { protocolReleaseVersion } = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");

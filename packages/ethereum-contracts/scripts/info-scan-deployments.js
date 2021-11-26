@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const getConfig = require("./libs/getConfig");
-const {getScriptRunnerFactory: S, getPastEvents} = require("./libs/common");
+const { getScriptRunnerFactory: S, getPastEvents } = require("./libs/common");
 
 module.exports = eval(`(${S.toString()})()`)(async function () {
     const networkType = await this.web3.eth.net.getNetworkType();

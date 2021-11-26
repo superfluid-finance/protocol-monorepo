@@ -9,7 +9,7 @@ const {
 
 const MAX_REQUESTS = 100;
 
-async function printHostInformation({sf}) {
+async function printHostInformation({ sf }) {
     let host;
     console.log("# Host\n");
     host = await sf.contracts.Superfluid.at(sf.host.address);
@@ -33,10 +33,10 @@ async function printHostInformation({sf}) {
         "CALLBACK_GAS_LIMIT",
         (await host.CALLBACK_GAS_LIMIT.call()).toString()
     );
-    return {host};
+    return { host };
 }
 
-async function printGovernanceInformation({sf}) {
+async function printGovernanceInformation({ sf }) {
     const fetchLatestGovernanceUpdate = async (contract, eventName, filter) => {
         const changes = await sf.getPastEvents(contract, eventName, filter);
 
@@ -113,10 +113,10 @@ async function printGovernanceInformation({sf}) {
             .filter((i) => !!i.enabled)
             .forEach((i) => console.log(i.superToken, i.forwarder));
     }
-    return {gov};
+    return { gov };
 }
 
-async function printSuperTokenFactoryInformation({sf}) {
+async function printSuperTokenFactoryInformation({ sf }) {
     let superTokenFactory, latestSuperTokenLogicAddress;
 
     superTokenFactory = await sf.contracts.SuperTokenFactory.at(
@@ -135,7 +135,7 @@ async function printSuperTokenFactoryInformation({sf}) {
     };
 }
 
-async function printResolverInformation({sf}) {
+async function printResolverInformation({ sf }) {
     console.log("address", sf.resolver.address);
     const ADMIN_ROLE = "0x" + "0".repeat(64);
     const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
@@ -258,7 +258,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let {protocolReleaseVersion} = options;
+    let { protocolReleaseVersion } = options;
 
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
@@ -278,15 +278,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     console.log("\n===== Protocol Information =====\n");
 
-    await printHostInformation({sf});
+    await printHostInformation({ sf });
     console.log("");
 
-    await printGovernanceInformation({sf});
+    await printGovernanceInformation({ sf });
     console.log("");
 
     console.log("# Super Token Factory\n");
-    const {superTokenFactory, latestSuperTokenLogicAddress} =
-        await printSuperTokenFactoryInformation({sf});
+    const { superTokenFactory, latestSuperTokenLogicAddress } =
+        await printSuperTokenFactoryInformation({ sf });
     console.log("");
 
     console.log("# Managed Super Tokens\n");
@@ -297,5 +297,5 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
 
     console.log("\n===== Resolver Information =====\n");
-    await printResolverInformation({sf});
+    await printResolverInformation({ sf });
 });

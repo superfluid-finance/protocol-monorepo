@@ -1,10 +1,10 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
 const NativeSuperTokenProxy = artifacts.require("NativeSuperTokenProxy");
 
-const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
+const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
 describe("NativeSuperTokenProxy Contract", function () {
     this.timeout(300e3);
@@ -19,7 +19,7 @@ describe("NativeSuperTokenProxy Contract", function () {
             nAccounts: 1,
         });
 
-        ({admin} = t.aliases);
+        ({ admin } = t.aliases);
         superTokenFactory = await ISuperTokenFactory.at(
             await t.contracts.superfluid.getSuperTokenFactory()
         );

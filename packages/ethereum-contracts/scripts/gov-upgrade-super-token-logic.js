@@ -22,7 +22,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Upgrade super token logic ========");
-    let {protocolReleaseVersion} = options;
+    let { protocolReleaseVersion } = options;
 
     if (args.length < 1) {
         throw new Error("Not enough arguments");
@@ -45,7 +45,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const {UUPSProxiable, ISuperToken} = sf.contracts;
+    const { UUPSProxiable, ISuperToken } = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()

@@ -1,4 +1,4 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
 const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
@@ -10,14 +10,14 @@ const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 
 const TestEnvironment = require("../../TestEnvironment");
 
-const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
+const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
 describe("Superfluid Host Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     let admin, alice, bob;
-    const {MAX_UINT256, ZERO_ADDRESS} = t.constants;
+    const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
     context("Upgradable deployment", () => {
         let governance;
@@ -29,8 +29,8 @@ describe("Superfluid Host Contract", function () {
                 nAccounts: 3,
             });
 
-            ({admin, alice, bob} = t.aliases);
-            ({superfluid, governance} = t.contracts);
+            ({ admin, alice, bob } = t.aliases);
+            ({ superfluid, governance } = t.contracts);
         });
 
         beforeEach(async function () {
@@ -439,7 +439,7 @@ describe("Superfluid Host Contract", function () {
 
             it("#4.2 app registration rules", async () => {
                 await expectRevert(
-                    superfluid.registerApp(1, {from: admin}),
+                    superfluid.registerApp(1, { from: admin }),
                     "SF: APP_RULE_NO_REGISTRATION_FOR_EOA"
                 );
                 await expectRevert(
@@ -2065,7 +2065,7 @@ describe("Superfluid Host Contract", function () {
                             ])
                             .encodeABI(),
                     },
-                    {from: admin}
+                    { from: admin }
                 );
                 assert.equal(
                     (await superToken.balanceOf(bob)).toString(),
@@ -2093,7 +2093,7 @@ describe("Superfluid Host Contract", function () {
                                 .forwardBatchCall([])
                                 .encodeABI(),
                         },
-                        {from: admin}
+                        { from: admin }
                     ),
                     "Not trusted forwarder"
                 );
@@ -2103,7 +2103,7 @@ describe("Superfluid Host Contract", function () {
                 await expectRevert(
                     web3tx(superfluid.forwardBatchCall, "forwarder.execute")(
                         [],
-                        {from: admin}
+                        { from: admin }
                     ),
                     "Not trusted forwarder"
                 );
@@ -2168,8 +2168,8 @@ describe("Superfluid Host Contract", function () {
                 tokens: [],
             });
 
-            ({admin, alice, bob} = t.aliases);
-            ({superfluid, governance} = t.contracts);
+            ({ admin, alice, bob } = t.aliases);
+            ({ superfluid, governance } = t.contracts);
         });
 
         after(async function () {
@@ -2257,8 +2257,8 @@ describe("Superfluid Host Contract", function () {
                 tokens: [],
             });
 
-            ({admin, alice, bob} = t.aliases);
-            ({superfluid, governance} = t.contracts);
+            ({ admin, alice, bob } = t.aliases);
+            ({ superfluid, governance } = t.contracts);
         });
 
         after(async function () {

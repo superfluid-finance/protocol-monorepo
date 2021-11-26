@@ -1,9 +1,9 @@
 const loadContracts = require("./loadContracts");
 const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
-const {getErrorResponse} = require("./utils/error");
-const {isAddress, validateAddress} = require("./utils/general");
-const {batchCall} = require("./batchCall");
+const { getErrorResponse } = require("./utils/error");
+const { isAddress, validateAddress } = require("./utils/general");
+const { batchCall } = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
 const fetch = require("node-fetch");
@@ -327,7 +327,7 @@ module.exports = class Framework {
      */
     async createERC20Wrapper(
         tokenInfo,
-        {superTokenSymbol, superTokenName, from, upgradability} = {}
+        { superTokenSymbol, superTokenName, from, upgradability } = {}
     ) {
         const tokenName = await tokenInfo.name.call();
         const tokenSymbol = await tokenInfo.symbol.call();
@@ -343,7 +343,7 @@ module.exports = class Framework {
             upgradability,
             superTokenName,
             superTokenSymbol,
-            ...((from && [{from}]) || []) // don't mind this silly js stuff, thanks to web3.js
+            ...((from && [{ from }]) || []) // don't mind this silly js stuff, thanks to web3.js
         );
         this._pushTxForGasReport(tx, "createERC20Wrapper");
         const wrapperAddress = tx.logs[0].args.token;
@@ -367,13 +367,13 @@ module.exports = class Framework {
      * NOTE:
      * - See User class for more details about the options
      */
-    user({address, token, options}) {
+    user({ address, token, options }) {
         try {
             if (!address) throw "Please provide an address";
             if (!token) throw "Please provide a token";
             validateAddress(address);
             // TODO: validate token
-            return new User({sf: this, address, token, options});
+            return new User({ sf: this, address, token, options });
         } catch (e) {
             throw getErrorResponse(e, "Framework", "user");
         }
@@ -399,8 +399,8 @@ module.exports = class Framework {
     async subgraphQuery(query) {
         const response = await fetch(this.config.subgraphQueryEndpoint, {
             method: "POST",
-            body: JSON.stringify({query}),
-            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ query }),
+            headers: { "Content-Type": "application/json" },
         });
         if (response.ok) {
             const result = JSON.parse(await response.text());
@@ -421,7 +421,7 @@ module.exports = class Framework {
      * @param {object} filter Event filtering
      * @return {Promise<object[]>}
      */
-    async getPastEvents(contract, eventName, filter = {}, {forceWeb3} = {}) {
+    async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
         function lcfirst(str) {
             return str.replace(/[A-Z]+/, (i) => i.toLowerCase());
         }

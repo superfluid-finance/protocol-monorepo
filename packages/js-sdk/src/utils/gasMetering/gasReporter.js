@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 class GasMeterReporter {
-    constructor({fileSystem, fileName}) {
+    constructor({ fileSystem, fileName }) {
         this.fs = fileSystem ? fileSystem : fs;
         this.filePath = path.join(process.cwd(), "reports");
         if (!fs.existsSync(this.filePath)) {

@@ -1,6 +1,6 @@
 const path = require("path");
 const async = require("async");
-const {promisify} = require("util");
+const { promisify } = require("util");
 const readline = require("readline");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -32,8 +32,8 @@ async function rl() {
 }
 
 /// @dev Extract the web3 options used to initialize the SDK
-function extractWeb3Options({isTruffle, web3, ethers, from}) {
-    return {isTruffle, web3, ethers, from};
+function extractWeb3Options({ isTruffle, web3, ethers, from }) {
+    return { isTruffle, web3, ethers, from };
 }
 
 /// @dev Load contract from truffle built artifacts
@@ -229,7 +229,7 @@ function _toHex(n) {
     return "0x" + n.toString(16);
 }
 
-async function getPastEvents({config, contract, eventName, filter, topics}) {
+async function getPastEvents({ config, contract, eventName, filter, topics }) {
     const initialBlockNumber = config.data.initialBlockNumber || 0;
     const latestBlock = await web3.eth.getBlock("latest");
     let blockRanges = [];
@@ -292,7 +292,7 @@ async function getPastEvents({config, contract, eventName, filter, topics}) {
  */
 function getScriptRunnerFactory(runnerOpts = {}) {
     return (logicFn) => {
-        const {detectTruffle} = require("./libs/common");
+        const { detectTruffle } = require("./libs/common");
         return require("./libs/truffleScriptRunnerFactory")(
             () => ({
                 artifacts:

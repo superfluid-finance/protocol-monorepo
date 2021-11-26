@@ -1,5 +1,5 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
-const {web3tx, wad4human, toWad} = require("@decentral.ee/web3-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
+const { web3tx, wad4human, toWad } = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateIndex,
     shouldDistribute,
@@ -19,7 +19,7 @@ describe("Using InstantDistributionAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const {INIT_BALANCE} = t.configs;
+    const { INIT_BALANCE } = t.configs;
 
     let alice, bob, carol, dan;
     let superToken;
@@ -29,7 +29,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             isTruffle: true,
             nAccounts: 5,
         });
-        ({alice, bob, carol, dan} = t.aliases);
+        ({ alice, bob, carol, dan } = t.aliases);
 
         superToken = t.sf.tokens.TESTx;
     });
@@ -1707,7 +1707,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     ida.contract.methods
                         .createIndex(superToken.address, 42, "0x")
                         .encodeABI(),
-                    {from: alice}
+                    { from: alice }
                 ),
                 "AgreementLibrary: unauthroized host"
             );
@@ -1717,7 +1717,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     ida.contract.methods
                         .updateIndex(superToken.address, 42, 9000, "0x")
                         .encodeABI(),
-                    {from: alice}
+                    { from: alice }
                 ),
                 "AgreementLibrary: unauthroized host"
             );
@@ -1727,7 +1727,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     ida.contract.methods
                         .distribute(superToken.address, 42, 9000, "0x")
                         .encodeABI(),
-                    {from: alice}
+                    { from: alice }
                 ),
                 "AgreementLibrary: unauthroized host"
             );
@@ -1737,7 +1737,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     ida.contract.methods
                         .approveSubscription(superToken.address, bob, 42, "0x")
                         .encodeABI(),
-                    {from: alice}
+                    { from: alice }
                 ),
                 "AgreementLibrary: unauthroized host"
             );
@@ -1753,7 +1753,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                             "0x"
                         )
                         .encodeABI(),
-                    {from: alice}
+                    { from: alice }
                 ),
                 "AgreementLibrary: unauthroized host"
             );

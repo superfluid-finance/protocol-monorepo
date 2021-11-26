@@ -1,4 +1,4 @@
-const {assert} = require("chai");
+const { assert } = require("chai");
 const SuperfluidSDK = require("../src");
 
 describe("getConfig", () => {

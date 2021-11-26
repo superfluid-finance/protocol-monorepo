@@ -1,8 +1,13 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
-const {web3tx, toWad, toDecimals, toBN} = require("@decentral.ee/web3-helpers");
+const {
+    web3tx,
+    toWad,
+    toDecimals,
+    toBN,
+} = require("@decentral.ee/web3-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const ERC777SenderRecipientMock = artifacts.require(
@@ -16,7 +21,7 @@ describe("SuperToken's Non Standard Functions", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const {MAX_UINT256, ZERO_ADDRESS} = t.constants;
+    const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
     let admin, alice, bob;
     let superfluid;
@@ -33,8 +38,8 @@ describe("SuperToken's Non Standard Functions", function () {
         testToken = t.sf.tokens.TEST;
         superToken = t.sf.tokens.TESTx;
         superToken = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
-        ({admin, alice, bob} = t.aliases);
-        ({superfluid} = t.contracts);
+        ({ admin, alice, bob } = t.aliases);
+        ({ superfluid } = t.contracts);
     });
 
     beforeEach(async function () {
@@ -87,7 +92,7 @@ describe("SuperToken's Non Standard Functions", function () {
                 account: alice,
                 amount: toWad(2).toString(),
             });
-            const {timestamp} = await web3.eth.getBlock("latest");
+            const { timestamp } = await web3.eth.getBlock("latest");
 
             const finalBalance = await testToken.balanceOf.call(alice);
             const finalSuperTokenBalance = await superToken.balanceOf.call(
@@ -122,7 +127,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectRevert(
                 web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
                     initialBalance.add(toBN(1)),
-                    {from: alice}
+                    { from: alice }
                 ),
                 "ERC20: transfer amount exceeds balance"
             );
@@ -409,7 +414,7 @@ describe("SuperToken's Non Standard Functions", function () {
                 account: bob,
                 amount: toWad(2).toString(),
             });
-            const {timestamp} = await web3.eth.getBlock("latest");
+            const { timestamp } = await web3.eth.getBlock("latest");
 
             const finalBalanceAlice = await testToken.balanceOf.call(alice);
             const finalSuperTokenBalanceAlice = await superToken.balanceOf.call(
@@ -664,7 +669,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
             await web3tx(superToken.transferAll, "superToken.transferAll")(
                 bob,
-                {from: alice}
+                { from: alice }
             );
             assert.equal(await superToken.balanceOf.call(alice), "0");
             assert.equal(

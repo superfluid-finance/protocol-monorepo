@@ -1,4 +1,4 @@
-const {toWad} = require("@decentral.ee/web3-helpers");
+const { toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 describe("InstantDistributionAgreementV1Helper class", function () {
@@ -16,10 +16,10 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             nAccounts: 4,
         });
 
-        ({alice, bob, carol} = t.aliases);
+        ({ alice, bob, carol } = t.aliases);
         sf = t.sf;
 
-        ({superToken} = await t.deployNewToken("TEST2", {
+        ({ superToken } = await t.deployNewToken("TEST2", {
             isTruffle: false,
             web3,
             doUpgrade: true,

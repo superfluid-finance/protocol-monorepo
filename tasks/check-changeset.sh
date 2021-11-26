@@ -25,6 +25,13 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_JS_SDK=1
         BUILD_SDK_CORE=1
     fi
+    # if root package changed, rebuild everything
+    if grep -E "^package.json$" changed-files.list;then
+        BUILD_ETHEREUM_CONTRACTS=1
+        BUILD_JS_SDK=1
+        BUILD_JS_SDK=1
+        BUILD_SUBGRAPH=1
+    fi
     # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1

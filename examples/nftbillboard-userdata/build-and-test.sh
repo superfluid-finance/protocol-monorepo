@@ -12,8 +12,9 @@ ganache_pid=$!
 sleep 10 # wait ganache to start
 yarn deploy
 yarn build
+kill -9 $ganache_pid
 
 # test contracts
 yarn test
-kill -9 $ganache_pid
+
 

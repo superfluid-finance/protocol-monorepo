@@ -1377,6 +1377,186 @@
       "artifacts": [
         "TradeableCashflowOption"
       ]
+    },
+    "/Users/sam_flamini/devPortfolio/exampleProjectCleanup/protocol-monorepo/examples/streaming-call-option/contracts/RedirectAllCallOption.sol": {
+      "lastModificationDate": 1637786840135,
+      "contentHash": "d58db8142c4e145b8160eb6eb0de0880",
+      "sourceName": "contracts/RedirectAllCallOption.sol",
+      "solcConfig": {
+        "version": "0.7.0",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol",
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol",
+        "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol",
+        "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol"
+      ],
+      "versionPragmas": [
+        "^0.7.0"
+      ],
+      "artifacts": [
+        "RedirectAllCallOption"
+      ]
+    },
+    "/Users/sam_flamini/devPortfolio/exampleProjectCleanup/protocol-monorepo/examples/streaming-call-option/node_modules/@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol": {
+      "lastModificationDate": 1637631892917,
+      "contentHash": "13cdc2ca09f1ce729b42da88e7bbfc93",
+      "sourceName": "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol",
+      "solcConfig": {
+        "version": "0.7.0",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.7.0"
+      ],
+      "artifacts": [
+        "AggregatorV3Interface"
+      ]
+    },
+    "/Users/sam_flamini/devPortfolio/exampleProjectCleanup/protocol-monorepo/examples/streaming-call-option/contracts/TradeableCashflowOption.sol": {
+      "lastModificationDate": 1637772574914,
+      "contentHash": "16aa19b47fc4e173551d398b0df43b70",
+      "sourceName": "contracts/TradeableCashflowOption.sol",
+      "solcConfig": {
+        "version": "0.7.0",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./RedirectAllCallOption.sol",
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.7.0"
+      ],
+      "artifacts": [
+        "TradeableCashflowOption"
+      ]
+    },
+    "/Users/sam_flamini/devPortfolio/exampleProjectCleanup/protocol-monorepo/examples/streaming-call-option/contracts/test/MockV3Aggregator.sol": {
+      "lastModificationDate": 1637774691801,
+      "contentHash": "a7fc3cd269d76bbe8e66beb9a2900f4c",
+      "sourceName": "contracts/test/MockV3Aggregator.sol",
+      "solcConfig": {
+        "version": "0.7.0",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol"
+      ],
+      "versionPragmas": [
+        "^0.7.0"
+      ],
+      "artifacts": [
+        "MockV3Aggregator"
+      ]
     }
   }
 }

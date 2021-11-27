@@ -213,7 +213,7 @@ describe("Testing the billboard contract", async function () {
             'HODL BTC', 
             "user data value incorrect"
         )
-    });
+    }).timeout(100000);
     it("Case #2 - Alice upates flows and userData", async () => {
         const { alice } = u;
         const appInitialBalance = await daix.balanceOf(app.address);
@@ -287,7 +287,7 @@ describe("Testing the billboard contract", async function () {
             "balances aren't equal"
         );
 
-    });
+    }).timeout(100000);
         it("Case #3 - Multiple users send flows to the contract", async () => {
             const { alice, bob, admin } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -330,7 +330,7 @@ describe("Testing the billboard contract", async function () {
                 appFinalBalance.toString(),
                 "balances aren't equal"
             );
-        });
+        }).timeout(100000);
         
     });
 
@@ -400,7 +400,7 @@ describe("Testing the billboard contract", async function () {
                 appFinalBalance.toString(),
                 "balances aren't equal"
             );
-        });
+        }).timeout(100000);
     });
 
     describe("Sending and receiving at the same time", async function () {
@@ -467,7 +467,7 @@ describe("Testing the billboard contract", async function () {
                 appFinalBalance.toString(),
                 "balances aren't equal"
             );
-        });
+        }).timeout(100000);
     });
 
     describe.skip("Fuzzy testing", async function () {

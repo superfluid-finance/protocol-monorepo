@@ -1,0 +1,13 @@
+/data
+/node_modules
+/build
+/coverage.json
+/coverage
+/.env
+/data
+*.ignore.*
+.DS_Store
+
+*.env
+
+.vscode/

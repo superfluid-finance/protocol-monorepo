@@ -62,7 +62,7 @@ jobs:
           fi
           # ready to build and test, each example project must provide
           # their instructions here
-          sudo ./build-and-test.sh
+          ./build-and-test.sh
        
 
   build-examples-done:

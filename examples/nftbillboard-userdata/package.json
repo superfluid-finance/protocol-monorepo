@@ -19,7 +19,7 @@
     "chain": "yarn workspace @scaffold-eth/hardhat chain",
     "fork": "yarn workspace @scaffold-eth/hardhat fork",
     "node": "yarn workspace @scaffold-eth/hardhat chain",
-    "test": "yarn workspace @scaffold-eth/hardhat test",
+    "test": "yarn workspace @scaffold-eth/hardhat test --timeout 10000",
     "start": "yarn workspace @scaffold-eth/react-app start",
     "compile": "yarn workspace @scaffold-eth/hardhat compile",
     "deploy": "yarn workspace @scaffold-eth/hardhat deploy ",

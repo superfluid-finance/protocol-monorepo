@@ -250,7 +250,7 @@ describe("Creating & Exercising", async function () {
     console.log(app.address)
     await alice.flow({
       //flow rate is sufficient - i.e. equal to requiredFlowRate 
-      flowRate: 3858024609, recipient: u.app
+      flowRate: "3858024609", recipient: u.app
     });
     
     console.log("go forward in time");
@@ -347,7 +347,7 @@ describe("Creating & Exercising", async function () {
       console.log(app.address)
       await alice.flow({
         //flow rate is sufficient - i.e. equal to requiredFlowRate 
-        flowRate: 3858024609, recipient: u.app
+        flowRate: "3858024609", recipient: u.app
       });
 
       //ensure that option has been activated
@@ -366,13 +366,13 @@ describe("Creating & Exercising", async function () {
     assert.equal(optionStatus, true, "option not activated");
     assert.equal(optionReady, true, "option not ready");
     //need to make sure that the owner of the contract is receiving funds
-    assert.equal(sellerFlowRate, 3858024609,"owner has incorrect flowRate");
+    assert.equal(sellerFlowRate, "3858024609","owner has incorrect flowRate");
     //need to make sure that the contract is now holding the right amount of link
     assert.equal(contractLinkBalance, web3.utils.toWei("1", "ether"), "contract does not have correct link bal")
 
     //update flow
     await alice.flow({
-      flowRate: 2858024609, recipient: u.app
+      flowRate: "2858024609", recipient: u.app
     });
 
     let afterOptionStatus = await app.optionActive.call();
@@ -413,7 +413,7 @@ describe("Creating & Exercising", async function () {
       console.log(app.address)
       await alice.flow({
         //flow rate is sufficient - i.e. equal to requiredFlowRate 
-        flowRate: 3858024609, recipient: u.app
+        flowRate: "3858024609", recipient: u.app
       });
       
     await dai.approve(app.address, web3.utils.toWei("28", "ether"), { from: alice.address });
@@ -427,6 +427,9 @@ describe("Creating & Exercising", async function () {
     catch {
       console.log('did not work as expected')
     }
+
+    let contractFinalLinkBalance = await link.balanceOf(app.address);
+    assert.equal(contractFinalLinkBalance, 0, "contract balance should be empty now")
       
     });
 
@@ -454,7 +457,7 @@ describe("Creating & Exercising", async function () {
       console.log("link owner balance: " + sellerLinkBalance);
       await alice.flow({
         //flow rate is sufficient - i.e. equal to requiredFlowRate 
-        flowRate: 3858, recipient: u.app
+        flowRate: "3858", recipient: u.app
       });
       let aliceLinkBal = await link.balanceOf(alice.address);
       console.log('alice link bal after ' + aliceLinkBal)

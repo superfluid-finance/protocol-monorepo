@@ -9,7 +9,7 @@ import {
 } from "../src/typechain";
 import { SuperToken } from "../src";
 import { getPerSecondFlowRateByMonth } from "../src/utils";
-import { setup } from "../src/scripts/setup";
+import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 

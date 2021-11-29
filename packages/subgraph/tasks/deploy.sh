@@ -1,11 +1,17 @@
 #!/bin/bash
-# $1 = the configuration (v1, dev, feature)
-# $2 = the network
 
-mustache="../../node_modules/mustache/bin/mustache"
-graph="../../node_modules/@graphprotocol/graph-cli"
+# deploy.sh handles subgraph deployment and either deploys to all networks on a release (v1/dev/feature)
+# if no network is specified, otherwise deploys to just that network
 
-mustache config/$2.json subgraph.template.yaml > subgraph.yaml
-mustache config/$2.json src/addresses.template.ts > src/addresses.ts
-SUBGRAPH_NAME=superfluid-finance/protocol-$1-$2
-graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs --access-token $THEGRAPH_ACCESS_TOKEN
+if [ "$1" == "" ];then
+    echo "You must pass in the release configuration at a minimum."
+    exit 1
+fi
+
+if [ "$2" == "" ];then
+    # if no network is passed, we deploy to all networks of a release (v1/dev/feature)
+    yarn deploy:$1
+else
+    # else we deploy to the specified network
+    yarn deploy:to-$1 $2    
+fi

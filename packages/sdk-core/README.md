@@ -5,8 +5,8 @@
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-core" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core.svg">
   </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9?flag=sdk-core"/>
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=sdk-core"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
@@ -327,7 +327,7 @@ await sf.idaV1.claim({ indexId: string, subscriber: string, publisher: string, u
 
 ### SuperToken
 
-The `SuperToken` class can also be accessed via the `Framework` class and allows you read from/write to the blockchain. It also provides write functions for both the CFAV1 and IDAV1 contracts in the context of the token. That is, the token field for these different methods will be the token address specified during the creation of this class. 
+The `SuperToken` class can also be accessed via the `Framework` class and allows you read from/write to the blockchain. It also provides write functions for both the CFAV1 and IDAV1 contracts in the context of the token. That is, the token field for these different methods will be the token address specified during the creation of this class.
 
 #### Framework based initialization
 
@@ -386,7 +386,7 @@ await usdcx.balanceOf({ account: string, providerOrSigner: ethers.providers.Prov
 await usdcx.allowance({ owner: string, spender: string, providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
 await usdcx.totalSupply({ providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
 
-// `SuperToken` only function 
+// `SuperToken` only function
 await usdcx.realtimeBalanceOf({ account: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
 
 // Write Functions
@@ -399,7 +399,7 @@ await usdcx.transfer({ recipient: string, amount: string });
 await usdcx.transferFrom({ sender: string, recipient: string, amount: string });
 await usdcx.upgrade({ amount: string });
 
-// SuperToken CFAV1/IDAV1 Functions are the same as the 
+// SuperToken CFAV1/IDAV1 Functions are the same as the
 // ConstantFlowAgreementV1/InstantDistributionAgreementV1 class functions
 // except instead of the sf.cfaV1/idaV1.function() signature, it is token.function()
 // and you don't need to pass in a token as a parameter as it uses the token address

@@ -4,9 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       release_branch:
-        description: 'Release branch (feature/dev/v1 ...)'
+        description: 'Release branch (feature/dev/v1...)'
         required: true
         default: 'feature'
+      network:
+        description: 'Network to deploy to (matic/xdai/kovan...)'
 
 jobs:
   deploy-subgraph:
@@ -59,7 +61,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to endpoint"
-        run: "yarn deploy:${{ github.event.inputs.release_branch }}"
+        run: "yarn deploy ${{ github.event.inputs.release_branch }} ${{ github.event.inputs.network }}"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THEGRAPH_ACCESS_TOKEN: ${{ secrets.THEGRAPH_ACCESS_TOKEN }}

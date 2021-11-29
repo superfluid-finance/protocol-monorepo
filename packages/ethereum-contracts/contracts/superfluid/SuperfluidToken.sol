@@ -407,6 +407,42 @@ abstract contract SuperfluidToken is ISuperfluidToken
             );
         }
     }
+    
+    /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
+    function makeLiquidationPayoutsV2(
+        bytes32 id,
+        address liquidatorAccount,
+        address penaltyAccount,
+        uint256 liquidatorAccountDelta,
+        int256 penaltyAccountDelta
+    ) external override onlyAgreeemnt {
+        ISuperfluidGovernance gov = _host.getGovernance();
+
+        address bondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+
+        if (bondAccount == address(0)) {
+            bondAccount = liquidatorAccount;
+        }
+
+        _balances[bondAccount] = _balances[bondAccount]
+            .add(penaltyAccountDelta.mul(-1))
+            .add(liquidatorAccountDelta.mul(-1));
+
+        _balances[penaltyAccount] = _balances[penaltyAccount]
+            .add(penaltyAccountDelta);
+
+        _balances[liquidatorAccount] = _balances[liquidatorAccount]
+            .add(liquidatorAccountDelta);
+
+        emit AgreementLiquidatedByV2(
+            liquidatorAccount,
+            msg.sender,
+            id,
+            penaltyAccount,
+            liquidatorAccountDelta,
+            penaltyAccountDelta
+        );
+    }
 
     /**************************************************************************
     * Modifiers

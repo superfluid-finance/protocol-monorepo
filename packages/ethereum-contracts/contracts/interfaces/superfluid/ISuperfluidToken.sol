@@ -349,6 +349,67 @@ interface ISuperfluidToken {
     )
         external;
 
+    /**
+     * @dev Agreement liquidation event v2 (including agent account)
+     * @param liquidatorAccount Address of the executor of the liquidation
+     * @param agreementClass Contract address of the agreement
+     * @param id Agreement ID
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param bondAccount Account that collects the reward or bails out insolvent accounts
+     * @param liquidatorAccountDelta The amount the liquidator account balance should change by
+     * @param penaltyAccountDelta The amount the penalty account balance should change by
+     *
+     * NOTE:
+     * Reward account rule:
+     * - if the agreement is liquidated during the PIC period
+     *   - the liquidator (only bondAccount allowed to liquidate) will get the rewardAmount,
+     *   - the penaltyAccount will pay for the rewardAmount.
+     * - if the agreement is liquidated after the PIC period
+     *   - the liquidator will get the rewardAmount
+     *   - the penaltyAccount will pay for the rewardAmount.
+     * - if the penaltyAccount is insolvent
+     *   - the liquidatorAccount will get the rewardAmount (single deposit)
+     *   - the bondAccount will pay for both the rewardAmount and bailoutAmount,
+     *   - the penaltyAccount will receive the bailoutAmount.
+     */
+    event AgreementLiquidatedByV2(
+        address liquidatorAccount,
+        address indexed agreementClass,
+        bytes32 id,
+        address indexed penaltyAccount,
+        address indexed bondAccount,
+        uint256 liquidatorAccountDelta,
+        int256 penaltyAccountDelta
+    );
+
+    /**
+     * @dev Make liquidation payouts (v2)
+     * @param id Agreement ID
+     * @param liquidator Address of the executor of the liquidation
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param liquidatorAccountDelta The amount the liquidator account balance should change by
+     * @param penaltyAccountDelta The amount the penalty account balance should change by
+     *
+     * - If a bailout is required (bailoutAmount > 0)
+     *   - the actual reward goes to the liquidator,
+     *   - while the reward account becomes the bailout account
+     *   - total bailout include: bailout amount + reward amount
+     * - If a bailout is not required
+     *   - the penaltyAccount will pay for the rewardAmount
+     *   - the liquidator will receive the rewardAmount
+     *
+     * Modifiers:
+     *  - onlyAgreement
+     */
+    function makeLiquidationPayoutsV2
+    (
+        bytes32 id,
+        address liquidator,
+        address penaltyAccount,
+        uint256 liquidatorAccountDelta,
+        int256 penaltyAccountDelta
+    ) external;
+
     /**************************************************************************
      * Function modifiers for access control and parameter validations
      *

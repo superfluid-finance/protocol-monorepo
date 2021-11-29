@@ -1,6 +1,9 @@
 /data
 /node_modules
 /build
+/artifacts
+/cache
+/deployments
 /coverage.json
 /coverage
 /.env

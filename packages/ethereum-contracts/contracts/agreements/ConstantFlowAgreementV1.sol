@@ -758,22 +758,22 @@ contract ConstantFlowAgreementV1 is
         if (totalRewardLeft >= 0) {
             // #1.a.1 yes: then reward = (SD / TD) * RL
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
-            token.makeLiquidationPayouts(
+            token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
                 liquidator,
                 flowParams.sender,
                 rewardAmount.toUint256(),
-                0
+                rewardAmount.mul(-1)
             );
         } else {
             // #1.b.1 no: then the liquidator takes full amount of the single deposit
             int256 rewardAmount = signedSingleDeposit;
-            token.makeLiquidationPayouts(
+            token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
                 liquidator,
                 flowParams.sender,
-                rewardAmount.toUint256() /* rewardAmount */,
-                totalRewardLeft.mul(-1).toUint256() /* bailoutAmount */
+                rewardAmount.toUint256(),
+                totalRewardLeft.mul(-1)
             );
         }
     }

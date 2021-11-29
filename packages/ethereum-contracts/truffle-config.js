@@ -367,7 +367,7 @@ const E = (module.exports = {
 
         /// For truffle development environment
         development: {
-            host: "localhost",
+            host: "127.0.0.1",
             port: 47545,
             network_id: "4447",
 
@@ -377,7 +377,7 @@ const E = (module.exports = {
         },
 
         coverage: {
-            host: "localhost",
+            host: "127.0.0.1",
             port: 8555, // <-- If you change this, also set the port option in .solcover.js.
 
             // ditto
@@ -386,7 +386,7 @@ const E = (module.exports = {
 
         /// For other private test environment
         private: {
-            host: "localhost",
+            host: "127.0.0.1",
             port: process.env.PRIVATE_PROVIDER_PORT || 8545,
             network_id: "*",
 

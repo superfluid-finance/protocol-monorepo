@@ -415,7 +415,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address penaltyAccount,
         uint256 liquidatorAccountDelta,
         int256 penaltyAccountDelta
-    ) external override onlyAgreeemnt {
+    ) external override onlyAgreement {
         ISuperfluidGovernance gov = _host.getGovernance();
 
         address bondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
@@ -426,19 +426,20 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
         _balances[bondAccount] = _balances[bondAccount]
             .add(penaltyAccountDelta.mul(-1))
-            .add(liquidatorAccountDelta.mul(-1));
+            .add(liquidatorAccountDelta.toInt256().mul(-1));
 
         _balances[penaltyAccount] = _balances[penaltyAccount]
             .add(penaltyAccountDelta);
 
         _balances[liquidatorAccount] = _balances[liquidatorAccount]
-            .add(liquidatorAccountDelta);
+            .add(liquidatorAccountDelta.toInt256());
 
         emit AgreementLiquidatedByV2(
             liquidatorAccount,
             msg.sender,
             id,
             penaltyAccount,
+            bondAccount,
             liquidatorAccountDelta,
             penaltyAccountDelta
         );

@@ -6,7 +6,7 @@ import {
     HARDHAT_PRIVATE_KEY,
     RESOLVER_ADDRESS,
     setup,
-} from "../src/scripts/setup";
+} from "../scripts/setup";
 import { ethers } from "ethers";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
@@ -16,25 +16,11 @@ describe("Framework Tests", () => {
     let deployer: SignerWithAddress;
     let superToken: SuperToken;
     let framework: Framework;
-    let INFURA_API_URL: string;
-    let customProvider: ethers.providers.Provider;
-
-    if (process.env.MATIC_PROVIDER_URL) {
-        INFURA_API_URL = process.env.MATIC_PROVIDER_URL || "";
-    } else {
-        INFURA_API_URL = process.env.INFURA_API_URL || "";
-    }
-    if (INFURA_API_URL.includes("wss:")) {
-        customProvider = new ethers.providers.WebSocketProvider(
-            INFURA_API_URL,
-            "matic"
-        );
-    } else {
-        customProvider = new ethers.providers.JsonRpcProvider(
-            INFURA_API_URL,
-            "matic"
-        );
-    }
+    let INFURA_API_URL = "https://polygon-rpc.com/";
+    let customProvider = new ethers.providers.JsonRpcProvider(
+        INFURA_API_URL,
+        "matic"
+    );
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({

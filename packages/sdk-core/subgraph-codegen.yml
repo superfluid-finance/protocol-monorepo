@@ -7,6 +7,7 @@ config:
         Bytes: string
         BigInt: string
         BigDecimal: string
+    enumsAsTypes: true
 generates:
     src/subgraph/schema.generated.ts:
         plugins:

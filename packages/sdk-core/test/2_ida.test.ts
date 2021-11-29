@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { IInstantDistributionAgreementV1, SuperToken } from "../src/typechain";
-import { setup } from "../src/scripts/setup";
+import { setup } from "../scripts/setup";
 import { ethers } from "ethers";
 
 describe("IDA V1 Tests", () => {

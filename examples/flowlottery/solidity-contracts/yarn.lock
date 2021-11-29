@@ -1615,7 +1615,7 @@
     "@ethersproject/hash" "^5.4.0"
     auto-bind "^4.0.0"
 
-"@superfluid-finance/js-sdk@^0.5.5":
+"@superfluid-finance/js-sdk@0.5.5":
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.5.tgz#9b311b4ad3e9d43ba14e7da734b0bbf745ea52e9"
   integrity sha512-HXCQUYVf0OfandzTWVV9vfn3tnBtj2A6PeM6XzILHpHmk4P5WPW2O3FJ6lYjVTSo2DDRoamrE2B2ZkKxjneWSQ==

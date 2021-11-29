@@ -31,10 +31,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("token address", tokenAddr);
     console.log("reward address", rewardAddr);
 
-    protocolReleaseVersion =
-        protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-    console.log("protocol release version:", protocolReleaseVersion);
-
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,

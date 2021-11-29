@@ -16,10 +16,9 @@ const {
  *
  * Usage: npx truffle exec scripts/create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY}
  */
-module.exports = eval(`(${S.toString()})()`)(async function (
-    args,
-    options = {}
-) {
+module.exports = eval(`(${S.toString()})({
+    doNotPrintColonArgs: true
+})`)(async function (args, options = {}) {
     console.log("======== Creating new app registration key ========");
     let { protocolReleaseVersion } = options;
 

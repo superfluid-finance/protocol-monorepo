@@ -46,7 +46,7 @@ interface ISuperfluidGovernance {
      */
     function batchUpdateSuperTokenLogic(
         ISuperfluid host,
-        ISuperToken[] tokens) external;
+        ISuperToken[] calldata tokens) external;
 
     /// @dev Get configuration as address value
     function getConfigAsAddress(

@@ -467,7 +467,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
-    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
     liquidationPeriod: BigInt!
 }
 
@@ -485,7 +485,7 @@ type ConfigChangedEvent implements Event @entity {
     host: Bytes!
     superToken: Bytes!
     key: Bytes!
-    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
     value: BigInt!
 }
 
@@ -502,7 +502,7 @@ type RewardAddressChangedEvent implements Event @entity {
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
-    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
     rewardAddress: Bytes!
 }
 
@@ -519,7 +519,7 @@ type TrustedForwarderChangedEvent implements Event @entity {
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
-    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
     forwarder: Bytes!
     enabled: Boolean!
 }
@@ -594,6 +594,7 @@ type SentEvent implements Event @entity {
     addresses: [Bytes!]!
     blockNumber: BigInt!
     operator: Bytes!
+    from: Bytes!
     to: Bytes!
     amount: BigInt!
     data: Bytes!
@@ -1118,4 +1119,25 @@ type TokenStatistic @entity {
 
     # ---------------------------------- links ----------------------------------
     token: Token!
+}
+
+####################
+#  Internal Entity #
+####################
+
+type SFMeta @entity {
+    """
+    The id is the commit hash.
+    """
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    """
+    Whether the branch is feature/dev/v1.
+    """
+    configuration: String!
+    """
+    The branch the current deployment is coming from.
+    """
+    branch: String!
 }

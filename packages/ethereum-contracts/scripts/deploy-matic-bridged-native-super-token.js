@@ -39,12 +39,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     }
     console.log("Child chain manager", childChainManager);
 
-    protocolReleaseVersion =
-        protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-    const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-    console.log("chain ID: ", chainId);
-    console.log("protocol release version:", protocolReleaseVersion);
-
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,

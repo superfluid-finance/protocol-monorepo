@@ -68,7 +68,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         if (superTokenLogic1 !== superTokenLogic2) {
             console.log("SuperToken logic needs to be updated.");
             await sendGovernanceAction(sf, (gov) =>
-                gov.updateSuperTokenLogic(sf.host.address, superTokenAddress)
+                gov.batchUpdateSuperTokenLogic(sf.host.address, [
+                    superTokenAddress,
+                ])
             );
             if (!process.env.GOVERNANCE_ADMIN_TYPE) {
                 // validate the token logic update for default governance type updates

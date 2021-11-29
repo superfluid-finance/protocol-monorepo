@@ -28,7 +28,6 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
-import { IIndexSubscriptionIndex } from "../../../../packages/sdk-core/src";
 
 const pageSize = 10;
 
@@ -184,6 +183,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                                                     }
                                                 </TableCell>
                                                 <TableCell>
+                                                    W
                                                     {
                                                         indexSubscription.indexValueUntilUpdatedAt
                                                     }

@@ -205,8 +205,7 @@ export interface ILightEntity {
     readonly id: string;
 }
 
-export interface IEventEntityBase {
-    readonly id: string;
+export interface IEventEntityBase extends ILightEntity {
     readonly blockNumber: number;
     readonly timestamp: number;
     readonly transactionHash: string;
@@ -225,8 +224,7 @@ export interface IFlowUpdatedEvent extends IEventEntityBase {
     readonly totalAmountStreamedUntilTimestamp: string;
 }
 
-export interface IHOLEntityBase {
-    readonly id: string;
+export interface IHOLEntityBase extends ILightEntity {
     readonly createdAtTimestamp: number;
     readonly createdAtBlockNumber: number;
 }

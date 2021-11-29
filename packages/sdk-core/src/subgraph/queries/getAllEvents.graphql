@@ -1,5 +1,5 @@
-query getAllEvents($where: Event_filter = {}, $skip: Int = 10, $first: Int = 10) {
-    events(where: $where, skip: $skip, first: $first, orderBy: blockNumber, orderDirection: desc) {
+query getAllEvents($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: Event_orderBy! = id, $orderDirection: OrderDirection! = asc) {
+    events(where: $where, skip: $skip, first: $first, orderBy: $orderBy, orderDirection: $orderDirection) {
         ... on FlowUpdatedEvent {
             ...eventFields
             userData
@@ -288,6 +288,7 @@ query getAllEvents($where: Event_filter = {}, $skip: Int = 10, $first: Int = 10)
 
 fragment eventFields on Event {
     __typename
+    id
     blockNumber
     transactionHash
     timestamp

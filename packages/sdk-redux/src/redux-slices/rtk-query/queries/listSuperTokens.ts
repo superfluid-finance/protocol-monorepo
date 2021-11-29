@@ -1,4 +1,4 @@
-import { ISuperToken, PagedResult, Paging } from '@superfluid-finance/sdk-core';
+import { ISuperToken, PagedResult, createSkipPaging } from '@superfluid-finance/sdk-core';
 
 import { initializedContext } from '../../../createSdkReduxParts';
 import { NothingBoolean, PaginatedQueryArg } from '../../argTypes';
@@ -34,7 +34,7 @@ export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
                             {
                                 isListed: arg.isListed,
                             },
-                            new Paging(arg)
+                            createSkipPaging(arg)
                         ),
                     };
                 },

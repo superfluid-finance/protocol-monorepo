@@ -1,4 +1,4 @@
-import { IIndex, PagedResult, Paging } from '@superfluid-finance/sdk-core';
+import { IIndex, PagedResult, createSkipPaging } from '@superfluid-finance/sdk-core';
 
 import { initializedContext } from '../../../createSdkReduxParts';
 import { NothingString, PaginatedQueryArg } from '../../argTypes';
@@ -36,7 +36,7 @@ export const { useListIndexesQuery, useLazyListIndexesQuery } =
                                 publisher: arg.publisherAddress,
                                 token: arg.superTokenAddress,
                             },
-                            new Paging(arg)
+                            createSkipPaging(arg)
                         ),
                     };
                 },

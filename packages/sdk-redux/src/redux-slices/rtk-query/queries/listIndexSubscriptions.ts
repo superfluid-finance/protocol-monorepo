@@ -1,7 +1,7 @@
 import {
     IIndexSubscription,
     PagedResult,
-    Paging,
+    createSkipPaging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedContext } from '../../../createSdkReduxParts';
@@ -48,7 +48,7 @@ export const {
                             subscriber: arg.subscriberAddress,
                             approved: arg.approved,
                         },
-                        new Paging(arg)
+                        createSkipPaging(arg)
                     ),
                 };
             },

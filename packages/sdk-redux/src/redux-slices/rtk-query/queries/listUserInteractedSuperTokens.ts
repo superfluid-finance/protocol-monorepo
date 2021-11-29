@@ -1,7 +1,7 @@
 import {
     ILightAccountTokenSnapshot,
     PagedResult,
-    Paging,
+    createSkipPaging,
 } from '@superfluid-finance/sdk-core';
 
 import { initializedContext } from '../../../createSdkReduxParts';
@@ -56,7 +56,7 @@ export const {
                             token: arg.superTokenAddress,
                             account: arg.accountAddress,
                         },
-                        new Paging({ skip: arg.skip, take: arg.take })
+                        createSkipPaging({ skip: arg.skip, take: arg.take })
                     );
                 return {
                     data: pagedResult,

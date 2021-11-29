@@ -1,4 +1,4 @@
-import { IStream, PagedResult, Paging } from '@superfluid-finance/sdk-core';
+import { IStream, PagedResult, createSkipPaging } from '@superfluid-finance/sdk-core';
 
 import { initializedContext } from '../../../createSdkReduxParts';
 import { NothingString, PaginatedQueryArg } from '../../argTypes';
@@ -35,7 +35,7 @@ export const { useListStreamsQuery, useLazyListStreamsQuery } =
                                 receiver: arg.receiverAddress,
                                 token: arg.superTokenAddress,
                             },
-                            new Paging(arg)
+                            createSkipPaging(arg)
                         ),
                     };
                 },

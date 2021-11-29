@@ -1,4 +1,4 @@
-import { AllEvents, PagedResult, Paging } from '@superfluid-finance/sdk-core';
+import { AllEvents, PagedResult, createSkipPaging } from '@superfluid-finance/sdk-core';
 
 import { initializedContext } from '../../../createSdkReduxParts';
 import {
@@ -56,7 +56,7 @@ export const { useListEventsQuery, useLazyListEventsQuery } =
                             account: arg.accountAddress,
                             timestamp_gte: arg.timestamp_gte,
                         },
-                        new Paging({ skip: arg.skip, take: arg.take })
+                        createSkipPaging({ skip: arg.skip, take: arg.take })
                     );
                     return {
                         data: pagedResult,

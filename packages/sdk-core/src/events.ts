@@ -1,4 +1,5 @@
 export type EventBase = {
+    id: string;
     blockNumber: number;
     transactionHash: string;
     timestamp: number;

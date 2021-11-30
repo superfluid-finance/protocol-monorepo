@@ -10,6 +10,9 @@ CONTRACTS=( $($JQ -r .[] ./networks.json) )
 for i in "${CONTRACTS[@]}";do
     mustache config/$i.json subgraph.template.yaml > subgraph.yaml
     mustache config/$i.json src/addresses.template.ts > src/addresses.ts
-    SUBGRAPH_NAME=superfluid-finance/protocol-$1-$i
-    yarn deploy-subgraph
+    graph deploy
+        superfluid-finance/protocol-$1-$i \
+        --node https://api.thegraph.com/deploy/ \
+        --ipfs https://api.thegraph.com/ipfs \
+        --access-token $THEGRAPH_ACCESS_TOKEN
 done

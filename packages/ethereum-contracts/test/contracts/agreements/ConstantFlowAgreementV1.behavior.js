@@ -798,24 +798,16 @@ async function _shouldChangeFlow({
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
-                    "AgreementLiquidated",
-                    {
-                        penaltyAccount: roles.sender,
-                        rewardAccount: roles.reward,
-                        rewardAmount: expectedRewardAmount.toString(),
-                    }
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    testenv.sf.contracts.ISuperToken,
-                    "AgreementLiquidatedBy",
+                    "AgreementLiquidatedByV2",
                     {
                         liquidatorAccount: roles.agent,
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: roles.sender,
                         bondAccount: roles.reward,
-                        rewardAmount: expectedRewardAmount.toString(),
-                        bailoutAmount: "0",
+                        liquidatorAccountDelta: expectedRewardAmount.toString(),
+                        penaltyAccountDelta: expectedRewardAmount
+                            .mul(toBN(-1))
+                            .toString(),
                     }
                 );
             } else {
@@ -855,16 +847,6 @@ async function _shouldChangeFlow({
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
-                    "AgreementLiquidated",
-                    {
-                        penaltyAccount: roles.sender,
-                        rewardAccount: roles.agent,
-                        rewardAmount: expectedRewardAmount.toString(),
-                    }
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    testenv.sf.contracts.ISuperToken,
                     "Bailout",
                     {
                         bailoutAccount: roles.reward,
@@ -874,14 +856,14 @@ async function _shouldChangeFlow({
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
-                    "AgreementLiquidatedBy",
+                    "AgreementLiquidatedByV2",
                     {
                         liquidatorAccount: roles.agent,
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: roles.sender,
                         bondAccount: roles.reward,
-                        rewardAmount: expectedRewardAmount.toString(),
-                        bailoutAmount: expectedBailoutAmount.toString(),
+                        liquidatorAccountDelta: expectedRewardAmount.toString(),
+                        penaltyAccountDelta: expectedBailoutAmount.toString(),
                     }
                 );
             }

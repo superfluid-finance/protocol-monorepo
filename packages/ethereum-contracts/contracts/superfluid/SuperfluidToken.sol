@@ -28,6 +28,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
+    using SafeCast for int256;
 
     /// @dev Superfluid contract
     ISuperfluid immutable internal _host;
@@ -417,9 +418,12 @@ abstract contract SuperfluidToken is ISuperfluidToken
         int256 penaltyAccountDelta
     ) external override onlyAgreement {
         ISuperfluidGovernance gov = _host.getGovernance();
-
+        
+        address originalLiquidatorAccount = liquidatorAccount;
         address bondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-
+        
+        bool isBailout = penaltyAccountDelta > 0 && liquidatorAccountDelta > 0;
+        
         if (bondAccount == address(0)) {
             bondAccount = liquidatorAccount;
         }
@@ -431,11 +435,19 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[penaltyAccount] = _balances[penaltyAccount]
             .add(penaltyAccountDelta);
 
+        // NOTE: We need to set the liquidator account to bond account
+        // if the bond account is the 0 address 
+        if (bondAccount != address(0) && !isBailout) {
+            liquidatorAccount = bondAccount;
+        }
+
         _balances[liquidatorAccount] = _balances[liquidatorAccount]
             .add(liquidatorAccountDelta.toInt256());
 
+
+        // we must use the originalLiquidatorAccount
         emit AgreementLiquidatedByV2(
-            liquidatorAccount,
+            originalLiquidatorAccount,
             msg.sender,
             id,
             penaltyAccount,
@@ -443,6 +455,16 @@ abstract contract SuperfluidToken is ISuperfluidToken
             liquidatorAccountDelta,
             penaltyAccountDelta
         );
+
+        // if both penaltyAccountDelta and liquidatorAccountDelta are +ve
+        // this means that the account is insolvent and the reward account
+        // is bailing out the penalty account
+        if (isBailout) {
+            emit Bailout(
+                bondAccount, 
+                penaltyAccountDelta.toUint256()
+            );
+        }
     }
 
     /**************************************************************************

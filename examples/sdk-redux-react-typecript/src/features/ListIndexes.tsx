@@ -100,17 +100,31 @@ export const ListIndexes: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>createdAtTimestamp</TableCell>
-                                        <TableCell>createdAtBlockNumber</TableCell>
-                                        <TableCell>updatedAtTimestamp</TableCell>
-                                        <TableCell>updatedAtBlockNumber</TableCell>
+                                        <TableCell>
+                                            createdAtTimestamp
+                                        </TableCell>
+                                        <TableCell>
+                                            createdAtBlockNumber
+                                        </TableCell>
+                                        <TableCell>
+                                            updatedAtTimestamp
+                                        </TableCell>
+                                        <TableCell>
+                                            updatedAtBlockNumber
+                                        </TableCell>
                                         <TableCell>indexId</TableCell>
                                         <TableCell>indexValue</TableCell>
-                                        <TableCell>totalSubscriptionsWithUnits</TableCell>
+                                        <TableCell>
+                                            totalSubscriptionsWithUnits
+                                        </TableCell>
                                         <TableCell>totalUnitsPending</TableCell>
-                                        <TableCell>totalUnitsApproved</TableCell>
+                                        <TableCell>
+                                            totalUnitsApproved
+                                        </TableCell>
                                         <TableCell>totalUnits</TableCell>
-                                        <TableCell>totalAmountDistributedUntilUpdatedAt</TableCell>
+                                        <TableCell>
+                                            totalAmountDistributedUntilUpdatedAt
+                                        </TableCell>
                                         <TableCell>token</TableCell>
                                         <TableCell>publisher</TableCell>
                                     </TableRow>
@@ -118,19 +132,50 @@ export const ListIndexes: FC = (): ReactElement => {
                                 <TableBody>
                                     {pagedIndexes!.data.map((index: IIndex) => (
                                         <TableRow key={index.id}>
-                                            <TableCell>{index.createdAtTimestamp}</TableCell>
-                                            <TableCell>{index.createdAtBlockNumber}</TableCell>
-                                            <TableCell>{index.updatedAtTimestamp}</TableCell>
-                                            <TableCell>{index.updatedAtBlockNumber}</TableCell>
-                                            <TableCell>{index.indexId}</TableCell>
-                                            <TableCell>{index.indexValue}</TableCell>
-                                            <TableCell>{index.totalSubscriptionsWithUnits}</TableCell>
-                                            <TableCell>{index.totalUnitsPending}</TableCell>
-                                            <TableCell>{index.totalUnitsApproved}</TableCell>
-                                            <TableCell>{index.totalUnits}</TableCell>
-                                            <TableCell>{index.totalAmountDistributedUntilUpdatedAt}</TableCell>
-                                            <TableCell>{index.token.name} ({index.token.id})</TableCell>
-                                            <TableCell>{index.publisher}</TableCell>
+                                            <TableCell>
+                                                {index.createdAtTimestamp}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.createdAtBlockNumber}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.updatedAtTimestamp}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.updatedAtBlockNumber}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.indexId}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.indexValue}
+                                            </TableCell>
+                                            <TableCell>
+                                                {
+                                                    index.totalSubscriptionsWithUnits
+                                                }
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.totalUnitsPending}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.totalUnitsApproved}
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.totalUnits}
+                                            </TableCell>
+                                            <TableCell>
+                                                {
+                                                    index.totalAmountDistributedUntilUpdatedAt
+                                                }
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.token.name} (
+                                                {index.token.id})
+                                            </TableCell>
+                                            <TableCell>
+                                                {index.publisher}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -139,7 +184,7 @@ export const ListIndexes: FC = (): ReactElement => {
                     )}
                     {pagedIndexes && !error && (
                         <Pagination
-                            count={pagedIndexes.hasNextPage ? page + 1 : page}
+                            count={pagedIndexes.nextPaging ? page + 1 : page}
                             onChange={(
                                 event: React.ChangeEvent<unknown>,
                                 value: number

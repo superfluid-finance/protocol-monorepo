@@ -162,7 +162,7 @@ export const ListStreams: FC = (): ReactElement => {
                     )}
                     {pagedStreams && !error && (
                         <Pagination
-                            count={pagedStreams.hasNextPage ? page + 1 : page}
+                            count={pagedStreams.nextPaging ? page + 1 : page}
                             page={page}
                             onChange={(
                                 event: React.ChangeEvent<unknown>,

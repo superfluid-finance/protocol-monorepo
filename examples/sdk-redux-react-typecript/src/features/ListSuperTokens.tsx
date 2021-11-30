@@ -102,8 +102,12 @@ export const ListSuperTokens: FC = (): ReactElement => {
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>createdAtTimestamp</TableCell>
-                                        <TableCell>createdAtBlockNumber</TableCell>
+                                        <TableCell>
+                                            createdAtTimestamp
+                                        </TableCell>
+                                        <TableCell>
+                                            createdAtBlockNumber
+                                        </TableCell>
                                         <TableCell>name</TableCell>
                                         <TableCell>symbol</TableCell>
                                         <TableCell>isListed</TableCell>
@@ -114,12 +118,30 @@ export const ListSuperTokens: FC = (): ReactElement => {
                                     {pagedSuperTokens!.data.map(
                                         (superToken: ISuperToken) => (
                                             <TableRow key={superToken.id}>
-                                                <TableCell>{superToken.createdAtTimestamp}</TableCell>
-                                                <TableCell>{superToken.createdAtBlockNumber}</TableCell>
-                                                <TableCell>{superToken.name}</TableCell>
-                                                <TableCell>{superToken.symbol}</TableCell>
-                                                <TableCell>{superToken.isListed}</TableCell>
-                                                <TableCell>{superToken.underlyingAddress}</TableCell>
+                                                <TableCell>
+                                                    {
+                                                        superToken.createdAtTimestamp
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        superToken.createdAtBlockNumber
+                                                    }
+                                                </TableCell>
+                                                <TableCell>
+                                                    {superToken.name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {superToken.symbol}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {superToken.isListed}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {
+                                                        superToken.underlyingAddress
+                                                    }
+                                                </TableCell>
                                             </TableRow>
                                         )
                                     )}
@@ -130,7 +152,7 @@ export const ListSuperTokens: FC = (): ReactElement => {
                     {pagedSuperTokens && !error && (
                         <Pagination
                             count={
-                                pagedSuperTokens.hasNextPage ? page + 1 : page
+                                pagedSuperTokens.nextPaging ? page + 1 : page
                             }
                             onChange={(
                                 event: React.ChangeEvent<unknown>,

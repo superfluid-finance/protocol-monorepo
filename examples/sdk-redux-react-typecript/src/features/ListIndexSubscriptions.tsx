@@ -201,7 +201,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                     {pagedIndexSubscriptions && !error && (
                         <Pagination
                             count={
-                                pagedIndexSubscriptions.hasNextPage
+                                pagedIndexSubscriptions.nextPaging
                                     ? page + 1
                                     : page
                             }

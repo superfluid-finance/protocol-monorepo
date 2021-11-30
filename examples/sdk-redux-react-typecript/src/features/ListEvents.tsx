@@ -44,7 +44,7 @@ export const ListEvents: FC = (): ReactElement => {
         {
             chainId: queryChainId,
             accountAddress,
-            timestamp_gte: undefined,
+            timestamp_gt: undefined,
             skip: (page - 1) * pageSize,
             take: pageSize,
         },
@@ -107,7 +107,7 @@ export const ListEvents: FC = (): ReactElement => {
                     )}
                     {pagedEvents && !error && (
                         <Pagination
-                            count={pagedEvents.hasNextPage ? page + 1 : page}
+                            count={pagedEvents.nextPaging ? page + 1 : page}
                             page={page}
                             onChange={(
                                 event: React.ChangeEvent<unknown>,

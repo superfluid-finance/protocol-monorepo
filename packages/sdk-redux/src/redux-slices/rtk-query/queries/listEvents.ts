@@ -19,7 +19,7 @@ import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListEventsArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
-    timestamp_gte: number | NothingNumber;
+    timestamp_gt: number | NothingNumber;
 };
 
 const apiSlice = rtkQuerySlice.injectEndpoints({
@@ -55,7 +55,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                 const pagedResult = await framework.query.listEvents(
                     {
                         account: arg.accountAddress,
-                        timestamp_gte: arg.timestamp_gte,
+                        timestamp_gt: arg.timestamp_gt,
                     },
                     createSkipPaging({ skip: arg.skip, take: arg.take })
                 );

@@ -26,6 +26,9 @@ SDK-Redux is an application framework for building front-end applications that i
 More specifically, SDK-Redux is a wrapper library around `@superfluid-fincance/sdk-core` which adds state management to Superfluid related queries and operations.
 Under the hood, SDK-Redux leverages popular Redux libraries Redux Toolkit & RTK Query.
 
+## Important Disclaimer
+SDK-Redux is in early active development and can have breaking releases without warning and without consideration for semantic versioning.
+
 # Features
 * Tracking loading state in order to show UI spinners
 * Avoiding duplicate requests for the same data

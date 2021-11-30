@@ -1,13 +1,13 @@
 // Having a single "track" action makes it easy to use transaction tracking logic.
-import { createAsyncThunk, Dispatch } from '@reduxjs/toolkit';
-import { ethers } from 'ethers';
+import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
+import {ethers} from 'ethers';
 
-import { preinitializedSuperfluidContext } from '../../SuperfluidContext';
-import { MillisecondTimes } from '../../utils';
-import { TransactionInfo } from '../argTypes';
-import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
+import {preinitializedSuperfluidContext} from '../../SuperfluidContext';
+import {MillisecondTimes} from '../../utils';
+import {TransactionInfo} from '../argTypes';
+import {rtkQuerySlice} from '../rtk-query/rtkQuerySlice';
 
-import { transactionSlice, transactionSlicePrefix } from './transactionSlice';
+import {transactionSlice, transactionSlicePrefix} from './transactionSlice';
 
 /**
  *
@@ -38,7 +38,7 @@ export const waitForOneConfirmation = (
  */
 export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
     `${transactionSlicePrefix}/trackTransaction`,
-    async (arg, { dispatch }) => {
+    async (arg, {dispatch}) => {
         dispatch(
             transactionSlice.actions.upsertTransaction({
                 chainId: arg.chainId,
@@ -80,26 +80,24 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
 // i.e. monitor for re-orgs...
 const monitorForLateErrors = (
     provider: ethers.providers.Provider,
-    { chainId, hash }: TransactionInfo,
+    {chainId, hash}: TransactionInfo,
     dispatch: Dispatch
 ) => {
     provider
         .waitForTransaction(hash, 5, MillisecondTimes.TenMinutes)
-        .then((_transactionReceipt: ethers.providers.TransactionReceipt) => {
-            // No-op: re-org didn't happen.
-        })
+        // When there's no error then that means a re-org didn't happen.
         .catch((ethersError: EthersError) => {
             if (ethersError.code != ethers.errors.TIMEOUT) {
                 // Completely reset API cache.
                 dispatch(rtkQuerySlice.util.resetApiState());
-                notifyOfError(ethersError, { chainId, hash: hash }, dispatch);
+                notifyOfError(ethersError, {chainId, hash: hash}, dispatch);
             }
         });
 };
 
 const notifyOfError = (
     ethersError: EthersError,
-    { chainId, hash }: TransactionInfo,
+    {chainId, hash}: TransactionInfo,
     dispatch: Dispatch
 ) => {
     dispatch(

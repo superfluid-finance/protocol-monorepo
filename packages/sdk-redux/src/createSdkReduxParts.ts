@@ -1,4 +1,8 @@
 import {
+    preinitializedSuperfluidContext,
+    SuperfluidContext,
+} from './SuperfluidContext';
+import {
     rtkQuerySlice,
     SuperfluidApiReduxSliceType,
 } from './redux-slices/rtk-query/rtkQuerySlice';
@@ -6,10 +10,6 @@ import {
     SuperfluidTransactionReduxSlice,
     transactionSlice,
 } from './redux-slices/transactions/transactionSlice';
-import {
-    preinitializedSuperfluidContext,
-    SuperfluidContext,
-} from './SuperfluidContext';
 
 export let initializedSuperfluidContext: SuperfluidContext = null!;
 

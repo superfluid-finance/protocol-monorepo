@@ -453,7 +453,7 @@ export default class Query {
                 // Filter next events by last timestamp of an event.
                 // NOTE: Make sure to order events by timestamp in ascending order.
                 const lastEvent = allEvents.slice(-1)[0];
-                // Next event polling is done for events that have a timestamp later then the current latest event.
+                // Next event polling is done for events that have a timestamp later than the current latest event.
                 eventQueryTimestamp = lastEvent!.timestamp
             }
 

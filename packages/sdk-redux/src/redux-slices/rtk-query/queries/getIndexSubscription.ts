@@ -1,9 +1,9 @@
-import { IWeb3Subscription } from '@superfluid-finance/sdk-core';
+import {IWeb3Subscription} from '@superfluid-finance/sdk-core';
 
-import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
-import { QueryArg } from '../../argTypes';
-import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {QueryArg} from '../../argTypes';
+import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
+import {rtkQuerySlice} from '../rtkQuerySlice';
 
 export type GetIndexSubscriptionArg = QueryArg & {
     superTokenAddress: string;

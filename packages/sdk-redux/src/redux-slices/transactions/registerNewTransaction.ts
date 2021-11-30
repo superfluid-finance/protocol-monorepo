@@ -1,8 +1,8 @@
-import { ThunkDispatch } from '@reduxjs/toolkit';
+import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import { initializedSuperfluidContext } from '../../createSdkReduxParts';
+import {initializedSuperfluidContext} from '../../createSdkReduxParts';
 
-import { trackTransaction, waitForOneConfirmation } from './trackTransaction';
+import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
 
 /**
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
@@ -28,7 +28,7 @@ export const registerNewTransaction = async (
     dispatch(
         trackTransaction({
             chainId,
-            hash: transactionHash
+            hash: transactionHash,
         })
     );
 

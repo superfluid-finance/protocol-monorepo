@@ -1,8 +1,8 @@
-import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
-import { MillisecondTimes } from '../../../utils';
-import { NothingString } from '../../argTypes';
-import { invalidateCacheTagsForEvents } from '../cacheTags/invalidateCacheTagsForEvents';
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {MillisecondTimes} from '../../../utils';
+import {NothingString} from '../../argTypes';
+import {invalidateCacheTagsForEvents} from '../cacheTags/invalidateCacheTagsForEvents';
+import {rtkQuerySlice} from '../rtkQuerySlice';
 
 export type MonitorForEventsToInvalidateCacheArg = {
     chainId: number;
@@ -23,7 +23,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
             },
             onCacheEntryAdded: async (
                 arg,
-                { dispatch, cacheDataLoaded, cacheEntryRemoved }
+                {dispatch, cacheDataLoaded, cacheEntryRemoved}
             ) => {
                 // TODO(KK): Consider how changing of networks inside the application can affect this.
 

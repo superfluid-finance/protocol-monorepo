@@ -7,7 +7,6 @@ import {typeGuard} from '../../utils';
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
 import {rtkQuerySliceBaseQuery} from './rtkQuerySliceBaseQuery';
 
-
 export const rtkQuerySlice = createApi({
     reducerPath: 'sfApi',
     baseQuery: rtkQuerySliceBaseQuery(),

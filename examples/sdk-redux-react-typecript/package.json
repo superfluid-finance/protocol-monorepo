@@ -28,6 +28,7 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "test": "echo test",
+        "lint": "echo lint",
         "pre-commit": "echo pre-commit"
     },
     "eslintConfig": {

@@ -1,11 +1,11 @@
-import { AnyAction } from '@reduxjs/toolkit';
-import { ThunkDispatch } from '@reduxjs/toolkit';
+import {AnyAction} from '@reduxjs/toolkit';
+import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
-import { MillisecondTimes } from '../../../utils';
-import { TransactionInfo } from '../../argTypes';
+import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {MillisecondTimes} from '../../../utils';
+import {TransactionInfo} from '../../argTypes';
 
-import { invalidateCacheTagsForEvents } from './invalidateCacheTagsForEvents';
+import {invalidateCacheTagsForEvents} from './invalidateCacheTagsForEvents';
 
 /**
  * Monitors given address for next event to invalidate cache and then stops.

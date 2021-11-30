@@ -1,12 +1,5 @@
 import { ILightEntity } from "./interfaces";
 
-export type OrderDirection = "asc" | "desc";
-
-export type Ordering<TOrderBy extends string> = {
-    by: TOrderBy;
-    direction: OrderDirection;
-};
-
 /**
  * @dev Paging Helper Class
  */
@@ -16,11 +9,19 @@ export type Paging = {
     readonly lastId?: string;
 };
 
+/**
+ * For paginating Subgraph queries by using skip and take approach. Good for small result sets, not performant for large sets.
+ * Use {@link LastIdPaging} for most performant pagination strategy.
+ */
 export type SkipPaging = {
     readonly take: number;
     readonly skip: number;
 };
 
+/**
+ * For paginating Subgraph queries by using the last ID of the previous paged result to get the next page.
+ * Relies on Subgraph ordering ID's in ascending order which it always does unless the results are ordered by `id` in `desc` order.
+ */
 export type LastIdPaging = {
     readonly take: number;
     readonly lastId: string;
@@ -30,12 +31,23 @@ export type LastIdPaging = {
  * @dev PagedResult Interface
  */
 export interface PagedResult<T extends ILightEntity> {
-    readonly currentPaging: Paging;
-    readonly hasNextPage: boolean;
+    /**
+     * The pagination used for current data.
+     */
+    readonly paging: Paging;
+    /**
+     * {@link Paging} for getting the next page.
+     * `undefined` when there's no next page.
+     */
     readonly nextPaging?: Paging;
     readonly data: T[];
 }
 
+/**
+ * Factory function to create a {@link PagedResult}.
+ * @param dataPlusOne Subgraph queries are executed with one extra result to get which is over the {@link Paging} `take` amount.
+ * @param paging
+ */
 export const createPagedResult = <T extends ILightEntity>(
     dataPlusOne: T[],
     paging: Paging
@@ -45,8 +57,7 @@ export const createPagedResult = <T extends ILightEntity>(
     const lastId = data.slice(-1)[0]?.id;
 
     return {
-        currentPaging: { skip: paging.skip, take: paging.take },
-        hasNextPage: hasNextPage,
+        paging: { skip: paging.skip, take: paging.take },
         nextPaging: hasNextPage
             ? isSkipPaging(paging)
                 ? nextSkipPaging(paging)
@@ -94,8 +105,3 @@ export const nextLastIdPaging = (
 export const takePlusOne = (paging: Paging) => {
     return paging.take + 1;
 };
-//
-// export const getLastId = (paging: Paging): string =>
-//     typeof paging.skip === "number" ? "" : paging.skip;
-// export const getSkip = (paging: Paging): number =>
-//     typeof paging.skip === "number" ? paging.skip : 0;

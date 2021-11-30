@@ -7,7 +7,7 @@ export type EventBase = {
 
 export interface IEventFilter {
     readonly account?: string;
-    readonly timestamp_gte?: number;
+    readonly timestamp_gt?: number;
 }
 
 export type AccountEvents =

@@ -88,6 +88,10 @@ export default class Query {
         );
     }
 
+    /**
+     * A recursive function to fetch all possible results of a paged query.
+     * @param pagedQuery A paginated query that takes {@link Paging} as input.
+     */
     listAllResults = async <T extends ILightEntity>(
         pagedQuery: (paging: Paging) => Promise<PagedResult<T>>
     ): Promise<T[]> => {
@@ -392,7 +396,7 @@ export default class Query {
                 addresses_contains: filter.account
                     ? [filter.account?.toLowerCase()]
                     : undefined,
-                timestamp_gte: filter.timestamp_gte?.toString(),
+                timestamp_gt: filter.timestamp_gt?.toString(),
                 id_gt: paging.lastId,
             },
             first: takePlusOne(paging),
@@ -407,7 +411,6 @@ export default class Query {
 
     // TODO(KK): error callback?
     // TODO(KK): retries?
-    // TODO(KK): consider workers
     // TODO(KK): tests
     on(
         callback: (events: AllEvents[], unsubscribe: () => void) => void,
@@ -420,7 +423,8 @@ export default class Query {
         // Account for the fact that Subgraph has lag and will insert events with the timestamp of the event from blockchain.
         const clockSkew = 25000;
 
-        let nextUtcNow = new Date().getTime() - clockSkew;
+        // Convert millisecond-based time to second-based time (which Subgraph uses).
+        let eventQueryTimestamp = Math.floor((new Date().getTime() - clockSkew) / 1000);
 
         let isUnsubscribed = false;
         const unsubscribe = () => {
@@ -432,13 +436,10 @@ export default class Query {
                 return;
             }
 
-            const utcNow = nextUtcNow;
-
-            const subgraphTime = Math.floor(utcNow / 1000);
             const allEvents = await this.listAllResults(paging => this.listEvents(
                 {
                     account: account,
-                    timestamp_gte: subgraphTime,
+                    timestamp_gt: eventQueryTimestamp,
                 },
                 paging,
                 {
@@ -452,9 +453,8 @@ export default class Query {
                 // Filter next events by last timestamp of an event.
                 // NOTE: Make sure to order events by timestamp in ascending order.
                 const lastEvent = allEvents.slice(-1)[0];
-                nextUtcNow = lastEvent!.timestamp + 1
-            } else {
-                nextUtcNow += ms;
+                // Next event polling is done for events that have a timestamp later then the current latest event.
+                eventQueryTimestamp = lastEvent!.timestamp
             }
 
             // This solution sets the interval based on last query returning, opposed to not taking request-response cycles into account at all.

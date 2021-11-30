@@ -58,7 +58,9 @@ describe("Superfluid Ownable Governance Contract", function () {
             onlyOwnerReason
         );
         await expectRevert(
-            governance.updateSuperTokenLogic(superfluid.address, ZERO_ADDRESS),
+            governance.batchUpdateSuperTokenLogic(superfluid.address, [
+                ZERO_ADDRESS,
+            ]),
             onlyOwnerReason
         );
     });

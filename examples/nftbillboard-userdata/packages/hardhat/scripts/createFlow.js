@@ -2,7 +2,7 @@ const hre = require("hardhat");
 require("dotenv");
 const Web3 = require("web3");
 
-//all addresses hardcoded for mumbai
+//all addresses hardcoded for mumbai - will only work on mumbai deployment
 const hostJSON = require("../artifacts/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol/ISuperfluid.json")
 const hostABI = hostJSON.abi;
 const hostAddress = "0xEB796bdb90fFA0f28255275e16936D25d3418603";

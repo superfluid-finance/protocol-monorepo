@@ -71,14 +71,16 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         }
     }
 
-    function updateSuperTokenLogic(
+    function batchUpdateSuperTokenLogic(
         ISuperfluid host,
-        ISuperToken token
+        ISuperToken[] calldata tokens
     )
         external override
         onlyAuthorized(host)
     {
-        host.updateSuperTokenLogic(token);
+        for (uint i = 0; i < tokens.length; ++i) {
+            host.updateSuperTokenLogic(tokens[i]);
+        }
     }
 
     event ConfigChanged(

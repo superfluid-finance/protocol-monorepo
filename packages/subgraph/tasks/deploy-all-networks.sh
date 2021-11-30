@@ -7,6 +7,7 @@ graph="../../node_modules/@graphprotocol/graph-cli"
 CONTRACTS=( $($JQ -r .[] ./networks.json) )
 [ $? == 0 ] || exit 1
 
+chmod +x ./tasks/deploy-to-network.sh
 for i in "${CONTRACTS[@]}";do
     ./tasks/deploy-to-network.sh $1 $i
     # mustache config/$i.json subgraph.template.yaml > subgraph.yaml

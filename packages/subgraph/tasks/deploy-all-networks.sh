@@ -14,5 +14,6 @@ for i in "${CONTRACTS[@]}";do
         superfluid-finance/protocol-$1-$i \
         --node https://api.thegraph.com/deploy/ \
         --ipfs https://api.thegraph.com/ipfs \
+        --product hosted-service \
         --access-token $THEGRAPH_ACCESS_TOKEN
 done

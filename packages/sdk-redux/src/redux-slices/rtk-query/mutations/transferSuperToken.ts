@@ -1,8 +1,8 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
-import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
@@ -11,7 +11,7 @@ export type TransferSuperTokenArg = SuperTokenMutationArg & {
     amountWei: string;
 };
 
-export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         transferSuperToken: builder.mutation<
             TransactionInfo,
@@ -19,7 +19,9 @@ export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
         >({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedContext.getFrameworkAndSigner(arg.chainId);
+                    await initializedSuperfluidContext.getFrameworkAndSigner(
+                        arg.chainId
+                    );
 
                 const [superToken, signerAddress] = await Promise.all([
                     framework.loadSuperToken(arg.superTokenAddress),
@@ -63,3 +65,11 @@ export const { useTransferSuperTokenMutation } = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * Documentation: {@link TransferSuperTokenArg}
+     * @category React Hooks
+     */
+    useTransferSuperTokenMutation,
+} = apiSlice;

@@ -1,17 +1,17 @@
 import {
+    createSkipPaging,
     IIndexSubscription,
     PagedResult,
-    createSkipPaging,
 } from '@superfluid-finance/sdk-core';
 
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import {
     NothingBoolean,
     NothingString,
     PaginatedQueryArg,
 } from '../../argTypes';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 // TODO(KK): cache key?
 export type ListIndexSubscriptionsArg = PaginatedQueryArg & {
@@ -19,10 +19,7 @@ export type ListIndexSubscriptionsArg = PaginatedQueryArg & {
     approved: boolean | NothingBoolean;
 };
 
-export const {
-    useListIndexSubscriptionsQuery,
-    useLazyListIndexSubscriptionsQuery,
-} = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         listIndexSubscriptions: builder.query<
             PagedResult<IIndexSubscription>,
@@ -38,9 +35,10 @@ export const {
                 }),
             ],
             queryFn: async (arg) => {
-                const framework = await initializedContext.getFramework(
-                    arg.chainId
-                );
+                const framework =
+                    await initializedSuperfluidContext.getFramework(
+                        arg.chainId
+                    );
 
                 return {
                     data: await framework.query.listIndexSubscriptions(
@@ -56,3 +54,14 @@ export const {
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * @category React Hooks
+     */
+    useListIndexSubscriptionsQuery,
+    /**
+     * @category React Hooks
+     */
+    useLazyListIndexSubscriptionsQuery,
+} = apiSlice;

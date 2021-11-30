@@ -1,17 +1,17 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { QueryArg } from '../../argTypes';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
+/**
+ * @category Query Args
+ */
 export type GetAllowanceForUpgradeToSuperTokenArg = QueryArg & {
     accountAddress: string;
     superTokenAddress: string;
 };
 
-export const {
-    useGetAllowanceForUpgradeToSuperTokenQuery,
-    useLazyGetAllowanceForUpgradeToSuperTokenQuery,
-} = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         getAllowanceForUpgradeToSuperToken: builder.query<
             string,
@@ -27,9 +27,10 @@ export const {
                 }),
             ],
             queryFn: async (arg) => {
-                const framework = await initializedContext.getFramework(
-                    arg.chainId
-                );
+                const framework =
+                    await initializedSuperfluidContext.getFramework(
+                        arg.chainId
+                    );
 
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
@@ -50,3 +51,14 @@ export const {
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * @category React Hooks
+     */
+    useGetAllowanceForUpgradeToSuperTokenQuery,
+    /**
+     * @category React Hooks
+     */
+    useLazyGetAllowanceForUpgradeToSuperTokenQuery,
+} = apiSlice;

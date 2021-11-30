@@ -1,12 +1,12 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import {
     NothingString,
     SuperTokenMutationArg,
     TransactionInfo,
 } from '../../argTypes';
-import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
@@ -16,7 +16,7 @@ export type DistributeToIndexArg = SuperTokenMutationArg & {
     userDataBytes: string | NothingString;
 };
 
-export const { useDistributeToIndexMutation } = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         distributeToIndex: builder.mutation<
             TransactionInfo,
@@ -24,7 +24,9 @@ export const { useDistributeToIndexMutation } = rtkQuerySlice.injectEndpoints({
         >({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedContext.getFrameworkAndSigner(arg.chainId);
+                    await initializedSuperfluidContext.getFrameworkAndSigner(
+                        arg.chainId
+                    );
 
                 const [superToken, signerAddress] = await Promise.all([
                     framework.loadSuperToken(arg.superTokenAddress),
@@ -69,3 +71,11 @@ export const { useDistributeToIndexMutation } = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * Documentation: {@link DistributeToIndexArg}
+     * @category React Hooks
+     */
+    useDistributeToIndexMutation,
+} = apiSlice;

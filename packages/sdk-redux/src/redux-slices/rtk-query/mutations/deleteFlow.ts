@@ -1,22 +1,27 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
-import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Delete a flow of the token of this class.
+ */
 export type DeleteFlowArg = SuperTokenMutationArg & {
     senderAddress?: string;
     receiverAddress: string;
 };
 
-export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         deleteFlow: builder.mutation<TransactionInfo, DeleteFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedContext.getFrameworkAndSigner(arg.chainId);
+                    await initializedSuperfluidContext.getFrameworkAndSigner(
+                        arg.chainId
+                    );
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );
@@ -62,3 +67,11 @@ export const { useDeleteFlowMutation } = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * Documentation: {@link DeleteFlowArg}
+     * @category React Hooks
+     */
+    useDeleteFlowMutation,
+} = apiSlice;

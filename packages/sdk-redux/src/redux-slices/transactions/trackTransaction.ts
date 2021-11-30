@@ -1,24 +1,41 @@
 // Having a single "track" action makes it easy to use transaction tracking logic.
 import { createAsyncThunk, Dispatch } from '@reduxjs/toolkit';
-import { superfluidContext } from '../../superfluidContext';
-import { MsTimes } from '../../utils';
-import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
-import { transactionSlice, transactionSlicePrefix } from './transactionSlice';
 import { ethers } from 'ethers';
-import { TransactionInfo } from '../argTypes';
 
+import { preinitializedSuperfluidContext } from '../../SuperfluidContext';
+import { MillisecondTimes } from '../../utils';
+import { TransactionInfo } from '../argTypes';
+import { rtkQuerySlice } from '../rtk-query/rtkQuerySlice';
+
+import { transactionSlice, transactionSlicePrefix } from './transactionSlice';
+
+/**
+ *
+ */
 type EthersError = Error & {
     code: ethers.errors;
     reason?: 'replaced' | 'repriced' | 'cancelled';
     cancelled?: boolean;
 };
 
+/**
+ *
+ * @param provider
+ * @param transactionHash
+ */
 export const waitForOneConfirmation = (
     provider: ethers.providers.Provider,
     transactionHash: string
 ): Promise<ethers.providers.TransactionReceipt> =>
-    provider.waitForTransaction(transactionHash, 1, MsTimes.TenMinutes);
+    provider.waitForTransaction(
+        transactionHash,
+        1,
+        MillisecondTimes.TenMinutes
+    );
 
+/**
+ *
+ */
 export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
     `${transactionSlicePrefix}/trackTransaction`,
     async (arg, { dispatch }) => {
@@ -30,7 +47,9 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
             })
         );
 
-        const framework = await superfluidContext.getFramework(arg.chainId);
+        const framework = await preinitializedSuperfluidContext.getFramework(
+            arg.chainId
+        );
 
         waitForOneConfirmation(framework.settings.provider, arg.hash)
             .then(
@@ -65,7 +84,7 @@ const monitorForLateErrors = (
     dispatch: Dispatch
 ) => {
     provider
-        .waitForTransaction(hash, 5, MsTimes.TenMinutes)
+        .waitForTransaction(hash, 5, MillisecondTimes.TenMinutes)
         .then((_transactionReceipt: ethers.providers.TransactionReceipt) => {
             // No-op: re-org didn't happen.
         })
@@ -73,7 +92,7 @@ const monitorForLateErrors = (
             if (ethersError.code != ethers.errors.TIMEOUT) {
                 // Completely reset API cache.
                 dispatch(rtkQuerySlice.util.resetApiState());
-                notifyOfError(ethersError, { chainId, hash }, dispatch);
+                notifyOfError(ethersError, { chainId, hash: hash }, dispatch);
             }
         });
 };

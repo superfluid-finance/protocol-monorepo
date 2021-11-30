@@ -1,5 +1,8 @@
+// Export everything from SDK-Core.
+export * from '@superfluid-finance/sdk-core';
+
 export * from './createSdkReduxParts';
-export * from './superfluidContext';
+export * from './SuperfluidContext';
 
 export * from './redux-slices/rtk-query/queries/listStreams';
 export * from './redux-slices/rtk-query/queries/listEvents';
@@ -31,5 +34,4 @@ export {
 export * from './redux-slices/transactions/transactionSlice';
 export * from './redux-slices/transactions/trackTransaction';
 
-export * from '@superfluid-finance/sdk-core';
 export { SuperfluidApiReduxSliceType } from './redux-slices/rtk-query/rtkQuerySlice';

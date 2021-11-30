@@ -1,15 +1,18 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import {
     NothingString,
     SuperTokenMutationArg,
     TransactionInfo,
 } from '../../argTypes';
-import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Claims any pending tokens allocated to the Subscription (unapproved).
+ */
 export type ClaimFromIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;
     publisherAddress: string;
@@ -17,59 +20,66 @@ export type ClaimFromIndexSubscriptionArg = SuperTokenMutationArg & {
     userDataBytes: string | NothingString;
 };
 
-export const { useClaimFromIndexSubscriptionMutation } =
-    rtkQuerySlice.injectEndpoints({
-        endpoints: (builder) => ({
-            claimFromIndexSubscription: builder.mutation<
-                TransactionInfo,
-                ClaimFromIndexSubscriptionArg
-            >({
-                queryFn: async (arg, queryApi) => {
-                    const [framework, signer] =
-                        await initializedContext.getFrameworkAndSigner(
-                            arg.chainId
-                        );
-
-                    const superToken = await framework.loadSuperToken(
-                        arg.superTokenAddress
+const apiSlice = rtkQuerySlice.injectEndpoints({
+    endpoints: (builder) => ({
+        claimFromIndexSubscription: builder.mutation<
+            TransactionInfo,
+            ClaimFromIndexSubscriptionArg
+        >({
+            queryFn: async (arg, queryApi) => {
+                const [framework, signer] =
+                    await initializedSuperfluidContext.getFrameworkAndSigner(
+                        arg.chainId
                     );
 
-                    const transactionResponse = await superToken
-                        .claim({
-                            indexId: arg.indexId,
-                            publisher: arg.publisherAddress,
-                            subscriber: arg.subscriberAddress,
-                            userData: arg.userDataBytes,
-                        })
-                        .exec(signer);
+                const superToken = await framework.loadSuperToken(
+                    arg.superTokenAddress
+                );
 
-                    await registerNewTransaction(
-                        arg.chainId,
-                        transactionResponse.hash,
-                        !!arg.waitForConfirmation,
-                        queryApi.dispatch
-                    );
+                const transactionResponse = await superToken
+                    .claim({
+                        indexId: arg.indexId,
+                        publisher: arg.publisherAddress,
+                        subscriber: arg.subscriberAddress,
+                        userData: arg.userDataBytes,
+                    })
+                    .exec(signer);
 
-                    return {
-                        data: typeGuard<TransactionInfo>({
-                            hash: transactionResponse.hash,
-                            chainId: arg.chainId,
-                        }),
-                        meta: typeGuard<MutationMeta>({
-                            monitorAddress: arg.publisherAddress,
-                        }),
-                    };
-                },
-                onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-                    queryFulfilled.then(async (queryResult) =>
-                        monitorAddressForNextEventToInvalidateCache(
-                            queryResult.meta!.monitorAddress,
-                            queryResult.data,
-                            dispatch
-                        )
-                    );
-                },
-            }),
+                await registerNewTransaction(
+                    arg.chainId,
+                    transactionResponse.hash,
+                    !!arg.waitForConfirmation,
+                    queryApi.dispatch
+                );
+
+                return {
+                    data: typeGuard<TransactionInfo>({
+                        hash: transactionResponse.hash,
+                        chainId: arg.chainId,
+                    }),
+                    meta: typeGuard<MutationMeta>({
+                        monitorAddress: arg.publisherAddress,
+                    }),
+                };
+            },
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+                queryFulfilled.then(async (queryResult) =>
+                    monitorAddressForNextEventToInvalidateCache(
+                        queryResult.meta!.monitorAddress,
+                        queryResult.data,
+                        dispatch
+                    )
+                );
+            },
         }),
-        overrideExisting: false,
-    });
+    }),
+    overrideExisting: false,
+});
+
+export const {
+    /**
+     * Documentation: {@link ClaimFromIndexSubscriptionArg}
+     * @category React Hooks
+     */
+    useClaimFromIndexSubscriptionMutation,
+} = apiSlice;

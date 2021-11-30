@@ -2,11 +2,18 @@ import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { AllEvents } from '@superfluid-finance/sdk-core';
 
 import { rtkQuerySlice } from '../rtkQuerySlice';
+
+import { createEventTag } from './eventTags';
 import { createIndexTags } from './indexTags';
 import { createStreamsTags } from './streamTags';
 import { createTokenTags } from './tokenTags';
-import {createEventTag} from "./eventTags";
 
+/**
+ * Based on event type, invalidate all possible relevant cache tags.
+ * Cache tag invalidation will trigger re-querying of data.
+ * @private
+ * @category Cache Tags
+ */
 export const invalidateCacheTagsForEvents = (
     chainId: number,
     events: AllEvents[],
@@ -15,7 +22,7 @@ export const invalidateCacheTagsForEvents = (
     const tagsToInvalidate = events
         .map((event) => [
             createEventTag(chainId),
-            ...getEventSpecificTags(event, chainId)
+            ...getEventSpecificTags(event, chainId),
         ])
         .flat();
     dispatch(rtkQuerySlice.util.invalidateTags(tagsToInvalidate));

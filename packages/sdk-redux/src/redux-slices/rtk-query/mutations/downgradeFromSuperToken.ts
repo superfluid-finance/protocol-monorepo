@@ -1,8 +1,8 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
-import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
@@ -10,57 +10,64 @@ export type DowngradeFromSuperToken = SuperTokenMutationArg & {
     amountWei: string;
 };
 
-export const { useDowngradeFromSuperTokenMutation } =
-    rtkQuerySlice.injectEndpoints({
-        endpoints: (builder) => ({
-            downgradeFromSuperToken: builder.mutation<
-                TransactionInfo,
-                DowngradeFromSuperToken
-            >({
-                queryFn: async (arg, queryApi) => {
-                    const [framework, signer] =
-                        await initializedContext.getFrameworkAndSigner(
-                            arg.chainId
-                        );
-
-                    const [superToken, signerAddress] = await Promise.all([
-                        framework.loadSuperToken(arg.superTokenAddress),
-                        signer.getAddress(),
-                    ]);
-
-                    const transactionResponse = await superToken
-                        .downgrade({
-                            amount: arg.amountWei,
-                        })
-                        .exec(signer);
-
-                    await registerNewTransaction(
-                        arg.chainId,
-                        transactionResponse.hash,
-                        !!arg.waitForConfirmation,
-                        queryApi.dispatch
+const apiSlice = rtkQuerySlice.injectEndpoints({
+    endpoints: (builder) => ({
+        downgradeFromSuperToken: builder.mutation<
+            TransactionInfo,
+            DowngradeFromSuperToken
+        >({
+            queryFn: async (arg, queryApi) => {
+                const [framework, signer] =
+                    await initializedSuperfluidContext.getFrameworkAndSigner(
+                        arg.chainId
                     );
 
-                    return {
-                        data: typeGuard<TransactionInfo>({
-                            hash: transactionResponse.hash,
-                            chainId: arg.chainId,
-                        }),
-                        meta: typeGuard<MutationMeta>({
-                            monitorAddress: signerAddress,
-                        }),
-                    };
-                },
-                onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-                    queryFulfilled.then(async (queryResult) =>
-                        monitorAddressForNextEventToInvalidateCache(
-                            queryResult.meta!.monitorAddress,
-                            queryResult.data,
-                            dispatch
-                        )
-                    );
-                },
-            }),
+                const [superToken, signerAddress] = await Promise.all([
+                    framework.loadSuperToken(arg.superTokenAddress),
+                    signer.getAddress(),
+                ]);
+
+                const transactionResponse = await superToken
+                    .downgrade({
+                        amount: arg.amountWei,
+                    })
+                    .exec(signer);
+
+                await registerNewTransaction(
+                    arg.chainId,
+                    transactionResponse.hash,
+                    !!arg.waitForConfirmation,
+                    queryApi.dispatch
+                );
+
+                return {
+                    data: typeGuard<TransactionInfo>({
+                        hash: transactionResponse.hash,
+                        chainId: arg.chainId,
+                    }),
+                    meta: typeGuard<MutationMeta>({
+                        monitorAddress: signerAddress,
+                    }),
+                };
+            },
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+                queryFulfilled.then(async (queryResult) =>
+                    monitorAddressForNextEventToInvalidateCache(
+                        queryResult.meta!.monitorAddress,
+                        queryResult.data,
+                        dispatch
+                    )
+                );
+            },
         }),
-        overrideExisting: false,
-    });
+    }),
+    overrideExisting: false,
+});
+
+export const {
+    /**
+     * Documentation: {@link DowngradeFromSuperToken}
+     * @category React Hooks
+     */
+    useDowngradeFromSuperTokenMutation,
+} = apiSlice;

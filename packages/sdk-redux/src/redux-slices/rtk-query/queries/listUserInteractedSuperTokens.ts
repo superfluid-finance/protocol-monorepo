@@ -1,25 +1,22 @@
 import {
+    createSkipPaging,
     ILightAccountTokenSnapshot,
     PagedResult,
-    createSkipPaging,
 } from '@superfluid-finance/sdk-core';
 
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { NothingString, PaginatedQueryArg } from '../../argTypes';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
 import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
 import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListUserInteractedSuperTokensArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
     superTokenAddress: string | NothingString;
 };
 
-export const {
-    useListUserInteractedSuperTokensQuery,
-    useLazyListUserInteractedSuperTokensQuery,
-} = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         listUserInteractedSuperTokens: builder.query<
             PagedResult<ILightAccountTokenSnapshot>,
@@ -47,9 +44,10 @@ export const {
                 }),
             ],
             queryFn: async (arg) => {
-                const framework = await initializedContext.getFramework(
-                    arg.chainId
-                );
+                const framework =
+                    await initializedSuperfluidContext.getFramework(
+                        arg.chainId
+                    );
                 const pagedResult =
                     await framework.query.listUserInteractedSuperTokens(
                         {
@@ -66,3 +64,14 @@ export const {
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * @category React Hooks
+     */
+    useListUserInteractedSuperTokensQuery,
+    /**
+     * @category React Hooks
+     */
+    useLazyListUserInteractedSuperTokensQuery,
+} = apiSlice;

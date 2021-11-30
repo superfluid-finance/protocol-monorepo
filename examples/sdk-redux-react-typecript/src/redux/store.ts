@@ -3,7 +3,7 @@ import { createSdkReduxParts } from "@superfluid-finance/sdk-redux";
 import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
 
 const {
-    context,
+    superfluidContext,
     apiSlice,
     transactionSlice,
 } = createSdkReduxParts();
@@ -19,7 +19,7 @@ export const store = configureStore({
 
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;
-export const superfluidContext = context;
+export { superfluidContext };
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const useAppDispatch = () => useDispatch<Dispatch>();

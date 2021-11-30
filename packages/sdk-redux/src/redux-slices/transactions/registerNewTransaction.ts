@@ -1,21 +1,34 @@
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedContext } from '../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../createSdkReduxParts';
+
 import { trackTransaction, waitForOneConfirmation } from './trackTransaction';
 
-// WARNING: Ethers TransactionResponse has initially wrong chain ID.
+/**
+ * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
+ */
 export const registerNewTransaction = async (
+    /**
+     * The chain ID transaction is on.
+     * WARNING: Don't pass `chainId` off of ether's `TransactionResponse` because it's not set correctly on timely manner.
+     */
     chainId: number,
     transactionHash: string,
+    /**
+     * Whether to wait for one transaction confirmation.
+     */
     waitForConfirmation: boolean,
+    /**
+     * For dispatching redux thunks.
+     */
     dispatch: ThunkDispatch<any, any, any>
 ) => {
-    const framework = await initializedContext.getFramework(chainId);
+    const framework = await initializedSuperfluidContext.getFramework(chainId);
 
     dispatch(
         trackTransaction({
-            hash: transactionHash,
-            chainId: chainId,
+            chainId,
+            hash: transactionHash
         })
     );
 

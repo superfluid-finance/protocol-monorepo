@@ -1,8 +1,8 @@
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { typeGuard } from '../../../utils';
 import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
-import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
@@ -12,12 +12,14 @@ export type UpdateFlowArg = SuperTokenMutationArg & {
     flowRateWei: string;
 };
 
-export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
+const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         updateFlow: builder.mutation<TransactionInfo, UpdateFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedContext.getFrameworkAndSigner(arg.chainId);
+                    await initializedSuperfluidContext.getFrameworkAndSigner(
+                        arg.chainId
+                    );
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );
@@ -62,3 +64,11 @@ export const { useUpdateFlowMutation } = rtkQuerySlice.injectEndpoints({
     }),
     overrideExisting: false,
 });
+
+export const {
+    /**
+     * Documentation: {@link UpdateFlowArg}
+     * @category React Hooks
+     */
+    useUpdateFlowMutation,
+} = apiSlice;

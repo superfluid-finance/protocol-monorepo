@@ -1,58 +1,66 @@
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { MillisecondTimes } from '../../../utils';
 import { NothingString } from '../../argTypes';
-import { rtkQuerySlice } from '../rtkQuerySlice';
-import { initializedContext } from '../../../createSdkReduxParts';
 import { invalidateCacheTagsForEvents } from '../cacheTags/invalidateCacheTagsForEvents';
-import { MsTimes } from '../../../utils';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type MonitorForEventsToInvalidateCacheArg = {
     chainId: number;
     address: string | NothingString;
 };
 
-export const { useMonitorForEventsToInvalidateCacheMutation } =
-    rtkQuerySlice.injectEndpoints({
-        endpoints: (builder) => ({
-            monitorForEventsToInvalidateCache: builder.mutation<
-                true,
-                MonitorForEventsToInvalidateCacheArg
-            >({
-                queryFn: () => {
-                    // No-op
-                    return {
-                        data: true,
-                    };
-                },
-                onCacheEntryAdded: async (
-                    arg,
-                    { dispatch, cacheDataLoaded, cacheEntryRemoved }
-                ) => {
-                    // TODO(KK): Consider how changing of networks inside the application can affect this.
+const apiSlice = rtkQuerySlice.injectEndpoints({
+    endpoints: (builder) => ({
+        monitorForEventsToInvalidateCache: builder.mutation<
+            true,
+            MonitorForEventsToInvalidateCacheArg
+        >({
+            queryFn: () => {
+                // No-op
+                return {
+                    data: true,
+                };
+            },
+            onCacheEntryAdded: async (
+                arg,
+                { dispatch, cacheDataLoaded, cacheEntryRemoved }
+            ) => {
+                // TODO(KK): Consider how changing of networks inside the application can affect this.
 
-                    const framework = await initializedContext.getFramework(
+                const framework =
+                    await initializedSuperfluidContext.getFramework(
                         arg.chainId
                     );
 
-                    await cacheDataLoaded;
+                await cacheDataLoaded;
 
-                    const unsubscribe = framework.query.on(
-                        (events) => {
-                            invalidateCacheTagsForEvents(
-                                arg.chainId,
-                                events,
-                                dispatch
-                            );
-                        },
-                        MsTimes.TwentySeconds,
-                        arg.address
-                    );
+                const unsubscribe = framework.query.on(
+                    (events) => {
+                        invalidateCacheTagsForEvents(
+                            arg.chainId,
+                            events,
+                            dispatch
+                        );
+                    },
+                    MillisecondTimes.TwentySeconds,
+                    arg.address
+                );
 
-                    try {
-                        await cacheEntryRemoved;
-                    } finally {
-                        unsubscribe();
-                    }
-                },
-            }),
+                try {
+                    await cacheEntryRemoved;
+                } finally {
+                    unsubscribe();
+                }
+            },
         }),
-        overrideExisting: false,
-    });
+    }),
+    overrideExisting: false,
+});
+
+export const {
+    /**
+     * Documentation: {@link MonitorForEventsToInvalidateCacheArg}
+     * @category React Hooks
+     */
+    useMonitorForEventsToInvalidateCacheMutation,
+} = apiSlice;

@@ -1,9 +1,13 @@
-import { IStream, PagedResult, createSkipPaging } from '@superfluid-finance/sdk-core';
+import {
+    createSkipPaging,
+    IStream,
+    PagedResult,
+} from '@superfluid-finance/sdk-core';
 
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
 import { NothingString, PaginatedQueryArg } from '../../argTypes';
-import { rtkQuerySlice } from '../rtkQuerySlice';
 import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListStreamsArg = PaginatedQueryArg & {
     senderAddress: string | NothingString;
@@ -11,35 +15,46 @@ export type ListStreamsArg = PaginatedQueryArg & {
     superTokenAddress: string | NothingString;
 };
 
-export const { useListStreamsQuery, useLazyListStreamsQuery } =
-    rtkQuerySlice.injectEndpoints({
-        endpoints: (builder) => ({
-            listStreams: builder.query<PagedResult<IStream>, ListStreamsArg>({
-                providesTags: (_result, _error, arg) => [
-                    getMostSpecificStreamTag({
-                        chainId: arg.chainId,
-                        address1: arg.superTokenAddress,
-                        address3: arg.receiverAddress,
-                        address2: arg.senderAddress,
-                    }),
-                ],
-                queryFn: async (arg) => {
-                    const framework = await initializedContext.getFramework(
+const apiSlice = rtkQuerySlice.injectEndpoints({
+    endpoints: (builder) => ({
+        listStreams: builder.query<PagedResult<IStream>, ListStreamsArg>({
+            providesTags: (_result, _error, arg) => [
+                getMostSpecificStreamTag({
+                    chainId: arg.chainId,
+                    address1: arg.superTokenAddress,
+                    address3: arg.receiverAddress,
+                    address2: arg.senderAddress,
+                }),
+            ],
+            queryFn: async (arg) => {
+                const framework =
+                    await initializedSuperfluidContext.getFramework(
                         arg.chainId
                     );
 
-                    return {
-                        data: await framework.query.listStreams(
-                            {
-                                sender: arg.senderAddress,
-                                receiver: arg.receiverAddress,
-                                token: arg.superTokenAddress,
-                            },
-                            createSkipPaging(arg)
-                        ),
-                    };
-                },
-            }),
+                return {
+                    data: await framework.query.listStreams(
+                        {
+                            sender: arg.senderAddress,
+                            receiver: arg.receiverAddress,
+                            token: arg.superTokenAddress,
+                        },
+                        createSkipPaging(arg)
+                    ),
+                };
+            },
         }),
-        overrideExisting: false,
-    });
+    }),
+    overrideExisting: false,
+});
+
+export const {
+    /**
+     * @category React Hooks
+     */
+    useListStreamsQuery,
+    /**
+     * @category React Hooks
+     */
+    useLazyListStreamsQuery,
+} = apiSlice;

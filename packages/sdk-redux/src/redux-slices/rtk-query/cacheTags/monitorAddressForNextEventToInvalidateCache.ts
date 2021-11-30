@@ -1,18 +1,24 @@
 import { AnyAction } from '@reduxjs/toolkit';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
-import { initializedContext } from '../../../createSdkReduxParts';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { MillisecondTimes } from '../../../utils';
 import { TransactionInfo } from '../../argTypes';
 
 import { invalidateCacheTagsForEvents } from './invalidateCacheTagsForEvents';
-import { MsTimes } from '../../../utils';
 
+/**
+ * Monitors given address for next event to invalidate cache and then stops.
+ * NOTE: Optimizations for robustness could be done here.
+ * @private
+ * @category Cache Tags
+ */
 export const monitorAddressForNextEventToInvalidateCache = async (
     address: string,
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    const framework = await initializedContext.getFramework(
+    const framework = await initializedSuperfluidContext.getFramework(
         transactionInfo.chainId
     );
     framework.query.on(
@@ -24,8 +30,8 @@ export const monitorAddressForNextEventToInvalidateCache = async (
             );
             unsubscribe();
         },
-        MsTimes.OneSecond,
+        MillisecondTimes.OneSecond,
         address,
-        MsTimes.OneMinute
+        MillisecondTimes.OneMinute
     );
 };

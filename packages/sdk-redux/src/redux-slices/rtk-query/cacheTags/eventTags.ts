@@ -1,4 +1,8 @@
-import { createTag } from './CacheTagTypes';
+import {createTag} from './CacheTagTypes';
 
-export const createEventTag = (chainId: number) =>
-    createTag('Event', chainId);
+/**
+ * The simplest cache tag.
+ * @private
+ * @category Cache Tags
+ */
+export const createEventTag = (chainId: number) => createTag('Event', chainId);

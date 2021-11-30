@@ -20,7 +20,7 @@ const deployedTradeableCashflow = require("../deployments/polytest/TradeableCash
 const tradeableCashflowAddress = deployedTradeableCashflow.address;
 
 //your address here:
-const _sender = process.env.MUMBAI_DEPLOYER_PUB_KEY;
+const _sender = process.env.SENDER_ADDRESS;
 
 //create a flow
 async function main() {

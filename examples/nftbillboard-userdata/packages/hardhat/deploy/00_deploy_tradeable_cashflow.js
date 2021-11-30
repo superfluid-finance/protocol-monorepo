@@ -5,7 +5,7 @@ const fDAIx = '0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f';
 
 require("dotenv");
 //your address here...
-const owner = process.env.MUMBAI_DEPLOYER_PUB_KEY;
+const owner = process.env.OWNER_ADDRESS;
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;

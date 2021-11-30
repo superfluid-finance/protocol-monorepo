@@ -1,4 +1,9 @@
 [
     "goerli",
-    "matic"
+    "kovan",
+    "matic",
+    "mumbai",
+    "rinkeby",
+    "ropsten",
+    "xdai"
 ]

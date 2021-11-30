@@ -10,12 +10,4 @@ CONTRACTS=( $($JQ -r .[] ./networks.json) )
 chmod +x ./tasks/deploy-to-network.sh
 for i in "${CONTRACTS[@]}";do
     ./tasks/deploy-to-network.sh $1 $i
-    # mustache config/$i.json subgraph.template.yaml > subgraph.yaml
-    # mustache config/$i.json src/addresses.template.ts > src/addresses.ts
-    # graph deploy
-    #     --product hosted-service \
-    #     superfluid-finance/protocol-$1-$i \
-    #     --node https://api.thegraph.com/deploy/ \
-    #     --ipfs https://api.thegraph.com/ipfs \
-    #     --access-token $THEGRAPH_ACCESS_TOKEN
 done

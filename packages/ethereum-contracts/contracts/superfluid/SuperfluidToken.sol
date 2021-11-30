@@ -420,11 +420,12 @@ abstract contract SuperfluidToken is ISuperfluidToken
         ISuperfluidGovernance gov = _host.getGovernance();
         
         address originalLiquidatorAccount = liquidatorAccount;
-        address bondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+        address originalBondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+        address bondAccount = originalBondAccount;
         
         bool isBailout = penaltyAccountDelta > 0 && liquidatorAccountDelta > 0;
         
-        if (bondAccount == address(0)) {
+        if (originalBondAccount == address(0)) {
             bondAccount = liquidatorAccount;
         }
 
@@ -436,16 +437,19 @@ abstract contract SuperfluidToken is ISuperfluidToken
             .add(penaltyAccountDelta);
 
         // NOTE: We need to set the liquidator account to bond account
-        // if the bond account is the 0 address 
-        if (bondAccount != address(0) && !isBailout) {
+        // if the bond account is not the 0 address and it is not a bailout
+        // we must do this prior to the 3Ps because the test cases expect the
+        // bond account to always receive the reward
+        if (originalBondAccount != address(0) && !isBailout) {
             liquidatorAccount = bondAccount;
         }
 
         _balances[liquidatorAccount] = _balances[liquidatorAccount]
             .add(liquidatorAccountDelta.toInt256());
 
-
         // we must use the originalLiquidatorAccount
+        // because the test cases expect the original liquidator
+        // to be the one doing the liquidations
         emit AgreementLiquidatedByV2(
             originalLiquidatorAccount,
             msg.sender,

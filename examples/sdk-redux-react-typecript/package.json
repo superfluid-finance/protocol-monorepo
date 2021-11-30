@@ -15,7 +15,6 @@
         "@types/react": "latest",
         "@types/react-dom": "latest",
         "@types/react-redux": "latest",
-        "decimal.js": "latest",
         "ethers": "latest",
         "graphql-request": "latest",
         "react": "latest",

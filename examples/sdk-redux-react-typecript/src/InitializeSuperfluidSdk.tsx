@@ -28,17 +28,20 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
             /* See Provider Options Section */
         };
 
-        const infuraProviders = chainIds.map((chainId) => ({
-            chainId,
-            frameworkGetter: () =>
-                Framework.create({
-                    chainId,
-                    provider: new ethers.providers.InfuraProvider(
-                        chainId,
-                        process.env.REACT_APP_INFURA_ID
-                    ),
-                }),
-        }));
+        // Configure Infura Providers when environment variable is present.
+        const infuraProviders = !!process.env.REACT_APP_INFURA_ID
+            ? chainIds.map((chainId) => ({
+                  chainId,
+                  frameworkGetter: () =>
+                      Framework.create({
+                          chainId,
+                          provider: new ethers.providers.InfuraProvider(
+                              chainId,
+                              process.env.REACT_APP_INFURA_ID
+                          ),
+                      }),
+              }))
+            : [];
 
         infuraProviders.map((x) =>
             superfluidContext.setFramework(x.chainId, x.frameworkGetter)
@@ -67,8 +70,10 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
 
         web3ModalProvider.on("accountsChanged", (accounts: string[]) => {
-            superfluidContext
-                .setSigner(currentNetwork.chainId, ethersWeb3Provider.getSigner());
+            superfluidContext.setSigner(
+                currentNetwork.chainId,
+                ethersWeb3Provider.getSigner()
+            );
 
             onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
         });
@@ -86,10 +91,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
             // Re-set INFURA providers
             infuraProviders.map((x) =>
-                superfluidContext.setFramework(
-                    x.chainId,
-                    x.frameworkGetter
-                )
+                superfluidContext.setFramework(x.chainId, x.frameworkGetter)
             );
 
             // Set active provider & signer from MetaMask

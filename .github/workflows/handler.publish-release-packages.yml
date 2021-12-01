@@ -30,6 +30,9 @@ jobs:
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@";then
             echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
           fi
+          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
+            echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
+          fi
 
       - name: Build package
         run: |
@@ -46,6 +49,13 @@ jobs:
       - name: Publish js-sdk package
         if: env.PUBLISH_JS_SDK == 1
         run: tasks/npm-publish.sh packages/js-sdk/ latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Publish sdk-core package
+        if: env.PUBLISH_SDK_CORE == 1
+        run: tasks/npm-publish.sh packages/sdk-core/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

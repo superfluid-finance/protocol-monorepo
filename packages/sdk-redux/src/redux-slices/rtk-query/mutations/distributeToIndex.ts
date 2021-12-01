@@ -10,6 +10,12 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Distributes `amount` of token to an index
+ * @param indexId The id of the index.
+ * @param amountWei The amount of tokens to be distributed.
+ * @param userDataBytes Extra user data provided.
+ */
 export type DistributeToIndexArg = SuperTokenMutationArg & {
     indexId: string;
     amountWei: string;

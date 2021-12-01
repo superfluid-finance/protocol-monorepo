@@ -129,6 +129,8 @@ superfluidContext
 That should be it! You should now be able to dispatch messages to Superfluid reducers & use the React hooks.
 
 ## Using Queries (i.e. "read" operations)
+Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/queries
+
 Example using React Hook:
 ```ts
 const {
@@ -152,6 +154,8 @@ const {
 ```
 
 ## Using Mutations (i.e. "write" operations)
+Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/mutations
+
 Example using React Hook:
 ```ts
 const tx = await createFlow({

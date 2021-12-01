@@ -6,11 +6,19 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Update a flow of the token of this class.
+ * @param senderAddress The sender of the flow.
+ * @param receiverAddress The receiver of the flow.
+ * @param flowRateWei The specified flow rate.
+ */
 export type UpdateFlowArg = SuperTokenMutationArg & {
     senderAddress?: string;
     receiverAddress: string;
     flowRateWei: string;
 };
+
+// TODO(KK): User bytes
 
 const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({

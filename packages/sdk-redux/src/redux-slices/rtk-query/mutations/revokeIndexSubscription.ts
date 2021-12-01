@@ -10,6 +10,12 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
+ * @param indexId The id of the index.
+ * @param publisherAddress The index publisher address you want to revoke for the subscriber.
+ * @param userDataBytes Extra user data provided.
+ */
 export type RevokeIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;
     publisherAddress: string;

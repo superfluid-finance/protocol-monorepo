@@ -8,11 +8,15 @@ import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 /**
  * Delete a flow of the token of this class.
+ * @param senderAddress The sender of the flow.
+ * @param receiverAddress The receiver of the flow.
  */
 export type DeleteFlowArg = SuperTokenMutationArg & {
     senderAddress?: string;
     receiverAddress: string;
 };
+
+// TODO(KK): Add user data
 
 const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({

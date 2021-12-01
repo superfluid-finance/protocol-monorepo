@@ -14,7 +14,6 @@ export const UpdateIndexSubscriptionUnits: FC = (): ReactElement => {
     const [subscriberAddress, setSubscriberAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
     const [unitsNumber, setUnitsNumber] = useState<string>("");
-    const [amountWei, setAmountWei] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
@@ -27,7 +26,6 @@ export const UpdateIndexSubscriptionUnits: FC = (): ReactElement => {
             indexId,
             userDataBytes,
             unitsNumber,
-            amountWei,
             subscriberAddress,
         });
     };
@@ -67,13 +65,6 @@ export const UpdateIndexSubscriptionUnits: FC = (): ReactElement => {
                                 label="Units"
                                 onChange={(e) =>
                                     setUnitsNumber(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="Amount"
-                                onChange={(e) =>
-                                    setAmountWei(e.currentTarget.value)
                                 }
                             />
                             <TextField

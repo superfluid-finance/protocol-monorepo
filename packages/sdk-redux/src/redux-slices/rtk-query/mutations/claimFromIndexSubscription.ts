@@ -12,6 +12,10 @@ import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 /**
  * Claims any pending tokens allocated to the Subscription (unapproved).
+ * @param indexId The id of the index.
+ * @param subscriberAddress The subscriber address who you are claiming for.
+ * @param publisherAddress The publisher address of the index you are targeting.
+ * @param userDataBytes Extra user data provided.
  */
 export type ClaimFromIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;

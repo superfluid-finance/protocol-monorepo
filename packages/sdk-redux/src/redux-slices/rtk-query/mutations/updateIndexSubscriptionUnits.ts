@@ -10,11 +10,17 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Updates the `units` allocated to a Subscription.
+ * @param indexId The id of the index.
+ * @param subscriberAddress The subscriber address whose units you want to update.
+ * @param unitsNumber The amount of units you want to update to.
+ * @param userDataBytes Extra user data provided.
+ */
 export type UpdateIndexSubscriptionUnitsArg = SuperTokenMutationArg & {
     subscriberAddress: string;
     indexId: string;
     unitsNumber: string;
-    amountWei: string;
     userDataBytes: string | NothingString;
 };
 

@@ -6,6 +6,11 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Transfer `receiver` `amount` tokens.
+ * @param receiverAddress The receiver of the transfer.
+ * @param amountWei The amount to be transferred.
+ */
 export type TransferSuperTokenArg = SuperTokenMutationArg & {
     receiverAddress: string;
     amountWei: string;

@@ -4,6 +4,11 @@ import { NothingString } from '../../argTypes';
 import { invalidateCacheTagsForEvents } from '../cacheTags/invalidateCacheTagsForEvents';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
+/**
+ * Continuously poll for new events to know when to invalidate cache for re-fetching of the data.
+ * @param chainId The chain to poll.
+ * @param address The address (account or token) to filter events for.
+ */
 export type MonitorForEventsToInvalidateCacheArg = {
     chainId: number;
     address: string | NothingString;

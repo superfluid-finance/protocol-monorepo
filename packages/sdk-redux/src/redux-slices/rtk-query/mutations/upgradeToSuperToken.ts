@@ -8,6 +8,11 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Upgrade `amount` SuperToken's.
+ * NOTE: Initiates request for allowance if necessary.
+ * @param amountWei The amount to be upgraded.
+ */
 export type UpgradeToSuperToken = SuperTokenMutationArg & {
     amountWei: string;
 };

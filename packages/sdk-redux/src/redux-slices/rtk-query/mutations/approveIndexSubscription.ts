@@ -12,6 +12,9 @@ import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 /**
  * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
+ * @param indexId The id of the index.
+ * @param publisherAddress The publisher address whose subscription you want to approve.
+ * @param userDataBytes Extra user data provided.
  */
 export type ApproveIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;

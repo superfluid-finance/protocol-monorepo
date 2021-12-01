@@ -8,12 +8,17 @@ import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 /**
  * Create a flow of the token of this class.
+ * @param senderAddress The sender of the flow. Signer is used when left empty.
+ * @param receiverAddress The receiver of the flow.
+ * @param flowRateWei The specified flow rate.
  */
 export type CreateFlowArg = SuperTokenMutationArg & {
     senderAddress?: string;
     receiverAddress: string;
     flowRateWei: string;
 };
+
+// TODO(KK): User data in arg
 
 const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({

@@ -8,6 +8,8 @@ import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 /**
  * Creates an IDA Index.
+ * @param indexId The id of the index.
+ * @param userDataBytes Extra user data provided.
  */
 export type CreateIndexArg = SuperTokenMutationArg & {
     indexId: string;

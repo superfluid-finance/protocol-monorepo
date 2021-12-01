@@ -6,6 +6,10 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Downgrade `amount` SuperToken's.
+ * @param amountWei The amount to be downgraded.
+ */
 export type DowngradeFromSuperToken = SuperTokenMutationArg & {
     amountWei: string;
 };

@@ -10,6 +10,13 @@ import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monito
 import { rtkQuerySlice } from '../rtkQuerySlice';
 import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
+/**
+ * Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
+ * @param indexId The id of the index.
+ * @param subscriberAddress The subscriber address whose subscription you want to delete.
+ * @param publisherAddress The publisher address of the index you are targeting.
+ * @param userDataBytes Extra user data provided.
+ */
 export type DeleteIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;
     publisherAddress: string;

@@ -10,6 +10,7 @@
         "@mui/icons-material": "latest",
         "@mui/material": "latest",
         "@reduxjs/toolkit": "latest",
+        "@superfluid-finance/sdk-core": "1.0.0",
         "@superfluid-finance/sdk-redux": "1.0.0",
         "@types/node": "latest",
         "@types/react": "latest",

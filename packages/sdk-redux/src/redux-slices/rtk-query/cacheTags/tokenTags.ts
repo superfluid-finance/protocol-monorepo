@@ -1,7 +1,7 @@
-import {insertIf} from '../../../utils';
-import {NothingString} from '../../argTypes';
+import { insertIf } from '../../../utils';
+import { NothingString } from '../../argTypes';
 
-import {createTag} from './CacheTagTypes';
+import { createTag } from './CacheTagTypes';
 
 /**
  * NOTE:

@@ -178,7 +178,7 @@ contract("TradeableCashflow", (accounts) => {
             await checkBalances([alice, u.admin]);
             await appStatus();
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.001), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.001).toString(), recipient: u.app });
             console.log("go forward in time");
             await traveler.advanceTimeAndBlock(TEST_TRAVEL_TIME);
             await appStatus();
@@ -209,7 +209,7 @@ contract("TradeableCashflow", (accounts) => {
             await checkBalances([alice, u.admin]);
             await appStatus();
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.00001), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.00001).toString(), recipient: u.app });
             assert.equal(
                 ((await alice.details()).cfa.netFlow * -1).toString(),
                 (await u.admin.details()).cfa.netFlow.toString(),
@@ -219,7 +219,7 @@ contract("TradeableCashflow", (accounts) => {
             await traveler.advanceTimeAndBlock(TEST_TRAVEL_TIME);
             await appStatus();
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.00002), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.00002).toString(), recipient: u.app });
             assert.equal(
                 ((await alice.details()).cfa.netFlow * -1).toString(),
                 (await u.admin.details()).cfa.netFlow.toString(),
@@ -261,10 +261,10 @@ contract("TradeableCashflow", (accounts) => {
             await checkBalances([alice, bob, carol, dan, admin]);
             await appStatus();
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.00001), recipient: u.app });
-            await bob.flow({ flowRate: toWad(0.000015), recipient: u.app });
-            await carol.flow({ flowRate: toWad(0.000021), recipient: u.app });
-            await dan.flow({ flowRate: toWad(0.000051), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.00001).toString(), recipient: u.app });
+            await bob.flow({ flowRate: toWad(0.000015).toString(), recipient: u.app });
+            await carol.flow({ flowRate: toWad(0.000021).toString(), recipient: u.app });
+            await dan.flow({ flowRate: toWad(0.000051).toString(), recipient: u.app });
             assert.equal(
                 (await u.app.details()).cfa.netFlow,
                 0,
@@ -274,10 +274,10 @@ contract("TradeableCashflow", (accounts) => {
             await traveler.advanceTimeAndBlock(TEST_TRAVEL_TIME);
             await appStatus();
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.002), recipient: u.app });
-            await bob.flow({ flowRate: toWad(0.000115), recipient: u.app });
-            await carol.flow({ flowRate: toWad(0.00121), recipient: u.app });
-            await dan.flow({ flowRate: toWad(0.000151), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.002).toString(), recipient: u.app });
+            await bob.flow({ flowRate: toWad(0.000115).toString(), recipient: u.app });
+            await carol.flow({ flowRate: toWad(0.00121).toString(), recipient: u.app });
+            await dan.flow({ flowRate: toWad(0.000151).toString(), recipient: u.app });
             console.log("go forward in time");
             await traveler.advanceTimeAndBlock(TEST_TRAVEL_TIME);
             assert.equal(
@@ -307,7 +307,7 @@ contract("TradeableCashflow", (accounts) => {
             const { alice, admin } = u;
             await upgrade([alice]);
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.001), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.001).toString(), recipient: u.app });
             assert.equal(
                 await sf.cfa.getNetFlow({
                     superToken: daix.address,
@@ -355,9 +355,9 @@ contract("TradeableCashflow", (accounts) => {
             await appStatus();
             (await transferNFT(dan)) || (await transferNFT(admin));
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.00001), recipient: u.app });
-            await bob.flow({ flowRate: toWad(0.000015), recipient: u.app });
-            await carol.flow({ flowRate: toWad(0.000021), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.00001).toString(), recipient: u.app });
+            await bob.flow({ flowRate: toWad(0.000015).toString(), recipient: u.app });
+            await carol.flow({ flowRate: toWad(0.000021).toString(), recipient: u.app });
             assert.equal(
                 (await u.app.details()).cfa.netFlow,
                 0,
@@ -419,10 +419,10 @@ contract("TradeableCashflow", (accounts) => {
             await checkBalances([alice, bob, carol, dan, admin]);
             await appStatus();
             await logUsers();
-            await alice.flow({ flowRate: toWad(0.00001), recipient: u.app });
-            await bob.flow({ flowRate: toWad(0.000015), recipient: u.app });
-            await carol.flow({ flowRate: toWad(0.000021), recipient: u.app });
-            await dan.flow({ flowRate: toWad(0.000021), recipient: u.app });
+            await alice.flow({ flowRate: toWad(0.00001).toString(), recipient: u.app });
+            await bob.flow({ flowRate: toWad(0.000015).toString(), recipient: u.app });
+            await carol.flow({ flowRate: toWad(0.000021).toString(), recipient: u.app });
+            await dan.flow({ flowRate: toWad(0.000021).toString(), recipient: u.app });
             assert.equal(
                 (await u.app.details()).cfa.netFlow,
                 0,
@@ -493,7 +493,7 @@ contract("TradeableCashflow", (accounts) => {
                         recipient: u.app,
                         flowRate: toWad(
                             Math.round(Math.random() * 1000) / 1000000 + 0.001
-                        ),
+                        ).toString(),
                     });
                     switch (seed) {
                         case 1:
@@ -508,7 +508,7 @@ contract("TradeableCashflow", (accounts) => {
                                           Math.round(Math.random() * 1000) /
                                               1000000 +
                                               0.001
-                                      ),
+                                      ).toString(),
                                   });
                             break;
                         case 2:

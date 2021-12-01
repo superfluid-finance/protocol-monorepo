@@ -1,3 +1,4 @@
 @superfluid-finance:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-always-auth=true
+# Well, if you know what you are doing, try this too
+# always-auth=true

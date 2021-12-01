@@ -5,14 +5,14 @@ const {
     expectEvent,
     expectRevert,
 } = require("@openzeppelin/test-helpers");
-const {expect} = require("chai");
-const {ZERO_ADDRESS} = constants;
+const { expect } = require("chai");
+const { ZERO_ADDRESS } = constants;
 
 function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
     let initialHolder, recipient, anotherAccount;
 
     before(() => {
-        ({initialHolder, recipient, anotherAccount} = setupAccounts());
+        ({ initialHolder, recipient, anotherAccount } = setupAccounts());
     });
 
     describe("total supply", function () {
@@ -50,7 +50,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                 to: recipient,
             }),
             function (from, to, value) {
-                return this.token.transfer(to, value, {from});
+                return this.token.transfer(to, value, { from });
             }
         );
     });
@@ -81,7 +81,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                 tokenOwner,
                                 to,
                                 amount,
-                                {from: spender}
+                                { from: spender }
                             );
 
                             expect(
@@ -98,7 +98,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                 tokenOwner,
                                 to,
                                 amount,
-                                {from: spender}
+                                { from: spender }
                             );
 
                             expect(
@@ -107,11 +107,11 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         });
 
                         it("emits a transfer event", async function () {
-                            const {logs} = await this.token.transferFrom(
+                            const { logs } = await this.token.transferFrom(
                                 tokenOwner,
                                 to,
                                 amount,
-                                {from: spender}
+                                { from: spender }
                             );
 
                             expectEvent.inLogs(logs, "Transfer", {
@@ -122,11 +122,11 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         });
 
                         it("emits an approval event", async function () {
-                            const {logs} = await this.token.transferFrom(
+                            const { logs } = await this.token.transferFrom(
                                 tokenOwner,
                                 to,
                                 amount,
-                                {from: spender}
+                                { from: spender }
                             );
 
                             expectEvent.inLogs(logs, "Approval", {
@@ -149,7 +149,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                     tokenOwner,
                                     to,
                                     amount,
-                                    {from: spender}
+                                    { from: spender }
                                 ),
                                 "SuperfluidToken: move amount exceeds balance"
                             );
@@ -162,7 +162,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         await this.token.approve(
                             spender,
                             initialSupply.subn(1),
-                            {from: tokenOwner}
+                            { from: tokenOwner }
                         );
                     });
 
@@ -175,7 +175,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                     tokenOwner,
                                     to,
                                     amount,
-                                    {from: spender}
+                                    { from: spender }
                                 ),
                                 "SuperToken: transfer amount exceeds allowance"
                             );
@@ -191,7 +191,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                     tokenOwner,
                                     to,
                                     amount,
-                                    {from: spender}
+                                    { from: spender }
                                 ),
                                 "SuperfluidToken: move amount exceeds balance"
                             );
@@ -250,7 +250,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                 spender: recipient,
             }),
             function (owner, spender, amount) {
-                return this.token.approve(spender, amount, {from: owner});
+                return this.token.approve(spender, amount, { from: owner });
             }
         );
     });
@@ -265,7 +265,7 @@ function shouldBehaveLikeERC20Transfer(
     let from, to;
 
     before(() => {
-        ({from, to} = setupAccounts());
+        ({ from, to } = setupAccounts());
     });
     describe("when the recipient is not the zero address", function () {
         describe("when the sender does not have enough balance", function () {
@@ -295,7 +295,7 @@ function shouldBehaveLikeERC20Transfer(
             });
 
             it("emits a transfer event", async function () {
-                const {logs} = await transfer.call(this, from, to, amount);
+                const { logs } = await transfer.call(this, from, to, amount);
 
                 expectEvent.inLogs(logs, "Transfer", {
                     from,
@@ -321,7 +321,7 @@ function shouldBehaveLikeERC20Transfer(
             });
 
             it("emits a transfer event", async function () {
-                const {logs} = await transfer.call(this, from, to, amount);
+                const { logs } = await transfer.call(this, from, to, amount);
 
                 expectEvent.inLogs(logs, "Transfer", {
                     from,
@@ -351,7 +351,7 @@ function shouldBehaveLikeERC20Approve(
     let owner, spender;
 
     before(() => {
-        ({owner, spender} = setupAccounts());
+        ({ owner, spender } = setupAccounts());
     });
 
     describe("when the spender is not the zero address", function () {
@@ -359,7 +359,12 @@ function shouldBehaveLikeERC20Approve(
             const amount = supply;
 
             it("emits an approval event", async function () {
-                const {logs} = await approve.call(this, owner, spender, amount);
+                const { logs } = await approve.call(
+                    this,
+                    owner,
+                    spender,
+                    amount
+                );
 
                 expectEvent.inLogs(logs, "Approval", {
                     owner: owner,
@@ -397,7 +402,12 @@ function shouldBehaveLikeERC20Approve(
             const amount = supply.addn(1);
 
             it("emits an approval event", async function () {
-                const {logs} = await approve.call(this, owner, spender, amount);
+                const { logs } = await approve.call(
+                    this,
+                    owner,
+                    spender,
+                    amount
+                );
 
                 expectEvent.inLogs(logs, "Approval", {
                     owner: owner,

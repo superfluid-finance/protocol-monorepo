@@ -25,7 +25,7 @@ const completeTransaction = async ({
         if (receipt.status === 1) onTransaction(receipt.transactionHash);
         tx.receipt = receipt;
     } else {
-        tx = await method(...args, {from: sender}).on(
+        tx = await method(...args, { from: sender }).on(
             "transactionHash",
             onTransaction
         );

@@ -1,5 +1,5 @@
-import {Framework} from '@superfluid-finance/sdk-core';
-import {Signer} from 'ethers';
+import { Framework } from '@superfluid-finance/sdk-core';
+import { Signer } from 'ethers';
 
 const frameworks = new Map<number, () => Promise<Framework>>();
 const signers = new Map<number, () => Promise<Signer>>();

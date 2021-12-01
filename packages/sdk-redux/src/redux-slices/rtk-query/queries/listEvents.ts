@@ -4,14 +4,18 @@ import {
     PagedResult,
 } from '@superfluid-finance/sdk-core';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
-import {insertIf} from '../../../utils';
-import {NothingNumber, NothingString, PaginatedQueryArg} from '../../argTypes';
-import {createEventTag} from '../cacheTags/eventTags';
-import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
-import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
-import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
-import {rtkQuerySlice} from '../rtkQuerySlice';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { insertIf } from '../../../utils';
+import {
+    NothingNumber,
+    NothingString,
+    PaginatedQueryArg,
+} from '../../argTypes';
+import { createEventTag } from '../cacheTags/eventTags';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListEventsArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
@@ -53,7 +57,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                         account: arg.accountAddress,
                         timestamp_gt: arg.timestamp_gt,
                     },
-                    createSkipPaging({skip: arg.skip, take: arg.take})
+                    createSkipPaging({ skip: arg.skip, take: arg.take })
                 );
                 return {
                     data: pagedResult,

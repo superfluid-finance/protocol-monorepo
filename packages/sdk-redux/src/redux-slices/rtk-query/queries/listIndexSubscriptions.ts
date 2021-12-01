@@ -4,10 +4,14 @@ import {
     PagedResult,
 } from '@superfluid-finance/sdk-core';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
-import {NothingBoolean, NothingString, PaginatedQueryArg} from '../../argTypes';
-import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
-import {rtkQuerySlice} from '../rtkQuerySlice';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import {
+    NothingBoolean,
+    NothingString,
+    PaginatedQueryArg,
+} from '../../argTypes';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 // TODO(KK): cache key?
 export type ListIndexSubscriptionsArg = PaginatedQueryArg & {

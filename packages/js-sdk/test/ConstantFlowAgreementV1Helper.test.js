@@ -1,5 +1,5 @@
-const {toBN} = require("@decentral.ee/web3-helpers");
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const { toBN } = require("@decentral.ee/web3-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 describe("ConstantFlowAgreementV1Helper class", function () {
@@ -17,10 +17,10 @@ describe("ConstantFlowAgreementV1Helper class", function () {
             nAccounts: 4,
         });
 
-        ({admin, alice, bob, carol} = t.aliases);
+        ({ admin, alice, bob, carol } = t.aliases);
         sf = t.sf;
 
-        ({superToken} = await t.deployNewToken("TEST2", {
+        ({ superToken } = await t.deployNewToken("TEST2", {
             isTruffle: false,
             web3,
             doUpgrade: true,

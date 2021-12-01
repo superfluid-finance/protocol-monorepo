@@ -22,7 +22,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== List new super token ========");
-    let {resetToken, protocolReleaseVersion} = options;
+    let { resetToken, protocolReleaseVersion } = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");

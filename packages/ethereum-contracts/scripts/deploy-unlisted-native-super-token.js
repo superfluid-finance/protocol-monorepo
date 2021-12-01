@@ -21,7 +21,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Deploying unlisted native super token ========");
-    let {protocolReleaseVersion} = options;
+    let { protocolReleaseVersion } = options;
 
     if (args.length !== 3) {
         throw new Error("Wrong number of arguments");
@@ -41,7 +41,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const {NativeSuperTokenProxy, INativeSuperToken} = sf.contracts;
+    const { NativeSuperTokenProxy, INativeSuperToken } = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()

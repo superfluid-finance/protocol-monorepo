@@ -1,10 +1,10 @@
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
-import {typeGuard} from '../../../utils';
-import {SuperTokenMutationArg, TransactionInfo} from '../../argTypes';
-import {registerNewTransaction} from '../../transactions/registerNewTransaction';
-import {monitorAddressForNextEventToInvalidateCache} from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
-import {rtkQuerySlice} from '../rtkQuerySlice';
-import {MutationMeta} from '../rtkQuerySliceBaseQuery';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { typeGuard } from '../../../utils';
+import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
+import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type UpdateFlowArg = SuperTokenMutationArg & {
     senderAddress?: string;
@@ -51,7 +51,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                     }),
                 };
             },
-            onQueryStarted: async (_arg, {dispatch, queryFulfilled}) => {
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                 queryFulfilled.then(async (queryResult) =>
                     monitorAddressForNextEventToInvalidateCache(
                         queryResult.meta!.monitorAddress,

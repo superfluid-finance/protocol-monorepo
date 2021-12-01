@@ -1,14 +1,14 @@
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
-import {typeGuard} from '../../../utils';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { typeGuard } from '../../../utils';
 import {
     NothingString,
     SuperTokenMutationArg,
     TransactionInfo,
 } from '../../argTypes';
-import {registerNewTransaction} from '../../transactions/registerNewTransaction';
-import {monitorAddressForNextEventToInvalidateCache} from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
-import {rtkQuerySlice} from '../rtkQuerySlice';
-import {MutationMeta} from '../rtkQuerySliceBaseQuery';
+import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 export type DeleteIndexSubscriptionArg = SuperTokenMutationArg & {
     indexId: string;
@@ -59,7 +59,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                     }),
                 };
             },
-            onQueryStarted: async (_arg, {dispatch, queryFulfilled}) => {
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                 queryFulfilled.then(async (queryResult) =>
                     monitorAddressForNextEventToInvalidateCache(
                         queryResult.meta!.monitorAddress,

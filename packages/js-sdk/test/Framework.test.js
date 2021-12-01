@@ -1,6 +1,6 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 
-const {Web3Provider} = require("@ethersproject/providers");
+const { Web3Provider } = require("@ethersproject/providers");
 const Web3 = require("web3");
 
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
@@ -21,7 +21,7 @@ describe("Framework class", function () {
             nAccounts: 1,
         });
 
-        ({admin} = t.aliases);
+        ({ admin } = t.aliases);
 
         await deployTestToken(t.createErrorHandler(), [":", "fDAI"], {
             isTruffle: false,
@@ -304,6 +304,8 @@ describe("Framework class", function () {
                     version: "test",
                 });
                 await sf.initialize();
+                assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
+                assert.equal(await sf.tokens.fDAI.symbol(), "fDAI");
                 assert.equal(await sf.tokens.fUSDCx.symbol(), "fUSDCx");
                 assert.equal(await sf.tokens.fDAIx.symbol(), "fDAIx");
             });

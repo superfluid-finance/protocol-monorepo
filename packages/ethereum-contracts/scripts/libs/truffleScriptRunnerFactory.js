@@ -27,7 +27,7 @@ function parseColonArgs(argv) {
 module.exports = function (ctxFn, logicFn, runnerOpts) {
     return async function (cb, argv, options = {}) {
         try {
-            const {artifacts, web3, truffleDetected} = ctxFn();
+            const { artifacts, web3, truffleDetected } = ctxFn();
 
             let args;
             if (runnerOpts.skipArgv) {

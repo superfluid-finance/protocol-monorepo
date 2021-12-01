@@ -4,10 +4,10 @@ import {
     PagedResult,
 } from '@superfluid-finance/sdk-core';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
-import {NothingString, PaginatedQueryArg} from '../../argTypes';
-import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
-import {rtkQuerySlice} from '../rtkQuerySlice';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { NothingString, PaginatedQueryArg } from '../../argTypes';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListStreamsArg = PaginatedQueryArg & {
     senderAddress: string | NothingString;

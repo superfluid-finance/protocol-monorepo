@@ -1,5 +1,5 @@
-import {createEntityAdapter, createSlice} from '@reduxjs/toolkit';
-import {ethers} from 'ethers';
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import { ethers } from 'ethers';
 
 export type TransactionStatus = 'Pending' | 'Succeeded' | 'Failed' | 'Unknown';
 

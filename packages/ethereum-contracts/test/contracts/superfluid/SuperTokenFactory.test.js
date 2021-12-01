@@ -1,4 +1,4 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
@@ -11,13 +11,13 @@ const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 const TestEnvironment = require("../../TestEnvironment");
 
-const {web3tx} = require("@decentral.ee/web3-helpers");
+const { web3tx } = require("@decentral.ee/web3-helpers");
 
 describe("SuperTokenFactory Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const {ZERO_ADDRESS} = t.constants;
+    const { ZERO_ADDRESS } = t.constants;
 
     let superfluid;
     let governance;
@@ -37,7 +37,7 @@ describe("SuperTokenFactory Contract", function () {
         );
         await t.pushEvmSnapshot();
 
-        ({superfluid, governance} = t.contracts);
+        ({ superfluid, governance } = t.contracts);
         factory = await SuperTokenFactory.at(
             await superfluid.getSuperTokenFactory.call()
         );
@@ -122,10 +122,9 @@ describe("SuperTokenFactory Contract", function () {
                     "0"
                 );
                 await expectRevert(
-                    governance.updateSuperTokenLogic(
-                        superfluid.address,
-                        superToken1.address
-                    ),
+                    governance.batchUpdateSuperTokenLogic(superfluid.address, [
+                        superToken1.address,
+                    ]),
                     "UUPSProxiable: not upgradable"
                 );
                 assert.equal(
@@ -152,9 +151,9 @@ describe("SuperTokenFactory Contract", function () {
                     "0"
                 );
                 await web3tx(
-                    governance.updateSuperTokenLogic,
-                    "governance.updateSuperTokenLogic"
-                )(superfluid.address, superToken1.address);
+                    governance.batchUpdateSuperTokenLogic,
+                    "governance.batchUpdateSuperTokenLogic"
+                )(superfluid.address, [superToken1.address]);
                 assert.equal(
                     (await superToken1.waterMark.call()).toString(),
                     "42"
@@ -175,10 +174,9 @@ describe("SuperTokenFactory Contract", function () {
                     "42"
                 );
                 await expectRevert(
-                    governance.updateSuperTokenLogic(
-                        superfluid.address,
-                        superToken1.address
-                    ),
+                    governance.batchUpdateSuperTokenLogic(superfluid.address, [
+                        superToken1.address,
+                    ]),
                     "UUPSProxiable: not upgradable"
                 );
             });

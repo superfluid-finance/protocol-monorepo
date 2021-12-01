@@ -1,9 +1,9 @@
-const {web3tx} = require("@decentral.ee/web3-helpers");
-const {setWeb3Provider} = require("@decentral.ee/web3-helpers/src/config");
+const { web3tx } = require("@decentral.ee/web3-helpers");
+const { setWeb3Provider } = require("@decentral.ee/web3-helpers/src/config");
 const TestResolver = artifacts.require("TestResolver");
 const getConfig = require("./libs/getConfig");
 
-const {getScriptRunnerFactory: S, rl} = require("./libs/common");
+const { getScriptRunnerFactory: S, rl } = require("./libs/common");
 
 /**
  * @dev Reset the superfluid framework deployment.

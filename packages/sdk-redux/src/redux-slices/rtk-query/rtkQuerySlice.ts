@@ -1,11 +1,11 @@
-import {isPlainObject} from '@reduxjs/toolkit';
-import {createApi} from '@reduxjs/toolkit/dist/query/react';
+import { isPlainObject } from '@reduxjs/toolkit';
+import { createApi } from '@reduxjs/toolkit/dist/query/react';
 import _ from 'lodash';
 
-import {typeGuard} from '../../utils';
+import { typeGuard } from '../../utils';
 
-import {CacheTagTypes} from './cacheTags/CacheTagTypes';
-import {rtkQuerySliceBaseQuery} from './rtkQuerySliceBaseQuery';
+import { CacheTagTypes } from './cacheTags/CacheTagTypes';
+import { rtkQuerySliceBaseQuery } from './rtkQuerySliceBaseQuery';
 
 export const rtkQuerySlice = createApi({
     reducerPath: 'sfApi',
@@ -17,7 +17,7 @@ export const rtkQuerySlice = createApi({
         typeGuard<CacheTagTypes>('Token'),
     ],
     endpoints: () => ({}),
-    serializeQueryArgs: ({endpointName, queryArgs}) => {
+    serializeQueryArgs: ({ endpointName, queryArgs }) => {
         // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
 
         // Comment from RTK-Query: Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })

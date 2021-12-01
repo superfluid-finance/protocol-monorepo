@@ -1,7 +1,7 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {BN, expectRevert} = require("@openzeppelin/test-helpers");
-const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
+const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 const {
     clipDepositNumber,
     shouldCreateFlow,
@@ -22,8 +22,8 @@ describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const {ZERO_ADDRESS} = t.constants;
-    const {LIQUIDATION_PERIOD} = t.configs;
+    const { ZERO_ADDRESS } = t.constants;
+    const { LIQUIDATION_PERIOD } = t.configs;
 
     let admin, alice, bob, dan;
     let superfluid;
@@ -37,15 +37,15 @@ describe("Using ConstantFlowAgreement v1", function () {
             isTruffle: true,
             nAccounts: 5,
         });
-        ({admin, alice, bob, dan} = t.aliases);
+        ({ admin, alice, bob, dan } = t.aliases);
 
-        ({superfluid, governance, cfa} = t.contracts);
+        ({ superfluid, governance, cfa } = t.contracts);
         testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
         superToken = t.sf.tokens.TESTx;
     });
 
     after(async function () {
-        await t.report({title: "ConstantFlowAgreement.test"});
+        await t.report({ title: "ConstantFlowAgreement.test" });
     });
 
     beforeEach(async function () {
@@ -113,7 +113,12 @@ describe("Using ConstantFlowAgreement v1", function () {
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
     }
 
-    function shouldTestLiquidationByAgent({titlePrefix, sender, receiver, by}) {
+    function shouldTestLiquidationByAgent({
+        titlePrefix,
+        sender,
+        receiver,
+        by,
+    }) {
         it(`${titlePrefix}.a should be liquidated by agent when critical but solvent`, async () => {
             assert.isFalse(
                 await superToken.isAccountCriticalNow(t.aliases[sender])
@@ -182,7 +187,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 by,
             });
 
-            await verifyAll({allowCriticalAccount});
+            await verifyAll({ allowCriticalAccount });
         });
     }
 
@@ -796,7 +801,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         cfa.contract.methods
                             .createFlow(superToken.address, bob, 1, "0x")
                             .encodeABI(),
-                        {from: alice}
+                        { from: alice }
                     ),
                     "AgreementLibrary: unauthroized host"
                 );
@@ -806,7 +811,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         cfa.contract.methods
                             .updateFlow(superToken.address, bob, 1, "0x")
                             .encodeABI(),
-                        {from: alice}
+                        { from: alice }
                     ),
                     "AgreementLibrary: unauthroized host"
                 );
@@ -816,7 +821,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         cfa.contract.methods
                             .deleteFlow(superToken.address, alice, bob, "0x")
                             .encodeABI(),
-                        {from: alice}
+                        { from: alice }
                     ),
                     "AgreementLibrary: unauthroized host"
                 );
@@ -1970,10 +1975,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#3.5 FlowExchangeTestApp", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-            const {superToken: superToken2} = await t.deployNewToken("TEST2", {
-                doUpgrade: true,
-                isTruffle: true,
-            });
+            const { superToken: superToken2 } = await t.deployNewToken(
+                "TEST2",
+                {
+                    doUpgrade: true,
+                    isTruffle: true,
+                }
+            );
             const FlowExchangeTestApp = artifacts.require(
                 "FlowExchangeTestApp"
             );

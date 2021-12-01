@@ -4,12 +4,12 @@ import {
     PagedResult,
 } from '@superfluid-finance/sdk-core';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
-import {NothingString, PaginatedQueryArg} from '../../argTypes';
-import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
-import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
-import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
-import {rtkQuerySlice} from '../rtkQuerySlice';
+import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
+import { NothingString, PaginatedQueryArg } from '../../argTypes';
+import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
+import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
+import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
+import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export type ListUserInteractedSuperTokensArg = PaginatedQueryArg & {
     accountAddress: string | NothingString;
@@ -54,7 +54,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                             token: arg.superTokenAddress,
                             account: arg.accountAddress,
                         },
-                        createSkipPaging({skip: arg.skip, take: arg.take})
+                        createSkipPaging({ skip: arg.skip, take: arg.take })
                     );
                 return {
                     data: pagedResult,

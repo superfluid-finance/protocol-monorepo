@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-redux",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "SDK Redux for streamlined front-end application development with Superfluid Protocol",
     "homepage": "https://docs.superfluid.finance/",
     "repository": {
@@ -35,7 +35,7 @@
         "node": ">=10"
     },
     "dependencies": {
-        "@superfluid-finance/sdk-core": "1.0.0",
+        "@superfluid-finance/sdk-core": "^0.1.0",
         "@reduxjs/toolkit": "^1.6.1",
         "ethers": "^5.4.5",
         "graphql-request": "^3.5.0",

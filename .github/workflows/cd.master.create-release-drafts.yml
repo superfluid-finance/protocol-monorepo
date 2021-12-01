@@ -45,7 +45,7 @@ jobs:
             echo js-sdk unchanged: $PUBLISHED_JS_SDK_VERSION
           fi
           # sdk-core
-          PUBLISHED_SDK_CORE_VERSION=`npm show @superfluid-finance/sdk-core version`
+          PUBLISHED_SDK_CORE_VERSION=`npm show @superfluid-finance/sdk-core@latest version`
           NEW_SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
           if [ "$PUBLISHED_SDK_CORE_VERSION" != "$NEW_SDK_CORE_VERSION" ];then
             echo "PUBLISHED_SDK_CORE_VERSION=1" >> $GITHUB_ENV

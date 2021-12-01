@@ -17,13 +17,8 @@ const InstantDistributionAgreementV1 = artifacts.require(
 const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
 
-const { BN } = require("@openzeppelin/test-helpers");
-const {
-    web3tx,
-    toWad,
-    wad4human,
-    toBN,
-} = require("@decentral.ee/web3-helpers");
+const {BN} = require("@openzeppelin/test-helpers");
+const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
 
 let _singleton;
 
@@ -156,7 +151,7 @@ module.exports = class TestEnvironment {
      * @param nAccounts Number of test accounts to be loaded from web3
      * @param tokens Tokens to be loaded
      */
-    async beforeTestSuite({ isTruffle, web3, nAccounts, tokens }) {
+    async beforeTestSuite({isTruffle, web3, nAccounts, tokens}) {
         const MAX_TEST_ACCOUNTS = 10;
         nAccounts = nAccounts || 0;
         assert(nAccounts <= MAX_TEST_ACCOUNTS);
@@ -170,7 +165,7 @@ module.exports = class TestEnvironment {
             // Can we load from externally saved snapshots?
             if (!process.env.TESTENV_SNAPSHOT_VARS) {
                 console.log("Creating a new evm snapshot");
-                await this.deployFramework({ isTruffle, web3, useMocks: true });
+                await this.deployFramework({isTruffle, web3, useMocks: true});
                 await this.deployNewToken("TEST", {
                     isTruffle,
                     web3,
@@ -283,7 +278,7 @@ module.exports = class TestEnvironment {
     /// create a new test token (ERC20) and its super token
     async deployNewToken(
         tokenSymbol,
-        { isTruffle, web3, accounts, doUpgrade } = {}
+        {isTruffle, web3, accounts, doUpgrade} = {}
     ) {
         accounts = accounts || this.accounts;
 
@@ -340,7 +335,7 @@ module.exports = class TestEnvironment {
         };
     }
 
-    async mintTestTokensAndApprove(tokenSymbol, { isTruffle, web3, accounts }) {
+    async mintTestTokensAndApprove(tokenSymbol, {isTruffle, web3, accounts}) {
         // load the SDK
         const sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
@@ -372,7 +367,7 @@ module.exports = class TestEnvironment {
         }
     }
 
-    async report({ title }) {
+    async report({title}) {
         if (this.gasReportType) {
             await this.sf.generateGasReport(title + ".gasReport");
         }
@@ -678,7 +673,7 @@ module.exports = class TestEnvironment {
         );
     }
 
-    async validateSystemInvariance({ allowCriticalAccount, tokenSymbol } = {}) {
+    async validateSystemInvariance({allowCriticalAccount, tokenSymbol} = {}) {
         tokenSymbol = tokenSymbol || "TEST";
         const testToken = this.sf.tokens[tokenSymbol];
         const superToken = this.sf.tokens[tokenSymbol + "x"];

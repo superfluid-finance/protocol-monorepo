@@ -1,7 +1,7 @@
 const Web3 = require("web3");
-const { web3tx } = require("@decentral.ee/web3-helpers");
-const { expectRevert } = require("@openzeppelin/test-helpers");
-const { codeChanged } = require("../../scripts/libs/common");
+const {web3tx} = require("@decentral.ee/web3-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
+const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");
@@ -10,7 +10,7 @@ const Resolver = artifacts.require("Resolver");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers").constants;
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers").constants;
 
 contract("Embeded deployment scripts", () => {
     const errorHandler = (err) => {
@@ -142,7 +142,7 @@ contract("Embeded deployment scripts", () => {
     });
 
     context("Used in native truffle environment", () => {
-        const deploymentOptions = { isTruffle: true };
+        const deploymentOptions = {isTruffle: true};
 
         describe("scripts/deploy-framework.js", () => {
             const SuperfluidMock = artifacts.require("SuperfluidMock");

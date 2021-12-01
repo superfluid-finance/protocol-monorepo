@@ -1,4 +1,4 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const getConfig = require("./libs/getConfig");
 
@@ -23,7 +23,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Deploying test token ========");
-    let { resetToken } = options;
+    let {resetToken} = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");

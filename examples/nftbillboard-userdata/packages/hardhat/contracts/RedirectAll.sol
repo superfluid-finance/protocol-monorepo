@@ -165,10 +165,10 @@ contract RedirectAll is SuperAppBase {
                 _acceptedToken,
                 newReceiver,
                 _cfa.getNetFlow(_acceptedToken, address(this)),
-                "0x"
+                new bytes(0)
                 
             ),
-            new bytes(0)
+            "0x"
         );
         // @dev set global receiver to new receiver
         _receiver = newReceiver;
@@ -225,9 +225,10 @@ contract RedirectAll is SuperAppBase {
         onlyHost
         returns (bytes memory newCtx)
     {
-        ISuperfluid.Context memory decodedContext = _host.decodeCtx(_ctx);
-        uData = decodedContext;
-        userData = abi.decode(decodedContext.userData, (string));
+        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        uData = decompiledContext;
+
+        userData = abi.decode(decompiledContext.userData, (string));
 
         return _updateOutflow(_ctx);
     }

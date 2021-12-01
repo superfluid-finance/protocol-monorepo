@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Subgraph for the Superfluid Ethereum contracts.",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -27,7 +27,7 @@
         "deploy:feature:matic": "yarn deploy-to-feature-network matic",
         "deploy:feature:goerli": "yarn deploy-to-feature-network goerli",
         "deploy-all-networks": "chmod +x ./tasks/deploy-all-networks.sh && ./tasks/deploy-all-networks.sh",
-        "deploy:feature": "run-s deploy:feature:*",
+        "deploy:feature": "yarn deploy-all-networks feature",
         "deploy:dev": "yarn deploy-all-networks dev",
         "deploy:v1": "yarn deploy-all-networks v1",
         "deploy-to": "chmod +x ./tasks/deploy-to-network.sh && ./tasks/deploy-to-network.sh",
@@ -46,7 +46,7 @@
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@graphprotocol/graph-cli": "0.24.1",
         "@graphprotocol/graph-ts": "0.24.1",
-        "@superfluid-finance/js-sdk": "0.5.6",
+        "@superfluid-finance/js-sdk": "0.5.7",
         "ganache-time-traveler": "^1.0.16",
         "mustache": "^4.2.0",
         "truffle": "^5.4.22"

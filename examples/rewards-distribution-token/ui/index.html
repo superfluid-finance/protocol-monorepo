@@ -34,17 +34,26 @@
     let web3, daix, user, host, ida, drt;
 
     const DEPLOYED_DIVIDEND_RIGHTS_TOKENS = {
-        5: "0x5D9e1EA264813A408E9A9733282BEad6C2Fc373F", // goerli
+        5: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE", // goerli
     }
     async function main() {
         await ethereum.enable();
         web3 = new Web3(ethereum);
         user = (await web3.eth.getAccounts())[0];
+
+        window.global = {};
+        const networkType = await web3.eth.net.getNetworkType();
         const networkId = await web3.eth.net.getId();
-        console.debug("networkId", networkId);
+        const chainId = await web3.eth.getChainId();
+        console.log("network Type: ", networkType);
+        console.log("network ID: ", networkId);
+        console.log("chain ID: ", chainId);
+
+        const config = Superfluid_getConfig(chainId);
+
         const resolver = new web3.eth.Contract(
             Superfluid_ABI.IResolver,
-            DEFAULT_CONFIG[networkId].resolverAddress);
+            config.resolverAddress);
         console.debug("resolver", resolver._address);
         daix = new web3.eth.Contract(
             Superfluid_ABI.IERC20,
@@ -82,6 +91,7 @@
                 0,
                 "0x"
             ).encodeABI(),
+            "0x"
         ).send({ from: user });
         await refreshSubscription();
         await refreshBalance();
@@ -94,8 +104,10 @@
                 daix._address,
                 drt._address,
                 0,
+                user,
                 "0x"
             ).encodeABI(),
+            "0x",
         ).send({ from: user });
         await refreshSubscription();
         await refreshBalance();

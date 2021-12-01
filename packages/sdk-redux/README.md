@@ -3,7 +3,7 @@
 <img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-redux" target="_blank">
-    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core.svg">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux.svg">
   </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />

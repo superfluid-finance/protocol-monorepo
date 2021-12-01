@@ -33,7 +33,7 @@ const eventRequestSchema: JSONSchemaType<IEventFilter> = {
     additionalProperties: false,
     properties: {
         account: { type: "string", format: "addressOrEmpty", nullable: true },
-        timestamp_gte: {
+        timestamp_gt: {
             type: "number",
             nullable: true,
         },

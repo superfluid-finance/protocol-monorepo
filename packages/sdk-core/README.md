@@ -35,7 +35,7 @@ yarn install && yarn build
 
 ## Framework Initialization
 
-Here is a quick look at initialzing the SDK in different environments:
+Here is a quick look at initializing the SDK in different environments:
 
 TypeScript / JavaScript (Module):
 

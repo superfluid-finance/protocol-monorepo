@@ -1,8 +1,10 @@
-query getAccountTokenSnapshots($where: AccountTokenSnapshot_filter!, $skip: Int!, $first: Int!) {
+query getAccountTokenSnapshots($where: AccountTokenSnapshot_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: AccountTokenSnapshot_orderBy! = id, $orderDirection: OrderDirection! = asc) {
     result: accountTokenSnapshots(
-        where: $where,
-        skip: $skip,
+        where: $where
+        skip: $skip
         first: $first
+        orderDirection: $orderDirection
+        orderBy: $orderBy
     ) {
         id
         updatedAtTimestamp

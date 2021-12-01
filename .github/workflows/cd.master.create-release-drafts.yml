@@ -28,7 +28,8 @@ jobs:
       - name: Check package versions
         id: check_versions
         run: |
-          PUBLISHED_ETHEREUM_CONTRACTS_VERSION=`npm show @superfluid-finance/ethereum-contracts version`
+          # ethereum-contracts
+          PUBLISHED_ETHEREUM_CONTRACTS_VERSION=`npm show @superfluid-finance/ethereum-contracts@latest version`
           NEW_ETHEREUM_CONTRACTS_VERSION=`jq -r .version packages/ethereum-contracts/package.json`
           if [ "$PUBLISHED_ETHEREUM_CONTRACTS_VERSION" != "$NEW_ETHEREUM_CONTRACTS_VERSION" ];then
             echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
@@ -36,7 +37,8 @@ jobs:
           else
             echo ethereum-contracts unchanged: $PUBLISHED_ETHEREUM_CONTRACTS_VERSION
           fi
-          PUBLISHED_JS_SDK_VERSION=`npm show @superfluid-finance/js-sdk version`
+          # js-sdk
+          PUBLISHED_JS_SDK_VERSION=`npm show @superfluid-finance/js-sdk@latest version`
           NEW_JS_SDK_VERSION=`jq -r .version packages/js-sdk/package.json`
           if [ "$PUBLISHED_JS_SDK_VERSION" != "$NEW_JS_SDK_VERSION" ];then
             echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
@@ -44,25 +46,19 @@ jobs:
           else
             echo js-sdk unchanged: $PUBLISHED_JS_SDK_VERSION
           fi
+          # sdk-core
+          PUBLISHED_SDK_CORE_VERSION=`npm show @superfluid-finance/sdk-core@latest version`
+          NEW_SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
+          if [ "$PUBLISHED_SDK_CORE_VERSION" != "$NEW_SDK_CORE_VERSION" ];then
+            echo "PUBLISHED_SDK_CORE_VERSION=1" >> $GITHUB_ENV
+            echo "sdk-core changed: $PUBLISHED_SDK_CORE_VERSION -> $NEW_SDK_CORE_VERSION"
+          else
+            echo sdk-core unchanged: $PUBLISHED_SDK_CORE_VERSION
+          fi
+
           echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::$NEW_ETHEREUM_CONTRACTS_VERSION"
           echo "::set-output name=NEW_JS_SDK_VERSION::$NEW_JS_SDK_VERSION"
-
-      - name: Create js-sdk release draft
-        if: env.PUBLISH_JS_SDK == 1
-        id: create_release_js_sdk
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: js-sdk@v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
-          release_name: js-sdk@v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
-          body: |
-            Changes in this Release
-            ## Changed
-            ## Added
-            ## Fixes
-            ## Breaking
-          draft: true
+          echo "::set-output name=NEW_SDK_CORE_VERSION::$NEW_SDK_CORE_VERSION"
 
       - name: Create ethereum-contracts release draft
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
@@ -74,7 +70,41 @@ jobs:
           tag_name: ethereum-contracts@v${{ steps.check_versions.outputs.NEW_ETHEREUM_CONTRACTS_VERSION }}
           release_name: ethereum-contracts@v${{ steps.check_versions.outputs.NEW_ETHEREUM_CONTRACTS_VERSION }}
           body: |
-            Changes in this Release
+            Changes in this ethereum-contracts release
+            ## Changed
+            ## Added
+            ## Fixes
+            ## Breaking
+          draft: true
+
+      - name: Create js-sdk release draft
+        if: env.PUBLISH_JS_SDK == 1
+        id: create_release_js_sdk
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: js-sdk@v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
+          release_name: js-sdk@v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
+          body: |
+            Changes in this js-sdk release
+            ## Changed
+            ## Added
+            ## Fixes
+            ## Breaking
+          draft: true
+
+      - name: Create sdk-core release draft
+        if: env.PUBLISHED_SDK_CORE_VERSION == 1
+        id: create_release_sdk_core
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: sdk-core@v${{ steps.check_versions.outputs.NEW_SDK_CORE_VERSION }}
+          release_name: sdk-core@v${{ steps.check_versions.outputs.NEW_SDK_CORE_VERSION }}
+          body: |
+            Changes in this sdk-core release
             ## Changed
             ## Added
             ## Fixes

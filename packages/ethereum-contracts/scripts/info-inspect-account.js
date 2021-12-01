@@ -19,7 +19,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     if (args.length < 1) {
         throw new Error("Not enough arguments");

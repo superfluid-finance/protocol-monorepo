@@ -1,12 +1,12 @@
-import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
-import { AllEvents } from '@superfluid-finance/sdk-core';
+import {AnyAction, ThunkDispatch} from '@reduxjs/toolkit';
+import {AllEvents} from '@superfluid-finance/sdk-core';
 
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import {rtkQuerySlice} from '../rtkQuerySlice';
 
-import { createEventTag } from './eventTags';
-import { createIndexTags } from './indexTags';
-import { createStreamsTags } from './streamTags';
-import { createTokenTags } from './tokenTags';
+import {createEventTag} from './eventTags';
+import {createIndexTags} from './indexTags';
+import {createStreamsTags} from './streamTags';
+import {createTokenTags} from './tokenTags';
 
 /**
  * Based on event type, invalidate all possible relevant cache tags.

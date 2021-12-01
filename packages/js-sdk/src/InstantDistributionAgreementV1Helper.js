@@ -1,5 +1,5 @@
 const autoBind = require("auto-bind");
-const { completeTransaction } = require("./utils/general");
+const {completeTransaction} = require("./utils/general");
 
 /**
  * @dev Instant distribution agreement v1 helper class
@@ -355,7 +355,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @param {addressParam} subscriber Subscriber of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    async getSubscription({ superToken, publisher, indexId, subscriber }) {
+    async getSubscription({superToken, publisher, indexId, subscriber}) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
         );
@@ -436,7 +436,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    async getIndex({ superToken, publisher, indexId }) {
+    async getIndex({superToken, publisher, indexId}) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
         );
@@ -457,7 +457,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @param {addressParam} publisher Publisher of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    async listIndices({ superToken, publisher }) {
+    async listIndices({superToken, publisher}) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
         );
@@ -479,7 +479,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    async listSubcribers({ superToken, publisher, indexId }) {
+    async listSubcribers({superToken, publisher, indexId}) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
         );
@@ -512,7 +512,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    async listSubscriptions({ superToken, subscriber }) {
+    async listSubscriptions({superToken, subscriber}) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
         );
@@ -554,7 +554,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         };
     }
 
-    static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }) {
+    static _sanitizeSubscriptionInfo({publishers, indexIds, unitsList}) {
         return publishers.map((publisher, i) => ({
             publisher,
             indexId: Number(indexIds[i].toString()),

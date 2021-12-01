@@ -1,10 +1,10 @@
-import { initializedSuperfluidContext } from '../../../createSdkReduxParts';
-import { typeGuard } from '../../../utils';
-import { NothingNumber, QueryArg } from '../../argTypes';
-import { getMostSpecificIndexTag } from '../cacheTags/indexTags';
-import { getMostSpecificStreamTag } from '../cacheTags/streamTags';
-import { getMostSpecificTokenTag } from '../cacheTags/tokenTags';
-import { rtkQuerySlice } from '../rtkQuerySlice';
+import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {typeGuard} from '../../../utils';
+import {NothingNumber, QueryArg} from '../../argTypes';
+import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
+import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
+import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
+import {rtkQuerySlice} from '../rtkQuerySlice';
 
 export type GetRealtimeBalanceArg = QueryArg & {
     superTokenAddress: string;

@@ -1,4 +1,4 @@
-import { createTag } from './CacheTagTypes';
+import {createTag} from './CacheTagTypes';
 
 /**
  * The simplest cache tag.

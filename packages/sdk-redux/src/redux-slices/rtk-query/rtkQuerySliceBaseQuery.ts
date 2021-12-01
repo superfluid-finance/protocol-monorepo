@@ -1,7 +1,7 @@
-import { SerializedError } from '@reduxjs/toolkit';
-import { BaseQueryFn } from '@reduxjs/toolkit/dist/query/react';
+import {SerializedError} from '@reduxjs/toolkit';
+import {BaseQueryFn} from '@reduxjs/toolkit/dist/query/react';
 
-import { QueryArg, SuperTokenMutationArg, TransactionInfo } from '../argTypes';
+import {QueryArg, SuperTokenMutationArg, TransactionInfo} from '../argTypes';
 
 export type ValidationError = {
     /**

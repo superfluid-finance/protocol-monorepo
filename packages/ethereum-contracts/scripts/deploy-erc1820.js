@@ -4,7 +4,7 @@ const assert = require("assert").strict;
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
 const ERC1820Registry = require("../artifacts/ERC1820Registry.json");
-const { hasCode } = require("./libs/common");
+const {hasCode} = require("./libs/common");
 
 /**
  * @dev Deploy ERC1820 to the network.
@@ -13,7 +13,7 @@ const { hasCode } = require("./libs/common");
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */
-module.exports = async function (callback, { web3, from } = {}) {
+module.exports = async function (callback, {web3, from} = {}) {
     try {
         web3 = web3 || global.web3;
 

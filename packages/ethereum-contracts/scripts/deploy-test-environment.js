@@ -5,7 +5,7 @@ const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
 
-const { getScriptRunnerFactory: S } = require("./libs/common");
+const {getScriptRunnerFactory: S} = require("./libs/common");
 
 async function takeEvmSnapshot() {
     return new Promise((resolve, reject) => {
@@ -55,18 +55,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (args) {
     console.log("Tokens to be deployed", tokens);
 
     console.log("======== Deploying superfluid framework ========");
-    await deployFramework(errorHandler, { web3 });
+    await deployFramework(errorHandler, {web3});
     console.log("==== Superfluid framework deployed  ========");
 
     for (let i = 0; i < tokens.length; ++i) {
         if (tokens[i] !== deploySuperToken) {
             console.log(`======== Deploying test token ${tokens[i]} ========`);
-            await deployTestToken(errorHandler, [":", tokens[i]], { web3 });
+            await deployTestToken(errorHandler, [":", tokens[i]], {web3});
             console.log(`======== Test token ${tokens[i]} deployed ========`);
         }
 
         console.log(`======== Creating super token for ${tokens[i]} ========`);
-        await deploySuperToken(errorHandler, [":", tokens[i]], { web3 });
+        await deploySuperToken(errorHandler, [":", tokens[i]], {web3});
         console.log(`======== Super token for ${tokens[i]} deployed ========`);
     }
 

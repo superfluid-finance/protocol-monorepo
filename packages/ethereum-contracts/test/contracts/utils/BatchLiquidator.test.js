@@ -1,9 +1,9 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 
 const TestEnvironment = require("../../TestEnvironment");
 const BatchLiquidator = artifacts.require("BatchLiquidator");
 
-const { toWad, toBN } = require("@decentral.ee/web3-helpers");
+const {toWad, toBN} = require("@decentral.ee/web3-helpers");
 
 const traveler = require("ganache-time-traveler");
 
@@ -22,7 +22,7 @@ describe("Superfluid Liquidator Contract", function () {
             nAccounts: 10,
         });
 
-        batch = await BatchLiquidator.new({ from: t.accounts[0] });
+        batch = await BatchLiquidator.new({from: t.accounts[0]});
         await t.pushEvmSnapshot();
 
         superToken = t.sf.tokens.TESTx;
@@ -68,7 +68,7 @@ describe("Superfluid Liquidator Contract", function () {
                 superToken.address,
                 Array(7).fill(t.accounts[1]),
                 t.accounts.slice(1, 8),
-                { from: t.accounts[9] }
+                {from: t.accounts[9]}
             );
 
             assert.ok(
@@ -105,7 +105,7 @@ describe("Superfluid Liquidator Contract", function () {
                 superToken.address,
                 Array(7).fill(t.accounts[1]),
                 t.accounts.slice(1, 8),
-                { from: t.accounts[0] }
+                {from: t.accounts[0]}
             );
             assert.ok(
                 (await superToken.balanceOf(rewardAccount)).gt(rewardBalance)
@@ -140,7 +140,7 @@ describe("Superfluid Liquidator Contract", function () {
                 superToken.address,
                 Array(7).fill(t.accounts[1]),
                 t.accounts.slice(1, 8),
-                { from: t.accounts[9] }
+                {from: t.accounts[9]}
             );
 
             assert.ok(

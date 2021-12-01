@@ -1,4 +1,4 @@
-const { getErrorResponse } = require("./utils/error");
+const {getErrorResponse} = require("./utils/error");
 
 module.exports = class User {
     /**
@@ -7,7 +7,7 @@ module.exports = class User {
      * @param {string} address The EOA address of the user you want to create.
      * @param {string} token The address of the supertoken you want to interact with.
      */
-    constructor({ sf, address, token }) {
+    constructor({sf, address, token}) {
         this.sf = sf;
         this.address = address;
         this.token = token;
@@ -39,7 +39,7 @@ module.exports = class User {
                 getNewFlow,
                 listSubscriptions,
             ]);
-            return { cfa: { flows, netFlow }, ida: { subscriptions } };
+            return {cfa: {flows, netFlow}, ida: {subscriptions}};
         } catch (e) {
             throw getErrorResponse(e, "user", "details");
         }
@@ -54,7 +54,7 @@ module.exports = class User {
      * NOTE: !0 in JS evaluates to true as 0 is a falsey value. We also stringify the flowRate,
      * just in case the user somehow is able to input a number (using JS).
      */
-    async flow({ recipient, flowRate, ...options }) {
+    async flow({recipient, flowRate, ...options}) {
         try {
             if (!recipient || flowRate == null || flowRate == undefined)
                 throw "You must provide a recipient and flowRate";
@@ -99,10 +99,10 @@ module.exports = class User {
      * @param {number} poolId The id of the index.
      * @returns {Promise<Transaction | undefined>} web3 transaction object or undefined on error
      */
-    async createPool({ poolId: indexId }) {
+    async createPool({poolId: indexId}) {
         try {
             if (!indexId) throw "You must provide a poolId";
-            const { exist } = await this.sf.ida.getIndex({
+            const {exist} = await this.sf.ida.getIndex({
                 superToken: this.token,
                 publisher: this.address,
                 indexId,
@@ -126,13 +126,13 @@ module.exports = class User {
      * @param {number} poolId The id of the index.
      * @returns {Promise<Transaction | undefined>} web3 transaction object or undefined on error
      */
-    async giveShares({ recipient, shares, poolId: indexId }) {
+    async giveShares({recipient, shares, poolId: indexId}) {
         try {
             if (!recipient || !shares || !indexId)
                 throw "You must provide a recipient, share amount, and poolId";
             const recipientAddress = recipient.address || recipient;
 
-            const { exist } = await this.sf.ida.getIndex({
+            const {exist} = await this.sf.ida.getIndex({
                 superToken: this.token,
                 publisher: this.address,
                 indexId,
@@ -157,7 +157,7 @@ module.exports = class User {
      * @param {number} amount The amount of tokens to distribute.
      * @returns {Promise<Transaction | undefined>} web3 transaction object or undefined on error
      */
-    async distributeToPool({ poolId: indexId, amount }) {
+    async distributeToPool({poolId: indexId, amount}) {
         try {
             if (!indexId || !amount)
                 throw "You must provide a poolId and amount";

@@ -1,4 +1,4 @@
-const { GasMeterJSONReporter, GasMeterHTMLReporter } = require("./gasReporter");
+const {GasMeterJSONReporter, GasMeterHTMLReporter} = require("./gasReporter");
 
 class Formatter {
     constructor(web3) {
@@ -82,7 +82,7 @@ module.exports = class GasMeter {
             return this.formatter.formatObject(x, this.fiatCurr);
         });
         return {
-            aggregates: { ...formattedAggregates },
+            aggregates: {...formattedAggregates},
             executedTxs: [...formattedRecords],
         };
     }

@@ -68,6 +68,7 @@ jobs:
           echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::$NEW_ETHEREUM_CONTRACTS_VERSION"
           echo "::set-output name=NEW_JS_SDK_VERSION::$NEW_JS_SDK_VERSION"
           echo "::set-output name=NEW_SDK_CORE_VERSION::$NEW_SDK_CORE_VERSION"
+          echo "::set-output name=NEW_SDK_REDUX_VERSION::$NEW_SDK_REDUX_VERSION"
 
       - name: Create ethereum-contracts release draft
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
@@ -122,7 +123,7 @@ jobs:
 
       - name: Create sdk-redux release draft
         if: env.PUBLISHED_SDK_REDUX_VERSION == 1
-        id: create_release_sdk_core
+        id: create_release_sdk_redux
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token

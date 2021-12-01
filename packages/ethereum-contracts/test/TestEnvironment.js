@@ -122,10 +122,8 @@ module.exports = class TestEnvironment {
 
     async useLastEvmSnapshot() {
         let oldEvmSnapshotId;
-        ({
-            id: oldEvmSnapshotId,
-            resolverAddress: process.env.RESOLVER_ADDRESS,
-        } = this._evmSnapshots.pop());
+        ({id: oldEvmSnapshotId, resolverAddress: process.env.RESOLVER_ADDRESS} =
+            this._evmSnapshots.pop());
         await this._revertToEvmSnapShot(oldEvmSnapshotId);
         // move the time to now
         await traveler.advanceBlockAndSetTime(parseInt(Date.now() / 1000));

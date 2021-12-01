@@ -1,5 +1,5 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
-const { setWeb3Provider } = require("@decentral.ee/web3-helpers/src/config");
+const {web3tx} = require("@decentral.ee/web3-helpers");
+const {setWeb3Provider} = require("@decentral.ee/web3-helpers/src/config");
 const Resolver = artifacts.require("Resolver");
 const getConfig = require("./libs/getConfig");
 

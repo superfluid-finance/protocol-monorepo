@@ -78,7 +78,7 @@ describe("Miscellaneous for test coverages", function () {
         const Resolver = artifacts.require("Resolver");
 
         it("Resolver.set should only be called by admin", async () => {
-            const resolver = await Resolver.new({ from: admin });
+            const resolver = await Resolver.new({from: admin});
             await expectRevert(
                 resolver.set("alice", alice, {from: alice}),
                 "Caller is not an admin"

@@ -40,7 +40,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("reset token: ", resetToken);
     console.log("chain ID: ", chainId);
 
-    const { Resolver } = await SuperfluidSDK.loadContracts({
+    const {Resolver} = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: ["Resolver"],
         contractLoader: builtTruffleContractLoader,

@@ -6,7 +6,7 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { IStream, useListStreamsQuery } from "@superfluid-finance/sdk-redux";
+import { IStream, ISuperToken, useListStreamsQuery } from "@superfluid-finance/sdk-redux";
 import { Loader } from "../Loader";
 import {
     FormGroup,
@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
-import { ISuperToken } from "../../../../packages/sdk-core/src";
 import { FlowingBalance } from "../FlowingBalance";
 import { ethers } from "ethers";
 

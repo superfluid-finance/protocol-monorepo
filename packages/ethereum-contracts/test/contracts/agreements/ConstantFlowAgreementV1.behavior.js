@@ -804,10 +804,13 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: roles.sender,
                         bondAccount: roles.reward,
-                        liquidatorAccountDelta: expectedRewardAmount.toString(),
+                        rewardRecipientAccountDelta:
+                            expectedRewardAmount.toString(),
                         penaltyAccountDelta: expectedRewardAmount
                             .mul(toBN(-1))
                             .toString(),
+                        version: "v1",
+                        liquidationType: "0",
                     }
                 );
             } else {
@@ -862,8 +865,11 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: roles.sender,
                         bondAccount: roles.reward,
-                        liquidatorAccountDelta: expectedRewardAmount.toString(),
+                        rewardRecipientAccountDelta:
+                            expectedRewardAmount.toString(),
                         penaltyAccountDelta: expectedBailoutAmount.toString(),
+                        version: "v1",
+                        liquidationType: "2",
                     }
                 );
             }

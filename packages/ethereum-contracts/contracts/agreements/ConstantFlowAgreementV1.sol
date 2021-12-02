@@ -28,6 +28,8 @@ contract ConstantFlowAgreementV1 is
 
     bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
+    bytes32 private constant _REWARD_ADDRESS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.superfluid.rewardAddress");
 
     using SafeMath for uint256;
     using SafeCast for uint256;
@@ -755,12 +757,19 @@ contract ConstantFlowAgreementV1 is
         //    -     Total Reward Left = RL = AB + TD
         // #1 Can the total account deposit can still cover the available balance deficit?
         int256 totalRewardLeft = availableBalance.add(signedTotalDeposit);
+        
+        ISuperfluid host = ISuperfluid(token.getHost());
+        address bondAccount = ISuperfluidGovernance(host.getGovernance())
+            .getConfigAsAddress(host, token, _REWARD_ADDRESS_CONFIG_KEY);
+
         if (totalRewardLeft >= 0) {
             // #1.a.1 yes: then reward = (SD / TD) * RL
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
+                abi.encode("v1", 0), // liquidationTypeData
                 liquidator,
+                bondAccount,
                 flowParams.sender,
                 rewardAmount.toUint256(),
                 rewardAmount.mul(-1)
@@ -770,6 +779,8 @@ contract ConstantFlowAgreementV1 is
             int256 rewardAmount = signedSingleDeposit;
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
+                abi.encode("v1", 2),
+                liquidator,
                 liquidator,
                 flowParams.sender,
                 rewardAmount.toUint256(),

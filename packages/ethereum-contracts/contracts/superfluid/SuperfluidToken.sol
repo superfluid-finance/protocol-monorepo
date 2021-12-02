@@ -307,6 +307,14 @@ abstract contract SuperfluidToken is ISuperfluidToken
         slotData = FixedSizeData.loadData(slot, dataLength);
     }
 
+    function _getLiquidationTypeDataStruct(
+        bytes memory liquidationTypeData
+    )   internal pure
+        returns (LiquidationTypeData memory data) {
+        (string memory version, uint8 liquidationType) = abi.decode(liquidationTypeData, (string, uint8));
+        return LiquidationTypeData(version, liquidationType);
+    }
+
     /// @dev ISuperfluidToken.settleBalance implementation
     function settleBalance(
         address account,
@@ -412,58 +420,66 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
     function makeLiquidationPayoutsV2(
         bytes32 id,
+        bytes memory liquidationTypeData,
         address liquidatorAccount,
+        address rewardRecipientAccount,
         address penaltyAccount,
-        uint256 liquidatorAccountDelta,
+        uint256 rewardRecipientAccountDelta,
         int256 penaltyAccountDelta
     ) external override onlyAgreement {
         ISuperfluidGovernance gov = _host.getGovernance();
-        
-        address originalLiquidatorAccount = liquidatorAccount;
+
         address originalBondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
         address bondAccount = originalBondAccount;
         
-        bool isBailout = penaltyAccountDelta > 0 && liquidatorAccountDelta > 0;
-        
+        // we set the bondAccount to the user who executed the liquidation if
+        // no bondAccount is set
         if (originalBondAccount == address(0)) {
             bondAccount = liquidatorAccount;
+        }
+        if (originalBondAccount == address(0) && rewardRecipientAccount == originalBondAccount) {
+            rewardRecipientAccount = liquidatorAccount;
         }
 
         _balances[bondAccount] = _balances[bondAccount]
             .add(penaltyAccountDelta.mul(-1))
-            .add(liquidatorAccountDelta.toInt256().mul(-1));
+            .add(rewardRecipientAccountDelta.toInt256().mul(-1));
 
         _balances[penaltyAccount] = _balances[penaltyAccount]
             .add(penaltyAccountDelta);
 
-        // NOTE: We need to set the liquidator account to bond account
-        // if the bond account is not the 0 address and it is not a bailout
+        // NOTE: We need to set the rewardRecipientAccount to bondAccount
+        // if the bondAccount is not the 0 address and it is not a bailout
         // we must do this prior to the 3Ps because the test cases expect the
-        // bond account to always receive the reward
-        if (originalBondAccount != address(0) && !isBailout) {
-            liquidatorAccount = bondAccount;
+        // bondAccount to always receive the reward
+        if (originalBondAccount != address(0) && penaltyAccountDelta <= 0) {
+            rewardRecipientAccount = bondAccount;
         }
 
-        _balances[liquidatorAccount] = _balances[liquidatorAccount]
-            .add(liquidatorAccountDelta.toInt256());
+        // non 3ps: when solvent (bond account) else (executor account)
+        _balances[rewardRecipientAccount] = _balances[rewardRecipientAccount]
+            .add(rewardRecipientAccountDelta.toInt256());
 
-        // we must use the originalLiquidatorAccount
+        // we must use the liquidatorAccount
         // because the test cases expect the original liquidator
         // to be the one doing the liquidations
+        // (bytes memory version, uint8 liquidationType) = abi.decode(liquidationTypeData, (bytes, uint8));
+        LiquidationTypeData memory data = _getLiquidationTypeDataStruct(liquidationTypeData);
         emit AgreementLiquidatedByV2(
-            originalLiquidatorAccount,
+            liquidatorAccount,
             msg.sender,
             id,
             penaltyAccount,
             bondAccount,
-            liquidatorAccountDelta,
-            penaltyAccountDelta
+            rewardRecipientAccountDelta,
+            penaltyAccountDelta,
+            data.version,
+            data.liquidationType
         );
 
-        // if both penaltyAccountDelta and liquidatorAccountDelta are +ve
-        // this means that the account is insolvent and the reward account
-        // is bailing out the penalty account
-        if (isBailout) {
+        // if penaltyAccountDelta is +ve this means that the account is 
+        // insolvent and the bondAcount will bail out the penaltyAccount
+        if (penaltyAccountDelta > 0) {
             emit Bailout(
                 bondAccount, 
                 penaltyAccountDelta.toUint256()

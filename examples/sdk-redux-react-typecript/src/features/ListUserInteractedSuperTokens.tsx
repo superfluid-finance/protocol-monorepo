@@ -7,6 +7,7 @@ import React, {
     useState,
 } from "react";
 import {
+    ISuperToken,
     useListUserInteractedSuperTokensQuery,
     ILightAccountTokenSnapshot,
 } from "@superfluid-finance/sdk-redux";
@@ -24,7 +25,6 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
-import { ISuperToken } from "../../../../packages/sdk-core/src";
 
 const pageSize = 10;
 

@@ -1,10 +1,10 @@
-query getStreams($where: Stream_filter!, $skip: Int!, $first: Int!) {
+query getStreams($where: Stream_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: Stream_orderBy! = id, $orderDirection: OrderDirection! = asc) {
     result: streams(
         where: $where,
         skip: $skip,
         first: $first,
-        orderBy: createdAtBlockNumber,
-        orderDirection: desc
+        orderBy: $orderBy,
+        orderDirection: $orderDirection
     ) {
         id
         createdAtTimestamp

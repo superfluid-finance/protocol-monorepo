@@ -1,4 +1,5 @@
 export type EventBase = {
+    id: string;
     blockNumber: number;
     transactionHash: string;
     timestamp: number;
@@ -6,7 +7,7 @@ export type EventBase = {
 
 export interface IEventFilter {
     readonly account?: string;
-    readonly timestamp_gte?: number;
+    readonly timestamp_gt?: number;
 }
 
 export type AccountEvents =

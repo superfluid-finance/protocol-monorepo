@@ -1,5 +1,5 @@
 const autoBind = require("auto-bind");
-const { completeTransaction } = require("./utils/general");
+const {completeTransaction} = require("./utils/general");
 
 /**
  * @dev Constant flow agreement v1 helper class
@@ -250,7 +250,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         return this.constructor._sanitizeflowInfo(result);
     }
 
-    static _sanitizeflowInfo({ timestamp, flowRate, deposit, owedDeposit }) {
+    static _sanitizeflowInfo({timestamp, flowRate, deposit, owedDeposit}) {
         return {
             timestamp: new Date(Number(timestamp.toString()) * 1000),
             flowRate: flowRate.toString(),
@@ -259,7 +259,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         };
     }
 
-    async getFlowEvents({ token, receiver = null, sender = null }) {
+    async getFlowEvents({token, receiver = null, sender = null}) {
         let flows = await this._sf.getPastEvents(this._cfa, "FlowUpdated", {
             token,
             receiver,

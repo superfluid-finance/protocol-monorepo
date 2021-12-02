@@ -1,4 +1,6 @@
 name: CI Canary
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   push:
@@ -228,6 +230,7 @@ jobs:
           tasks/npm-publish.sh packages/ethereum-contracts dev
           tasks/npm-publish.sh packages/js-sdk dev
           tasks/npm-publish.sh packages/sdk-core dev
+          tasks/npm-publish.sh packages/sdk-redux dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

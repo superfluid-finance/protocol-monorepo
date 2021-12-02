@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Subgraph for the Superfluid Ethereum contracts.",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -27,7 +27,7 @@
         "deploy:feature:matic": "yarn deploy-to-feature-network matic",
         "deploy:feature:goerli": "yarn deploy-to-feature-network goerli",
         "deploy-all-networks": "chmod +x ./tasks/deploy-all-networks.sh && ./tasks/deploy-all-networks.sh",
-        "deploy:feature": "run-s deploy:feature:*",
+        "deploy:feature": "yarn deploy-all-networks feature",
         "deploy:dev": "yarn deploy-all-networks dev",
         "deploy:v1": "yarn deploy-all-networks v1",
         "deploy-to": "chmod +x ./tasks/deploy-to-network.sh && ./tasks/deploy-to-network.sh",

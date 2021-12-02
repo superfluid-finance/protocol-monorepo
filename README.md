@@ -10,6 +10,9 @@
   <a href="#superfluid-financesdk-core" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core?label=sdk-core">
   </a>
+  <a href="#superfluid-financesdk-core" target="_blank">
+    <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux?label=sdk-redux">
+  </a>
   <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>

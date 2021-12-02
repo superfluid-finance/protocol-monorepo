@@ -10,7 +10,7 @@
   <a href="#superfluid-financesdk-core" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core?label=sdk-core">
   </a>
-  <a href="#superfluid-financesdk-core" target="_blank">
+  <a href="#superfluid-financesdk-redux" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux?label=sdk-redux">
   </a>
   <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
@@ -80,6 +80,20 @@ If you're interest in peeking under the hood, then check out the contracts packa
 </p>
 
 To build with Superfluid, you can use the Javascript SDK package or the SDK core package.
+
+
+#### [`@superfluid-finance/sdk-redux`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-redux)
+
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-redux" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux.svg">
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+</p>
+
+SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
 ## Examples
 

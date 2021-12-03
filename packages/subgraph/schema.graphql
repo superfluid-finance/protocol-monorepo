@@ -506,6 +506,24 @@ type RewardAddressChangedEvent implements Event @entity {
     rewardAddress: Bytes!
 }
 
+type ThreePsConfigurationChangedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    host: Bytes!
+    superToken: Bytes!
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    liquidationPeriod: Int!
+    patricianPeriod: Int!
+}
+
 type TrustedForwarderChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!

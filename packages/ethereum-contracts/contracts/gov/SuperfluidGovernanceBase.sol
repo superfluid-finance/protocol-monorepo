@@ -226,7 +226,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     }
     
     // CFAv1 3PS - Liquidation Period + Patrician Period
-    event ThreePSConfigurationChanged(
+    event ThreePsConfigurationChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
         bool isKeySet,
@@ -241,7 +241,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     ) 
         public
     {
-        emit ThreePSConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
+        emit ThreePsConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
         uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
         return _setConfig(
             host,

@@ -1,4 +1,6 @@
 name: Publish PR Packages
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   workflow_run:
@@ -13,9 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2
@@ -59,6 +58,8 @@ jobs:
           for f in `ls` ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1

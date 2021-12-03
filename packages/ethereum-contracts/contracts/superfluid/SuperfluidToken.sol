@@ -436,9 +436,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
         if (originalBondAccount == address(0)) {
             bondAccount = liquidatorAccount;
         }
-        if (originalBondAccount == address(0) && rewardRecipientAccount == originalBondAccount) {
-            rewardRecipientAccount = liquidatorAccount;
-        }
 
         // if the bondAccount is unset and we are in the patrician period, we set the rewardRecipient
         // to be the account which executed the liquidation
@@ -452,14 +449,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
         _balances[penaltyAccount] = _balances[penaltyAccount]
             .add(penaltyAccountDelta);
-
-        // NOTE: We need to set the rewardRecipientAccount to bondAccount
-        // if the bondAccount is not the 0 address and it is not a bailout
-        // we must do this prior to the 3Ps because the test cases expect the
-        // bondAccount to always receive the reward
-        if (originalBondAccount != address(0) && penaltyAccountDelta <= 0) {
-            rewardRecipientAccount = bondAccount;
-        }
 
         _balances[rewardRecipientAccount] = _balances[rewardRecipientAccount]
             .add(rewardRecipientAccountDelta.toInt256());

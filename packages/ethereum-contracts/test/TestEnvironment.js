@@ -744,7 +744,7 @@ module.exports = class TestEnvironment {
         );
 
         this.printSingleBalance(
-            "Total real-time blances of super tokens",
+            "Total real-time balances of super tokens",
             rtBalanceSum
         );
 

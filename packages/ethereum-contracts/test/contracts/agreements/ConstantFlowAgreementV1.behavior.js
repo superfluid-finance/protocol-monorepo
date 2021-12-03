@@ -176,7 +176,7 @@ function syncAccountExpectedBalanceDeltas({ testenv, superToken, timestamp }) {
     console.log("syncing accounting expected balance deltas due to flows...");
 
     testenv.listAddresses().forEach((account) => {
-        const accuntFlowInfo = getAccountFlowInfo({
+        const accountFlowInfo = getAccountFlowInfo({
             testenv,
             superToken,
             account,
@@ -190,7 +190,7 @@ function syncAccountExpectedBalanceDeltas({ testenv, superToken, timestamp }) {
             account
         );
         const expectedBalanceDelta2 = expectedBalanceDelta1.add(
-            toBN(accuntFlowInfo.flowRate).mul(
+            toBN(accountFlowInfo.flowRate).mul(
                 toBN(timestamp).sub(toBN(balanceSnapshot.timestamp))
             )
         );
@@ -784,9 +784,19 @@ async function _shouldChangeFlow({
                     "expected reward amount (to reward account)",
                     expectedRewardAmount
                 );
+
+                // the reward recipient role depends on whether the time is still
+                // in the patrician period, if it is, the reward recipient is the
+                // bondAccount, otherwise it is the "agent" or the person who
+                // executes the liquidation
+                const rewardRecipientRole =
+                    time > testenv.configs.PATRICIAN_PERIOD
+                        ? "agent"
+                        : "reward";
+
                 updateAccountExpectedBalanceDelta(
-                    "reward",
-                    getAccountExpectedBalanceDelta("reward").add(
+                    rewardRecipientRole,
+                    getAccountExpectedBalanceDelta(rewardRecipientRole).add(
                         expectedRewardAmount
                     )
                 );

@@ -431,11 +431,13 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
         address originalBondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
         address bondAccount = originalBondAccount;
-
         // we set the bondAccount to the user who executed the liquidation if
         // no bondAccount is set
         if (originalBondAccount == address(0)) {
             bondAccount = liquidatorAccount;
+        }
+        if (originalBondAccount == address(0) && rewardRecipientAccount == originalBondAccount) {
+            rewardRecipientAccount = liquidatorAccount;
         }
 
         // if the bondAccount is unset and we are in the patrician period, we set the rewardRecipient

@@ -1,4 +1,4 @@
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {getSfContext} from '../../../createSdkReduxParts';
 import {MillisecondTimes} from '../../../utils';
 import {NothingString} from '../../argTypes';
 import {invalidateCacheTagsForEvents} from '../cacheTags/invalidateCacheTagsForEvents';
@@ -32,10 +32,9 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
             ) => {
                 // TODO(KK): Consider how changing of networks inside the application can affect this.
 
-                const framework =
-                    await initializedSuperfluidContext.getFramework(
-                        arg.chainId
-                    );
+                const framework = await getSfContext().getFramework(
+                    arg.chainId
+                );
 
                 await cacheDataLoaded;
 

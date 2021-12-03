@@ -145,7 +145,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 t.aliases[sender]
             );
             const timeInDeficit = balanceData.availableBalance
-                .div(FLOW_RATE1)
+                .div(toBN(0).sub(FLOW_RATE1))
                 .toNumber();
 
             await shouldDeleteFlow({
@@ -191,7 +191,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 t.aliases[sender]
             );
             const timeInDeficit = balanceData.availableBalance
-                .div(FLOW_RATE1)
+                .div(toBN(0).sub(FLOW_RATE1))
                 .toNumber();
 
             await shouldDeleteFlow({
@@ -1548,9 +1548,9 @@ describe("Using ConstantFlowAgreement v1", function () {
             const balanceData = await superToken.realtimeBalanceOfNow(
                 t.aliases[sender]
             );
-            const timeInDeficit = balanceData.availableBalance
-                .div(FLOW_RATE1)
-                .toNumber();
+            const timeInDeficit = balanceData.availableBalance.div(
+                toBN(0).sub(FLOW_RATE1)
+            );
 
             await shouldDeleteFlow({
                 testenv: t,

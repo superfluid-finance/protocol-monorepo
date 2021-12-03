@@ -58,7 +58,7 @@ jobs:
           for f in `ls` ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
-      - env:
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Find Comment

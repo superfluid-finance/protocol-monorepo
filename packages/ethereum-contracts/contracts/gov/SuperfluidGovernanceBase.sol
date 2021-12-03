@@ -224,6 +224,32 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             host, superToken,
             SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
     }
+    
+    // CFAv1 3PS - Liquidation Period + Patrician Period
+    event ThreePSConfigurationChanged(
+        ISuperfluid indexed host,
+        ISuperfluidToken indexed superToken,
+        bool isKeySet,
+        uint256 liquidationPeriod,
+        uint256 patricianPeriod);
+
+    function set3PSData(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        uint256 liquidationPeriod,
+        uint256 patricianPeriod
+    ) 
+        public
+    {
+        emit ThreePSConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
+        uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
+        return _setConfig(
+            host,
+            superToken,
+            SuperfluidGovernanceConfigs._3PS_CONFIG_KEY,
+            value
+        );
+    }
 
     function setCFAv1LiquidationPeriod(
         ISuperfluid host,

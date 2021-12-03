@@ -167,6 +167,9 @@ library SuperfluidGovernanceConfigs {
     bytes32 constant internal CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
+    bytes32 constant internal _3PS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
+
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.trustedForwarder",

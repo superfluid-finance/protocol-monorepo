@@ -141,12 +141,20 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await superToken.isAccountSolventNow(t.aliases[sender])
             );
 
+            const balanceData = await superToken.realtimeBalanceOfNow(
+                t.aliases[sender]
+            );
+            const timeInDeficit = balanceData.availableBalance
+                .div(FLOW_RATE1)
+                .toNumber();
+
             await shouldDeleteFlow({
                 testenv: t,
                 superToken,
                 sender,
                 receiver,
                 by,
+                time: timeInDeficit,
             });
 
             await verifyAll();
@@ -179,12 +187,20 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await superToken.isAccountSolventNow(t.aliases[sender])
             );
 
+            const balanceData = await superToken.realtimeBalanceOfNow(
+                t.aliases[sender]
+            );
+            const timeInDeficit = balanceData.availableBalance
+                .div(FLOW_RATE1)
+                .toNumber();
+
             await shouldDeleteFlow({
                 testenv: t,
                 superToken,
                 sender,
                 receiver,
                 by,
+                time: timeInDeficit,
             });
 
             await verifyAll({ allowCriticalAccount });
@@ -1529,6 +1545,13 @@ describe("Using ConstantFlowAgreement v1", function () {
                 allowCriticalAccount: true,
             });
 
+            const balanceData = await superToken.realtimeBalanceOfNow(
+                t.aliases[sender]
+            );
+            const timeInDeficit = balanceData.availableBalance
+                .div(FLOW_RATE1)
+                .toNumber();
+
             await shouldDeleteFlow({
                 testenv: t,
                 superToken,
@@ -1536,6 +1559,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: "mfa",
                 by: "dan",
                 mfa,
+                time: timeInDeficit,
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
             await expectNetFlow(sender, "0");

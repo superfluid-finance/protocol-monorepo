@@ -40,6 +40,7 @@ module.exports = class TestEnvironment {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(0),
             LIQUIDATION_PERIOD: 3600,
+            PATRICIAN_PERIOD: 900,
         };
 
         this.constants = Object.assign(
@@ -256,6 +257,14 @@ module.exports = class TestEnvironment {
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
                 this.configs.LIQUIDATION_PERIOD
+            ),
+            await web3tx(
+                this.contracts.governance.set3PSData(
+                    this.sf.host.address,
+                    this.constants.ZERO_ADDRESS,
+                    this.configs.LIQUIDATION_PERIOD,
+                    this.configs.PATRICIAN_PERIOD
+                )
             ),
             await web3tx(
                 this.contracts.governance.setRewardAddress,

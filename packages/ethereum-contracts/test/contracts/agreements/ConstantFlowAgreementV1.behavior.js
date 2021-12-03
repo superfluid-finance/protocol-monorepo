@@ -366,6 +366,7 @@ async function _shouldChangeFlow({
     mfa,
     userData,
     by,
+    time,
 }) {
     console.log(`======== ${fn} begins ========`);
     console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
@@ -804,10 +805,14 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: roles.sender,
                         bondAccount: roles.reward,
-                        liquidatorAccountDelta: expectedRewardAmount.toString(),
+                        rewardRecipientAccountDelta:
+                            expectedRewardAmount.toString(),
                         penaltyAccountDelta: expectedRewardAmount
                             .mul(toBN(-1))
                             .toString(),
+                        version: "v1",
+                        liquidationType:
+                            time > testenv.configs.PATRICIAN_PERIOD ? "1" : "0",
                     }
                 );
             } else {
@@ -862,8 +867,11 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: roles.sender,
                         bondAccount: roles.reward,
-                        liquidatorAccountDelta: expectedRewardAmount.toString(),
+                        rewardRecipientAccountDelta:
+                            expectedRewardAmount.toString(),
                         penaltyAccountDelta: expectedBailoutAmount.toString(),
+                        version: "v1",
+                        liquidationType: "2", // bailout
                     }
                 );
             }
@@ -1018,6 +1026,7 @@ async function shouldDeleteFlow({
     receiver,
     mfa,
     by,
+    time,
 }) {
     await _shouldChangeFlow({
         fn: "deleteFlow",
@@ -1028,6 +1037,7 @@ async function shouldDeleteFlow({
         flowRate: 0,
         mfa,
         by,
+        time,
     });
 }
 

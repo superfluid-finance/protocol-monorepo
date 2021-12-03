@@ -29,6 +29,12 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
+    bytes32 private constant _3PS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
+   
+    bytes32 private constant _REWARD_ADDRESS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.superfluid.rewardAddress");
+
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
@@ -747,20 +753,43 @@ contract ConstantFlowAgreementV1 is
 
         int256 signedSingleDeposit = flowData.deposit.toInt256();
         int256 signedTotalDeposit = senderAccountState.deposit.toInt256();
+        address bondAccount;
+        bool isPatricianPeriod;
+
+        // To handle stack too deep overflow issue
+        {
+            ISuperfluid host = ISuperfluid(token.getHost());
+            bondAccount = ISuperfluidGovernance(host.getGovernance())
+                .getConfigAsAddress(host, token, _REWARD_ADDRESS_CONFIG_KEY);
+            (, uint256 patricianPeriod) = _decode3PsData(token);
+            // if the flowRate is 0, it is always the patricianPeriod
+            int256 timeInDeficit = senderAccountState.flowRate == 0
+                ? patricianPeriod.toInt256()
+                : availableBalance.div(senderAccountState.flowRate);
+            // TODO: confirm that this division above is okay, does it make sense?
+
+            isPatricianPeriod = timeInDeficit.toUint256() <= patricianPeriod;
+        }
 
         // Liquidation rules:
         //    - let Available Balance = AB (is negative)
         //    -     Agreement Single Deposit = SD
         //    -     Agreement Total Deposit = TD
         //    -     Total Reward Left = RL = AB + TD
-        // #1 Can the total account deposit can still cover the available balance deficit?
+        // #1 Can the total account deposit still cover the available balance deficit?
         int256 totalRewardLeft = availableBalance.add(signedTotalDeposit);
+
+        // user is in a critical state
         if (totalRewardLeft >= 0) {
+            // the liquidator is always whoever triggers the liquidation, but the 
+            // account which receives the reward will depend on the period (PIC or Pleb)
             // #1.a.1 yes: then reward = (SD / TD) * RL
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
-                liquidator,
+                abi.encode("v1", isPatricianPeriod ? 0 : 1), // liquidationTypeData
+                liquidator, // the executor of the liquidation
+                isPatricianPeriod ? bondAccount : liquidator,
                 flowParams.sender,
                 rewardAmount.toUint256(),
                 rewardAmount.mul(-1)
@@ -770,6 +799,8 @@ contract ConstantFlowAgreementV1 is
             int256 rewardAmount = signedSingleDeposit;
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
+                abi.encode("v1", 2),
+                liquidator,
                 liquidator,
                 flowParams.sender,
                 rewardAmount.toUint256(),
@@ -864,4 +895,40 @@ contract ConstantFlowAgreementV1 is
         }
     }
 
+    /**************************************************************************
+     * 3P's Pure Functions
+     *************************************************************************/
+
+    //
+    // Data packing:
+    //
+    // WORD A: |    reserved    | patricianPeriod | liquidationPeriod |
+    //         |      192       |        32       |         32        |
+    //
+    // NOTE:
+    // - liquidation period has 32 bits length
+    // - patrician period also has 32 bits length
+    
+    function _encode3PsData(
+        uint64 liquidationPeriod,
+        uint64 patricianPeriod
+    ) 
+        internal pure
+        returns(uint256 encoded3PsConfig)
+    {
+        encoded3PsConfig = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
+    }
+
+    function _decode3PsData(
+        ISuperfluidToken token
+    ) 
+        internal view 
+        returns(uint256 liquidationPeriod, uint256 patricianPeriod) 
+    {
+        ISuperfluid host = ISuperfluid(token.getHost());
+        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
+        uint256 configData = gov.getConfigAsUint256(host, token, _3PS_CONFIG_KEY);
+        liquidationPeriod = (configData >> 32) & type(uint32).max;
+        patricianPeriod = configData & type(uint32).max;
+    }
 }

@@ -1,6 +1,6 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import {initializedSuperfluidContext} from '../../createSdkReduxParts';
+import {getSfContext} from '../../createSdkReduxParts';
 
 import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
 
@@ -23,7 +23,7 @@ export const registerNewTransaction = async (
      */
     dispatch: ThunkDispatch<any, any, any>
 ) => {
-    const framework = await initializedSuperfluidContext.getFramework(chainId);
+    const framework = await getSfContext().getFramework(chainId);
 
     dispatch(
         trackTransaction({

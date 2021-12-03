@@ -546,6 +546,29 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bailoutAmount: BigInt!
 }
 
+type AgreementLiquidatedByV2Event implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    token: Bytes!
+    liquidatorAccount: Bytes!
+    agreementClass: Bytes!
+    agreementId: Bytes!
+    penaltyAccount: Bytes!
+    bondAccount: Bytes!
+    rewardRecipientAccountDelta: BigInt!
+    penaltyAccountDelta: BigInt!
+    version: String!
+    liquidationType: Int!
+}
+
 type BurnedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!

@@ -6,6 +6,7 @@ import {
     Burned,
     Minted,
     Sent,
+    AgreementLiquidatedByV2,
 } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
@@ -15,6 +16,7 @@ import {
     TokenDowngradedEvent,
     TransferEvent,
     SentEvent,
+    AgreementLiquidatedByV2Event,
 } from "../../generated/schema";
 import { createEventID, tokenHasValidHost } from "../utils";
 import {
@@ -26,6 +28,32 @@ import {
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
+import { ethereum } from "@graphprotocol/graph-ts";
+
+function updateHOLEntitiesForLiquidation(
+    event: ethereum.Event,
+    liquidatorAccount: string,
+    penaltyAccount: string,
+    bondAccount: string
+): void {
+    getOrInitSuperToken(event.address, event.block);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        liquidatorAccount,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        penaltyAccount,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        bondAccount,
+        event.address.toHex(),
+        event.block
+    );
+}
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedBy
@@ -48,22 +76,40 @@ export function handleAgreementLiquidatedBy(
     );
     let bondAccount = getOrInitAccount(event.params.bondAccount, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(
+    updateHOLEntitiesForLiquidation(
+        event,
         liquidatorAccount.id,
-        event.address.toHex(),
-        event.block
-    );
-    updateATSStreamedAndBalanceUntilUpdatedAt(
         penaltyAccount.id,
-        event.address.toHex(),
+        bondAccount.id
+    );
+}
+
+export function handleAgreementLiquidatedByV2(
+    event: AgreementLiquidatedByV2
+): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    createAgreementLiquidatedByV2Entity(event);
+
+    let liquidatorAccount = getOrInitAccount(
+        event.params.liquidatorAccount,
         event.block
     );
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        bondAccount.id,
-        event.address.toHex(),
+    let penaltyAccount = getOrInitAccount(
+        event.params.penaltyAccount,
         event.block
+    );
+    let bondAccount = getOrInitAccount(event.params.bondAccount, event.block);
+
+    updateHOLEntitiesForLiquidation(
+        event,
+        liquidatorAccount.id,
+        penaltyAccount.id,
+        bondAccount.id
     );
 }
 
@@ -211,6 +257,35 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     ev.bondAccount = event.params.bondAccount;
     ev.rewardAmount = event.params.rewardAmount;
     ev.bailoutAmount = event.params.bailoutAmount;
+    ev.save();
+}
+
+function createAgreementLiquidatedByV2Entity(
+    event: AgreementLiquidatedByV2
+): void {
+    let ev = new AgreementLiquidatedByV2Event(
+        createEventID("AgreementLiquidatedByV2", event)
+    );
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.name = "AgreementLiquidatedByV2";
+    ev.addresses = [
+        event.address,
+        event.params.liquidatorAccount,
+        event.params.penaltyAccount,
+        event.params.bondAccount,
+    ];
+    ev.blockNumber = event.block.number;
+    ev.token = event.address;
+    ev.liquidatorAccount = event.params.liquidatorAccount;
+    ev.agreementClass = event.params.agreementClass;
+    ev.agreementId = event.params.id;
+    ev.penaltyAccount = event.params.penaltyAccount;
+    ev.bondAccount = event.params.bondAccount;
+    ev.rewardRecipientAccountDelta = event.params.rewardRecipientAccountDelta;
+    ev.penaltyAccountDelta = event.params.penaltyAccountDelta;
+    ev.version = event.params.version;
+    ev.liquidationType = event.params.liquidationType;
     ev.save();
 }
 

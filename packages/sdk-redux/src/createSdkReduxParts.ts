@@ -11,7 +11,8 @@ import {
     transactionSlice,
 } from './redux-slices/transactions/transactionSlice';
 
-export let initializedSuperfluidContext: SuperfluidContext = null!;
+export const getSfContext: () => SuperfluidContext = () =>
+    globalThis.superfluidContext;
 
 /**
  * First initialization point of SDK-Redux.
@@ -34,18 +35,14 @@ export const createSdkReduxParts = (
      */
     transactionSlice: SuperfluidTransactionReduxSlice;
 } => {
-    if (initializedSuperfluidContext) {
-        throw Error("You shouldn't create the slice multiple times.");
-    }
-
     if (superfluidContext) {
-        initializedSuperfluidContext = superfluidContext;
+        globalThis.superfluidContext = superfluidContext;
     } else {
-        initializedSuperfluidContext = preinitializedSuperfluidContext;
+        globalThis.superfluidContext = preinitializedSuperfluidContext;
     }
 
     return {
-        superfluidContext: initializedSuperfluidContext,
+        superfluidContext: getSfContext(),
         apiSlice: rtkQuerySlice,
         transactionSlice: transactionSlice,
     };

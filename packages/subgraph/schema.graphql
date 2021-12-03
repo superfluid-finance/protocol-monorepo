@@ -520,8 +520,8 @@ type ThreePsConfigurationChangedEvent implements Event @entity {
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
-    liquidationPeriod: Int!
-    patricianPeriod: Int!
+    liquidationPeriod: BigInt!
+    patricianPeriod: BigInt!
 }
 
 type TrustedForwarderChangedEvent implements Event @entity {

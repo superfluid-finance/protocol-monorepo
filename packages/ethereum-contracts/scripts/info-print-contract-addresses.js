@@ -94,7 +94,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         })
     );
     if (sf.config.nativeTokenSymbol) {
-        output += `SUPER_TOKEN_${sf.config.nativeTokenSymbol.toUpperCase()}X=${
+        output += `SUPER_TOKEN_NATIVE_COIN=${
             sf.tokens[sf.config.nativeTokenSymbol + "x"].address
         }\n`;
     }

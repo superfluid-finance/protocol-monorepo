@@ -70,7 +70,7 @@ if [ ! -z "${IS_TESTNET}" ];then
     npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FTUSDX}
 
     echo ETHx
-    npx truffle --network $TRUFFLE_NETWORK run verify SETHProxy@${SUPER_TOKEN_ETHX}
+    npx truffle --network $TRUFFLE_NETWORK run verify SETHProxy@${SUPER_TOKEN_NATIVE_COIN}
 fi
 
 set +x

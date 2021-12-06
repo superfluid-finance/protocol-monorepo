@@ -10,7 +10,7 @@ import { IResolver } from "../interfaces/ux/IResolver.sol";
  *
  * NOTE:
  * Relevant events for indexing:
- * - OZ Acces Control events RoleGranted/RoleRevoked: admin add/remove
+ * - OZ Access Control events RoleGranted/RoleRevoked: admin add/remove
  * - IResolver event `Set`: resolver key updates
  */
 contract Resolver is IResolver, AccessControl {

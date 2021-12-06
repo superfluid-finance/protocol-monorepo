@@ -90,7 +90,7 @@ async function deployContractIfCodeChanged(
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
 
-module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
+module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     args,
     options = {}
 ) {

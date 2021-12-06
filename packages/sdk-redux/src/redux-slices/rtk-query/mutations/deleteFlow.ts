@@ -1,4 +1,4 @@
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {getSfContext} from '../../../createSdkReduxParts';
 import {typeGuard} from '../../../utils';
 import {SuperTokenMutationArg, TransactionInfo} from '../../argTypes';
 import {registerNewTransaction} from '../../transactions/registerNewTransaction';
@@ -23,9 +23,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
         deleteFlow: builder.mutation<TransactionInfo, DeleteFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedSuperfluidContext.getFrameworkAndSigner(
-                        arg.chainId
-                    );
+                    await getSfContext().getFrameworkAndSigner(arg.chainId);
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );

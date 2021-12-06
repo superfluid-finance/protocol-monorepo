@@ -469,15 +469,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
             data.version,
             data.liquidationType
         );
-
-        // if penaltyAccountDelta is +ve this means that the account is 
-        // insolvent and the bondAcount will bail out the penaltyAccount
-        if (penaltyAccountDelta > 0) {
-            emit Bailout(
-                bondAccount, 
-                penaltyAccountDelta.toUint256()
-            );
-        }
     }
 
     /**************************************************************************

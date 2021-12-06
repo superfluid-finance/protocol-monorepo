@@ -259,12 +259,13 @@ module.exports = class TestEnvironment {
                 this.configs.LIQUIDATION_PERIOD
             ),
             await web3tx(
-                this.contracts.governance.set3PSData(
-                    this.sf.host.address,
-                    this.constants.ZERO_ADDRESS,
-                    this.configs.LIQUIDATION_PERIOD,
-                    this.configs.PATRICIAN_PERIOD
-                )
+                this.contracts.governance.set3PSData,
+                "reset 3Ps data"
+            )(
+                this.sf.host.address,
+                this.constants.ZERO_ADDRESS,
+                this.configs.LIQUIDATION_PERIOD,
+                this.configs.PATRICIAN_PERIOD
             ),
             await web3tx(
                 this.contracts.governance.setRewardAddress,

@@ -607,6 +607,7 @@ async function _shouldChangeFlow({
         if (rewardAddress === testenv.constants.ZERO_ADDRESS) {
             rewardAddress = agentAddress;
         }
+        // agent is the liquidator (executor of deleteFlow)
         addRole("agent", by);
         addRole("reward", testenv.toAlias(rewardAddress));
     }
@@ -775,15 +776,6 @@ async function _shouldChangeFlow({
                 )
             );
             if (isSenderSolvent) {
-                const expectedRewardAmount = toBN(
-                    getBalances1("sender").availableBalance /* is negative */
-                )
-                    .add(toBN(flows.main.flowInfo1.deposit))
-                    .sub(adjustedRewardAmount);
-                testenv.printSingleBalance(
-                    "expected reward amount (to reward account)",
-                    expectedRewardAmount
-                );
 
                 // the reward recipient role depends on whether the time is still
                 // in the patrician period, if it is, the reward recipient is the
@@ -793,6 +785,16 @@ async function _shouldChangeFlow({
                     time > testenv.configs.PATRICIAN_PERIOD
                         ? "agent"
                         : "reward";
+
+                const expectedRewardAmount = toBN(
+                    getBalances1("sender").availableBalance /* is negative */
+                )
+                    .add(toBN(flows.main.flowInfo1.deposit))
+                    .sub(adjustedRewardAmount);
+                testenv.printSingleBalance(
+                    `expected reward amount (to ${rewardRecipientRole} account)`,
+                    expectedRewardAmount
+                );
 
                 updateAccountExpectedBalanceDelta(
                     rewardRecipientRole,
@@ -858,15 +860,6 @@ async function _shouldChangeFlow({
                     getAccountExpectedBalanceDelta("sender").add(
                         expectedBailoutAmount
                     )
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    testenv.sf.contracts.ISuperToken,
-                    "Bailout",
-                    {
-                        bailoutAccount: roles.reward,
-                        bailoutAmount: expectedBailoutAmount.toString(),
-                    }
                 );
                 await expectEvent.inTransaction(
                     tx.tx,

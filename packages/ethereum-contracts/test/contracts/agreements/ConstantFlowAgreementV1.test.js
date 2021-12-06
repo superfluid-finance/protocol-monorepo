@@ -113,98 +113,108 @@ describe("Using ConstantFlowAgreement v1", function () {
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
     }
 
-    function shouldTestLiquidationByAgent({
+    function shouldTestSolventLiquidation({
         titlePrefix,
         sender,
         receiver,
         by,
+        seconds,
     }) {
-        it(`${titlePrefix}.a should be liquidated by agent when critical but solvent`, async () => {
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-            // drain the balance until critical (60sec extra)
-            await timeTravelOnceAndVerifyAll({
-                time:
-                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
-                    LIQUIDATION_PERIOD +
-                    60,
-                allowCriticalAccount: true,
-            });
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-
-            const balanceData = await superToken.realtimeBalanceOfNow(
-                t.aliases[sender]
-            );
-            const timeInDeficit = balanceData.availableBalance
-                .div(toBN(0).sub(FLOW_RATE1))
-                .toNumber();
-
-            await shouldDeleteFlow({
-                testenv: t,
-                superToken,
-                sender,
-                receiver,
-                by,
-                time: timeInDeficit,
-            });
-
-            await verifyAll();
+        it(`${titlePrefix}.a should be liquidated when critical but solvent`, async () => {
+            await _testSolventLiquidation({ sender, receiver, by, seconds });
         });
     }
 
-    function shouldTestSelfLiquidation({
+    function shouldTestBailout({
         titlePrefix,
         sender,
         receiver,
         by,
         allowCriticalAccount,
+        seconds,
     }) {
-        it(`${titlePrefix}.b can self liquidate when insolvent`, async () => {
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-            // drain the balance until insolvent (60sec extra)
-            await timeTravelOnceAndVerifyAll({
-                time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60,
-                allowCriticalAccount: true,
-            });
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isFalse(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-
-            const balanceData = await superToken.realtimeBalanceOfNow(
-                t.aliases[sender]
-            );
-            const timeInDeficit = balanceData.availableBalance
-                .div(toBN(0).sub(FLOW_RATE1))
-                .toNumber();
-
-            await shouldDeleteFlow({
-                testenv: t,
-                superToken,
+        it(`${titlePrefix}.b can liquidate and bail out when insolvent`, async () => {
+            await _testBailout({
                 sender,
                 receiver,
                 by,
-                time: timeInDeficit,
+                allowCriticalAccount,
+                seconds,
             });
-
-            await verifyAll({ allowCriticalAccount });
         });
+    }
+
+    async function _testSolventLiquidation({ sender, receiver, by, seconds }) {
+        assert.isFalse(
+            await superToken.isAccountCriticalNow(t.aliases[sender])
+        );
+        assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+        // drain the balance until critical (60sec extra)
+        await timeTravelOnceAndVerifyAll({
+            time:
+                t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                LIQUIDATION_PERIOD +
+                seconds,
+            allowCriticalAccount: true,
+        });
+        assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
+        assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+
+        const balanceData = await superToken.realtimeBalanceOfNow(
+            t.aliases[sender]
+        );
+        const timeInDeficit = balanceData.availableBalance
+            .div(toBN(0).sub(FLOW_RATE1))
+            .toNumber();
+
+        await shouldDeleteFlow({
+            testenv: t,
+            superToken,
+            sender,
+            receiver,
+            by,
+            time: timeInDeficit,
+        });
+
+        await verifyAll();
+    }
+
+    async function _testBailout({
+        sender,
+        receiver,
+        by,
+        allowCriticalAccount,
+        seconds,
+    }) {
+        assert.isFalse(
+            await superToken.isAccountCriticalNow(t.aliases[sender])
+        );
+        assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+        // drain the balance until insolvent
+        await timeTravelOnceAndVerifyAll({
+            time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + seconds,
+            allowCriticalAccount: true,
+        });
+        assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
+        assert.isFalse(await superToken.isAccountSolventNow(t.aliases[sender]));
+
+        const balanceData = await superToken.realtimeBalanceOfNow(
+            t.aliases[sender]
+        );
+        const timeInDeficit = balanceData.availableBalance
+            .div(toBN(0).sub(FLOW_RATE1))
+            .toNumber();
+
+        await shouldDeleteFlow({
+            testenv: t,
+            superToken,
+            sender,
+            receiver,
+            by,
+            time: timeInDeficit,
+        });
+
+        await verifyAll({ allowCriticalAccount });
     }
 
     context("#1 without callbacks", () => {
@@ -561,19 +571,21 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to admin"
                     )(superfluid.address, ZERO_ADDRESS, admin);
                 });
-                shouldTestLiquidationByAgent({
+                shouldTestSolventLiquidation({
                     titlePrefix: "#1.3.6",
                     superToken,
                     sender,
                     receiver,
                     by: sender,
+                    seconds: 60
                 });
-                shouldTestSelfLiquidation({
+                shouldTestBailout({
                     titlePrefix: "#1.3.6",
                     superToken,
                     sender,
                     receiver,
                     by: sender,
+                    seconds: 60
                 });
             });
 
@@ -584,14 +596,15 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to zero"
                     )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
-                shouldTestLiquidationByAgent({
+                shouldTestSolventLiquidation({
                     titlePrefix: "#1.3.7",
                     superToken,
                     sender,
                     receiver,
                     by: sender,
+                    seconds: 60
                 });
-                shouldTestSelfLiquidation({
+                shouldTestBailout({
                     titlePrefix: "#1.3.7",
                     superToken,
                     sender,
@@ -599,6 +612,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: sender,
                     // no one will bail you out, alice :(
                     allowCriticalAccount: true,
+                    seconds: 60
                 });
             });
         });
@@ -660,19 +674,21 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to admin"
                     )(superfluid.address, ZERO_ADDRESS, admin);
                 });
-                shouldTestLiquidationByAgent({
+                shouldTestSolventLiquidation({
                     titlePrefix: "#1.4.4",
                     superToken,
                     sender,
                     receiver,
                     by: agent,
+                    seconds: 60
                 });
-                shouldTestSelfLiquidation({
+                shouldTestBailout({
                     titlePrefix: "#1.4.4",
                     superToken,
                     sender,
                     receiver,
                     by: agent,
+                    seconds: 60
                 });
             });
 
@@ -683,14 +699,15 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to zero"
                     )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
-                shouldTestLiquidationByAgent({
+                shouldTestSolventLiquidation({
                     titlePrefix: "#1.4.5",
                     superToken,
                     sender,
                     receiver,
                     by: agent,
+                    seconds: 60
                 });
-                shouldTestSelfLiquidation({
+                shouldTestBailout({
                     titlePrefix: "#1.4.5",
                     superToken,
                     sender,
@@ -698,8 +715,182 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: agent,
                     // thanks for bailing every one out, dan :)
                     allowCriticalAccount: true,
+                    seconds: 60
                 });
             });
+
+            context("#1.4.6 test agent liquidation out of patrician period", () => {
+                this.beforeEach(async () => {
+                    await web3tx(
+                        governance.setRewardAddress,
+                        "set reward address to admin"
+                    )(superfluid.address, ZERO_ADDRESS, admin);
+                });
+                shouldTestSolventLiquidation({
+                    titlePrefix: "#1.4.6",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+                shouldTestBailout({
+                    titlePrefix: "#1.4.6",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    // thanks for bailing every one out, dan :)
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+            });
+
+            context("#1.4.7 test sender reward account liquidation out of patrician period", () => {
+                this.beforeEach(async () => {
+                    await web3tx(
+                        governance.setRewardAddress,
+                        "set reward address to sender"
+                    )(superfluid.address, ZERO_ADDRESS, t.aliases[sender]);
+                });
+                shouldTestSolventLiquidation({
+                    titlePrefix: "#1.4.7",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: sender,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+                shouldTestBailout({
+                    titlePrefix: "#1.4.7",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: sender,
+                    // thanks for bailing every one out, alice :)
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+            });
+
+            context("#1.4.8 test reward account liquidation out of patrician period", () => {
+                this.beforeEach(async () => {
+                    await web3tx(
+                        governance.setRewardAddress,
+                        "set reward address to agent"
+                    )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
+                });
+                shouldTestSolventLiquidation({
+                    titlePrefix: "#1.4.8",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+                shouldTestBailout({
+                    titlePrefix: "#1.4.8",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    // thanks for bailing every one out, dan :)
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+            });
+
+            context("#1.4.9 with zero reward address out of patrician period", () => {
+                beforeEach(async () => {
+                    await web3tx(
+                        governance.setRewardAddress,
+                        "set reward address to zero"
+                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                });
+                shouldTestSolventLiquidation({
+                    titlePrefix: "#1.4.9",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+                shouldTestBailout({
+                    titlePrefix: "#1.4.9",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    // thanks for bailing every one out, dan :)
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+            });
+
+            context("#1.4.10 with receiver as liquidator out of patrician period", () => {
+                this.beforeEach(async () => {
+                    await web3tx(
+                        governance.setRewardAddress,
+                        "set reward address to agent"
+                    )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
+                });
+                shouldTestSolventLiquidation({
+                    titlePrefix: "#1.4.10",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: receiver,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+                shouldTestBailout({
+                    titlePrefix: "#1.4.10",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: receiver,
+                    // thanks for bailing every one out, dan :)
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1
+                });
+            });
+        });
+
+        describe("#1.5 multiple flow liquidations", () => {
+            beforeEach(async () => {
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver: agent,
+                    flowRate: FLOW_RATE1,
+                });
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender: agent,
+                    receiver: sender,
+                    flowRate: FLOW_RATE1,
+                });
+            });
+
+            it("#1.5.1 should be able to liquidate multiple streams when critical", async () => {
+                await _testSolventLiquidation({ sender, receiver, by: agent, seconds: 60 });
+                await _testSolventLiquidation({ sender, receiver: agent, by: sender, seconds: 60 });
+            });
+            // it should be able to liquidate multiple streams when insolvent
+            // it should be able to liquidate an insolvent stream and then a critical stream
+            // it should be able to liquidate a critical stream and then an insolvent one
         });
 
         describe("#1.7 real-time balance", () => {

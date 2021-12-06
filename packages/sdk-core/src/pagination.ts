@@ -71,14 +71,20 @@ function isSkipPaging(paging: Paging): paging is SkipPaging {
     return paging.skip !== undefined;
 }
 
-export const createSkipPaging = ({ skip = 0, take = 100 } = {}): SkipPaging => ({
+export const createSkipPaging = ({
+    skip = 0,
+    take = 100,
+} = {}): SkipPaging => ({
     skip: skip,
-    take: take
+    take: take,
 });
 
-export const createLastIdPaging = ({ lastId = "", take = 100 } = {}): LastIdPaging => ({
+export const createLastIdPaging = ({
+    lastId = "",
+    take = 100,
+} = {}): LastIdPaging => ({
     take: take,
-    lastId: lastId
+    lastId: lastId,
 });
 
 /**

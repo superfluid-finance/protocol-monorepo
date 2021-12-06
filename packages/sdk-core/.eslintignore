@@ -1,2 +1,5 @@
 dist
 build
+coverage
+cache
+typechain

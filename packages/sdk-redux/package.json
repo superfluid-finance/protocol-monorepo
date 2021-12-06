@@ -21,15 +21,10 @@
         "lint:prettier": "prettier \"src/**/*.ts\" --write",
         "lint:eslint": "eslint src --ext .ts --fix",
         "test": "echo 'TODO: Tests'",
-        "test:lint": "eslint src --ext .ts",
-        "test:prettier": "prettier \"src/**/*.ts\" --list-different",
         "watch:build": "tsc -p tsconfig.json -w",
-        "doc": "run-s doc:html && open-cli build/docs/index.html",
+        "doc": "run-s doc:html",
         "doc:html": "typedoc src/ --out build/docs",
-        "doc:json": "typedoc src/ --json build/docs/typedoc.json",
-        "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
-        "reset-hard": "git clean -dfx && git reset --hard && yarn",
-        "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish"
+        "doc:json": "typedoc src/ --json build/docs/typedoc.json"
     },
     "engines": {
         "node": ">=10"
@@ -38,28 +33,24 @@
         "@superfluid-finance/sdk-core": "^0.1.0",
         "@reduxjs/toolkit": "^1.6.1",
         "ethers": "^5.4.5",
-        "graphql-request": "^3.5.0",
         "lodash": "^4.17.21"
     },
     "devDependencies": {
-        "@istanbuljs/nyc-config-typescript": "^1.0.1",
-        "@typescript-eslint/eslint-plugin": "^4.0.1",
-        "@typescript-eslint/parser": "^4.0.1",
-        "codecov": "^3.5.0",
-        "cspell": "^4.1.0",
-        "cz-conventional-changelog": "^3.3.0",
-        "eslint": "^7.8.0",
-        "eslint-config-prettier": "^6.11.0",
+        "@typescript-eslint/eslint-plugin": "^5.6.0",
+        "@typescript-eslint/parser": "^5.6.0",
+        "eslint": "^8.4.0",
+        "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-eslint-comments": "^3.2.0",
-        "eslint-plugin-import": "^2.22.0",
-        "gh-pages": "^3.1.0",
+        "eslint-plugin-import": "^2.25.3",
         "npm-run-all": "^4.1.5",
-        "nyc": "^15.1.0",
-        "open-cli": "^6.0.1",
-        "prettier": "^2.1.1",
-        "ts-node": "^9.0.0",
+        "prettier": "^2.5.1",
+        "ts-node": "^10.4.0",
         "typedoc": "^0.22.10",
-        "typescript": "^4.3.5"
+        "typescript": "^4.5.2"
+    },
+    "peerDependencies": {
+        "react": "^16.14.0 || ^17.0.0",
+        "react-redux": "^7.2.1"
     },
     "files": [
         "build/main",

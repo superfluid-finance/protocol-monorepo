@@ -1,6 +1,7 @@
 import { JsonFragment } from "@ethersproject/abi";
 import { ethers } from "ethers";
-import { IIndexSubscription } from "./interfaces";
+
+import SFError from "./SFError";
 import {
     DAYS_PER_MONTH,
     HOURS_PER_DAY,
@@ -8,7 +9,7 @@ import {
     MONTHS_PER_YEAR,
     SECONDS_PER_MINUTE,
 } from "./constants";
-import SFError from "./SFError";
+import { IIndexSubscription } from "./interfaces";
 
 const EMPTY = "0x";
 
@@ -154,7 +155,7 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
     indexSubscriptions: IIndexSubscription[]
 ) => {
     return indexSubscriptions
-        .filter(x => x.approved)
+        .filter((x) => x.approved)
         .reduce(
             (x, y) =>
                 x +

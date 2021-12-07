@@ -1,4 +1,8 @@
 import { ethers } from "ethers";
+
+import Host from "./Host";
+import Operation from "./Operation";
+import SFError from "./SFError";
 import { abi as IInstantDistributionAgreementV1ABI } from "./abi/IInstantDistributionAgreementV1.json";
 import {
     IAgreementV1Options,
@@ -12,11 +16,8 @@ import {
     IWeb3Index,
     IWeb3Subscription,
 } from "./interfaces";
-import { normalizeAddress } from "./utils";
-import Operation from "./Operation";
-import Host from "./Host";
 import { IInstantDistributionAgreementV1 } from "./typechain";
-import SFError from "./SFError";
+import { normalizeAddress } from "./utils";
 
 const idaInterface = new ethers.utils.Interface(
     IInstantDistributionAgreementV1ABI
@@ -77,7 +78,8 @@ export default class InstantDistributionAgreementV1 {
                 exist: subscription.exist,
                 approved: subscription.approved,
                 units: subscription.units.toString(),
-                pendingDistribution: subscription.pendingDistribution.toString(),
+                pendingDistribution:
+                    subscription.pendingDistribution.toString(),
             };
         } catch (err) {
             throw new SFError({

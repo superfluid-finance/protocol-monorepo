@@ -1,5 +1,6 @@
 import { DocumentNode } from "graphql";
-import { request, batchRequests } from "graphql-request";
+import { batchRequests, request } from "graphql-request";
+
 import SFError from "../SFError";
 
 type RequestDocument = string | DocumentNode;
@@ -43,7 +44,7 @@ export class SubgraphClient {
         } catch (err) {
             throw new SFError({
                 type: "SUBGRAPH_ERROR",
-                customMessage: `Failed call to subgraph with query...`, // TODO(KK): Better error message
+                customMessage: "Failed call to subgraph with query...", // TODO(KK): Better error message
                 errorObject: err,
             });
         }

@@ -48,8 +48,7 @@ export interface ISuperTokenCreateFlowParams
     readonly flowRate: string;
     readonly sender: string;
 }
-export interface ISuperTokenUpdateFlowParams
-    extends ISuperTokenCreateFlowParams {}
+export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
 export interface ISuperTokenDeleteFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly sender: string;
@@ -112,7 +111,7 @@ export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
 }
 
-export interface IUpdateFlowParams extends ICreateFlowParams {}
+export type IUpdateFlowParams = ICreateFlowParams;
 export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
 }
@@ -270,7 +269,7 @@ export interface IStream extends IHOLUpdateable {
     readonly receiver: string;
     readonly flowUpdatedEvents: IStreamFlowUpdatedEvent[];
 }
-export interface IStreamFlowUpdatedEvent extends IFlowUpdatedEvent {}
+export type IStreamFlowUpdatedEvent = IFlowUpdatedEvent;
 
 export interface ISuperToken extends IHOLEntityBase {
     readonly name: string;

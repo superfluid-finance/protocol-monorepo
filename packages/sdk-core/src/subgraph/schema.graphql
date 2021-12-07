@@ -211,7 +211,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event {
     blockNumber: BigInt!
     host: Bytes!
     id: ID!
-    isSet: Boolean!
+    isKeySet: Boolean!
     liquidationPeriod: BigInt!
     name: String!
     superToken: Bytes!
@@ -228,7 +228,7 @@ type ConfigChangedEvent implements Event {
     blockNumber: BigInt!
     host: Bytes!
     id: ID!
-    isSet: Boolean!
+    isKeySet: Boolean!
     key: Bytes!
     name: String!
     superToken: Bytes!
@@ -1437,7 +1437,7 @@ type RewardAddressChangedEvent implements Event {
     blockNumber: BigInt!
     host: Bytes!
     id: ID!
-    isSet: Boolean!
+    isKeySet: Boolean!
     name: String!
     rewardAddress: Bytes!
     superToken: Bytes!
@@ -1510,11 +1510,6 @@ type SFMeta {
     The id is the commit hash.
     """
     id: ID!
-    """
-
-    The release tag if it exists.
-    """
-    tag: String
     timestamp: BigInt!
 }
 
@@ -1527,6 +1522,7 @@ type SentEvent implements Event {
     amount: BigInt!
     blockNumber: BigInt!
     data: Bytes!
+    from: Bytes!
     id: ID!
     name: String!
     operator: Bytes!
@@ -2739,7 +2735,7 @@ type TrustedForwarderChangedEvent implements Event {
     forwarder: Bytes!
     host: Bytes!
     id: ID!
-    isSet: Boolean!
+    isKeySet: Boolean!
     name: String!
     superToken: Bytes!
     timestamp: BigInt!
@@ -2873,7 +2869,7 @@ enum CFAv1LiquidationPeriodChangedEvent_orderBy {
     blockNumber
     host
     id
-    isSet
+    isKeySet
     liquidationPeriod
     name
     superToken
@@ -2886,7 +2882,7 @@ enum ConfigChangedEvent_orderBy {
     blockNumber
     host
     id
-    isSet
+    isKeySet
     key
     name
     superToken
@@ -3116,7 +3112,7 @@ enum RewardAddressChangedEvent_orderBy {
     blockNumber
     host
     id
-    isSet
+    isKeySet
     name
     rewardAddress
     superToken
@@ -3165,7 +3161,6 @@ enum SFMeta_orderBy {
     branch
     configuration
     id
-    tag
     timestamp
 }
 
@@ -3174,6 +3169,7 @@ enum SentEvent_orderBy {
     amount
     blockNumber
     data
+    from
     id
     name
     operator
@@ -3398,7 +3394,7 @@ enum TrustedForwarderChangedEvent_orderBy {
     forwarder
     host
     id
-    isSet
+    isKeySet
     name
     superToken
     timestamp
@@ -3996,10 +3992,10 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
-    isSet: Boolean
-    isSet_in: [Boolean!]
-    isSet_not: Boolean
-    isSet_not_in: [Boolean!]
+    isKeySet: Boolean
+    isKeySet_in: [Boolean!]
+    isKeySet_not: Boolean
+    isKeySet_not_in: [Boolean!]
     liquidationPeriod: BigInt
     liquidationPeriod_gt: BigInt
     liquidationPeriod_gte: BigInt
@@ -4071,10 +4067,10 @@ input ConfigChangedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
-    isSet: Boolean
-    isSet_in: [Boolean!]
-    isSet_not: Boolean
-    isSet_not_in: [Boolean!]
+    isKeySet: Boolean
+    isKeySet_in: [Boolean!]
+    isKeySet_not: Boolean
+    isKeySet_not_in: [Boolean!]
     key: Bytes
     key_contains: Bytes
     key_in: [Bytes!]
@@ -5468,10 +5464,10 @@ input RewardAddressChangedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
-    isSet: Boolean
-    isSet_in: [Boolean!]
-    isSet_not: Boolean
-    isSet_not_in: [Boolean!]
+    isKeySet: Boolean
+    isKeySet_in: [Boolean!]
+    isKeySet_not: Boolean
+    isKeySet_not_in: [Boolean!]
     name: String
     name_contains: String
     name_ends_with: String
@@ -5766,20 +5762,6 @@ input SFMeta_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
-    tag: String
-    tag_contains: String
-    tag_ends_with: String
-    tag_gt: String
-    tag_gte: String
-    tag_in: [String!]
-    tag_lt: String
-    tag_lte: String
-    tag_not: String
-    tag_not_contains: String
-    tag_not_ends_with: String
-    tag_not_in: [String!]
-    tag_not_starts_with: String
-    tag_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5817,6 +5799,12 @@ input SentEvent_filter {
     data_not: Bytes
     data_not_contains: Bytes
     data_not_in: [Bytes!]
+    from: Bytes
+    from_contains: Bytes
+    from_in: [Bytes!]
+    from_not: Bytes
+    from_not_contains: Bytes
+    from_not_in: [Bytes!]
     id: ID
     id_gt: ID
     id_gte: ID
@@ -7292,10 +7280,10 @@ input TrustedForwarderChangedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
-    isSet: Boolean
-    isSet_in: [Boolean!]
-    isSet_not: Boolean
-    isSet_not_in: [Boolean!]
+    isKeySet: Boolean
+    isKeySet_in: [Boolean!]
+    isKeySet_not: Boolean
+    isKeySet_not_in: [Boolean!]
     name: String
     name_contains: String
     name_ends_with: String

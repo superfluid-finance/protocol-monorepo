@@ -211,26 +211,26 @@ query getAllEvents($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 1
             superToken
             host
             liquidationPeriod
-            isSet
+            isKeySet
         }
         ... on ConfigChangedEvent {
             ...eventFields
             value
             superToken
             key
-            isSet
+            isKeySet
             host
         }
         ... on RewardAddressChangedEvent {
             ...eventFields
             superToken
             rewardAddress
-            isSet
+            isKeySet
             host
         }
         ... on TrustedForwarderChangedEvent {
             ...eventFields
-            isSet
+            isKeySet
             host
             forwarder
             enabled

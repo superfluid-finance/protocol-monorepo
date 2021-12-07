@@ -127,7 +127,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             nativeTokenSymbol: "ETH",
         },
         69: {
-            // op kovan
+            // op kovan testnet
             nativeTokenSymbol: "ETH",
             resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
         },
@@ -140,7 +140,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             nativeTokenSymbol: "ETH",
         },
         421611: {
-            // arbitrum testnet
+            // arbitrum rinkeby testnet
             nativeTokenSymbol: "ETH",
             resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
         },

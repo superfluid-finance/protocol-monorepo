@@ -786,18 +786,19 @@ const sf = await Framework.create({
   provider
 });
  
- // 0xabc is the signer
+ // 0xabc is the signer on Rinkeby testnet
 const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
-const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
-const approveOp = usdcx.approve({ receiver: "0xdef", amount: "10000" });
-const transferFromOp = usdcx.transferFrom({
-    sender: "0xabc",
-    receiver: "0xdef",
-    amount: "10000",
+const daix = await sf.loadSuperToken("0x745861AeD1EEe363b4AaA5F1994Be40b1e05Ff90");
+const fromAddress = "0xabc";
+const paymentAddress = "0xdef";
+const approveOp = daix.approve({ receiver: paymentAddress, amount: "10000" });
+const transferFromOp = daix.transferFrom({
+  sender: fromAddress,
+  receiver: paymentAddress,
+  amount: "10000",
 });
-const batchCall = framework.batchCall([approveOp, transferFromOp]);
-const txn = await batchCall.execute(signer);
-
+const batchCall = sf.batchCall([approveOp, transferFromOp]);
+const txn = await batchCall.exec(signer);
 
 // creating an operation from a super app function
 // initialize your super app contract

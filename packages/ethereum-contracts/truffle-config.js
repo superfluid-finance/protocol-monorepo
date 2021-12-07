@@ -240,7 +240,7 @@ const E = (module.exports = {
         "avalanche-fuji": {
             ...createNetworkDefaultConfiguration(
                 "avalanche-fuji",
-                43114 /* chainId */
+                43113 /* chainId */
             ),
             network_id: 1,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)

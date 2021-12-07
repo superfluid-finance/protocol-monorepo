@@ -129,7 +129,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         69: {
             // op kovan
             nativeTokenSymbol: "ETH",
-            resolverAddress: "0xE5ed6b5bFcDBcae6BA32082adaB05A6F21e7B923",
+            resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
         },
 
         //
@@ -142,7 +142,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         421611: {
             // arbitrum testnet
             nativeTokenSymbol: "ETH",
-            resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
+            resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
         },
 
         //
@@ -155,7 +155,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         43113: {
             // avalanche c-chain fuji testnet
             nativeTokenSymbol: "AVAX",
-            resolverAddress: "0xb76d7c14caD40Cc434655Ce0a9B5b49220C362cA",
+            resolverAddress: "0x141920741bC45b962B59c833cd849bA617F7ef38",
         },
 
         //

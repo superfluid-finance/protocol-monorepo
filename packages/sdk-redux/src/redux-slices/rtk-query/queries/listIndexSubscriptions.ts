@@ -4,7 +4,7 @@ import {
     PagedResult,
 } from '@superfluid-finance/sdk-core';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {getSfContext} from '../../../createSdkReduxParts';
 import {NothingBoolean, NothingString, PaginatedQueryArg} from '../../argTypes';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
 import {rtkQuerySlice} from '../rtkQuerySlice';
@@ -31,10 +31,9 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                 }),
             ],
             queryFn: async (arg) => {
-                const framework =
-                    await initializedSuperfluidContext.getFramework(
-                        arg.chainId
-                    );
+                const framework = await getSfContext().getFramework(
+                    arg.chainId
+                );
 
                 return {
                     data: await framework.query.listIndexSubscriptions(

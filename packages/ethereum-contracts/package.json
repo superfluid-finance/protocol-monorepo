@@ -63,7 +63,7 @@
         "solidity-coverage": "0.7.17",
         "truffle": "5.4.21",
         "truffle-flattener": "^1.5.0",
-        "truffle-plugin-verify": "^0.5.18",
+        "truffle-plugin-verify": "^0.5.19",
         "typechain": "^6.0.3"
     }
 }

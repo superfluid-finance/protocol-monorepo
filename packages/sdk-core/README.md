@@ -39,7 +39,7 @@ Here is a quick look at initializing the SDK in different environments:
 
 TypeScript / JavaScript (Module) vs. JavaScript (CommonJS) - usually a Node.js environment
 
-The primary difference between the two environments is the import/require of the sdk-core package, everything else is pretty much exactly the same.
+The primary difference between the two environments is the import/require of the sdk-core package, everything else is the same.
 
 TS/ESModule
 ```ts

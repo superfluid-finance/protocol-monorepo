@@ -210,6 +210,7 @@ const E = (module.exports = {
         "arbitrum-one": {
             ...createNetworkDefaultConfiguration("arbitrum-one"),
             network_id: 42161,
+            gas: 250e6, // arbgas is different and estimation fails for expensive txs
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -218,6 +219,7 @@ const E = (module.exports = {
         "arbitrum-rinkeby": {
             ...createNetworkDefaultConfiguration("arbitrum-rinkeby"),
             network_id: 421611,
+            gas: 250e6, // arbgas is different and estimation fails for expensive txs
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,

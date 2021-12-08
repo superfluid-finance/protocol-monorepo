@@ -32,14 +32,17 @@ async function takeEvmSnapshot() {
  * where TOKENS_TO_DEPLOY is an optional list of token symbols, e.g. TEST1,TEST2.
  * For each such token, an underlying ERC20 and a wrapping Super Token will be deployed.
  */
-module.exports = eval(`(${S.toString()})()`)(async function (args) {
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
     const errorHandler = (err) => {
         if (err) throw err;
     };
 
-    const networkType = await this.web3.eth.net.getNetworkType();
+    const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const chainId = await this.web3.eth.getChainId();
+    const chainId = await web3.eth.getChainId();
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
@@ -55,18 +58,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (args) {
     console.log("Tokens to be deployed", tokens);
 
     console.log("======== Deploying superfluid framework ========");
-    await deployFramework(errorHandler, {web3});
+    await deployFramework(errorHandler, options);
     console.log("==== Superfluid framework deployed  ========");
 
     for (let i = 0; i < tokens.length; ++i) {
         if (tokens[i] !== deploySuperToken) {
             console.log(`======== Deploying test token ${tokens[i]} ========`);
-            await deployTestToken(errorHandler, [":", tokens[i]], {web3});
+            await deployTestToken(errorHandler, [":", tokens[i]], options);
             console.log(`======== Test token ${tokens[i]} deployed ========`);
         }
 
         console.log(`======== Creating super token for ${tokens[i]} ========`);
-        await deploySuperToken(errorHandler, [":", tokens[i]], {web3});
+        await deploySuperToken(errorHandler, [":", tokens[i]], options);
         console.log(`======== Super token for ${tokens[i]} deployed ========`);
     }
 

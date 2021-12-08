@@ -108,9 +108,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         resetSuperfluidFramework || !!process.env.RESET_SUPERFLUID_FRAMEWORK;
     console.log("reset superfluid framework: ", resetSuperfluidFramework);
 
-    const networkType = await this.web3.eth.net.getNetworkType();
+    const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const chainId = await this.web3.eth.getChainId();
+    const chainId = await web3.eth.getChainId();
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
@@ -143,12 +143,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
     }
 
-    await deployERC1820(
-        (err) => {
-            if (err) throw err;
-        },
-        {web3, ...(options.from ? {from: options.from} : {})}
-    );
+    await deployERC1820((err) => {
+        if (err) throw err;
+    }, options);
 
     const contracts = [
         "Ownable",

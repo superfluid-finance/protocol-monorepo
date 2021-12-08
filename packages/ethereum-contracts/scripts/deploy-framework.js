@@ -1,6 +1,6 @@
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
 const {
@@ -147,7 +147,7 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
         (err) => {
             if (err) throw err;
         },
-        { web3, ...(options.from ? { from: options.from } : {}) }
+        {web3, ...(options.from ? {from: options.from} : {})}
     );
 
     const contracts = [

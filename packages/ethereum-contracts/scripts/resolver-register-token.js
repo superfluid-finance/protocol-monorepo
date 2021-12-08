@@ -1,4 +1,4 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const getConfig = require("./libs/getConfig");
@@ -24,7 +24,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Register test token ========");
-    let { resetToken } = options;
+    let {resetToken} = options;
 
     if (args.length !== 2) {
         throw new Error("Wrong number of arguments");
@@ -40,7 +40,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("reset token: ", resetToken);
     console.log("chain ID: ", chainId);
 
-    const { TestResolver } = await SuperfluidSDK.loadContracts({
+    const {TestResolver} = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: ["TestResolver"],
         contractLoader: builtTruffleContractLoader,

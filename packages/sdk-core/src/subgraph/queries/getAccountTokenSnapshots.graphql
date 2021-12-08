@@ -1,0 +1,35 @@
+query getAccountTokenSnapshots($where: AccountTokenSnapshot_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: AccountTokenSnapshot_orderBy! = id, $orderDirection: OrderDirection! = asc) {
+    result: accountTokenSnapshots(
+        where: $where
+        skip: $skip
+        first: $first
+        orderDirection: $orderDirection
+        orderBy: $orderBy
+    ) {
+        id
+        updatedAtTimestamp
+        updatedAtBlockNumber
+        totalNumberOfActiveStreams
+        totalNumberOfClosedStreams
+        totalSubscriptionsWithUnits
+        totalApprovedSubscriptions
+        balanceUntilUpdatedAt
+        totalNetFlowRate
+        totalInflowRate
+        totalOutflowRate
+        totalAmountStreamedUntilUpdatedAt
+        totalAmountTransferredUntilUpdatedAt
+        account {
+            id
+        }
+        token {
+            id
+            createdAtTimestamp
+            createdAtBlockNumber
+            name
+            symbol
+            isListed
+            underlyingAddress
+        }
+    }
+}

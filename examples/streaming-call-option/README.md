@@ -18,7 +18,7 @@ Disclaimer - this code is unaudited and should not be used by itself in producti
 6) Call exerciseOption() using the exerciseOption.js script. Run this script using the same account that created the flow into the contract. This function will settle the option if all parameters are met (option is in the money and block.timestamp <= expirationDate).
 
 
-**NOTE: All scripts use Rinkeby, and Rinkeby is pre set as the network in hardhat.config.**
+**NOTE: All scripts use Rinkeby. To use them, change the network to Rinkeby in hardhat.config.**
 
 If you'd like to change this, simply make adjustments to hardhat config & the scripts folder. 
 You will also need to change the addresses of each Superfluid contract & token contract you're interacting with. 

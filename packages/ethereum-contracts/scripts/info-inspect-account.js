@@ -1,6 +1,9 @@
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { getScriptRunnerFactory: S, extractWeb3Options} = require("./libs/common");
+const {
+    getScriptRunnerFactory: S,
+    extractWeb3Options,
+} = require("./libs/common");
 
 function normalizeFlowRate(fr) {
     return ((fr.toString() / 1e18) * 3600 * 24 * 30).toFixed(4) + " / mo";
@@ -16,7 +19,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     if (args.length < 1) {
         throw new Error("Not enough arguments");

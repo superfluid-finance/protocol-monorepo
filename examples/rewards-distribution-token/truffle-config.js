@@ -30,6 +30,12 @@ const GAS_LIMIT = 8e6;
 
 
 module.exports = {
+    plugins: [
+        //"truffle-security",
+        //"solidity-coverage",
+        "truffle-plugin-verify",
+    ],
+
   /**
    * Networks define how you connect to your ethereum client and let you set the
    * defaults web3 uses to send transactions. If you don't specify one truffle
@@ -118,4 +124,10 @@ module.exports = {
       // }
     },
   },
+
+  api_keys: {
+    etherscan: process.env.ETHERSCAN_API_KEY,
+    polygonscan: process.env.POLYGONSCAN_API_KEY,
+  },
+
 };

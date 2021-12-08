@@ -1,8 +1,8 @@
 const contractNames = require("./contracts.json");
 const abis = require("./abi");
 
-const getAdaptedContract = ({ address, abi, ethers }) => {
-    const { Contract } = require("@ethersproject/contracts");
+const getAdaptedContract = ({address, abi, ethers}) => {
+    const {Contract} = require("@ethersproject/contracts");
 
     let providerOrSigner = ethers;
     try {
@@ -51,7 +51,7 @@ function setTruffleContractDefaults(c, networkId, from) {
     c.autoGas = true;
     c.estimateGas = 1.25;
     networkId && c.setNetwork(networkId);
-    from && c.defaults({ from });
+    from && c.defaults({from});
 }
 
 const loadContracts = async ({
@@ -117,9 +117,15 @@ const loadContracts = async ({
             }
             await Promise.all(
                 allContractNames.map(async (name) => {
-                    const c = (contracts[name] = TruffleContract(
-                        await contractLoader(name)
-                    ));
+                    const _normalizedObject = await contractLoader(name);
+                    Object.assign(_normalizedObject, {
+                        networks: {
+                            [networkId]: {},
+                            // setting it for truffle contract detectNetwork method
+                        },
+                    });
+                    const c = (contracts[name] =
+                        TruffleContract(_normalizedObject));
                     c.setProvider(web3.currentProvider);
                     setTruffleContractDefaults(c, networkId, from);
                 })

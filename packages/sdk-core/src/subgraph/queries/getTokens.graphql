@@ -1,0 +1,17 @@
+query getTokens($where: Token_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: Token_orderBy! = id, $orderDirection: OrderDirection! = asc) {
+    result: tokens(
+        where: $where,
+        skip: $skip
+        first: $first,
+        orderBy: $orderBy,
+        orderDirection: $orderDirection
+    ) {
+        id
+        createdAtTimestamp
+        createdAtBlockNumber
+        name
+        symbol
+        isListed
+        underlyingAddress
+    }
+}

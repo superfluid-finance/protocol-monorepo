@@ -23,7 +23,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 ) {
     let output = "";
 
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
@@ -47,7 +47,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const { UUPSProxiable, ISuperTokenFactory } = sf.contracts;
+    const {UUPSProxiable, ISuperTokenFactory} = sf.contracts;
 
     output += `NETWORK_ID=${networkId}\n`;
     output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
@@ -94,7 +94,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         })
     );
     if (sf.config.nativeTokenSymbol) {
-        output += `SUPER_TOKEN_${sf.config.nativeTokenSymbol.toUpperCase()}X=${
+        output += `SUPER_TOKEN_NATIVE_COIN=${
             sf.tokens[sf.config.nativeTokenSymbol + "x"].address
         }\n`;
     }

@@ -1,9 +1,9 @@
 const loadContracts = require("./loadContracts");
 const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
-const { getErrorResponse } = require("./utils/error");
-const { isAddress, validateAddress } = require("./utils/general");
-const { batchCall } = require("./batchCall");
+const {getErrorResponse} = require("./utils/error");
+const {isAddress, validateAddress} = require("./utils/general");
+const {batchCall} = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
 const fetch = require("node-fetch");
@@ -216,13 +216,14 @@ module.exports = class Framework {
      *    - underlying token resolver key (tokens.{KEY}),
      *    - super token key (supertokens.{protocol_release_version}.{KEY})
      *    - super token address
+     * @param options.skipTokens skips .tokens object, to save some network calls
      *
      * As a result:
      * - sf.tokens[tokenKey] and sf.superTokens[tokenKey] is the loaded SuperToken Object.
      * - Additionally, superTokenObject.underlyingToken is the underlying token object.
      * - If tokenKey is a super token address, it is normalized to lower case.
      */
-    async loadToken(tokenKey) {
+    async loadToken(tokenKey, {skipTokens} = {}) {
         let underlyingToken;
         let superTokenKey;
         let superTokenContractType;
@@ -254,7 +255,7 @@ module.exports = class Framework {
                         await this.contracts.ERC20WithTokenInfo.at(
                             tokenAddress
                         );
-                    this.tokens[tokenKey] = underlyingToken;
+                    if (!skipTokens) this.tokens[tokenKey] = underlyingToken;
                     console.debug(
                         `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"]`,
                         tokenAddress
@@ -283,7 +284,7 @@ module.exports = class Framework {
 
         superToken = await superTokenContractType.at(superTokenAddress);
         superToken.superTokenCustomType = superTokenCustomType;
-        this.tokens[superTokenKey] = superToken;
+        if (!skipTokens) this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
         let underlyingTokenAddress = await superToken.getUnderlyingToken.call();
         if (doValidateUnderlyingToken) {
@@ -308,7 +309,7 @@ module.exports = class Framework {
                 underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
                     underlyingTokenAddress
                 );
-                if (!isLoadingByAddress) {
+                if (!isLoadingByAddress && !skipTokens) {
                     // do not pollute the tokens namespace if loading a potentially
                     // unlisted token
                     const symbol = await underlyingToken.symbol();
@@ -335,7 +336,7 @@ module.exports = class Framework {
      */
     async createERC20Wrapper(
         tokenInfo,
-        { superTokenSymbol, superTokenName, from, upgradability } = {}
+        {superTokenSymbol, superTokenName, from, upgradability} = {}
     ) {
         const tokenName = await tokenInfo.name.call();
         const tokenSymbol = await tokenInfo.symbol.call();
@@ -351,7 +352,7 @@ module.exports = class Framework {
             upgradability,
             superTokenName,
             superTokenSymbol,
-            ...((from && [{ from }]) || []) // don't mind this silly js stuff, thanks to web3.js
+            ...((from && [{from}]) || []) // don't mind this silly js stuff, thanks to web3.js
         );
         this._pushTxForGasReport(tx, "createERC20Wrapper");
         const wrapperAddress = tx.logs[0].args.token;
@@ -375,13 +376,13 @@ module.exports = class Framework {
      * NOTE:
      * - See User class for more details about the options
      */
-    user({ address, token, options }) {
+    user({address, token, options}) {
         try {
             if (!address) throw "Please provide an address";
             if (!token) throw "Please provide a token";
             validateAddress(address);
             // TODO: validate token
-            return new User({ sf: this, address, token, options });
+            return new User({sf: this, address, token, options});
         } catch (e) {
             throw getErrorResponse(e, "Framework", "user");
         }
@@ -407,8 +408,8 @@ module.exports = class Framework {
     async subgraphQuery(query) {
         const response = await fetch(this.config.subgraphQueryEndpoint, {
             method: "POST",
-            body: JSON.stringify({ query }),
-            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({query}),
+            headers: {"Content-Type": "application/json"},
         });
         if (response.ok) {
             const result = JSON.parse(await response.text());
@@ -429,7 +430,7 @@ module.exports = class Framework {
      * @param {object} filter Event filtering
      * @return {Promise<object[]>}
      */
-    async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
+    async getPastEvents(contract, eventName, filter = {}, {forceWeb3} = {}) {
         function lcfirst(str) {
             return str.replace(/[A-Z]+/, (i) => i.toLowerCase());
         }

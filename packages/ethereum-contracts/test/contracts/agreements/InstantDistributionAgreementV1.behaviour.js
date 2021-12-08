@@ -1,6 +1,6 @@
 const _ = require("lodash");
-const { expectEvent } = require("@openzeppelin/test-helpers");
-const { web3tx, toBN, wad4human } = require("@decentral.ee/web3-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {web3tx, toBN, wad4human} = require("@decentral.ee/web3-helpers");
 
 function _updateIndexData({
     testenv,
@@ -32,7 +32,7 @@ function _assertEqualIndexData(idataActual, idataExpected) {
     assert.deepEqual(idataActual, idataExpected);
 }
 
-function getIndexData({ testenv, superToken, publisher, indexId }) {
+function getIndexData({testenv, superToken, publisher, indexId}) {
     _.defaultsDeep(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -62,7 +62,7 @@ function getIndexData({ testenv, superToken, publisher, indexId }) {
     );
 }
 
-function getSubscribers({ testenv, superToken, publisher, indexId }) {
+function getSubscribers({testenv, superToken, publisher, indexId}) {
     return testenv.data.tokens[superToken.address].accounts[publisher].ida
         .indicies[indexId].subscribers;
 }
@@ -413,7 +413,7 @@ function _beforeSubscriptionUpdate({
         subscriber,
     });
 
-    return { idataBefore, sdataBefore };
+    return {idataBefore, sdataBefore};
 }
 
 async function _afterSubscriptionUpdate({
@@ -488,7 +488,7 @@ async function shouldApproveSubscription({
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -605,7 +605,7 @@ async function shouldUpdateSubscription({
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -729,7 +729,7 @@ async function shouldRevokeSubscription({
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -839,7 +839,7 @@ async function shouldDeleteSubscription({
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
-    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -977,7 +977,7 @@ async function shouldClaimPendingDistribution({
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
-    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,

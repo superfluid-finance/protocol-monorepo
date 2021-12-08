@@ -1,4 +1,4 @@
-const { toBN, toWad } = require("@decentral.ee/web3-helpers");
+const {toBN, toWad} = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 const chai = require("chai");
@@ -34,7 +34,7 @@ describe("User helper class", function () {
             bob: bobAddress,
             carol: carolAddress,
         } = t.aliases);
-        ({ superToken } = await t.deployNewToken("TEST2", {
+        ({superToken} = await t.deployNewToken("TEST2", {
             isTruffle: false,
             web3,
             doUpgrade: true,
@@ -50,9 +50,9 @@ describe("User helper class", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        alice = sf.user({ address: aliceAddress, token: superToken.address });
-        bob = sf.user({ address: bobAddress, token: superToken.address });
-        carol = sf.user({ address: carolAddress, token: superToken.address });
+        alice = sf.user({address: aliceAddress, token: superToken.address});
+        bob = sf.user({address: bobAddress, token: superToken.address});
+        carol = sf.user({address: carolAddress, token: superToken.address});
     });
 
     describe("initialize", () => {
@@ -314,10 +314,10 @@ describe("User helper class", function () {
     describe("pools", () => {
         const poolId = 1;
         beforeEach(async () => {
-            await alice.createPool({ poolId });
+            await alice.createPool({poolId});
         });
         it("create a new ppol", async () => {
-            const { exist } = await sf.ida.getIndex({
+            const {exist} = await sf.ida.getIndex({
                 superToken: superToken.address,
                 publisher: aliceAddress,
                 indexId: poolId,
@@ -330,7 +330,7 @@ describe("User helper class", function () {
                 shares: 100,
                 recipient: bobAddress,
             });
-            const { totalUnitsPending } = await sf.ida.getIndex({
+            const {totalUnitsPending} = await sf.ida.getIndex({
                 superToken: superToken.address,
                 publisher: aliceAddress,
                 indexId: poolId,

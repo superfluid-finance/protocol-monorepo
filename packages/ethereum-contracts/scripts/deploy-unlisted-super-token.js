@@ -21,7 +21,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Deploying unmanaged super token ========");
-    let { resetToken, protocolReleaseVersion } = options;
+    let {resetToken, protocolReleaseVersion} = options;
 
     if (args.length !== 3) {
         throw new Error("Wrong number of arguments");

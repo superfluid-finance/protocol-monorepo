@@ -1,8 +1,8 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { expect } = require("chai");
-const { web3tx, toBN } = require("@decentral.ee/web3-helpers");
+const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const {expect} = require("chai");
+const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 
 const {
     shouldBehaveLikeERC20,
@@ -16,7 +16,7 @@ describe("SuperToken's ERC20 compliance", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const { ZERO_ADDRESS } = t.constants;
+    const {ZERO_ADDRESS} = t.constants;
     const initialSupply = toBN(100);
 
     let alice, bob, carol;
@@ -27,7 +27,7 @@ describe("SuperToken's ERC20 compliance", function () {
             nAccounts: 4,
         });
 
-        ({ alice, bob, carol } = t.aliases);
+        ({alice, bob, carol} = t.aliases);
 
         this.token = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
         await web3tx(
@@ -80,18 +80,18 @@ describe("SuperToken's ERC20 compliance", function () {
                     const approvedAmount = amount;
 
                     beforeEach(async function () {
-                        ({ logs: this.logs } = await this.token.approve(
+                        ({logs: this.logs} = await this.token.approve(
                             spender,
                             approvedAmount,
-                            { from: alice }
+                            {from: alice}
                         ));
                     });
 
                     it("emits an approval event", async function () {
-                        const { logs } = await this.token.decreaseAllowance(
+                        const {logs} = await this.token.decreaseAllowance(
                             spender,
                             approvedAmount,
-                            { from: alice }
+                            {from: alice}
                         );
 
                         expectEvent.inLogs(logs, "Approval", {
@@ -105,7 +105,7 @@ describe("SuperToken's ERC20 compliance", function () {
                         await this.token.decreaseAllowance(
                             spender,
                             approvedAmount.subn(1),
-                            { from: alice }
+                            {from: alice}
                         );
 
                         expect(
@@ -118,7 +118,7 @@ describe("SuperToken's ERC20 compliance", function () {
                         await this.token.decreaseAllowance(
                             spender,
                             approvedAmount,
-                            { from: alice }
+                            {from: alice}
                         );
                         expect(
                             await this.token.allowance(alice, spender),
@@ -131,7 +131,7 @@ describe("SuperToken's ERC20 compliance", function () {
                             this.token.decreaseAllowance(
                                 spender,
                                 approvedAmount.addn(1),
-                                { from: alice }
+                                {from: alice}
                             ),
                             "SuperToken: decreased allowance below zero"
                         );
@@ -178,10 +178,10 @@ describe("SuperToken's ERC20 compliance", function () {
 
             describe("when the sender has enough balance", function () {
                 it("emits an approval event", async function () {
-                    const { logs } = await this.token.increaseAllowance(
+                    const {logs} = await this.token.increaseAllowance(
                         spender,
                         amount,
-                        { from: alice }
+                        {from: alice}
                     );
 
                     expectEvent.inLogs(logs, "Approval", {
@@ -228,10 +228,10 @@ describe("SuperToken's ERC20 compliance", function () {
                 const amount = initialSupply.addn(1);
 
                 it("emits an approval event", async function () {
-                    const { logs } = await this.token.increaseAllowance(
+                    const {logs} = await this.token.increaseAllowance(
                         spender,
                         amount,
-                        { from: alice }
+                        {from: alice}
                     );
 
                     expectEvent.inLogs(logs, "Approval", {

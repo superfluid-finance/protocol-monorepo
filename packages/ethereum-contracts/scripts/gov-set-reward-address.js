@@ -21,7 +21,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Setting reward address ========");
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     if (args.length !== 2) {
         throw new Error("Wrong number of arguments");
@@ -30,10 +30,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const tokenAddr = args.pop();
     console.log("token address", tokenAddr);
     console.log("reward address", rewardAddr);
-
-    protocolReleaseVersion =
-        protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-    console.log("protocol release version:", protocolReleaseVersion);
 
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),

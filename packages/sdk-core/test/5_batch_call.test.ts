@@ -11,15 +11,20 @@ describe("Batch Call Tests", () => {
     let framework: Framework;
     let deployer: SignerWithAddress;
     let alpha: SignerWithAddress;
+    let bravo: SignerWithAddress;
+    let charlie: SignerWithAddress;
     let superToken: SuperTokenType;
 
     before(async () => {
-        const { frameworkClass, Deployer, Alpha, SuperToken } = await setup({
-            subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
-        });
+        const { frameworkClass, Deployer, Alpha, Bravo, Charlie, SuperToken } =
+            await setup({
+                subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
+            });
         framework = frameworkClass;
         deployer = Deployer;
         alpha = Alpha;
+        bravo = Bravo;
+        charlie = Charlie;
         superToken = SuperToken;
     });
 
@@ -46,7 +51,7 @@ describe("Batch Call Tests", () => {
         const createFlowOp = daix.createFlow({
             sender: alpha.address,
             receiver: deployer.address,
-            flowRate: getPerSecondFlowRateByMonth("10000000000"),
+            flowRate: getPerSecondFlowRateByMonth("10000"),
         });
         try {
             await framework.batchCall([createFlowOp]).exec(deployer);
@@ -57,7 +62,7 @@ describe("Batch Call Tests", () => {
         }
     });
 
-    it("Should be able to create and execute a batch call", async () => {
+    it("Should be able to create and execute a batch call (approve + transferFrom)", async () => {
         const amount = ethers.utils.parseUnits("1000").toString();
         const daix = await framework.loadSuperToken(superToken.address);
         const approveOp = daix.approve({ receiver: alpha.address, amount });
@@ -72,6 +77,45 @@ describe("Batch Call Tests", () => {
             .withArgs(deployer.address, alpha.address, amount);
     });
 
+    it("Should be able to batch create flows and batch update flows and batch delete flows", async () => {
+        let flowRate = getPerSecondFlowRateByMonth("10000");
+        const daix = await framework.loadSuperToken(superToken.address);
+        const createFlow1 = daix.createFlow({
+            sender: charlie.address,
+            receiver: alpha.address,
+            flowRate,
+        });
+        const createFlow2 = daix.createFlow({
+            sender: charlie.address,
+            receiver: bravo.address,
+            flowRate,
+        });
+        await framework.batchCall([createFlow1, createFlow2]).exec(charlie);
+
+        flowRate = getPerSecondFlowRateByMonth("12500");
+
+        const updateFlow1 = daix.updateFlow({
+            sender: charlie.address,
+            receiver: alpha.address,
+            flowRate,
+        });
+        const updateFlow2 = daix.updateFlow({
+            sender: charlie.address,
+            receiver: bravo.address,
+            flowRate,
+        });
+        await framework.batchCall([updateFlow1, updateFlow2]).exec(charlie);
+        const deleteFlow1 = daix.deleteFlow({
+            sender: charlie.address,
+            receiver: alpha.address,
+        });
+        const deleteFlow2 = daix.deleteFlow({
+            sender: charlie.address,
+            receiver: bravo.address,
+        });
+        await framework.batchCall([deleteFlow1, deleteFlow2]).exec(charlie);
+    });
+
     // NOTE: this may be quite hard to test locally
-    it("Should be able to execute a forward batch call", async () => {});
+    it.skip("Should be able to execute a forward batch call", async () => {});
 });

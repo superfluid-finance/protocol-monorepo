@@ -1,4 +1,7 @@
 [
+    "arbitrum-rinkeby",
+    "fuji",
+    "optimism-kovan",
     "goerli",
     "kovan",
     "matic",

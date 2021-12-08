@@ -31,6 +31,24 @@ export function getHostAddress(): Address {
     if (network == "xdai") {
         address = "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7";
     }
+    if (network == "fuji") {
+        address = "0xb1Cb9e86Fe1E6B45F44A3D90ed08E71403D6fA36";
+    }
+    if (network == "arbitrum-rinkeby") {
+        address = "0xE01F8743677Da897F4e7De9073b57Bf034FC2433";
+    }
+    if (network == "optimism-kovan") {
+        address = "0x21F090905D26073cb488440F98CcfbD8bF5aA9b3";
+    }
+    if (network == "avalanche") {
+        address = "";
+    }
+    if (network == "arbitrum-one") {
+        address = "";
+    }
+    if (network == "optimism") {
+        address = "";
+    }
     return Address.fromString(address);
 }
 
@@ -60,6 +78,24 @@ export function getResolverAddress(): Address {
     }
     if (network == "xdai") {
         address = "0xD2009765189164b495c110D61e4D301729079911";
+    }
+    if (network == "fuji") {
+        address = "0xb76d7c14caD40Cc434655Ce0a9B5b49220C362cA";
+    }
+    if (network == "arbitrum-rinkeby") {
+        address = "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567";
+    }
+    if (network == "optimism-kovan") {
+        address = "0xE5ed6b5bFcDBcae6BA32082adaB05A6F21e7B923";
+    }
+    if (network == "avalanche") {
+        address = "";
+    }
+    if (network == "arbitrum-one") {
+        address = "";
+    }
+    if (network == "optimism") {
+        address = "";
     }
     return Address.fromString(address);
 }

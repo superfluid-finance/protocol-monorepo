@@ -47,12 +47,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * @category React Hooks
-     */
+    endpoints: { listSuperTokens },
     useListSuperTokensQuery,
-    /**
-     * @category React Hooks
-     */
     useLazyListSuperTokensQuery,
 } = apiSlice;

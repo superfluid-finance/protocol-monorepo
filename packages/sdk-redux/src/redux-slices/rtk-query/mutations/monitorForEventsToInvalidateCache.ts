@@ -62,9 +62,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link MonitorForEventsToInvalidateCacheArg}
-     * @category React Hooks
-     */
+    endpoints: { monitorForEventsToInvalidateCache },
     useMonitorForEventsToInvalidateCacheMutation,
 } = apiSlice;

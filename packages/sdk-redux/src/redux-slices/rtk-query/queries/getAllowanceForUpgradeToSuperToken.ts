@@ -52,12 +52,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * @category React Hooks
-     */
+    endpoints: { getAllowanceForUpgradeToSuperToken },
     useGetAllowanceForUpgradeToSuperTokenQuery,
-    /**
-     * @category React Hooks
-     */
     useLazyGetAllowanceForUpgradeToSuperTokenQuery,
 } = apiSlice;

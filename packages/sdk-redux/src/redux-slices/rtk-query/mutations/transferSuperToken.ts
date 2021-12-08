@@ -70,9 +70,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link TransferSuperTokenArg}
-     * @category React Hooks
-     */
+    endpoints: { transferSuperToken },
     useTransferSuperTokenMutation,
 } = apiSlice;

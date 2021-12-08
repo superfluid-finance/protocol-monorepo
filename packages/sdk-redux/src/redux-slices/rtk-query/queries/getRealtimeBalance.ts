@@ -90,12 +90,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * @category React Hooks
-     */
+    endpoints: { getRealtimeBalance },
     useGetRealtimeBalanceQuery,
-    /**
-     * @category React Hooks
-     */
     useLazyGetRealtimeBalanceQuery,
 } = apiSlice;

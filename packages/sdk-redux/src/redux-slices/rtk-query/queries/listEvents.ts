@@ -64,12 +64,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * @category React Hooks
-     */
+    endpoints: { listEvents },
     useListEventsQuery,
-    /**
-     * @category React Hooks
-     */
     useLazyListEventsQuery,
 } = apiSlice;

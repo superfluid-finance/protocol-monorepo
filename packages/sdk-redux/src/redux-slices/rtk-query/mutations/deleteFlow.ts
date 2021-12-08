@@ -1,10 +1,10 @@
-import {getSfContext} from '../../../createSdkReduxParts';
-import {typeGuard} from '../../../utils';
-import {SuperTokenMutationArg, TransactionInfo} from '../../argTypes';
-import {registerNewTransaction} from '../../transactions/registerNewTransaction';
-import {monitorAddressForNextEventToInvalidateCache} from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
-import {rtkQuerySlice} from '../rtkQuerySlice';
-import {MutationMeta} from '../rtkQuerySliceBaseQuery';
+import { getSfContext } from '../../../createSdkReduxParts';
+import { typeGuard } from '../../../utils';
+import { SuperTokenMutationArg, TransactionInfo } from '../../argTypes';
+import { registerNewTransaction } from '../../transactions/registerNewTransaction';
+import { monitorAddressForNextEventToInvalidateCache } from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
+import { rtkQuerySlice } from '../rtkQuerySlice';
+import { MutationMeta } from '../rtkQuerySliceBaseQuery';
 
 /**
  * Delete a flow of the token of this class.
@@ -56,7 +56,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                     }),
                 };
             },
-            onQueryStarted: async (_arg, {dispatch, queryFulfilled}) => {
+            onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
                 queryFulfilled.then(async (queryResult) =>
                     monitorAddressForNextEventToInvalidateCache(
                         queryResult.meta!.monitorAddress,
@@ -71,9 +71,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link DeleteFlowArg}
-     * @category React Hooks
-     */
+    endpoints: { deleteFlow },
     useDeleteFlowMutation,
 } = apiSlice;

@@ -76,9 +76,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link CreateFlowArg}
-     * @category React Hooks
-     */
+    endpoints: { createFlow },
     useCreateFlowMutation,
 } = apiSlice;

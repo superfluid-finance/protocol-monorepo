@@ -79,9 +79,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link ClaimFromIndexSubscriptionArg}
-     * @category React Hooks
-     */
+    endpoints: { claimFromIndexSubscription },
     useClaimFromIndexSubscriptionMutation,
 } = apiSlice;

@@ -14,7 +14,7 @@ export type GetIndexArg = QueryArg & {
 
 const apiSlice = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        getIndexSubscription: builder.query<IWeb3Index, GetIndexArg>({
+        getIndex: builder.query<IWeb3Index, GetIndexArg>({
             providesTags: (_result, _error, arg) => [
                 getMostSpecificIndexTag({
                     chainId: arg.chainId,
@@ -46,12 +46,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * @category React Hooks
-     */
-    useGetIndexSubscriptionQuery,
-    /**
-     * @category React Hooks
-     */
-    useLazyGetIndexSubscriptionQuery,
+    endpoints: { getIndex },
+    useGetIndexQuery,
+    useLazyGetIndexQuery,
 } = apiSlice;

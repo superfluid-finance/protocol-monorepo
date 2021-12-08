@@ -77,9 +77,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link DistributeToIndexArg}
-     * @category React Hooks
-     */
+    endpoints: { distributeToIndex },
     useDistributeToIndexMutation,
 } = apiSlice;

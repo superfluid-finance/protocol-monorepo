@@ -100,9 +100,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link UpgradeToSuperToken}
-     * @category React Hooks
-     */
+    endpoints: { upgradeToSuperToken },
     useUpgradeToSuperTokenMutation,
 } = apiSlice;

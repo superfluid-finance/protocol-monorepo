@@ -69,9 +69,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link CreateIndexArg}.
-     * @category React Hooks
-     */
+    endpoints: { createIndex },
     useCreateIndexMutation,
 } = apiSlice;

@@ -67,9 +67,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    /**
-     * Documentation: {@link DowngradeFromSuperToken}
-     * @category React Hooks
-     */
+    endpoints: { downgradeFromSuperToken },
     useDowngradeFromSuperTokenMutation,
 } = apiSlice;

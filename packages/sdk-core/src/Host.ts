@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
+
 import Operation from "./Operation";
+import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { Superfluid } from "./typechain";
 
 /**

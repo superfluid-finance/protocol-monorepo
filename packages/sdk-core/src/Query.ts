@@ -1,3 +1,5 @@
+import SFError from "./SFError";
+import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,
     IIndex,
@@ -11,20 +13,8 @@ import {
     ISuperToken,
     ISuperTokenRequestFilter,
 } from "./interfaces";
-import { DataMode } from "./types";
-import {
-    GetIndexesDocument,
-    GetIndexesQuery,
-    GetIndexesQueryVariables,
-} from "./subgraph/queries/getIndexes.generated";
-import {
-    validateAccountTokenSnapshotRequest,
-    validateEventRequest,
-    validateIndexRequest,
-    validateIndexSubscriptionRequest,
-    validateStreamRequest,
-    validateSuperTokenRequest,
-} from "./validation";
+import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
+import { Ordering } from "./ordering";
 import {
     createLastIdPaging,
     createPagedResult,
@@ -35,38 +25,52 @@ import {
 } from "./pagination";
 import { SubgraphClient } from "./subgraph/SubgraphClient";
 import {
-    GetTokensDocument,
-    GetTokensQuery,
-    GetTokensQueryVariables,
-} from "./subgraph/queries/getTokens.generated";
+    GetAccountTokenSnapshotsDocument,
+    GetAccountTokenSnapshotsQuery,
+    GetAccountTokenSnapshotsQueryVariables,
+} from "./subgraph/queries/getAccountTokenSnapshots.generated";
+import {
+    GetAllEventsDocument,
+    GetAllEventsQuery,
+    GetAllEventsQueryVariables,
+} from "./subgraph/queries/getAllEvents.generated";
 import {
     GetIndexSubscriptionsDocument,
     GetIndexSubscriptionsQuery,
     GetIndexSubscriptionsQueryVariables,
 } from "./subgraph/queries/getIndexSubscriptions.generated";
 import {
+    GetIndexesDocument,
+    GetIndexesQuery,
+    GetIndexesQueryVariables,
+} from "./subgraph/queries/getIndexes.generated";
+import {
     GetStreamsDocument,
     GetStreamsQuery,
     GetStreamsQueryVariables,
 } from "./subgraph/queries/getStreams.generated";
 import {
-    GetAccountTokenSnapshotsDocument,
-    GetAccountTokenSnapshotsQuery,
-    GetAccountTokenSnapshotsQueryVariables,
-} from "./subgraph/queries/getAccountTokenSnapshots.generated";
-import { AllEvents, IEventFilter } from "./events";
-import {
-    GetAllEventsDocument,
-    GetAllEventsQuery,
-    GetAllEventsQueryVariables,
-} from "./subgraph/queries/getAllEvents.generated";
-import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
-import SFError from "./SFError";
-import { Ordering } from "./ordering";
+    GetTokensDocument,
+    GetTokensQuery,
+    GetTokensQueryVariables,
+} from "./subgraph/queries/getTokens.generated";
 import {
     AccountTokenSnapshot_OrderBy,
-    Event_OrderBy, Index_OrderBy, IndexSubscription_OrderBy, Stream_OrderBy, Token_OrderBy,
+    Event_OrderBy,
+    Index_OrderBy,
+    IndexSubscription_OrderBy,
+    Stream_OrderBy,
+    Token_OrderBy,
 } from "./subgraph/schema.generated";
+import { DataMode } from "./types";
+import {
+    validateAccountTokenSnapshotRequest,
+    validateEventRequest,
+    validateIndexRequest,
+    validateIndexSubscriptionRequest,
+    validateStreamRequest,
+    validateSuperTokenRequest,
+} from "./validation";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -111,7 +115,7 @@ export default class Query {
         paging: Paging = createSkipPaging(),
         ordering: Ordering<Token_OrderBy> = {
             orderBy: "createdAtBlockNumber",
-            orderDirection: "desc"
+            orderDirection: "desc",
         }
     ): Promise<PagedResult<ISuperToken>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
@@ -154,7 +158,7 @@ export default class Query {
         paging: Paging = createSkipPaging(),
         ordering: Ordering<Index_OrderBy> = {
             orderBy: "createdAtBlockNumber",
-            orderDirection: "desc"
+            orderDirection: "desc",
         }
     ): Promise<PagedResult<IIndex>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
@@ -206,7 +210,7 @@ export default class Query {
         paging: Paging = createSkipPaging(),
         ordering: Ordering<IndexSubscription_OrderBy> = {
             orderBy: "createdAtBlockNumber",
-            orderDirection: "desc"
+            orderDirection: "desc",
         }
     ): Promise<PagedResult<IIndexSubscription>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
@@ -264,7 +268,7 @@ export default class Query {
         paging: Paging = createSkipPaging(),
         ordering: Ordering<Stream_OrderBy> = {
             orderBy: "createdAtBlockNumber",
-            orderDirection: "desc"
+            orderDirection: "desc",
         }
     ): Promise<PagedResult<IStream>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
@@ -322,7 +326,7 @@ export default class Query {
         paging: Paging = createSkipPaging(),
         ordering: Ordering<AccountTokenSnapshot_OrderBy> = {
             orderBy: "updatedAtBlockNumber",
-            orderDirection: "desc"
+            orderDirection: "desc",
         }
     ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
@@ -424,7 +428,9 @@ export default class Query {
         const clockSkew = 25000;
 
         // Convert millisecond-based time to second-based time (which Subgraph uses).
-        let eventQueryTimestamp = Math.floor((new Date().getTime() - clockSkew) / 1000);
+        let eventQueryTimestamp = Math.floor(
+            (new Date().getTime() - clockSkew) / 1000
+        );
 
         let isUnsubscribed = false;
         const unsubscribe = () => {
@@ -436,17 +442,19 @@ export default class Query {
                 return;
             }
 
-            const allEvents = await this.listAllResults(paging => this.listEvents(
-                {
-                    account: account,
-                    timestamp_gt: eventQueryTimestamp,
-                },
-                paging,
-                {
-                    orderBy: "timestamp",
-                    orderDirection: "asc"
-                }
-            ))
+            const allEvents = await this.listAllResults((paging) =>
+                this.listEvents(
+                    {
+                        account: account,
+                        timestamp_gt: eventQueryTimestamp,
+                    },
+                    paging,
+                    {
+                        orderBy: "timestamp",
+                        orderDirection: "asc",
+                    }
+                )
+            );
 
             if (allEvents.length) {
                 callback(allEvents, unsubscribe);
@@ -454,7 +462,7 @@ export default class Query {
                 // NOTE: Make sure to order events by timestamp in ascending order.
                 const lastEvent = allEvents.slice(-1)[0];
                 // Next event polling is done for events that have a timestamp later than the current latest event.
-                eventQueryTimestamp = lastEvent!.timestamp
+                eventQueryTimestamp = lastEvent!.timestamp;
             }
 
             // This solution sets the interval based on last query returning, opposed to not taking request-response cycles into account at all.

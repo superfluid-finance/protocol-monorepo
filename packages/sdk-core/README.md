@@ -116,12 +116,50 @@ const sf = await Framework.create({
 	provider
 });
 
+type Paging = { take: number, skip?: number, lastId?: string };
+
 const pageResult = await sf.query.
-  listAllSuperTokens({ isListed?: boolean }, { skip: number, take: number });
-  listIndexes({ indexId?: string, publisher?: string, token?: string }, { skip: number, take: number });
-  listIndexSubscriptions({ subscriber?: string, approved?: boolean }, { skip: number, take: number });
-  listStreams({ sender?: string, receiver?: string, token?: string }, { skip: number, take: number });
-  listUserInteractedSuperTokens({ account?: string, token?: string }, { skip: number, take: number });
+  listAllResults(paging: Paging);
+  
+  // The different queries can take different order by properties 
+  // given the properties that exist on the entity itself.
+  listAllSuperTokens({ isListed?: boolean },
+    paging: Paging,
+    ordering: Ordering<Token_OrderBy>
+  );
+
+  listIndexes({ indexId?: string, publisher?: string, token?: string },
+    paging: Paging,
+    ordering: Ordering<Index_OrderBy>
+  );
+
+  listIndexSubscriptions({ subscriber?: string, approved?: boolean },
+    paging: Paging,
+    ordering: Ordering<IndexSubscription_OrderBy>
+  );
+
+  listStreams({ sender?: string, receiver?: string, token?: string },
+    paging: Paging,
+    ordering: Ordering<Stream_OrderBy>
+  );
+
+  listUserInteractedSuperTokens({ account?: string, token?: string },
+    paging: Paging,
+    ordering: Ordering<AccountTokenSnapshot_OrderBy>
+  );
+
+  listEvents({ account?: string, timestamp_gt?: number },
+    paging: Paging,
+    ordering: Ordering<Event_OrderBy>
+  );
+
+  // A subscription function which allows you to subscribe to events via polling.
+  on(
+        callback: (events: AllEvents[], unsubscribe: () => void) => void,
+        ms: number,
+        account?: string,
+        timeout?: number
+    )
 ```
 
 #### Direct Initialization
@@ -130,16 +168,44 @@ If you'd like, you can also initialize the `Query` class as a standalone class l
 
 ```ts
 import { Query } from "@superfluid-finance/sdk-core";
-const query = new Query({ customSubgraphQueriesEndpoint: "<A_CUSTOM_ENDPOINT>", dataMode: "SUBGRAPH_ONLY" | "SUBGRAPH_WEB3" | "WEB3_ONLY" });
-query.listAllSuperTokens({ isListed?: boolean }, { skip: number, take: number })
-//...same queries as above...
+const query = new Query({
+  customSubgraphQueriesEndpoint: "<A_CUSTOM_ENDPOINT>",
+  dataMode: "SUBGRAPH_ONLY" | "SUBGRAPH_WEB3" | "WEB3_ONLY"
+});
 ```
 
 #### Pagination
 
-All of the pre-defined query functions will accept pagination options: `({ skip: number, take: number })`, if you don't pass anything in, it will use a default of: `{ skip: 0, take: 100 }`.
+All of the pre-defined query functions will accept pagination options: `({ skip: number, take: number })`, if you don't pass anything in, it will use a default of: `{ skip: 0, take: 100 }`. You can also paginate by `lastId`, this allows you to bypass the limitation of the max skip of 5000 entities.
 
 > Note: this example uses the `graphql-request` library, but you just need to provide a valid query which is a string.
+
+#### Ordering
+
+You can also pass in an ordering object for the different queries, each query function will accept different ordering properties depending on the properties on the entity. We have different defaults for each so you don't need to actually pass anything in.
+
+#### Example Usage
+
+```ts
+const { Framework } = require("@superfluid-finance/sdk-core");
+const { ethers } = require("ethers");
+
+const provider = new ethers.providers.InfuraProvider(
+	"matic",
+	"<INFURA_API_KEY>"
+);
+const sf = await Framework.create({
+  networkName: "matic",
+	provider
+});
+const results = await sf.query.listAllSuperTokens(
+  { isListed: true },
+  { skip: 5, take: 150 },
+  {
+    orderBy: "createdAtBlockNumber",
+    orderDirection: "desc"
+  });
+```
 
 ### Creating a Signer
 
@@ -278,15 +344,88 @@ const cfaV1 = new ConstantFlowAgreementV1({ options: config });
 
 #### CFAV1 Functions
 ```ts
-// read
-await sf.cfaV1.getFlow({ superToken: string, sender: string, receiver: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
-await sf.cfaV1.getAccountFlowInfo({ superToken: string, account: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
-await sf.cfaV1.getNetFlow({ superToken: string, account: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+// Read functions
+await sf.cfaV1.getFlow({
+  superToken: string,
+  sender: string,
+  receiver: string,
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
 
-// write
-await sf.cfaV1.createFlow({ sender: string, receiver: string, token: string, flowRate: string, userData?: string });
-await sf.cfaV1.updateFlow({ sender: string, receiver: string, token: string, flowRate: string, userData?: string });
-await sf.cfaV1.deleteFlow({ sender: string, receiver: string, token: string, userData?: string });
+await sf.cfaV1.getAccountFlowInfo({
+  superToken: string,
+  account: string,
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+await sf.cfaV1.getNetFlow({
+  superToken: string,
+  account: string,
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+
+// Write operations
+sf.cfaV1.createFlow({
+  sender: string,
+  receiver: string,
+  token: string,
+  flowRate: string,
+  userData?: string
+});
+
+sf.cfaV1.updateFlow({
+  sender: string,
+  receiver: string,
+  token: string,
+  flowRate: string,
+  userData?: string
+});
+
+sf.cfaV1.deleteFlow({
+  sender: string,
+  receiver: string,
+  token: string,
+  userData?: string
+});
+```
+
+#### Example Usage
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider
+});
+
+// Read example
+const flowInfo = await sf.cfaV1.getFlow({
+  superToken: "0x...",
+  sender: "0x...",
+  receiver: "0x...",
+  providerOrSigner: provider
+});
+console.log("flowInfo", flowInfo);
+
+// Write operation example
+const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
+const createFlowOperation = sf.cfaV1.createFlow({
+  sender: "0x...",
+  receiver: "0x...",
+  token: "0x...",
+  flowRate: "1000000000"
+});
+const txnResponse = await createFlowOperation.exec(signer);
+const txnReceipt = await txnResponse.wait();
+// Transaction Complete when code reaches here
 ```
 
 ### InstantDistributionAgreementV1
@@ -310,19 +449,110 @@ const idaV1 = new InstantDistributionAgreementV1({ options: config });
 
 #### IDAV1 Functions
 ```ts
-// read
-await sf.idaV1.getSubscription({ superToken: string, publisher: string, indexId: string, subscriber: string, providerOrSigner: string });
-await sf.idaV1.getIndex({ superToken: string, publisher: string, indexId: string, providerOrSigner: string });
+// Read functions
+await sf.idaV1.getSubscription({
+  superToken: string,
+  publisher: string,
+  indexId: string,
+  subscriber: string,
+  providerOrSigner: string
+});
 
-// write
-await sf.idaV1.createIndex({ indexId: string, userData: string });
-await sf.idaV1.distribute({ indexId: string, amount: string, userData: string });
-await sf.idaV1.updateIndexValue({ indexId: string, indexValue: string, userData: string });
-await sf.idaV1.updateSubscriptionUnits({ indexId: string, subscriber: string, units: string, userData: string });
-await sf.idaV1.approveSubscription({ indexId: string, subscriber: string, userData: string });
-await sf.idaV1.revokeSubscription({ indexId: string, subscriber: string, userData: string });
-await sf.idaV1.deleteSubscription({ indexId: string, subscriber: string, publisher: string, userData: string });
-await sf.idaV1.claim({ indexId: string, subscriber: string, publisher: string, userData: string });
+await sf.idaV1.getIndex({
+  superToken: string,
+  publisher: string,
+  indexId: string,
+  providerOrSigner: string
+});
+
+
+// Write operations
+sf.idaV1.createIndex({
+  indexId: string,
+  superToken: string,
+  userData?: string
+});
+
+sf.idaV1.distribute({
+  indexId: string,
+  superToken: string,
+  amount: string,
+  userData?: string
+});
+
+sf.idaV1.updateIndexValue({
+  indexId: string,
+  superToken: string,
+  indexValue: string,
+  userData?: string
+});
+
+sf.idaV1.updateSubscriptionUnits({
+  indexId: string,
+  superToken: string,
+  subscriber: string,
+  units: string,
+  userData?: string
+});
+
+sf.idaV1.approveSubscription({
+  indexId: string,
+  superToken: string,
+  publisher: string,
+  userData?: string
+});
+
+sf.idaV1.revokeSubscription({
+  indexId: string,
+  superToken: string,
+  publisher: string,
+  userData?: string
+});
+
+sf.idaV1.deleteSubscription({
+  indexId: string,
+  superToken: string,
+  subscriber: string,
+  publisher: string,
+  userData?: string
+});
+
+sf.idaV1.claim({
+  indexId: string,
+  superToken: string,
+  subscriber: string,
+  publisher: string,
+  userData?: string
+});
+```
+
+#### Example Usage
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider
+});
+
+// Read example
+const subscription = await sf.idaV1.getSubscription({ superToken: "0x...", publisher: "0x...", indexId: "1", subscriber: "0x...", providerOrSigner: provider });
+console.log(subscription);
+
+
+// Write operation example
+const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
+const createIndexOperation = sf.idaV1.createIndex({ indexId: "0", userData: "0x" });
+const txnResponse = await createIndexOperation.exec(signer);
+const txnReceipt = await txnResponse.wait();
+// Transaction Complete when code reaches here
 ```
 
 ### SuperToken
@@ -358,7 +588,6 @@ const provider = new ethers.providers.InfuraProvider(
   "matic",
   "<INFURA_API_KEY>"
 );
-let usdcx: SuperToken;
 
 const config = {
   hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
@@ -367,7 +596,7 @@ const config = {
   idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
-usdcx = await SuperToken.create({
+const usdcx = await SuperToken.create({
   address: "0xCAa7349CEA390F89641fe306D93591f87595dc1F",
   config,
   networkName: "matic",
@@ -380,30 +609,101 @@ usdcx = await SuperToken.create({
 ```ts
 const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
-// SuperToken Read Functions
-// ERC20 `Token` function
-await usdcx.balanceOf({ account: string, providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
-await usdcx.allowance({ owner: string, spender: string, providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
-await usdcx.totalSupply({ providerOrSigner: ethers.providers.Provider | ethers.Signer }); // Inherited ERC20 function
+// ERC20 `Token`
+// Read functions
+await usdcx.balanceOf({
+  account: string,
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+await usdcx.allowance({
+  owner: string,
+  spender: string,
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+await usdcx.name({
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+await usdcx.symbol({
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+await usdcx.totalSupply({
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
+
+
+// Write operations
+usdcx.approve({
+  recipient: string,
+  amount: string
+});
+
+usdcx.transfer({
+  recipient: string,
+  amount: string
+});
+
+usdcx.transferFrom({
+  sender: string,
+  recipient: string,
+  amount: string
+});
 
 // `SuperToken` only function
-await usdcx.realtimeBalanceOf({ account: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer });
+await usdcx.realtimeBalanceOf({
+  account: string,
+  timestamp: string,
+  providerOrSigner: ethers.providers.Provider | ethers.Signer
+});
 
 // Write Functions
+
 // All write functions return Promise<Operation>
 
-// SuperToken Write Functions
-await usdcx.approve({ recipient: string, amount: string });
-await usdcx.downgrade({ amount: string });
-await usdcx.transfer({ recipient: string, amount: string });
-await usdcx.transferFrom({ sender: string, recipient: string, amount: string });
-await usdcx.upgrade({ amount: string });
+// SuperToken Write operations
+usdcx.downgrade({ amount: string });
+
+usdcx.upgrade({ amount: string });
 
 // SuperToken CFAV1/IDAV1 Functions are the same as the
 // ConstantFlowAgreementV1/InstantDistributionAgreementV1 class functions
 // except instead of the sf.cfaV1/idaV1.function() signature, it is token.function()
+// e.g. await usdcx.createIndex({ indexId: "0", userData: "0x" }).exec(signer);
 // and you don't need to pass in a token as a parameter as it uses the token address
 // of the instantiated class.
+```
+
+#### Example Usage
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider
+});
+
+const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+
+// Read example
+const name = await usdcx.name();
+console.log(name);
+
+// Write operation example
+const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
+const transferOperation = usdcx.transfer({ receiver: "0x...", amount: "1000000" });
+const txnResponse = await transferOperation.exec(signer);
+const txnReceipt = await txnResponse.wait();
+// Transaction Complete when code reaches here
 ```
 
 > Note: you can also get the underlying Token object which only has ERC20 token read/write methods-this is useful for things like approving token spend to a SuperToken contract prior to upgrading for example.
@@ -421,12 +721,12 @@ The `BatchCall` class allows the user to batch multiple supported operations/tra
 
 Not all operations are supported by the batch call feature, below is a list of the supported operations:
 
-- ERC20_APPROVE (SuperToken only)
-- ERC20_TRANSFER_FROM
-- SUPERTOKEN_UPGRADE
-- SUPERTOKEN_DOWNGRADE
-- SUPERFLUID_CALL_AGREEMENT
-- CALL_APP_ACTION
+- `ERC20_APPROVE (SuperToken only)`
+- `ERC20_TRANSFER_FROM`
+- `SUPERTOKEN_UPGRADE`
+- `SUPERTOKEN_DOWNGRADE`
+- `SUPERFLUID_CALL_AGREEMENT`
+- `CALL_APP_ACTION`
 
 Most of the token methods are self explanatory, but some additional context for the last two operations is helpful.
 `SUPERFLUID_CALL_AGREEMENT` refers to all operations related to the CFA or IDA (`createFlow`, `updateIndex`, `distribute`, etc.).
@@ -473,7 +773,32 @@ const batchCall = new BatchCall({
 #### Usage
 
 ```ts
-const txn = await batchCall.execute(signer);
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider
+});
+ 
+ // 0xabc is the signer on Rinkeby testnet
+const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
+const daix = await sf.loadSuperToken("0x745861AeD1EEe363b4AaA5F1994Be40b1e05Ff90");
+const fromAddress = "0xabc";
+const paymentAddress = "0xdef";
+const approveOp = daix.approve({ receiver: paymentAddress, amount: "10000" });
+const transferFromOp = daix.transferFrom({
+  sender: fromAddress,
+  receiver: paymentAddress,
+  amount: "10000",
+});
+const batchCall = sf.batchCall([approveOp, transferFromOp]);
+const txn = await batchCall.exec(signer);
 
 // creating an operation from a super app function
 // initialize your super app contract
@@ -483,5 +808,5 @@ const superApp = new ethers.Contract("0x...", <SUPER_APP_ABI>);
 const superAppTransactionPromise = superApp.populateTransaction.helloWorld("hello world");
 
 // create the super app operation you can execute this operation directly or pass it in to a batch call
-const superAppOperation = new Operation(superAppOperation, "CALL_APP_ACTION");
+const superAppOperation = new Operation(superAppTransactionPromise, "CALL_APP_ACTION");
 ```

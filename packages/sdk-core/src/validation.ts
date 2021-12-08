@@ -1,6 +1,7 @@
 import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 import { ethers } from "ethers";
-import { IEventFilter } from ".";
+
+import SFError from "./SFError";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
@@ -8,7 +9,8 @@ import {
     IStreamRequestFilter,
     ISuperTokenRequestFilter,
 } from "./interfaces";
-import SFError from "./SFError";
+
+import { IEventFilter } from ".";
 
 const ajv = new Ajv();
 ajv.addFormat("addressOrEmpty", {

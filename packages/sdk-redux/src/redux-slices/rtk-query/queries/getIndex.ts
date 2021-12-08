@@ -1,6 +1,6 @@
 import {IWeb3Index} from '@superfluid-finance/sdk-core';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {getSfContext} from '../../../createSdkReduxParts';
 import {QueryArg} from '../../argTypes';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
 import {rtkQuerySlice} from '../rtkQuerySlice';
@@ -25,10 +25,9 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
                 }),
             ],
             queryFn: async (arg) => {
-                const framework =
-                    await initializedSuperfluidContext.getFramework(
-                        arg.chainId
-                    );
+                const framework = await getSfContext().getFramework(
+                    arg.chainId
+                );
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress
                 );

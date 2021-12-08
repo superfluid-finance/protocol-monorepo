@@ -1,14 +1,11 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import {
     ISuperfluid,
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
-
-// When ready to move to leave Remix, change imports to follow this pattern:
-// "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {
     IConstantFlowAgreementV1

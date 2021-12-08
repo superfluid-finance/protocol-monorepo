@@ -5,7 +5,7 @@ case $TRUFFLE_NETWORK in
     polygon-mumbai | polygon-matic | \
     optimism-mainnet | optimism-kovan | \
     arbitrum-one | arbitrum-rinkeby | \
-    avalanche-mainnet | avalance-fuji | \
+    avalanche-mainnet | avalanche-fuji | \
     bsc )
         echo "$TRUFFLE_NETWORK is supported by Etherscan or alike"
         exit 0;

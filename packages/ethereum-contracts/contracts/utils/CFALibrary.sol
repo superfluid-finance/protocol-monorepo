@@ -19,19 +19,19 @@ library CFAWrapper {
 
      //create flow without userData or extra ctx for cfa
     function createFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate
-    ) internal {
-            _host.callAgreement(
-                _cfa,
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate
+    ) public 
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.createFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.createFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
               "0x" //empty user data
@@ -41,64 +41,64 @@ library CFAWrapper {
 
     //create flow with userData but without extra ctx for cfa
     function createFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.createFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.createFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
-              _userData
+              userData
             );
         }
 
     //create flow with userData and extra ctx for cfa
     function createFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData,
-        bytes memory _cfaCtx
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData,
+        bytes memory cfaCtx
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.createFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
-                  _cfaCtx
+                  cfa.createFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
+                  cfaCtx
               ),
-              _userData
+              userData
             );
         }
 
     //update flow without userData or extra ctx for cfa
     function updateFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.updateFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.updateFlow.selector,
+                  token
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
               "0x" //empty user data
@@ -108,64 +108,64 @@ library CFAWrapper {
 
     //update flow with userData but without extra ctx for cfa
     function updateFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.updateFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.updateFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
-              _userData
+              userData
             );
         }
 
     //update flow with userData and extra ctx for cfa
     function updateFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData,
-        bytes memory _cfaCtx
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData,
+        bytes memory cfaCtx
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.updateFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
-                  _cfaCtx
+                  cfa.updateFlow.selector,
+                  token,
+                  receiver
+                  flowRate,
+                  cfaCtx
               ),
-              _userData
+              userData
             );
         }
 
     //delete flow without userData or extra ctx for cfa
     function deleteFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _sender,
-        address _receiver
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address sender,
+        address receiver
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.deleteFlow.selector,
-                  _token,
-                  _sender,
-                  _receiver,
+                  cfa.deleteFlow.selector,
+                  token,
+                  sender,
+                  receiver,
                   new bytes(0) // placeholder
               ),
               "0x" //empty user data
@@ -175,64 +175,64 @@ library CFAWrapper {
 
     //delete flow with userData but without extra ctx for cfa
     function deleteFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _sender,
-        address _receiver,
-        bytes memory _userData
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes memory userData
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.deleteFlow.selector,
-                  _token,
-                  _sender,
-                  _receiver,
+                  cfa.deleteFlow.selector,
+                  token,
+                  sender,
+                  receiver,
                   new bytes(0) // placeholder
               ),
-              _userData
+              userData
             );
         }
 
     //delete flow with userData and extra ctx for cfa
     function deleteFlow(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _sender,
-        address _receiver,
-        bytes memory _userData,
-        bytes memory _cfaCtx
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes memory userData,
+        bytes memory cfaCtx
     ) public {
-            _host.callAgreement(
-                _cfa,
+            host.callAgreement(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.deleteFlow.selector,
-                  _token,
-                  _sender,
-                  _receiver,
-                  _cfaCtx 
+                  cfa.deleteFlow.selector,
+                  token,
+                  sender,
+                  receiver,
+                  cfaCtx 
               ),
-              _userData
+              userData
             );
         }
 
   //create flow with ctx but without userData or extra ctx for cfa
     function createFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.createFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.createFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
               "0x", //empty user data
@@ -242,66 +242,66 @@ library CFAWrapper {
 
     //create flow with ctx and userData but without extra ctx for cfa
     function createFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.createFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.createFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
-              _userData,
+              userData,
               newCtx
             );
         }
 
     //create flow with ctx and userData and extra ctx for cfa
     function createFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData,
-        bytes memory _cfaCtx
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData,
+        bytes memory cfaCtx
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.createFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
-                  _cfaCtx
+                  cfa.createFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
+                  cfaCtx
               ),
-              _userData,
+              userData,
               newCtx
             );
         }
 
   //update flow with ctx but without userData and extra ctx for cfa
     function updateFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.updateFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.updateFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
               "0x", //empty user data
@@ -311,66 +311,66 @@ library CFAWrapper {
 
     //update flow with ctx and userData, but without extra ctx for cfa
     function updateFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.updateFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
+                  cfa.updateFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
                   new bytes(0) // placeholder
               ),
-              _userData,
+              userData,
               newCtx
             );
         }
 
     //update flow with ctx and userData and extra ctx for cfa
     function updateFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _receiver,
-        int96 _flowRate,
-        bytes memory _userData,
-        bytes memory _cfaCtx
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData,
+        bytes memory cfaCtx
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.updateFlow.selector,
-                  _token,
-                  _receiver,
-                  _flowRate,
-                  _cfaCtx
+                  cfa.updateFlow.selector,
+                  token,
+                  receiver,
+                  flowRate,
+                  cfaCtx
               ),
-              _userData,
-              newCtx
+              userData,
+              newCt
             );
         }
 
   //delete flow with ctx but without userData or extra ctx for cfa
     function deleteFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _sender,
-        address _receiver
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address sender,
+        address receiver
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.deleteFlow.selector,
-                  _token,
-                  _sender,
-                  _receiver,
+                  cfa.deleteFlow.selector,
+                  token,
+                  sender,
+                  receiver,
                   new bytes(0) // placeholder
               ),
               "0x", //empty user data
@@ -380,49 +380,48 @@ library CFAWrapper {
 
     //delete flow with ctx and userData but without extra ctx for cfa
     function deleteFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _sender,
-        address _receiver,
-        bytes memory _userData
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes memory userData
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.deleteFlow.selector,
-                  _token,
-                  _sender,
-                  _receiver,
+                  cfa.deleteFlow.selector,
+                  token,
+                  sender,
+                  receiver,
                   new bytes(0) // placeholder
               ),
-              _userData,
+              userData,
               newCtx
             );
         }
 
     //delete flow with ctx and userData and extra ctx for cfa
     function deleteFlowWithCtx(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _sender,
-        address _receiver,
-        bytes memory _userData,
-        bytes memory _cfaCtx
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes memory userData,
+        bytes memory cfaCtx
     ) public returns (bytes memory newCtx) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
+            (newCtx, ) = host.callAgreementWithContext(
+                cfa,
                 abi.encodeWithSelector(
-                  _cfa.deleteFlow.selector,
-                  _token,
-                  _sender,
-                  _receiver,
-                  _cfaCtx
+                  cfa.deleteFlow.selector,
+                  token,
+                  sender,
+                  receiver,
+                  cfaCtx
               ),
-              _userData,
+              userData,
               newCtx
             );
         }
-
 }

@@ -76,6 +76,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { createFlow },
+    endpoints: {createFlow},
     useCreateFlowMutation,
 } = apiSlice;

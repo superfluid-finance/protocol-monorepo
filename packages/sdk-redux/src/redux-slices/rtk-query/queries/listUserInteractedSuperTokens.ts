@@ -65,7 +65,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { listUserInteractedSuperTokens },
+    endpoints: {listUserInteractedSuperTokens},
     useListUserInteractedSuperTokensQuery,
     useLazyListUserInteractedSuperTokensQuery,
 } = apiSlice;

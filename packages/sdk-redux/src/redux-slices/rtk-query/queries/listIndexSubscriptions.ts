@@ -51,7 +51,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { listIndexSubscriptions },
+    endpoints: {listIndexSubscriptions},
     useListIndexSubscriptionsQuery,
     useLazyListIndexSubscriptionsQuery,
 } = apiSlice;

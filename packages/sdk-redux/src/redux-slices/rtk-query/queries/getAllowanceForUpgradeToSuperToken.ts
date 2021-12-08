@@ -52,7 +52,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { getAllowanceForUpgradeToSuperToken },
+    endpoints: {getAllowanceForUpgradeToSuperToken},
     useGetAllowanceForUpgradeToSuperTokenQuery,
     useLazyGetAllowanceForUpgradeToSuperTokenQuery,
 } = apiSlice;

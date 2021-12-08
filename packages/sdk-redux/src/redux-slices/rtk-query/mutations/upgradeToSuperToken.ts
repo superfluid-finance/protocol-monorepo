@@ -100,6 +100,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { upgradeToSuperToken },
+    endpoints: {upgradeToSuperToken},
     useUpgradeToSuperTokenMutation,
 } = apiSlice;

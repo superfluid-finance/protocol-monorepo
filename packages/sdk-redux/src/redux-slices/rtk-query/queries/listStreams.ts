@@ -48,7 +48,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { listStreams },
+    endpoints: {listStreams},
     useListStreamsQuery,
     useLazyListStreamsQuery,
 } = apiSlice;

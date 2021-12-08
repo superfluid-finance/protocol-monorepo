@@ -67,6 +67,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { downgradeFromSuperToken },
+    endpoints: {downgradeFromSuperToken},
     useDowngradeFromSuperTokenMutation,
 } = apiSlice;

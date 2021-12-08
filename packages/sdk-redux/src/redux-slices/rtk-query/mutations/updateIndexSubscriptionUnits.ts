@@ -79,6 +79,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { updateIndexSubscriptionUnits },
+    endpoints: {updateIndexSubscriptionUnits},
     useUpdateIndexSubscriptionUnitsMutation,
 } = apiSlice;

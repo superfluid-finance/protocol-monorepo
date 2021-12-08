@@ -70,6 +70,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { transferSuperToken },
+    endpoints: {transferSuperToken},
     useTransferSuperTokenMutation,
 } = apiSlice;

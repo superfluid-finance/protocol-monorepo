@@ -62,6 +62,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { monitorForEventsToInvalidateCache },
+    endpoints: {monitorForEventsToInvalidateCache},
     useMonitorForEventsToInvalidateCacheMutation,
 } = apiSlice;

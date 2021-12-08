@@ -69,6 +69,6 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { createIndex },
+    endpoints: {createIndex},
     useCreateIndexMutation,
 } = apiSlice;

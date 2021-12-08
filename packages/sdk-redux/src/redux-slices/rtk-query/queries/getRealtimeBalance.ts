@@ -90,7 +90,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { getRealtimeBalance },
+    endpoints: {getRealtimeBalance},
     useGetRealtimeBalanceQuery,
     useLazyGetRealtimeBalanceQuery,
 } = apiSlice;

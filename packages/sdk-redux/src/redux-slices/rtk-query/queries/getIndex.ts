@@ -46,7 +46,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
 });
 
 export const {
-    endpoints: { getIndex },
+    endpoints: {getIndex},
     useGetIndexQuery,
     useLazyGetIndexQuery,
 } = apiSlice;

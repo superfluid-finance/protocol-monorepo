@@ -11,7 +11,7 @@ npx truffle --network $TRUFFLE_NETWORK run verify Superfluid@${SUPERFLUID_HOST_L
 
 echo SUPERFLUID_GOVERNANCE
 case $TRUFFLE_NETWORK in
-    goerli | rinkeby | ropsten | kovan | mumbai | opkovan | arbrinkeby | avafuji )
+    eth-goerli | eth-rinkeby | eth-ropsten | eth-kovan | polygon-mumbai | optimism-kovan | arbitrum-rinkeby | avalanche-fuji )
         IS_TESTNET=1
 esac
 

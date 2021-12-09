@@ -1,10 +1,10 @@
 {
     "network": "optimism-kovan",
-    "hostStartBlock": 54395,
-    "hostAddress": "0x21F090905D26073cb488440F98CcfbD8bF5aA9b3",
-    "cfaAddress": "0xd28be218b181dE12e4016b8D8ff6f26904996c8A",
-    "idaAddress": "0x38ABD4ee542330ca63c2f2D79a74F56372F9c02f",
-    "superTokenFactoryAddress": "0xd0Ff53168E29b1639d40b0883FdA5ba3150c6Ba9",
-    "superfluidGovernanceAddress": "0xdC4fb7Bb92db0A5371b66af5b7dAD9788C04D8CD",
-    "resolverV1Address": "0xE5ed6b5bFcDBcae6BA32082adaB05A6F21e7B923"
+    "hostStartBlock": 318221,
+    "hostAddress": "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED",
+    "cfaAddress": "0x523481a8a5455efB1F301C6e00B5525Eb12a51da",
+    "idaAddress": "0x98E5E5d915Bf79ceeF02c72D1bf8f5b26f0bcBaA",
+    "superTokenFactoryAddress": "0xB5f0501908ca8A99fD31bEFCAc1cA458F3588671",
+    "superfluidGovernanceAddress": "0x6813edE4E78ecb830d380d0F7F684c12aAc95F02",
+    "resolverV1Address": "0x218B65780615Ff134f9Ad810CB98839534D3C0D6"
 }

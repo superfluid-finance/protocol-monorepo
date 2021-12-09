@@ -38,7 +38,7 @@ export function getHostAddress(): Address {
         address = "0xE01F8743677Da897F4e7De9073b57Bf034FC2433";
     }
     if (network == "optimism-kovan") {
-        address = "0x21F090905D26073cb488440F98CcfbD8bF5aA9b3";
+        address = "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED";
     }
     if (network == "avalanche") {
         address = "";
@@ -86,7 +86,7 @@ export function getResolverAddress(): Address {
         address = "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567";
     }
     if (network == "optimism-kovan") {
-        address = "0xE5ed6b5bFcDBcae6BA32082adaB05A6F21e7B923";
+        address = "0x218B65780615Ff134f9Ad810CB98839534D3C0D6";
     }
     if (network == "avalanche") {
         address = "";

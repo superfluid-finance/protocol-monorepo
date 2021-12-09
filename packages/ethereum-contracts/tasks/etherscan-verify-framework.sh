@@ -23,7 +23,7 @@ case $TRUFFLE_NETWORK in
     avalanche-mainnet | \
     bsc )
         echo "$TRUFFLE_NETWORK is mainnet"
-        IS_TESTNET=0
+        IS_TESTNET=
         ;;
     *)
         echo "Unknown network: $TRUFFLE_NETWORK"

@@ -255,11 +255,11 @@ const sf = await Framework.create({
   provider: web3ModalProvider,
 });
 
-const web3ModalSigner = sf.createSigner(web3ModalProvider);
+const web3ModalSigner = sf.createSigner({ web3Provider: web3ModalProvider });
 
 // MetaMask example
 const metamaskProvider = new Web3Provider(window.ethereum);
-const metaMaskSigner = sf.createSigner(metamaskProvider);
+const metaMaskSigner = sf.createSigner({ web3Provider: metamaskProvider });
 ```
 
 #### Hardhat Signer Example
@@ -304,9 +304,7 @@ const sf = await Framework.create({
   provider,
 });
 
-const signer = sf.createSigner({
-  signer: wallet
-});
+const signer = sf.createSigner({ signer: wallet });
 ```
 
 ### Operation

@@ -84,7 +84,7 @@ export function getOrInitSuperToken(
     let currentTimestamp = block.timestamp;
     let resolverAddress = getResolverAddress();
 
-    if (tokenAddress.equals(ZERO_ADDRESS)) {
+    if (tokenAddress.toHex() == ZERO_ADDRESS.toHex()) {
         return token as Token;
     }
 

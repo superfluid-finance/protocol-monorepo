@@ -10,9 +10,9 @@ We're excited to see what you build 💻
 
 Usage
 
-1) Go get some test DAIx tokens at app.superfluid.finance
+1) Go get some test DAIx tokens at app.superfluid.finance on Mumbai testnet.
 2) Add your own private key, public address and rpc URL for Mumbai inside of a ```.env``` file using the format in ```packages/hardhat/env.example```
-3) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable
+3) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable.
 
 
 
@@ -21,19 +21,19 @@ For initial setup and contract deployment:
 ```yarn install```
 ```yarn deploy```
 
-To run the react app
+To run the react app:
 ```yarn start```
 
-To create flows and set an initial message
+To create flows and set an initial message:
 ```yarn createFlow```
 
-To update flows and change the message
+To update flows and change the message:
 ```yarn updateFlow```
 
-To delete flows
+To delete flows:
 ```yarn deleteFlow```
 
-To read data and see userData logged in the console
+To read data and see userData logged in the console:
 ```yarn readData```
 
 

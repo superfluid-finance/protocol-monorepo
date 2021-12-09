@@ -117,5 +117,5 @@ describe("Batch Call Tests", () => {
     });
 
     // NOTE: this may be quite hard to test locally
-    it.skip("Should be able to execute a forward batch call", async () => {});
+    // it.skip("Should be able to execute a forward batch call", async () => {});
 });

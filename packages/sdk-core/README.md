@@ -75,10 +75,10 @@ const web3jsSf = await Framework.create({
 
 // ethers.js + hardhat provider initialization (in testing environment w/ hardhat-ethers)
 const [deployer] = await ethers.getSigners();
-const provider = deployer.provider;
+const ethersProvider = deployer.provider;
 const ethersjsSf = await Framework.create({
   networkName: "matic",
-  provider: ethersjsSf
+  provider: ethersProvider
 });
 
 // metamask
@@ -90,7 +90,7 @@ const mmSf = await Framework.create({
 
 // web3modal
 const web3ModalRawProvider = await web3Modal.connect();
-const web3ModalProvider = new ethers.providers.Web3Provider(web3ModalRawProvider, "any");
+const web3ModalProvider = new ethers.providers.Web3Provider(web3ModalRawProvider);
 const web3ModalSf = await Framework.create({
   networkName: "matic",
   provider: web3ModalProvider

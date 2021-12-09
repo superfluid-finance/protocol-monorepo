@@ -87,11 +87,9 @@ jobs:
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
-          if ./tasks/supports-etherscan.sh ${{ matrix.network }};then
-            npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
-            source addresses.vars
-            source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
-          fi
+          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
+          source addresses.vars
+          source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}

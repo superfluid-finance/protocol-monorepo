@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const async = require("async");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const getConfig = require("./libs/getConfig");
 const {
     getScriptRunnerFactory: S,
     ZERO_ADDRESS,
@@ -260,6 +261,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 ) {
     let {protocolReleaseVersion} = options;
 
+    const networkType = await web3.eth.net.getNetworkType();
+    const networkId = await web3.eth.net.getId();
+    const chainId = await web3.eth.getChainId();
+    console.log("network Type: ", networkType);
+    console.log("network ID: ", networkId);
+    console.log("chain ID: ", chainId);
+    const config = getConfig(chainId);
+
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
@@ -272,7 +281,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "SuperToken",
             "SuperfluidGovernanceBase",
         ],
-        loadSuperNativeToken: true,
+        tokens: config.tokenList,
+        loadSuperNativeToken: false,
     });
     await sf.initialize();
 

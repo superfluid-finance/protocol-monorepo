@@ -2,7 +2,7 @@
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {preinitializedSuperfluidContext} from '../../SuperfluidContext';
+import {getSfContext} from '../../createSdkReduxParts';
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 import {rtkQuerySlice} from '../rtk-query/rtkQuerySlice';
@@ -47,9 +47,7 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
             })
         );
 
-        const framework = await preinitializedSuperfluidContext.getFramework(
-            arg.chainId
-        );
+        const framework = await getSfContext().getFramework(arg.chainId);
 
         waitForOneConfirmation(framework.settings.provider, arg.hash)
             .then(

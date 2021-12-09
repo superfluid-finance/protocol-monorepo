@@ -1,4 +1,4 @@
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {getSfContext} from '../../../createSdkReduxParts';
 import {typeGuard} from '../../../utils';
 import {
     NothingString,
@@ -32,9 +32,7 @@ const apiSlice = rtkQuerySlice.injectEndpoints({
         >({
             queryFn: async (arg, queryApi) => {
                 const [framework, signer] =
-                    await initializedSuperfluidContext.getFrameworkAndSigner(
-                        arg.chainId
-                    );
+                    await getSfContext().getFrameworkAndSigner(arg.chainId);
 
                 const superToken = await framework.loadSuperToken(
                     arg.superTokenAddress

@@ -3,9 +3,9 @@ const getConfig = require("./libs/getConfig");
 const {getScriptRunnerFactory: S, getPastEvents} = require("./libs/common");
 
 module.exports = eval(`(${S.toString()})()`)(async function () {
-    const networkType = await this.web3.eth.net.getNetworkType();
+    const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const chainId = await this.web3.eth.getChainId();
+    const chainId = await web3.eth.getChainId();
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);

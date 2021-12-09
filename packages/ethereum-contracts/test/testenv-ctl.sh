@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -ex
+# make sure that if any step fails, the script fails
+set -xe
 
 TESTENV_MNEMONIC="candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
 

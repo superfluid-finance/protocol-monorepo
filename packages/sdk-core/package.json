@@ -21,10 +21,9 @@
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
         "doc:html": "typedoc --out build/docs --entryPoints ./src/index.ts",
-        "fix": "run-s fix:*",
-        "fix:prettier": "prettier \"src/**/*.ts\" --write",
-        "fix:lint": "eslint src --ext .ts --fix",
-        "lint": "echo linting",
+        "lint": "run-s lint:*",
+        "lint:prettier": "prettier \"src/**/*.ts\" --write",
+        "lint:lint": "eslint src --ext .ts",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint": "echo no pre-commit currently",
         "generate-abi-files": "rm -rf src/abi && mkdir src/abi && tasks/build-abi-json.sh",
@@ -36,10 +35,9 @@
     },
     "dependencies": {
         "@ethersproject/providers": "^5.5.0",
-        "@rollup/plugin-json": "^4.1.0",
         "ajv": "^8.8.2",
         "ethers": "^5.5.1",
-        "graphql-request": "^3.6.1"
+        "graphql-request": "^3.7.0"
     },
     "devDependencies": {
         "@graphql-codegen/cli": "2.3.0",
@@ -51,16 +49,23 @@
         "@nomiclabs/hardhat-ethers": "^2.0.2",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@nomiclabs/hardhat-web3": "^2.0.0",
+        "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-typescript": "^8.3.0",
         "@typechain/ethers-v5": "^8.0.5",
         "@typechain/hardhat": "^3.0.0",
         "@types/chai": "^4.2.22",
         "@types/mocha": "^9.0.0",
         "@types/node": "^16.11.10",
+        "@typescript-eslint/eslint-plugin": "^5.6.0",
+        "@typescript-eslint/parser": "^5.6.0",
         "chai": "^4.3.4",
         "chai-ethers": "^0.0.1",
         "coveralls": "^3.1.1",
         "dotenv": "^10.0.0",
+        "eslint": "^8.4.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-eslint-comments": "^3.2.0",
+        "eslint-plugin-import": "^2.25.3",
         "ethereum-waffle": "^3.4.0",
         "hardhat": "^2.7.0",
         "mocha": "^9.1.3",
@@ -72,6 +77,6 @@
         "typescript": "^4.5.2"
     },
     "resolutions": {
-        "graphql": "16.0.0"
+        "graphql": "^16.0.0"
     }
 }

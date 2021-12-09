@@ -1,7 +1,7 @@
 import {AnyAction} from '@reduxjs/toolkit';
 import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import {initializedSuperfluidContext} from '../../../createSdkReduxParts';
+import {getSfContext} from '../../../createSdkReduxParts';
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 
@@ -18,7 +18,7 @@ export const monitorAddressForNextEventToInvalidateCache = async (
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    const framework = await initializedSuperfluidContext.getFramework(
+    const framework = await getSfContext().getFramework(
         transactionInfo.chainId
     );
     framework.query.on(

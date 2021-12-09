@@ -1,5 +1,5 @@
 import React, { FC, ReactElement, useState } from "react";
-import { Box, Container, Typography } from "@mui/material";
+import { Box, Container, Paper, Typography } from "@mui/material";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import { Framework } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
@@ -15,7 +15,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Collapse from "@mui/material/Collapse";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { ListIndexSubscriptions } from "./features/ListIndexSubscriptions";
@@ -59,9 +58,54 @@ function App() {
         <Container maxWidth={false}>
             <Box sx={{ my: 4 }}>
                 <Typography variant="h2" component="h2" gutterBottom>
-                    SDK-Redux example
+                    SDK-Redux demo
                 </Typography>
-                <p>Chain ID-s: {[3,4,5,42,137,80001].join(", ")}</p>
+                <Typography variant="caption">
+                    <p>
+                        SDK-Redux is a batteries-included* application framework
+                        for building front-end dApps that interact with the
+                        Superfluid Protocol. Its foremost goal is to make
+                        building dashboard and explorer like applications a
+                        breeze.
+                    </p>
+                    <p>
+                        *{" "}
+                        <em>
+                            Some batteries still missing because of early active
+                            development :)
+                        </em>
+                    </p>
+                    <p>Main features:</p>
+                    <ul>
+                        <li>
+                            Reacts Hooks for interacting with the Superfluid
+                            SDK-Core (the underlying stateless SDK)
+                        </li>
+                        <li>
+                            Queried data is automatically cached and avoids
+                            duplicate requests for the same data
+                        </li>
+                        <li>
+                            Tracking loading and transaction states for UI
+                            spinners and notifications
+                        </li>
+                        <li>
+                            Monitoring blockchain events and transactions for
+                            cache invalidation (reorg included) to re-fetch data
+                        </li>
+                        <li>Cross-chain querying of data</li>
+                    </ul>
+                    <p>Available chains (name, chainId):</p>
+                    <ul>
+                        <li>Ropsten: 3</li>
+                        <li>Rinkeby: 4</li>
+                        <li>Goerli: 5</li>
+                        <li>Kovan: 42</li>
+                        <li>xDai: 100</li>
+                        <li>Matic: 137</li>
+                        <li>Mumbai: 80001</li>
+                    </ul>
+                </Typography>
                 {!superfluidSdk ? (
                     <InitializeSuperfluidSdk
                         onSuperfluidSdkInitialized={(x, provider) =>
@@ -78,7 +122,6 @@ function App() {
                                 ] and your wallet address is [{signerAddress}].
                             </Typography>
                         </Box>
-
                         <List
                             sx={{
                                 width: "100%",
@@ -91,11 +134,52 @@ function App() {
                                     component="div"
                                     id="nested-list-subheader"
                                 >
-                                    SDK-Redux functionalities
+                                    SDK-Redux Query Features
                                 </ListSubheader>
                             }
                         >
-                            <SdkListItem title="Transactions">
+                            <SdkListItem title="Real-Time Balance">
+                                <GetRealtimeBalance />
+                            </SdkListItem>
+                            <SdkListItem title="List Streams">
+                                <ListStreams />
+                            </SdkListItem>
+                            <SdkListItem title="List SuperTokens">
+                                <ListSuperTokens />
+                            </SdkListItem>
+                            <SdkListItem title="List User-Interacted SuperTokens">
+                                <ListUserInteractedSuperTokens />
+                            </SdkListItem>
+                            <SdkListItem title="List Indexes">
+                                <ListIndexes />
+                            </SdkListItem>
+                            <SdkListItem title="List Index Subscriptions">
+                                <ListIndexSubscriptions />
+                            </SdkListItem>
+                            <SdkListItem title="List Events">
+                                <ListEvents />
+                            </SdkListItem>
+                            <SdkListItem title="Monitor For Events To Invalidate Cache">
+                                <MonitorForEventsToInvalidateCache />
+                            </SdkListItem>
+                        </List>
+                        <List
+                            sx={{
+                                width: "100%",
+                                bgcolor: "background.paper",
+                            }}
+                            component="nav"
+                            aria-labelledby="nested-list-subheader"
+                            subheader={
+                                <ListSubheader
+                                    component="div"
+                                    id="nested-list-subheader"
+                                >
+                                    SDK-Redux Transaction Features
+                                </ListSubheader>
+                            }
+                        >
+                            <SdkListItem title="Transaction tracking">
                                 <TransactionTable />
                             </SdkListItem>
                             <SdkListItem title="Upgrade To SuperToken">
@@ -134,30 +218,6 @@ function App() {
                             <SdkListItem title="Delete Stream">
                                 <DeleteStream />
                             </SdkListItem>
-                            <SdkListItem title="Real-Time Balance">
-                                <GetRealtimeBalance />
-                            </SdkListItem>
-                            <SdkListItem title="List Streams">
-                                <ListStreams />
-                            </SdkListItem>
-                            <SdkListItem title="List SuperTokens">
-                                <ListSuperTokens />
-                            </SdkListItem>
-                            <SdkListItem title="List User-Interacted SuperTokens">
-                                <ListUserInteractedSuperTokens />
-                            </SdkListItem>
-                            <SdkListItem title="List Indexes">
-                                <ListIndexes />
-                            </SdkListItem>
-                            <SdkListItem title="List Index Subscriptions">
-                                <ListIndexSubscriptions />
-                            </SdkListItem>
-                            <SdkListItem title="List Events">
-                                <ListEvents />
-                            </SdkListItem>
-                            <SdkListItem title="Monitor For Events To Invalidate Cache">
-                                <MonitorForEventsToInvalidateCache />
-                            </SdkListItem>
                         </List>
                     </SignerContext.Provider>
                 )}
@@ -173,17 +233,18 @@ export const SdkListItem: FC<{ title: string }> = ({
     const [isOpen, setIsListEventsOpen] = useState(false);
 
     return (
-        <Box>
-            <ListItemButton onClick={() => setIsListEventsOpen(!isOpen)}>
-                <ListItemIcon>
-                    <InboxIcon />
-                </ListItemIcon>
-                <ListItemText primary={title} />
-                {isOpen ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
-            <Collapse in={isOpen} timeout="auto" unmountOnExit>
-                {children}
-            </Collapse>
+        <Box mb={1}>
+            <Paper variant="outlined">
+                <ListItemButton onClick={() => setIsListEventsOpen(!isOpen)}>
+                    <ListItemIcon>
+                        {isOpen ? <ExpandLess /> : <ExpandMore />}
+                    </ListItemIcon>
+                    <ListItemText primary={title} />
+                </ListItemButton>
+                <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                    <Box p={2}>{children}</Box>
+                </Collapse>
+            </Paper>
         </Box>
     );
 };

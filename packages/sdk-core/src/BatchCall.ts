@@ -1,10 +1,12 @@
 import { ethers } from "ethers";
+
 import { abi as SuperfluidABI } from "../../sdk-core/src/abi/Superfluid.json";
-import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
+
 import Host from "./Host";
-import { IConfig } from "./interfaces";
 import Operation, { OperationType } from "./Operation";
 import SFError from "./SFError";
+import { IConfig } from "./interfaces";
+import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
 interface IBatchCallOptions {
     config: IConfig;
@@ -80,13 +82,19 @@ export default class BatchCall {
         // The only operation which has a target that is not the
         // same as the to property of the transaction.
         if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
+            const encoder = ethers.utils.defaultAbiCoder;
             const functionArgs = this.getCallAgreementFunctionArgs(
                 populatedTransaction.data
             );
+            const data = encoder.encode(
+                ["bytes", "bytes"],
+                [functionArgs["callData"], functionArgs["userData"]]
+            );
+
             return {
                 operationType: operationType!,
                 target: functionArgs["agreementClass"],
-                data: functionArgs["callData"],
+                data,
             };
         }
 

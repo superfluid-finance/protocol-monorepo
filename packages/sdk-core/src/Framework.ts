@@ -1,24 +1,25 @@
-import { ethers } from "ethers";
 import { Signer } from "@ethersproject/abstract-signer";
+import { ethers } from "ethers";
+
+import BatchCall from "./BatchCall";
+import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import Host from "./Host";
+import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import Operation from "./Operation";
+import Query from "./Query";
+import SFError from "./SFError";
+import SuperToken from "./SuperToken";
 import { abi as IResolverABI } from "./abi/IResolver.json";
 import { abi as SuperfluidLoaderABI } from "./abi/SuperfluidLoader.json";
-import { IResolver, SuperfluidLoader } from "./typechain";
+import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import { IResolver, SuperfluidLoader } from "./typechain";
 import { DataMode } from "./types";
-import BatchCall from "./BatchCall";
-import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
-import Host from "./Host";
-import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
-import SuperToken from "./SuperToken";
-import Query from "./Query";
-import Operation from "./Operation";
-import SFError from "./SFError";
 
 // TODO: add convenience function of utilizing provider (optional)
 // instead of having to pass it in every single time

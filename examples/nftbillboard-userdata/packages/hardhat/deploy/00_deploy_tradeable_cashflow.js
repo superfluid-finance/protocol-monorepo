@@ -10,6 +10,7 @@ const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
+require("dotenv");
 //your address here...
 const owner = process.env.OWNER_ADDRESS;
 

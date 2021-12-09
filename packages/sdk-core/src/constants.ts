@@ -18,9 +18,12 @@ export const chainIds = [
     4, // RINKEBY
     5, // GOERLI
     42, // KOVAN
+    69, // OPTIMISM KOVAN
     100, // XDAI
     137, // MATIC
+    43113, // AVALANCHE FUJI
     80001, // MUMBAI
+    421611, // ARBITRUM RINKEBY
 ];
 
 export const networkNames: string[] = [
@@ -31,6 +34,9 @@ export const networkNames: string[] = [
     "xdai",
     "matic",
     "mumbai",
+    "optimism-kovan",
+    "arbitrium-rinkeby",
+    "avalanche-fuji",
 ];
 
 export const chainIdToDataMap = new Map<number, IResolverData>([
@@ -71,6 +77,15 @@ export const chainIdToDataMap = new Map<number, IResolverData>([
         },
     ],
     [
+        69,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-kovan",
+            networkName: "optimism-kovan",
+            resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
+        },
+    ],
+    [
         100,
         {
             subgraphAPIEndpoint:
@@ -89,12 +104,30 @@ export const chainIdToDataMap = new Map<number, IResolverData>([
         },
     ],
     [
+        43113,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-avalanche-fuji",
+            networkName: "avalanche-fuji",
+            resolverAddress: "0xb76d7c14caD40Cc434655Ce0a9B5b49220C362cA",
+        },
+    ],
+    [
         80001,
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
             networkName: "mumbai",
             resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
+        },
+    ],
+    [
+        421611,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-arbitrum-rinkeby",
+            networkName: "arbitrum-rinkeby",
+            resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
         },
     ],
 ]);
@@ -104,7 +137,10 @@ export const networkNameToChainIdMap = new Map<string, number>([
     ["rinkeby", 4],
     ["goerli", 5],
     ["kovan", 42],
+    ["optimism-kovan", 69],
     ["xdai", 100],
     ["matic", 137],
+    ["avalanche-fuji", 43113],
     ["mumbai", 80001],
+    ["arbitrum-rinkeby", 421611],
 ]);

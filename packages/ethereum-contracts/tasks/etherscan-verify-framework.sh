@@ -53,7 +53,7 @@ if [ -z "$NO_FORCE_CONSTRUCTOR_ARGS" ];then
     SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log("'${SUPERFLUID_HOST_PROXY}'".toLowerCase().slice(2).padStart(64, "0"))')
     npx truffle --network $TRUFFLE_NETWORK run verify SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC} --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
 else
-    echo "Cannot verify super token logic due to forceConstructorArgs not supported."
+    echo "!!! WARNING !!! Cannot verify super token logic due to forceConstructorArgs not supported."
 fi
 
 echo CFA

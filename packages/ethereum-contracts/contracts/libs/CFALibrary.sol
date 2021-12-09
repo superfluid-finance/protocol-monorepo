@@ -33,7 +33,7 @@ library CFAWrapper {
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.createFlow.selector,
-                  cfaLibrary.token.,
+                  cfaLibrary.token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder

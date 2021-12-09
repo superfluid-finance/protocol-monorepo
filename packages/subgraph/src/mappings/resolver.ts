@@ -2,7 +2,7 @@ import {
     RoleAdminChanged,
     RoleGranted,
     RoleRevoked,
-} from "../../generated/ResolverV1/TestResolver";
+} from "../../generated/ResolverV1/Resolver";
 import {
     RoleAdminChangedEvent,
     RoleGrantedEvent,

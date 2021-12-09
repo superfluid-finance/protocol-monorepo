@@ -32,7 +32,7 @@ export function getHostAddress(): Address {
         address = "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7";
     }
     if (network == "fuji") {
-        address = "0xb1Cb9e86Fe1E6B45F44A3D90ed08E71403D6fA36";
+        address = "0xf04F2C525819691ed9ABD3D2B7109E1633795e68";
     }
     if (network == "arbitrum-rinkeby") {
         address = "0xE01F8743677Da897F4e7De9073b57Bf034FC2433";
@@ -80,7 +80,7 @@ export function getResolverAddress(): Address {
         address = "0xD2009765189164b495c110D61e4D301729079911";
     }
     if (network == "fuji") {
-        address = "0xb76d7c14caD40Cc434655Ce0a9B5b49220C362cA";
+        address = "0x141920741bC45b962B59c833cd849bA617F7ef38";
     }
     if (network == "arbitrum-rinkeby") {
         address = "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567";

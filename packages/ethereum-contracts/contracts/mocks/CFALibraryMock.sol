@@ -19,29 +19,122 @@ import {
 
 contract CFALibraryMock {
 
+    struct CFALibrarySetup {
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        ISuperToken token
+    }
+
     ISuperfluid private _host;
     IConstantFlowAgreementV1 private _cfa;
+    CFALibrarySetup public _token; 
 
     constructor(
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa
+        IConstantFlowAgreementV1 cfa,
+        ISuperToken token
     ) {
-        _host = host;
-        _cfa = cfa;
+        _token = (host, cfa, token)
+
     }
 
+    using CFAWrapper for CFALibrarySetup;
+
+
     function createFlowTest(
-        ISuperfluidToken token,
         address receiver,
         int96 flowRate
     ) public {
-        CFAWrapper.createFlow(
-            _host,
-            _cfa,
-            token,
-            receiver,
-            flowRate
-        );
+        _token.createFlow(receiver,flowRate);
+    }
+
+    function createFlowWithUserDataTest(
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        _token.createFlow(receiver, flowRate, userData);
+    }
+
+    function updateFlowTest(
+        address receiver,
+        int96 flowRate
+    ) public {
+        _token.updateFlow(receiver, flowRate);
+    }
+
+    function updateFlowWithUserDataTest(
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        _token.updateFlow(receiver, flowRate, userData);
+    }
+
+    function deleteFlowTest(
+        address sender,
+        address receiver,
+    ) public {
+        _token.createFlow(sender, receiver);
+    }
+
+    function deleteFlowWithUserDataTest(
+        address sender
+        address receiver,
+        bytes memory userData
+    ) public {
+        _token.deleteFlow(sender, receiver, userData);
+    }
+
+    function createFlowWithCtxTest(
+        bytes memory ctx
+        address receiver,
+        int96 flowRate
+    ) public {
+        _token.createFlowWithCtx(ctx, receiver,flowRate);
+    }
+
+    function createFlowWithCtxUserDataTest(
+        bytes memory ctx,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        _token.createFlowWithCtx(ctx, receiver, flowRate, userData);
+    }
+
+    function updateFlowWithCtxTest(
+        bytes memory ctx,
+        address receiver,
+        int96 flowRate
+    ) public {
+        _token.updateFlowWithCtx(ctx, receiver, flowRate);
+    }
+
+    function updateFlowWithCtxUserDataTest(
+        bytes memory ctx,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        _token.updateFlow(ctx, receiver, flowRate, userData);
+    }
+
+    function deleteFlowWithCtxTest(
+        bytes memory ctx,
+        address sender,
+        address receiver,
+    ) public {
+        _token.deleteFlow(ctx, sender, receiver);
+    }
+
+    function deleteFlowWithCtxUserDataTest(
+        bytes memory ctx,
+        address sender
+        address receiver,
+        bytes memory userData
+    ) public {
+        _token.deleteFlow(ctx, sender, receiver, userData);
     }
 
 }  

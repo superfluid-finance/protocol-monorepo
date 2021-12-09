@@ -24,7 +24,7 @@ library CFAWrapper {
         ISuperfluidToken token,
         address receiver,
         int96 flowRate
-    ) public 
+    ) public {
             host.callAgreement(
                 cfa,
                 abi.encodeWithSelector(
@@ -96,7 +96,7 @@ library CFAWrapper {
                 cfa,
                 abi.encodeWithSelector(
                   cfa.updateFlow.selector,
-                  token
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -143,7 +143,7 @@ library CFAWrapper {
                 abi.encodeWithSelector(
                   cfa.updateFlow.selector,
                   token,
-                  receiver
+                  receiver,
                   flowRate,
                   cfaCtx
               ),
@@ -352,7 +352,7 @@ library CFAWrapper {
                   cfaCtx
               ),
               userData,
-              newCt
+              newCtx
             );
         }
 

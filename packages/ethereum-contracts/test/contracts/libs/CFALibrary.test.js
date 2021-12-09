@@ -48,8 +48,8 @@ describe("CFA Library testing", function () {
     describe("1 - Create flow", async function () {
         it("1.1 - create flow with no user data or extra cfa ctx", async () => {
             await CFALibraryMock.createFlowTest(
-                superToken.address,
                 bob.address,
+                superToken.address,
                 "3858024691358" //10 per month
             );
             let {timestamp, bal} = await cfa.getFlow(

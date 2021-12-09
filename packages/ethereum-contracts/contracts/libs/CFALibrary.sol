@@ -11,12 +11,11 @@ import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-library CFAWrapper {
+library CFALibrary {
 
     struct CFALibrarySetup {
-        ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
-        ISuperToken token
+        ISuperfluid host;
+        IConstantFlowAgreementV1 cfa;
     }
 
     //@dev for working with the constant flow agreement within solidity
@@ -25,15 +24,16 @@ library CFAWrapper {
 
      //create flow without userData
     function createFlow(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup storage cfaLibrary,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate
     ) internal {
             cfaLibrary.host.callAgreement(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.createFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -45,8 +45,9 @@ library CFAWrapper {
 
     //create flow with userData
     function createFlow(
-        CFALibrarySetup cfaLibrary, 
+        CFALibrarySetup storage cfaLibrary, 
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate,
         bytes memory userData
     ) internal {
@@ -54,7 +55,7 @@ library CFAWrapper {
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.createFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -65,15 +66,16 @@ library CFAWrapper {
 
     //update flow without userData
     function updateFlow(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup storage cfaLibrary,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate
     ) internal {
             cfaLibrary.host.callAgreement(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.updateFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -85,8 +87,9 @@ library CFAWrapper {
 
     //update flow with userData
     function updateFlow(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate,
         bytes memory userData
     ) internal {
@@ -94,7 +97,7 @@ library CFAWrapper {
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.updateFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -105,15 +108,16 @@ library CFAWrapper {
 
     //delete flow
     function deleteFlow(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         address sender,
-        address receiver
+        address receiver,
+        ISuperfluidToken token
     ) internal {
             cfaLibrary.host.callAgreement(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.deleteFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   sender,
                   receiver,
                   new bytes(0) // placeholder
@@ -125,16 +129,17 @@ library CFAWrapper {
 
     //delete flow with userData 
     function deleteFlow(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         address sender,
         address receiver,
+        ISuperfluidToken token,
         bytes memory userData
     ) internal {
             cfaLibrary.host.callAgreement(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.deleteFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   sender,
                   receiver,
                   new bytes(0) // placeholder
@@ -145,16 +150,17 @@ library CFAWrapper {
 
   //create flow with ctx 
     function createFlowWithCtx(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
             (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.createFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -166,9 +172,10 @@ library CFAWrapper {
 
     //create flow with ctx and userData
     function createFlowWithCtx(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
@@ -176,7 +183,7 @@ library CFAWrapper {
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.createFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -188,16 +195,17 @@ library CFAWrapper {
 
   //update flow with ctx but without userData 
     function updateFlowWithCtx(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
             (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.updateFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
@@ -209,38 +217,40 @@ library CFAWrapper {
 
     //update flow with ctx and userData
     function updateFlowWithCtx(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-            (newCtx, ) = host.callAgreementWithContext(
-                cfa,
+            (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+                cfaLibrary.cfa,
                 abi.encodeWithSelector(
-                  cfa.updateFlow.selector,
+                  cfaLibrary.cfa.updateFlow.selector,
                   token,
                   receiver,
                   flowRate,
                   new bytes(0) // placeholder
               ),
               userData,
-              newCtx
+              ctx
             );
         }
 
   //delete flow with ctx 
     function deleteFlowWithCtx(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         bytes memory ctx,
         address sender,
-        address receiver
+        address receiver,
+        ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
             (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.deleteFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   sender,
                   receiver,
                   new bytes(0) // placeholder
@@ -252,17 +262,18 @@ library CFAWrapper {
 
     //delete flow with ctx and userData 
     function deleteFlowWithCtx(
-        CFALibrarySetup cfaLibrary,
+        CFALibrarySetup memory cfaLibrary,
         bytes memory ctx,
         address sender,
         address receiver,
+        ISuperfluidToken token,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
             (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
                 cfaLibrary.cfa,
                 abi.encodeWithSelector(
                   cfaLibrary.cfa.deleteFlow.selector,
-                  cfaLibrary.token,
+                  token,
                   sender,
                   receiver,
                   new bytes(0) // placeholder

@@ -1,13 +1,11 @@
-// SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma abicoder v2;
+ //SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+pragma experimental ABIEncoderV2;
 
 import {
     ISuperfluid,
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
-// When ready to move to leave Remix, change imports to follow this pattern:
-// "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {
     IConstantFlowAgreementV1
@@ -17,124 +15,127 @@ import {
     CFAWrapper
 } from "../libs/CFALibrary.sol";
 
-contract CFALibraryMock {
+contract CFALibraryTest {
 
-    struct CFALibrarySetup {
-        ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
-        ISuperToken token
-    }
+    using CFALibrary for CFALibrary.CFALibrarySetup;
 
-    ISuperfluid private _host;
-    IConstantFlowAgreementV1 private _cfa;
-    CFALibrarySetup public _token; 
+    //initialize cfaV1 variable
+    CFALibrary.CFALibrarySetup public cfaV1; 
 
     constructor(
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
-        ISuperToken token
+        IConstantFlowAgreementV1 cfa
     ) {
-        _token = (host, cfa, token)
-
+        //initialize CFALibrarySetup struct, and set equal to cfaV1
+        cfaV1 = CFALibrary.CFALibrarySetup(host, cfa);
     }
 
-    using CFAWrapper for CFALibrarySetup;
-
-
     function createFlowTest(
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate
     ) public {
-        _token.createFlow(receiver,flowRate);
+        cfaV1.createFlow(receiver, token, flowRate);
     }
 
     function createFlowWithUserDataTest(
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate,
         bytes memory userData
     ) public {
-        _token.createFlow(receiver, flowRate, userData);
+        cfaV1.createFlow(receiver, token, flowRate, userData);
     }
 
     function updateFlowTest(
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate
     ) public {
-        _token.updateFlow(receiver, flowRate);
+        cfaV1.updateFlow(receiver, token, flowRate);
     }
 
     function updateFlowWithUserDataTest(
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate,
         bytes memory userData
     ) public {
-        _token.updateFlow(receiver, flowRate, userData);
+        cfaV1.updateFlow(receiver, token, flowRate, userData);
     }
 
     function deleteFlowTest(
         address sender,
         address receiver,
+        ISuperfluidToken token
     ) public {
-        _token.createFlow(sender, receiver);
+        cfaV1.deleteFlow(sender, receiver, token);
     }
 
     function deleteFlowWithUserDataTest(
-        address sender
+        address sender,
         address receiver,
+        ISuperfluidToken token,
         bytes memory userData
     ) public {
-        _token.deleteFlow(sender, receiver, userData);
+        cfaV1.deleteFlow(sender, receiver, token, userData);
     }
 
     function createFlowWithCtxTest(
-        bytes memory ctx
+        bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate
     ) public {
-        _token.createFlowWithCtx(ctx, receiver,flowRate);
+        cfaV1.createFlowWithCtx(ctx, receiver,token, flowRate);
     }
 
     function createFlowWithCtxUserDataTest(
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate,
         bytes memory userData
     ) public {
-        _token.createFlowWithCtx(ctx, receiver, flowRate, userData);
+        cfaV1.createFlowWithCtx(ctx, receiver, token, flowRate, userData);
     }
 
     function updateFlowWithCtxTest(
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate
     ) public {
-        _token.updateFlowWithCtx(ctx, receiver, flowRate);
+        cfaV1.updateFlowWithCtx(ctx, receiver, token, flowRate);
     }
 
     function updateFlowWithCtxUserDataTest(
         bytes memory ctx,
         address receiver,
+        ISuperfluidToken token,
         int96 flowRate,
         bytes memory userData
     ) public {
-        _token.updateFlow(ctx, receiver, flowRate, userData);
+        cfaV1.updateFlowWithCtx(ctx, receiver, token, flowRate, userData);
     }
 
     function deleteFlowWithCtxTest(
         bytes memory ctx,
         address sender,
         address receiver,
+        ISuperfluidToken token
     ) public {
-        _token.deleteFlow(ctx, sender, receiver);
+        cfaV1.deleteFlowWithCtx(ctx, sender, receiver, token);
     }
 
     function deleteFlowWithCtxUserDataTest(
         bytes memory ctx,
-        address sender
+        address sender,
         address receiver,
+        ISuperfluidToken token,
         bytes memory userData
     ) public {
-        _token.deleteFlow(ctx, sender, receiver, userData);
+        cfaV1.deleteFlowWithCtx(ctx, sender, receiver, token, userData);
     }
 
 }  

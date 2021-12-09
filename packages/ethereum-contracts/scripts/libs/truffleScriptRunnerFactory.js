@@ -50,7 +50,10 @@ module.exports = function (ctxFn, logicFn, runnerOpts) {
             }
 
             // normalize web3 environment
-            console.log("use truffle native environment", options.isTruffle);
+            console.log(
+                "use truffle native environment (isTruffle)",
+                options.isTruffle
+            );
             if (options.isTruffle) {
                 if (options.web3) {
                     throw Error(

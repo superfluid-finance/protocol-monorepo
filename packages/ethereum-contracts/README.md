@@ -94,12 +94,12 @@ Clone a project, modify and play!
 In the example test code, you have seen how to deploy protocol contracts from JS code.
 In truffle projects, this deploy scripts can also be used on a CLI. E.g. in order to deploy to a local ganache dev chain:
 ```sh
-NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+CREATE_NEW_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
 In order to deploy to another network, set the `network` argument accordingly.
 
-`NEW_TEST_RESOLVER=1` forces the script to deploy a new resolver even if there's one already deployed (this is the case on Ethereum testnets). That's useful because otherwise the script would try to use the pre-existing resolver and have failing transactions due to lacking permissions.
+`CREATE_NEW_RESOLVER=1` forces the script to deploy a new resolver even if there's one already deployed (this is the case on Ethereum testnets). That's useful because otherwise the script would try to use the pre-existing resolver and have failing transactions due to lacking permissions.
 
 `DISABLE_NATIVE_TRUFFLE=true` tells the script to use the contract binaries bundled with the npm package.
 
@@ -108,10 +108,10 @@ After successful execution of this command, you should get something like this:
 ...
 ======== Super token deployed ========
 =============== TEST ENVIRONMENT RESOLVER ======================
-export TEST_RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
+export RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
 ```
 
-Run the export command to save `TEST_RESOLVER_ADDRESS` to your local environment.
+Run the export command to save `RESOLVER_ADDRESS` to your local environment.
 This allows tests/scripts running later in the same environment to find and use the contracts just deployed.
 
 ## Contributing
@@ -203,7 +203,7 @@ This will deploy the protocol contracts and a Super Token named _TEST_ (which is
 If you have set the env `TESTENV_SNAPSHOT_VARS` before, the file it's set to should now exist and look something like this:
 ```sh
 $ cat testenv.ignore.vars
-TEST_RESOLVER_ADDRESS=0xF12b5dd4EAD5F743C6BaA640B0216200e89B60Da
+RESOLVER_ADDRESS=0xF12b5dd4EAD5F743C6BaA640B0216200e89B60Da
 TESTENV_EVM_SNAPSHOT_ID=0x1
 ```
 

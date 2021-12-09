@@ -130,6 +130,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // op kovan testnet
             nativeTokenSymbol: "ETH",
             resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-kovan",
+                },
+            },
         },
 
         //
@@ -143,6 +149,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // arbitrum rinkeby testnet
             nativeTokenSymbol: "ETH",
             resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-arbitrum-rinkeby",
+                },
+            },
         },
 
         //
@@ -156,6 +168,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // avalanche c-chain fuji testnet
             nativeTokenSymbol: "AVAX",
             resolverAddress: "0x141920741bC45b962B59c833cd849bA617F7ef38",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-avalanche-fuji",
+                },
+            },
         },
 
         //

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 set -xe
 
 TRUFFLE_NETWORK=$1
@@ -9,6 +7,8 @@ echo NETWORK_ID=$NETWORK_ID
 
 # network specifics
 case $TRUFFLE_NETWORK in
+    arbitrum-rinkeby )
+        ;;
     eth-goerli | eth-rinkeby | eth-ropsten | eth-kovan | \
     polygon-mumbai | \
     optimism-kovan | \
@@ -29,7 +29,11 @@ case $TRUFFLE_NETWORK in
         echo "Unknown network: $TRUFFLE_NETWORK"
         exit 1;
 esac
-[ "$TRUFFLE_NETWORK" == "arbitrum-rinkeby" ] && NO_FORCE_CONSTRUCTOR_ARGS=1
+if [ "$TRUFFLE_NETWORK" == "arbitrum-rinkeby" ];then
+    NO_FORCE_CONSTRUCTOR_ARGS=1
+    echo "$TRUFFLE_NETWORK contract verification support is not stable, skpping it for now"
+    exit 0
+fi
 
 echo UUPSProxy
 npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPERFLUID_HOST_PROXY}

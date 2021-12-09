@@ -3,11 +3,11 @@ import { ethers } from "ethers";
 
 import SFError from "./SFError";
 import {
-    DAYS_PER_MONTH,
-    HOURS_PER_DAY,
-    MINUTES_PER_HOUR,
-    MONTHS_PER_YEAR,
-    SECONDS_PER_MINUTE,
+    BASE_18,
+    DAY_IN_SECONDS,
+    MONTH_IN_SECONDS,
+    WEEK_IN_SECONDS,
+    YEAR_IN_SECONDS,
 } from "./constants";
 import { IIndexSubscription } from "./interfaces";
 
@@ -69,12 +69,7 @@ export const getTransactionDescription = (
  */
 export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
     return Math.round(
-        Number(amountPerYear) *
-            MONTHS_PER_YEAR *
-            DAYS_PER_MONTH *
-            HOURS_PER_DAY *
-            MINUTES_PER_HOUR *
-            SECONDS_PER_MINUTE
+        (Number(amountPerYear) / YEAR_IN_SECONDS) * BASE_18
     ).toString();
 };
 
@@ -85,11 +80,18 @@ export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
  */
 export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
     return Math.round(
-        Number(amountPerMonth) *
-            DAYS_PER_MONTH *
-            HOURS_PER_DAY *
-            MINUTES_PER_HOUR *
-            SECONDS_PER_MINUTE
+        (Number(amountPerMonth) / MONTH_IN_SECONDS) * BASE_18
+    ).toString();
+};
+
+/**
+ * @dev Gets the per second flow rate given an `amountPerWeek` value.
+ * @param amountPerWeek the amount you want to stream per Week
+ * @returns flow rate per second
+ */
+export const getPerSecondFlowRateByWeek = (amountPerWeek: string) => {
+    return Math.round(
+        (Number(amountPerWeek) / WEEK_IN_SECONDS) * BASE_18
     ).toString();
 };
 
@@ -100,11 +102,23 @@ export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
  */
 export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
     return Math.round(
-        Number(amountPerDay) *
-            HOURS_PER_DAY *
-            MINUTES_PER_HOUR *
-            SECONDS_PER_MINUTE
+        (Number(amountPerDay) / DAY_IN_SECONDS) * BASE_18
     ).toString();
+};
+
+/**
+ * @dev Gets daily, weekly, monthly and yearly flowed amounts given a per second flow rate.
+ * @param perSecondFlowRate
+ * @returns
+ */
+export const getFlowAmountByPerSecondFlowRate = (perSecondFlowRate: string) => {
+    const decimalFlowRate = Number(perSecondFlowRate) / BASE_18;
+    return {
+        daily: Math.round(decimalFlowRate * DAY_IN_SECONDS).toString(),
+        weekly: Math.round(decimalFlowRate * WEEK_IN_SECONDS).toString(),
+        monthly: Math.round(decimalFlowRate * MONTH_IN_SECONDS).toString(),
+        yearly: Math.round(decimalFlowRate * YEAR_IN_SECONDS).toString(),
+    };
 };
 
 /**

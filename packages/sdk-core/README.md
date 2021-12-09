@@ -37,12 +37,24 @@ yarn install && yarn build
 
 Here is a quick look at initializing the SDK in different environments:
 
-TypeScript / JavaScript (Module):
+TypeScript / JavaScript (Module) vs. JavaScript (CommonJS) - usually a Node.js environment
 
+The primary difference between the two environments is the import/require of the sdk-core package, everything else is the same.
+
+TS/ESModule
 ```ts
 import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
+```
 
+CommonJS/Node.js
+```js
+const { Framework } = require("@superfluid-finance/sdk-core");
+const { ethers } = require("ethers");
+```
+
+```ts
+// infura provider initialization
 const provider = new ethers.providers.InfuraProvider(
   "matic",
   "<INFURA_API_KEY>"
@@ -60,31 +72,45 @@ const web3jsSf = await Framework.create({
   networkName: "matic",
   provider: web3jsProvider
 });
-```
 
-JavaScript (CommonJS) - usually a Node.js environment:
-
-```js
-const { Framework } = require("@superfluid-finance/sdk-core");
-const { ethers } = require("ethers");
-
-const provider = new ethers.providers.InfuraProvider(
-  "matic",
-  "<INFURA_API_KEY>"
-);
-const sf = await Framework.create({
+// ethers.js + hardhat provider initialization (in testing environment w/ hardhat-ethers)
+const [deployer] = await ethers.getSigners();
+const ethersProvider = deployer.provider;
+const ethersjsSf = await Framework.create({
   networkName: "matic",
-  provider
+  provider: ethersProvider
 });
 
-// web3.js + Hardhat provider initialization
-const web3jsProvider = new ethers.providers.Web3Provider(
-  global.web3.currentProvider
-);
-const web3jsSf = await Framework.create({
+// metamask
+const mmProvider = new ethers.providers.Web3Provider(window.ethereum);
+const mmSf = await Framework.create({
   networkName: "matic",
-  provider: web3jsProvider
+  provider: mmProvider
 });
+
+// web3modal
+const web3ModalRawProvider = await web3Modal.connect();
+const web3ModalProvider = new ethers.providers.Web3Provider(web3ModalRawProvider);
+const web3ModalSf = await Framework.create({
+  networkName: "matic",
+  provider: web3ModalProvider
+});
+
+//bnc-onboard
+const onboard = Onboard({
+    dappId: "<API_KEY>",
+    networkId: 4,
+    subscriptions: {
+        wallet: wallet => {
+            const web3Provider = new ethers.providers.Web3Provider(wallet.provider);
+            (async () => {
+                const framework = await Framework.create({ networkName: "matic", provider: web3Provider });
+            })();
+        }
+    }
+});
+// this is triggered by:
+await onboard.walletSelect();
 ```
 
 > Note: You specify your project type in `package.json` - `"type": "module"` or `"type": "commonjs"`.

@@ -282,7 +282,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "SuperfluidGovernanceBase",
         ],
         tokens: config.tokenList,
-        loadSuperNativeToken: false,
+        loadSuperNativeToken: true,
     });
     await sf.initialize();
 

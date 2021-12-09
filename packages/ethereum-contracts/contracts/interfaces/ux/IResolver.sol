@@ -8,7 +8,7 @@ pragma solidity >= 0.5.0;
  */
 interface IResolver {
 
-    event NameSet(string indexed name, address target);
+    event Set(string indexed name, address target);
 
     /**
      * @dev Set resolver address name.

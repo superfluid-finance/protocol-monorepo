@@ -11,7 +11,7 @@ import { IResolver } from "../interfaces/ux/IResolver.sol";
  * NOTE:
  * Relevant events for indexing:
  * - OZ Access Control events `RoleGranted`/`RoleRevoked`: admin add/remove
- * - IResolver event `NameSet`: resolver name updates
+ * - IResolver event `Set`: resolver name updates
  */
 contract Resolver is IResolver, AccessControl {
 
@@ -24,7 +24,7 @@ contract Resolver is IResolver, AccessControl {
     function set(string calldata name, address target) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Caller is not an admin");
         _registry[name] = target;
-        emit NameSet(name, target);
+        emit Set(name, target);
     }
 
     function get(string calldata name) external view override returns (address) {

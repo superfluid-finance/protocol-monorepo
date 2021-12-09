@@ -11,7 +11,9 @@ echo NETWORK_ID=$NETWORK_ID
 case $TRUFFLE_NETWORK in
     eth-goerli | eth-rinkeby | eth-ropsten | eth-kovan | \
     polygon-mumbai | \
-    optimism-kovan | arbitrum-rinkeby | avalanche-fuji )
+    optimism-kovan | \
+    arbitrum-rinkeby | \
+    avalanche-fuji )
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1
         ;;

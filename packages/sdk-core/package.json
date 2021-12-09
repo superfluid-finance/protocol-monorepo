@@ -23,7 +23,7 @@
         "doc:html": "typedoc --out build/docs --entryPoints ./src/index.ts",
         "lint": "run-s lint:*",
         "lint:prettier": "prettier \"src/**/*.ts\" --write",
-        "lint:lint": "eslint src --ext .ts --fix",
+        "lint:lint": "eslint src --ext .ts",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint": "echo no pre-commit currently",
         "generate-abi-files": "rm -rf src/abi && mkdir src/abi && tasks/build-abi-json.sh",

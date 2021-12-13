@@ -113,7 +113,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
     }
 
-    function shouldTestSolventLiquidation({
+    function shouldCreateSolventLiquidationTest({
         titlePrefix,
         sender,
         receiver,
@@ -125,7 +125,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
     }
 
-    function shouldTestBailout({
+    function shouldCreateBailoutTest({
         titlePrefix,
         sender,
         receiver,
@@ -145,14 +145,17 @@ describe("Using ConstantFlowAgreement v1", function () {
     }
 
     async function _testSolventLiquidation({ sender, receiver, by, seconds }) {
+        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({superToken: superToken.address, account: t.aliases[sender]});
+        const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
+
         assert.isFalse(
             await superToken.isAccountCriticalNow(t.aliases[sender])
         );
         assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
-        // drain the balance until critical (60sec extra)
+        // drain the balance until critical (`seconds` sec extra)
         await timeTravelOnceAndVerifyAll({
             time:
-                t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                t.configs.INIT_BALANCE.div(netFlowRate).toNumber() -
                 LIQUIDATION_PERIOD +
                 seconds,
             allowCriticalAccount: true,
@@ -164,7 +167,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             t.aliases[sender]
         );
         const timeInDeficit = balanceData.availableBalance
-            .div(toBN(0).sub(FLOW_RATE1))
+            .div(toBN(0).sub(netFlowRate))
             .toNumber();
 
         await shouldDeleteFlow({
@@ -174,6 +177,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             receiver,
             by,
             time: timeInDeficit,
+            accountFlowInfo
         });
 
         await verifyAll();
@@ -186,13 +190,16 @@ describe("Using ConstantFlowAgreement v1", function () {
         allowCriticalAccount,
         seconds,
     }) {
+        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({superToken: superToken.address, account: t.aliases[sender]});
+        const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
+
         assert.isFalse(
             await superToken.isAccountCriticalNow(t.aliases[sender])
         );
         assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
         // drain the balance until insolvent
         await timeTravelOnceAndVerifyAll({
-            time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + seconds,
+            time: t.configs.INIT_BALANCE.div(netFlowRate).toNumber() + seconds,
             allowCriticalAccount: true,
         });
         assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
@@ -202,7 +209,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             t.aliases[sender]
         );
         const timeInDeficit = balanceData.availableBalance
-            .div(toBN(0).sub(FLOW_RATE1))
+            .div(toBN(0).sub(netFlowRate))
             .toNumber();
 
         await shouldDeleteFlow({
@@ -212,6 +219,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             receiver,
             by,
             time: timeInDeficit,
+            accountFlowInfo
         });
 
         await verifyAll({ allowCriticalAccount });
@@ -571,7 +579,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to admin"
                     )(superfluid.address, ZERO_ADDRESS, admin);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.3.6",
                     superToken,
                     sender,
@@ -579,7 +587,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: sender,
                     seconds: 60
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.3.6",
                     superToken,
                     sender,
@@ -596,7 +604,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to zero"
                     )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.3.7",
                     superToken,
                     sender,
@@ -604,7 +612,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: sender,
                     seconds: 60
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.3.7",
                     superToken,
                     sender,
@@ -674,7 +682,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to admin"
                     )(superfluid.address, ZERO_ADDRESS, admin);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.4",
                     superToken,
                     sender,
@@ -682,7 +690,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: agent,
                     seconds: 60
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.4",
                     superToken,
                     sender,
@@ -699,7 +707,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to zero"
                     )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.5",
                     superToken,
                     sender,
@@ -707,7 +715,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: agent,
                     seconds: 60
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.5",
                     superToken,
                     sender,
@@ -726,7 +734,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to admin"
                     )(superfluid.address, ZERO_ADDRESS, admin);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.6",
                     superToken,
                     sender,
@@ -734,7 +742,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: agent,
                     seconds: t.configs.PATRICIAN_PERIOD + 1
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.6",
                     superToken,
                     sender,
@@ -753,7 +761,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to sender"
                     )(superfluid.address, ZERO_ADDRESS, t.aliases[sender]);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.7",
                     superToken,
                     sender,
@@ -761,7 +769,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: sender,
                     seconds: t.configs.PATRICIAN_PERIOD + 1
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.7",
                     superToken,
                     sender,
@@ -780,7 +788,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to agent"
                     )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.8",
                     superToken,
                     sender,
@@ -788,7 +796,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: agent,
                     seconds: t.configs.PATRICIAN_PERIOD + 1
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.8",
                     superToken,
                     sender,
@@ -807,7 +815,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to zero"
                     )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.9",
                     superToken,
                     sender,
@@ -815,7 +823,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: agent,
                     seconds: t.configs.PATRICIAN_PERIOD + 1
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.9",
                     superToken,
                     sender,
@@ -834,7 +842,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         "set reward address to agent"
                     )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
                 });
-                shouldTestSolventLiquidation({
+                shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.10",
                     superToken,
                     sender,
@@ -842,7 +850,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: receiver,
                     seconds: t.configs.PATRICIAN_PERIOD + 1
                 });
-                shouldTestBailout({
+                shouldCreateBailoutTest({
                     titlePrefix: "#1.4.10",
                     superToken,
                     sender,
@@ -855,43 +863,35 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        describe("#1.5 multiple flow liquidations", () => {
-            beforeEach(async () => {
-                // give admin some balance for liquidations
-                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
-                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
-                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
-                await shouldCreateFlow({
-                    testenv: t,
-                    superToken,
-                    sender,
-                    receiver,
-                    flowRate: FLOW_RATE1,
-                });
-                await shouldCreateFlow({
-                    testenv: t,
-                    superToken,
-                    sender,
-                    receiver: agent,
-                    flowRate: FLOW_RATE1,
-                });
-                await shouldCreateFlow({
-                    testenv: t,
-                    superToken,
-                    sender: agent,
-                    receiver: sender,
-                    flowRate: FLOW_RATE1,
-                });
-            });
+        // describe("#1.5 multiple flow liquidations", () => {
+        //     beforeEach(async () => {
+        //         // give admin some balance for liquidations
+        //         await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+        //         await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+        //         await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+        //         await shouldCreateFlow({
+        //             testenv: t,
+        //             superToken,
+        //             sender,
+        //             receiver,
+        //             flowRate: FLOW_RATE1,
+        //         });
+        //         await shouldCreateFlow({
+        //             testenv: t,
+        //             superToken,
+        //             sender,
+        //             receiver: agent,
+        //             flowRate: FLOW_RATE1,
+        //         });
+        //     });
 
-            it("#1.5.1 should be able to liquidate multiple streams when critical", async () => {
-                await _testSolventLiquidation({ sender, receiver, by: agent, seconds: 60 });
-                await _testSolventLiquidation({ sender, receiver: agent, by: sender, seconds: 60 });
-            });
-            // it should be able to liquidate multiple streams when insolvent
-            // it should be able to liquidate an insolvent stream and then a critical stream
-            // it should be able to liquidate a critical stream and then an insolvent one
-        });
+        //     it("#1.5.1 should be able to liquidate multiple streams when critical", async () => {
+        //         await _testSolventLiquidation({ sender, receiver, by: agent, seconds: 60 });
+        //     });
+        //     // it should be able to liquidate multiple streams when insolvent
+        //     // it should be able to liquidate an insolvent stream and then a critical stream
+        //     // it should be able to liquidate a critical stream and then an insolvent one
+        // });
 
         describe("#1.7 real-time balance", () => {
             // #1.7.1 TODO should be able to downgrade full balance

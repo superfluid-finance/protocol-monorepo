@@ -367,6 +367,7 @@ async function _shouldChangeFlow({
     userData,
     by,
     time,
+    accountFlowInfo
 }) {
     console.log(`======== ${fn} begins ========`);
     console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
@@ -374,32 +375,34 @@ async function _shouldChangeFlow({
     const { governance } = testenv.contracts;
 
     const roles = {};
-    const _balanceSnapshots1 = {};
-    const _accountFlowInfo1 = {};
-    const _accountFlowInfo2 = {};
-    const _balances1 = {};
-    const _balances2 = {};
+    const _balanceSnapshotsBefore = {};
+    const _accountFlowInfoBefore = {};
+    const _accountFlowInfoAfter = {};
+    const _balancesBefore = {};
+    const _balancesAfter = {};
     const flows = {};
     const expectedFlowInfo = {};
     const expectedNetFlowDeltas = {};
     let txBlock;
+
+    // definition of all the helper functions
 
     const addRole = (role, alias) => {
         roles[role] = testenv.getAddress(alias);
         console.log(`${role} account address ${roles[role]} (${alias})`);
     };
 
-    const addToBalanceSnapshots1 = (role) => {
-        _balanceSnapshots1[roles[role]] = testenv.getAccountBalanceSnapshot(
+    const addToBalanceSnapshotsBefore = (role) => {
+        _balanceSnapshotsBefore[roles[role]] = testenv.getAccountBalanceSnapshot(
             superToken.address,
             roles[role]
         );
         testenv.printRealtimeBalance(
             `${role} balance snapshot before`,
-            getBalanceSnapshots1(role)
+            getBalanceSnapshotsBefore(role)
         );
     };
-    const getBalanceSnapshots1 = (role) => _balanceSnapshots1[roles[role]];
+    const getBalanceSnapshotsBefore = (role) => _balanceSnapshotsBefore[roles[role]];
 
     const updateAccountExpectedBalanceDelta = (role, expectedBalanceDelta) => {
         testenv.updateAccountExpectedBalanceDelta(
@@ -415,55 +418,55 @@ async function _shouldChangeFlow({
         );
     };
 
-    const addAccountFlowInfo1 = (role) => {
-        _accountFlowInfo1[roles[role]] = getAccountFlowInfo({
+    const addAccountFlowInfoBefore = (role) => {
+        _accountFlowInfoBefore[roles[role]] = getAccountFlowInfo({
             testenv,
             superToken: superToken.address,
             account: roles[role],
         });
         _printFlowInfo(
             `${role} account flow info snapshot before`,
-            getAccountFlowInfo1(role)
+            getAccountFlowInfoBefore(role)
         );
     };
-    const getAccountFlowInfo1 = (role) => _accountFlowInfo1[roles[role]];
+    const getAccountFlowInfoBefore = (role) => _accountFlowInfoBefore[roles[role]];
 
-    const addAccountFlowInfo2 = async (role) => {
-        _accountFlowInfo2[roles[role]] =
+    const addAccountFlowInfoAfter = async (role) => {
+        _accountFlowInfoAfter[roles[role]] =
             await testenv.sf.cfa.getAccountFlowInfo({
                 superToken: superToken.address,
                 account: roles[role],
             });
         _printFlowInfo(
             `${role} account flow info after`,
-            getAccountFlowInfo2(role)
+            getAccountFlowInfoAfter(role)
         );
     };
-    const getAccountFlowInfo2 = (role) => _accountFlowInfo2[roles[role]];
+    const getAccountFlowInfoAfter = (role) => _accountFlowInfoAfter[roles[role]];
 
-    const addToBalances1 = async (role) => {
-        _balances1[roles[role]] = await superToken.realtimeBalanceOfNow(
+    const addToBalancesBefore = async (role) => {
+        _balancesBefore[roles[role]] = await superToken.realtimeBalanceOfNow(
             roles[role]
         );
         testenv.printRealtimeBalance(
             `${role} balance before`,
-            getBalances1(role)
+            getBalancesBefore(role)
         );
     };
-    const getBalances1 = (role) => _balances1[roles[role]];
+    const getBalancesBefore = (role) => _balancesBefore[roles[role]];
 
-    const addToBalances2 = async (role) => {
-        _balances2[roles[role]] = await superToken.realtimeBalanceOfNow(
+    const addToBalancesAfter = async (role) => {
+        _balancesAfter[roles[role]] = await superToken.realtimeBalanceOfNow(
             roles[role]
         );
         testenv.printRealtimeBalance(
             `${role} balance after`,
-            getBalances2(role)
+            getBalancesAfter(role)
         );
     };
-    const getBalances2 = (role) => _balances2[roles[role]];
+    const getBalancesAfter = (role) => _balancesAfter[roles[role]];
 
-    const addFlowInfo1 = async (flowName, flowParams) => {
+    const addFlowInfoBefore = async (flowName, flowParams) => {
         const flowId = {
             superToken: superToken.address,
             sender: flowParams.sender,
@@ -472,68 +475,70 @@ async function _shouldChangeFlow({
         const flowInfo = await testenv.sf.cfa.getFlow(flowId);
         flows[flowName] = {
             flowId,
-            notTouched: flowParams.notTouched,
-            flowInfo1: flowInfo,
+            notTouched: flowParams.notTouched, // only used in MFA test case
+            flowInfoBefore: flowInfo,
         };
         _printFlowInfo(`${flowName} flow info before`, flowInfo);
     };
 
-    const addFlowInfo2 = async (flowName) => {
+    const addFlowInfoAfter = async (flowName) => {
         const flowData = flows[flowName];
         const flowInfo = await testenv.sf.cfa.getFlow(flowData.flowId);
         _printFlowInfo(`${flowName} flow info after`, flowInfo);
-        flowData.flowInfo2 = flowInfo;
+        flowData.flowInfoAfter = flowInfo;
     };
 
+    // function to validate single flow info change
     const validateFlowInfoChange = (flowName) => {
         console.log(`validating ${flowName} flow change...`);
         const flowData = flows[flowName];
 
         if (!flowData.notTouched) {
             // validate flow info
-            if (flowData.flowInfo2.flowRate.toString() !== "0") {
+            if (flowData.flowInfoAfter.flowRate.toString() !== "0") {
                 assert.equal(
-                    flowData.flowInfo2.timestamp.getTime() / 1000,
+                    flowData.flowInfoAfter.timestamp.getTime() / 1000,
                     txBlock.timestamp,
                     `wrong flow timestamp of the ${flowName} flow`
                 );
             } else {
-                assert.equal(flowData.flowInfo2.timestamp.getTime(), 0);
+                assert.equal(flowData.flowInfoAfter.timestamp.getTime(), 0);
             }
             assert.equal(
-                flowData.flowInfo2.flowRate,
+                flowData.flowInfoAfter.flowRate,
                 expectedFlowInfo[flowName].flowRate.toString(),
                 `wrong flow rate of the ${flowName} flow`
             );
             assert.equal(
-                flowData.flowInfo2.owedDeposit,
+                flowData.flowInfoAfter.owedDeposit,
                 expectedFlowInfo[flowName].owedDeposit.toString(),
                 `wrong owed deposit amount of the ${flowName} flow`
             );
             assert.equal(
-                flowData.flowInfo2.deposit,
+                flowData.flowInfoAfter.deposit,
                 expectedFlowInfo[flowName].deposit.toString(),
                 `wrong deposit amount of the ${flowName} flow`
             );
         } else {
             assert.equal(
-                flowData.flowInfo2.flowRate,
-                flowData.flowInfo1.flowRate,
+                flowData.flowInfoAfter.flowRate,
+                flowData.flowInfoBefore.flowRate,
                 `flow rate of the ${flowName} flow should not change`
             );
             assert.equal(
-                flowData.flowInfo2.owedDeposit,
-                flowData.flowInfo1.owedDeposit,
+                flowData.flowInfoAfter.owedDeposit,
+                flowData.flowInfoBefore.owedDeposit,
                 `owed deposit amount of the ${flowName} flow should not change`
             );
             assert.equal(
-                flowData.flowInfo2.deposit,
-                flowData.flowInfo1.deposit,
+                flowData.flowInfoAfter.deposit,
+                flowData.flowInfoBefore.deposit,
                 `deposit amount of the ${flowName} flow should not change`
             );
         }
     };
 
+    // function to validate overall account flow info change
     const validateAccountFlowInfoChange = (role) => {
         console.log(`validating ${role} account deposit changes...`);
 
@@ -552,18 +557,18 @@ async function _shouldChangeFlow({
         inFlowNames.forEach((flowName) => {
             const flowData = flows[flowName];
             expectedOwedDepositDelta = expectedOwedDepositDelta
-                .add(toBN(flowData.flowInfo2.owedDeposit))
-                .sub(toBN(flowData.flowInfo1.owedDeposit));
+                .add(toBN(flowData.flowInfoAfter.owedDeposit))
+                .sub(toBN(flowData.flowInfoBefore.owedDeposit));
         });
         outFlowNames.forEach((flowName) => {
             const flowData = flows[flowName];
             expectedDepositDelta = expectedDepositDelta
-                .add(toBN(flowData.flowInfo2.deposit))
-                .sub(toBN(flowData.flowInfo1.deposit));
+                .add(toBN(flowData.flowInfoAfter.deposit))
+                .sub(toBN(flowData.flowInfoBefore.deposit));
         });
 
-        const flowRateDelta = toBN(getAccountFlowInfo2(role).flowRate).sub(
-            toBN(getAccountFlowInfo1(role).flowRate)
+        const flowRateDelta = toBN(getAccountFlowInfoAfter(role).flowRate).sub(
+            toBN(getAccountFlowInfoBefore(role).flowRate)
         );
         assert.equal(
             flowRateDelta.toString(),
@@ -571,8 +576,8 @@ async function _shouldChangeFlow({
             `wrong netflow delta of ${role}`
         );
 
-        const depositDelta = toBN(getBalances2(role).deposit).sub(
-            toBN(getBalances1(role).deposit)
+        const depositDelta = toBN(getBalancesAfter(role).deposit).sub(
+            toBN(getBalancesBefore(role).deposit)
         );
         assert.equal(
             depositDelta.toString(),
@@ -580,8 +585,8 @@ async function _shouldChangeFlow({
             `wrong deposit delta amount of ${role}`
         );
 
-        const owedDepositDelta = toBN(getBalances2(role).owedDeposit).sub(
-            toBN(getBalances1(role).owedDeposit)
+        const owedDepositDelta = toBN(getBalancesAfter(role).owedDeposit).sub(
+            toBN(getBalancesBefore(role).owedDeposit)
         );
         assert.equal(
             owedDepositDelta.toString(),
@@ -589,6 +594,8 @@ async function _shouldChangeFlow({
             `wrong owed deposit delta amount of ${role}`
         );
     };
+
+    // actual loading of data with the helper functions
 
     /**************************************************************************
      * Load current state and calculate expectations
@@ -617,15 +624,15 @@ async function _shouldChangeFlow({
     console.log("--------");
 
     // load current balance snapshot
-    Object.keys(roles).forEach((role) => addToBalanceSnapshots1(role));
+    Object.keys(roles).forEach((role) => addToBalanceSnapshotsBefore(role));
     console.log("--------");
 
     // load account flow info before
-    Object.keys(roles).forEach((role) => addAccountFlowInfo1(role));
+    Object.keys(roles).forEach((role) => addAccountFlowInfoBefore(role));
     console.log("--------");
 
     // load flow info before
-    await addFlowInfo1("main", {
+    await addFlowInfoBefore("main", {
         sender: roles.sender,
         receiver: roles.receiver,
     });
@@ -633,10 +640,10 @@ async function _shouldChangeFlow({
 
     // calculate expected net flow changes
     expectedNetFlowDeltas[roles.sender] = toBN(
-        flows.main.flowInfo1.flowRate
+        flows.main.flowInfoBefore.flowRate
     ).sub(toBN(flowRate));
     expectedNetFlowDeltas[roles.receiver] = toBN(flowRate).sub(
-        toBN(flows.main.flowInfo1.flowRate)
+        toBN(flows.main.flowInfoBefore.flowRate)
     );
     if (fn === "deleteFlow") {
         if (!(roles.agent in expectedNetFlowDeltas)) {
@@ -655,8 +662,8 @@ async function _shouldChangeFlow({
             mfa,
             flowRate,
             roles,
-            getAccountFlowInfo1,
-            addFlowInfo1,
+            getAccountFlowInfo1: getAccountFlowInfoBefore,
+            addFlowInfo1: addFlowInfoBefore,
             expectedNetFlowDeltas,
             expectedFlowInfo,
         });
@@ -668,6 +675,7 @@ async function _shouldChangeFlow({
         const mainFlowDepositUnclipped = toBN(flowRate).mul(
             toBN(testenv.configs.LIQUIDATION_PERIOD)
         );
+        // Aren't these two the exact same?
         const mainFlowDeposit = clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
@@ -698,16 +706,10 @@ async function _shouldChangeFlow({
             deposit: mainFlowDeposit.add(mainFlowAllowanceUsed),
             owedDeposit: mainFlowAllowanceUsed,
         };
-        // console.log("!!!! main",
-        //     flowRate.toString(),
-        //     mainFlowDeposit.toString(),
-        //     mainFlowAppAllowance.toString(),
-        //     newAppAllowanceUsed.toString(),
-        //     mainFlowAllowanceUsed.toString());
     }
 
     // load balance before flow change
-    await Promise.all(Object.keys(roles).map(addToBalances1));
+    await Promise.all(Object.keys(roles).map(addToBalancesBefore));
     const isSenderCritical = await superToken.isAccountCriticalNow(
         roles.sender
     );
@@ -761,22 +763,21 @@ async function _shouldChangeFlow({
 
     // caculate additional expected balance changes per liquidation rules
     if (fn === "deleteFlow") {
-        // console.log("!!!!",
-        //     senderBalance1.timestamp.toString(),
-        //     txBlock.timestamp,
-        //     senderBalance2.timestamp.toString());
         if (isSenderCritical) {
             console.log("validating liquidation rules...");
             // the tx itself may move the balance more
+            // the time between the realtimeBalanceOfNow call
+            // and the liquidation is time that the available 
+            // balance continues to decrease
+            const netFlowRate = toBN(accountFlowInfo.flowRate);
             const adjustedRewardAmount = toBN(
-                flows.main.flowInfo1.flowRate
+                netFlowRate
             ).mul(
                 toBN(txBlock.timestamp).sub(
-                    toBN(getBalances1("sender").timestamp)
+                    toBN(getBalancesBefore("sender").timestamp)
                 )
             );
             if (isSenderSolvent) {
-
                 // the reward recipient role depends on whether the time is still
                 // in the patrician period, if it is, the reward recipient is the
                 // bondAccount, otherwise it is the "agent" or the person who
@@ -786,11 +787,16 @@ async function _shouldChangeFlow({
                         ? "agent"
                         : "reward";
 
-                const expectedRewardAmount = toBN(
-                    getBalances1("sender").availableBalance /* is negative */
-                )
-                    .add(toBN(flows.main.flowInfo1.deposit))
-                    .sub(adjustedRewardAmount);
+                // deposit = signedTotalDeposit
+                const totalRewardLeft = getBalancesBefore(
+                    "sender"
+                ).availableBalance.add(toBN(accountFlowInfo.deposit));
+                const rewardAmount = toBN(flows.main.flowInfoBefore.deposit)
+                    .mul(totalRewardLeft)
+                    .div(toBN(accountFlowInfo.deposit));
+                
+                const expectedRewardAmount = rewardAmount.add(adjustedRewardAmount);
+
                 testenv.printSingleBalance(
                     `expected reward amount (to ${rewardRecipientRole} account)`,
                     expectedRewardAmount
@@ -828,13 +834,15 @@ async function _shouldChangeFlow({
                     }
                 );
             } else {
-                const expectedRewardAmount = toBN(flows.main.flowInfo1.deposit);
+                const expectedRewardAmount = toBN(flows.main.flowInfoBefore.deposit);
                 const expectedBailoutAmount = toBN(
-                    getBalances1("sender").availableBalance /* is negative */
+                    getBalancesBefore("sender").availableBalance /* is negative */
                 )
-                    .add(toBN(flows.main.flowInfo1.deposit))
+                    .add(toBN(accountFlowInfo.deposit))
                     .mul(toBN(-1))
-                    .add(adjustedRewardAmount);
+                    // adjustedRewardAmount is negative, we want to add it
+                    // to the overall amount
+                    .sub(adjustedRewardAmount);
                 testenv.printSingleBalance(
                     "expected reward amount (to agent)",
                     expectedRewardAmount
@@ -884,16 +892,16 @@ async function _shouldChangeFlow({
 
     await Promise.all(
         Object.keys(roles).map(async (role) => {
-            await addToBalances2(role);
-            assert.equal(getBalances2(role).timestamp, txBlock.timestamp);
+            await addToBalancesAfter(role);
+            assert.equal(getBalancesAfter(role).timestamp, txBlock.timestamp);
         })
     );
     console.log("--------");
 
-    await Promise.all(Object.keys(roles).map(addAccountFlowInfo2));
+    await Promise.all(Object.keys(roles).map(addAccountFlowInfoAfter));
     console.log("--------");
 
-    await Promise.all(Object.keys(flows).map(addFlowInfo2));
+    await Promise.all(Object.keys(flows).map(addFlowInfoAfter));
     console.log("--------");
 
     Object.keys(expectedFlowInfo).forEach(validateFlowInfoChange);
@@ -914,15 +922,15 @@ async function _shouldChangeFlow({
     // update flow info
     Object.keys(flows).forEach((flowName) => {
         const flowData = flows[flowName];
-        if (flowData.flowInfo2) {
+        if (flowData.flowInfoAfter) {
             //console.log(`saving ${flowName} flow info...`);
-            //console.log("!!!", flowName, flowData.flowInfo2);
+            //console.log("!!!", flowName, flowData.flowInfoAfter);
             _updateFlowInfo({
                 testenv,
                 superToken: superToken.address,
                 sender: flowData.flowId.sender,
                 receiver: flowData.flowId.receiver,
-                flowInfo: flowData.flowInfo2,
+                flowInfo: flowData.flowInfoAfter,
             });
         }
     });
@@ -930,12 +938,12 @@ async function _shouldChangeFlow({
     // update account flow info
     Object.keys(roles).forEach((role) => {
         //console.log(`saving ${role} account flow info...`);
-        if (getAccountFlowInfo2(role)) {
+        if (getAccountFlowInfoAfter(role)) {
             _updateAccountFlowInfo({
                 testenv,
                 superToken: superToken.address,
                 account: roles[role],
-                flowInfo: getAccountFlowInfo2(role),
+                flowInfo: getAccountFlowInfoAfter(role),
             });
         }
     });
@@ -1030,6 +1038,7 @@ async function shouldDeleteFlow({
     mfa,
     by,
     time,
+    accountFlowInfo
 }) {
     await _shouldChangeFlow({
         fn: "deleteFlow",
@@ -1041,6 +1050,7 @@ async function shouldDeleteFlow({
         mfa,
         by,
         time,
+        accountFlowInfo
     });
 }
 

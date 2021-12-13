@@ -1728,6 +1728,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 "CFA: sender account is not critical"
             );
 
+            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({superToken: superToken.address, account: t.aliases[sender]});
             await timeTravelOnceAndVerifyAll({
                 time:
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
@@ -1751,6 +1752,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 by: "dan",
                 mfa,
                 time: timeInDeficit,
+                accountFlowInfo
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
             await expectNetFlow(sender, "0");

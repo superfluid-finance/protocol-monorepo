@@ -788,14 +788,12 @@ async function _shouldChangeFlow({
                         : "reward";
 
                 // deposit = signedTotalDeposit
-                const totalRewardLeft = getBalancesBefore(
-                    "sender"
-                ).availableBalance.add(toBN(accountFlowInfo.deposit));
-                const rewardAmount = toBN(flows.main.flowInfoBefore.deposit)
+                const totalRewardLeft = getBalancesBefore("sender")
+                    .availableBalance.add(toBN(accountFlowInfo.deposit))
+                    .add(adjustedRewardAmount);
+                const expectedRewardAmount = toBN(flows.main.flowInfoBefore.deposit)
                     .mul(totalRewardLeft)
                     .div(toBN(accountFlowInfo.deposit));
-                
-                const expectedRewardAmount = rewardAmount.add(adjustedRewardAmount);
 
                 testenv.printSingleBalance(
                     `expected reward amount (to ${rewardRecipientRole} account)`,

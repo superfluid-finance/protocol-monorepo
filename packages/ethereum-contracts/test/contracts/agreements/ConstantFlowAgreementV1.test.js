@@ -121,7 +121,19 @@ describe("Using ConstantFlowAgreement v1", function () {
         seconds,
     }) {
         it(`${titlePrefix}.a should be liquidated when critical but solvent`, async () => {
-            await _testSolventLiquidation({ sender, receiver, by, seconds });
+            const defaultSolvencyStatus = {
+                preIsCritical: false,
+                preIsSolvent: true,
+                postIsCritical: true,
+                postIsSolvent: true,
+            };
+            await _testSolventLiquidation({
+                sender,
+                receiver,
+                by,
+                seconds,
+                solvencyStatuses: defaultSolvencyStatus,
+            });
         });
     }
 
@@ -134,24 +146,56 @@ describe("Using ConstantFlowAgreement v1", function () {
         seconds,
     }) {
         it(`${titlePrefix}.b can liquidate and bail out when insolvent`, async () => {
+            const defaultSolvencyStatus = {
+                preIsCritical: false,
+                preIsSolvent: true,
+                postIsCritical: true,
+                postIsSolvent: false,
+            };
             await _testBailout({
                 sender,
                 receiver,
                 by,
                 allowCriticalAccount,
                 seconds,
+                solvencyStatuses: defaultSolvencyStatus
             });
         });
     }
 
-    async function _testSolventLiquidation({ sender, receiver, by, seconds }) {
-        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({superToken: superToken.address, account: t.aliases[sender]});
+    async function _testSolventLiquidation({
+        sender,
+        receiver,
+        by,
+        seconds,
+        allowCriticalAccount,
+        solvencyStatuses,
+    }) {
+        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: t.aliases[sender],
+        });
         const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
 
-        assert.isFalse(
-            await superToken.isAccountCriticalNow(t.aliases[sender])
-        );
-        assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+        if (solvencyStatuses.preIsCritical) {
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        }
+
+        if (solvencyStatuses.preIsSolvent) {
+            assert.isTrue(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        }
         // drain the balance until critical (`seconds` sec extra)
         await timeTravelOnceAndVerifyAll({
             time:
@@ -160,8 +204,26 @@ describe("Using ConstantFlowAgreement v1", function () {
                 seconds,
             allowCriticalAccount: true,
         });
-        assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
-        assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+        
+        if (solvencyStatuses.postIsCritical) {
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        }
+
+        if (solvencyStatuses.postIsSolvent) {
+            assert.isTrue(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        }
 
         const balanceData = await superToken.realtimeBalanceOfNow(
             t.aliases[sender]
@@ -177,10 +239,10 @@ describe("Using ConstantFlowAgreement v1", function () {
             receiver,
             by,
             time: timeInDeficit,
-            accountFlowInfo
+            accountFlowInfo,
         });
 
-        await verifyAll();
+        await verifyAll({allowCriticalAccount});
     }
 
     async function _testBailout({
@@ -189,21 +251,55 @@ describe("Using ConstantFlowAgreement v1", function () {
         by,
         allowCriticalAccount,
         seconds,
+        solvencyStatuses
     }) {
         const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({superToken: superToken.address, account: t.aliases[sender]});
         const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
 
-        assert.isFalse(
-            await superToken.isAccountCriticalNow(t.aliases[sender])
-        );
-        assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+        if (solvencyStatuses.preIsCritical) {
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        }
+
+        if (solvencyStatuses.preIsSolvent) {
+            assert.isTrue(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        }
         // drain the balance until insolvent
         await timeTravelOnceAndVerifyAll({
             time: t.configs.INIT_BALANCE.div(netFlowRate).toNumber() + seconds,
             allowCriticalAccount: true,
         });
-        assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
-        assert.isFalse(await superToken.isAccountSolventNow(t.aliases[sender]));
+
+        if (solvencyStatuses.postIsCritical) {
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        }
+
+        if (solvencyStatuses.postIsSolvent) {
+            assert.isTrue(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        }
 
         const balanceData = await superToken.realtimeBalanceOfNow(
             t.aliases[sender]
@@ -863,35 +959,148 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        // describe("#1.5 multiple flow liquidations", () => {
-        //     beforeEach(async () => {
-        //         // give admin some balance for liquidations
-        //         await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
-        //         await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
-        //         await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
-        //         await shouldCreateFlow({
-        //             testenv: t,
-        //             superToken,
-        //             sender,
-        //             receiver,
-        //             flowRate: FLOW_RATE1,
-        //         });
-        //         await shouldCreateFlow({
-        //             testenv: t,
-        //             superToken,
-        //             sender,
-        //             receiver: agent,
-        //             flowRate: FLOW_RATE1,
-        //         });
-        //     });
+        describe("#1.5 multiple flow liquidations", () => {
+            beforeEach(async () => {
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver: agent,
+                    flowRate: FLOW_RATE1,
+                });
+            });
 
-        //     it("#1.5.1 should be able to liquidate multiple streams when critical", async () => {
-        //         await _testSolventLiquidation({ sender, receiver, by: agent, seconds: 60 });
-        //     });
-        //     // it should be able to liquidate multiple streams when insolvent
-        //     // it should be able to liquidate an insolvent stream and then a critical stream
-        //     // it should be able to liquidate a critical stream and then an insolvent one
-        // });
+            it("#1.5.1 should be able to liquidate multiple streams when critical", async () => {
+                // NOTE: the solvencyStatuses were added due to these multi flow tests because
+                // the status of the accounts vary now due to the fact that there is more than
+                // a single stream which the user has
+                await _testSolventLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+                await _testSolventLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.2 should be able to liquidate multiple streams when insolvent", async () => {
+                await _testBailout({
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+                await _testBailout({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.3 should be able to liquidate an insolvent stream and then a critical one", async () => {
+                await _testBailout({
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+                await _testSolventLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.4 should be able to liquidate a critical stream and then an insolvent one", async () => {
+                await _testSolventLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+
+                await _testBailout({
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+        });
 
         describe("#1.7 real-time balance", () => {
             // #1.7.1 TODO should be able to downgrade full balance

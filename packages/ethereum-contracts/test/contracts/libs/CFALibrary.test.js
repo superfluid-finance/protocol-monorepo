@@ -2,9 +2,7 @@ const TestEnvironment = require("../../TestEnvironment");
 // const {BN, expectRevert} = require("@openzeppelin/test-helpers");
 // const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
-const { assertion } = require("@openzeppelin/test-helpers/src/expectRevert");
-const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
-const SuperTokenMock = artifacts.require("SuperTokenMock"); 
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 const initialSupply = toBN(100);
 
 // const traveler = require("ganache-time-traveler");
@@ -16,6 +14,7 @@ describe("CFA Library testing", function () {
     let superToken, host, cfa;
     let alice, bob;
     let CFALibraryMock;
+    let TradeableCashflowMock;
 
     before(async () => {
         await t.beforeTestSuite({
@@ -26,17 +25,24 @@ describe("CFA Library testing", function () {
         cfa = t.contracts.cfa;
         host = t.contracts.superfluid;
 
-
         ({alice, bob} = t.aliases);
 
         superToken = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
-        await superToken.mintInternal(alice, web3.utils.toWei("100000", "ether"), "0x", "0x")
+        await superToken.mintInternal(
+            alice,
+            web3.utils.toWei("100000", "ether"),
+            "0x",
+            "0x"
+        );
         await web3tx(
             superToken.upgrade,
             `Upgrade initialSupply amount of token for ${alice}`
         )(initialSupply, {
             from: alice,
         });
+
+      
+
     });
 
     beforeEach(async () => {
@@ -45,13 +51,26 @@ describe("CFA Library testing", function () {
         CFALibraryMock = await cfaLibraryMock.new(host.address, cfa.address);
         await superToken.transfer(
             CFALibraryMock.address,
-            web3.utils.toWei("100", "ether"),
+            web3.utils.toWei("1000", "ether"),
             {from: alice}
         );
+
+        let tradeableCashflowMock = artifacts.require(
+            "TradeableCashflowMock"
+        )
+
+        TradeableCashflowMock = await tradeableCashflowMock.new(
+            bob,
+            "Tradeable Cashflow",
+            "TCF",
+            host.address,
+            cfa.address,
+            superToken.address
+        )
     });
 
     describe("1 - Create, update, delete flow with no user data or extra ctx", async function () {
-        it("1.1 - create flow with no user data or extra cfa ctx", async () => {
+        it("1.1 - create flow with no user data", async () => {
             await CFALibraryMock.createFlowTest(
                 superToken.address,
                 bob,
@@ -66,7 +85,7 @@ describe("CFA Library testing", function () {
             assert.equal(flow.flowRate, "3858024691358");
         });
 
-        it("1.2 - update flow with no user data or extra cfa ctx", async () => {
+        it("1.2 - update flow with no user data", async () => {
             await CFALibraryMock.createFlowTest(
                 superToken.address,
                 bob,
@@ -87,7 +106,7 @@ describe("CFA Library testing", function () {
             assert.equal(flow.flowRate, "1958024691358");
         });
 
-        it("1.3 - delete flow with no user data or extra cfa ctx", async () => {
+        it("1.3 - delete flow with no user data", async () => {
             await CFALibraryMock.createFlowTest(
                 superToken.address,
                 bob,
@@ -109,4 +128,103 @@ describe("CFA Library testing", function () {
         });
     });
 
+    describe("2 - Create, update, delete flow with user data", async function () {
+        it("2.1 - create flow with user data", async () => {
+            
+            await CFALibraryMock.createFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "3858024691358", //10 per month
+                web3.eth.abi.encodeParameter('string', 'HODL'),
+                {from: alice}
+            );
+
+            let inFlow = await cfa.getFlow(
+                superToken.address,
+                CFALibraryMock.address,
+                TradeableCashflowMock.address
+            );
+
+            let outFlow = await cfa.getFlow(
+                superToken.address,
+                TradeableCashflowMock.address,
+                bob
+            );
+                        
+            assert.equal(inFlow.flowRate, "3858024691358");
+            assert.equal(outFlow.flowRate, "3858024691358");
+            assert.equal((await TradeableCashflowMock.userData()), 'HODL');
+
+        });
+
+        it("2.2 - update flow with user data ", async () => {
+
+   
+            await CFALibraryMock.createFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "3858024691358", //10 per month
+                web3.eth.abi.encodeParameter('string', 'HODL'),
+                {from: alice}
+            );
+
+            await CFALibraryMock.updateFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "1958024691358", //10 per month
+                web3.eth.abi.encodeParameter('string', 'WAGMI'),
+                {from: alice}
+            );
+
+            let inFlow = await cfa.getFlow(
+                superToken.address,
+                CFALibraryMock.address,
+                TradeableCashflowMock.address,
+            );
+
+            let outFlow = await cfa.getFlow(
+                superToken.address,
+                TradeableCashflowMock.address,
+                bob
+            );
+     
+            assert.equal(inFlow.flowRate, "1958024691358");
+            assert.equal(outFlow.flowRate, "1958024691358");
+            assert.equal((await TradeableCashflowMock.userData()), "WAGMI");
+
+        });
+
+        it("2.3 - delete flow with user data", async () => {
+            await CFALibraryMock.createFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "3858024691358", //10 per month
+                web3.eth.abi.encodeParameter('string', 'HODL'),
+                {from: alice}
+            );
+
+            await CFALibraryMock.deleteFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                web3.eth.abi.encodeParameter('string', 'NGMI'),
+                {from: alice}
+            );
+
+            let inFlow = await cfa.getFlow(
+                superToken.address,
+                CFALibraryMock.address,
+                TradeableCashflowMock.address
+            );
+
+            let outFlow = await cfa.getFlow(
+                superToken.address,
+                TradeableCashflowMock.address,
+                bob
+            );
+
+            assert.equal(inFlow.flowRate, "0");
+            assert.equal(outFlow.flowRate, "0");
+            assert.equal((await TradeableCashflowMock.userData()), "NGMI");
+        });
+    });
 });

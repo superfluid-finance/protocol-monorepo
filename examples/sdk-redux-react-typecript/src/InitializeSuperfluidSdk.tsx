@@ -4,7 +4,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import { Button } from "@mui/material";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
-import { getSuperfluidContext } from "@superfluid-finance/sdk-redux";
+import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 
 interface Props {
     onSuperfluidSdkInitialized: (sf: Framework, provider: Web3Provider) => void;
@@ -17,14 +17,12 @@ export const chainIds = [
     42, // KOVAN
     // 100, // XDAI //TODO(KK): No infura support
     137, // MATIC
-    80001, // MUMBAI
+    80001 // MUMBAI
 ];
 
 export const InitializeSuperfluidSdk: FC<Props> = ({
-    onSuperfluidSdkInitialized,
-}): ReactElement => {
-    const superfluidContext = getSuperfluidContext();
-
+                                                       onSuperfluidSdkInitialized
+                                                   }): ReactElement => {
     const handleWallet = async () => {
         const providerOptions = {
             /* See Provider Options Section */
@@ -33,25 +31,25 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         // Configure Infura Providers when environment variable is present.
         const infuraProviders = !!process.env.REACT_APP_INFURA_ID
             ? chainIds.map((chainId) => ({
-                  chainId,
-                  frameworkGetter: () =>
-                      Framework.create({
-                          chainId,
-                          provider: new ethers.providers.InfuraProvider(
-                              chainId,
-                              process.env.REACT_APP_INFURA_ID
-                          ),
-                      }),
-              }))
+                chainId,
+                frameworkGetter: () =>
+                    Framework.create({
+                        chainId,
+                        provider: new ethers.providers.InfuraProvider(
+                            chainId,
+                            process.env.REACT_APP_INFURA_ID
+                        )
+                    })
+            }))
             : [];
 
         infuraProviders.map((x) =>
-            superfluidContext.setFramework(x.chainId, x.frameworkGetter)
+            setFrameworkForSdkRedux(x.chainId, x.frameworkGetter)
         );
 
         const web3Modal = new Web3Modal({
             cacheProvider: false,
-            providerOptions,
+            providerOptions
         });
 
         const web3ModalProvider = await web3Modal.connect();
@@ -61,18 +59,17 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         const superfluidSdk = await Framework.create({
             chainId: currentNetwork.chainId,
-            provider: ethersWeb3Provider,
+            provider: ethersWeb3Provider
         });
 
         // Set active provider & signer from MetaMask
-        superfluidContext
-            .setFramework(currentNetwork.chainId, superfluidSdk)
-            .setSigner(currentNetwork.chainId, ethersWeb3Provider.getSigner());
+        setFrameworkForSdkRedux(currentNetwork.chainId, superfluidSdk);
+        setSignerForSdkRedux(currentNetwork.chainId, ethersWeb3Provider.getSigner());
 
         onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
 
         web3ModalProvider.on("accountsChanged", (accounts: string[]) => {
-            superfluidContext.setSigner(
+            setSignerForSdkRedux(
                 currentNetwork.chainId,
                 ethersWeb3Provider.getSigner()
             );
@@ -88,18 +85,17 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
             const newSdk = await Framework.create({
                 chainId: parsedChainId,
-                provider: ethersWeb3Provider,
+                provider: ethersWeb3Provider
             });
 
             // Re-set INFURA providers
             infuraProviders.map((x) =>
-                superfluidContext.setFramework(x.chainId, x.frameworkGetter)
+                setFrameworkForSdkRedux(x.chainId, x.frameworkGetter)
             );
 
             // Set active provider & signer from MetaMask
-            superfluidContext
-                .setFramework(parsedChainId, newSdk)
-                .setSigner(parsedChainId, ethersWeb3Provider.getSigner());
+            setFrameworkForSdkRedux(parsedChainId, newSdk);
+            setSignerForSdkRedux(parsedChainId, ethersWeb3Provider.getSigner());
 
             onSuperfluidSdkInitialized(newSdk, ethersWeb3Provider);
         });

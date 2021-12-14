@@ -13,12 +13,12 @@ interface FrameworkLocator {
     setFramework: (
         chainId: number,
         framework: (() => Promise<Framework>) | Framework
-    ) => FrameworkLocator & SignerLocator;
+    ) => void;
 }
 
 interface SignerLocator {
     getSigner: (chainId: number) => Promise<Signer>;
-    setSigner: (chainId: number, signer: (() => Promise<Signer>) | Signer) => FrameworkLocator & SignerLocator;
+    setSigner: (chainId: number, signer: (() => Promise<Signer>) | Signer) => void;
 }
 
 interface ApiSliceLocator {
@@ -85,22 +85,20 @@ export default class SuperfluidContext implements FrameworkAndSignerLocator, Api
         this.apiSlice = slice;
     }
 
-    setFramework(chainId: number, framework: (() => Promise<Framework>) | Framework): FrameworkLocator & SignerLocator {
-        if (isFramework(framework)) {
+    setFramework(chainId: number, framework: (() => Promise<Framework>) | Framework) {
+        if (framework instanceof Framework) {
             this.frameworks.set(chainId, () => Promise.resolve(framework));
         } else {
             this.frameworks.set(chainId, framework);
         }
-        return this;
     }
 
-    setSigner(chainId: number, signer: (() => Promise<Signer>) | Signer): FrameworkLocator & SignerLocator {
-        if (isSigner(signer)) {
+    setSigner(chainId: number, signer: (() => Promise<Signer>) | Signer) {
+        if (signer instanceof Signer) {
             this.signers.set(chainId, () => Promise.resolve(signer));
         } else {
             this.signers.set(chainId, signer);
         }
-        return this;
     }
 
     setTransactionSlice(slice: SfTransactionSliceType): void {
@@ -124,12 +122,5 @@ export const getFramework = (chainId: number) => getSuperfluidContext().getFrame
 export const getSigner = (chainId: number) => getSuperfluidContext().getSigner(chainId);
 export const getFrameworkAndSigner = (chainId: number) => getSuperfluidContext().getFrameworkAndSigner(chainId);
 
-// For some reason "framework instanceof Framework" didn't work.
-const isFramework = (value: any): value is Framework => {
-    return !!value.cfaV1;
-};
-
-// For some reason "signer instanceof Signer" didn't work.
-const isSigner = (value: any): value is Signer => {
-    return !!value.getAddress;
-};
+export const setSignerForSdkRedux = (chainId: number, signer: (() => Promise<Signer>) | Signer) => getSuperfluidContext().setSigner(chainId, signer)
+export const setFrameworkForSdkRedux = (chainId: number, framework: (() => Promise<Framework>) | Framework) => getSuperfluidContext().setFramework(chainId, framework)

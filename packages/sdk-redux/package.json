@@ -8,9 +8,9 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
     },
     "license": "MIT",
-    "main": "build/main/index.js",
-    "typings": "build/main/index.d.ts",
-    "module": "build/module/index.js",
+    "main": "dist/main/index.js",
+    "typings": "dist/main/index.d.ts",
+    "module": "dist/module/index.js",
     "keywords": [],
     "scripts": {
         "pre-commit": "run-s lint:*",
@@ -23,11 +23,11 @@
         "test": "echo 'TODO: Tests'",
         "watch:build": "tsc -p tsconfig.json -w",
         "doc": "run-s doc:html",
-        "doc:html": "typedoc src/ --out build/docs",
-        "doc:json": "typedoc src/ --json build/docs/typedoc.json"
+        "doc:html": "typedoc src/ --out dist/docs",
+        "doc:json": "typedoc src/ --json dist/docs/typedoc.json"
     },
     "engines": {
-        "node": ">=10"
+        "node": ">=14"
     },
     "dependencies": {
         "@reduxjs/toolkit": "^1.6.1",
@@ -53,9 +53,9 @@
         "react-redux": "^7.2.1"
     },
     "files": [
-        "build/main",
-        "build/module",
-        "build/docs",
+        "dist/main",
+        "dist/module",
+        "dist/docs",
         "!**/*.json",
         "CHANGELOG.md",
         "LICENSE",

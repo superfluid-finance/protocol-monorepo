@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "incremental": true,
-        "target": "es2017",
+        "target": "ES2020",
         "outDir": "build/main",
         "rootDir": "src",
         "moduleResolution": "node",
@@ -51,7 +51,7 @@
         // "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */,
 
         "lib": [
-            "es2017",
+            "ES2020",
         ],
         "types": [],
         "typeRoots": [

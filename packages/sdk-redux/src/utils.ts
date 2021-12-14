@@ -10,10 +10,7 @@ export const typeGuard = <T>(obj: T) => obj;
  * The reasoning for such a helper is to conditionally add items to an array in a nice syntax.
  * @private
  */
-export function insertIf<T>(
-    condition: boolean | unknown,
-    ...elements: T[]
-): T[] {
+export function insertIf<T>(condition: boolean | unknown, ...elements: T[]): T[] {
     return condition ? elements : [];
 }
 

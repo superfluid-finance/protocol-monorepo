@@ -1,13 +1,13 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useDowngradeFromSuperTokenMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const DowngradeFromSuperToken: FC = (): ReactElement => {
     const [downgradeFromSuperToken, { isLoading, error }] =
-        useDowngradeFromSuperTokenMutation();
+        sfApi.useDowngradeFromSuperTokenMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 

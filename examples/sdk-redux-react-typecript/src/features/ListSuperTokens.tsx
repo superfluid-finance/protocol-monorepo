@@ -7,9 +7,8 @@ import React, {
     useState,
 } from "react";
 import {
-    useListSuperTokensQuery,
     ISuperToken,
-} from "@superfluid-finance/sdk-redux";
+} from "@superfluid-finance/sdk-core";
 import { Loader } from "../Loader";
 import {
     FormControl,
@@ -28,6 +27,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 const pageSize = 10;
 
@@ -47,7 +47,7 @@ export const ListSuperTokens: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListSuperTokensQuery({
+    } = sfApi.useListSuperTokensQuery({
         isListed: isListed,
         chainId: queryChainId,
         skip: (page - 1) * pageSize,

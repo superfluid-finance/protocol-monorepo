@@ -12,28 +12,24 @@ export interface TrackedTransaction {
     ethersErrorMessage?: string;
 }
 
-const getTransactionId = (transaction: TrackedTransaction) =>
-    `${transaction.chainId}_${transaction.hash}`;
+const getTransactionId = (transaction: TrackedTransaction) => `${transaction.chainId}_${transaction.hash}`;
 
 export const transactionsAdapter = createEntityAdapter<TrackedTransaction>({
     selectId: (transaction) => getTransactionId(transaction),
-    sortComparer: (a, b) =>
-        getTransactionId(a).localeCompare(getTransactionId(b)),
+    sortComparer: (a, b) => getTransactionId(a).localeCompare(getTransactionId(b)),
 });
 
 export const transactionSelectors = transactionsAdapter.getSelectors();
 
 export const transactionSlicePrefix = 'sfTransactions' as const;
 
-export const transactionSlice = {
-    reducerPath: transactionSlicePrefix,
-    ...createSlice({
+export const createTransactionSlice = () =>
+    createSlice({
         name: transactionSlicePrefix,
         initialState: transactionsAdapter.getInitialState(),
         reducers: {
             upsertTransaction: transactionsAdapter.upsertOne,
         },
-    }),
-};
+    });
 
-export type SuperfluidTransactionReduxSlice = typeof transactionSlice;
+export type SfTransactionSliceType = ReturnType<typeof createTransactionSlice>;

@@ -1,49 +1,23 @@
-import {
-    preinitializedSuperfluidContext,
-    SuperfluidContext,
-} from './SuperfluidContext';
-import {
-    rtkQuerySlice,
-    SuperfluidApiReduxSliceType,
-} from './redux-slices/rtk-query/rtkQuerySlice';
-import {
-    SuperfluidTransactionReduxSlice,
-    transactionSlice,
-} from './redux-slices/transactions/transactionSlice';
+import {CreateApi} from '@reduxjs/toolkit/dist/query';
+import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
+import {createApi as createApiWithoutReactHooks} from '@reduxjs/toolkit/query';
+import {createApi as createApiWithReactHooks} from '@reduxjs/toolkit/query/react';
 
-export const getSfContext: () => SuperfluidContext = () =>
-    globalThis.superfluidContext;
+import {getSuperfluidContext} from './SuperfluidContext';
+import {createApiSlice} from './redux-slices/rtk-query/sfApiSlice';
+import {createTransactionSlice} from './redux-slices/transactions/createTransactionSlice';
 
-/**
- * First initialization point of SDK-Redux.
- * Creates the necessary parts to set up redux store and dependency injection for SDk-Redux.
- * @param superfluidContext Optional user-defined instance of {@link SuperfluidContext}.
- */
-export const createSdkReduxParts = (
-    superfluidContext?: SuperfluidContext
-): {
-    /**
-     * Returns the initialized instance of {@link SuperfluidContext}. When user passes in their own instance then that is returned.
-     */
-    superfluidContext: SuperfluidContext;
-    /**
-     * Instance of {@link SuperfluidApiReduxSliceType} to plug into the redux store.
-     */
-    apiSlice: SuperfluidApiReduxSliceType;
-    /**
-     * Instance of {@link SuperfluidTransactionReduxSlice} to plug into the Redux store.
-     */
-    transactionSlice: SuperfluidTransactionReduxSlice;
-} => {
-    if (superfluidContext) {
-        globalThis.superfluidContext = superfluidContext;
-    } else {
-        globalThis.superfluidContext = preinitializedSuperfluidContext;
-    }
+export {createApiWithoutReactHooks};
+export {createApiWithReactHooks};
 
-    return {
-        superfluidContext: getSfContext(),
-        apiSlice: rtkQuerySlice,
-        transactionSlice: transactionSlice,
-    };
+export const initializeSfApiSlice = <T extends ModuleName>(createApi: CreateApi<T> = createApiWithReactHooks) => {
+    const slice = createApiSlice(createApi);
+    getSuperfluidContext().setApiSlice(slice as any);
+    return {sfApi: slice};
+};
+
+export const initializeSfTransactionSlice = () => {
+    const slice = createTransactionSlice();
+    getSuperfluidContext().setTransactionSlice(slice);
+    return {sfTransactions: slice};
 };

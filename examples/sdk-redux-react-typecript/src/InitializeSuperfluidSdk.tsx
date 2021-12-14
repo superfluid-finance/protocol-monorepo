@@ -1,10 +1,10 @@
 import React, { FC, ReactElement } from "react";
-import { Framework } from "@superfluid-finance/sdk-redux";
+import { Framework } from "@superfluid-finance/sdk-core";
 import { Web3Provider } from "@ethersproject/providers";
 import { Button } from "@mui/material";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
-import { superfluidContext } from "./redux/store";
+import { getSuperfluidContext } from "@superfluid-finance/sdk-redux";
 
 interface Props {
     onSuperfluidSdkInitialized: (sf: Framework, provider: Web3Provider) => void;
@@ -23,6 +23,8 @@ export const chainIds = [
 export const InitializeSuperfluidSdk: FC<Props> = ({
     onSuperfluidSdkInitialized,
 }): ReactElement => {
+    const superfluidContext = getSuperfluidContext();
+
     const handleWallet = async () => {
         const providerOptions = {
             /* See Provider Options Section */

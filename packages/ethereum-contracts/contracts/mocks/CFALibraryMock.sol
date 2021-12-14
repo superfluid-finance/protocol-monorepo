@@ -4,7 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import {
     ISuperfluid,
-    ISuperfluidToken
+    ISuperfluidToken,
+    ISuperToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import {
@@ -12,10 +13,10 @@ import {
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import { 
-    CFAWrapper
+    CFALibrary
 } from "../libs/CFALibrary.sol";
 
-contract CFALibraryTest {
+contract CFALibraryMock {
 
     using CFALibrary for CFALibrary.CFALibrarySetup;
 
@@ -65,20 +66,18 @@ contract CFALibraryTest {
     }
 
     function deleteFlowTest(
-        address sender,
-        address receiver,
-        ISuperfluidToken token
+        ISuperfluidToken token,
+        address receiver
     ) public {
-        cfaV1.deleteFlow(sender, receiver, token);
+        cfaV1.deleteFlow(address(this), receiver, token);
     }
 
     function deleteFlowWithUserDataTest(
-        address sender,
-        address receiver,
         ISuperfluidToken token,
+        address receiver,
         bytes memory userData
     ) public {
-        cfaV1.deleteFlow(sender, receiver, token, userData);
+        cfaV1.deleteFlow(address(this), receiver, token, userData);
     }
 
     function createFlowWithCtxTest(

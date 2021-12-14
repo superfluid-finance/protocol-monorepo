@@ -3,7 +3,7 @@
     "compilerOptions": {
         "target": "es2018",
         "module": "commonjs",
-        "declaration": true,
+        "declaration": false,
         "strict": true,
         "esModuleInterop": true,
         "outDir": "dist/test"

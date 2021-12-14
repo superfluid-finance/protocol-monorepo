@@ -4,7 +4,7 @@
         "target": "ES2020",
         "outDir": "dist/module",
         "module": "esnext",
-        "declaration": false
+        "declaration": true
     },
     "exclude": [
         "node_modules/**"

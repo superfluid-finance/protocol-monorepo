@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import { abi as SuperfluidABI } from "../../sdk-core/src/abi/Superfluid.json";
+import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";

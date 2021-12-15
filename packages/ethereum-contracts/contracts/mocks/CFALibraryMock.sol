@@ -24,22 +24,22 @@ import {
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 import { 
-    CFALibrary
-} from "../libs/CFALibrary.sol";
+    CFALibraryV1
+} from "../libs/CFALibraryV1.sol";
 
 contract CFALibraryMock {
 
-    using CFALibrary for CFALibrary.CFALibrarySetup;
+    using CFALibraryV1 for CFALibraryV1.InitData;
 
     //initialize cfaV1 variable
-    CFALibrary.CFALibrarySetup public cfaV1; 
+    CFALibraryV1.InitData public cfaV1; 
 
     constructor(
-        ISuperfluid host,
-        IConstantFlowAgreementV1 cfa
+        ISuperfluid host
     ) {
-        //initialize CFALibrarySetup struct, and set equal to cfaV1
-        cfaV1 = CFALibrary.CFALibrarySetup(host, cfa);
+
+        //initialize InitData struct, and set equal to cfaV1
+        cfaV1 = CFALibraryV1.InitData(host);
     }
 
     function createFlowTest(
@@ -152,10 +152,10 @@ contract CFALibraryMock {
 
 contract RedirectAll is SuperAppBase {
 
-    using CFALibrary for CFALibrary.CFALibrarySetup;
+    using CFALibraryV1 for CFALibraryV1.InitData;
 
     //initialize cfaV1 variable
-    CFALibrary.CFALibrarySetup public cfaV1; 
+    CFALibraryV1.InitData public cfaV1; 
 
     
     ISuperfluid private _host; // host
@@ -179,7 +179,7 @@ contract RedirectAll is SuperAppBase {
         _acceptedToken = acceptedToken;
         _receiver = receiver;
 
-        cfaV1 = CFALibrary.CFALibrarySetup(_host, _cfa);
+        cfaV1 = CFALibraryV1.InitData(_host);
 
         uint256 configWord =
             SuperAppDefinitions.APP_LEVEL_FINAL |

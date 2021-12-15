@@ -32,11 +32,11 @@ export const validateFrameworkConstructorOptions = (
         });
     }
 
-    if (!options.provider) {
+    if (!options.provider && !options.hardhatEthers && !options.web3) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
             customMessage:
-                "You must pass in a provider when initializing the framework.",
+                "You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework.",
         });
     }
 

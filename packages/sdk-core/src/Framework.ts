@@ -1,5 +1,7 @@
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "ethers";
+import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
+import web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -27,10 +29,12 @@ export interface IFrameworkOptions {
     chainId?: number;
     customSubgraphQueriesEndpoint?: string;
     dataMode?: DataMode;
+    hardhatEthers?: typeof ethers & HardhatEthersHelpers;
     networkName?: string;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
-    provider: ethers.providers.Provider;
+    provider?: ethers.providers.Provider;
+    web3?: web3;
 }
 
 export interface IFrameworkSettings {
@@ -78,10 +82,12 @@ export default class Framework {
      * @param options.chainId the chainId of your desired network (e.g. 137 = matic)
      * @param options.customSubgraphQueriesEndpoint your custom subgraph endpoint
      * @param options.dataMode the data mode you'd like the framework to use (SUBGRAPH_ONLY, SUBGRAPH_WEB3, WEB3_ONLY)
+     * @param options.hardhatEthers an injected instance of ethers.js from the hardhat runtime environment
      * @param options.networkName the desired network (e.g. "matic", "rinkeby", etc.)
      * @param options.resolverAddress a custom resolver address (advanced use for testing)
      * @param options.protocolReleaseVersion a custom release version (advanced use for testing)
      * @param options.provider a provider object necessary for initializing the framework
+     * @param options.web3 an injected instance of web3.js in either hardhat or truffle
      * @returns `Framework` class
      */
     static create = async (options: IFrameworkOptions) => {
@@ -103,7 +109,19 @@ export default class Framework {
                 : options.customSubgraphQueriesEndpoint ||
                   getSubgraphQueriesEndpoint(options);
 
-        const network = await options.provider.getNetwork();
+        const provider =
+            options.provider != null
+                ? options.provider
+                : options.web3 != null
+                ? new ethers.providers.Web3Provider(
+                      options.web3.currentProvider as
+                          | ethers.providers.ExternalProvider
+                          | ethers.providers.JsonRpcFetchFunc
+                  )
+                : // NOTE: this must not be null and we check this in our validate function
+                  options.hardhatEthers!.provider;
+
+        const network = await provider.getNetwork();
         if (network.chainId !== chainId && chainId != null) {
             throw new SFError({
                 type: "NETWORK_MISMATCH",
@@ -127,7 +145,7 @@ export default class Framework {
             const resolver = new ethers.Contract(
                 resolverAddress,
                 IResolverABI,
-                options.provider
+                provider
             ) as IResolver;
 
             const superfluidLoaderAddress = await resolver.get(
@@ -136,7 +154,7 @@ export default class Framework {
             const superfluidLoader = new ethers.Contract(
                 superfluidLoaderAddress,
                 SuperfluidLoaderABI,
-                options.provider
+                provider
             ) as SuperfluidLoader;
 
             const framework = await superfluidLoader.loadFramework(
@@ -148,7 +166,7 @@ export default class Framework {
                 customSubgraphQueriesEndpoint,
                 dataMode: options.dataMode || "SUBGRAPH_ONLY",
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
-                provider: options.provider,
+                provider,
                 networkName,
                 config: {
                     hostAddress: framework.superfluid,

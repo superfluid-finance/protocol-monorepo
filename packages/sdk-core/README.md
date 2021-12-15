@@ -73,11 +73,39 @@ const web3jsSf = await Framework.create({
   provider: web3jsProvider
 });
 
+// injected web3.js initialization (Hardhat) 
+// most likely to be used on backend for testing
+// NOTE: if you're using truffle, you should be able to
+// omit the (global as any). as this should be
+// exposed already
+const injectedWeb3jsSf = await Framework.create({
+  networkName: "custom",
+  web3: (global as any).web3,
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
+});
+
+// injected hardhat ethers initialization
+// most likely to be used on backend for testing
+import hardhat from "hardhat";
+const injectedHardhatEthersSf = await Framework.create({
+  networkName: "custom",
+  hardhatEthers: hardhat.ethers,
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
+})
+
 // ethers.js + hardhat provider initialization (in testing environment w/ hardhat-ethers)
+import { ethers } from "hardhat";
 const [deployer] = await ethers.getSigners();
 const ethersProvider = deployer.provider;
 const ethersjsSf = await Framework.create({
-  networkName: "matic",
+  networkName: "custom",
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
   provider: ethersProvider
 });
 

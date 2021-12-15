@@ -1,10 +1,9 @@
 import { ethers } from "ethers";
 
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
-
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
 import SFError from "./SFError";
+import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { IConfig } from "./interfaces";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 

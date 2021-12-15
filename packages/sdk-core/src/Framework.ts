@@ -1,6 +1,6 @@
 import { Signer } from "@ethersproject/abstract-signer";
-import { ethers } from "ethers";
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
+import { ethers } from "ethers";
 import web3 from "web3";
 
 import BatchCall from "./BatchCall";
@@ -118,7 +118,7 @@ export default class Framework {
                           | ethers.providers.ExternalProvider
                           | ethers.providers.JsonRpcFetchFunc
                   )
-                : // NOTE: this must not be null and we check this in our validate function
+                : // NOTE: this will not be null as we check this in our validate function
                   options.hardhatEthers!.provider;
 
         const network = await provider.getNetwork();

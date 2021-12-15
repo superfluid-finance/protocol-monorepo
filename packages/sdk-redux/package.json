@@ -69,7 +69,6 @@
     "files": [
         "dist/main",
         "dist/module",
-        "dist/docs",
         "CHANGELOG.md",
         "LICENSE",
         "README.md"

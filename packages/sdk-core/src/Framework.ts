@@ -9,8 +9,8 @@ import Operation from "./Operation";
 import Query from "./Query";
 import SFError from "./SFError";
 import SuperToken from "./SuperToken";
-import * as IResolverABI from "./abi/IResolver.json";
-import * as SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
+import IResolverABI from "./abi/IResolver.json";
+import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,

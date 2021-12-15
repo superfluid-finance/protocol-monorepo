@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
 import SFError from "./SFError";
-import * as SuperfluidABI from "./abi/Superfluid.json";
+import SuperfluidABI from "./abi/Superfluid.json";
 import { IConfig } from "./interfaces";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 

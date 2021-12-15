@@ -5,7 +5,7 @@ import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import SFError from "./SFError";
 import Token from "./Token";
-import * as SuperTokenABI from "./abi/SuperToken.json";
+import SuperTokenABI from "./abi/SuperToken.json";
 import { networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {

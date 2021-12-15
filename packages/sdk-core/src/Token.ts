@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 
 import Operation from "./Operation";
 import SFError from "./SFError";
-import * as ERC20WithTokenInfoABI from "./abi/ERC20WithTokenInfo.json";
+import ERC20WithTokenInfoABI from "./abi/ERC20WithTokenInfo.json";
 import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
 import { ERC20WithTokenInfo } from "./typechain/ERC20WithTokenInfo";
 import { normalizeAddress } from "./utils";

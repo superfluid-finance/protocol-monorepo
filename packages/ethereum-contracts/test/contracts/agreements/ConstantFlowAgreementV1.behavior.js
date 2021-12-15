@@ -367,7 +367,7 @@ async function _shouldChangeFlow({
     userData,
     by,
     time,
-    accountFlowInfo
+    accountFlowInfo,
 }) {
     console.log(`======== ${fn} begins ========`);
     console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
@@ -393,16 +393,15 @@ async function _shouldChangeFlow({
     };
 
     const addToBalanceSnapshotsBefore = (role) => {
-        _balanceSnapshotsBefore[roles[role]] = testenv.getAccountBalanceSnapshot(
-            superToken.address,
-            roles[role]
-        );
+        _balanceSnapshotsBefore[roles[role]] =
+            testenv.getAccountBalanceSnapshot(superToken.address, roles[role]);
         testenv.printRealtimeBalance(
             `${role} balance snapshot before`,
             getBalanceSnapshotsBefore(role)
         );
     };
-    const getBalanceSnapshotsBefore = (role) => _balanceSnapshotsBefore[roles[role]];
+    const getBalanceSnapshotsBefore = (role) =>
+        _balanceSnapshotsBefore[roles[role]];
 
     const updateAccountExpectedBalanceDelta = (role, expectedBalanceDelta) => {
         testenv.updateAccountExpectedBalanceDelta(
@@ -429,7 +428,8 @@ async function _shouldChangeFlow({
             getAccountFlowInfoBefore(role)
         );
     };
-    const getAccountFlowInfoBefore = (role) => _accountFlowInfoBefore[roles[role]];
+    const getAccountFlowInfoBefore = (role) =>
+        _accountFlowInfoBefore[roles[role]];
 
     const addAccountFlowInfoAfter = async (role) => {
         _accountFlowInfoAfter[roles[role]] =
@@ -442,7 +442,8 @@ async function _shouldChangeFlow({
             getAccountFlowInfoAfter(role)
         );
     };
-    const getAccountFlowInfoAfter = (role) => _accountFlowInfoAfter[roles[role]];
+    const getAccountFlowInfoAfter = (role) =>
+        _accountFlowInfoAfter[roles[role]];
 
     const addToBalancesBefore = async (role) => {
         _balancesBefore[roles[role]] = await superToken.realtimeBalanceOfNow(
@@ -767,12 +768,10 @@ async function _shouldChangeFlow({
             console.log("validating liquidation rules...");
             // the tx itself may move the balance more
             // the time between the realtimeBalanceOfNow call
-            // and the liquidation is time that the available 
+            // and the liquidation is time that the available
             // balance continues to decrease
             const netFlowRate = toBN(accountFlowInfo.flowRate);
-            const adjustedRewardAmount = toBN(
-                netFlowRate
-            ).mul(
+            const adjustedRewardAmount = toBN(netFlowRate).mul(
                 toBN(txBlock.timestamp).sub(
                     toBN(getBalancesBefore("sender").timestamp)
                 )
@@ -791,7 +790,9 @@ async function _shouldChangeFlow({
                 const totalRewardLeft = getBalancesBefore("sender")
                     .availableBalance.add(toBN(accountFlowInfo.deposit))
                     .add(adjustedRewardAmount);
-                const expectedRewardAmount = toBN(flows.main.flowInfoBefore.deposit)
+                const expectedRewardAmount = toBN(
+                    flows.main.flowInfoBefore.deposit
+                )
                     .mul(totalRewardLeft)
                     .div(toBN(accountFlowInfo.deposit));
 
@@ -832,9 +833,12 @@ async function _shouldChangeFlow({
                     }
                 );
             } else {
-                const expectedRewardAmount = toBN(flows.main.flowInfoBefore.deposit);
+                const expectedRewardAmount = toBN(
+                    flows.main.flowInfoBefore.deposit
+                );
                 const expectedBailoutAmount = toBN(
-                    getBalancesBefore("sender").availableBalance /* is negative */
+                    getBalancesBefore("sender")
+                        .availableBalance /* is negative */
                 )
                     .add(toBN(accountFlowInfo.deposit))
                     .mul(toBN(-1))
@@ -1036,7 +1040,7 @@ async function shouldDeleteFlow({
     mfa,
     by,
     time,
-    accountFlowInfo
+    accountFlowInfo,
 }) {
     await _shouldChangeFlow({
         fn: "deleteFlow",
@@ -1048,7 +1052,7 @@ async function shouldDeleteFlow({
         mfa,
         by,
         time,
-        accountFlowInfo
+        accountFlowInfo,
     });
 }
 

@@ -5,7 +5,7 @@ import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import SFError from "./SFError";
 import Token from "./Token";
-import { abi as SuperTokenABI } from "./abi/SuperToken.json";
+import * as SuperTokenABI from "./abi/SuperToken.json";
 import { networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
@@ -91,7 +91,7 @@ export default class SuperToken extends Token {
         try {
             const superToken = new ethers.Contract(
                 options.address,
-                SuperTokenABI
+                SuperTokenABI.abi
             ) as ISuperToken;
             const underlyingTokenAddress = await superToken
                 .connect(options.provider)
@@ -116,7 +116,7 @@ export default class SuperToken extends Token {
     private get superTokenContract() {
         return new ethers.Contract(
             this.settings.address,
-            SuperTokenABI
+            SuperTokenABI.abi
         ) as ISuperToken;
     }
 

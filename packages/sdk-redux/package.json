@@ -22,7 +22,7 @@
         "lint:eslint": "eslint src --ext .ts",
         "fix": "run-s fix:*",
         "fix:prettier": "yarn lint:prettier --write",
-        "fix:lint": "yarn lint:eslint --fix",
+        "fix:eslint": "yarn lint:eslint --fix",
         "test": "echo 'TODO: Tests'",
         "watch:build": "tsc -p tsconfig.json -w",
         "doc": "run-s doc:html",

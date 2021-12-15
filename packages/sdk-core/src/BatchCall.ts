@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
 import SFError from "./SFError";
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
+import * as SuperfluidABI from "./abi/Superfluid.json";
 import { IConfig } from "./interfaces";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
@@ -46,7 +46,7 @@ export default class BatchCall {
      * @returns {ethers.utils.Result} call agreement function arguments
      */
     getCallAgreementFunctionArgs = (callData: string): ethers.utils.Result =>
-        getTransactionDescription(SuperfluidABI, callData).args;
+        getTransactionDescription(SuperfluidABI.abi, callData).args;
 
     /**
      * @dev Given an `Operation` object, gets the `OperationStruct` object.

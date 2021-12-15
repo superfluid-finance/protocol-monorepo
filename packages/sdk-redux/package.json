@@ -56,7 +56,6 @@
         "dist/main",
         "dist/module",
         "dist/docs",
-        "!**/*.json",
         "CHANGELOG.md",
         "LICENSE",
         "README.md"

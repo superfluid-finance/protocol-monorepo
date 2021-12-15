@@ -13,7 +13,6 @@
         "dist/module",
         "dist/docs",
         "dist/index.umd.js",
-        "!**/*.json",
         "CHANGELOG.md",
         "LICENSE",
         "README.md"

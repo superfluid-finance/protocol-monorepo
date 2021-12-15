@@ -35,6 +35,9 @@ if [ "$TRUFFLE_NETWORK" == "arbitrum-rinkeby" ];then
     exit 0
 fi
 
+echo LOADER
+npx truffle --network $TRUFFLE_NETWORK run verify SuperfluidLoader@${SUPERFLUID_LOADER}
+
 echo UUPSProxy
 npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPERFLUID_HOST_PROXY}
 

@@ -1,7 +1,4 @@
-const {
-    getAccountFlowInfo,
-    _printFlowInfo,
-} = require("./contracts/utils/CFAV1utils");
+const {getAccountFlowInfo, _printFlowInfo} = require("./CFAV1utils");
 const {toBN} = require("@decentral.ee/web3-helpers");
 
 /**

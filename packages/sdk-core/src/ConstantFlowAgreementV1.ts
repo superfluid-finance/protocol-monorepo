@@ -138,6 +138,7 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = ({
@@ -145,6 +146,7 @@ export default class ConstantFlowAgreementV1 {
         receiver,
         superToken,
         userData,
+        overrides,
     }: ICreateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedReceiver = normalizeAddress(receiver);
@@ -159,7 +161,8 @@ export default class ConstantFlowAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
-            userData
+            userData,
+            overrides
         );
     };
 
@@ -169,6 +172,7 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlow = ({
@@ -176,6 +180,7 @@ export default class ConstantFlowAgreementV1 {
         receiver,
         superToken,
         userData,
+        overrides,
     }: IUpdateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedReceiver = normalizeAddress(receiver);
@@ -190,7 +195,8 @@ export default class ConstantFlowAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
-            userData
+            userData,
+            overrides
         );
     };
 
@@ -200,6 +206,7 @@ export default class ConstantFlowAgreementV1 {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     deleteFlow = ({
@@ -207,6 +214,7 @@ export default class ConstantFlowAgreementV1 {
         sender,
         receiver,
         userData,
+        overrides,
     }: IDeleteFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSender = normalizeAddress(sender);
@@ -222,7 +230,8 @@ export default class ConstantFlowAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
-            userData
+            userData,
+            overrides
         );
     };
 

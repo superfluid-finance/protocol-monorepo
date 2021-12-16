@@ -39,7 +39,14 @@ contract CFALibraryMock {
     ) {
 
         //initialize InitData struct, and set equal to cfaV1
-        cfaV1 = CFALibraryV1.InitData(host);
+        cfaV1 = CFALibraryV1.InitData(
+            host,
+            IConstantFlowAgreementV1(
+                address(host.getAgreementClass(
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                ))
+            )
+        );
     }
 
     function createFlowTest(
@@ -165,21 +172,26 @@ contract RedirectAll is SuperAppBase {
 
     constructor(
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken,
         address receiver) {
         assert(address(host) != address(0));
-        assert(address(cfa) != address(0));
         assert(address(acceptedToken) != address(0));
         assert(address(receiver) != address(0));
         //assert(!_host.isApp(ISuperApp(receiver)));
 
         _host = host;
-        _cfa = cfa;
+        _cfa = IConstantFlowAgreementV1(
+                address(host.getAgreementClass(
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                ))
+            );
         _acceptedToken = acceptedToken;
         _receiver = receiver;
 
-        cfaV1 = CFALibraryV1.InitData(_host);
+        cfaV1 = CFALibraryV1.InitData(
+            _host,
+            _cfa
+        );
 
         uint256 configWord =
             SuperAppDefinitions.APP_LEVEL_FINAL |
@@ -364,13 +376,11 @@ contract TradeableCashflowMock is ERC721, RedirectAll {
     string memory name,
     string memory symbol,
     ISuperfluid host,
-    IConstantFlowAgreementV1 cfa,
     ISuperToken acceptedToken
   )
     ERC721 ( name, symbol )
     RedirectAll (
       host,
-      cfa,
       acceptedToken,
       owner
      )

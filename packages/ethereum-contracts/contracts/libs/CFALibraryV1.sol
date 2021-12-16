@@ -15,6 +15,7 @@ library CFALibraryV1 {
 
     struct InitData {
         ISuperfluid host;
+        IConstantFlowAgreementV1 cfa;
     }
 
     //@dev for working with the constant flow agreement within solidity
@@ -29,14 +30,9 @@ library CFALibraryV1 {
         int96 flowRate
     ) internal {
         cfaLibrary.host.callAgreement(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).createFlow.selector,
+                cfaLibrary.cfa.createFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -56,14 +52,9 @@ library CFALibraryV1 {
         bytes memory userData
     ) internal {
         cfaLibrary.host.callAgreement(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).createFlow.selector,
+                cfaLibrary.cfa.createFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -81,14 +72,9 @@ library CFALibraryV1 {
         int96 flowRate
     ) internal {
         cfaLibrary.host.callAgreement(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).updateFlow.selector,
+                cfaLibrary.cfa.updateFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -108,14 +94,9 @@ library CFALibraryV1 {
         bytes memory userData
     ) internal {
         cfaLibrary.host.callAgreement(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).updateFlow.selector,
+                cfaLibrary.cfa.updateFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -133,14 +114,9 @@ library CFALibraryV1 {
         ISuperfluidToken token
     ) internal {
         cfaLibrary.host.callAgreement(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).deleteFlow.selector,
+                cfaLibrary.cfa.deleteFlow.selector,
                 token,
                 sender,
                 receiver,
@@ -160,14 +136,9 @@ library CFALibraryV1 {
         bytes memory userData
     ) internal {
         cfaLibrary.host.callAgreement(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).deleteFlow.selector,
+                cfaLibrary.cfa.deleteFlow.selector,
                 token,
                 sender,
                 receiver,
@@ -186,14 +157,9 @@ library CFALibraryV1 {
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).createFlow.selector,
+                cfaLibrary.cfa.createFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -214,14 +180,9 @@ library CFALibraryV1 {
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).createFlow.selector,
+                cfaLibrary.cfa.createFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -241,14 +202,9 @@ library CFALibraryV1 {
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).updateFlow.selector,
+                cfaLibrary.cfa.updateFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -269,14 +225,9 @@ library CFALibraryV1 {
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).updateFlow.selector,
+                cfaLibrary.cfa.updateFlow.selector,
                 token,
                 receiver,
                 flowRate,
@@ -296,14 +247,9 @@ library CFALibraryV1 {
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).deleteFlow.selector,
+                cfaLibrary.cfa.deleteFlow.selector,
                 token,
                 sender,
                 receiver,
@@ -324,14 +270,9 @@ library CFALibraryV1 {
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.host.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")),
+            cfaLibrary.cfa,
             abi.encodeWithSelector(
-                IConstantFlowAgreementV1(
-                    address(cfaLibrary.host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        )
-                    )
-                ).deleteFlow.selector,
+                cfaLibrary.cfa.deleteFlow.selector,
                 token,
                 sender,
                 receiver,

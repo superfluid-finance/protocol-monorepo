@@ -2,8 +2,7 @@ const TestEnvironment = require("../../TestEnvironment");
 // const {BN, expectRevert} = require("@openzeppelin/test-helpers");
 // const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
-const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const initialSupply = toBN(100);
 
@@ -61,7 +60,6 @@ describe("CFA Library testing", function () {
             "Tradeable Cashflow",
             "TCF",
             host.address,
-            cfa.address,
             superToken.address
         );
     });
@@ -110,11 +108,9 @@ describe("CFA Library testing", function () {
                 "3858024691358", //10 per month
                 {from: alice}
             );
-            await CFALibraryMock.deleteFlowTest(
-                superToken.address,
-                bob,
-                {from: alice}
-            );
+            await CFALibraryMock.deleteFlowTest(superToken.address, bob, {
+                from: alice,
+            });
             let flow = await cfa.getFlow(
                 superToken.address,
                 CFALibraryMock.address,
@@ -220,7 +216,6 @@ describe("CFA Library testing", function () {
     });
 
     describe("3 - Expect revert cases", async () => {
-
         it("3.1 - Create should revert if flow exists", async () => {
             await CFALibraryMock.createFlowTest(
                 superToken.address,
@@ -237,11 +232,9 @@ describe("CFA Library testing", function () {
                 ),
                 "CFA: flow already exist"
             );
-
         });
 
         it("3.2 - Update should revert if flow does not exist", async () => {
-            
             await expectRevert(
                 CFALibraryMock.updateFlowTest(
                     superToken.address,
@@ -251,31 +244,27 @@ describe("CFA Library testing", function () {
                 ),
                 "CFA: flow does not exist"
             );
-        })
+        });
 
         it("3.3 - Delete should revert if flow does not exist", async () => {
             await expectRevert(
-                CFALibraryMock.deleteFlowTest(
-                    superToken.address,
-                    alice,
-                    {from: bob}
-                ),
+                CFALibraryMock.deleteFlowTest(superToken.address, alice, {
+                    from: bob,
+                }),
                 "CFA: flow does not exist"
             );
-        })
+        });
 
         it("3.4 - It should revert if given an invalid ctx", async () => {
-            
             await expectRevert(
                 CFALibraryMock.createFlowWithCtxTest(
-                    "0x", 
-                    bob, 
-                    superToken.address, 
+                    "0x",
+                    bob,
+                    superToken.address,
                     "2858024691358"
-                ), 
+                ),
                 "SF: APP_RULE_CTX_IS_NOT_VALID"
-            )
-            
-        })
-    })
+            );
+        });
+    });
 });

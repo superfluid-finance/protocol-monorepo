@@ -1,20 +1,21 @@
 import { ethers } from "ethers";
+
+import Host from "./Host";
+import Operation from "./Operation";
+import SFError from "./SFError";
+import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
 import {
     IAgreementV1Options,
     ICreateFlowParams,
     IDeleteFlowParams,
-    IUpdateFlowParams,
-    IGetFlowParams,
     IGetAccountFlowInfoParams,
-    IWeb3FlowInfoParams,
+    IGetFlowParams,
+    IUpdateFlowParams,
     IWeb3FlowInfo,
+    IWeb3FlowInfoParams,
 } from "./interfaces";
-import Operation from "./Operation";
-import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
-import { getSanitizedTimestamp, normalizeAddress } from "./utils";
-import Host from "./Host";
 import { IConstantFlowAgreementV1 } from "./typechain";
-import SFError from "./SFError";
+import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 

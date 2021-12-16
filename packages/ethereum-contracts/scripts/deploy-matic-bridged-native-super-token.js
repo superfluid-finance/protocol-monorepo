@@ -23,7 +23,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("== Deploying unlisted Matic bridged native super token ==");
-    let { protocolReleaseVersion } = options;
+    let {protocolReleaseVersion} = options;
 
     if (args.length !== 3) {
         throw new Error("Wrong number of arguments");
@@ -50,7 +50,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const { MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken } =
+    const {MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken} =
         sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(

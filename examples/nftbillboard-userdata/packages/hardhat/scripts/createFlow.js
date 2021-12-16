@@ -2,7 +2,7 @@ const hre = require("hardhat");
 require("dotenv");
 const Web3 = require("web3");
 
-//all addresses hardcoded for mumbai
+//all addresses hardcoded for mumbai - will only work on mumbai deployment
 const hostJSON = require("../artifacts/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol/ISuperfluid.json")
 const hostABI = hostJSON.abi;
 const hostAddress = "0xEB796bdb90fFA0f28255275e16936D25d3418603";
@@ -20,7 +20,7 @@ const deployedTradeableCashflow = require("../deployments/polytest/TradeableCash
 const tradeableCashflowAddress = deployedTradeableCashflow.address;
 
 //your address here:
-const _sender = "0x...";
+const _sender = process.env.SENDER_ADDRESS;
 
 //create a flow
 async function main() {
@@ -34,7 +34,7 @@ async function main() {
   const tradeableCashflow = new web3.eth.Contract(tradeableCashflowABI, tradeableCashflowAddress);
   
   const fDAIx = "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
-  const userData = web3.eth.abi.encodeParameter('string', 'HODL BTC');
+  const userData = web3.eth.abi.encodeParameter('string', 'HODL MATIC');
 
   const nonce = await web3.eth.getTransactionCount(_sender, 'latest'); // nonce starts counting from 0
 

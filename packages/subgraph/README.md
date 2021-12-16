@@ -391,6 +391,13 @@ If the subgraph has not been created yet, you must create it first using the das
 - Merge `origin/dev` to the LTS branch.
 - Create a new release in github.
 
+## Developer Notes
+
+When adding new networks, we must do the following:
+- Add the new network to `networks.json` and add a new file to `/config` with the same name as the network e.g. adding network `avalanche-fuji` to the array in `networks.json` and then adding `avalanche-fuji.json` to `/config`. The name of the network here is dicated by and must match how we name the network for our subgraph endpoint, e.g. `protocol-dev-avalanche-fuji`
+- The name of the network in the `/config` json file should match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks)
+- Therefore, the `network` we are comparing in the `addresses.template.test` file should also match the official naming.
+
 # Contributing
 
 Contributions, suggestions, and issues are welcome. At the moment, there are no strict guidelines to follow.

@@ -1,10 +1,11 @@
 import { ethers } from "ethers";
-import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
-import { normalizeAddress } from "./utils";
-import { abi as ERC20WithTokenInfoABI } from "./abi/ERC20WithTokenInfo.json";
+
 import Operation from "./Operation";
-import { ERC20WithTokenInfo } from "./typechain/ERC20WithTokenInfo";
 import SFError from "./SFError";
+import { abi as ERC20WithTokenInfoABI } from "./abi/ERC20WithTokenInfo.json";
+import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
+import { ERC20WithTokenInfo } from "./typechain/ERC20WithTokenInfo";
+import { normalizeAddress } from "./utils";
 
 export default class Token {
     readonly address: string;

@@ -101,19 +101,19 @@ describe("Operation Tests", () => {
     });
 
     // TODO: figure out why this is not consistently passing
-    it.skip("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
-        const deleteFlowOp = framework.cfaV1.deleteFlow({
-            superToken: superToken.address,
-            sender: deployer.address,
-            receiver: alpha.address,
-        });
-        const signer = framework.createSigner({
-            privateKey: HARDHAT_PRIVATE_KEY,
-            provider: deployer.provider,
-        });
-        const opTxnHash = await deleteFlowOp.getTransactionHash(signer);
-        const executedTxn = await deleteFlowOp.exec(signer);
-        const receipt = await executedTxn.wait();
-        expect(opTxnHash).to.equal(receipt.transactionHash);
-    });
+    // it.skip("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
+    //     const deleteFlowOp = framework.cfaV1.deleteFlow({
+    //         superToken: superToken.address,
+    //         sender: deployer.address,
+    //         receiver: alpha.address,
+    //     });
+    //     const signer = framework.createSigner({
+    //         privateKey: HARDHAT_PRIVATE_KEY,
+    //         provider: deployer.provider,
+    //     });
+    //     const opTxnHash = await deleteFlowOp.getTransactionHash(signer);
+    //     const executedTxn = await deleteFlowOp.exec(signer);
+    //     const receipt = await executedTxn.wait();
+    //     expect(opTxnHash).to.equal(receipt.transactionHash);
+    // });
 });

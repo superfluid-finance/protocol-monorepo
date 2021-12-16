@@ -1,10 +1,10 @@
-import Framework from "./Framework";
-import SuperToken from "./SuperToken";
-import Query from "./Query";
-import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
-import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
-import Host from "./Host";
 import BatchCall from "./BatchCall";
+import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import Framework from "./Framework";
+import Host from "./Host";
+import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import Query from "./Query";
+import SuperToken from "./SuperToken";
 
 export * from "./interfaces";
 export * from "./utils";

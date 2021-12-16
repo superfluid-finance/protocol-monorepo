@@ -17,7 +17,7 @@ describe("SuperfluidToken implementation", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
+    const {ZERO_BYTES32, ZERO_ADDRESS} = t.constants;
 
     let admin, alice, bob;
     let superToken;
@@ -32,8 +32,8 @@ describe("SuperfluidToken implementation", function () {
             nAccounts: 3,
         });
 
-        ({ admin, alice, bob } = t.aliases);
-        ({ superfluid, governance } = t.contracts);
+        ({admin, alice, bob} = t.aliases);
+        ({superfluid, governance} = t.contracts);
         superToken = t.sf.tokens.TESTx;
 
         const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);

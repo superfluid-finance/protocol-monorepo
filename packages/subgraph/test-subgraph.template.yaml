@@ -23,8 +23,8 @@ dataSources:
               - Token
               - TokenStatistic
           abis:
-              - name: TestResolver
-                file: ./abis/TestResolver.json
+              - name: Resolver
+                file: ./abis/Resolver.json
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
@@ -100,8 +100,8 @@ dataSources:
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
-              - name: TestResolver
-                file: ./abis/TestResolver.json
+              - name: Resolver
+                file: ./abis/Resolver.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
               - name: ISuperfluid
@@ -141,8 +141,8 @@ dataSources:
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
-          - name: TestResolver
-            file: ./abis/TestResolver.json
+          - name: Resolver
+            file: ./abis/Resolver.json
           - name: ISuperToken
             file: ./abis/ISuperToken.json
           - name: ISuperfluid
@@ -205,7 +205,7 @@ dataSources:
       network: {{ network }}
       source:
         address: "{{ resolverV1Address }}"
-        abi: TestResolver
+        abi: Resolver
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
@@ -217,8 +217,8 @@ dataSources:
           - RoleGrantedEvent
           - RoleRevokedEvent
         abis:
-          - name: TestResolver
-            file: ./abis/TestResolver.json
+          - name: Resolver
+            file: ./abis/Resolver.json
         eventHandlers:
           - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
             handler: handleRoleAdminChanged
@@ -251,8 +251,8 @@ templates:
         - TokenStatistic
         - TransferEvent
       abis:
-        - name: TestResolver
-          file: ./abis/TestResolver.json
+        - name: Resolver
+          file: ./abis/Resolver.json
         - name: ISuperToken
           file: ./abis/ISuperToken.json
         - name: ISuperfluid

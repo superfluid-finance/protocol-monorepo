@@ -1,7 +1,7 @@
 const _ = require("lodash");
-const { BN } = require("@openzeppelin/test-helpers");
-const { expectEvent } = require("@openzeppelin/test-helpers");
-const { web3tx, toBN } = require("@decentral.ee/web3-helpers");
+const {BN} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 
 function clipDepositNumber(deposit, roundingDown = false) {
     // last 32 bites of the deposit (96 bites) is clipped off
@@ -25,7 +25,7 @@ function adjustNewAppAllowanceUsed(
 //
 // Flow info test data operations
 //
-function _updateFlowInfo({ testenv, superToken, sender, receiver, flowInfo }) {
+function _updateFlowInfo({testenv, superToken, sender, receiver, flowInfo}) {
     _.merge(testenv.data, {
         tokens: {
             [superToken]: {
@@ -46,7 +46,7 @@ function _updateFlowInfo({ testenv, superToken, sender, receiver, flowInfo }) {
     });
 }
 
-function getFlowInfo({ testenv, superToken, sender, receiver }) {
+function getFlowInfo({testenv, superToken, sender, receiver}) {
     _.defaultsDeep(testenv.data, {
         tokens: {
             [superToken]: {
@@ -83,7 +83,7 @@ function _printFlowInfo(title, flowInfo) {
 //
 // Account flow info test data operations
 //
-function _updateAccountFlowInfo({ testenv, superToken, account, flowInfo }) {
+function _updateAccountFlowInfo({testenv, superToken, account, flowInfo}) {
     _.merge(testenv.data, {
         tokens: {
             [superToken]: {
@@ -104,7 +104,7 @@ function _updateAccountFlowInfo({ testenv, superToken, account, flowInfo }) {
     });
 }
 
-function getAccountFlowInfo({ testenv, superToken, account }) {
+function getAccountFlowInfo({testenv, superToken, account}) {
     _.defaultsDeep(testenv.data, {
         tokens: {
             [superToken]: {
@@ -128,7 +128,7 @@ function getAccountFlowInfo({ testenv, superToken, account }) {
     );
 }
 
-function validateAccountNetFlow({ testenv, superToken, account }) {
+function validateAccountNetFlow({testenv, superToken, account}) {
     const alias = testenv.toAlias(account);
     console.log(`validating ${alias} account net flow ...`);
 
@@ -172,7 +172,7 @@ function validateAccountNetFlow({ testenv, superToken, account }) {
     );
 }
 
-function syncAccountExpectedBalanceDeltas({ testenv, superToken, timestamp }) {
+function syncAccountExpectedBalanceDeltas({testenv, superToken, timestamp}) {
     console.log("syncing accounting expected balance deltas due to flows...");
 
     testenv.listAddresses().forEach((account) => {
@@ -207,7 +207,7 @@ function syncAccountExpectedBalanceDeltas({ testenv, superToken, timestamp }) {
 }
 
 class MFASupport {
-    static async setup({ testenv, mfa, roles }) {
+    static async setup({testenv, mfa, roles}) {
         roles.mfaSender = testenv.getAddress(mfa.sender);
         roles.mfa = testenv.getAddress("mfa");
 
@@ -345,7 +345,7 @@ class MFASupport {
         }
     }
 
-    static async postCheck({ testenv, roles }) {
+    static async postCheck({testenv, roles}) {
         assert.isFalse(
             await testenv.contracts.superfluid.isAppJailed(roles.mfa),
             "MFA app was jailed"
@@ -372,7 +372,7 @@ async function _shouldChangeFlow({
     console.log(`======== ${fn} begins ========`);
     console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
     //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
-    const { governance } = testenv.contracts;
+    const {governance} = testenv.contracts;
 
     const roles = {};
     const _balanceSnapshotsBefore = {};
@@ -620,7 +620,7 @@ async function _shouldChangeFlow({
         addRole("reward", testenv.toAlias(rewardAddress));
     }
     if (mfa) {
-        ({ userData } = await MFASupport.setup({ testenv, mfa, roles }));
+        ({userData} = await MFASupport.setup({testenv, mfa, roles}));
     }
     console.log("--------");
 
@@ -759,7 +759,7 @@ async function _shouldChangeFlow({
 
     // make sure app is not jailed
     if (mfa) {
-        await MFASupport.postCheck({ testenv, roles });
+        await MFASupport.postCheck({testenv, roles});
     }
 
     // caculate additional expected balance changes per liquidation rules

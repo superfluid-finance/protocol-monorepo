@@ -1,9 +1,9 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
-const { setWeb3Provider } = require("@decentral.ee/web3-helpers/src/config");
-const TestResolver = artifacts.require("TestResolver");
+const {web3tx} = require("@decentral.ee/web3-helpers");
+const {setWeb3Provider} = require("@decentral.ee/web3-helpers/src/config");
+const Resolver = artifacts.require("Resolver");
 const getConfig = require("./libs/getConfig");
 
-const { getScriptRunnerFactory: S, rl } = require("./libs/common");
+const {getScriptRunnerFactory: S, rl} = require("./libs/common");
 
 /**
  * @dev Reset the superfluid framework deployment.
@@ -22,9 +22,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (args) {
         return;
     }
 
-    const networkType = await this.web3.eth.net.getNetworkType();
+    const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const chainId = await this.web3.eth.getChainId();
+    const chainId = await web3.eth.getChainId();
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
@@ -33,21 +33,21 @@ module.exports = eval(`(${S.toString()})()`)(async function (args) {
     // make sure that we are using the same web3 provider in the helpers
     setWeb3Provider(web3.currentProvider);
 
-    let testResolver;
+    let resolver;
     if (config.resolverAddress) {
-        testResolver = await TestResolver.at(config.resolverAddress);
+        resolver = await Resolver.at(config.resolverAddress);
     } else {
-        testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+        resolver = await web3tx(Resolver.new, "Resolver.new")();
         // make it available for the sdk for testing purpose
-        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+        process.env.RESOLVER_ADDRESS = resolver.address;
     }
-    console.log("Resolver address", testResolver.address);
+    console.log("Resolver address", resolver.address);
 
-    await web3tx(testResolver.set, "Clear Superfluid deployment")(
+    await web3tx(resolver.set, "Clear Superfluid deployment")(
         `Superfluid.${version}`,
         "0x" + "0".repeat(40)
     );
-    await web3tx(testResolver.set, "Clear TestGovernance deployment")(
+    await web3tx(resolver.set, "Clear TestGovernance deployment")(
         `TestGovernance.${version}`,
         "0x" + "0".repeat(40)
     );

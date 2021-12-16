@@ -3,7 +3,7 @@ const {
     getMissingArgumentError,
     getBatchCallHelpText,
 } = require("./utils/error");
-const { AbiCoder } = require("@ethersproject/abi");
+const {AbiCoder} = require("@ethersproject/abi");
 
 const abiCoder = new AbiCoder();
 
@@ -21,8 +21,8 @@ const AGREEMENT_TYPES = {
     IDA: "ida",
 };
 
-const parseERC20Operation = ({ index, operationType, data }) => {
-    const { token, spender, sender, recipient, amount } = data;
+const parseERC20Operation = ({index, operationType, data}) => {
+    const {token, spender, sender, recipient, amount} = data;
     if (!amount)
         throw new Error(
             getMissingArgumentError("amount", getBatchCallHelpText(index))
@@ -71,8 +71,8 @@ const parseERC20Operation = ({ index, operationType, data }) => {
     ];
 };
 
-const parseSuperTokenOperation = ({ index, operationType, data }) => {
-    const { amount, token } = data;
+const parseSuperTokenOperation = ({index, operationType, data}) => {
+    const {amount, token} = data;
     if (!amount)
         throw new Error(
             getMissingArgumentError("amount", getBatchCallHelpText(index))
@@ -99,7 +99,7 @@ const parseSuperTokenOperation = ({ index, operationType, data }) => {
     return [operationType, token, abiCoder.encode(["uint256"], [amount])];
 };
 
-const parseSuperFluidOperation = ({ index, operationType, data }) => {
+const parseSuperFluidOperation = ({index, operationType, data}) => {
     const {
         superApp,
         agreementType,
@@ -173,7 +173,7 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
     return [operationType, superApp, callData];
 };
 
-const parse = ({ index, type, data }) => {
+const parse = ({index, type, data}) => {
     try {
         if (!type)
             throw new Error(
@@ -202,21 +202,21 @@ const parse = ({ index, type, data }) => {
                 OPERATION_TYPES.ERC20_TRANSFER_FROM,
             ].includes(operationType)
         )
-            return parseERC20Operation({ index, operationType, data });
+            return parseERC20Operation({index, operationType, data});
         if (
             [
                 OPERATION_TYPES.SUPERTOKEN_UPGRADE,
                 OPERATION_TYPES.SUPERTOKEN_DOWNGRADE,
             ].includes(operationType)
         )
-            return parseSuperTokenOperation({ index, operationType, data });
+            return parseSuperTokenOperation({index, operationType, data});
         if (
             [
                 OPERATION_TYPES.SUPERFLUID_CALL_AGREEMENT,
                 OPERATION_TYPES.CALL_APP_ACTION,
             ].includes(operationType)
         )
-            return parseSuperFluidOperation({ index, operationType, data });
+            return parseSuperFluidOperation({index, operationType, data});
         throw new Error(
             `You provided an invalid operation type "${type}"${getBatchCallHelpText(
                 index
@@ -227,13 +227,13 @@ const parse = ({ index, type, data }) => {
     }
 };
 
-const batchCall = ({ agreements, calls }) => {
+const batchCall = ({agreements, calls}) => {
     if (!calls || !Array.isArray(calls))
         throw new Error(
             getErrorResponse("You must provide an array of calls", "batchCall")
         );
     this.agreements = agreements;
-    return calls.map((call, index) => parse({ index, ...call }));
+    return calls.map((call, index) => parse({index, ...call}));
 };
 
-module.exports = { batchCall };
+module.exports = {batchCall};

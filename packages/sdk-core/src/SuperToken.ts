@@ -1,8 +1,13 @@
 import { ethers } from "ethers";
-import { networkNameToChainIdMap } from "./constants";
+
+import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import Operation from "./Operation";
+import SFError from "./SFError";
+import Token from "./Token";
 import { abi as SuperTokenABI } from "./abi/SuperToken.json";
+import { networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
-import { SuperToken as ISuperToken } from "./typechain";
 import {
     IConfig,
     IRealtimeBalanceOfParams,
@@ -24,16 +29,12 @@ import {
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
 } from "./interfaces";
-import Operation from "./Operation";
-import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
-import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
-import SFError from "./SFError";
+import { SuperToken as ISuperToken } from "./typechain";
 import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,
     normalizeAddress,
 } from "./utils";
-import Token from "./Token";
 
 export interface ITokenSettings {
     readonly address: string;

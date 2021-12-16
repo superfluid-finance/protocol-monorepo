@@ -1,9 +1,9 @@
-const { assert } = require("chai");
+const {assert} = require("chai");
 const SuperfluidSDK = require("../src");
 
 describe("getConfig", () => {
     before(() => {
-        delete process.env.TEST_RESOLVER_ADDRESS;
+        delete process.env.RESOLVER_ADDRESS;
     });
 
     it("goerli v1", async () => {
@@ -31,10 +31,10 @@ describe("getConfig", () => {
 
     it("defaultConfig overriding RESOLVER_ADDRESS", async () => {
         // test environment
-        process.env.TEST_RESOLVER_ADDRESS = "0x42";
+        process.env.RESOLVER_ADDRESS = "0x42";
         const testConfig = SuperfluidSDK.getConfig(5555);
         assert.equal(testConfig.resolverAddress, "0x42");
         assert.isUndefined(testConfig.versions);
-        delete process.env.TEST_RESOLVER_ADDRESS;
+        delete process.env.RESOLVER_ADDRESS;
     });
 });

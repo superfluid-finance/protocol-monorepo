@@ -22,7 +22,7 @@ import { InstantDistributionAgreementV1 } from "../typechain/InstantDistribution
 import request, { gql } from "graphql-request";
 import { IMeta } from "../test/interfaces";
 
-const subgraphRequest = async <T>(
+export const subgraphRequest = async <T>(
     query: string,
     subgraphEndpoint: string,
     variables?: { [key: string]: any }
@@ -37,7 +37,7 @@ const subgraphRequest = async <T>(
     }
 };
 
-const getMostRecentIndexedBlockNumber = async (subgraphEndpoint: string) => {
+export const getMostRecentIndexedBlockNumber = async (subgraphEndpoint: string) => {
     const query = gql`
         query {
             _meta {

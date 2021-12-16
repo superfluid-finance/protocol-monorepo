@@ -23,8 +23,8 @@ sleep 5
 #
 
 # unset potential interfering environment varibles
-unset TEST_RESOLVER_ADDRESS
-unset NEW_TEST_RESOLVER
+unset RESOLVER_ADDRESS
+unset CREATE_NEW_RESOLVER
 unset RESET_SUPERFLUID_FRAMEWORK
 unset RELEASE_VERSION
 unset USE_MOCKS
@@ -44,7 +44,7 @@ cat $TESTENV_SNAPSHOT_VARS
 
 # Use the newly created resolver
 source $TESTENV_SNAPSHOT_VARS
-export TEST_RESOLVER_ADDRESS=$TEST_RESOLVER_ADDRESS
+export RESOLVER_ADDRESS=$RESOLVER_ADDRESS
 
 # Test all info scripts
 npx truffle exec scripts/info-scan-deployments.js

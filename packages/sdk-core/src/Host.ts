@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 import Operation from "./Operation";
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
+import SuperfluidABI from "./abi/Superfluid.json";
 import { Superfluid } from "./typechain";
 
 /**
@@ -14,7 +14,7 @@ export default class Host {
     constructor(hostAddress: string) {
         this.hostContract = new ethers.Contract(
             hostAddress,
-            SuperfluidABI
+            SuperfluidABI.abi
         ) as Superfluid;
     }
 

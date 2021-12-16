@@ -37,12 +37,24 @@ yarn install && yarn build
 
 Here is a quick look at initializing the SDK in different environments:
 
-TypeScript / JavaScript (Module):
+TypeScript / JavaScript (Module) vs. JavaScript (CommonJS) - usually a Node.js environment
 
+The primary difference between the two environments is the import/require of the sdk-core package, everything else is the same.
+
+TS/ESModule
 ```ts
 import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
+```
 
+CommonJS/Node.js
+```js
+const { Framework } = require("@superfluid-finance/sdk-core");
+const { ethers } = require("ethers");
+```
+
+```ts
+// infura provider initialization
 const provider = new ethers.providers.InfuraProvider(
   "matic",
   "<INFURA_API_KEY>"
@@ -60,31 +72,45 @@ const web3jsSf = await Framework.create({
   networkName: "matic",
   provider: web3jsProvider
 });
-```
 
-JavaScript (CommonJS) - usually a Node.js environment:
-
-```js
-const { Framework } = require("@superfluid-finance/sdk-core");
-const { ethers } = require("ethers");
-
-const provider = new ethers.providers.InfuraProvider(
-  "matic",
-  "<INFURA_API_KEY>"
-);
-const sf = await Framework.create({
+// ethers.js + hardhat provider initialization (in testing environment w/ hardhat-ethers)
+const [deployer] = await ethers.getSigners();
+const ethersProvider = deployer.provider;
+const ethersjsSf = await Framework.create({
   networkName: "matic",
-  provider
+  provider: ethersProvider
 });
 
-// web3.js + Hardhat provider initialization
-const web3jsProvider = new ethers.providers.Web3Provider(
-  global.web3.currentProvider
-);
-const web3jsSf = await Framework.create({
+// metamask
+const mmProvider = new ethers.providers.Web3Provider(window.ethereum);
+const mmSf = await Framework.create({
   networkName: "matic",
-  provider: web3jsProvider
+  provider: mmProvider
 });
+
+// web3modal
+const web3ModalRawProvider = await web3Modal.connect();
+const web3ModalProvider = new ethers.providers.Web3Provider(web3ModalRawProvider);
+const web3ModalSf = await Framework.create({
+  networkName: "matic",
+  provider: web3ModalProvider
+});
+
+//bnc-onboard
+const onboard = Onboard({
+    dappId: "<API_KEY>",
+    networkId: 4,
+    subscriptions: {
+        wallet: wallet => {
+            const web3Provider = new ethers.providers.Web3Provider(wallet.provider);
+            (async () => {
+                const framework = await Framework.create({ networkName: "matic", provider: web3Provider });
+            })();
+        }
+    }
+});
+// this is triggered by:
+await onboard.walletSelect();
 ```
 
 > Note: You specify your project type in `package.json` - `"type": "module"` or `"type": "commonjs"`.
@@ -229,11 +255,11 @@ const sf = await Framework.create({
   provider: web3ModalProvider,
 });
 
-const web3ModalSigner = sf.createSigner(web3ModalProvider);
+const web3ModalSigner = sf.createSigner({ web3Provider: web3ModalProvider });
 
 // MetaMask example
 const metamaskProvider = new Web3Provider(window.ethereum);
-const metaMaskSigner = sf.createSigner(metamaskProvider);
+const metaMaskSigner = sf.createSigner({ web3Provider: metamaskProvider });
 ```
 
 #### Hardhat Signer Example
@@ -278,9 +304,7 @@ const sf = await Framework.create({
   provider,
 });
 
-const signer = sf.createSigner({
-  signer: wallet
-});
+const signer = sf.createSigner({ signer: wallet });
 ```
 
 ### Operation
@@ -786,18 +810,19 @@ const sf = await Framework.create({
   provider
 });
  
- // 0xabc is the signer
+ // 0xabc is the signer on Rinkeby testnet
 const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
-const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
-const approveOp = usdcx.approve({ receiver: "0xdef", amount: "10000" });
-const transferFromOp = usdcx.transferFrom({
-    sender: "0xabc",
-    receiver: "0xdef",
-    amount: "10000",
+const daix = await sf.loadSuperToken("0x745861AeD1EEe363b4AaA5F1994Be40b1e05Ff90");
+const fromAddress = "0xabc";
+const paymentAddress = "0xdef";
+const approveOp = daix.approve({ receiver: paymentAddress, amount: "10000" });
+const transferFromOp = daix.transferFrom({
+  sender: fromAddress,
+  receiver: paymentAddress,
+  amount: "10000",
 });
-const batchCall = framework.batchCall([approveOp, transferFromOp]);
-const txn = await batchCall.execute(signer);
-
+const batchCall = sf.batchCall([approveOp, transferFromOp]);
+const txn = await batchCall.exec(signer);
 
 // creating an operation from a super app function
 // initialize your super app contract

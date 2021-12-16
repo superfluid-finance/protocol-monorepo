@@ -6,7 +6,7 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { useListIndexesQuery, IIndex } from "@superfluid-finance/sdk-redux";
+import { IIndex } from "@superfluid-finance/sdk-core";
 import { Loader } from "../Loader";
 import {
     FormGroup,
@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 const pageSize = 10;
 
@@ -44,7 +45,7 @@ export const ListIndexes: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListIndexesQuery({
+    } = sfApi.useListIndexesQuery({
         chainId: queryChainId,
         indexId: indexId,
         publisherAddress,

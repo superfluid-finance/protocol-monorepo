@@ -1,10 +1,9 @@
 import { ethers } from "ethers";
 
-import { abi as SuperfluidABI } from "../../sdk-core/src/abi/Superfluid.json";
-
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
 import SFError from "./SFError";
+import SuperfluidABI from "./abi/Superfluid.json";
 import { IConfig } from "./interfaces";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
@@ -47,7 +46,7 @@ export default class BatchCall {
      * @returns {ethers.utils.Result} call agreement function arguments
      */
     getCallAgreementFunctionArgs = (callData: string): ethers.utils.Result =>
-        getTransactionDescription(SuperfluidABI, callData).args;
+        getTransactionDescription(SuperfluidABI.abi, callData).args;
 
     /**
      * @dev Given an `Operation` object, gets the `OperationStruct` object.
@@ -82,13 +81,19 @@ export default class BatchCall {
         // The only operation which has a target that is not the
         // same as the to property of the transaction.
         if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
+            const encoder = ethers.utils.defaultAbiCoder;
             const functionArgs = this.getCallAgreementFunctionArgs(
                 populatedTransaction.data
             );
+            const data = encoder.encode(
+                ["bytes", "bytes"],
+                [functionArgs["callData"], functionArgs["userData"]]
+            );
+
             return {
                 operationType: operationType!,
                 target: functionArgs["agreementClass"],
-                data: functionArgs["callData"],
+                data,
             };
         }
 

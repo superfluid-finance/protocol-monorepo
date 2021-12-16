@@ -11,10 +11,7 @@ export type CacheTagTypes = 'Event' | 'Index' | 'Stream' | 'Token';
  * @private
  * @category Cache Tags
  */
-export const createTag = (
-    type: CacheTagTypes,
-    ...keys: (string | number)[]
-) => ({
+export const createTag = (type: CacheTagTypes, ...keys: (string | number)[]) => ({
     type: type,
     id: keys.join('_').toLowerCase(),
 });

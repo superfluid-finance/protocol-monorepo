@@ -1,6 +1,6 @@
 import {ethers} from 'ethers';
 
-import {getFramework, getFrameworkAndSigner} from '../../../SuperfluidContext';
+import {getFramework, getFrameworkAndSigner} from '../../../sdkReduxConfig';
 import {MillisecondTimes, typeGuard} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {registerNewTransaction} from '../../transactions/registerNewTransaction';
@@ -9,24 +9,24 @@ import {invalidateCacheTagsForEvents} from '../cacheTags/invalidateCacheTagsForE
 import {monitorAddressForNextEventToInvalidateCache} from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
 
 import {
-    ApproveIndexSubscriptionArg,
-    ClaimFromIndexSubscriptionArg,
-    CreateFlowArg,
-    CreateIndexArg,
-    DeleteFlowArg,
-    DeleteIndexSubscriptionArg,
-    DistributeToIndexArg,
-    DowngradeFromSuperTokenArg,
-    MonitorForEventsToInvalidateCacheArg,
-    RevokeIndexSubscriptionArg,
-    TransferSuperTokenArg,
-    UpdateFlowArg,
-    UpdateIndexSubscriptionUnitsArg,
-    UpgradeToSuperTokenArg,
-} from './mutationArgs';
+    ApproveIndexSubscription,
+    ClaimFromIndexSubscription,
+    CreateFlow,
+    CreateIndex,
+    DeleteFlow,
+    DeleteIndexSubscription,
+    DistributeToIndex,
+    DowngradeFromSuperToken,
+    MonitorForEventsToInvalidateCache,
+    RevokeIndexSubscription,
+    TransferSuperToken,
+    UpdateFlow,
+    UpdateIndexSubscriptionUnits,
+    UpgradeToSuperToken,
+} from './mutations';
 
 export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
-    approveIndexSubscription: builder.mutation<TransactionInfo, ApproveIndexSubscriptionArg>({
+    approveIndexSubscription: builder.mutation<TransactionInfo, ApproveIndexSubscription>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -67,7 +67,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    claimFromIndexSubscription: builder.mutation<TransactionInfo, ClaimFromIndexSubscriptionArg>({
+    claimFromIndexSubscription: builder.mutation<TransactionInfo, ClaimFromIndexSubscription>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -109,7 +109,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    createFlow: builder.mutation<TransactionInfo, CreateFlowArg>({
+    createFlow: builder.mutation<TransactionInfo, CreateFlow>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -153,7 +153,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    createIndex: builder.mutation<TransactionInfo, CreateIndexArg>({
+    createIndex: builder.mutation<TransactionInfo, CreateIndex>({
         /**
          * Creates an IDA Index.
          */
@@ -198,7 +198,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    deleteFlow: builder.mutation<TransactionInfo, DeleteFlowArg>({
+    deleteFlow: builder.mutation<TransactionInfo, DeleteFlow>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
@@ -239,7 +239,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    deleteIndexSubscription: builder.mutation<TransactionInfo, DeleteIndexSubscriptionArg>({
+    deleteIndexSubscription: builder.mutation<TransactionInfo, DeleteIndexSubscription>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -281,7 +281,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    distributeToIndex: builder.mutation<TransactionInfo, DistributeToIndexArg>({
+    distributeToIndex: builder.mutation<TransactionInfo, DistributeToIndex>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -325,7 +325,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    downgradeFromSuperToken: builder.mutation<TransactionInfo, DowngradeFromSuperTokenArg>({
+    downgradeFromSuperToken: builder.mutation<TransactionInfo, DowngradeFromSuperToken>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -367,7 +367,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    monitorForEventsToInvalidateCache: builder.mutation<true, MonitorForEventsToInvalidateCacheArg>({
+    monitorForEventsToInvalidateCache: builder.mutation<true, MonitorForEventsToInvalidateCache>({
         queryFn: () => {
             // No-op
             return {
@@ -396,7 +396,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             }
         },
     }),
-    revokeIndexSubscription: builder.mutation<TransactionInfo, RevokeIndexSubscriptionArg>({
+    revokeIndexSubscription: builder.mutation<TransactionInfo, RevokeIndexSubscription>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -437,7 +437,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    transferSuperToken: builder.mutation<TransactionInfo, TransferSuperTokenArg>({
+    transferSuperToken: builder.mutation<TransactionInfo, TransferSuperToken>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -480,7 +480,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    updateFlow: builder.mutation<TransactionInfo, UpdateFlowArg>({
+    updateFlow: builder.mutation<TransactionInfo, UpdateFlow>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
@@ -520,7 +520,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    updateIndexSubscriptionUnits: builder.mutation<TransactionInfo, UpdateIndexSubscriptionUnitsArg>({
+    updateIndexSubscriptionUnits: builder.mutation<TransactionInfo, UpdateIndexSubscriptionUnits>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 
@@ -562,7 +562,7 @@ export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
             );
         },
     }),
-    upgradeToSuperToken: builder.mutation<TransactionInfo, UpgradeToSuperTokenArg>({
+    upgradeToSuperToken: builder.mutation<TransactionInfo, UpgradeToSuperToken>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);
 

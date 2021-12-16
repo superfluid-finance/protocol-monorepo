@@ -1,68 +1,72 @@
-import {NothingBoolean, NothingNumber, NothingString, PaginatedQueryArg, QueryArg} from '../../argTypes';
+import {
+    AllEvents, IIndex, IIndexSubscription, ILightAccountTokenSnapshot, IStream, ISuperToken,
+    IWeb3Index, IWeb3Subscription
+} from "@superfluid-finance/sdk-core";
+import { NothingBoolean, NothingNumber, NothingString, BasePaginatedQuery, BaseQuery } from "../../argTypes";
 
-export type GetAllowanceForUpgradeToSuperTokenArg = QueryArg & {
+export interface GetAllowanceForUpgradeToSuperToken extends BaseQuery<string> {
     accountAddress: string;
     superTokenAddress: string;
-};
+}
 
-export type GetIndexArg = QueryArg & {
+export interface GetIndex extends BaseQuery<IWeb3Index> {
     superTokenAddress: string;
     publisherAddress: string;
     indexId: string;
     subscriberAddress: string;
-};
+}
 
-export type GetIndexSubscriptionsArg = QueryArg & {
+export interface GetIndexSubscriptions extends BaseQuery<IWeb3Subscription> {
     superTokenAddress: string;
     publisherAddress: string;
     indexId: string;
     subscriberAddress: string;
-};
+}
 
 // TODO(KK): Clean up the timestamp flooring here...
 // TODO(KK): Consider keeping netflow separate after all...
 
-export type GetRealtimeBalanceArg = QueryArg & {
+export interface GetRealtimeBalance extends BaseQuery<GetRealtimeBalanceResult> {
     superTokenAddress: string;
     accountAddress: string;
     estimationTimestamp: number | NothingNumber;
-};
+}
 
-export type GetRealtimeBalanceResult = {
+export interface GetRealtimeBalanceResult {
     availableBalanceWei: string;
     netFlowRateWei: string;
     depositWei: string;
     owedDepositWei: string;
     timestamp: number;
-};
+}
 
-export type ListEventsArg = PaginatedQueryArg & {
+export interface ListEvents extends BasePaginatedQuery<AllEvents> {
     accountAddress: string | NothingString;
     timestamp_gt: number | NothingNumber;
-};
+}
 
-export type ListIndexesArg = PaginatedQueryArg & {
+export interface ListIndexes extends BasePaginatedQuery<IIndex> {
     indexId: string | NothingString;
     publisherAddress: string | NothingString;
     superTokenAddress: string | NothingString;
-};
+}
 
-export type ListIndexSubscriptionsArg = PaginatedQueryArg & {
+export interface ListIndexSubscriptions extends BasePaginatedQuery<IIndexSubscription> {
     subscriberAddress: string | NothingString;
     approved: boolean | NothingBoolean;
-};
+}
 
-export type ListStreamsArg = PaginatedQueryArg & {
+export interface ListStreams extends BasePaginatedQuery<IStream> {
     senderAddress: string | NothingString;
     receiverAddress: string | NothingString;
     superTokenAddress: string | NothingString;
-};
+}
 
-export type ListSuperTokensArg = PaginatedQueryArg & {
+export interface ListSuperTokens extends BasePaginatedQuery<ISuperToken> {
     isListed: boolean | NothingBoolean;
-};
+}
 
-export type ListUserInteractedSuperTokensArg = PaginatedQueryArg & {
+export interface ListUserInteractedSuperTokens extends BasePaginatedQuery<ILightAccountTokenSnapshot> {
     accountAddress: string | NothingString;
     superTokenAddress: string | NothingString;
-};
+}

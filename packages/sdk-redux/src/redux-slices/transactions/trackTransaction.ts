@@ -2,7 +2,7 @@
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {getApiSlice, getFramework, getTransactionSlice} from '../../SuperfluidContext';
+import {getApiSlice, getFramework, getTransactionSlice} from '../../sdkReduxConfig';
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 

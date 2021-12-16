@@ -4,10 +4,6 @@ import {Signer} from 'ethers';
 import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSlice';
 import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
 
-interface FrameworkAndSignerLocator extends FrameworkLocator, SignerLocator {
-    getFrameworkAndSigner: (chainId: number) => Promise<[framework: Framework, signer: Signer]>;
-}
-
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;
     setFramework: (
@@ -21,6 +17,10 @@ interface SignerLocator {
     setSigner: (chainId: number, signer: (() => Promise<Signer>) | Signer) => void;
 }
 
+interface FrameworkAndSignerLocator extends FrameworkLocator, SignerLocator {
+    getFrameworkAndSigner: (chainId: number) => Promise<[framework: Framework, signer: Signer]>;
+}
+
 interface ApiSliceLocator {
     getApiSlice: () => SfApiSliceInferredType;
     setApiSlice: (slice: SfApiSliceInferredType) => void;
@@ -31,17 +31,17 @@ interface TransactionSliceLocator {
     setTransactionSlice: (slice: SfTransactionSliceType) => void;
 }
 
-export default class SuperfluidContext implements FrameworkAndSignerLocator, ApiSliceLocator, TransactionSliceLocator {
+export default class SdkReduxConfig implements FrameworkAndSignerLocator, ApiSliceLocator, TransactionSliceLocator {
     apiSlice: SfApiSliceInferredType | undefined;
     transactionSlice: SfTransactionSliceType | undefined;
     frameworks = new Map<number, () => Promise<Framework>>();
     signers = new Map<number, () => Promise<Signer>>();
 
-    static getOrCreateSingleton(): SuperfluidContext {
-        if (!globalThis.superfluidContext) {
-            globalThis.superfluidContext = new SuperfluidContext();
+    static getOrCreateSingleton(): SdkReduxConfig {
+        if (!globalThis.sdkReduxConfig) {
+            globalThis.sdkReduxConfig = new SdkReduxConfig();
         }
-        return globalThis.superfluidContext;
+        return globalThis.sdkReduxConfig;
     }
 
     getApiSlice(): SfApiSliceInferredType {
@@ -94,7 +94,7 @@ export default class SuperfluidContext implements FrameworkAndSignerLocator, Api
     }
 
     setSigner(chainId: number, signer: (() => Promise<Signer>) | Signer) {
-        if (signer instanceof Signer) {
+        if (isEthersSigner(signer)) {
             this.signers.set(chainId, () => Promise.resolve(signer));
         } else {
             this.signers.set(chainId, signer);
@@ -104,7 +104,7 @@ export default class SuperfluidContext implements FrameworkAndSignerLocator, Api
     setTransactionSlice(slice: SfTransactionSliceType): void {
         if (this.transactionSlice) {
             console.log(
-                "Warning! TransactionSlice was already set and will be osverriden. This shouldn't be happening in production."
+                "Warning! TransactionSlice was already set and will be overriden. This shouldn't be happening in production."
             );
         }
         this.transactionSlice = slice;
@@ -115,12 +115,12 @@ export default class SuperfluidContext implements FrameworkAndSignerLocator, Api
     }
 }
 
-export const getSuperfluidContext = SuperfluidContext.getOrCreateSingleton;
-export const getApiSlice = () => getSuperfluidContext().getApiSlice();
-export const getTransactionSlice = () => getSuperfluidContext().getTransactionSlice();
-export const getFramework = (chainId: number) => getSuperfluidContext().getFramework(chainId);
-export const getSigner = (chainId: number) => getSuperfluidContext().getSigner(chainId);
-export const getFrameworkAndSigner = (chainId: number) => getSuperfluidContext().getFrameworkAndSigner(chainId);
+export const getConfig = SdkReduxConfig.getOrCreateSingleton;
+export const getApiSlice = () => getConfig().getApiSlice();
+export const getTransactionSlice = () => getConfig().getTransactionSlice();
+export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
+export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
+export const getFrameworkAndSigner = (chainId: number) => getConfig().getFrameworkAndSigner(chainId);
 
-export const setSignerForSdkRedux = (chainId: number, signer: (() => Promise<Signer>) | Signer) => getSuperfluidContext().setSigner(chainId, signer)
-export const setFrameworkForSdkRedux = (chainId: number, framework: (() => Promise<Framework>) | Framework) => getSuperfluidContext().setFramework(chainId, framework)
+const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
+

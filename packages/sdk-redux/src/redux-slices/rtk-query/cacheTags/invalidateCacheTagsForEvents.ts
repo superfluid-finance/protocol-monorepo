@@ -1,7 +1,7 @@
 import {AnyAction, ThunkDispatch} from '@reduxjs/toolkit';
 import {AllEvents} from '@superfluid-finance/sdk-core';
 
-import {getApiSlice} from '../../../SuperfluidContext';
+import {getApiSlice} from '../../../sdkReduxConfig';
 
 import {createEventTag} from './eventTags';
 import {createIndexTags} from './indexTags';

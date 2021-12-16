@@ -1,7 +1,7 @@
 import {AnyAction} from '@reduxjs/toolkit';
 import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import {getFramework} from '../../../SuperfluidContext';
+import {getFramework} from '../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 

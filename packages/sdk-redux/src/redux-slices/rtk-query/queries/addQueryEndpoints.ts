@@ -11,7 +11,7 @@ import {
     PagedResult,
 } from '@superfluid-finance/sdk-core';
 
-import {getFramework} from '../../../SuperfluidContext';
+import {getFramework} from '../../../sdkReduxConfig';
 import {insertIf, typeGuard} from '../../../utils';
 import {SfEndpointBuilder} from '../baseQuery';
 import {createEventTag} from '../cacheTags/eventTags';
@@ -20,21 +20,21 @@ import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
 import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
 
 import {
-    GetAllowanceForUpgradeToSuperTokenArg,
-    GetIndexArg,
-    GetIndexSubscriptionsArg,
-    GetRealtimeBalanceArg,
+    GetAllowanceForUpgradeToSuperToken,
+    GetIndex,
+    GetIndexSubscriptions,
+    GetRealtimeBalance,
     GetRealtimeBalanceResult,
-    ListEventsArg,
-    ListIndexesArg,
-    ListIndexSubscriptionsArg,
-    ListStreamsArg,
-    ListSuperTokensArg,
-    ListUserInteractedSuperTokensArg,
-} from './queryArgs';
+    ListEvents,
+    ListIndexes,
+    ListIndexSubscriptions,
+    ListStreams,
+    ListSuperTokens,
+    ListUserInteractedSuperTokens,
+} from './queries';
 
 export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
-    getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperTokenArg>({
+    getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperToken>({
         keepUnusedDataFor: 0, // We can't listen for "approval" event from Subgraph currently.
         providesTags: (_result, _error, arg) => [
             getMostSpecificTokenTag({
@@ -60,7 +60,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    getIndex: builder.query<IWeb3Index, GetIndexArg>({
+    getIndex: builder.query<IWeb3Index, GetIndex>({
         providesTags: (_result, _error, arg) => [
             getMostSpecificIndexTag({
                 chainId: arg.chainId,
@@ -83,7 +83,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    getIndexSubscription: builder.query<IWeb3Subscription, GetIndexSubscriptionsArg>({
+    getIndexSubscription: builder.query<IWeb3Subscription, GetIndexSubscriptions>({
         providesTags: (_result, _error, arg) => [
             getMostSpecificIndexTag({
                 chainId: arg.chainId,
@@ -107,7 +107,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    getRealtimeBalance: builder.query<GetRealtimeBalanceResult, GetRealtimeBalanceArg>({
+    getRealtimeBalance: builder.query<GetRealtimeBalanceResult, GetRealtimeBalance>({
         keepUnusedDataFor: 0, // We don't want to cache balance because it changes every second.
         providesTags: (_result, _error, arg) => [
             getMostSpecificIndexTag({
@@ -157,7 +157,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    listEvents: builder.query<PagedResult<AllEvents>, ListEventsArg>({
+    listEvents: builder.query<PagedResult<AllEvents>, ListEvents>({
         providesTags: (_result, _error, arg) => [
             ...insertIf(!arg.accountAddress, createEventTag(arg.chainId)),
             getMostSpecificIndexTag({
@@ -194,7 +194,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    listIndexes: builder.query<PagedResult<IIndex>, ListIndexesArg>({
+    listIndexes: builder.query<PagedResult<IIndex>, ListIndexes>({
         providesTags: (_result, _error, arg) => [
             getMostSpecificIndexTag({
                 chainId: arg.chainId,
@@ -219,7 +219,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    listIndexSubscriptions: builder.query<PagedResult<IIndexSubscription>, ListIndexSubscriptionsArg>({
+    listIndexSubscriptions: builder.query<PagedResult<IIndexSubscription>, ListIndexSubscriptions>({
         providesTags: (_result, _error, arg) => [
             getMostSpecificIndexTag({
                 chainId: arg.chainId,
@@ -243,7 +243,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    listStreams: builder.query<PagedResult<IStream>, ListStreamsArg>({
+    listStreams: builder.query<PagedResult<IStream>, ListStreams>({
         providesTags: (_result, _error, arg) => [
             getMostSpecificStreamTag({
                 chainId: arg.chainId,
@@ -267,7 +267,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
             };
         },
     }),
-    listSuperTokens: builder.query<PagedResult<ISuperToken>, ListSuperTokensArg>({
+    listSuperTokens: builder.query<PagedResult<ISuperToken>, ListSuperTokens>({
         providesTags: (_result, _error, arg) => [
             getMostSpecificTokenTag({
                 chainId: arg.chainId,
@@ -291,7 +291,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
     }),
     listUserInteractedSuperTokens: builder.query<
         PagedResult<ILightAccountTokenSnapshot>,
-        ListUserInteractedSuperTokensArg
+        ListUserInteractedSuperTokens
     >({
         providesTags: (_result, _error, arg) => [
             getMostSpecificTokenTag({

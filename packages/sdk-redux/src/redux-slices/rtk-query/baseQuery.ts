@@ -2,7 +2,7 @@ import {SerializedError} from '@reduxjs/toolkit';
 import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import {BaseQueryFn} from '@reduxjs/toolkit/dist/query/react';
 
-import {QueryArg, SuperTokenMutationArg, TransactionInfo} from '../argTypes';
+import {BaseQuery, BaseSuperTokenMutation, TransactionInfo} from '../argTypes';
 
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
 
@@ -25,7 +25,7 @@ export type MutationMeta = {
  * This also allows you to specify a specific error type to be shared by all your `queryFn` definitions.
  */
 export function baseQuery(): BaseQueryFn<
-    SuperTokenMutationArg | QueryArg,
+    BaseSuperTokenMutation | BaseQuery<unknown>,
     TransactionInfo | Record<string, unknown>,
     ValidationError,
     unknown,
@@ -40,7 +40,7 @@ export type PossibleErrors = ValidationError | SerializedError;
 
 export type SfEndpointBuilder = EndpointBuilder<
     BaseQueryFn<
-        SuperTokenMutationArg | QueryArg,
+        BaseSuperTokenMutation | BaseQuery<unknown>,
         TransactionInfo | Record<string, unknown>,
         ValidationError,
         unknown,

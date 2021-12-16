@@ -1,6 +1,6 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import {getFramework} from '../../SuperfluidContext';
+import {getFramework} from '../../sdkReduxConfig';
 
 import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
 

@@ -1,4 +1,4 @@
-import { NothingString, BaseSuperTokenMutation } from "../../argTypes";
+import {BaseSuperTokenMutation, NothingString} from '../../argTypes';
 
 /**
  * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.

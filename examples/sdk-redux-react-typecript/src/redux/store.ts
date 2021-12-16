@@ -1,11 +1,12 @@
 import {configureStore, Dispatch} from "@reduxjs/toolkit";
 import {
     initializeSfApiSlice,
-    initializeSfTransactionSlice
+    initializeSfTransactionSlice,
+    createApiWithReactHooks
 } from "@superfluid-finance/sdk-redux";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
-export const { sfApi } = initializeSfApiSlice();
+export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
 export const { sfTransactions } = initializeSfTransactionSlice();
 
 export const store = configureStore({

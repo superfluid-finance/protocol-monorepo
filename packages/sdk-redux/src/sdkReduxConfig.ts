@@ -6,10 +6,7 @@ import {SfTransactionSliceType} from './redux-slices/transactions/createTransact
 
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;
-    setFramework: (
-        chainId: number,
-        framework: (() => Promise<Framework>) | Framework
-    ) => void;
+    setFramework: (chainId: number, framework: (() => Promise<Framework>) | Framework) => void;
 }
 
 interface SignerLocator {
@@ -123,4 +120,3 @@ export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
 export const getFrameworkAndSigner = (chainId: number) => getConfig().getFrameworkAndSigner(chainId);
 
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
-

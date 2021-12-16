@@ -1,5 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { transactionsAdapter } from "./trackedTransaction";
+import {createSlice} from '@reduxjs/toolkit';
+
+import {transactionsAdapter} from './trackedTransaction';
 
 export const transactionSlicePrefix = 'sfTransactions' as const;
 

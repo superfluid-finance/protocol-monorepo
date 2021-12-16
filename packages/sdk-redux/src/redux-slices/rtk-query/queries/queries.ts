@@ -1,8 +1,15 @@
 import {
-    AllEvents, IIndex, IIndexSubscription, ILightAccountTokenSnapshot, IStream, ISuperToken,
-    IWeb3Index, IWeb3Subscription
-} from "@superfluid-finance/sdk-core";
-import { NothingBoolean, NothingNumber, NothingString, BasePaginatedQuery, BaseQuery } from "../../argTypes";
+    AllEvents,
+    IIndex,
+    IIndexSubscription,
+    ILightAccountTokenSnapshot,
+    IStream,
+    ISuperToken,
+    IWeb3Index,
+    IWeb3Subscription,
+} from '@superfluid-finance/sdk-core';
+
+import {BasePaginatedQuery, BaseQuery, NothingBoolean, NothingNumber, NothingString} from '../../argTypes';
 
 export interface GetAllowanceForUpgradeToSuperToken extends BaseQuery<string> {
     accountAddress: string;

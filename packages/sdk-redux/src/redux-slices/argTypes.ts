@@ -47,7 +47,7 @@ export interface BaseSuperTokenMutation {
 /**
  * Input for strings that is ignored.
  */
-export type NothingString = "" | undefined;
+export type NothingString = '' | undefined;
 
 /**
  * Input for numbers that is ignored.

@@ -3,14 +3,16 @@ const TestEnvironment = require("../../TestEnvironment");
 const {BN, expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
-    clipDepositNumber,
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
-    syncAccountExpectedBalanceDeltas,
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const traveler = require("ganache-time-traveler");
+const {
+    clipDepositNumber,
+    syncAccountExpectedBalanceDeltas,
+} = require("../utils/CFAV1utils");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
@@ -254,7 +256,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             accountFlowInfo,
         });
 
-        await verifyAll({ allowCriticalAccount });
+        await verifyAll({allowCriticalAccount});
     }
 
     async function _testBailout({
@@ -347,7 +349,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             accountFlowInfo,
         });
 
-        await verifyAll({ allowCriticalAccount });
+        await verifyAll({allowCriticalAccount});
     }
 
     context("#1 without callbacks", () => {

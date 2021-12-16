@@ -143,6 +143,7 @@ describe("CFA Library testing", function () {
             );
 
             assert.equal(inFlow.flowRate, "3858024691358");
+            //this second assertion tests the callback inside of tradeable cashflow
             assert.equal(outFlow.flowRate, "3858024691358");
             assert.equal(await TradeableCashflowMock.userData(), "HODL");
         });
@@ -177,6 +178,7 @@ describe("CFA Library testing", function () {
             );
 
             assert.equal(inFlow.flowRate, "1958024691358");
+            //this second assertion tests the callback inside of tradeable cashflow
             assert.equal(outFlow.flowRate, "1958024691358");
             assert.equal(await TradeableCashflowMock.userData(), "WAGMI");
         });
@@ -210,6 +212,7 @@ describe("CFA Library testing", function () {
             );
 
             assert.equal(inFlow.flowRate, "0");
+            //this second assertion tests the callback inside of tradeable cashflow
             assert.equal(outFlow.flowRate, "0");
             assert.equal(await TradeableCashflowMock.userData(), "NGMI");
         });

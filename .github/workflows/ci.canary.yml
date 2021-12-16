@@ -47,7 +47,7 @@ jobs:
           yarn build
           yarn test
         env:
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
@@ -267,4 +267,4 @@ jobs:
         env:
           RELEASE_VERSION: master
           GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}

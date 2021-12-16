@@ -82,13 +82,19 @@ export default class BatchCall {
         // The only operation which has a target that is not the
         // same as the to property of the transaction.
         if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
+            const encoder = ethers.utils.defaultAbiCoder;
             const functionArgs = this.getCallAgreementFunctionArgs(
                 populatedTransaction.data
             );
+            const data = encoder.encode(
+                ["bytes", "bytes"],
+                [functionArgs["callData"], functionArgs["userData"]]
+            );
+
             return {
                 operationType: operationType!,
                 target: functionArgs["agreementClass"],
-                data: functionArgs["callData"],
+                data,
             };
         }
 

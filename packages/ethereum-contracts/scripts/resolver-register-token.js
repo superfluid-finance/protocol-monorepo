@@ -40,26 +40,23 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("reset token: ", resetToken);
     console.log("chain ID: ", chainId);
 
-    const {TestResolver} = await SuperfluidSDK.loadContracts({
+    const {Resolver} = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
-        additionalContracts: ["TestResolver"],
+        additionalContracts: ["Resolver"],
         contractLoader: builtTruffleContractLoader,
     });
 
-    const testResolver = await TestResolver.at(config.resolverAddress);
-    console.log("Resolver address", testResolver.address);
+    const resolver = await Resolver.at(config.resolverAddress);
+    console.log("Resolver address", resolver.address);
 
     const name = `tokens.${tokenName}`;
-    let testTokenAddress = await testResolver.get(name);
+    let testTokenAddress = await resolver.get(name);
 
     if (
         resetToken ||
         testTokenAddress === "0x0000000000000000000000000000000000000000"
     ) {
-        await web3tx(testResolver.set, `TestResolver set ${name}`)(
-            name,
-            tokenAddress
-        );
+        await web3tx(resolver.set, `Resolver set ${name}`)(name, tokenAddress);
     } else {
         console.log("Token already set");
     }

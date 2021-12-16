@@ -9,7 +9,7 @@ import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
-import { TestResolver } from "../../typechain";
+import { Resolver } from "../../typechain";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -71,7 +71,7 @@ export const beforeSetup = async (tokenAmount: number) => {
     const resolver = (await ethers.getContractAt(
         IResolverABI,
         RESOLVER_ADDRESS
-    )) as TestResolver;
+    )) as Resolver;
 
     // NOTE: although we already set this in initialization, we need to reset it here to ensure
     // we wait for the indexer to catch up before the tests start
@@ -99,8 +99,9 @@ export const monthlyToSecondRate = (monthlyRate: number) => {
     return Math.round((monthlyRate / seconds) * 10 ** 18);
 };
 
+// NOTE: + 1 ensures that the flow rate is never 0
 export const getRandomFlowRate = (max: number) =>
-    Math.floor(Math.random() * max);
+    Math.floor(Math.random() * max) + 1;
 
 export const getCurrentBlockNumber = async () => {
     const query = gql`

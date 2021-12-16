@@ -13,7 +13,7 @@ import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 
-const INITIAL_AMOUNT_PER_USER = "10000000000000";
+const INITIAL_AMOUNT_PER_USER = "10000000000";
 
 describe("SuperToken Tests", () => {
     let framework: Framework;
@@ -561,7 +561,7 @@ describe("SuperToken Tests", () => {
                 daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils.parseUnits("0.002").toString(),
+                        indexValue: ethers.utils.parseUnits("0.000000002").toString(),
                     })
                     .exec(alpha)
             )
@@ -571,9 +571,9 @@ describe("SuperToken Tests", () => {
                     alpha.address,
                     0,
                     "500",
-                    ethers.utils.parseUnits("0.002").toString(),
+                    ethers.utils.parseUnits("0.000000002").toString(),
                     "0",
-                    ethers.utils.parseUnits("0.002").toString(),
+                    "2000000000000000",
                     "0x"
                 );
         });
@@ -619,7 +619,7 @@ describe("SuperToken Tests", () => {
                 daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils.parseUnits("0.003").toString(),
+                        indexValue: ethers.utils.parseUnits("0.000000003").toString(),
                     })
                     .exec(alpha)
             )
@@ -628,9 +628,9 @@ describe("SuperToken Tests", () => {
                     superToken.address,
                     alpha.address,
                     0,
-                    ethers.utils.parseUnits("0.002").toString(),
-                    ethers.utils.parseUnits("0.003").toString(),
-                    ethers.utils.parseUnits("0.002").toString(),
+                    ethers.utils.parseUnits("0.000000002").toString(),
+                    ethers.utils.parseUnits("0.000000003").toString(),
+                    "2000000000000000",
                     "0",
                     "0x"
                 );
@@ -653,7 +653,7 @@ describe("SuperToken Tests", () => {
                     deployer.address,
                     alpha.address,
                     0,
-                    ethers.utils.parseUnits("1000000000000")
+                    "1000000000000000000000000"
                 );
 
             await expect(
@@ -671,7 +671,7 @@ describe("SuperToken Tests", () => {
                     alpha.address,
                     0,
                     bravo.address,
-                    ethers.utils.parseUnits("1000000000000")
+                    "1000000000000000000000000"
                 );
         });
 

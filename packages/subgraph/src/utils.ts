@@ -1,6 +1,6 @@
 import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { TestResolver } from "../generated/ResolverV1/TestResolver";
+import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
     StreamRevision,
     IndexSubscription,
@@ -60,7 +60,7 @@ export function getIsListedToken(
     tokenAddress: Address,
     resolverAddress: Address
 ): Token {
-    let resolverContract = TestResolver.bind(resolverAddress);
+    let resolverContract = Resolver.bind(resolverAddress);
     let version =
         resolverAddress.toHex() == "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
             ? "test"

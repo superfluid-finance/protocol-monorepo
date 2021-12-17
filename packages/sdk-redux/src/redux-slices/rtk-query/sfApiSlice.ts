@@ -25,7 +25,7 @@ export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateAp
             ...addMutationEndpoints(builder),
         }),
         serializeQueryArgs: ({endpointName, queryArgs}) => {
-            // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
+            // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts` and then edited.
 
             // Comment from RTK-Query: Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
             return `${endpointName}(${JSON.stringify(queryArgs, (_key, value) =>
@@ -33,7 +33,12 @@ export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateAp
                     ? Object.keys(value)
                           .sort()
                           .reduce<any>((acc, key) => {
-                              acc[key] = normalizeValue((value as any)[key]);
+                              const normalizedValue = normalizeValue((value as any)[key]);
+                              // Don't include undefined key-value pairs in the object because some framework (e.g. Next.js) don't like undefined values when doing serialization..
+                              if (normalizedValue === undefined) {
+                                  return acc;
+                              }
+                              acc[key] = normalizedValue;
                               return acc;
                           }, {})
                     : normalizeValue(value)

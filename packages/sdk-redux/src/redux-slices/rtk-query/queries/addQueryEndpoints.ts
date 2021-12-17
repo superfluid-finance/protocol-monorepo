@@ -10,9 +10,9 @@ import {
     IWeb3Subscription,
     PagedResult,
 } from '@superfluid-finance/sdk-core';
+import _ from 'lodash';
 
 import {getFramework} from '../../../sdkReduxConfig';
-import {insertIf, typeGuard} from '../../../utils';
 import {SfEndpointBuilder} from '../baseQuery';
 import {createEventTag} from '../cacheTags/eventTags';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
@@ -32,6 +32,7 @@ import {
     ListSuperTokens,
     ListUserInteractedSuperTokens,
 } from './queries';
+import { insertIf, typeGuard } from "../../../utils";
 
 export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
     getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperToken>({
@@ -55,9 +56,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
                 spender: superToken.address,
             });
 
-            return {
-                data: underlyingTokenAllowance,
-            };
+            return fromQueryFn(underlyingTokenAllowance);
         },
     }),
     getIndex: builder.query<IWeb3Index, GetIndex>({
@@ -78,9 +77,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
                 publisher: arg.publisherAddress,
                 providerOrSigner: framework.settings.provider,
             });
-            return {
-                data: index,
-            };
+            return fromQueryFn(index);
         },
     }),
     getIndexSubscription: builder.query<IWeb3Subscription, GetIndexSubscriptions>({
@@ -102,9 +99,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
                 subscriber: arg.subscriberAddress,
                 providerOrSigner: framework.settings.provider,
             });
-            return {
-                data: indexSubscription,
-            };
+            return fromQueryFn(indexSubscription);
         },
     }),
     getRealtimeBalance: builder.query<GetRealtimeBalanceResult, GetRealtimeBalance>({
@@ -146,15 +141,14 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
                     providerOrSigner: framework.settings.provider,
                 }),
             ]);
-            return {
-                data: typeGuard<GetRealtimeBalanceResult>({
-                    availableBalanceWei: realtimeBalance.availableBalance.toString(),
-                    depositWei: realtimeBalance.deposit.toString(),
-                    owedDepositWei: realtimeBalance.owedDeposit.toString(),
-                    timestamp: Math.floor(realtimeBalance.timestamp.getTime() / 1000),
-                    netFlowRateWei: netFlow,
-                }),
-            };
+            const result = typeGuard<GetRealtimeBalanceResult>({
+                availableBalanceWei: realtimeBalance.availableBalance.toString(),
+                depositWei: realtimeBalance.deposit.toString(),
+                owedDepositWei: realtimeBalance.owedDeposit.toString(),
+                timestamp: Math.floor(realtimeBalance.timestamp.getTime() / 1000),
+                netFlowRateWei: netFlow,
+            });
+            return fromQueryFn(result);
         },
     }),
     listEvents: builder.query<PagedResult<AllEvents>, ListEvents>({
@@ -189,9 +183,7 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
                 },
                 createSkipPaging({skip: arg.skip, take: arg.take})
             );
-            return {
-                data: pagedResult,
-            };
+            return fromQueryFn(pagedResult);
         },
     }),
     listIndexes: builder.query<PagedResult<IIndex>, ListIndexes>({
@@ -206,17 +198,15 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
         ],
         queryFn: async (arg) => {
             const framework = await getFramework(arg.chainId);
-
-            return {
-                data: await framework.query.listIndexes(
-                    {
-                        indexId: arg.indexId,
-                        publisher: arg.publisherAddress,
-                        token: arg.superTokenAddress,
-                    },
-                    createSkipPaging(arg)
-                ),
-            };
+            const result = await framework.query.listIndexes(
+                {
+                    indexId: arg.indexId,
+                    publisher: arg.publisherAddress,
+                    token: arg.superTokenAddress,
+                },
+                createSkipPaging(arg)
+            );
+            return fromQueryFn(result);
         },
     }),
     listIndexSubscriptions: builder.query<PagedResult<IIndexSubscription>, ListIndexSubscriptions>({
@@ -231,16 +221,14 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
         ],
         queryFn: async (arg) => {
             const framework = await getFramework(arg.chainId);
-
-            return {
-                data: await framework.query.listIndexSubscriptions(
-                    {
-                        subscriber: arg.subscriberAddress,
-                        approved: arg.approved,
-                    },
-                    createSkipPaging(arg)
-                ),
-            };
+            const result = await framework.query.listIndexSubscriptions(
+                {
+                    subscriber: arg.subscriberAddress,
+                    approved: arg.approved,
+                },
+                createSkipPaging(arg)
+            );
+            return fromQueryFn(result);
         },
     }),
     listStreams: builder.query<PagedResult<IStream>, ListStreams>({
@@ -254,17 +242,15 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
         ],
         queryFn: async (arg) => {
             const framework = await getFramework(arg.chainId);
-
-            return {
-                data: await framework.query.listStreams(
-                    {
-                        sender: arg.senderAddress,
-                        receiver: arg.receiverAddress,
-                        token: arg.superTokenAddress,
-                    },
-                    createSkipPaging(arg)
-                ),
-            };
+            const result = await framework.query.listStreams(
+                {
+                    sender: arg.senderAddress,
+                    receiver: arg.receiverAddress,
+                    token: arg.superTokenAddress,
+                },
+                createSkipPaging(arg)
+            );
+            return fromQueryFn(result);
         },
     }),
     listSuperTokens: builder.query<PagedResult<ISuperToken>, ListSuperTokens>({
@@ -278,15 +264,13 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
         ],
         queryFn: async (arg) => {
             const framework = await getFramework(arg.chainId);
-
-            return {
-                data: await framework.query.listAllSuperTokens(
-                    {
-                        isListed: arg.isListed,
-                    },
-                    createSkipPaging(arg)
-                ),
-            };
+            const result = await framework.query.listAllSuperTokens(
+                {
+                    isListed: arg.isListed,
+                },
+                createSkipPaging(arg)
+            );
+            return fromQueryFn(result);
         },
     }),
     listUserInteractedSuperTokens: builder.query<
@@ -316,16 +300,26 @@ export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
         ],
         queryFn: async (arg) => {
             const framework = await getFramework(arg.chainId);
-            const pagedResult = await framework.query.listUserInteractedSuperTokens(
+            const result = await framework.query.listUserInteractedSuperTokens(
                 {
                     token: arg.superTokenAddress,
                     account: arg.accountAddress,
                 },
                 createSkipPaging({skip: arg.skip, take: arg.take})
             );
-            return {
-                data: pagedResult,
-            };
+            return fromQueryFn(result);
         },
     }),
 });
+
+const fromQueryFn = <T>(value: T) => {
+    if (_.isObject(value)) {
+        return {
+            // Don't include undefined key-value pairs in the object because some framework (e.g. Next.js) don't like undefined values when doing serialization..
+            data: _(value).omitBy(_.isUndefined).value() as T,
+        };
+    }
+    return {
+        data: value,
+    };
+};

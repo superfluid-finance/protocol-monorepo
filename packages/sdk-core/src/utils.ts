@@ -1,5 +1,7 @@
 import { JsonFragment } from "@ethersproject/abi";
+import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
+import Web3 from "web3";
 
 import SFError from "./SFError";
 import {
@@ -231,3 +233,14 @@ export const getBalance = ({
         subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
     );
 };
+
+export const isEthersProvider = (
+    provider: any
+): provider is ethers.providers.Provider => !!provider.getNetwork;
+
+export const isInjectedWeb3 = (provider: any): provider is Web3 =>
+    !!provider.currentProvider;
+
+export const isInjectedEthers = (
+    provider: any
+): provider is typeof ethers & HardhatEthersHelpers => !!provider.provider;

@@ -32,7 +32,7 @@ export const validateFrameworkConstructorOptions = (
         });
     }
 
-    if (!options.provider && !options.hardhatEthers && !options.web3) {
+    if (!options.provider) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
             customMessage:

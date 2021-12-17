@@ -76,11 +76,11 @@ const web3jsSf = await Framework.create({
 // injected web3.js initialization (Hardhat) 
 // most likely to be used on backend for testing
 // NOTE: if you're using truffle, you should be able to
-// omit the (global as any). as this should be
-// exposed already
+// omit the (global as any) as this should be
+// exposed already (in JS at least)
 const injectedWeb3jsSf = await Framework.create({
   networkName: "custom",
-  web3: (global as any).web3,
+  provider: (global as any).web3,
   dataMode: "WEB3_ONLY",
   resolverAddress: <RESOLVER_ADDRESS>,
   protocolReleaseVersion: "test",
@@ -91,7 +91,7 @@ const injectedWeb3jsSf = await Framework.create({
 import hardhat from "hardhat";
 const injectedHardhatEthersSf = await Framework.create({
   networkName: "custom",
-  hardhatEthers: hardhat.ethers,
+  provider: hardhat.ethers,
   dataMode: "WEB3_ONLY",
   resolverAddress: <RESOLVER_ADDRESS>,
   protocolReleaseVersion: "test",

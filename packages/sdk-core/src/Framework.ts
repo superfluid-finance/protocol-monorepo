@@ -1,7 +1,7 @@
 import { Signer } from "@ethersproject/abstract-signer";
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
-import web3 from "web3";
+import Web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -22,6 +22,12 @@ import {
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { DataMode } from "./types";
+import { isEthersProvider, isInjectedWeb3 } from "./utils";
+
+type SupportedProvider =
+    | ethers.providers.Provider
+    | (typeof ethers & HardhatEthersHelpers)
+    | Web3;
 
 // TODO: add convenience function of utilizing provider (optional)
 // instead of having to pass it in every single time
@@ -29,12 +35,10 @@ export interface IFrameworkOptions {
     chainId?: number;
     customSubgraphQueriesEndpoint?: string;
     dataMode?: DataMode;
-    hardhatEthers?: typeof ethers & HardhatEthersHelpers;
     networkName?: string;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
-    provider?: ethers.providers.Provider;
-    web3?: web3;
+    provider: SupportedProvider;
 }
 
 export interface IFrameworkSettings {
@@ -82,12 +86,10 @@ export default class Framework {
      * @param options.chainId the chainId of your desired network (e.g. 137 = matic)
      * @param options.customSubgraphQueriesEndpoint your custom subgraph endpoint
      * @param options.dataMode the data mode you'd like the framework to use (SUBGRAPH_ONLY, SUBGRAPH_WEB3, WEB3_ONLY)
-     * @param options.hardhatEthers an injected instance of ethers.js from the hardhat runtime environment
      * @param options.networkName the desired network (e.g. "matic", "rinkeby", etc.)
      * @param options.resolverAddress a custom resolver address (advanced use for testing)
      * @param options.protocolReleaseVersion a custom release version (advanced use for testing)
-     * @param options.provider a provider object necessary for initializing the framework
-     * @param options.web3 an injected instance of web3.js in either hardhat or truffle
+     * @param options.provider a provider object (injected web3, injected ethers, ethers provider) necessary for initializing the framework
      * @returns `Framework` class
      */
     static create = async (options: IFrameworkOptions) => {
@@ -109,17 +111,18 @@ export default class Framework {
                 : options.customSubgraphQueriesEndpoint ||
                   getSubgraphQueriesEndpoint(options);
 
-        const provider =
-            options.provider != null
-                ? options.provider
-                : options.web3 != null
-                ? new ethers.providers.Web3Provider(
-                      options.web3.currentProvider as
-                          | ethers.providers.ExternalProvider
-                          | ethers.providers.JsonRpcFetchFunc
-                  )
-                : // NOTE: this will not be null as we check this in our validate function
-                  options.hardhatEthers!.provider;
+        const provider = isEthersProvider(options.provider)
+            ? options.provider
+            : isInjectedWeb3(options.provider)
+            ? // must explicitly cast web3 provider type because
+              // ethers.providers.Web3Provider doesn't like
+              // the type passed.
+              new ethers.providers.Web3Provider(
+                  options.provider.currentProvider as
+                      | ethers.providers.ExternalProvider
+                      | ethers.providers.JsonRpcFetchFunc
+              )
+            : options.provider.provider;
 
         const network = await provider.getNetwork();
         if (network.chainId !== chainId && chainId != null) {

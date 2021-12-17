@@ -99,7 +99,6 @@ describe("Framework Tests", () => {
             }
         });
 
-
         it("Should throw an error if subgraph endpoint is null on unsupported network and WEB3_ONLY isn't selected", async () => {
             try {
                 await Framework.create({
@@ -188,7 +187,7 @@ describe("Framework Tests", () => {
         it("Should be able to create a framework with injected web3", async () => {
             await Framework.create({
                 networkName: "custom",
-                web3: (global as any).web3,
+                provider: (global as any).web3,
                 dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
@@ -198,7 +197,7 @@ describe("Framework Tests", () => {
         it("Should be able to create a framework with injected hardhat ethers", async () => {
             await Framework.create({
                 networkName: "custom",
-                hardhatEthers: hardhat.ethers,
+                provider: hardhat.ethers,
                 dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",

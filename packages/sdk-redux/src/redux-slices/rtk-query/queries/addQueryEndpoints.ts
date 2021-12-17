@@ -13,6 +13,7 @@ import {
 import _ from 'lodash';
 
 import {getFramework} from '../../../sdkReduxConfig';
+import {insertIf, typeGuard} from '../../../utils';
 import {SfEndpointBuilder} from '../baseQuery';
 import {createEventTag} from '../cacheTags/eventTags';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
@@ -32,7 +33,6 @@ import {
     ListSuperTokens,
     ListUserInteractedSuperTokens,
 } from './queries';
-import { insertIf, typeGuard } from "../../../utils";
 
 export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
     getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperToken>({

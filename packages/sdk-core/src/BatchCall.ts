@@ -91,7 +91,7 @@ export default class BatchCall {
             );
 
             return {
-                operationType: operationType!,
+                operationType,
                 target: functionArgs["agreementClass"],
                 data,
             };
@@ -99,7 +99,7 @@ export default class BatchCall {
 
         // Handles other cases which are not call agreeement operation
         return {
-            operationType: operationType!,
+            operationType,
             target: populatedTransaction.to,
             data: removeSigHashFromCallData(populatedTransaction.data),
         };

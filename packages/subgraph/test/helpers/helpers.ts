@@ -99,8 +99,9 @@ export const monthlyToSecondRate = (monthlyRate: number) => {
     return Math.round((monthlyRate / seconds) * 10 ** 18);
 };
 
+// NOTE: + 1 ensures that the flow rate is never 0
 export const getRandomFlowRate = (max: number) =>
-    Math.floor(Math.random() * max);
+    Math.floor(Math.random() * max) + 1;
 
 export const getCurrentBlockNumber = async () => {
     const query = gql`

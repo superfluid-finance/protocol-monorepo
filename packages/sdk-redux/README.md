@@ -71,59 +71,49 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 
 We need to plug in the Superfluid SDK-Redux parts.
 
-Import this function: `import { createSdkReduxParts } from "@superfluid-finance/sdk-redux";`
-
-Then create the pieces:
+Import the following function:
 ```ts
-const {
-    superfluidContext,
-    apiSlice,
-    transactionSlice,
-} = createSdkReduxParts();
+import {
+    initializeSfApiSlice,
+    initializeSfTransactionSlice,
+    createApiWithReactHooks
+} from "@superfluid-finance/sdk-redux";
 ```
 
-Plug in the reducer slices:
+Create the Redux slices:
+```ts
+export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
+export const { sfTransactions } = initializeSfTransactionSlice();
+```
+
+Plug in the slices to the Redux store:
 ```ts
 export const store = configureStore({
-  reducer: {
-    //
-    [apiSlice.reducerPath]: apiSlice.reducer,
-    [transactionSlice.reducerPath]: transactionSlice.reducer,
-    //
-  },
+    reducer: {
+        "sfApi": sfApi.reducer,
+        "sfTransactions": sfTransactions.reducer,
+    }
 });
 ```
 
 Add the middleware:
 ```ts
 export const store = configureStore({
-  reducer: {
-    [apiSlice.reducerPath]: apiSlice.reducer,
-    [transactionSlice.reducerPath]: transactionSlice.reducer,
-  },
-  //
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware)
-  //
+    reducer: {
+        "sfApi": sfApi.reducer,
+        "sfTransactions": sfTransactions.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(sfApi.middleware),
 });
-```
-
-Export the Superfluid Context:
-```ts
-export { superfluidContext };
 ```
 
 Somewhere in your code, give instructions to the `superfluidContext` to locate `Framework` and `Signer`:
 ```ts
-superfluidContext
-    .setFramework(
-        chainId,
-        superfluidFramework
-    )
-    .setSigner(
-        chainId,
-        ethersWeb3Provider.getSigner()
-    );
+import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
+
+setFrameworkForSdkRedux(chainId, sdkCoreFramework);
+setSignerForSdkRedux(chainId, ethersWeb3Provider.getSigner());
 ```
 
 That should be it! You should now be able to dispatch messages to Superfluid reducers & use the React hooks.
@@ -141,7 +131,7 @@ const {
     isError,
     error,
     refetch,
-} = useListStreamsQuery({
+} = sfApi.useListStreamsQuery({
     chainId: queryChainId,
     senderAddress,
     receiverAddress,
@@ -158,7 +148,7 @@ Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/
 
 Example using React Hook:
 ```ts
-const tx = await createFlow({
+const tx = await sfApi.createFlow({
     senderAddress: signerAddress,
     receiverAddress: receiver,
     flowRateWei: flowRate,

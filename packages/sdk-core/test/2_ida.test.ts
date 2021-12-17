@@ -221,7 +221,6 @@ describe("IDA V1 Tests", () => {
     });
 
     it("Should be able to update index value", async () => {
-        console.log("balance", await (await superToken.balanceOf(deployer.address)).toString());
         await expect(
             framework.idaV1
                 .updateIndexValue({

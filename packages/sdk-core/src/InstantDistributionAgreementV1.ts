@@ -5,8 +5,8 @@ import Operation from "./Operation";
 import SFError from "./SFError";
 import IInstantDistributionAgreementV1ABI from "./abi/IInstantDistributionAgreementV1.json";
 import {
-    IApproveSubscriptionParams,
     IAgreementV1Options,
+    IApproveSubscriptionParams,
     IClaimParams,
     ICreateIndexParams,
     IDeleteSubscriptionParams,

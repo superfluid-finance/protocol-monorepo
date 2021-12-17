@@ -30,13 +30,13 @@ export default class Host {
         agreementAddress: string,
         callData: string,
         userData: string | undefined,
-        overrides: Overrides & { from?: string | Promise<string> } = {}
+        overrides?: Overrides & { from?: string | Promise<string> }
     ): Operation => {
         const txn = this.hostContract.populateTransaction.callAgreement(
             agreementAddress,
             callData,
             userData || "0x",
-            overrides
+            overrides || {}
         );
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };

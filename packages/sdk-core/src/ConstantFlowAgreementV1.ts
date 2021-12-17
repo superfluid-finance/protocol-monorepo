@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation from "./Operation";
 import SFError from "./SFError";
-import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
+import IConstantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import {
     IAgreementV1Options,
     ICreateFlowParams,
@@ -17,7 +17,9 @@ import {
 import { IConstantFlowAgreementV1 } from "./typechain";
 import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 
-const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
+const cfaInterface = new ethers.utils.Interface(
+    IConstantFlowAgreementV1ABI.abi
+);
 
 /**
  * @dev Constant Flow Agreement V1 Helper Class
@@ -35,7 +37,7 @@ export default class ConstantFlowAgreementV1 {
     private get cfaContract() {
         return new ethers.Contract(
             this.options.config.cfaV1Address,
-            IConstantFlowAgreementV1ABI
+            IConstantFlowAgreementV1ABI.abi
         ) as IConstantFlowAgreementV1;
     }
 

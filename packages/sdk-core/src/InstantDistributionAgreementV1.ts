@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation from "./Operation";
 import SFError from "./SFError";
-import { abi as IInstantDistributionAgreementV1ABI } from "./abi/IInstantDistributionAgreementV1.json";
+import IInstantDistributionAgreementV1ABI from "./abi/IInstantDistributionAgreementV1.json";
 import {
     IApproveSubscriptionParams,
     IAgreementV1Options,
@@ -23,7 +23,7 @@ import { IInstantDistributionAgreementV1 } from "./typechain";
 import { normalizeAddress } from "./utils";
 
 const idaInterface = new ethers.utils.Interface(
-    IInstantDistributionAgreementV1ABI
+    IInstantDistributionAgreementV1ABI.abi
 );
 
 /**
@@ -42,7 +42,7 @@ export default class InstantDistributionAgreementV1 {
     private get idaContract() {
         return new ethers.Contract(
             this.options.config.idaV1Address,
-            IInstantDistributionAgreementV1ABI
+            IInstantDistributionAgreementV1ABI.abi
         ) as IInstantDistributionAgreementV1;
     }
 

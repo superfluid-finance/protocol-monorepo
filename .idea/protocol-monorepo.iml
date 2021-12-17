@@ -22,16 +22,17 @@
     <content url="file://$MODULE_DIR$/packages/js-sdk">
       <sourceFolder url="file://$MODULE_DIR$/packages/js-sdk/test" isTestSource="true" />
     </content>
+    <content url="file://$MODULE_DIR$/packages/sdk-core">
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/sdk-core">
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
+    </content>
     <content url="file://$MODULE_DIR$/packages/sdk-redux">
       <sourceFolder url="file://$MODULE_DIR$/packages/sdk-redux/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/.nyc_output" />
       <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/build" />
-    </content>
-    <content url="file://$MODULE_DIR$/packages/sdk-core">
-      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
-    </content>
-    <content url="file://$MODULE_DIR$/packages/sdk-core">
-      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/dist" />
     </content>
     <content url="file://$MODULE_DIR$/packages/subgraph">
       <sourceFolder url="file://$MODULE_DIR$/packages/subgraph/test" isTestSource="true" />

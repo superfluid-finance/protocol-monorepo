@@ -1,3 +1,10 @@
+import { ethers as _ethers } from "ethers";
+
+/**
+ * The initial motivation to export the internal ethers was to make SDK-Core's UMD build a one-liner.
+ */
+export { _ethers };
+
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import Framework from "./Framework";

@@ -11,8 +11,8 @@ import Operation from "./Operation";
 import Query from "./Query";
 import SFError from "./SFError";
 import SuperToken from "./SuperToken";
-import { abi as IResolverABI } from "./abi/IResolver.json";
-import { abi as SuperfluidLoaderABI } from "./abi/SuperfluidLoader.json";
+import IResolverABI from "./abi/IResolver.json";
+import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
@@ -144,7 +144,7 @@ export default class Framework {
                 : data.resolverAddress;
             const resolver = new ethers.Contract(
                 resolverAddress,
-                IResolverABI,
+                IResolverABI.abi,
                 provider
             ) as IResolver;
 
@@ -153,7 +153,7 @@ export default class Framework {
             );
             const superfluidLoader = new ethers.Contract(
                 superfluidLoaderAddress,
-                SuperfluidLoaderABI,
+                SuperfluidLoaderABI.abi,
                 provider
             ) as SuperfluidLoader;
 

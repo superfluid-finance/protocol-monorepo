@@ -275,12 +275,12 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         // if no PIC was set yet, rewards already accumulated become part of the bond of the first PIC
         if (currentPICAddr != address(0)) {
             // send remaining bond to current PIC
-            // If the current PIC causes the send() to fail (iff contract with failing hook), we're sorry for them.
-            // In this case the new PIC will "inherit" the remainder of their bond.
             // solhint-disable-next-line check-send-result
             try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
             // solhint-disable-next-line no-empty-blocks
             {} catch {
+                // if sending failed, move the remaining bond to a custody contract
+                // the current PIC can withdraw it in a separate tx anytime later
                 token.transfer(address(custodial), currentPICBond);
                 custodial.registerDeposit(token, currentPICAddr, currentPICBond);
             }

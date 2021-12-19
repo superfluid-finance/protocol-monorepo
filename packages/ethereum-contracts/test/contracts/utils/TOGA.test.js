@@ -711,8 +711,15 @@ describe.only("TOGA", function () {
             {from: bob}
         );
 
-        await toga.withdrawFundsInCustody(superToken.address, {from: bob});
         await toga.withdrawFundsInCustody(superToken.address, {from: alice});
+
+        // can't withdraw twice
+        await expectRevert(
+            toga.withdrawFundsInCustody(superToken.address, {from: alice}),
+            "TOGA: no funds in custody"
+        );
+
+        await toga.withdrawFundsInCustody(superToken.address, {from: bob});
 
         assert.equal(
             (await superToken.balanceOf(custodial.address)).toString(),

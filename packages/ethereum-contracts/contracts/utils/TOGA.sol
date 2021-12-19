@@ -94,18 +94,15 @@ interface ITOGAv1 {
 
 // contract which takes custody of bonds which the TOGA failed to send back to an outbid PIC
 // TODO: do we need SafeMath here?
-contract TOGABondCustodial {
+contract TOGABondCustodial is IERC777Recipient {
     address internal _owner;
+    IERC1820Registry constant internal _ERC1820_REGISTRY =
+    IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
     mapping(ISuperToken => mapping(address => uint256)) public _balances;
 
     constructor() {
         _owner = msg.sender;
-    }
-
-    // trusts the owner to send the given amount of tokens alongside this call
-    function registerDeposit(ISuperToken token, address receiver, uint256 amount) public {
-        require(msg.sender == _owner, "not owner");
-        _balances[token][receiver] += amount;
+        _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("ERC777TokensRecipient"), address(this));
     }
 
     // transfers token it has in custody for the given receiver to it
@@ -114,8 +111,33 @@ contract TOGABondCustodial {
         require(msg.sender == _owner, "not owner");
         uint256 amount = _balances[token][receiver];
         require(amount > 0, "TOGA: no funds in custody");
-        token.transfer(receiver, amount);
+        token.send(receiver, amount, "0x0");
         _balances[token][receiver] = 0;
+    }
+
+    // ============ IERC777Recipient ============
+
+    function tokensReceived(
+        address /*operator*/,
+        address from,
+        address /*to*/,
+        uint256 amount,
+        bytes calldata userData,
+        bytes calldata /*operatorData*/
+    ) override external {
+        // only TOGA is allowed to deposit tokens
+        require(from == _owner, "not owner");
+
+        // the legitimate receiver we take tokens in custody for
+        address receiver = abi.decode(userData, (address));
+
+        // msg.sender is the token contract here.
+        // Since this is an external interface, arbitrary senders may pretend to be a SuperToken
+        // and to deposit tokens for an arbitrary receiver on behalf of the TOGA.
+        // This would create fake entries in _balances.
+        // We don't need to bother, because it doesn't affect legit operations.
+        // The sender pays for the storage wasted in that case.
+        _balances[ISuperToken(msg.sender)][receiver] += amount;
     }
 }
 
@@ -281,8 +303,7 @@ contract TOGA is ITOGAv1, IERC777Recipient {
             {} catch {
                 // if sending failed, move the remaining bond to a custody contract
                 // the current PIC can withdraw it in a separate tx anytime later
-                token.transfer(address(custodial), currentPICBond);
-                custodial.registerDeposit(token, currentPICAddr, currentPICBond);
+                token.send(address(custodial), currentPICBond, abi.encode(currentPICAddr));
             }
         }
 

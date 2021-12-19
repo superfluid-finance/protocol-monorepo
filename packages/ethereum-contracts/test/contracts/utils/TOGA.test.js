@@ -645,12 +645,13 @@ describe.only("TOGA", function () {
     // only TOGA can call custody contract functions
     it.only("#19 TOGA bond custodial permissions", async () => {
         await expectRevert(
-            custodial.registerDeposit(superToken.address, alice, 1, {from: alice}),
+            custodial.withdraw(superToken.address, alice, {from: alice}),
             "not owner"
         );
 
+        // only the TOGA can send tokens to the custodian
         await expectRevert(
-            custodial.withdraw(superToken.address, alice, {from: alice}),
+            superToken.send(custodial.address, 1, "0x", {from: alice}),
             "not owner"
         );
     });

@@ -4,12 +4,13 @@ const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");
 
 const TOGA = artifacts.require("TOGA");
+const TOGABondCustodial = artifacts.require("TOGABondCustodial");
 const ERC777RecipientReverting = artifacts.require("ERC777RecipientReverting");
 const ERC777RecipientDrainingGas = artifacts.require(
     "ERC777RecipientDrainingGas"
 );
 
-describe("TOGA", function () {
+describe.only("TOGA", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
     const {ZERO_ADDRESS} = t.constants;
@@ -17,7 +18,7 @@ describe("TOGA", function () {
     let admin, alice, bob;
 
     let superfluid, erc1820, cfa;
-    let toga;
+    let toga, custodial;
     let superToken;
     const MIN_BOND_DURATION = 3600 * 24 * 7; // 604800 s
     const EXIT_RATE_1 = 1; // 1 wad per second
@@ -25,14 +26,15 @@ describe("TOGA", function () {
     const EXIT_RATE_1E6 = 1e6; // 1000000 wad per second
     const BOND_AMOUNT_1E12 = 1e12;
     const BOND_AMOUNT_2E12 = 2e12;
+    const BOND_AMOUNT_3E12 = 3e12;
     const BOND_AMOUNT_10E12 = 10e12;
 
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
-            nAccounts: 4,
+            nAccounts: 5,
         });
-        ({admin, alice, bob} = t.aliases);
+        ({admin, alice, bob, carol} = t.aliases);
         ({superfluid, erc1820, cfa} = t.contracts);
         superToken = t.sf.tokens.TESTx;
     });
@@ -44,7 +46,9 @@ describe("TOGA", function () {
     beforeEach(async function () {
         await t.beforeEachTestCase();
         toga = await TOGA.new(superfluid.address, MIN_BOND_DURATION);
-        console.log(`TOGA deployed at: ${toga.address}`);
+        const custodialAddr = await toga.custodial();
+        custodial = await TOGABondCustodial.at(custodialAddr);
+        console.log(`TOGA deployed at: ${toga.address} - custodial at ${custodial.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
     });
 
@@ -582,7 +586,7 @@ describe("TOGA", function () {
         );
     });
 
-    it("#17 reverting send() hook can't prevent a successful bid", async () => {
+    it.only("#17 reverting send() hook can't prevent a successful bid", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         const aliceRecipientHook = await ERC777RecipientReverting.new();
@@ -592,8 +596,9 @@ describe("TOGA", function () {
             aliceRecipientHook.address,
             {from: alice}
         );
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
 
-        await sendPICBid(bob, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
+        await sendPICBid(bob, superToken, BOND_AMOUNT_2E12, EXIT_RATE_1E3);
         assert.equal(await toga.getCurrentPIC(superToken.address), bob);
     });
 
@@ -631,5 +636,97 @@ describe("TOGA", function () {
             "DrainedGas"
         );
         console.log(`gas used by tx: ${r1.receipt.gasUsed}`);
+    });
+
+    // custody case tests:
+    // after revert: previous PIC can withdraw - amount is correct
+    // bonds of 2 PICs, same token, in custody: correct payouts
+    // withdraw call with nothing in custody fails
+    // only TOGA can call custody contract functions
+    it.only("#19 TOGA bond custodial permissions", async () => {
+        await expectRevert(
+            custodial.registerDeposit(superToken.address, alice, 1, {from: alice}),
+            "not owner"
+        );
+
+        await expectRevert(
+            custodial.withdraw(superToken.address, alice, {from: alice}),
+            "not owner"
+        );
+    });
+
+    it.only("#20 funds in custody can be withdrawn by legitimate owner", async () => {
+        await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
+        await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
+
+        await expectRevert(
+            toga.withdrawFundsInCustody(superToken.address, {from: alice}),
+            "TOGA: no funds in custody"
+        );
+
+        const revertingRecipientHook = await ERC777RecipientReverting.new();
+        await erc1820.setInterfaceImplementer(
+            alice,
+            web3.utils.soliditySha3("ERC777TokensRecipient"),
+            revertingRecipientHook.address,
+            {from: alice}
+        );
+        await erc1820.setInterfaceImplementer(
+            bob,
+            web3.utils.soliditySha3("ERC777TokensRecipient"),
+            revertingRecipientHook.address,
+            {from: bob}
+        );
+
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);
+        const alicePreOutbid1Bal = (await superToken.balanceOf(alice));
+        const alicePreOutbid1Bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
+        await sendPICBid(bob, superToken, BOND_AMOUNT_2E12, 0);
+
+        assert.equal(
+            (await superToken.balanceOf(custodial.address)).toString(),
+            alicePreOutbid1Bond.toString()
+        );
+
+        const bobPreOutbid1Bal = (await superToken.balanceOf(bob));
+        const bobPreOutbid1Bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
+        await sendPICBid(carol, superToken, BOND_AMOUNT_3E12, 0);
+
+        assert.equal(
+            (await superToken.balanceOf(custodial.address)).toString(),
+            alicePreOutbid1Bond.add(bobPreOutbid1Bond).toString()
+        );
+
+        // remove the reverting hook from both alice and bob
+        await erc1820.setInterfaceImplementer(
+            alice,
+            web3.utils.soliditySha3("ERC777TokensRecipient"),
+            ZERO_ADDRESS,
+            {from: alice}
+        );
+        await erc1820.setInterfaceImplementer(
+            bob,
+            web3.utils.soliditySha3("ERC777TokensRecipient"),
+            ZERO_ADDRESS,
+            {from: bob}
+        );
+
+        await toga.withdrawFundsInCustody(superToken.address, {from: bob});
+        await toga.withdrawFundsInCustody(superToken.address, {from: alice});
+
+        assert.equal(
+            (await superToken.balanceOf(custodial.address)).toString(),
+            "0"
+        );
+
+        assert.equal(
+            (await superToken.balanceOf(alice)).toString(),
+            alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
+        );
+
+        assert.equal(
+            (await superToken.balanceOf(bob)).toString(),
+            bobPreOutbid1Bal.add(bobPreOutbid1Bond).toString()
+        );
     });
 });

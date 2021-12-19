@@ -92,6 +92,36 @@ interface ITOGAv1 {
     event ExitRateChanged(ISuperToken indexed token, int96 exitRate);
 }
 
+// contract which takes custody of bonds which the TOGA failed to send back to an outbid PIC
+// TODO: do we need SafeMath here?
+contract TOGABondCustodial {
+    address internal _owner;
+    mapping(ISuperToken => mapping(address => uint256)) public _balances;
+
+    constructor() {
+        _owner = msg.sender;
+    }
+
+    // trusts the owner to send the given amount of tokens alongside this call
+    function registerDeposit(ISuperToken token, address receiver, uint256 amount) public {
+        require(msg.sender == _owner, "not owner");
+        _balances[token][receiver] += amount;
+    }
+
+    // transfers token it has in custody for the given receiver to it
+    // TODO: think about reentrancy
+    function withdraw(ISuperToken token, address receiver) public {
+        require(msg.sender == _owner, "not owner");
+        uint256 amount = _balances[token][receiver];
+        require(amount > 0, "TOGA: no funds in custody");
+        token.transfer(receiver, amount);
+        _balances[token][receiver] = 0;
+    }
+}
+
+// TODO: handle PIC itself bidding (increasing bond)
+// TODO: allow direct call (without ERC777 callback)
+// TODO: add TOGAv2
 contract TOGA is ITOGAv1, IERC777Recipient {
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
     struct LockablePIC {
@@ -106,6 +136,8 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
     // solhint-disable-next-line var-name-mixedcase
     uint64 immutable public ERC777_SEND_GAS_LIMIT = 3000000;
+    // takes custody of bonds which the TOGA fails to send back to an outbid PIC
+    TOGABondCustodial public custodial;
 
     constructor(ISuperfluid host_, uint256 minBondDuration_) {
         _host = ISuperfluid(host_);
@@ -115,6 +147,7 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         );
         _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("ERC777TokensRecipient"), address(this));
         _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("TOGAv1"), address(this));
+        custodial = new TOGABondCustodial();
     }
 
     function getCurrentPIC(ISuperToken token) external view override returns(address pic) {
@@ -198,6 +231,10 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         emit ExitRateChanged(token, newExitRate);
     }
 
+    function withdrawFundsInCustody(ISuperToken token) external {
+        custodial.withdraw(token, msg.sender);
+    }
+
     // ============ internal ============
 
     function _getCurrentPICBond(ISuperToken token) internal view returns(uint256 bond) {
@@ -235,13 +272,19 @@ contract TOGA is ITOGAv1, IERC777Recipient {
             );
         }
 
-        // send remaining bond to current PIC
-        // If the current PIC causes the send() to fail (iff contract with failing hook), we're sorry for them.
-        // In this case the new PIC will "inherit" the remainder of their bond.
-        // solhint-disable-next-line check-send-result
-        try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {}
+        // if no PIC was set yet, rewards already accumulated become part of the bond of the first PIC
+        if (currentPICAddr != address(0)) {
+            // send remaining bond to current PIC
+            // If the current PIC causes the send() to fail (iff contract with failing hook), we're sorry for them.
+            // In this case the new PIC will "inherit" the remainder of their bond.
+            // solhint-disable-next-line check-send-result
+            try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
+            // solhint-disable-next-line no-empty-blocks
+            {} catch {
+                token.transfer(address(custodial), currentPICBond);
+                custodial.registerDeposit(token, currentPICAddr, currentPICBond);
+            }
+        }
 
         // set new PIC
         // solhint-disable-next-line reentrancy

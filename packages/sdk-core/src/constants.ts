@@ -11,7 +11,7 @@ export const DAY_IN_SECONDS = HOUR_IN_SECONDS * HOURS_PER_DAY;
 export const WEEK_IN_SECONDS = DAY_IN_SECONDS * DAYS_PER_WEEK;
 export const MONTH_IN_SECONDS = DAY_IN_SECONDS * DAYS_PER_MONTH;
 export const YEAR_IN_SECONDS = MONTH_IN_SECONDS * MONTHS_PER_YEAR; // NOTE: Is 360 days (misses 5-6 days)
-export const BASE_18 = 10e18;
+export const BASE_18 = 10 ** 18;
 
 export const chainIds = [
     3, // ROPSTEN

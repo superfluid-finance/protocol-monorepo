@@ -92,13 +92,24 @@ interface ITOGAv1 {
     event ExitRateChanged(ISuperToken indexed token, int96 exitRate);
 }
 
+interface ITOGAv2 is ITOGAv1 {
+    /**
+    * @dev allows previous PICs to withdraw bonds which couldn't be sent back to them
+    * @param token The token for which to withdraw funds in custody
+    */
+    function withdrawFundsInCustody(ISuperToken token) external;
+}
+
 // contract which takes custody of bonds which the TOGA failed to send back to an outbid PIC
 // TODO: do we need SafeMath here?
+// TODO: rename to ...custodian / Vault ...
+// TODO: remove owner
+// TODO: remove to own file
 contract TOGABondCustodial is IERC777Recipient {
     address internal _owner;
     IERC1820Registry constant internal _ERC1820_REGISTRY =
     IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
-    mapping(ISuperToken => mapping(address => uint256)) public _balances;
+    mapping(ISuperToken => mapping(address => uint256)) public balances;
 
     constructor() {
         _owner = msg.sender;
@@ -106,13 +117,14 @@ contract TOGABondCustodial is IERC777Recipient {
     }
 
     // transfers token it has in custody for the given receiver to it
-    // TODO: think about reentrancy
+    // TODO: rename to flush
     function withdraw(ISuperToken token, address receiver) public {
         require(msg.sender == _owner, "not owner");
-        uint256 amount = _balances[token][receiver];
+        uint256 amount = balances[token][receiver];
         require(amount > 0, "TOGA: no funds in custody");
+        balances[token][receiver] = 0;
+        // solhint-disable-next-line check-send-result
         token.send(receiver, amount, "0x0");
-        _balances[token][receiver] = 0;
     }
 
     // ============ IERC777Recipient ============
@@ -137,14 +149,13 @@ contract TOGABondCustodial is IERC777Recipient {
         // This would create fake entries in _balances.
         // We don't need to bother, because it doesn't affect legit operations.
         // The sender pays for the storage wasted in that case.
-        _balances[ISuperToken(msg.sender)][receiver] += amount;
+        balances[ISuperToken(msg.sender)][receiver] += amount;
     }
 }
 
 // TODO: handle PIC itself bidding (increasing bond)
 // TODO: allow direct call (without ERC777 callback)
-// TODO: add TOGAv2
-contract TOGA is ITOGAv1, IERC777Recipient {
+contract TOGA is ITOGAv2, IERC777Recipient {
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
     struct LockablePIC {
         address addr;
@@ -169,6 +180,7 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         );
         _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("ERC777TokensRecipient"), address(this));
         _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("TOGAv1"), address(this));
+        _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("TOGAv2"), address(this));
         custodial = new TOGABondCustodial();
     }
 
@@ -253,7 +265,7 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         emit ExitRateChanged(token, newExitRate);
     }
 
-    function withdrawFundsInCustody(ISuperToken token) external {
+    function withdrawFundsInCustody(ISuperToken token) external override {
         custodial.withdraw(token, msg.sender);
     }
 
@@ -303,6 +315,7 @@ contract TOGA is ITOGAv1, IERC777Recipient {
             {} catch {
                 // if sending failed, move the remaining bond to a custody contract
                 // the current PIC can withdraw it in a separate tx anytime later
+                // solhint-disable-next-line check-send-result, multiple-sends
                 token.send(address(custodial), currentPICBond, abi.encode(currentPICAddr));
             }
         }

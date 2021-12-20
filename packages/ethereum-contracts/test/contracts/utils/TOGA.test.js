@@ -10,12 +10,12 @@ const ERC777RecipientDrainingGas = artifacts.require(
     "ERC777RecipientDrainingGas"
 );
 
-describe.only("TOGA", function () {
+describe("TOGA", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
     const {ZERO_ADDRESS} = t.constants;
 
-    let admin, alice, bob;
+    let admin, alice, bob, carol;
 
     let superfluid, erc1820, cfa;
     let toga, custodial;
@@ -46,9 +46,9 @@ describe.only("TOGA", function () {
     beforeEach(async function () {
         await t.beforeEachTestCase();
         toga = await TOGA.new(superfluid.address, MIN_BOND_DURATION);
+        console.log(`TOGA deployed at: ${toga.address}`);
         const custodialAddr = await toga.custodial();
         custodial = await TOGABondCustodial.at(custodialAddr);
-        console.log(`TOGA deployed at: ${toga.address} - custodial at ${custodial.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
     });
 
@@ -219,6 +219,14 @@ describe.only("TOGA", function () {
             await erc1820.getInterfaceImplementer(
                 toga.address,
                 web3.utils.soliditySha3("TOGAv1")
+            ),
+            toga.address
+        );
+
+        assert.equal(
+            await erc1820.getInterfaceImplementer(
+                toga.address,
+                web3.utils.soliditySha3("TOGAv2")
             ),
             toga.address
         );
@@ -586,7 +594,7 @@ describe.only("TOGA", function () {
         );
     });
 
-    it.only("#17 reverting send() hook can't prevent a successful bid", async () => {
+    it("#17 reverting send() hook can't prevent a successful bid", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         const aliceRecipientHook = await ERC777RecipientReverting.new();
@@ -643,7 +651,7 @@ describe.only("TOGA", function () {
     // bonds of 2 PICs, same token, in custody: correct payouts
     // withdraw call with nothing in custody fails
     // only TOGA can call custody contract functions
-    it.only("#19 TOGA bond custodial permissions", async () => {
+    it("#19 TOGA bond custodial permissions", async () => {
         await expectRevert(
             custodial.withdraw(superToken.address, alice, {from: alice}),
             "not owner"
@@ -656,7 +664,7 @@ describe.only("TOGA", function () {
         );
     });
 
-    it.only("#20 funds in custody can be withdrawn by legitimate owner", async () => {
+    it("#20 funds in custody can be withdrawn by legitimate owner", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
 
@@ -680,8 +688,10 @@ describe.only("TOGA", function () {
         );
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);
-        const alicePreOutbid1Bal = (await superToken.balanceOf(alice));
-        const alicePreOutbid1Bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
+        const alicePreOutbid1Bal = await superToken.balanceOf(alice);
+        const alicePreOutbid1Bond = (
+            await toga.getCurrentPICInfo(superToken.address)
+        ).bond;
         await sendPICBid(bob, superToken, BOND_AMOUNT_2E12, 0);
 
         assert.equal(
@@ -689,8 +699,11 @@ describe.only("TOGA", function () {
             alicePreOutbid1Bond.toString()
         );
 
-        const bobPreOutbid1Bal = (await superToken.balanceOf(bob));
-        const bobPreOutbid1Bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
+        const bobPreOutbid1Bal = await superToken.balanceOf(bob);
+        const bobPreOutbid1Bond = (
+            await toga.getCurrentPICInfo(superToken.address)
+        ).bond;
+
         await sendPICBid(carol, superToken, BOND_AMOUNT_3E12, 0);
 
         assert.equal(

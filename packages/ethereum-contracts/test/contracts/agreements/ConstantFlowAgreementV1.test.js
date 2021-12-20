@@ -1451,37 +1451,145 @@ describe("Using ConstantFlowAgreement v1", function () {
                 });
             });
 
-            // it(`#1.6.6 should be able to liquidate a user with a negative
-            // AB and a net flow rate of 0 (crit->bailout)`, async () => {
-            //     // we would have to bring them right to the brink of becoming insolvent where the
-            //     // penalty would make them insolvent
-            //     await _testSolventLiquidation({
-            //         sender,
-            //         receiver,
-            //         by: agent,
-            //         seconds: LIQUIDATION_PERIOD - 60,
-            //         allowCriticalAccount: true,
-            //         solvencyStatuses: {
-            //             preIsCritical: false,
-            //             preIsSolvent: true,
-            //             postIsCritical: true,
-            //             postIsSolvent: true,
-            //         },
-            //     });
-            //     await _testBailout({
-            //         sender,
-            //         receiver: agent,
-            //         by: agent,
-            //         seconds: 60,
-            //         allowCriticalAccount: true,
-            //         solvencyStatuses: {
-            //             preIsCritical: true,
-            //             preIsSolvent: true,
-            //             postIsCritical: true,
-            //             postIsSolvent: false,
-            //         },
-            //     });
-            // });
+            it("#1.6.6 should reject when account is not critical", async () => {
+                await expectRevert(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[receiver],
+                        by: t.aliases[agent],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+
+                await expectRevert(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[agent],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+
+                await expectRevert(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[agent],
+                        receiver: t.aliases[sender],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+            });
+
+            it("#1.6.7 should reject when account is not critical after a bailout", async () => {
+                await _testBailout({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+
+                await shouldUpdateFlow({
+                    sender: agent,
+                    receiver: sender,
+                    superToken,
+                    testenv: t,
+                    flowRate: FLOW_RATE1.mul(toBN(2)),
+                });
+
+                const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+                    superToken: superToken.address,
+                    account: t.aliases[sender],
+                });
+                const netFlowRate = toBN(accountFlowInfo.flowRate);
+                const balanceData = await superToken.realtimeBalanceOfNow(
+                    t.aliases[sender]
+                );
+
+                // bring the user back to a non-critical state
+                await timeTravelOnceAndVerifyAll({
+                    time: Math.round(
+                        balanceData.availableBalance
+                            .mul(toBN(-1))
+                            .div(netFlowRate)
+                            .toNumber() * 1.1
+                    ),
+                    allowCriticalAccount: true,
+                });
+
+                await expectRevert(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[agent],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+            });
+
+            it("#1.6.8 should reject when account is not critical after a liquidation", async () => {
+                await _testSolventLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+
+                await shouldUpdateFlow({
+                    sender: agent,
+                    receiver: sender,
+                    superToken,
+                    testenv: t,
+                    flowRate: FLOW_RATE1.mul(toBN(2)),
+                });
+
+                const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+                    superToken: superToken.address,
+                    account: t.aliases[sender],
+                });
+                const netFlowRate = toBN(accountFlowInfo.flowRate);
+                const balanceData = await superToken.realtimeBalanceOfNow(
+                    t.aliases[sender]
+                );
+
+                // bring the user back to a non-critical state
+                await timeTravelOnceAndVerifyAll({
+                    time: Math.round(
+                        balanceData.availableBalance
+                            .mul(toBN(-1))
+                            .div(netFlowRate)
+                            .toNumber() * 1.1
+                    ),
+                    allowCriticalAccount: true,
+                });
+
+                await expectRevert(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[agent],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+            });
         });
 
         describe("#1.7 real-time balance", () => {

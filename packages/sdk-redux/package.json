@@ -30,10 +30,9 @@
         "doc:json": "typedoc src/ --json dist/docs/typedoc.json"
     },
     "engines": {
-        "node": ">=14"
+        "node": ">=12"
     },
     "dependencies": {
-        "@reduxjs/toolkit": "^1.7.1",
         "ethers": "^5.5.1",
         "lodash": "^4.17.21"
     },
@@ -52,19 +51,7 @@
     },
     "peerDependencies": {
         "@superfluid-finance/sdk-core": "^0.1.0",
-        "react": "^16.9.0 || ^17.0.0 || 18.0.0-beta",
-        "react-redux": "^7.2.1 || ^8.0.0-beta"
-    },
-    "peerDependenciesMeta": {
-        "@superfluid-finance/sdk-core": {
-            "optional": false
-        },
-        "react": {
-            "optional": true
-        },
-        "react-redux": {
-            "optional": true
-        }
+        "@reduxjs/toolkit": "^1.6.0 || ^1.7.0"
     },
     "files": [
         "dist/main",

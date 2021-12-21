@@ -33,8 +33,6 @@
         "node": ">=12"
     },
     "dependencies": {
-        "@reduxjs/toolkit": "^1.6.1",
-        "@superfluid-finance/sdk-core": "0.1.0",
         "ethers": "^5.5.1",
         "lodash": "^4.17.21"
     },
@@ -52,8 +50,8 @@
         "typescript": "^4.5.2"
     },
     "peerDependencies": {
-        "react": "^16.14.0 || ^17.0.0",
-        "react-redux": "^7.2.1"
+        "@superfluid-finance/sdk-core": "^0.1.0",
+        "@reduxjs/toolkit": "^1.6.0 || ^1.7.0"
     },
     "files": [
         "dist/main",
@@ -68,7 +66,8 @@
         }
     },
     "prettier": {
-        "singleQuote": true
+        "singleQuote": true,
+        "printWidth": 120
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

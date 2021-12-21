@@ -1,12 +1,12 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useCreateFlowMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const CreateStream: FC = (): ReactElement => {
-    const [createFlow, { isLoading, error }] = useCreateFlowMutation();
+    const [createFlow, { isLoading, error }] = sfApi.useCreateFlowMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 

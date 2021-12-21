@@ -5,7 +5,6 @@ import React, {
     useContext,
     useState,
 } from "react";
-import { useLazyGetRealtimeBalanceQuery } from "@superfluid-finance/sdk-redux";
 import { Loader } from "../Loader";
 import {
     Button,
@@ -22,6 +21,7 @@ import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
 import { FlowingBalance } from "../FlowingBalance";
 import { ethers } from "ethers";
+import { sfApi } from "../redux/store";
 
 export const GetRealtimeBalance: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
@@ -32,7 +32,7 @@ export const GetRealtimeBalance: FC = (): ReactElement => {
         queryTrigger,
         { data: realtimeBalance, isLoading, error, isUninitialized },
         ,
-    ] = useLazyGetRealtimeBalanceQuery({
+    ] = sfApi.useLazyGetRealtimeBalanceQuery({
         pollingInterval: 5000, // Polling is not necessary (once is enough), just for visualization.
     });
 

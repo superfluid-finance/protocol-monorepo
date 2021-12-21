@@ -6,7 +6,7 @@ import React, {
     useState,
     useEffect,
 } from "react";
-import { AllEvents, useListEventsQuery } from "@superfluid-finance/sdk-redux";
+import { AllEvents } from "@superfluid-finance/sdk-core";
 import { Loader } from "../Loader";
 import {
     FormGroup,
@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 const pageSize = 10;
 
@@ -40,7 +41,7 @@ export const ListEvents: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListEventsQuery(
+    } = sfApi.useListEventsQuery(
         {
             chainId: queryChainId,
             accountAddress,

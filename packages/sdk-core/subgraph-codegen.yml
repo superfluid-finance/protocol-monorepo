@@ -8,6 +8,11 @@ config:
         BigInt: string
         BigDecimal: string
     enumsAsTypes: true
+    avoidOptionals: false
+    flattenGeneratedTypes: true
+    preResolveTypes: true
+    maybeValue: T | undefined
+    inputMaybeValue: T | undefined | null
 generates:
     src/subgraph/schema.generated.ts:
         plugins:
@@ -16,7 +21,6 @@ generates:
         config:
             nonOptionalTypename: false
             skipTypename: true
-            preResolveTypes: true
         preset: near-operation-file
         presetConfig:
             baseTypesPath: ../schema.generated.ts

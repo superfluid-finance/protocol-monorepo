@@ -23,6 +23,12 @@ import { TokenCustodian } from "./TokenCustodian.sol";
  * Via userData parameter (abi-encoded int96), an exitRate can be defined. If omitted, a default will be chosen.
  * The exitRate is the flowrate at which the bond is streamed back to the PIC.
  * Any rewards accrued by this contract (in general the whole token balance) become part of the bond.
+ * When a PIC is outbid, the current bond is transferred to it with ERC777.send().
+ *
+ * changes in v2:
+ * In case that send() fails (e.g. due to a reverting hook), the bond is transferred to a custodian contract.
+ * Funds accumulated there can be withdrawn from there at any time.
+ * The current PIC can increase its bond by sending more funds using ERC777.send().
  *
  * @author Superfluid
  */
@@ -101,7 +107,11 @@ interface ITOGAv2 is ITOGAv1 {
     */
     function withdrawFundsInCustody(ISuperToken token) external;
 
-    event BondIncreased(ISuperToken indexed token, address pic, uint256 additionalBond);
+    /**
+     * @dev Emitted if a PIC increases its bond
+     * @param additionalBond The additional amount added to the bond
+     */
+    event BondIncreased(ISuperToken indexed token, uint256 additionalBond);
 }
 
 contract TOGA is ITOGAv2, IERC777Recipient {
@@ -318,7 +328,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
             _becomePIC(token, from, amount, exitRate);
         } else {
             // current PIC increases the bond
-            emit BondIncreased(token, from, amount);
+            emit BondIncreased(token, amount);
         }
     }
 }

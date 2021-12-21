@@ -376,7 +376,6 @@ describe("TOGA", function () {
         await assertNetFlow(superToken, alice, 0);
         await expectEvent.inTransaction(r1.tx, toga.contract, "BondIncreased", {
             token: superToken.address,
-            pic: alice,
             additionalBond: BOND_AMOUNT_1E12.toString(),
         });
         assert.equal(

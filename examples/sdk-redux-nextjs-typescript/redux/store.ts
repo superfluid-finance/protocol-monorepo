@@ -53,4 +53,8 @@ export type AppDispatch = AppStore["dispatch"];
 export const useAppDispatch = () => useDispatch<Dispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-export const wrapper = createWrapper<AppStore>(makeStore, { debug: true });
+export const wrapper = createWrapper<AppStore>(makeStore, {
+    debug: true,
+    serializeState: (state) => JSON.stringify(state),
+    deserializeState: (state) => JSON.parse(state),
+});

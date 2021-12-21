@@ -1,7 +1,7 @@
 {
     "extends": "./tsconfig",
     "compilerOptions": {
-        "target": "esnext",
+        "target": "ES2019",
         "outDir": "dist/module",
         "module": "esnext",
         "declaration": true,

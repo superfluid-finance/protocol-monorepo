@@ -30,7 +30,7 @@
         "doc:json": "typedoc src/ --json dist/docs/typedoc.json"
     },
     "engines": {
-        "node": ">=14"
+        "node": ">=12"
     },
     "dependencies": {
         "@reduxjs/toolkit": "^1.6.1",

@@ -382,6 +382,10 @@ describe("TOGA", function () {
             (await superToken.balanceOf(alice)).toString(),
             aliceIntermediateBal.sub(toBN(BOND_AMOUNT_1E12)).toString()
         );
+        assert.equal(
+            (await toga.getCurrentPICInfo(superToken.address)).bond,
+            (BOND_AMOUNT_2E12 + BOND_AMOUNT_1E12).toString()
+        );
     });
 
     it("#11 PIC can change exit rate - limits enforced", async () => {

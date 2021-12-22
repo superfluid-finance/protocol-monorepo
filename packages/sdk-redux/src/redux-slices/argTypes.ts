@@ -17,6 +17,10 @@ export interface BaseQuery<TReturns> {
     chainId: number;
 }
 
+export interface BaseQuery2 {
+    chainId: number;
+}
+
 /**
  * A query that returns a list of objects in paginated manner.
  */

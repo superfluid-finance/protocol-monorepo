@@ -1,0 +1,16 @@
+query accounts($first: Int = 10, $orderBy: Account_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 10, $where: Account_filter = {}) {
+    accounts(
+        first: $first
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        skip: $skip
+        where: $where
+    ) {
+        createdAtBlockNumber
+        createdAtTimestamp
+        id
+        isSuperApp
+        updatedAtBlockNumber
+        updatedAtTimestamp
+    }
+}

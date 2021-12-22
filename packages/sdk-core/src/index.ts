@@ -26,3 +26,12 @@ export { ConstantFlowAgreementV1 };
 export { InstantDistributionAgreementV1 };
 export { Host };
 export { BatchCall };
+
+export * from "./subgraph/entities/account/account";
+export * from "./subgraph/entities/accountTokenSnapshot/accountTokenSnapshot";
+export * from "./subgraph/entities/index/index";
+export * from "./subgraph/entities/indexSubscription/indexSubscription";
+export * from "./subgraph/entities/stream/stream";
+export * from "./subgraph/entities/streamPeriod/streamPeriod";
+export * from "./subgraph/entities/token/token";
+export * from "./subgraph/entities/tokenStatistic/tokenStatistic";

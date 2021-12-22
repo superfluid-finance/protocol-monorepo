@@ -7,6 +7,7 @@ import {typeGuard} from '../../utils';
 
 import {baseQuery} from './baseQuery';
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
+import {addAccountEndpoints} from './entities/account';
 import {addMutationEndpoints} from './mutations/addMutationEndpoints';
 import {addQueryEndpoints} from './queries/addQueryEndpoints';
 
@@ -23,6 +24,7 @@ export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateAp
         endpoints: (builder) => ({
             ...addQueryEndpoints(builder),
             ...addMutationEndpoints(builder),
+            ...addAccountEndpoints(builder),
         }),
         serializeQueryArgs: ({endpointName, queryArgs}) => {
             // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.

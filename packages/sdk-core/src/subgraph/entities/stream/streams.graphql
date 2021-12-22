@@ -1,0 +1,26 @@
+query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 10, $where: Stream_filter = {}) {
+    streams(
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        first: $first
+        skip: $skip
+        where: $where
+    ) {
+        createdAtBlockNumber
+        createdAtTimestamp
+        currentFlowRate
+        id
+        receiver {
+            id
+        }
+        sender {
+            id
+        }
+        streamedUntilUpdatedAt
+        token {
+            id
+        }
+        updatedAtBlockNumber
+        updatedAtTimestamp
+    }
+}

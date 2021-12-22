@@ -83,7 +83,7 @@ export interface IQueryOptions {
  */
 export default class Query {
     options: IQueryOptions;
-    private subgraphClient: SubgraphClient;
+    subgraphClient: SubgraphClient; // TODO(KK): back to private?
 
     constructor(options: IQueryOptions) {
         this.options = options;
@@ -487,4 +487,4 @@ export default class Query {
 }
 
 // Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
-const typeGuard = <T>(obj: T) => obj;
+export const typeGuard = <T>(obj: T) => obj;

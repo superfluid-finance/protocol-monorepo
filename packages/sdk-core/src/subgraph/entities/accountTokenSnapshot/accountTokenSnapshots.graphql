@@ -1,0 +1,28 @@
+query accountTokenSnapshots($first: Int = 10, $orderBy: AccountTokenSnapshot_orderBy = id, $orderDirection: OrderDirection = asc, $where: AccountTokenSnapshot_filter = {}) {
+    accountTokenSnapshots(
+        first: $first
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        account {
+            id
+        }
+        balanceUntilUpdatedAt
+        id
+        token {
+            id
+        }
+        totalAmountStreamedUntilUpdatedAt
+        totalAmountTransferredUntilUpdatedAt
+        totalInflowRate
+        totalApprovedSubscriptions
+        totalNetFlowRate
+        totalNumberOfActiveStreams
+        totalOutflowRate
+        totalNumberOfClosedStreams
+        totalSubscriptionsWithUnits
+        updatedAtBlockNumber
+        updatedAtTimestamp
+    }
+}

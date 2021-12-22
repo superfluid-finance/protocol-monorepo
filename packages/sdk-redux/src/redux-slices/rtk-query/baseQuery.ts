@@ -1,7 +1,10 @@
 import {SerializedError} from '@reduxjs/toolkit';
+import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import {BaseQueryFn} from '@reduxjs/toolkit/dist/query/react';
 
-import {QueryArg, SuperTokenMutationArg, TransactionInfo} from '../argTypes';
+import {BaseQuery, BaseSuperTokenMutation, TransactionInfo} from '../argTypes';
+
+import {CacheTagTypes} from './cacheTags/CacheTagTypes';
 
 export type ValidationError = {
     /**
@@ -21,18 +24,28 @@ export type MutationMeta = {
  * Creates a "fake" baseQuery to be used if your api *only* uses the `queryFn` definition syntax.
  * This also allows you to specify a specific error type to be shared by all your `queryFn` definitions.
  */
-export function rtkQuerySliceBaseQuery(): BaseQueryFn<
-    SuperTokenMutationArg | QueryArg,
+export function baseQuery(): BaseQueryFn<
+    BaseSuperTokenMutation | BaseQuery<unknown>,
     TransactionInfo | Record<string, unknown>,
     ValidationError,
     unknown,
     MutationMeta
 > {
     return function () {
-        throw new Error(
-            'All queries & mutations must use the `queryFn` definition syntax.'
-        );
+        throw new Error('All queries & mutations must use the `queryFn` definition syntax.');
     };
 }
 
 export type PossibleErrors = ValidationError | SerializedError;
+
+export type SfEndpointBuilder = EndpointBuilder<
+    BaseQueryFn<
+        BaseSuperTokenMutation | BaseQuery<unknown>,
+        TransactionInfo | Record<string, unknown>,
+        ValidationError,
+        unknown,
+        MutationMeta
+    >,
+    CacheTagTypes,
+    'sfApi'
+>;

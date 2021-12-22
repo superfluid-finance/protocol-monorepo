@@ -6,10 +6,6 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import {
-    useListIndexSubscriptionsQuery,
-    IIndexSubscription,
-} from "@superfluid-finance/sdk-redux";
 import { Loader } from "../Loader";
 import {
     FormControl,
@@ -28,6 +24,8 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
+import { IIndexSubscription } from "@superfluid-finance/sdk-core";
 
 const pageSize = 10;
 
@@ -50,7 +48,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListIndexSubscriptionsQuery({
+    } = sfApi.useListIndexSubscriptionsQuery({
         chainId: queryChainId,
         subscriberAddress,
         approved: isApproved,

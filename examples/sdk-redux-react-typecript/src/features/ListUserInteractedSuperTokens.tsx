@@ -7,10 +7,8 @@ import React, {
     useState,
 } from "react";
 import {
-    ISuperToken,
-    useListUserInteractedSuperTokensQuery,
     ILightAccountTokenSnapshot,
-} from "@superfluid-finance/sdk-redux";
+} from "@superfluid-finance/sdk-core";
 import { Loader } from "../Loader";
 import {
     FormGroup,
@@ -25,6 +23,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 const pageSize = 10;
 
@@ -46,7 +45,7 @@ export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListUserInteractedSuperTokensQuery({
+    } = sfApi.useListUserInteractedSuperTokensQuery({
         accountAddress,
         superTokenAddress,
         chainId: queryChainId,

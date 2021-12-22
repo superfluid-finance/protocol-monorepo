@@ -6,7 +6,7 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { IStream, ISuperToken, useListStreamsQuery } from "@superfluid-finance/sdk-redux";
+import { IStream } from "@superfluid-finance/sdk-core";
 import { Loader } from "../Loader";
 import {
     FormGroup,
@@ -23,6 +23,7 @@ import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
 import { FlowingBalance } from "../FlowingBalance";
 import { ethers } from "ethers";
+import { sfApi } from "../redux/store";
 
 const pageSize = 10;
 
@@ -45,7 +46,7 @@ export const ListStreams: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = useListStreamsQuery({
+    } = sfApi.useListStreamsQuery({
         chainId: queryChainId,
         senderAddress,
         receiverAddress,

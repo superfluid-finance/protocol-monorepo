@@ -1,13 +1,13 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useDeleteIndexSubscriptionMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const DeleteIndexSubscription: FC = (): ReactElement => {
     const [trigger, { isLoading, error }] =
-        useDeleteIndexSubscriptionMutation();
+        sfApi.useDeleteIndexSubscriptionMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");

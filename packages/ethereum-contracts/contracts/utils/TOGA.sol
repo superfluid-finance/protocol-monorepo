@@ -323,8 +323,8 @@ contract TOGA is ITOGAv2, IERC777Recipient {
 
         if(from != _currentPICs[token].addr) {
             int96 exitRate = userData.length == 0 ?
-            getDefaultExitRateFor(token, amount) :
-            abi.decode(userData, (int96));
+                getDefaultExitRateFor(token, amount) :
+                abi.decode(userData, (int96));
             _becomePIC(token, from, amount, exitRate);
         } else {
             // current PIC increases the bond

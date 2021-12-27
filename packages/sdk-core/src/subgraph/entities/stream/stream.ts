@@ -3,7 +3,7 @@ import {
     BigNumber,
     EntityBase,
     EntityFilterBase,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphListQuery,
     SubgraphQueryHandler,
 } from "../../../queryV2";
@@ -28,10 +28,7 @@ export interface Stream extends EntityBase {
     token: Address;
 }
 
-export type GetStreamQuery = SubgraphGetQuery<Stream>;
-
 export type StreamListQuery = SubgraphListQuery<
-    Stream,
     StreamListQueryFilter,
     Stream_OrderBy
 >;
@@ -66,18 +63,37 @@ export interface StreamListQueryFilter extends EntityFilterBase {
 
 export class StreamQueryHandler extends SubgraphQueryHandler<
     Stream,
-    StreamListQueryFilter,
-    Stream_OrderBy,
+    StreamListQuery,
     StreamsQuery,
     Stream_Filter,
     StreamsQueryVariables
 > {
-    convertToSubgraphFilter(filter: StreamListQueryFilter): Stream_Filter {
-        return filter;
-    }
+    convertToSubgraphFilter = (filter: StreamListQueryFilter): Stream_Filter =>
+        filter;
 
-    mapFromSubgraphResponse(response: StreamsQuery): Stream[] {
-        return response.streams.map((x) => ({
+    getRelevantAddressesFromFilterCore = (
+        filter: StreamListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [filter.token, filter.token_in, filter.token_not_in],
+        accounts: [
+            filter.sender,
+            filter.sender_in,
+            filter.sender_not_in,
+            filter.receiver,
+            filter.receiver_in,
+            filter.receiver_not_in,
+        ],
+    });
+
+    getRelevantAddressesFromResultCore = (
+        result: Stream
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.token],
+        accounts: [result.sender, result.receiver],
+    });
+
+    mapFromSubgraphResponse = (response: StreamsQuery): Stream[] =>
+        response.streams.map((x) => ({
             ...x,
             createdAtTimestamp: Number(x.createdAtTimestamp),
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
@@ -87,7 +103,6 @@ export class StreamQueryHandler extends SubgraphQueryHandler<
             token: x.token.id,
             sender: x.sender.id,
         }));
-    }
 
     requestDocument = StreamsDocument;
 }

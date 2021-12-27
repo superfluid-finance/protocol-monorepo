@@ -1,15 +1,15 @@
-import {isPlainObject} from '@reduxjs/toolkit';
-import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
-import {CreateApi} from '@reduxjs/toolkit/query';
+import { isPlainObject } from '@reduxjs/toolkit';
+import type { ModuleName } from '@reduxjs/toolkit/dist/query/apiTypes';
+import { CreateApi } from '@reduxjs/toolkit/query';
 import _ from 'lodash';
 
-import {typeGuard} from '../../utils';
+import { typeGuard } from '../../utils';
 
-import {baseQuery} from './baseQuery';
-import {CacheTagTypes} from './cacheTags/CacheTagTypes';
-import {addAccountEndpoints} from './entities/account';
-import {addMutationEndpoints} from './mutations/addMutationEndpoints';
-import {addQueryEndpoints} from './queries/addQueryEndpoints';
+import { baseQuery } from './baseQuery';
+import { CacheTagTypes } from './cacheTags/CacheTagTypes';
+import { addMutationEndpoints } from './mutations/addMutationEndpoints';
+import { addQueryEndpoints } from './queries/addQueryEndpoints';
+import { addEntityEndpoints } from './entities/addEntityEndpoints';
 
 export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
@@ -24,9 +24,9 @@ export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateAp
         endpoints: (builder) => ({
             ...addQueryEndpoints(builder),
             ...addMutationEndpoints(builder),
-            ...addAccountEndpoints(builder),
+            ...addEntityEndpoints(builder),
         }),
-        serializeQueryArgs: ({endpointName, queryArgs}) => {
+        serializeQueryArgs: ({ endpointName, queryArgs }) => {
             // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
 
             // Comment from RTK-Query: Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })

@@ -1,10 +1,9 @@
 import {
-    BigNumber,
-    SubgraphGetQuery,
+    BigNumber, RelevantAddressesIntermediate,
     SubgraphId,
     SubgraphListQuery,
     SubgraphQueryHandler,
-    UpdatedAt,
+    UpdatedAt
 } from "../../../queryV2";
 import {
     InputMaybe,
@@ -34,12 +33,9 @@ export interface TokenStatistic extends UpdatedAt {
     totalSupply: BigNumber;
 }
 
-export type TokenStatisticGetQuery = SubgraphGetQuery<TokenStatistic>;
-
 export type TokenStatisticListQuery = SubgraphListQuery<
-    TokenStatistic,
     TokenStatisticsListQueryFilter,
-    any
+    TokenStatistic_OrderBy
 >;
 
 export interface TokenStatisticsListQueryFilter {
@@ -162,27 +158,42 @@ export interface TokenStatisticsListQueryFilter {
     updatedAtTimestamp_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
 }
 
-export class TokenStatisticsQueryHandler extends SubgraphQueryHandler<
+export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
     TokenStatistic,
-    TokenStatisticsListQueryFilter,
-    TokenStatistic_OrderBy,
+    TokenStatisticListQuery,
     TokenStatisticsQuery,
     TokenStatistic_Filter,
     TokenStatisticsQueryVariables
 > {
-    convertToSubgraphFilter(
+    convertToSubgraphFilter = (
         filter: TokenStatisticsListQueryFilter
-    ): TokenStatistic_Filter {
-        return filter;
-    }
+    ): TokenStatistic_Filter => filter;
 
-    mapFromSubgraphResponse(response: TokenStatisticsQuery): TokenStatistic[] {
-        return response.tokenStatistics.map((x) => ({
-            ...x,
-            updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-            updatedAtTimestamp: Number(x.updatedAtTimestamp),
-        }));
-    }
+    protected getRelevantAddressesFromFilterCore = (
+        filter: TokenStatisticListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [
+            filter.token,
+            filter.token_in,
+            filter.token_not_in,
+        ],
+        accounts: []
+    });
+
+    protected getRelevantAddressesFromResultCore = (
+        result: TokenStatistic
+    ): RelevantAddressesIntermediate => ({
+        tokens: [
+            result.id
+        ],
+        accounts: []
+    });
+
+    mapFromSubgraphResponse = (response: TokenStatisticsQuery): TokenStatistic[] => response.tokenStatistics.map((x) => ({
+        ...x,
+        updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+        updatedAtTimestamp: Number(x.updatedAtTimestamp),
+    }));
 
     requestDocument = TokenStatisticsDocument;
 }

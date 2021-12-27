@@ -1,6 +1,6 @@
 import {
     BlockNumber,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphListQuery,
     SubgraphQueryHandler,
     Timestamp,
@@ -27,10 +27,7 @@ export interface Account {
     updatedAtTimestamp: Timestamp;
 }
 
-export type AccountGetQuery = SubgraphGetQuery<Account>;
-
 export type AccountListQuery = SubgraphListQuery<
-    Account,
     AccountListQueryFilter,
     Account_OrderBy
 >;
@@ -73,25 +70,34 @@ export interface AccountListQueryFilter {
 
 export class AccountQueryHandler extends SubgraphQueryHandler<
     Account,
-    AccountListQueryFilter,
-    Account_OrderBy,
+    AccountListQuery,
     AccountsQuery,
     Account_Filter,
     AccountsQueryVariables
 > {
-    convertToSubgraphFilter(filter: AccountListQueryFilter): Account_Filter {
-        return filter;
-    }
+    convertToSubgraphFilter = (filter: AccountListQueryFilter): Account_Filter => filter;
 
-    mapFromSubgraphResponse(response: AccountsQuery): Account[] {
-        return response.accounts.map((x) => ({
-            ...x,
-            createdAtTimestamp: Number(x.createdAtTimestamp),
-            createdAtBlockNumber: Number(x.createdAtBlockNumber),
-            updatedAtTimestamp: Number(x.updatedAtTimestamp),
-            updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-        }));
-    }
+    getRelevantAddressesFromFilterCore = (
+        _filter: AccountListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        accounts: [],
+        tokens: [],
+    });
+
+    getRelevantAddressesFromResultCore = (
+        result: Account
+    ): RelevantAddressesIntermediate => ({
+        accounts: [result.id],
+        tokens: [],
+    });
+
+    mapFromSubgraphResponse = (response: AccountsQuery): Account[] => response.accounts.map((x) => ({
+        ...x,
+        createdAtTimestamp: Number(x.createdAtTimestamp),
+        createdAtBlockNumber: Number(x.createdAtBlockNumber),
+        updatedAtTimestamp: Number(x.updatedAtTimestamp),
+        updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+    }));
 
     requestDocument = AccountsDocument;
 }

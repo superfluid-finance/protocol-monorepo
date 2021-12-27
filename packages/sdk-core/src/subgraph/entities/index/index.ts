@@ -3,7 +3,7 @@ import {
     BigNumber,
     EntityBase,
     EntityFilterBase,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphId,
     SubgraphListQuery,
     SubgraphQueryHandler,
@@ -34,10 +34,7 @@ export interface Index extends EntityBase {
     token: Address;
 }
 
-export type IndexGetQuery = SubgraphGetQuery<Index>;
-
 export type IndexListQuery = SubgraphListQuery<
-    Index,
     IndexListQueryFilter,
     Index_OrderBy
 >;
@@ -111,20 +108,36 @@ export interface IndexListQueryFilter extends EntityFilterBase {
 
 export class IndexQueryHandler extends SubgraphQueryHandler<
     Index,
-    IndexListQueryFilter,
-    Index_OrderBy,
+    IndexListQuery,
     IndexesQuery,
     Index_Filter,
     IndexesQueryVariables
 > {
     // validateFilter(filter: IndexSubscriptionListQueryFilter) {}
 
-    convertToSubgraphFilter(filter: IndexListQueryFilter): Index_Filter {
-        return filter;
-    }
+    convertToSubgraphFilter = (filter: IndexListQueryFilter): Index_Filter =>
+        filter;
 
-    mapFromSubgraphResponse(response: IndexesQuery): Index[] {
-        return response.indexes.map((x) => ({
+    protected getRelevantAddressesFromFilterCore = (
+        filter: IndexListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [filter.token, filter.token_in, filter.token_not_in],
+        accounts: [
+            filter.publisher,
+            filter.publisher_in,
+            filter.publisher_not_in,
+        ],
+    });
+
+    protected getRelevantAddressesFromResultCore = (
+        result: Index
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.token],
+        accounts: [result.publisher],
+    });
+
+    mapFromSubgraphResponse = (response: IndexesQuery): Index[] =>
+        response.indexes.map((x) => ({
             ...x,
             createdAtTimestamp: Number(x.createdAtTimestamp),
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
@@ -134,7 +147,6 @@ export class IndexQueryHandler extends SubgraphQueryHandler<
             publisher: x.publisher.id,
             token: x.token.id,
         }));
-    }
 
     requestDocument = IndexesDocument;
 }

@@ -2,7 +2,7 @@ import {
     Address,
     BigNumber,
     BlockNumber,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphId,
     SubgraphListQuery,
     SubgraphQueryHandler,
@@ -37,10 +37,7 @@ export interface StreamPeriod {
     startedAtEvent: SubgraphId;
 }
 
-export type StreamPeriodGetQuery = SubgraphGetQuery<StreamPeriod>;
-
 export type StreamPeriodListQuery = SubgraphListQuery<
-    StreamPeriod,
     StreamPeriodListQueryFilter,
     StreamPeriod_OrderBy
 >;
@@ -116,20 +113,38 @@ export interface StreamPeriodListQueryFilter {
 
 export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
     StreamPeriod,
-    StreamPeriodListQueryFilter,
-    StreamPeriod_OrderBy,
+    StreamPeriodListQuery,
     StreamPeriodsQuery,
     StreamPeriod_Filter,
     StreamPeriodsQueryVariables
 > {
-    convertToSubgraphFilter(
+    convertToSubgraphFilter = (
         filter: StreamPeriodListQueryFilter
-    ): StreamPeriod_Filter {
-        return filter;
-    }
+    ): StreamPeriod_Filter => filter;
 
-    mapFromSubgraphResponse(response: StreamPeriodsQuery): StreamPeriod[] {
-        return response.streamPeriods.map((x) => ({
+    protected getRelevantAddressesFromFilterCore = (
+        filter: StreamPeriodListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [filter.token, filter.token_in, filter.token_not_in],
+        accounts: [
+            filter.sender,
+            filter.sender_in,
+            filter.sender_not_in,
+            filter.receiver,
+            filter.receiver_in,
+            filter.receiver_not_in,
+        ],
+    });
+
+    protected getRelevantAddressesFromResultCore = (
+        result: StreamPeriod
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.token],
+        accounts: [result.sender, result.receiver],
+    });
+
+    mapFromSubgraphResponse = (response: StreamPeriodsQuery): StreamPeriod[] =>
+        response.streamPeriods.map((x) => ({
             ...x,
             stream: x.stream.id,
             token: x.token.id,
@@ -142,7 +157,6 @@ export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
             startedAtTimestamp: Number(x.startedAtTimestamp),
             stoppedAtTimestamp: Number(x.stoppedAtTimestamp),
         }));
-    }
 
     requestDocument = StreamPeriodsDocument;
 }

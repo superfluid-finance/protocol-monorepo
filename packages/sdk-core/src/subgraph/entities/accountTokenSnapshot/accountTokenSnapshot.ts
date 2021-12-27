@@ -2,7 +2,7 @@ import {
     Address,
     BigNumber,
     BlockNumber,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphId,
     SubgraphListQuery,
     SubgraphQueryHandler,
@@ -39,12 +39,8 @@ export interface AccountTokenSnapshot {
     token: Address;
 }
 
-export type AccountTokenSnapshotGetQuery =
-    SubgraphGetQuery<AccountTokenSnapshot>;
-
 export type AccountTokenSnapshotListQuery = SubgraphListQuery<
-    AccountTokenSnapshot,
-    any,
+    AccountTokenSnapshotListQueryFilter,
     AccountTokenSnapshot_OrderBy
 >;
 
@@ -161,29 +157,39 @@ export interface AccountTokenSnapshotListQueryFilter {
 
 export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
     AccountTokenSnapshot,
-    AccountTokenSnapshotListQueryFilter,
-    AccountTokenSnapshot_OrderBy,
+    AccountTokenSnapshotListQuery,
     AccountTokenSnapshotsQuery,
     AccountTokenSnapshot_Filter,
     AccountTokenSnapshotsQueryVariables
 > {
-    convertToSubgraphFilter(
+    convertToSubgraphFilter = (
         filter: AccountTokenSnapshotListQueryFilter
-    ): AccountTokenSnapshot_Filter {
-        return filter;
-    }
+    ): AccountTokenSnapshot_Filter => filter;
 
-    mapFromSubgraphResponse(
+    protected getRelevantAddressesFromFilterCore = (
+        filter: AccountTokenSnapshotListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [filter.token, filter.token_in, filter.token_not_in],
+        accounts: [filter.account, filter.account_in, filter.account_not_in],
+    });
+
+    protected getRelevantAddressesFromResultCore = (
+        result: AccountTokenSnapshot
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.token],
+        accounts: [result.account],
+    });
+
+    mapFromSubgraphResponse = (
         response: AccountTokenSnapshotsQuery
-    ): AccountTokenSnapshot[] {
-        return response.accountTokenSnapshots.map((x) => ({
+    ): AccountTokenSnapshot[] =>
+        response.accountTokenSnapshots.map((x) => ({
             ...x,
             account: x.account.id,
             token: x.token.id,
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
         }));
-    }
 
     requestDocument = AccountTokenSnapshotsDocument;
 }

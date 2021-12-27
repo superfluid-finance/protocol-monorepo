@@ -1,7 +1,7 @@
 import {
     Address,
     BlockNumber,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphListQuery,
     SubgraphQueryHandler,
     Timestamp,
@@ -31,10 +31,7 @@ export interface Token {
     underlyingAddress: Address;
 }
 
-export type TokenGetQuery = SubgraphGetQuery<Token>;
-
 export type TokenListQuery = SubgraphListQuery<
-    Token,
     TokenListQueryFilter,
     Token_OrderBy
 >;
@@ -110,23 +107,38 @@ export interface TokenListQueryFilter {
 
 export class TokenQueryHandler extends SubgraphQueryHandler<
     Token,
-    TokenListQueryFilter,
-    Token_OrderBy,
+    TokenListQuery,
     TokensQuery,
     Token_Filter,
     TokensQueryVariables
 > {
-    convertToSubgraphFilter(filter: TokenListQueryFilter): Token_Filter {
-        return filter;
-    }
+    convertToSubgraphFilter = (filter: TokenListQueryFilter): Token_Filter =>
+        filter;
 
-    mapFromSubgraphResponse(response: TokensQuery): Token[] {
-        return response.tokens.map((x) => ({
+    protected getRelevantAddressesFromFilterCore = (
+        filter: TokenListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [
+            filter.underlyingToken,
+            filter.underlyingToken_in,
+            filter.underlyingToken_not_in,
+        ],
+        accounts: [],
+    });
+
+    protected getRelevantAddressesFromResultCore = (
+        result: Token
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.underlyingAddress, result.id],
+        accounts: [],
+    });
+
+    mapFromSubgraphResponse = (response: TokensQuery): Token[] =>
+        response.tokens.map((x) => ({
             ...x,
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
             createdAtTimestamp: Number(x.createdAtTimestamp),
         }));
-    }
 
     requestDocument = TokensDocument;
 }

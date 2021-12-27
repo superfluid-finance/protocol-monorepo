@@ -3,7 +3,7 @@
  * @type TOrderBy Name of the field which the query is order by.
  * WARNING: Ordering by `id` in `desc` order breaks {@link LastIdPaging}.
  */
-export type Ordering<TOrderBy extends string> = {
+export type Ordering<TOrderBy> = {
     orderBy: TOrderBy;
     orderDirection: OrderDirection;
 };

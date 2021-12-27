@@ -5,21 +5,21 @@ import {
     BigNumberInput,
     EntityBase,
     EntityFilterBase,
-    SubgraphGetQuery,
+    RelevantAddressesIntermediate,
     SubgraphId,
     SubgraphListQuery,
     SubgraphQueryHandler,
     TimestampInput,
 } from "../../../queryV2";
 import {
-    GetIndexSubscriptionsDocument,
-    GetIndexSubscriptionsQuery,
-    GetIndexSubscriptionsQueryVariables,
-} from "../../queries/getIndexSubscriptions.generated";
-import {
     IndexSubscription_Filter,
     IndexSubscription_OrderBy,
 } from "../../schema.generated";
+import {
+    IndexSubscriptionsDocument,
+    IndexSubscriptionsQuery,
+    IndexSubscriptionsQueryVariables,
+} from "./indexSubscriptions.generated";
 
 export interface IndexSubscription extends EntityBase {
     approved: boolean;
@@ -28,13 +28,12 @@ export interface IndexSubscription extends EntityBase {
     totalAmountReceivedUntilUpdatedAt: BigNumber;
     units: BigNumber;
     index: SubgraphId;
+    token: Address;
     subscriber: Address;
+    publisher: Address;
 }
 
-export type IndexSubscriptionGetQuery = SubgraphGetQuery<IndexSubscription>;
-
 export type IndexSubscriptionsListQuery = SubgraphListQuery<
-    IndexSubscription,
     IndexSubscriptionListQueryFilter,
     IndexSubscription_OrderBy
 >;
@@ -88,26 +87,23 @@ export interface IndexSubscriptionListQueryFilter extends EntityFilterBase {
 
 export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
     IndexSubscription,
-    IndexSubscriptionListQueryFilter,
-    IndexSubscription_OrderBy,
-    GetIndexSubscriptionsQuery,
+    IndexSubscriptionsListQuery,
+    IndexSubscriptionsQuery,
     IndexSubscription_Filter,
-    GetIndexSubscriptionsQueryVariables
+    IndexSubscriptionsQueryVariables
 > {
     // validateFilter(filter: IndexSubscriptionListQueryFilter) {
     //     validateIndexSubscriptionRequest(filter);
     // }
 
-    convertToSubgraphFilter(
+    convertToSubgraphFilter = (
         filter: IndexSubscriptionListQueryFilter
-    ): IndexSubscription_Filter {
-        return filter;
-    }
+    ): IndexSubscription_Filter => filter;
 
-    mapFromSubgraphResponse(
-        response: GetIndexSubscriptionsQuery
-    ): IndexSubscription[] {
-        return response.result.map((x) => ({
+    mapFromSubgraphResponse = (
+        response: IndexSubscriptionsQuery
+    ): IndexSubscription[] =>
+        response.indexSubscriptions.map((x) => ({
             ...x,
             subscriber: x.subscriber.id,
             createdAtTimestamp: Number(x.createdAtTimestamp),
@@ -115,8 +111,27 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             index: x.index.id,
+            token: x.index.token.id,
+            publisher: x.index.publisher.id,
         }));
-    }
 
-    requestDocument = GetIndexSubscriptionsDocument;
+    requestDocument = IndexSubscriptionsDocument;
+
+    protected getRelevantAddressesFromFilterCore = (
+        filter: IndexSubscriptionsListQuery["filter"]
+    ): RelevantAddressesIntermediate => ({
+        tokens: [],
+        accounts: [
+            filter.subscriber,
+            filter.subscriber_in,
+            filter.subscriber_not_in,
+        ],
+    });
+
+    protected getRelevantAddressesFromResultCore = (
+        result: IndexSubscription
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.token],
+        accounts: [result.subscriber, result.publisher],
+    });
 }

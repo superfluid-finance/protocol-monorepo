@@ -421,7 +421,7 @@ await sf.cfaV1.getNetFlow({
 sf.cfaV1.createFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   flowRate: string,
   userData?: string
 });
@@ -429,7 +429,7 @@ sf.cfaV1.createFlow({
 sf.cfaV1.updateFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   flowRate: string,
   userData?: string
 });
@@ -437,7 +437,7 @@ sf.cfaV1.updateFlow({
 sf.cfaV1.deleteFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   userData?: string
 });
 ```
@@ -472,7 +472,7 @@ const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provi
 const createFlowOperation = sf.cfaV1.createFlow({
   sender: "0x...",
   receiver: "0x...",
-  token: "0x...",
+  superToken: "0x...",
   flowRate: "1000000000"
 });
 const txnResponse = await createFlowOperation.exec(signer);

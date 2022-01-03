@@ -553,7 +553,7 @@ type AgreementLiquidatedByV2Event implements Event @entity {
     name: String!
 
     """
-    Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
+    Holds the token, liquidatorAccount, penaltyAccount and rewardAccount addresses.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -562,10 +562,10 @@ type AgreementLiquidatedByV2Event implements Event @entity {
     agreementClass: Bytes!
     agreementId: Bytes!
     penaltyAccount: Bytes!
-    bondAccount: Bytes!
-    rewardRecipientAccountDelta: BigInt!
-    penaltyAccountDelta: BigInt!
-    version: String!
+    rewardAccount: Bytes!
+    rewardAmount: BigInt!
+    penaltyAccountBalanceDelta: BigInt!
+    version: BigInt!
     liquidationType: Int!
 }
 

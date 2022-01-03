@@ -1,4 +1,4 @@
-schema: "src/subgraph/schema.graphql"
+schema: "src/subgraph/schema.json"
 documents: "src/subgraph/**/*.graphql"
 overwrite: true
 config:

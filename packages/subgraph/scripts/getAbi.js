@@ -7,7 +7,7 @@ const contracts = [
     "ISuperTokenFactory",
     "ISuperToken",
     "ISuperfluid",
-    "TestResolver",
+    "Resolver",
     "IInstantDistributionAgreementV1",
     "SuperfluidGovernanceBase",
     "TestToken",

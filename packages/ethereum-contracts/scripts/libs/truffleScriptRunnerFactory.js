@@ -27,7 +27,7 @@ function parseColonArgs(argv) {
 module.exports = function (ctxFn, logicFn, runnerOpts) {
     return async function (cb, argv, options = {}) {
         try {
-            const { artifacts, web3, truffleDetected } = ctxFn();
+            const {artifacts, web3, truffleDetected} = ctxFn();
 
             let args;
             if (runnerOpts.skipArgv) {
@@ -50,7 +50,10 @@ module.exports = function (ctxFn, logicFn, runnerOpts) {
             }
 
             // normalize web3 environment
-            console.log("use truffle native environment", options.isTruffle);
+            console.log(
+                "use truffle native environment (isTruffle)",
+                options.isTruffle
+            );
             if (options.isTruffle) {
                 if (options.web3) {
                     throw Error(

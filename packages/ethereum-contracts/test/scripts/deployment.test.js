@@ -1,16 +1,16 @@
 const Web3 = require("web3");
-const { web3tx } = require("@decentral.ee/web3-helpers");
-const { expectRevert } = require("@openzeppelin/test-helpers");
-const { codeChanged } = require("../../scripts/libs/common");
+const {web3tx} = require("@decentral.ee/web3-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
+const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");
 const deployTestEnvironment = require("../../scripts/deploy-test-environment");
-const TestResolver = artifacts.require("TestResolver");
+const Resolver = artifacts.require("Resolver");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers").constants;
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers").constants;
 
 contract("Embeded deployment scripts", () => {
     const errorHandler = (err) => {
@@ -27,27 +27,25 @@ contract("Embeded deployment scripts", () => {
         // cleanup environment variables that might affect the test
         delete process.env.RESET_TOKEN;
         delete process.env.RELEASE_VERSION;
-        delete process.env.TEST_RESOLVER_ADDRESS;
+        delete process.env.RESOLVER_ADDRESS;
     });
 
     afterEach(() => {
         // cleanup environment after each test
-        delete process.env.TEST_RESOLVER_ADDRESS;
+        delete process.env.RESOLVER_ADDRESS;
     });
 
     async function getSuperfluidAddresses() {
         const version = "test";
         const superfluidName = `Superfluid.${version}`;
         const govName = `TestGovernance.${version}`;
-        const testResolver = await TestResolver.at(
-            process.env.TEST_RESOLVER_ADDRESS
-        );
-        const superfluidLoader = await testResolver.get("SuperfluidLoader-v1");
+        const resolver = await Resolver.at(process.env.RESOLVER_ADDRESS);
+        const superfluidLoader = await resolver.get("SuperfluidLoader-v1");
         const superfluid = await Superfluid.at(
-            await testResolver.get(superfluidName)
+            await resolver.get(superfluidName)
         );
         const superfluidCode = await superfluid.getCodeAddress.call();
-        const gov = await testResolver.get(govName);
+        const gov = await resolver.get(govName);
         const superTokenFactory = await superfluid.getSuperTokenFactory.call();
         const superTokenFactoryLogic =
             await superfluid.getSuperTokenFactoryLogic.call();
@@ -144,7 +142,7 @@ contract("Embeded deployment scripts", () => {
     });
 
     context("Used in native truffle environment", () => {
-        const deploymentOptions = { isTruffle: true };
+        const deploymentOptions = {isTruffle: true};
 
         describe("scripts/deploy-framework.js", () => {
             const SuperfluidMock = artifacts.require("SuperfluidMock");
@@ -190,11 +188,8 @@ contract("Embeded deployment scripts", () => {
 
             it("nonUpgradable deployment", async () => {
                 // use the same resolver for the entire test
-                const testResolver = await web3tx(
-                    TestResolver.new,
-                    "TestResolver.new"
-                )();
-                process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+                const resolver = await web3tx(Resolver.new, "Resolver.new")();
+                process.env.RESOLVER_ADDRESS = resolver.address;
 
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
@@ -213,11 +208,8 @@ contract("Embeded deployment scripts", () => {
 
             it("upgrades", async () => {
                 // use the same resolver for the entire test
-                const testResolver = await web3tx(
-                    TestResolver.new,
-                    "TestResolver.new"
-                )();
-                process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+                const resolver = await web3tx(Resolver.new, "Resolver.new")();
+                process.env.RESOLVER_ADDRESS = resolver.address;
 
                 console.log("==== First deployment");
                 await deployFramework(errorHandler, deploymentOptions);
@@ -343,27 +335,21 @@ contract("Embeded deployment scripts", () => {
         });
 
         it("scripts/deploy-test-token.js", async () => {
-            const testResolver = await web3tx(
-                TestResolver.new,
-                "TestResolver.new"
-            )();
-            process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+            const resolver = await web3tx(Resolver.new, "Resolver.new")();
+            process.env.RESOLVER_ADDRESS = resolver.address;
             await deployFramework(errorHandler, {
                 ...deploymentOptions,
                 resetSuperfluidFramework: true,
             });
 
             // first deployment
-            assert.equal(
-                await testResolver.get("tokens.TEST7262"),
-                ZERO_ADDRESS
-            );
+            assert.equal(await resolver.get("tokens.TEST7262"), ZERO_ADDRESS);
             await deployTestToken(
                 errorHandler,
                 [":", "TEST7262"],
                 deploymentOptions
             );
-            const address1 = await testResolver.get("tokens.TEST7262");
+            const address1 = await resolver.get("tokens.TEST7262");
             assert.notEqual(address1, ZERO_ADDRESS);
 
             // second deployment
@@ -372,7 +358,7 @@ contract("Embeded deployment scripts", () => {
                 [":", "TEST7262"],
                 deploymentOptions
             );
-            const address2 = await testResolver.get("tokens.TEST7262");
+            const address2 = await resolver.get("tokens.TEST7262");
             assert.equal(address2, address1);
 
             // new deployment after framework reset
@@ -385,16 +371,13 @@ contract("Embeded deployment scripts", () => {
                 [":", "TEST7262"],
                 deploymentOptions
             );
-            const address3 = await testResolver.get("tokens.TEST7262");
+            const address3 = await resolver.get("tokens.TEST7262");
             assert.equal(address3, address2);
         });
 
         it("scripts/deploy-super-token.js", async () => {
-            const testResolver = await web3tx(
-                TestResolver.new,
-                "TestResolver.new"
-            )();
-            process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+            const resolver = await web3tx(Resolver.new, "Resolver.new")();
+            process.env.RESOLVER_ADDRESS = resolver.address;
 
             await deployFramework(errorHandler, deploymentOptions);
 
@@ -407,7 +390,7 @@ contract("Embeded deployment scripts", () => {
 
             // first deployment
             assert.equal(
-                await testResolver.get("supertokens.test.TEST7262x"),
+                await resolver.get("supertokens.test.TEST7262x"),
                 ZERO_ADDRESS
             );
             await deploySuperToken(
@@ -416,9 +399,7 @@ contract("Embeded deployment scripts", () => {
                 deploymentOptions
             );
             const s1 = await getSuperfluidAddresses();
-            const address1 = await testResolver.get(
-                "supertokens.test.TEST7262x"
-            );
+            const address1 = await resolver.get("supertokens.test.TEST7262x");
             assert.notEqual(address1, ZERO_ADDRESS);
             assert.equal(
                 s1.superTokenLogic,
@@ -432,9 +413,7 @@ contract("Embeded deployment scripts", () => {
                 deploymentOptions
             );
             const s2 = await getSuperfluidAddresses();
-            const address2 = await testResolver.get(
-                "supertokens.test.TEST7262x"
-            );
+            const address2 = await resolver.get("supertokens.test.TEST7262x");
             assert.equal(address1, address2);
             assert.equal(
                 s2.superTokenLogic,
@@ -452,9 +431,7 @@ contract("Embeded deployment scripts", () => {
                 deploymentOptions
             );
             const s3 = await getSuperfluidAddresses();
-            const address3 = await testResolver.get(
-                "supertokens.test.TEST7262x"
-            );
+            const address3 = await resolver.get("supertokens.test.TEST7262x");
             assert.equal(address1, address2);
             assert.equal(
                 s3.superTokenLogic,
@@ -472,9 +449,7 @@ contract("Embeded deployment scripts", () => {
                 deploymentOptions
             );
             const s4 = await getSuperfluidAddresses();
-            const address4 = await testResolver.get(
-                "supertokens.test.TEST7262x"
-            );
+            const address4 = await resolver.get("supertokens.test.TEST7262x");
             assert.notEqual(address4, address3);
             assert.equal(
                 s4.superTokenLogic,

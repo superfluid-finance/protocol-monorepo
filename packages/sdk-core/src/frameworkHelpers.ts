@@ -1,12 +1,12 @@
-import { isNullOrEmpty } from "./utils";
+import { IFrameworkOptions } from "./Framework";
+import SFError from "./SFError";
 import {
-    chainIdToDataMap,
     chainIds,
+    chainIdToDataMap,
     networkNames,
     networkNameToChainIdMap,
 } from "./constants";
-import { IFrameworkOptions } from "./Framework";
-import SFError from "./SFError";
+import { isNullOrEmpty } from "./utils";
 
 export const validateFrameworkConstructorOptions = (
     options: IFrameworkOptions
@@ -36,7 +36,7 @@ export const validateFrameworkConstructorOptions = (
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
             customMessage:
-                "You must pass in a provider when initializing the framework.",
+                "You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework.",
         });
     }
 

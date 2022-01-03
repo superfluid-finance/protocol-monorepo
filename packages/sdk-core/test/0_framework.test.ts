@@ -1,13 +1,10 @@
 import { expect } from "chai";
+import { ethers } from "ethers";
+import hardhat from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
-import {
-    HARDHAT_PRIVATE_KEY,
-    RESOLVER_ADDRESS,
-    setup,
-} from "../scripts/setup";
-import { ethers } from "ethers";
+import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "../scripts/setup";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
     "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten";
@@ -24,7 +21,7 @@ describe("Framework Tests", () => {
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({
-            amount: "10000000000000",
+            amount: "10000000000",
             subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
         });
         framework = frameworkClass;
@@ -89,7 +86,7 @@ describe("Framework Tests", () => {
             }
         });
 
-        it("Should throw an error if no provider", async () => {
+        it("Should throw an error if no provider, injected web3 or injected hardhat ethers provider", async () => {
             try {
                 // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
@@ -97,7 +94,7 @@ describe("Framework Tests", () => {
                 } as any);
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must pass in a provider when initializing the framework."
+                    "Framework Initialization Error - You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
                 );
             }
         });
@@ -174,13 +171,33 @@ describe("Framework Tests", () => {
             });
         });
 
-        it("Should be able to create a framework with web3.js", async () => {
+        it("Should be able to create a framework with web3.js via ethers.providers.Web3Provider", async () => {
             const provider = new ethers.providers.Web3Provider(
                 (global as any).web3.currentProvider
             );
             await Framework.create({
                 networkName: "custom",
                 provider,
+                dataMode: "WEB3_ONLY",
+                resolverAddress: RESOLVER_ADDRESS,
+                protocolReleaseVersion: "test",
+            });
+        });
+
+        it("Should be able to create a framework with injected web3", async () => {
+            await Framework.create({
+                networkName: "custom",
+                provider: (global as any).web3,
+                dataMode: "WEB3_ONLY",
+                resolverAddress: RESOLVER_ADDRESS,
+                protocolReleaseVersion: "test",
+            });
+        });
+
+        it("Should be able to create a framework with injected hardhat ethers", async () => {
+            await Framework.create({
+                networkName: "custom",
+                provider: hardhat.ethers,
                 dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",

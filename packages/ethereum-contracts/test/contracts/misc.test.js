@@ -1,7 +1,7 @@
 const TestEnvironment = require("../TestEnvironment");
 
-const { toBN } = require("@decentral.ee/web3-helpers");
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const {toBN} = require("@decentral.ee/web3-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -10,7 +10,7 @@ describe("Miscellaneous for test coverages", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const { ZERO_ADDRESS } = t.constants;
+    const {ZERO_ADDRESS} = t.constants;
 
     let admin, alice;
 
@@ -19,7 +19,7 @@ describe("Miscellaneous for test coverages", function () {
             isTruffle: true,
             nAccounts: 5,
         });
-        ({ admin, alice } = t.aliases);
+        ({admin, alice} = t.aliases);
     });
 
     describe("UUPS", () => {
@@ -74,17 +74,17 @@ describe("Miscellaneous for test coverages", function () {
         });
     });
 
-    describe("TestResolver", () => {
-        const TestResolver = artifacts.require("TestResolver");
+    describe("Resolver", () => {
+        const Resolver = artifacts.require("Resolver");
 
-        it("TestResolver.set should only be called by admin", async () => {
-            const resolver = await TestResolver.new({ from: admin });
+        it("Resolver.set should only be called by admin", async () => {
+            const resolver = await Resolver.new({from: admin});
             await expectRevert(
-                resolver.set("alice", alice, { from: alice }),
+                resolver.set("alice", alice, {from: alice}),
                 "Caller is not an admin"
             );
             await resolver.grantRole(DEFAULT_ADMIN_ROLE, alice);
-            await resolver.set("alice", alice, { from: alice });
+            await resolver.set("alice", alice, {from: alice});
             assert.equal(await resolver.get("alice"), alice);
         });
     });

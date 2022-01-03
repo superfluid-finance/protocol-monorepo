@@ -32,7 +32,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     options = {}
 ) {
     console.log("======== Deploying super token ========");
-    let { resetToken, protocolReleaseVersion } = options;
+    let {resetToken, protocolReleaseVersion} = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
@@ -50,7 +50,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "Ownable",
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
-            "TestResolver",
+            "Resolver",
             "UUPSProxiable",
             "SETHProxy",
         ],
@@ -59,7 +59,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     await sf.initialize();
 
     const {
-        TestResolver,
+        Resolver,
         UUPSProxiable,
         ERC20WithTokenInfo,
         ISuperToken,
@@ -160,10 +160,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             if (superTokenLogic1 !== superTokenLogic2) {
                 console.log("SuperToken logic needs to be updated.");
                 await sendGovernanceAction(sf, (gov) =>
-                    gov.updateSuperTokenLogic(
-                        sf.host.address,
-                        superTokenAddress
-                    )
+                    gov.batchUpdateSuperTokenLogic(sf.host.address, [
+                        superTokenAddress,
+                    ])
                 );
                 if (!process.env.GOVERNANCE_ADMIN_TYPE) {
                     // validate the token logic update for default governance type updates
@@ -186,8 +185,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         const superToken = await deploymentFn();
         console.log("Wrapper created at", superToken.address);
         console.log("Resolver setting new address...");
-        const testResolver = await TestResolver.at(sf.resolver.address);
-        await testResolver.set(superTokenKey, superToken.address);
+        const resolver = await Resolver.at(sf.resolver.address);
+        await resolver.set(superTokenKey, superToken.address);
         console.log("Resolver set done.");
     }
 

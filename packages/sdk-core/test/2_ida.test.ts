@@ -225,7 +225,7 @@ describe("IDA V1 Tests", () => {
             framework.idaV1
                 .updateIndexValue({
                     indexId: "0",
-                    indexValue: ethers.utils.parseUnits("0.002").toString(),
+                    indexValue: ethers.utils.parseUnits("0.000000001").toString(),
                     superToken: superToken.address,
                 })
                 .exec(deployer)
@@ -236,9 +236,9 @@ describe("IDA V1 Tests", () => {
                 deployer.address,
                 0,
                 "500",
-                ethers.utils.parseUnits("0.002").toString(),
+                ethers.utils.parseUnits("0.000000001").toString(),
                 "0",
-                ethers.utils.parseUnits("0.002").toString(),
+                "2000000000000000",
                 "0x"
             );
     });
@@ -286,7 +286,7 @@ describe("IDA V1 Tests", () => {
             framework.idaV1
                 .updateIndexValue({
                     indexId: "0",
-                    indexValue: ethers.utils.parseUnits("0.003").toString(),
+                    indexValue: ethers.utils.parseUnits("0.000000003").toString(),
                     superToken: superToken.address,
                 })
                 .exec(deployer)
@@ -296,9 +296,9 @@ describe("IDA V1 Tests", () => {
                 superToken.address,
                 deployer.address,
                 0,
-                ethers.utils.parseUnits("0.002").toString(),
-                ethers.utils.parseUnits("0.003").toString(),
-                ethers.utils.parseUnits("0.002").toString(),
+                ethers.utils.parseUnits("0.000000001").toString(),
+                ethers.utils.parseUnits("0.000000003").toString(),
+                "2000000000000000",
                 "0",
                 "0x"
             );
@@ -321,7 +321,7 @@ describe("IDA V1 Tests", () => {
                 alpha.address,
                 deployer.address,
                 0,
-                ethers.utils.parseUnits("1000000000000")
+                "2000000000000000000000000"
             );
 
         await expect(
@@ -340,7 +340,7 @@ describe("IDA V1 Tests", () => {
                 deployer.address,
                 0,
                 bravo.address,
-                ethers.utils.parseUnits("1000000000000")
+                "2000000000000000000000000"
             );
     });
 

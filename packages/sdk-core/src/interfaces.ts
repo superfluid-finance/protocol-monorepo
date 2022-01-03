@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, Overrides } from "ethers";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -42,14 +42,14 @@ export interface ISuperTokenModifyFlowParams {
     readonly receiver: string;
     readonly sender?: string;
     readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
     readonly sender: string;
 }
-export interface ISuperTokenUpdateFlowParams
-    extends ISuperTokenCreateFlowParams {}
+export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
 export interface ISuperTokenDeleteFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly sender: string;
@@ -58,6 +58,7 @@ export interface ISuperTokenDeleteFlowParams
 export interface ISuperTokenBaseIDAParams {
     readonly indexId: string;
     readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenGetSubscriptionParams {
     readonly indexId: string;
@@ -76,30 +77,35 @@ export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
 }
 export interface ISuperTokenPubSubParams {
     readonly indexId: string;
-    readonly userData?: string;
     readonly publisher: string;
     readonly subscriber: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenPublisherOperationParams {
     readonly indexId: string;
     readonly publisher: string;
     readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenDistributeParams {
     readonly indexId: string;
-    readonly userData?: string;
     readonly amount: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenUpdateIndexValueParams {
     readonly indexId: string;
-    readonly userData?: string;
     readonly indexValue: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenUpdateSubscriptionUnitsParams {
     readonly indexId: string;
     readonly subscriber: string;
-    readonly userData?: string;
     readonly units: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface IModifyFlowParams {
     readonly receiver: string;
@@ -107,12 +113,13 @@ export interface IModifyFlowParams {
     readonly flowRate?: string;
     readonly sender?: string;
     readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
 }
 
-export interface IUpdateFlowParams extends ICreateFlowParams {}
+export type IUpdateFlowParams = ICreateFlowParams;
 export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
 }
@@ -126,12 +133,14 @@ export interface IRealtimeBalanceOfParams {
 export interface IBaseSuperTokenParams {
     readonly receiver: string;
     readonly amount: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface ITransferFromParams {
     readonly sender: string;
     readonly receiver: string;
     readonly amount: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface ISuperTokenGetFlowParams {
@@ -161,8 +170,15 @@ export interface IGetAccountFlowInfoParams {
 export interface IBaseIDAParams {
     readonly indexId: string;
     readonly superToken: string;
-    readonly publisher?: string;
     readonly userData?: string;
+    readonly publisher?: string;
+}
+
+export interface ICreateIndexParams {
+    readonly indexId: string;
+    readonly superToken: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface IBaseSubscriptionParams extends IBaseIDAParams {
     readonly subscriber: string;
@@ -178,25 +194,63 @@ export interface IGetIndexParams extends IBaseIDAParams {
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface IDistributeParams extends IBaseIDAParams {
+export interface IDistributeParams {
+    readonly indexId: string;
+    readonly superToken: string;
     readonly amount: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IUpdateIndexValueParams extends IBaseIDAParams {
+export interface IUpdateIndexValueParams {
+    readonly indexId: string;
+    readonly superToken: string;
     readonly indexValue: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IUpdateSubscriptionUnitsParams
-    extends IBaseSubscriptionParams {
+export interface IUpdateSubscriptionUnitsParams {
+    readonly indexId: string;
+    readonly superToken: string;
+    readonly subscriber: string;
     readonly units: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IApproveSubscriptionParams extends IBaseSubscriptionParams {
+export interface IApproveSubscriptionParams {
+    readonly indexId: string;
+    readonly superToken: string;
     readonly publisher: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IRevokeSubscriptionParams extends IBaseSubscriptionParams {
+export interface IRevokeSubscriptionParams {
+    readonly indexId: string;
+    readonly superToken: string;
     readonly publisher: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface IDeleteSubscriptionParams {
+    readonly indexId: string;
+    readonly superToken: string;
+    readonly publisher: string;
+    readonly subscriber: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface IClaimParams {
+    readonly indexId: string;
+    readonly superToken: string;
+    readonly publisher: string;
+    readonly subscriber: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 // Subgraph Return Data
@@ -205,8 +259,7 @@ export interface ILightEntity {
     readonly id: string;
 }
 
-export interface IEventEntityBase {
-    readonly id: string;
+export interface IEventEntityBase extends ILightEntity {
     readonly blockNumber: number;
     readonly timestamp: number;
     readonly transactionHash: string;
@@ -225,8 +278,7 @@ export interface IFlowUpdatedEvent extends IEventEntityBase {
     readonly totalAmountStreamedUntilTimestamp: string;
 }
 
-export interface IHOLEntityBase {
-    readonly id: string;
+export interface IHOLEntityBase extends ILightEntity {
     readonly createdAtTimestamp: number;
     readonly createdAtBlockNumber: number;
 }
@@ -272,7 +324,7 @@ export interface IStream extends IHOLUpdateable {
     readonly receiver: string;
     readonly flowUpdatedEvents: IStreamFlowUpdatedEvent[];
 }
-export interface IStreamFlowUpdatedEvent extends IFlowUpdatedEvent {}
+export type IStreamFlowUpdatedEvent = IFlowUpdatedEvent;
 
 export interface ISuperToken extends IHOLEntityBase {
     readonly name: string;

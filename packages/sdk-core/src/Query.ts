@@ -1,3 +1,5 @@
+import SFError from "./SFError";
+import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,
     IIndex,
@@ -5,17 +7,62 @@ import {
     IIndexSubscription,
     IIndexSubscriptionRequestFilter,
     ILightAccountTokenSnapshot,
+    ILightEntity,
     IStream,
     IStreamRequestFilter,
     ISuperToken,
     ISuperTokenRequestFilter,
 } from "./interfaces";
-import { DataMode } from "./types";
+import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
+import { Ordering } from "./ordering";
+import {
+    createLastIdPaging,
+    createPagedResult,
+    createSkipPaging,
+    PagedResult,
+    Paging,
+    takePlusOne,
+} from "./pagination";
+import { SubgraphClient } from "./subgraph/SubgraphClient";
+import {
+    GetAccountTokenSnapshotsDocument,
+    GetAccountTokenSnapshotsQuery,
+    GetAccountTokenSnapshotsQueryVariables,
+} from "./subgraph/queries/getAccountTokenSnapshots.generated";
+import {
+    GetAllEventsDocument,
+    GetAllEventsQuery,
+    GetAllEventsQueryVariables,
+} from "./subgraph/queries/getAllEvents.generated";
+import {
+    GetIndexSubscriptionsDocument,
+    GetIndexSubscriptionsQuery,
+    GetIndexSubscriptionsQueryVariables,
+} from "./subgraph/queries/getIndexSubscriptions.generated";
 import {
     GetIndexesDocument,
     GetIndexesQuery,
     GetIndexesQueryVariables,
 } from "./subgraph/queries/getIndexes.generated";
+import {
+    GetStreamsDocument,
+    GetStreamsQuery,
+    GetStreamsQueryVariables,
+} from "./subgraph/queries/getStreams.generated";
+import {
+    GetTokensDocument,
+    GetTokensQuery,
+    GetTokensQueryVariables,
+} from "./subgraph/queries/getTokens.generated";
+import {
+    AccountTokenSnapshot_OrderBy,
+    Event_OrderBy,
+    Index_OrderBy,
+    IndexSubscription_OrderBy,
+    Stream_OrderBy,
+    Token_OrderBy,
+} from "./subgraph/schema.generated";
+import { DataMode } from "./types";
 import {
     validateAccountTokenSnapshotRequest,
     validateEventRequest,
@@ -24,36 +71,6 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import { createPagedResult, PagedResult, Paging } from "./pagination";
-import { SubgraphClient } from "./subgraph/SubgraphClient";
-import {
-    GetTokensDocument,
-    GetTokensQuery,
-    GetTokensQueryVariables,
-} from "./subgraph/queries/getTokens.generated";
-import {
-    GetIndexSubscriptionsDocument,
-    GetIndexSubscriptionsQuery,
-    GetIndexSubscriptionsQueryVariables,
-} from "./subgraph/queries/getIndexSubscriptions.generated";
-import {
-    GetStreamsDocument,
-    GetStreamsQuery,
-    GetStreamsQueryVariables,
-} from "./subgraph/queries/getStreams.generated";
-import {
-    GetAccountTokenSnapshotsDocument,
-    GetAccountTokenSnapshotsQuery,
-    GetAccountTokenSnapshotsQueryVariables,
-} from "./subgraph/queries/getAccountTokenSnapshots.generated";
-import { AccountEvents, AllEvents, IEventFilter } from "./events";
-import {
-    GetAllEventsDocument,
-    GetAllEventsQuery,
-    GetAllEventsQueryVariables,
-} from "./subgraph/queries/getAllEvents.generated";
-import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
-import SFError from "./SFError";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -75,9 +92,31 @@ export default class Query {
         );
     }
 
+    /**
+     * A recursive function to fetch all possible results of a paged query.
+     * @param pagedQuery A paginated query that takes {@link Paging} as input.
+     */
+    listAllResults = async <T extends ILightEntity>(
+        pagedQuery: (paging: Paging) => Promise<PagedResult<T>>
+    ): Promise<T[]> => {
+        const listAllRecursively = async (paging: Paging): Promise<T[]> => {
+            const pagedResult = await pagedQuery(paging);
+            if (!pagedResult.nextPaging) return pagedResult.data;
+            const nextResults = await listAllRecursively(
+                pagedResult.nextPaging
+            );
+            return pagedResult.data.concat(nextResults);
+        };
+        return listAllRecursively(createLastIdPaging({ take: 999 }));
+    };
+
     listAllSuperTokens = async (
         filter: ISuperTokenRequestFilter,
-        paging: Paging = new Paging()
+        paging: Paging = createSkipPaging(),
+        ordering: Ordering<Token_OrderBy> = {
+            orderBy: "createdAtBlockNumber",
+            orderDirection: "desc",
+        }
     ): Promise<PagedResult<ISuperToken>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
             throw new SFError({
@@ -95,9 +134,12 @@ export default class Query {
             where: {
                 isListed: filter.isListed,
                 isSuperToken: true,
+                id_gt: paging.lastId,
             },
+            orderBy: ordering?.orderBy,
+            orderDirection: ordering?.orderDirection,
+            first: takePlusOne(paging),
             skip: paging.skip,
-            first: paging.takePlusOne(),
         });
 
         const mappedResult = response.result.map((x) =>
@@ -113,7 +155,11 @@ export default class Query {
 
     listIndexes = async (
         filter: IIndexRequestFilter,
-        paging: Paging = new Paging()
+        paging: Paging = createSkipPaging(),
+        ordering: Ordering<Index_OrderBy> = {
+            orderBy: "createdAtBlockNumber",
+            orderDirection: "desc",
+        }
     ): Promise<PagedResult<IIndex>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
             throw new SFError({
@@ -132,9 +178,12 @@ export default class Query {
                 indexId: filter.indexId,
                 publisher: filter.publisher?.toLowerCase(),
                 token: filter.token?.toLowerCase(),
+                id_gt: paging.lastId,
             },
+            orderBy: ordering?.orderBy,
+            orderDirection: ordering?.orderDirection,
+            first: takePlusOne(paging),
             skip: paging.skip,
-            first: paging.takePlusOne(),
         });
 
         const mappedResult = response.result.map((x) =>
@@ -158,7 +207,11 @@ export default class Query {
 
     listIndexSubscriptions = async (
         filter: IIndexSubscriptionRequestFilter,
-        paging: Paging = new Paging()
+        paging: Paging = createSkipPaging(),
+        ordering: Ordering<IndexSubscription_OrderBy> = {
+            orderBy: "createdAtBlockNumber",
+            orderDirection: "desc",
+        }
     ): Promise<PagedResult<IIndexSubscription>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
             throw new SFError({
@@ -176,9 +229,12 @@ export default class Query {
             where: {
                 subscriber: filter.subscriber?.toLowerCase(),
                 approved: filter.approved,
+                id_gt: paging.lastId,
             },
+            orderBy: ordering?.orderBy,
+            orderDirection: ordering?.orderDirection,
+            first: takePlusOne(paging),
             skip: paging.skip,
-            first: paging.takePlusOne(),
         });
 
         const mappedResult = response.result.map((x) =>
@@ -209,7 +265,11 @@ export default class Query {
 
     listStreams = async (
         filter: IStreamRequestFilter,
-        paging: Paging = new Paging()
+        paging: Paging = createSkipPaging(),
+        ordering: Ordering<Stream_OrderBy> = {
+            orderBy: "createdAtBlockNumber",
+            orderDirection: "desc",
+        }
     ): Promise<PagedResult<IStream>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
             throw new SFError({
@@ -228,9 +288,12 @@ export default class Query {
                 sender: filter.sender?.toLowerCase(),
                 receiver: filter.receiver?.toLowerCase(),
                 token: filter.token?.toLowerCase(),
+                id_gt: paging.lastId,
             },
+            orderBy: ordering?.orderBy,
+            orderDirection: ordering?.orderDirection,
+            first: takePlusOne(paging),
             skip: paging.skip,
-            first: paging.takePlusOne(),
         });
 
         const mappedResult = response.result.map((x) =>
@@ -260,7 +323,11 @@ export default class Query {
 
     listUserInteractedSuperTokens = async (
         filter: IAccountTokenSnapshotFilter,
-        paging: Paging = new Paging()
+        paging: Paging = createSkipPaging(),
+        ordering: Ordering<AccountTokenSnapshot_OrderBy> = {
+            orderBy: "updatedAtBlockNumber",
+            orderDirection: "desc",
+        }
     ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
             throw new SFError({
@@ -278,9 +345,12 @@ export default class Query {
             where: {
                 account: filter.account?.toLowerCase(),
                 token: filter.token?.toLowerCase(),
+                id_gt: paging.lastId,
             },
+            orderBy: ordering?.orderBy,
+            orderDirection: ordering?.orderDirection,
+            first: takePlusOne(paging),
             skip: paging.skip,
-            first: paging.takePlusOne(),
         });
 
         const mappedResult = response.result.map((x) =>
@@ -305,7 +375,11 @@ export default class Query {
 
     listEvents = async (
         filter: IEventFilter,
-        paging: Paging = new Paging()
+        paging: Paging = createSkipPaging(),
+        ordering: Ordering<Event_OrderBy> = {
+            orderBy: "blockNumber",
+            orderDirection: "desc",
+        }
     ): Promise<PagedResult<AllEvents>> => {
         if (this.options.dataMode === "WEB3_ONLY") {
             throw new SFError({
@@ -320,52 +394,83 @@ export default class Query {
             GetAllEventsQuery,
             GetAllEventsQueryVariables
         >(GetAllEventsDocument, {
+            orderBy: ordering?.orderBy,
+            orderDirection: ordering?.orderDirection,
             where: {
                 addresses_contains: filter.account
                     ? [filter.account?.toLowerCase()]
                     : undefined,
-                timestamp_gte: filter.timestamp_gte?.toString(),
+                timestamp_gt: filter.timestamp_gt?.toString(),
+                id_gt: paging.lastId,
             },
+            first: takePlusOne(paging),
             skip: paging.skip,
-            first: paging.takePlusOne(),
         });
+
         return createPagedResult<AllEvents>(
             mapGetAllEventsQueryEvents(response),
             paging
         );
     };
 
+    // TODO(KK): error callback?
+    // TODO(KK): retries?
+    // TODO(KK): tests
     on(
-        callback: (events: AccountEvents[], unsubscribe: () => void) => void,
+        callback: (events: AllEvents[], unsubscribe: () => void) => void,
         ms: number,
-        account: string,
+        account?: string,
         timeout?: number
     ): () => void {
         if (ms < 1000) throw Error("Let's not go crazy with the queries...");
 
-        // TODO: Wait for answer before next query...
-
         // Account for the fact that Subgraph has lag and will insert events with the timestamp of the event from blockchain.
         const clockSkew = 25000;
 
-        let nextUtcNow = new Date().getTime() - clockSkew;
-        const intervalId = setInterval(async () => {
-            const utcNow = nextUtcNow;
-            nextUtcNow += ms;
+        // Convert millisecond-based time to second-based time (which Subgraph uses).
+        let eventQueryTimestamp = Math.floor(
+            (new Date().getTime() - clockSkew) / 1000
+        );
 
-            const subgraphTime = Math.floor(utcNow / 1000);
-            const accountEvents: AccountEvents[] = await this.listEvents({
-                account: account,
-                timestamp_gte: subgraphTime,
-            }).then((x) => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
-
-            if (accountEvents.length) {
-                callback(accountEvents, unsubscribe);
-            }
-        }, ms);
-
+        let isUnsubscribed = false;
         const unsubscribe = () => {
-            clearInterval(intervalId);
+            isUnsubscribed = true;
+        };
+
+        const pollingStep = async () => {
+            if (isUnsubscribed) {
+                return;
+            }
+
+            const allEvents = await this.listAllResults((paging) =>
+                this.listEvents(
+                    {
+                        account: account,
+                        timestamp_gt: eventQueryTimestamp,
+                    },
+                    paging,
+                    {
+                        orderBy: "timestamp",
+                        orderDirection: "asc",
+                    }
+                )
+            );
+
+            if (allEvents.length) {
+                callback(allEvents, unsubscribe);
+                // Filter next events by last timestamp of an event.
+                // NOTE: Make sure to order events by timestamp in ascending order.
+                const lastEvent = allEvents.slice(-1)[0];
+                // Next event polling is done for events that have a timestamp later than the current latest event.
+                eventQueryTimestamp = lastEvent!.timestamp;
+            }
+
+            // This solution sets the interval based on last query returning, opposed to not taking request-response cycles into account at all.
+            // This solution is more friendly to the Subgraph & more effective resource-wise with slow internet.
+            return setTimeout(() => {
+                // Fire and forget
+                pollingStep();
+            }, ms);
         };
 
         if (timeout) {
@@ -373,6 +478,9 @@ export default class Query {
                 unsubscribe();
             }, timeout);
         }
+
+        // Fire and forget
+        pollingStep();
 
         return unsubscribe;
     }

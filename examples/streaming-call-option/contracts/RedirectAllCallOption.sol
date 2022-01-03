@@ -40,7 +40,7 @@ contract RedirectAllCallOption is SuperAppBase {
     //asset that can be used to purchase _underlyingAsset
     //this needs to be hardcoded to rinkeby DAI because we will assume that price feeds will be denominated in USD on chainlink
     //you could probably get more advanced with this, but trying to keep it simple
-    ERC20 public _DAI = ERC20(0x15F0Ca26781C3852f8166eD2ebce5D18265cceb7);
+    ERC20 public _dai;
     
     //address of the price feed used for the _underlyingAsset
     AggregatorV3Interface public _priceFeed;
@@ -75,6 +75,7 @@ contract RedirectAllCallOption is SuperAppBase {
         ISuperfluid host,
         IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken,
+        ERC20 dai,
         address receiver) {
         require(address(host) != address(0));
         require(address(cfa) != address(0));
@@ -85,6 +86,7 @@ contract RedirectAllCallOption is SuperAppBase {
         _host = host;
         _cfa = cfa;
         _acceptedToken = acceptedToken;
+        _dai = dai;
         _receiver = receiver;
 
         //sets the optionReady param as false to start until the _recevier creates the option 
@@ -165,7 +167,7 @@ contract RedirectAllCallOption is SuperAppBase {
     
     //enables the caller to exercise the option 
     function exerciseOption() external {
-        require(_DAI.allowance(msg.sender, address(this)) >= uint(_strikePrice), "must call approve first");
+        require(_dai.allowance(msg.sender, address(this)) >= uint(_strikePrice), "must call approve first");
         //start function by checking if option is expired - if it is, we need to deactivate the option
          if (block.timestamp >= _expirationDate) {
             //transfer underlying asset back to owner and cancel flows 
@@ -178,17 +180,17 @@ contract RedirectAllCallOption is SuperAppBase {
 
         //adjust current price if the price feed decimals and underlying decimals are different
         //this is important for comparison between current price and strike price
+
         if (_priceFeedDecimals != _underlyingDecimals) {
-            uint8 _adjustedDecimals = _underlyingDecimals - _priceFeedDecimals;
+            int _adjustedDecimals = _underlyingDecimals - _priceFeedDecimals;
 
             if (_adjustedDecimals < 0) {
                 //if _adjusted decimals is negative, adjust so that it's positive
-                _adjustedDecimals = -_adjustedDecimals;
+                _adjustedDecimals = _adjustedDecimals * -1;
             }
-            currentPrice = int(uint(currentPrice) * (10 ** _adjustedDecimals));
-            //need to use safemath on all of this shit
-            // currentPrice = int(_currentPrice);
+            currentPrice = int(uint(currentPrice) * (10 ** uint(_adjustedDecimals)));
         }
+
         //get flow rate of the flow that the caller of this function is sending to the contract 
         (, int96 currentFlowRate,,) = _cfa.getFlow(_acceptedToken, msg.sender, address(this));
         //require that flowRate is sufficient & option is in the money for option to be exercises
@@ -197,8 +199,32 @@ contract RedirectAllCallOption is SuperAppBase {
         
     
         //NOTE - caller of this function MUST approve DAI first before calling this function
-        _DAI.transferFrom(msg.sender, _receiver, uint256(_strikePrice));
+        _dai.transferFrom(msg.sender, _receiver, uint256(_strikePrice));
         _underlyingAsset.transfer(msg.sender, _underlyingAmount);
+        
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+               _cfa.deleteFlow.selector,
+                  _acceptedToken,
+                  address(this),
+                  _receiver,
+                  new bytes(0)
+            ),
+            "0x"
+        );
+
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+               _cfa.deleteFlow.selector,
+                  _acceptedToken,
+                  msg.sender,
+                  address(this),
+                  new bytes(0)
+            ),
+            "0x"
+        );
 
         optionActive = false;
         optionReady = false;

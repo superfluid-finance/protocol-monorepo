@@ -1,8 +1,8 @@
 const contractNames = require("./contracts.json");
 const abis = require("./abi");
 
-const getAdaptedContract = ({ address, abi, ethers }) => {
-    const { Contract } = require("@ethersproject/contracts");
+const getAdaptedContract = ({address, abi, ethers}) => {
+    const {Contract} = require("@ethersproject/contracts");
 
     let providerOrSigner = ethers;
     try {
@@ -51,7 +51,7 @@ function setTruffleContractDefaults(c, networkId, from) {
     c.autoGas = true;
     c.estimateGas = 1.25;
     networkId && c.setNetwork(networkId);
-    from && c.defaults({ from });
+    from && c.defaults({from});
 }
 
 const loadContracts = async ({

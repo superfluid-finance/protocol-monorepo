@@ -1,4 +1,6 @@
 name: Deploy to Testnets
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   workflow_dispatch:
@@ -20,21 +22,23 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-      GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-      GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-      RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-      RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
-      ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-      ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
-      MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-      MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
-      KOVAN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
-      KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+      DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      # network web3 providers  
+      ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+      ETH_RINKEBY_PROVIDER_URL: ${{ secrets.ETH_RINKEBY_PROVIDER_URL }}
+      ETH_ROPSTEN_PROVIDER_URL: ${{ secrets.ETH_ROPSTEN_PROVIDER_URL }}
+      ETH_KOVAN_PROVIDER_URL: ${{ secrets.ETH_KOVAN_PROVIDER_URL }}
+      POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
+      XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
+      POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+      OPTIMISM_KOVAN_PROVIDER_URL: ${{ secrets.OPTIMISM_KOVAN_PROVIDER_URL }}
+      ARBITRUM_RINKEBY_PROVIDER_URL: ${{ secrets.ARBITRUM_RINKEBY_PROVIDER_URL }}
+      AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
 
     strategy:
       fail-fast: false
       matrix:
-          network: [goerli, rinkeby, ropsten, kovan, mumbai]
+          network: [eth-goerli, eth-rinkeby, eth-ropsten, eth-kovan, polygon-mumbai, optimism-kovan, arbitrum-rinkeby, avalanche-fuji]
 
     steps:
       - uses: actions/checkout@v2
@@ -65,11 +69,10 @@ jobs:
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
-          if ./tasks/supports-etherscan.sh ${{ matrix.network }};then
-            npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
-            source addresses.vars
-            source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
-          fi
+          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
+          source addresses.vars
+          source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
+          SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}

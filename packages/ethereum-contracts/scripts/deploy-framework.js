@@ -1,6 +1,6 @@
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
 const {
@@ -15,7 +15,7 @@ const {
 } = require("./libs/common");
 
 let resetSuperfluidFramework;
-let testResolver;
+let resolver;
 
 async function deployAndRegisterContractIf(
     Contract,
@@ -25,13 +25,13 @@ async function deployAndRegisterContractIf(
 ) {
     let contractDeployed;
     const contractName = Contract.contractName;
-    const contractAddress = await testResolver.get.call(resolverKey);
+    const contractAddress = await resolver.get.call(resolverKey);
     console.log(`${resolverKey} address`, contractAddress);
     if (resetSuperfluidFramework || (await cond(contractAddress))) {
         console.log(`${contractName} needs new deployment.`);
         contractDeployed = await deployFunc();
         console.log(`${resolverKey} deployed to`, contractDeployed.address);
-        await web3tx(testResolver.set, `Resolver set ${resolverKey}`)(
+        await web3tx(resolver.set, `Resolver set ${resolverKey}`)(
             resolverKey,
             contractDeployed.address
         );
@@ -76,7 +76,7 @@ async function deployContractIfCodeChanged(
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.newTestResolver Force to create a new resolver (overridng env: NEW_TEST_RESOLVER)
+ * @param {boolean} options.newTestResolver Force to create a new resolver (overridng env: CREATE_NEW_RESOLVER)
  * @param {boolean} options.useMocks Use mock contracts instead (overridng env: USE_MOCKS)
  * @param {boolean} options.nonUpgradable Deploy contracts configured to be non-upgradable
  *                  (overridng env: NON_UPGRADABLE)
@@ -90,7 +90,7 @@ async function deployContractIfCodeChanged(
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
 
-module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
+module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     args,
     options = {}
 ) {
@@ -108,9 +108,9 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
         resetSuperfluidFramework || !!process.env.RESET_SUPERFLUID_FRAMEWORK;
     console.log("reset superfluid framework: ", resetSuperfluidFramework);
 
-    const networkType = await this.web3.eth.net.getNetworkType();
+    const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const chainId = await this.web3.eth.getChainId();
+    const chainId = await web3.eth.getChainId();
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
@@ -123,7 +123,7 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
         "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
     );
 
-    newTestResolver = newTestResolver || !!process.env.NEW_TEST_RESOLVER;
+    newTestResolver = newTestResolver || !!process.env.CREATE_NEW_RESOLVER;
     useMocks = useMocks || !!process.env.USE_MOCKS;
     nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
     appWhiteListing =
@@ -143,18 +143,15 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
         console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
     }
 
-    await deployERC1820(
-        (err) => {
-            if (err) throw err;
-        },
-        { web3, ...(options.from ? { from: options.from } : {}) }
-    );
+    await deployERC1820((err) => {
+        if (err) throw err;
+    }, options);
 
     const contracts = [
         "Ownable",
         "IMultiSigWallet",
         "SuperfluidGovernanceBase",
-        "TestResolver",
+        "Resolver",
         "SuperfluidLoader",
         "Superfluid",
         "SuperTokenFactory",
@@ -178,7 +175,7 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
         Ownable,
         IMultiSigWallet,
         SuperfluidGovernanceBase,
-        TestResolver,
+        Resolver,
         SuperfluidLoader,
         Superfluid,
         SuperfluidMock,
@@ -203,13 +200,13 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
     });
 
     if (!newTestResolver && config.resolverAddress) {
-        testResolver = await TestResolver.at(config.resolverAddress);
+        resolver = await Resolver.at(config.resolverAddress);
     } else {
-        testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+        resolver = await web3tx(Resolver.new, "Resolver.new")();
         // make it available for the sdk for testing purpose
-        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+        process.env.RESOLVER_ADDRESS = resolver.address;
     }
-    console.log("Resolver address", testResolver.address);
+    console.log("Resolver address", resolver.address);
 
     // deploy new governance contract
     let governanceInitializationRequired = false;
@@ -236,7 +233,7 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
             return await web3tx(
                 SuperfluidLoader.new,
                 "SuperfluidLoader.new"
-            )(testResolver.address);
+            )(resolver.address);
         }
     );
 
@@ -533,12 +530,10 @@ module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
 
     console.log("======== Superfluid framework deployed ========");
 
-    if (process.env.TEST_RESOLVER_ADDRESS) {
+    if (process.env.RESOLVER_ADDRESS) {
         console.log(
             "=============== TEST ENVIRONMENT RESOLVER ======================"
         );
-        console.log(
-            `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
-        );
+        console.log(`export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`);
     }
 });

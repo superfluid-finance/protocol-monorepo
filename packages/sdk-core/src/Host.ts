@@ -1,6 +1,7 @@
-import { ethers } from "ethers";
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
+import { ethers, Overrides } from "ethers";
+
 import Operation from "./Operation";
+import SuperfluidABI from "./abi/Superfluid.json";
 import { Superfluid } from "./typechain";
 
 /**
@@ -13,7 +14,7 @@ export default class Host {
     constructor(hostAddress: string) {
         this.hostContract = new ethers.Contract(
             hostAddress,
-            SuperfluidABI
+            SuperfluidABI.abi
         ) as Superfluid;
     }
 
@@ -22,17 +23,20 @@ export default class Host {
      * @param agreementAddress the agreement address (cfa or ida address)
      * @param callData the encoded callData for the function
      * @param userData any additional user data
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} an `Operation` class
      */
     populateCallAgreementTxnAndReturnOperation = (
         agreementAddress: string,
         callData: string,
-        userData: string | undefined
+        userData: string | undefined,
+        overrides?: Overrides & { from?: string | Promise<string> }
     ): Operation => {
         const txn = this.hostContract.populateTransaction.callAgreement(
             agreementAddress,
             callData,
-            userData || "0x"
+            userData || "0x",
+            overrides || {}
         );
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };

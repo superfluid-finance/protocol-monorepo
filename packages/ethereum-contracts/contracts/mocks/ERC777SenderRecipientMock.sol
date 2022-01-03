@@ -170,6 +170,12 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
 contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
     bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
 
+    // allow to use the hook for this contract itself
+    constructor() {
+        IERC1820Registry erc1820 = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+        erc1820.setInterfaceImplementer(address(this), keccak256("ERC777TokensRecipient"), address(this));
+    }
+
     function tokensReceived(
         address /*operator*/,
         address /*from*/,
@@ -228,3 +234,5 @@ contract ERC777RecipientDrainingGas is IERC777Recipient, IERC1820Implementer {
             bytes32(0x00);
     }
 }
+
+

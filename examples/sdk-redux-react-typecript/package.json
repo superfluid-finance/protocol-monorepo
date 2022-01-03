@@ -9,6 +9,7 @@
         "@ethersproject/providers": "latest",
         "@mui/icons-material": "latest",
         "@mui/material": "latest",
+        "@mui/x-data-grid": "latest",
         "@reduxjs/toolkit": "latest",
         "@superfluid-finance/sdk-redux": "^0.1.0",
         "@types/node": "latest",

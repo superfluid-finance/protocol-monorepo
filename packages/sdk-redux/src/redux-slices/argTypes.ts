@@ -1,4 +1,4 @@
-import { SubgraphGetQuery } from '@superfluid-finance/sdk-core';
+import {SubgraphGetQuery} from '@superfluid-finance/sdk-core';
 
 /**
  * Information about the transaction to locate it.

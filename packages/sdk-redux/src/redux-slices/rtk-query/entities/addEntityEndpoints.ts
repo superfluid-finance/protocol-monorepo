@@ -1,72 +1,72 @@
 import {
+    Account,
+    AccountListQuery,
+    AccountQueryHandler,
     AccountTokenSnapshot,
     AccountTokenSnapshotListQuery,
     AccountTokenSnapshotQueryHandler,
     ILightEntity,
-    PagedResult,
-    SubgraphGetQueryHandler,
-    SubgraphListQueryHandler,
-    SubgraphListQuery,
-    Account,
     Index,
     IndexListQuery,
-    IndexSubscription,
-    AccountQueryHandler,
-    AccountListQuery,
     IndexQueryHandler,
+    IndexSubscription,
     IndexSubscriptionQueryHandler,
     IndexSubscriptionsListQuery,
-    StreamListQuery,
+    PagedResult,
+    RelevantAddresses,
+    RelevantAddressProviderFromFilter,
+    RelevantAddressProviderFromResult,
     Stream,
-    StreamQueryHandler,
+    StreamListQuery,
     StreamPeriod,
     StreamPeriodListQuery,
     StreamPeriodQueryHandler,
+    StreamQueryHandler,
+    SubgraphGetQueryHandler,
+    SubgraphListQuery,
+    SubgraphListQueryHandler,
     Token,
-    TokenQueryHandler,
     TokenListQuery,
+    TokenQueryHandler,
     TokenStatistic,
-    TokenStatisticQueryHandler,
     TokenStatisticListQuery,
-    RelevantAddressProviderFromFilter,
-    RelevantAddressProviderFromResult,
-    RelevantAddresses,
+    TokenStatisticQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import { getFramework } from '../../../sdkReduxConfig';
-import { BaseGetQuery, BaseQuery2 } from '../../argTypes';
-import { SfEndpointBuilder } from '../baseQuery';
-import { CacheTagTypes } from '../cacheTags/CacheTagTypes';
+import {getFramework} from '../../../sdkReduxConfig';
+import {BaseGetQuery, BaseQuery2} from '../../argTypes';
+import {SfEndpointBuilder} from '../baseQuery';
+import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
 
-export interface GetAccountTokenSnapshot extends BaseGetQuery<AccountTokenSnapshot> {}
+export type GetAccountTokenSnapshot = BaseGetQuery<AccountTokenSnapshot>;
 
 export interface ListAccountTokenSnapshots extends BaseQuery2, AccountTokenSnapshotListQuery {}
 
-export interface GetAccount extends BaseGetQuery<Account> {}
+export type GetAccount = BaseGetQuery<Account>;
 
 export interface ListAccounts extends BaseQuery2, AccountListQuery {}
 
-export interface GetIndex extends BaseGetQuery<Index> {}
+export type GetIndex = BaseGetQuery<Index>;
 
 export interface ListIndexes extends BaseQuery2, IndexListQuery {}
 
-export interface GetIndexSubscription extends BaseGetQuery<IndexSubscription> {}
+export type GetIndexSubscription = BaseGetQuery<IndexSubscription>;
 
 export interface ListIndexSubscriptions extends BaseQuery2, IndexSubscriptionsListQuery {}
 
-export interface GetStream extends BaseGetQuery<Stream> {}
+export type GetStream = BaseGetQuery<Stream>;
 
 export interface ListStreams extends BaseQuery2, StreamListQuery {}
 
-export interface GetStreamPeriod extends BaseGetQuery<StreamPeriod> {}
+export type GetStreamPeriod = BaseGetQuery<StreamPeriod>;
 
 export interface ListStreamPeriods extends BaseQuery2, StreamPeriodListQuery {}
 
-export interface GetToken extends BaseGetQuery<Token> {}
+export type GetToken = BaseGetQuery<Token>;
 
 export interface ListTokens extends BaseQuery2, TokenListQuery {}
 
-export interface GetTokenStatistic extends BaseGetQuery<TokenStatistic> {}
+export type GetTokenStatistic = BaseGetQuery<TokenStatistic>;
 
 export interface ListTokenStatistics extends BaseQuery2, TokenStatisticListQuery {}
 
@@ -78,7 +78,7 @@ export const addEntityEndpoints = (builder: SfEndpointBuilder) => {
         return builder.query<TReturn | undefined, TQuery>({
             queryFn: async (arg) => {
                 const framework = await getFramework(arg.chainId);
-                const { chainId, ...query } = arg;
+                const {chainId, ...query} = arg;
                 const result = await queryHandler.get(framework.query.subgraphClient, query);
                 return {
                     data: result,
@@ -107,7 +107,7 @@ export const addEntityEndpoints = (builder: SfEndpointBuilder) => {
         return builder.query<PagedResult<TReturn>, TQuery>({
             queryFn: async (arg) => {
                 const framework = await getFramework(arg.chainId);
-                const { chainId, ...query } = arg;
+                const {chainId, ...query} = arg;
                 const result = await queryHandler.list(framework.query.subgraphClient, query);
                 return {
                     data: result,

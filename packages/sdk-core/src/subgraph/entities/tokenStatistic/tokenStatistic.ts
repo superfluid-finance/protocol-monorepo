@@ -1,9 +1,10 @@
 import {
-    BigNumber, RelevantAddressesIntermediate,
+    BigNumber,
+    RelevantAddressesIntermediate,
     SubgraphId,
     SubgraphListQuery,
     SubgraphQueryHandler,
-    UpdatedAt
+    UpdatedAt,
 } from "../../../queryV2";
 import {
     InputMaybe,
@@ -172,28 +173,25 @@ export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
     protected getRelevantAddressesFromFilterCore = (
         filter: TokenStatisticListQuery["filter"]
     ): RelevantAddressesIntermediate => ({
-        tokens: [
-            filter.token,
-            filter.token_in,
-            filter.token_not_in,
-        ],
-        accounts: []
+        tokens: [filter.token, filter.token_in, filter.token_not_in],
+        accounts: [],
     });
 
     protected getRelevantAddressesFromResultCore = (
         result: TokenStatistic
     ): RelevantAddressesIntermediate => ({
-        tokens: [
-            result.id
-        ],
-        accounts: []
+        tokens: [result.id],
+        accounts: [],
     });
 
-    mapFromSubgraphResponse = (response: TokenStatisticsQuery): TokenStatistic[] => response.tokenStatistics.map((x) => ({
-        ...x,
-        updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-        updatedAtTimestamp: Number(x.updatedAtTimestamp),
-    }));
+    mapFromSubgraphResponse = (
+        response: TokenStatisticsQuery
+    ): TokenStatistic[] =>
+        response.tokenStatistics.map((x) => ({
+            ...x,
+            updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+            updatedAtTimestamp: Number(x.updatedAtTimestamp),
+        }));
 
     requestDocument = TokenStatisticsDocument;
 }

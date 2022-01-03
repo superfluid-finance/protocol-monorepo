@@ -15,6 +15,7 @@ import {
     IndexSubscription_Filter,
     IndexSubscription_OrderBy,
 } from "../../schema.generated";
+
 import {
     IndexSubscriptionsDocument,
     IndexSubscriptionsQuery,

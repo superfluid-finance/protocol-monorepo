@@ -75,7 +75,9 @@ export class AccountQueryHandler extends SubgraphQueryHandler<
     Account_Filter,
     AccountsQueryVariables
 > {
-    convertToSubgraphFilter = (filter: AccountListQueryFilter): Account_Filter => filter;
+    convertToSubgraphFilter = (
+        filter: AccountListQueryFilter
+    ): Account_Filter => filter;
 
     getRelevantAddressesFromFilterCore = (
         _filter: AccountListQuery["filter"]
@@ -91,13 +93,14 @@ export class AccountQueryHandler extends SubgraphQueryHandler<
         tokens: [],
     });
 
-    mapFromSubgraphResponse = (response: AccountsQuery): Account[] => response.accounts.map((x) => ({
-        ...x,
-        createdAtTimestamp: Number(x.createdAtTimestamp),
-        createdAtBlockNumber: Number(x.createdAtBlockNumber),
-        updatedAtTimestamp: Number(x.updatedAtTimestamp),
-        updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-    }));
+    mapFromSubgraphResponse = (response: AccountsQuery): Account[] =>
+        response.accounts.map((x) => ({
+            ...x,
+            createdAtTimestamp: Number(x.createdAtTimestamp),
+            createdAtBlockNumber: Number(x.createdAtBlockNumber),
+            updatedAtTimestamp: Number(x.updatedAtTimestamp),
+            updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
+        }));
 
     requestDocument = AccountsDocument;
 }

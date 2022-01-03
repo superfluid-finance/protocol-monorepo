@@ -171,7 +171,7 @@ export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
     ): TokenStatistic_Filter => filter;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: TokenStatisticListQuery["filter"]
+        filter: TokenStatisticsListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [],

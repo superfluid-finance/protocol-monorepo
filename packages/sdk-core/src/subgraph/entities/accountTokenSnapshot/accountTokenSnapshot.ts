@@ -167,7 +167,7 @@ export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
     ): AccountTokenSnapshot_Filter => filter;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: AccountTokenSnapshotListQuery["filter"]
+        filter: AccountTokenSnapshotListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [filter.account, filter.account_in, filter.account_not_in],

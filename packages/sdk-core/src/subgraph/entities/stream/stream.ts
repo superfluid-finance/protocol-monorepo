@@ -72,7 +72,7 @@ export class StreamQueryHandler extends SubgraphQueryHandler<
         filter;
 
     getRelevantAddressesFromFilterCore = (
-        filter: StreamListQuery["filter"]
+        filter: StreamListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [

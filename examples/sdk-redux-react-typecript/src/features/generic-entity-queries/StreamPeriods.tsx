@@ -10,8 +10,8 @@ import { FormGroup, TextField } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
 import { sfApi } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
-import { StreamPeriod_OrderBy } from "@superfluid-finance/sdk-core/dist/main/subgraph/schema.generated";
 import { GenericDataGrid } from "./GenericDataGrid";
+import { StreamPeriod_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
 
 export const StreamPeriods: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);

@@ -80,7 +80,7 @@ export class AccountQueryHandler extends SubgraphQueryHandler<
     ): Account_Filter => filter;
 
     getRelevantAddressesFromFilterCore = (
-        _filter: AccountListQuery["filter"]
+        _filter: AccountListQueryFilter
     ): RelevantAddressesIntermediate => ({
         accounts: [],
         tokens: [],

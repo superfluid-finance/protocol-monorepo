@@ -116,7 +116,7 @@ export class TokenQueryHandler extends SubgraphQueryHandler<
         filter;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: TokenListQuery["filter"]
+        filter: TokenListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [
             filter.underlyingToken,

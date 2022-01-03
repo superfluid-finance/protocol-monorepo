@@ -123,7 +123,7 @@ export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
     ): StreamPeriod_Filter => filter;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: StreamPeriodListQuery["filter"]
+        filter: StreamPeriodListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [

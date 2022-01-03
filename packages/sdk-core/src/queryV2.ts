@@ -5,6 +5,7 @@ import { ILightEntity } from "./interfaces";
 import { OrderDirection, Ordering } from "./ordering";
 import {
     createPagedResult,
+    createSkipPaging,
     PagedResult,
     Paging,
     takePlusOne,
@@ -40,8 +41,8 @@ export type EntityBase = UpdatedAt &
     };
 
 export interface SubgraphListQuery<TFilter, TOrderBy> {
-    filter: TFilter;
-    pagination: Paging;
+    filter?: TFilter;
+    pagination?: Paging;
     order?: Ordering<TOrderBy>;
 }
 
@@ -102,7 +103,7 @@ export interface SubgraphGetQueryHandler<TResult extends ILightEntity> {
 export interface SubgraphListQueryHandler<
     TResult extends ILightEntity,
     TQuery extends SubgraphListQuery<TFilter, TOrderBy>,
-    TFilter = TQuery["filter"],
+    TFilter = NonNullable<TQuery["filter"]>,
     TOrderBy = NonNullable<TQuery["order"]>["orderBy"]
 > {
     list(
@@ -122,11 +123,11 @@ export interface RelevantAddresses {
 }
 
 export interface RelevantAddressProviderFromFilter<TFilter> {
-    getRelevantAddressesFromFilter(filter: TFilter): RelevantAddresses;
+    getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses;
 }
 
 export interface RelevantAddressProviderFromResult<TResult> {
-    getRelevantAddressesFromResult(result: TResult): RelevantAddresses;
+    getRelevantAddressesFromResult(result?: TResult): RelevantAddresses;
 }
 
 export abstract class SubgraphQueryHandler<
@@ -144,11 +145,11 @@ export abstract class SubgraphQueryHandler<
         skip?: InputMaybe<number>;
         where?: InputMaybe<TSubgraphFilter>;
     },
-    TFilter = TListQuery["filter"],
+    TFilter = NonNullable<TListQuery["filter"]>,
     TOrderBy = NonNullable<TListQuery["order"]>["orderBy"]
 > implements
         SubgraphGetQueryHandler<TResult>,
-        SubgraphListQueryHandler<TResult, TListQuery>,
+        SubgraphListQueryHandler<TResult, TListQuery, TFilter, TOrderBy>,
         RelevantAddressProviderFromFilter<TFilter>,
         RelevantAddressProviderFromResult<TResult>
 {
@@ -162,8 +163,15 @@ export abstract class SubgraphQueryHandler<
         result: TResult
     ): RelevantAddressesIntermediate;
 
-    getRelevantAddressesFromFilter(filter: TFilter): RelevantAddresses {
+    getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses {
         // TODO(KK): toLower, deDuplicate
+
+        if (!filter) {
+            return {
+                tokens: [],
+                accounts: [],
+            };
+        }
 
         const intermediate = this.getRelevantAddressesFromFilterCore(filter);
         return {
@@ -174,8 +182,15 @@ export abstract class SubgraphQueryHandler<
         };
     }
 
-    getRelevantAddressesFromResult(result: TResult): RelevantAddresses {
+    getRelevantAddressesFromResult(result?: TResult): RelevantAddresses {
         // TODO(KK): toLower, deDuplicate
+
+        if (!result) {
+            return {
+                tokens: [],
+                accounts: [],
+            };
+        }
 
         const intermediate = this.getRelevantAddressesFromResultCore(result);
         return {
@@ -209,9 +224,11 @@ export abstract class SubgraphQueryHandler<
     ): Promise<PagedResult<TResult>> {
         // this.validateFilter(query.filter);
 
+        const pagination: Paging = query.pagination ?? createSkipPaging();
+
         const subgraphFilter = typeGuard<TSubgraphFilter>({
-            ...this.convertToSubgraphFilter(query.filter),
-            id_gt: query.pagination.lastId,
+            ...this.convertToSubgraphFilter(query.filter ?? ({} as TFilter)),
+            id_gt: pagination.lastId,
         });
 
         // @ts-ignore TODO(KK): Couldn't figure out the "could be instantiated with a different subtype of constraint ..." error.
@@ -219,8 +236,8 @@ export abstract class SubgraphQueryHandler<
             where: subgraphFilter,
             orderBy: query.order?.orderBy,
             orderDirection: query.order?.orderDirection,
-            first: takePlusOne(query.pagination),
-            skip: query.pagination.skip,
+            first: takePlusOne(pagination),
+            skip: pagination.skip,
         });
 
         const subgraphResponse = await this.querySubgraph(
@@ -229,7 +246,7 @@ export abstract class SubgraphQueryHandler<
         );
         const mappedResult = this.mapFromSubgraphResponse(subgraphResponse);
 
-        return createPagedResult<TResult>(mappedResult, query.pagination);
+        return createPagedResult<TResult>(mappedResult, pagination);
     }
 
     protected async querySubgraph(

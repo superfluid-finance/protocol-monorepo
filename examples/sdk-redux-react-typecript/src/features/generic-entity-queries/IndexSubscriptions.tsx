@@ -10,8 +10,8 @@ import { FormGroup, TextField } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
 import { sfApi } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
-import { IndexSubscription_OrderBy } from "@superfluid-finance/sdk-core/dist/main/subgraph/schema.generated";
 import { GenericDataGrid } from "./GenericDataGrid";
+import { IndexSubscription_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
 
 export const IndexSubscriptions: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);

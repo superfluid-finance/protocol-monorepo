@@ -10,8 +10,8 @@ import { FormGroup, TextField } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
 import { sfApi } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
-import { Token_OrderBy } from "@superfluid-finance/sdk-core/dist/main/subgraph/schema.generated";
 import { GenericDataGrid } from "./GenericDataGrid";
+import { Token_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
 
 export const Tokens: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
@@ -26,7 +26,7 @@ export const Tokens: FC = (): ReactElement => {
     const [sortModel, setSortModel] = React.useState<GridSortModel>([]);
 
     const order = !!sortModel[0] ? {
-        orderBy: (sortModel[0].field as Token_OrderBy),
+        orderBy: sortModel[0].field as Token_OrderBy,
         orderDirection: sortModel[0].sort!,
     } : undefined;
 

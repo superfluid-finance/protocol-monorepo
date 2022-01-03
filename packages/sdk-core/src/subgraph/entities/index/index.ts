@@ -119,7 +119,7 @@ export class IndexQueryHandler extends SubgraphQueryHandler<
         filter;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: IndexListQuery["filter"]
+        filter: IndexListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [

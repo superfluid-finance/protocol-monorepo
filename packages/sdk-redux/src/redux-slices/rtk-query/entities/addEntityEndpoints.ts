@@ -98,10 +98,10 @@ export const addEntityEndpoints = (builder: SfEndpointBuilder) => {
     function list<
         TReturn extends ILightEntity,
         TQuery extends BaseQuery2 & SubgraphListQuery<TFilter, TOrderBy>,
-        TFilter = TQuery['filter'],
+        TFilter = NonNullable<TQuery['filter']>,
         TOrderBy = NonNullable<TQuery['order']>['orderBy']
     >(
-        queryHandler: SubgraphListQueryHandler<TReturn, TQuery> & RelevantAddressProviderFromFilter<TFilter>,
+        queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>,
         tag: CacheTagTypes
     ) {
         return builder.query<PagedResult<TReturn>, TQuery>({

@@ -119,7 +119,7 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
     requestDocument = IndexSubscriptionsDocument;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: IndexSubscriptionsListQuery["filter"]
+        filter: IndexSubscriptionListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [],
         accounts: [

@@ -29,12 +29,6 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
-    bytes32 private constant _3PS_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
-   
-    bytes32 private constant _REWARD_ADDRESS_CONFIG_KEY =
-        keccak256("org.superfluid-finance.superfluid.rewardAddress");
-
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
@@ -786,22 +780,22 @@ contract ConstantFlowAgreementV1 is
             // #1.a.1 yes: then reward = (SD / TD) * RL
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
             token.makeLiquidationPayoutsV2(
-                flowParams.flowId,
-                abi.encode("v1", isPatricianPeriod ? 0 : 1), // liquidationTypeData
-                liquidator, // the executor of the liquidation
-                isPatricianPeriod ? bondAccount : liquidator,
-                flowParams.sender,
-                rewardAmount.toUint256(),
-                rewardAmount.mul(-1)
+                flowParams.flowId, // id
+                abi.encode(1, 0), // liquidationTypeData (1 means "v1")
+                liquidator, // liquidatorAccount
+                isPatricianPeriod, // useDefaultRewardAccount
+                flowParams.sender, // penaltyAccount
+                rewardAmount.toUint256(), // rewardAmount
+                rewardAmount.mul(-1) // penaltAccountDelta
             );
         } else {
             // #1.b.1 no: then the liquidator takes full amount of the single deposit
             int256 rewardAmount = signedSingleDeposit;
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId,
-                abi.encode("v1", 2),
+                abi.encode(1, 2), // (1 means "v1") 
                 liquidator,
-                liquidator,
+                false,
                 flowParams.sender,
                 rewardAmount.toUint256(),
                 totalRewardLeft.mul(-1)

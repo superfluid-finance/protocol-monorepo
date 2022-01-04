@@ -283,6 +283,10 @@ async function _shouldChangeFlow({
                         expectedRewardAmount
                     )
                 );
+                const liquidationTypeData = web3.eth.abi.encodeParameters(
+                    ["uint256", "uint8"],
+                    [1, 0]
+                );
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
@@ -291,15 +295,14 @@ async function _shouldChangeFlow({
                         liquidatorAccount: cfaDataModel.roles.agent,
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: cfaDataModel.roles.sender,
-                        bondAccount: cfaDataModel.roles.reward,
-                        rewardRecipientAccountDelta:
+                        rewardAccount: cfaDataModel.roles.reward,
+                        rewardAmount:
                             expectedRewardAmount.toString(),
-                        penaltyAccountDelta: expectedRewardAmount
+                        penaltyAccountBalanceDelta: expectedRewardAmount
                             .mul(toBN(-1))
                             .toString(),
                         version: "v1",
-                        liquidationType:
-                            time > testenv.configs.PATRICIAN_PERIOD ? "1" : "0",
+                        liquidationTypeData
                     }
                 );
             } else {
@@ -341,6 +344,10 @@ async function _shouldChangeFlow({
                         expectedBailoutAmount
                     )
                 );
+                const liquidationTypeData = web3.eth.abi.encodeParameters(
+                    ["uint256", "uint8"],
+                    [1, 2]
+                );
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
@@ -349,12 +356,11 @@ async function _shouldChangeFlow({
                         liquidatorAccount: cfaDataModel.roles.agent,
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: cfaDataModel.roles.sender,
-                        bondAccount: cfaDataModel.roles.reward,
-                        rewardRecipientAccountDelta:
-                            expectedRewardAmount.toString(),
-                        penaltyAccountDelta: expectedBailoutAmount.toString(),
-                        version: "v1",
-                        liquidationType: "2", // bailout
+                        rewardAccount: cfaDataModel.roles.reward,
+                        rewardAmount: expectedRewardAmount.toString(),
+                        penaltyAccountBalanceDelta: 
+                            expectedBailoutAmount.toString(),
+                            liquidationTypeData
                     }
                 );
             }

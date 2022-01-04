@@ -307,14 +307,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
         slotData = FixedSizeData.loadData(slot, dataLength);
     }
 
-    function _getLiquidationTypeDataStruct(
-        bytes memory liquidationTypeData
-    )   internal pure
-        returns (LiquidationTypeData memory data) {
-        (string memory version, uint8 liquidationType) = abi.decode(liquidationTypeData, (string, uint8));
-        return LiquidationTypeData(version, liquidationType);
-    }
-
     /// @dev ISuperfluidToken.settleBalance implementation
     function settleBalance(
         address account,
@@ -421,53 +413,54 @@ abstract contract SuperfluidToken is ISuperfluidToken
     function makeLiquidationPayoutsV2(
         bytes32 id,
         bytes memory liquidationTypeData,
-        address liquidatorAccount,
-        address rewardRecipientAccount,
-        address penaltyAccount,
-        uint256 rewardRecipientAccountDelta,
-        int256 penaltyAccountDelta
+        address liquidatorAccount, // the address executing the liquidation
+        bool useDefaultRewardAccount,
+        address penaltyAccount, // the flow sender
+        uint256 rewardAmount,
+        int256 penaltyAccountBalanceDelta
     ) external override onlyAgreement {
-        ISuperfluidGovernance gov = _host.getGovernance();
-
-        address originalBondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-        address bondAccount = originalBondAccount;
-        // we set the bondAccount to the user who executed the liquidation if
-        // no bondAccount is set
-        if (originalBondAccount == address(0)) {
-            bondAccount = liquidatorAccount;
+        address defaultRewardAccount;
+        address rewardAccount;
+        
+        {
+            ISuperfluidGovernance gov = _host.getGovernance();
+            defaultRewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+            rewardAccount = defaultRewardAccount;
         }
 
-        // if the bondAccount is unset and we are in the patrician period, we set the rewardRecipient
-        // to be the account which executed the liquidation
-        if (originalBondAccount == address(0) && rewardRecipientAccount == originalBondAccount) {
-            rewardRecipientAccount = liquidatorAccount;
+        // we set the rewardAccount to the user who executed the liquidation if
+        // no rewardAccount is set
+        if (defaultRewardAccount == address(0)) {
+            rewardAccount = liquidatorAccount;
         }
 
-        _balances[bondAccount] = _balances[bondAccount]
-            .add(penaltyAccountDelta.mul(-1))
-            .add(rewardRecipientAccountDelta.toInt256().mul(-1));
+        if (useDefaultRewardAccount) {
+            _balances[rewardAccount] = _balances[rewardAccount]
+                .add(rewardAmount.toInt256());
+        } else {
+            _balances[liquidatorAccount] = _balances[liquidatorAccount]
+                .add(rewardAmount.toInt256());
+
+            // this can occur in two cases:
+            // - pleb period: the two amounts cancel each other out
+            // - pirate/bailout period: reward account has to pay bailout amount
+            _balances[rewardAccount] = _balances[rewardAccount]
+                .sub(rewardAmount.toInt256())
+                .sub(penaltyAccountBalanceDelta);
+        }
 
         _balances[penaltyAccount] = _balances[penaltyAccount]
-            .add(penaltyAccountDelta);
+            .add(penaltyAccountBalanceDelta);
 
-        _balances[rewardRecipientAccount] = _balances[rewardRecipientAccount]
-            .add(rewardRecipientAccountDelta.toInt256());
-
-        // we must use the liquidatorAccount
-        // because the test cases expect the original liquidator
-        // to be the one doing the liquidations
-        // (bytes memory version, uint8 liquidationType) = abi.decode(liquidationTypeData, (bytes, uint8));
-        LiquidationTypeData memory data = _getLiquidationTypeDataStruct(liquidationTypeData);
         emit AgreementLiquidatedByV2(
             liquidatorAccount,
             msg.sender,
             id,
             penaltyAccount,
-            bondAccount,
-            rewardRecipientAccountDelta,
-            penaltyAccountDelta,
-            data.version,
-            data.liquidationType
+            rewardAccount,
+            rewardAmount,
+            penaltyAccountBalanceDelta,
+            liquidationTypeData
         );
     }
 

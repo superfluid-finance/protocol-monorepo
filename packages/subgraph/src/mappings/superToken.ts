@@ -103,13 +103,16 @@ export function handleAgreementLiquidatedByV2(
         event.params.penaltyAccount,
         event.block
     );
-    let bondAccount = getOrInitAccount(event.params.bondAccount, event.block);
+    let rewardAccount = getOrInitAccount(
+        event.params.rewardAccount,
+        event.block
+    );
 
     updateHOLEntitiesForLiquidation(
         event,
         liquidatorAccount.id,
         penaltyAccount.id,
-        bondAccount.id
+        rewardAccount.id
     );
 }
 
@@ -273,7 +276,7 @@ function createAgreementLiquidatedByV2Entity(
         event.address,
         event.params.liquidatorAccount,
         event.params.penaltyAccount,
-        event.params.bondAccount,
+        event.params.rewardAccount,
     ];
     ev.blockNumber = event.block.number;
     ev.token = event.address;
@@ -281,11 +284,19 @@ function createAgreementLiquidatedByV2Entity(
     ev.agreementClass = event.params.agreementClass;
     ev.agreementId = event.params.id;
     ev.penaltyAccount = event.params.penaltyAccount;
-    ev.bondAccount = event.params.bondAccount;
-    ev.rewardRecipientAccountDelta = event.params.rewardRecipientAccountDelta;
-    ev.penaltyAccountDelta = event.params.penaltyAccountDelta;
-    ev.version = event.params.version;
-    ev.liquidationType = event.params.liquidationType;
+    ev.rewardAccount = event.params.rewardAccount;
+    ev.rewardAmount = event.params.rewardAmount;
+    ev.penaltyAccountBalanceDelta = event.params.penaltyAccountBalanceDelta;
+
+    let decoded = ethereum.decode(
+        "(uint256, uint8)",
+        event.params.liquidationTypeData
+    ) as ethereum.Value;
+    let tuple = decoded.toTuple();
+    let version = tuple[0].toBigInt();
+    let liquidationType = tuple[1].toI32();
+    ev.version = version;
+    ev.liquidationType = liquidationType;
     ev.save();
 }
 

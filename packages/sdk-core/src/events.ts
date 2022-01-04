@@ -195,7 +195,7 @@ export interface BurnedEvent extends EventBase {
 export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
     name: "CFAv1LiquidationPeriodChanged";
     host: string;
-    isSet: boolean;
+    isKeySet: boolean;
     liquidationPeriod: number;
     superToken: string;
 }
@@ -203,7 +203,7 @@ export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
 export interface ConfigChangedEvent extends EventBase {
     name: "ConfigChanged";
     host: string;
-    isSet: boolean;
+    isKeySet: boolean;
     key: string;
     superToken: string;
     value: string;
@@ -239,7 +239,7 @@ export interface RewardAddressChangedEvent extends EventBase {
     name: "RewardAddressChanged";
     host: string;
     superToken: string;
-    isSet: boolean;
+    isKeySet: boolean;
     rewardAddress: string;
 }
 
@@ -348,7 +348,7 @@ export interface TrustedForwarderChangedEvent extends EventBase {
     name: "TrustedForwarderChanged";
     host: string;
     superToken: string;
-    isSet: boolean;
+    isKeySet: boolean;
     forwarder: string;
     enabled: boolean;
 }

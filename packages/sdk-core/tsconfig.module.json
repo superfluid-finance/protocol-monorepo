@@ -6,8 +6,7 @@
         "module": "esnext",
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true,
-        "inlineSourceMap": false
+        "sourceMap": true
     },
     "exclude": [
         "node_modules/**"

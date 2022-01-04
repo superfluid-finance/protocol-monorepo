@@ -73,11 +73,39 @@ const web3jsSf = await Framework.create({
   provider: web3jsProvider
 });
 
+// injected web3.js initialization (Hardhat) 
+// most likely to be used on backend for testing
+// NOTE: if you're using truffle, you should be able to
+// omit the (global as any) as this should be
+// exposed already (in JS at least)
+const injectedWeb3jsSf = await Framework.create({
+  networkName: "custom",
+  provider: (global as any).web3,
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
+});
+
+// injected hardhat ethers initialization
+// most likely to be used on backend for testing
+import hardhat from "hardhat";
+const injectedHardhatEthersSf = await Framework.create({
+  networkName: "custom",
+  provider: hardhat.ethers,
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
+})
+
 // ethers.js + hardhat provider initialization (in testing environment w/ hardhat-ethers)
+import { ethers } from "hardhat";
 const [deployer] = await ethers.getSigners();
 const ethersProvider = deployer.provider;
 const ethersjsSf = await Framework.create({
-  networkName: "matic",
+  networkName: "custom",
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
   provider: ethersProvider
 });
 
@@ -393,7 +421,7 @@ await sf.cfaV1.getNetFlow({
 sf.cfaV1.createFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   flowRate: string,
   userData?: string
 });
@@ -401,7 +429,7 @@ sf.cfaV1.createFlow({
 sf.cfaV1.updateFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   flowRate: string,
   userData?: string
 });
@@ -409,7 +437,7 @@ sf.cfaV1.updateFlow({
 sf.cfaV1.deleteFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   userData?: string
 });
 ```
@@ -444,7 +472,7 @@ const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provi
 const createFlowOperation = sf.cfaV1.createFlow({
   sender: "0x...",
   receiver: "0x...",
-  token: "0x...",
+  superToken: "0x...",
   flowRate: "1000000000"
 });
 const txnResponse = await createFlowOperation.exec(signer);
@@ -464,7 +492,7 @@ import { InstantDistributionAgreementV1 } from "@superfluid-finance/sdk-core";
 const config = {
   hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
   superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-  idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
   idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 

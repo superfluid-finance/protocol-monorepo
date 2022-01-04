@@ -1,5 +1,7 @@
 import { Signer } from "@ethersproject/abstract-signer";
+import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
+import Web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -9,8 +11,8 @@ import Operation from "./Operation";
 import Query from "./Query";
 import SFError from "./SFError";
 import SuperToken from "./SuperToken";
-import { abi as IResolverABI } from "./abi/IResolver.json";
-import { abi as SuperfluidLoaderABI } from "./abi/SuperfluidLoader.json";
+import IResolverABI from "./abi/IResolver.json";
+import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
@@ -20,6 +22,12 @@ import {
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { DataMode } from "./types";
+import { isEthersProvider, isInjectedWeb3 } from "./utils";
+
+type SupportedProvider =
+    | ethers.providers.Provider
+    | (typeof ethers & HardhatEthersHelpers)
+    | Web3;
 
 // TODO: add convenience function of utilizing provider (optional)
 // instead of having to pass it in every single time
@@ -30,7 +38,7 @@ export interface IFrameworkOptions {
     networkName?: string;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
-    provider: ethers.providers.Provider;
+    provider: SupportedProvider;
 }
 
 export interface IFrameworkSettings {
@@ -81,7 +89,7 @@ export default class Framework {
      * @param options.networkName the desired network (e.g. "matic", "rinkeby", etc.)
      * @param options.resolverAddress a custom resolver address (advanced use for testing)
      * @param options.protocolReleaseVersion a custom release version (advanced use for testing)
-     * @param options.provider a provider object necessary for initializing the framework
+     * @param options.provider a provider object (injected web3, injected ethers, ethers provider) necessary for initializing the framework
      * @returns `Framework` class
      */
     static create = async (options: IFrameworkOptions) => {
@@ -103,7 +111,20 @@ export default class Framework {
                 : options.customSubgraphQueriesEndpoint ||
                   getSubgraphQueriesEndpoint(options);
 
-        const network = await options.provider.getNetwork();
+        const provider = isEthersProvider(options.provider)
+            ? options.provider
+            : isInjectedWeb3(options.provider)
+            ? // must explicitly cast web3 provider type because
+              // ethers.providers.Web3Provider doesn't like
+              // the type passed.
+              new ethers.providers.Web3Provider(
+                  options.provider.currentProvider as
+                      | ethers.providers.ExternalProvider
+                      | ethers.providers.JsonRpcFetchFunc
+              )
+            : options.provider.provider;
+
+        const network = await provider.getNetwork();
         if (network.chainId !== chainId && chainId != null) {
             throw new SFError({
                 type: "NETWORK_MISMATCH",
@@ -126,8 +147,8 @@ export default class Framework {
                 : data.resolverAddress;
             const resolver = new ethers.Contract(
                 resolverAddress,
-                IResolverABI,
-                options.provider
+                IResolverABI.abi,
+                provider
             ) as IResolver;
 
             const superfluidLoaderAddress = await resolver.get(
@@ -135,8 +156,8 @@ export default class Framework {
             );
             const superfluidLoader = new ethers.Contract(
                 superfluidLoaderAddress,
-                SuperfluidLoaderABI,
-                options.provider
+                SuperfluidLoaderABI.abi,
+                provider
             ) as SuperfluidLoader;
 
             const framework = await superfluidLoader.loadFramework(
@@ -148,7 +169,7 @@ export default class Framework {
                 customSubgraphQueriesEndpoint,
                 dataMode: options.dataMode || "SUBGRAPH_ONLY",
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
-                provider: options.provider,
+                provider,
                 networkName,
                 config: {
                     hostAddress: framework.superfluid,

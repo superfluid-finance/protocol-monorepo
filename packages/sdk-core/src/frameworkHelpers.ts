@@ -36,7 +36,7 @@ export const validateFrameworkConstructorOptions = (
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
             customMessage:
-                "You must pass in a provider when initializing the framework.",
+                "You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework.",
         });
     }
 

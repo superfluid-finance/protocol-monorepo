@@ -1,12 +1,12 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useCreateIndexMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const CreateIndex: FC = (): ReactElement => {
-    const [createIndex, { isLoading, error }] = useCreateIndexMutation();
+    const [createIndex, { isLoading, error }] = sfApi.useCreateIndexMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");

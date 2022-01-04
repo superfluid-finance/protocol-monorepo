@@ -532,54 +532,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "CFA: sender is zero"
                 );
             });
-
-            context("#1.3.6 with reward address as admin", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to admin"
-                    )(superfluid.address, ZERO_ADDRESS, admin);
-                });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.3.6",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.3.6",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                });
-            });
-
-            context("#1.3.7 with zero reward address", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to zero"
-                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
-                });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.3.7",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.3.7",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                    // no one will bail you out, alice :(
-                    allowCriticalAccount: true,
-                });
-            });
         });
 
         describe("#1.4 deleteFlow (liquidations)", () => {
@@ -632,53 +584,113 @@ describe("Using ConstantFlowAgreement v1", function () {
                 );
             });
 
-            context("#1.4.4 with reward address as admin", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to admin"
-                    )(superfluid.address, ZERO_ADDRESS, admin);
-                });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.4.4",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.4.4",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                });
-            });
+            context(
+                "#1.4.4 with reward address as admin (agent is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldTestLiquidationByAgent({
+                        titlePrefix: "#1.4.4",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                    });
+                    shouldTestSelfLiquidation({
+                        titlePrefix: "#1.4.4",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                    });
+                }
+            );
 
-            context("#1.4.5 with zero reward address", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to zero"
-                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
-                });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.4.5",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.4.5",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                    // thanks for bailing every one out, dan :)
-                    allowCriticalAccount: true,
-                });
-            });
+            context(
+                "#1.4.5 with zero reward address (agent is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldTestLiquidationByAgent({
+                        titlePrefix: "#1.4.5",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                    });
+                    shouldTestSelfLiquidation({
+                        titlePrefix: "#1.4.5",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.6 with reward address as admin (sender is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldTestLiquidationByAgent({
+                        titlePrefix: "#1.4.6",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                    });
+                    shouldTestSelfLiquidation({
+                        titlePrefix: "#1.4.6",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.7 with zero reward address (sender is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldTestLiquidationByAgent({
+                        titlePrefix: "#1.4.7",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                    });
+                    shouldTestSelfLiquidation({
+                        titlePrefix: "#1.4.7",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        // no one will bail you out, alice :(
+                        allowCriticalAccount: true,
+                    });
+                }
+            );
         });
 
         describe("#1.7 real-time balance", () => {

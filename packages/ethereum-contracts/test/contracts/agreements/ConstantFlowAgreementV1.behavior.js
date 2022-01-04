@@ -849,15 +849,6 @@ async function _shouldChangeFlow({
                         expectedBailoutAmount
                     )
                 );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    testenv.sf.contracts.ISuperToken,
-                    "Bailout",
-                    {
-                        bailoutAccount: roles.reward,
-                        bailoutAmount: expectedBailoutAmount.toString(),
-                    }
-                );
                 const liquidationTypeData = web3.eth.abi.encodeParameters(
                     ["uint256", "uint8"],
                     [1, 2]

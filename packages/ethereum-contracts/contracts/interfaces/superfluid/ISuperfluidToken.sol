@@ -409,7 +409,7 @@ interface ISuperfluidToken {
      * @param useDefaultRewardAccount Whether or not the default reward account receives the rewardAmount
      * @param penaltyAccount Account of the agreement to be penalized
      * @param rewardAmount The amount the reward recepient account balance (either default reward or liquidator) should change by
-     * @param penaltyAccountDelta The amount the penalty account balance should change by
+     * @param penaltyAccountBalanceDelta The amount the penalty account balance should change by
      *
      * - If a bailout is required (bailoutAmount > 0)
      *   - the actual reward goes to the executor,
@@ -430,7 +430,7 @@ interface ISuperfluidToken {
         bool useDefaultRewardAccount,
         address penaltyAccount,
         uint256 rewardAmount,
-        int256 penaltyAccountDelta
+        int256 penaltyAccountBalanceDelta
     ) external;
 
     /**************************************************************************

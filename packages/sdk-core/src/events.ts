@@ -336,7 +336,7 @@ export interface SuperTokenLogicUpdatedEvent extends EventBase {
 }
 
 export interface ThreePsConfigurationChangedEvent extends EventBase {
-    name: "ThreePsConfigurationChanged",
+    name: "ThreePsConfigurationChanged";
     host: string;
     superToken: string;
     isKeySet: boolean;

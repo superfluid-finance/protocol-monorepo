@@ -285,7 +285,7 @@ async function _shouldChangeFlow({
                 );
                 const liquidationTypeData = web3.eth.abi.encodeParameters(
                     ["uint256", "uint8"],
-                    [1, 0]
+                    [1, time > testenv.configs.PATRICIAN_PERIOD ? 1 : 0]
                 );
                 await expectEvent.inTransaction(
                     tx.tx,

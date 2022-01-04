@@ -771,7 +771,7 @@ contract ConstantFlowAgreementV1 is
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId, // id
-                abi.encode(1, 0), // liquidationTypeData (1 means "v1")
+                abi.encode(1, isPatricianPeriod ? 0 : 1), // liquidationTypeData (1 means "v1")
                 liquidator, // liquidatorAccount
                 isPatricianPeriod, // useDefaultRewardAccount
                 flowParams.sender, // penaltyAccount

@@ -766,7 +766,7 @@ contract ConstantFlowAgreementV1 is
                 true, // useDefaultRewardAccount
                 flowParams.sender, // penaltyAccount
                 rewardAmount.toUint256(), // rewardAmount
-                rewardAmount.mul(-1) // penaltAccountDelta
+                rewardAmount.mul(-1) // penaltyAccountBalanceDelta
             );
         } else {
             // #1.b.1 no: then the liquidator takes full amount of the single deposit

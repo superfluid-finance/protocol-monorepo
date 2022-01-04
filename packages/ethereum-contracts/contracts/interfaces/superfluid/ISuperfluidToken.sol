@@ -17,9 +17,9 @@ interface ISuperfluidToken {
      * Note:
      * - version: 1 
      * - liquidationType key:
-     *    - 0 = bond account always receives reward (PIC period);    
-     *    - 1 = liquidator account receives reward (Pleb period);
-     *    - 2 = liquidator account receives reward (Pirate period/bailout);
+     *    - 0 = reward account receives reward (PIC period)
+     *    - 1 = liquidator account receives reward (Pleb period)
+     *    - 2 = liquidator account receives reward (Pirate period/bailout)
      */
     struct LiquidationTypeData {
         uint256 version;
@@ -378,17 +378,15 @@ interface ISuperfluidToken {
      * NOTE:
      * Reward account rule:
      * - if the agreement is liquidated during the PIC period
-     *   - the executor will always be equal to the bond account (only rewardAccount allowed to liquidate) will get
-     *     the rewardAmount,
-     *   - the penaltyAccount will pay for the rewardAmount.
+     *   - the rewardAccount will get the rewardAmount (remaining deposit), regardless of the liquidatorAccount
+     *   - the penaltyAccount will pay for the rewardAmount
      * - if the agreement is liquidated after the PIC period
-     *   - the liquidatorAccount may or may not be equal to the rewardAccount and the liquidatorAccount will get the 
-           rewardAmount
-     *   - the penaltyAccount will pay for the rewardAmount.
+     *   - the liquidatorAccount will get the rewardAmount (remaining deposit)
+     *   - the penaltyAccount will pay for the rewardAmount
      * - if the penaltyAccount is insolvent
      *   - the liquidatorAccount will get the rewardAmount (single deposit)
-     *   - the rewardAccount will pay for both the rewardAmount and bailoutAmount,
-     *   - the penaltyAccount will receive the bailoutAmount.
+     *   - the rewardAccount will pay for both the rewardAmount and bailoutAmount
+     *   - the penaltyAccount will receive the bailoutAmount
      */
     event AgreementLiquidatedByV2(
         address liquidatorAccount,
@@ -408,7 +406,7 @@ interface ISuperfluidToken {
      * @param liquidatorAccount Address of the executor of the liquidation
      * @param useDefaultRewardAccount Whether or not the default reward account receives the rewardAmount
      * @param penaltyAccount Account of the agreement to be penalized
-     * @param rewardAmount The amount the reward recepient account balance (either default reward or liquidator) should change by
+     * @param rewardAmount The amount the reward recepient account will receive
      * @param penaltyAccountBalanceDelta The amount the penalty account balance should change by
      *
      * - If a bailout is required (bailoutAmount > 0)
@@ -417,7 +415,7 @@ interface ISuperfluidToken {
      *   - total bailout include: bailout amount + reward amount
      * - If a bailout is not required
      *   - the penaltyAccount will pay for the rewardAmount
-     *   - the liquidator will receive the rewardAmount
+     *   - the liquidator (reward account in PIC period) will receive the rewardAmount
      *
      * Modifiers:
      *  - onlyAgreement

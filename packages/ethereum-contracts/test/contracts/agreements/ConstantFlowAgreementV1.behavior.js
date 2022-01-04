@@ -1,15 +1,6 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
-const CFADataModel = require("../utils/CFADataModel");
-const {
-    getAccountFlowInfo,
-    clipDepositNumber,
-    adjustNewAppAllowanceUsed,
-    _updateFlowInfo,
-    _updateAccountFlowInfo,
-    validateAccountNetFlow,
-    syncAccountExpectedBalanceDeltas,
-} = require("../utils/CFAV1utils");
+const CFADataModel = require("../utils/ConstantFlowAgreementV1.data");
 const MFASupport = require("../utils/MFASupport");
 
 //
@@ -140,11 +131,11 @@ async function _shouldChangeFlow({
             toBN(testenv.configs.LIQUIDATION_PERIOD)
         );
         // Aren't these two the exact same?
-        const mainFlowDeposit = clipDepositNumber(
+        const mainFlowDeposit = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
-        const mainFlowAppAllowance = clipDepositNumber(
+        const mainFlowAppAllowance = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
@@ -153,7 +144,7 @@ async function _shouldChangeFlow({
             .reduce((acc, cur) => {
                 return acc.add(cur);
             }, toBN(0));
-        const mainFlowAllowanceUsed = adjustNewAppAllowanceUsed(
+        const mainFlowAllowanceUsed = CFADataModel.adjustNewAppAllowanceUsed(
             mainFlowAppAllowance,
             mainFlowDeposit, // appAllowanceUsed
             newAppAllowanceUsed
@@ -402,8 +393,7 @@ async function _shouldChangeFlow({
     console.log("--------");
 
     await testenv.validateExpectedBalances(() => {
-        syncAccountExpectedBalanceDeltas({
-            testenv,
+        cfaDataModel.syncAccountExpectedBalanceDeltas({
             superToken: superToken.address,
             timestamp: txBlock.timestamp,
         });
@@ -416,8 +406,7 @@ async function _shouldChangeFlow({
         if (flowData.flowInfoAfter) {
             //console.log(`saving ${flowName} flow info...`);
             //console.log("!!!", flowName, flowData.flowInfoAfter);
-            _updateFlowInfo({
-                testenv,
+            cfaDataModel.updateFlowInfo({
                 superToken: superToken.address,
                 sender: flowData.flowId.sender,
                 receiver: flowData.flowId.receiver,
@@ -430,8 +419,7 @@ async function _shouldChangeFlow({
     Object.keys(cfaDataModel.roles).forEach((role) => {
         //console.log(`saving ${role} account flow info...`);
         if (cfaDataModel.getAccountFlowInfoAfter(role)) {
-            _updateAccountFlowInfo({
-                testenv,
+            cfaDataModel.updateAccountFlowInfo({
                 superToken: superToken.address,
                 account: cfaDataModel.roles[role],
                 flowInfo: cfaDataModel.getAccountFlowInfoAfter(role),
@@ -440,8 +428,7 @@ async function _shouldChangeFlow({
     });
 
     Object.keys(cfaDataModel.roles).forEach((role) =>
-        validateAccountNetFlow({
-            testenv,
+        cfaDataModel.validateAccountNetFlow({
             superToken: superToken.address,
             account: cfaDataModel.roles[role],
         })
@@ -462,18 +449,20 @@ async function _shouldChangeFlow({
             // since mfa mangles with flows in callbacks
             ...(!mfa
                 ? {
-                      totalSenderFlowRate: getAccountFlowInfo({
-                          testenv,
-                          superToken: superToken.address,
-                          account: cfaDataModel.roles.sender,
-                      }).flowRate.toString(),
-                      totalReceiverFlowRate: getAccountFlowInfo({
-                          testenv,
-                          superToken: superToken.address,
-                          account: mfa
-                              ? cfaDataModel.roles.mfa
-                              : cfaDataModel.roles.receiver,
-                      }).flowRate.toString(),
+                      totalSenderFlowRate: cfaDataModel
+                          .getAccountFlowInfo({
+                              superToken: superToken.address,
+                              account: cfaDataModel.roles.sender,
+                          })
+                          .flowRate.toString(),
+                      totalReceiverFlowRate: cfaDataModel
+                          .getAccountFlowInfo({
+                              superToken: superToken.address,
+                              account: mfa
+                                  ? cfaDataModel.roles.mfa
+                                  : cfaDataModel.roles.receiver,
+                          })
+                          .flowRate.toString(),
                   }
                 : {}),
             userData: userData ? userData : null,

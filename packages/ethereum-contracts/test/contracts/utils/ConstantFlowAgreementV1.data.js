@@ -1,5 +1,6 @@
-const {getAccountFlowInfo, _printFlowInfo} = require("./CFAV1utils");
+const _ = require("lodash");
 const {toBN} = require("@decentral.ee/web3-helpers");
+const {BN} = require("@openzeppelin/test-helpers");
 
 /**
  * @dev CFA Data Model which contains the relevant CFA state,
@@ -21,6 +22,7 @@ module.exports = class CFADataModel {
         this.expectedNetFlowDeltas = {};
     }
 
+    /** CFADataModel Class Data Specific Updaters */
     addRole(role, alias) {
         this.roles[role] = this.testenv.getAddress(alias);
         console.log(`${role} account address ${this.roles[role]} (${alias})`);
@@ -42,12 +44,14 @@ module.exports = class CFADataModel {
     }
 
     addAccountFlowInfoBefore(role) {
-        this._accountFlowInfoBefore[this.roles[role]] = getAccountFlowInfo({
-            testenv: this.testenv,
-            superToken: this.superToken.address,
-            account: this.roles[role],
-        });
-        _printFlowInfo(
+        this._accountFlowInfoBefore[this.roles[role]] = this.getAccountFlowInfo(
+            {
+                testenv: this.testenv,
+                superToken: this.superToken.address,
+                account: this.roles[role],
+            }
+        );
+        CFADataModel._printFlowInfo(
             `${role} account flow info snapshot before`,
             this.getAccountFlowInfoBefore(role)
         );
@@ -62,7 +66,7 @@ module.exports = class CFADataModel {
                 superToken: this.superToken.address,
                 account: this.roles[role],
             });
-        _printFlowInfo(
+        CFADataModel._printFlowInfo(
             `${role} account flow info after`,
             this.getAccountFlowInfoAfter(role)
         );
@@ -107,12 +111,12 @@ module.exports = class CFADataModel {
             notTouched: flowParams.notTouched, // only used in MFA test case
             flowInfoBefore: flowInfo,
         };
-        _printFlowInfo(`${flowName} flow info before`, flowInfo);
+        CFADataModel._printFlowInfo(`${flowName} flow info before`, flowInfo);
     }
     async addFlowInfoAfter(flowName) {
         const flowData = this.flows[flowName];
         const flowInfo = await this.testenv.sf.cfa.getFlow(flowData.flowId);
-        _printFlowInfo(`${flowName} flow info after`, flowInfo);
+        CFADataModel._printFlowInfo(`${flowName} flow info after`, flowInfo);
         flowData.flowInfoAfter = flowInfo;
     }
 
@@ -221,5 +225,206 @@ module.exports = class CFADataModel {
             expectedOwedDepositDelta.toString(),
             `wrong owed deposit delta amount of ${role}`
         );
+    }
+
+    /** TestEnvironment Data Specific Updaters */
+    //
+    // Account flow info test data operations
+    //
+    updateAccountFlowInfo({superToken, account, flowInfo}) {
+        _.merge(this.testenv.data, {
+            tokens: {
+                [superToken]: {
+                    accounts: {
+                        [account]: {
+                            cfa: {
+                                flowInfo: {
+                                    timestamp: flowInfo.timestamp,
+                                    flowRate: flowInfo.flowRate,
+                                    deposit: flowInfo.deposit,
+                                    owedDeposit: flowInfo.owedDeposit,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+    getAccountFlowInfo({superToken, account}) {
+        _.defaultsDeep(this.testenv.data, {
+            tokens: {
+                [superToken]: {
+                    accounts: {
+                        [account]: {
+                            cfa: {
+                                flowInfo: {
+                                    timestamp: new Date(),
+                                    flowRate: 0,
+                                    deposit: 0,
+                                    owedDeposit: 0,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        return _.clone(
+            this.testenv.data.tokens[superToken].accounts[account].cfa.flowInfo
+        );
+    }
+    //
+    // Flow info test data operations
+    //
+    updateFlowInfo({superToken, sender, receiver, flowInfo}) {
+        _.merge(this.testenv.data, {
+            tokens: {
+                [superToken]: {
+                    cfa: {
+                        flows: {
+                            [`${sender}:${receiver}`]: {
+                                sender,
+                                receiver,
+                                timestamp: flowInfo.timestamp,
+                                flowRate: flowInfo.flowRate,
+                                deposit: flowInfo.deposit,
+                                owedDeposit: flowInfo.owedDeposit,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    getFlowInfo({superToken, sender, receiver}) {
+        _.defaultsDeep(this.testenv.data, {
+            tokens: {
+                [superToken]: {
+                    cfa: {
+                        flows: {
+                            [`${sender}:${receiver}`]: {
+                                sender,
+                                receiver,
+                                timestamp: 0,
+                                flowRate: 0,
+                                deposit: 0,
+                                owedDeposit: 0,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        return _.clone(
+            this.testenv.data.tokens[superToken].cfa.flows[
+                `${sender}:${receiver}`
+            ]
+        );
+    }
+
+    validateAccountNetFlow({superToken, account}) {
+        const alias = this.testenv.toAlias(account);
+        console.log(`validating ${alias} account net flow ...`);
+
+        // ${sender}:${receiver} => flowInfo
+        const flows = this.testenv.data.tokens[superToken].cfa.flows;
+
+        const inFlows = Object.keys(flows)
+            .filter((i) => i.endsWith(`:${account}`))
+            .map((i) => flows[i]);
+        const outFlows = Object.keys(flows)
+            .filter((i) => i.startsWith(`${account}:`))
+            .map((i) => flows[i]);
+        console.log(
+            "in flows",
+            inFlows.map((i) => this.testenv.toAlias(i.sender))
+        );
+        console.log(
+            "out flows",
+            outFlows.map((i) => this.testenv.toAlias(i.receiver))
+        );
+
+        let actualNetFlow = toBN(0);
+
+        inFlows.forEach((flowInfo) => {
+            actualNetFlow.iadd(toBN(flowInfo.flowRate));
+        });
+        outFlows.forEach((flowInfo) => {
+            actualNetFlow.isub(toBN(flowInfo.flowRate));
+        });
+
+        const accountFlowInfo = this.getAccountFlowInfo({
+            superToken,
+            account,
+        });
+
+        assert.equal(
+            accountFlowInfo.flowRate.toString(),
+            actualNetFlow.toString(),
+            `unexpected netflow of ${alias}`
+        );
+    }
+
+    syncAccountExpectedBalanceDeltas({superToken, timestamp}) {
+        console.log(
+            "syncing accounting expected balance deltas due to flows..."
+        );
+
+        this.testenv.listAddresses().forEach((account) => {
+            const accountFlowInfo = this.getAccountFlowInfo({
+                superToken,
+                account,
+            });
+            const balanceSnapshot = this.testenv.getAccountBalanceSnapshot(
+                superToken,
+                account
+            );
+            const expectedBalanceDelta1 =
+                this.testenv.getAccountExpectedBalanceDelta(
+                    superToken,
+                    account
+                );
+            const expectedBalanceDelta2 = expectedBalanceDelta1.add(
+                toBN(accountFlowInfo.flowRate).mul(
+                    toBN(timestamp).sub(toBN(balanceSnapshot.timestamp))
+                )
+            );
+            this.testenv.updateAccountExpectedBalanceDelta(
+                superToken,
+                account,
+                expectedBalanceDelta2
+            );
+        });
+    }
+
+    /** Static Functions */
+    static _printFlowInfo(title, flowInfo) {
+        console.log(
+            title,
+            flowInfo.timestamp.getTime(),
+            flowInfo.flowRate.toString(),
+            flowInfo.deposit.toString(),
+            flowInfo.owedDeposit.toString()
+        );
+    }
+    static clipDepositNumber(deposit, roundingDown = false) {
+        // last 32 bites of the deposit (96 bites) is clipped off
+        const rounding = roundingDown
+            ? 0
+            : deposit.and(toBN(0xffffffff)).isZero()
+            ? 0
+            : 1;
+        return deposit.shrn(32).addn(rounding).shln(32);
+    }
+
+    static adjustNewAppAllowanceUsed(
+        appAllowance,
+        appAllowanceWanted,
+        newAppAllowanceUsed
+    ) {
+        //return BN.max(toBN(0), BN.min(appAllowance, BN.max(newAppAllowanceUsed, appAllowanceUsed)));
+        return BN.max(toBN(0), BN.min(appAllowance, newAppAllowanceUsed));
     }
 };

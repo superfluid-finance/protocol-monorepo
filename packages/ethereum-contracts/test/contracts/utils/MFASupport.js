@@ -1,5 +1,5 @@
-const {clipDepositNumber, getFlowInfo} = require("../utils/CFAV1utils");
 const {toBN} = require("@decentral.ee/web3-helpers");
+const CFADataModel = require("./ConstantFlowAgreementV1.data");
 
 module.exports = class MFASupport {
     static async setup({testenv, mfa, roles}) {
@@ -44,7 +44,7 @@ module.exports = class MFASupport {
             .map((i) => i.proportion)
             .reduce((acc, cur) => acc + cur, 0);
 
-        const depositAllowance = clipDepositNumber(
+        const depositAllowance = CFADataModel.clipDepositNumber(
             toBN(flowRate).mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
             true /* rounding down */
         );
@@ -73,7 +73,7 @@ module.exports = class MFASupport {
                     notTouched,
                 });
 
-                const mfaFlowDepositAllowance = clipDepositNumber(
+                const mfaFlowDepositAllowance = CFADataModel.clipDepositNumber(
                     toBN(depositAllowance)
                         .mul(toBN(mfa.receivers[receiverAlias].proportion))
                         .mul(toBN(mfa.ratioPct))
@@ -110,8 +110,7 @@ module.exports = class MFASupport {
 
         // expected unwindng of mfa sender flow if the flow being deleted is not sending to the mfa
         if (roles.mfa != roles.receiver) {
-            const mfaSenderFlow = getFlowInfo({
-                testenv,
+            const mfaSenderFlow = cfaDataModel.getFlowInfo({
                 superToken: superToken.address,
                 sender: roles.mfaSender,
                 receiver: roles.mfa,

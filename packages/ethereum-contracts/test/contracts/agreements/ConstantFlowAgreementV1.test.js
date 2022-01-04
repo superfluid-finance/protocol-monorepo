@@ -9,10 +9,7 @@ const {
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const traveler = require("ganache-time-traveler");
-const {
-    clipDepositNumber,
-    syncAccountExpectedBalanceDeltas,
-} = require("../utils/CFAV1utils");
+const CFADataModel = require("../utils/ConstantFlowAgreementV1.data");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
@@ -64,9 +61,10 @@ describe("Using ConstantFlowAgreement v1", function () {
     }
 
     async function verifyAll(opts) {
+        const cfaDataModel = new CFADataModel(t, superToken);
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
-            syncAccountExpectedBalanceDeltas({
+            cfaDataModel.syncAccountExpectedBalanceDeltas({
                 testenv: t,
                 superToken: superToken.address,
                 timestamp: block2.timestamp,
@@ -1646,7 +1644,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             superToken.address,
                             deposit.toString()
                         );
-                    const expectedFlowRate = clipDepositNumber(
+                    const expectedFlowRate = CFADataModel.clipDepositNumber(
                         toBN(deposit),
                         true /* rounding down */
                     ).div(toBN(LIQUIDATION_PERIOD));
@@ -1677,7 +1675,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             superToken.address,
                             flowRate.toString()
                         );
-                    const expectedDeposit = clipDepositNumber(
+                    const expectedDeposit = CFADataModel.clipDepositNumber(
                         toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD))
                     );
                     console.log(
@@ -1816,7 +1814,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         // due to clipping of flow rate, mfa outgoing flow rate is always equal or less
         // then the sender's rate
         function mfaFlowRate(flowRate, pct = 100) {
-            return clipDepositNumber(
+            return CFADataModel.clipDepositNumber(
                 toBN(flowRate)
                     .mul(toBN(LIQUIDATION_PERIOD))
                     .muln(pct)
@@ -2948,7 +2946,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             let flow1, flow2;
             flow1 = await cfa.getFlow(superToken.address, alice, app.address);
             flow2 = await cfa.getFlow(superToken2.address, app.address, alice);
-            const deposit = clipDepositNumber(
+            const deposit = CFADataModel.clipDepositNumber(
                 FLOW_RATE1.muln(LIQUIDATION_PERIOD)
             ).toString();
             console.log(

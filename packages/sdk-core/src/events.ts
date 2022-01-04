@@ -48,6 +48,7 @@ export type OtherEvents =
     | SuperTokenFactoryUpdatedEvent
     | SuperTokenLogicCreatedEvent
     | SuperTokenLogicUpdatedEvent
+    | ThreePsConfigurationChangedEvent
     | TrustedForwarderChangedEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
@@ -332,6 +333,15 @@ export interface SuperTokenLogicUpdatedEvent extends EventBase {
     name: "SuperTokenLogicUpdated";
     token: string;
     code: string;
+}
+
+export interface ThreePsConfigurationChangedEvent extends EventBase {
+    name: "ThreePsConfigurationChanged",
+    host: string;
+    superToken: string;
+    isKeySet: boolean;
+    liquidationPeriod: string;
+    patricianPeriod: string;
 }
 
 export interface TrustedForwarderChangedEvent extends EventBase {

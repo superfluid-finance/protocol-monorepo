@@ -397,6 +397,19 @@ export const mapGetAllEventsQueryEvents = (
                     token: x.token,
                     code: x.code,
                 }) as events.SuperTokenLogicUpdatedEvent;
+            case "ThreePsConfigurationChangedEvent":
+                return typeGuard<events.ThreePsConfigurationChangedEvent>({
+                    name: "ThreePsConfigurationChanged",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    timestamp: Number(x.timestamp),
+                    host: x.host,
+                    superToken: x.superToken,
+                    isKeySet: x.isKeySet,
+                    liquidationPeriod: x.liquidationPeriod,
+                    patricianPeriod: x.patricianPeriod,
+                });
             case "TokenDowngradedEvent":
                 return typeGuard<events.TokenDowngradedEvent>({
                     name: "TokenDowngraded",

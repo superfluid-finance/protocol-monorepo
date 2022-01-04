@@ -1,4 +1,4 @@
-query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 10, $where: Stream_filter = {}) {
+query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Stream_filter = {}) {
     streams(
         orderBy: $orderBy
         orderDirection: $orderDirection

@@ -1,6 +1,7 @@
-query accountTokenSnapshots($first: Int = 10, $orderBy: AccountTokenSnapshot_orderBy = id, $orderDirection: OrderDirection = asc, $where: AccountTokenSnapshot_filter = {}) {
+query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountTokenSnapshot_orderBy = id, $orderDirection: OrderDirection = asc, $where: AccountTokenSnapshot_filter = {}) {
     accountTokenSnapshots(
         first: $first
+        skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where

@@ -1,4 +1,4 @@
-query accounts($first: Int = 10, $orderBy: Account_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 10, $where: Account_filter = {}) {
+query accounts($first: Int = 10, $orderBy: Account_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Account_filter = {}) {
     accounts(
         first: $first
         orderBy: $orderBy

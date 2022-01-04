@@ -1,4 +1,5 @@
 import { RequestDocument } from "graphql-request";
+import _ from "lodash";
 
 import { typeGuard } from "./Query";
 import { ILightEntity } from "./interfaces";
@@ -97,7 +98,7 @@ export interface SubgraphGetQueryHandler<TResult extends ILightEntity> {
     get(
         subgraphClient: SubgraphClient,
         query: SubgraphGetQuery
-    ): Promise<TResult | undefined>;
+    ): Promise<TResult | null>;
 }
 
 export interface SubgraphListQueryHandler<
@@ -207,15 +208,21 @@ export abstract class SubgraphQueryHandler<
     async get(
         subgraphClient: SubgraphClient,
         query: SubgraphGetQuery
-    ): Promise<TResult | undefined> {
+    ): Promise<TResult | null> {
+        if (!query.id) {
+            return null;
+        }
+
         // @ts-ignore TODO(KK): Couldn't figure out the "could be instantiated with a different subtype of constraint ..." error.
         const response = await this.querySubgraph(subgraphClient, {
             where: {
-                id: query.id,
+                id: query.id.toLowerCase(),
             },
+            skip: 0,
             take: 1,
         });
-        return this.mapFromSubgraphResponse(response)[0];
+
+        return this.mapFromSubgraphResponse(response)[0] ?? null;
     }
 
     async list(
@@ -226,14 +233,18 @@ export abstract class SubgraphQueryHandler<
 
         const pagination: Paging = query.pagination ?? createSkipPaging();
 
-        const subgraphFilter = typeGuard<TSubgraphFilter>({
-            ...this.convertToSubgraphFilter(query.filter ?? ({} as TFilter)),
-            id_gt: pagination.lastId,
-        });
+        const subgraphFilter = typeGuard<TSubgraphFilter>(
+            normalizeSubgraphFilter({
+                ...this.convertToSubgraphFilter(
+                    query.filter ?? ({} as TFilter)
+                ),
+                id_gt: pagination.lastId,
+            })
+        );
 
         // @ts-ignore TODO(KK): Couldn't figure out the "could be instantiated with a different subtype of constraint ..." error.
         const subgraphQueryVariables = typeGuard<TSubgraphQueryVariables>({
-            where: subgraphFilter,
+            where: normalizeSubgraphFilter(subgraphFilter),
             orderBy: query.order?.orderBy,
             orderDirection: query.order?.orderDirection,
             first: takePlusOne(pagination),
@@ -261,3 +272,35 @@ export abstract class SubgraphQueryHandler<
 
     abstract requestDocument: RequestDocument;
 }
+
+const normalizeSubgraphFilter = (value: object) => {
+    return Object.keys(value)
+        .sort()
+        .reduce<any>((acc, key) => {
+            acc[key] = normalizeValue((value as any)[key]);
+            return acc;
+        }, {});
+};
+
+// NOTE: Regex taken from Ethers.
+const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
+
+// Normalize addresses and empty strings for cache keys.
+const normalizeValue = (value: unknown) =>
+    lowerCaseIfAddress(undefinedIfEmpty(value));
+
+const undefinedIfEmpty = (value: unknown) => {
+    if (value === "") {
+        return undefined;
+    }
+    return value;
+};
+
+const lowerCaseIfAddress = (value: unknown) => {
+    if (_.isString(value)) {
+        if (value.match(isAddressRegex)) {
+            return value.toLowerCase();
+        }
+    }
+    return value;
+};

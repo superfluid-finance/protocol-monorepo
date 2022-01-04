@@ -75,7 +75,7 @@ export const addEntityEndpoints = (builder: SfEndpointBuilder) => {
         queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
         tag: CacheTagTypes
     ) {
-        return builder.query<TReturn | undefined, TQuery>({
+        return builder.query<TReturn | null, TQuery>({
             queryFn: async (arg) => {
                 const framework = await getFramework(arg.chainId);
                 const {chainId, ...query} = arg;
@@ -152,15 +152,15 @@ export const addEntityEndpoints = (builder: SfEndpointBuilder) => {
 function provideTagsFromRelevantAddresses(chainId: number, relevantAddresses: RelevantAddresses, tag: CacheTagTypes) {
     if (relevantAddresses.tokens) {
         return relevantAddresses.tokens
-            .map((tokenAddress) =>
-                relevantAddresses.accounts.map((accountAddress) => ({
+            .map((tokenAddress: string) =>
+                relevantAddresses.accounts.map((accountAddress: string) => ({
                     type: tag,
                     id: `${chainId}_${tokenAddress}_${accountAddress}`,
                 }))
             )
             .flat();
     } else {
-        return relevantAddresses.accounts.map((accountAddress) => ({
+        return relevantAddresses.accounts.map((accountAddress: string) => ({
             type: tag,
             id: `${chainId}_${accountAddress}`,
         }));

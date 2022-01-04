@@ -34,6 +34,7 @@ import { ClaimFromIndexSubscription } from "./features/ClaimFromIndexSubscriptio
 import { DeleteIndexSubscription } from "./features/DeleteIndexSubscription";
 import { RevokeIndexSubscription } from "./features/RevokeIndexSubscription";
 import { MonitorForEventsToInvalidateCache } from "./features/MonitorForEventsToInvalidateCache";
+import { Account } from "./features/generic-entity-queries/Account";
 import { Accounts } from "./features/generic-entity-queries/Accounts";
 import { AccountTokenSnapshots } from "./features/generic-entity-queries/AccountTokenSnapshots";
 import { Indexes } from "./features/generic-entity-queries/Indexes";
@@ -243,6 +244,9 @@ function App() {
                                 </ListSubheader>
                             }
                         >
+                            <SdkListItem title="Account">
+                                <Account />
+                            </SdkListItem>
                             <SdkListItem title="Accounts">
                                 <Accounts />
                             </SdkListItem>

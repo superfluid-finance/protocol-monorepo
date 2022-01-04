@@ -296,13 +296,11 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         penaltyAccount: cfaDataModel.roles.sender,
                         rewardAccount: cfaDataModel.roles.reward,
-                        rewardAmount:
-                            expectedRewardAmount.toString(),
+                        rewardAmount: expectedRewardAmount.toString(),
                         penaltyAccountBalanceDelta: expectedRewardAmount
                             .mul(toBN(-1))
                             .toString(),
-                        version: "v1",
-                        liquidationTypeData
+                        liquidationTypeData,
                     }
                 );
             } else {
@@ -358,9 +356,9 @@ async function _shouldChangeFlow({
                         penaltyAccount: cfaDataModel.roles.sender,
                         rewardAccount: cfaDataModel.roles.reward,
                         rewardAmount: expectedRewardAmount.toString(),
-                        penaltyAccountBalanceDelta: 
+                        penaltyAccountBalanceDelta:
                             expectedBailoutAmount.toString(),
-                            liquidationTypeData
+                        liquidationTypeData,
                     }
                 );
             }

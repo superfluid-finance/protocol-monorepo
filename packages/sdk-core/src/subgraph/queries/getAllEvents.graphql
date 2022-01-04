@@ -229,6 +229,14 @@ query getAllEvents($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 1
             isKeySet
             host
         }
+        ... on ThreePsConfigurationChangedEvent {
+            ...eventFields
+            host
+            superToken
+            isKeySet
+            liquidationPeriod
+            patricianPeriod
+        }
         ... on TrustedForwarderChangedEvent {
             ...eventFields
             isKeySet

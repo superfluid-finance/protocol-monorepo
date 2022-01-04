@@ -26,8 +26,8 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
-    bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
+    bytes32 private constant _3PS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
 
     using SafeMath for uint256;
     using SafeCast for uint256;
@@ -86,9 +86,7 @@ contract ConstantFlowAgreementV1 is
     {
         require(deposit < 2**95, "CFA: deposit number too big");
         deposit = _clipDepositNumberRoundingDown(deposit);
-        ISuperfluid host = ISuperfluid(token.getHost());
-        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+        (uint256 liquidationPeriod, ) = _decode3PsData(token);
         uint256 flowrate1 = deposit.div(liquidationPeriod);
         return int96(flowrate1);
     }
@@ -100,9 +98,7 @@ contract ConstantFlowAgreementV1 is
         returns (uint256 deposit)
     {
         require(flowRate >= 0, "CFA: not for negative flow rate");
-        ISuperfluid host = ISuperfluid(token.getHost());
-        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+        (uint256 liquidationPeriod, ) = _decode3PsData(token);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         return _calculateDeposit(flowRate, liquidationPeriod);
     }
@@ -652,9 +648,7 @@ contract ConstantFlowAgreementV1 is
 
             // STEP 1: calculate deposit required for the flow
             {
-                ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
-                uint256 liquidationPeriod = gov.getConfigAsUint256(
-                    ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+                (uint256 liquidationPeriod, ) = _decode3PsData(token);
                 // rounding up the number for app allowance too
                 // CAFEAT:
                 // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
@@ -747,14 +741,10 @@ contract ConstantFlowAgreementV1 is
 
         int256 signedSingleDeposit = flowData.deposit.toInt256();
         int256 signedTotalDeposit = senderAccountState.deposit.toInt256();
-        address bondAccount;
         bool isPatricianPeriod;
 
         // To handle stack too deep overflow issue
         {
-            ISuperfluid host = ISuperfluid(token.getHost());
-            bondAccount = ISuperfluidGovernance(host.getGovernance())
-                .getConfigAsAddress(host, token, _REWARD_ADDRESS_CONFIG_KEY);
             (, uint256 patricianPeriod) = _decode3PsData(token);
             // if the flowRate is 0, it is always the patricianPeriod
             int256 timeInDeficit = senderAccountState.flowRate == 0

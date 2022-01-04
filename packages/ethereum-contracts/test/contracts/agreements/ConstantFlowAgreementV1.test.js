@@ -698,58 +698,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "CFA: sender is zero"
                 );
             });
-
-            context("#1.3.6 with reward address as admin", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to admin"
-                    )(superfluid.address, ZERO_ADDRESS, admin);
-                });
-                shouldCreateSolventLiquidationTest({
-                    titlePrefix: "#1.3.6",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                    seconds: 60,
-                });
-                shouldCreateBailoutTest({
-                    titlePrefix: "#1.3.6",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                    seconds: 60,
-                });
-            });
-
-            context("#1.3.7 with zero reward address", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to zero"
-                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
-                });
-                shouldCreateSolventLiquidationTest({
-                    titlePrefix: "#1.3.7",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                    seconds: 60,
-                });
-                shouldCreateBailoutTest({
-                    titlePrefix: "#1.3.7",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                    // no one will bail you out, alice :(
-                    allowCriticalAccount: true,
-                    seconds: 60,
-                });
-            });
         });
 
         describe("#1.4 deleteFlow (liquidations)", () => {
@@ -802,62 +750,68 @@ describe("Using ConstantFlowAgreement v1", function () {
                 );
             });
 
-            context("#1.4.4 with reward address as admin", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to admin"
-                    )(superfluid.address, ZERO_ADDRESS, admin);
-                });
-                shouldCreateSolventLiquidationTest({
-                    titlePrefix: "#1.4.4",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                    seconds: 60,
-                });
-                shouldCreateBailoutTest({
-                    titlePrefix: "#1.4.4",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                    seconds: 60,
-                });
-            });
-
-            context("#1.4.5 with zero reward address", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to zero"
-                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
-                });
-                shouldCreateSolventLiquidationTest({
-                    titlePrefix: "#1.4.5",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                    seconds: 60,
-                });
-                shouldCreateBailoutTest({
-                    titlePrefix: "#1.4.5",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                    // thanks for bailing every one out, dan :)
-                    allowCriticalAccount: true,
-                    seconds: 60,
-                });
-            });
+            context(
+                "#1.4.4 with reward address as admin (agent is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.4",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.4",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: 60,
+                    });
+                }
+            );
 
             context(
-                "#1.4.6 test agent liquidation out of patrician period",
+                "#1.4.5 with zero reward address (agent is liquidator)",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.5",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.5",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.6 with reward address as admin (sender is liquidator)",
+                () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to admin"
@@ -868,11 +822,69 @@ describe("Using ConstantFlowAgreement v1", function () {
                         superToken,
                         sender,
                         receiver,
+                        by: sender,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.6",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.7 with zero reward address (sender is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.7",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.7",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        // no one will bail you out, alice :(
+                        allowCriticalAccount: true,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.8 test agent liquidation out of patrician period",
+                () => {
+                    this.beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.8",
+                        superToken,
+                        sender,
+                        receiver,
                         by: agent,
                         seconds: t.configs.PATRICIAN_PERIOD + 1,
                     });
                     shouldCreateBailoutTest({
-                        titlePrefix: "#1.4.6",
+                        titlePrefix: "#1.4.8",
                         superToken,
                         sender,
                         receiver,
@@ -885,7 +897,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
 
             context(
-                "#1.4.7 test sender reward account liquidation out of patrician period",
+                "#1.4.9 test sender reward account liquidation out of patrician period",
                 () => {
                     this.beforeEach(async () => {
                         await web3tx(
@@ -894,7 +906,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         )(superfluid.address, ZERO_ADDRESS, t.aliases[sender]);
                     });
                     shouldCreateSolventLiquidationTest({
-                        titlePrefix: "#1.4.7",
+                        titlePrefix: "#1.4.9",
                         superToken,
                         sender,
                         receiver,
@@ -902,7 +914,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         seconds: t.configs.PATRICIAN_PERIOD + 1,
                     });
                     shouldCreateBailoutTest({
-                        titlePrefix: "#1.4.7",
+                        titlePrefix: "#1.4.9",
                         superToken,
                         sender,
                         receiver,
@@ -915,7 +927,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
 
             context(
-                "#1.4.8 test reward account liquidation out of patrician period",
+                "#1.4.10 test reward account liquidation out of patrician period",
                 () => {
                     this.beforeEach(async () => {
                         await web3tx(
@@ -924,7 +936,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
                     });
                     shouldCreateSolventLiquidationTest({
-                        titlePrefix: "#1.4.8",
+                        titlePrefix: "#1.4.10",
                         superToken,
                         sender,
                         receiver,
@@ -932,7 +944,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         seconds: t.configs.PATRICIAN_PERIOD + 1,
                     });
                     shouldCreateBailoutTest({
-                        titlePrefix: "#1.4.8",
+                        titlePrefix: "#1.4.10",
                         superToken,
                         sender,
                         receiver,
@@ -945,7 +957,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
 
             context(
-                "#1.4.9 with zero reward address out of patrician period",
+                "#1.4.11 with zero reward address out of patrician period",
                 () => {
                     beforeEach(async () => {
                         await web3tx(
@@ -954,7 +966,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                     });
                     shouldCreateSolventLiquidationTest({
-                        titlePrefix: "#1.4.9",
+                        titlePrefix: "#1.4.11",
                         superToken,
                         sender,
                         receiver,
@@ -962,7 +974,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         seconds: t.configs.PATRICIAN_PERIOD + 1,
                     });
                     shouldCreateBailoutTest({
-                        titlePrefix: "#1.4.9",
+                        titlePrefix: "#1.4.11",
                         superToken,
                         sender,
                         receiver,
@@ -975,7 +987,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
 
             context(
-                "#1.4.10 with receiver as liquidator out of patrician period",
+                "#1.4.12 with receiver as liquidator out of patrician period",
                 () => {
                     this.beforeEach(async () => {
                         await web3tx(
@@ -984,7 +996,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
                     });
                     shouldCreateSolventLiquidationTest({
-                        titlePrefix: "#1.4.10",
+                        titlePrefix: "#1.4.12",
                         superToken,
                         sender,
                         receiver,
@@ -992,7 +1004,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         seconds: t.configs.PATRICIAN_PERIOD + 1,
                     });
                     shouldCreateBailoutTest({
-                        titlePrefix: "#1.4.10",
+                        titlePrefix: "#1.4.12",
                         superToken,
                         sender,
                         receiver,

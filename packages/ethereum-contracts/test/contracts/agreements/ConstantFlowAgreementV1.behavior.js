@@ -248,7 +248,7 @@ async function _shouldChangeFlow({
             if (isSenderSolvent) {
                 // the reward recipient role depends on whether the time is still
                 // in the patrician period, if it is, the reward recipient is the
-                // bondAccount, otherwise it is the "agent" or the person who
+                // rewardAccount, otherwise it is the "agent" or the person who
                 // executes the liquidation
                 const rewardRecipientRole =
                     time > testenv.configs.PATRICIAN_PERIOD

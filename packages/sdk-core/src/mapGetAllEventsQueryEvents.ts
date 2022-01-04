@@ -93,7 +93,7 @@ export const mapGetAllEventsQueryEvents = (
                     transactionHash: x.transactionHash,
                     timestamp: Number(x.timestamp),
                     host: x.host,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     liquidationPeriod: Number(x.liquidationPeriod),
                     superToken: x.superToken,
                 }) as events.CFAv1LiquidationPeriodChangedEvent;
@@ -105,7 +105,7 @@ export const mapGetAllEventsQueryEvents = (
                     transactionHash: x.transactionHash,
                     timestamp: Number(x.timestamp),
                     host: x.host,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     key: x.key,
                     superToken: x.superToken,
                     value: x.value,
@@ -254,7 +254,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     host: x.host,
                     superToken: x.superToken,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     rewardAddress: x.rewardAddress,
                 });
             case "RoleAdminChangedEvent":
@@ -440,7 +440,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     host: x.host,
                     superToken: x.superToken,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     forwarder: x.forwarder,
                     enabled: x.enabled,
                 });

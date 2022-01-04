@@ -30,6 +30,7 @@ export type OtherEvents =
     | AgreementClassRegisteredEvent
     | AgreementClassUpdatedEvent
     | AgreementLiquidatedByEvent
+    | AgreementLiquidatedByV2Event
     | AppRegisteredEvent
     | BurnedEvent
     | CFAv1LiquidationPeriodChangedEvent
@@ -160,6 +161,20 @@ export interface AgreementLiquidatedByEvent extends EventBase {
     penaltyAccount: string;
     rewardAmount: string;
     token: string;
+}
+
+export interface AgreementLiquidatedByV2Event extends EventBase {
+    name: "AgreementLiquidatedByV2";
+    token: string;
+    liquidatorAccount: string;
+    agreementClass: string;
+    agreementId: string;
+    penaltyAccount: string;
+    rewardAccount: string;
+    rewardAmount: string;
+    penaltyAccountBalanceDelta: string;
+    version: string;
+    liquidationType: string;
 }
 
 export interface AppRegisteredEvent extends EventBase {

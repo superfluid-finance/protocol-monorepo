@@ -174,7 +174,7 @@ export interface AgreementLiquidatedByV2Event extends EventBase {
     rewardAmount: string;
     penaltyAccountBalanceDelta: string;
     version: string;
-    liquidationType: string;
+    liquidationType: number;
 }
 
 export interface AppRegisteredEvent extends EventBase {

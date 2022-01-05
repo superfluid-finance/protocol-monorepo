@@ -829,6 +829,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         sender,
                         receiver,
                         by: sender,
+                        allowCriticalAccount: true,
                         seconds: 60,
                     });
                 }

@@ -56,6 +56,7 @@
         "@truffle/hdwallet-provider": "^1.7.0",
         "@typechain/ethers-v5": "^8.0.3",
         "async": "^3.2.2",
+        "csv-writer": "^1.6.0",
         "dotenv": "10.0.0",
         "ethers": "^5.5.1",
         "ganache-time-traveler": "1.0.16",

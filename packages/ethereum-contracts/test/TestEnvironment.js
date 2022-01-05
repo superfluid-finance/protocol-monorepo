@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const traveler = require("ganache-time-traveler");
 
@@ -28,7 +29,43 @@ let _singleton;
  */
 module.exports = class TestEnvironment {
     constructor() {
+        /**
+         * SCHEMA:
+         *
+         * tokens:
+         *   [superTokenAddress]:
+         *     accounts:
+         *       [accountAddress]:
+         *         balanceSnapshot:
+         *           - availableBalance: BN
+         *           - deposit: BN
+         *           - owedDeposit: BN
+         *           - timestamp: BN
+         *         expectedBalanceDelta # for available balance
+         *         cfa:
+         *           # see ConstantFlowAgreementV1.behaviour.js
+         *         ida:
+         *           # see InstantDistributionAgreementV1.behaviour.js
+         */
         this.data = {};
+        /**
+         * SCHEMA:
+         *
+         *  enabled: boolean
+         *  observedAccounts: string[]
+         *  tokens:
+         *    [superTokenAddress]:
+         *      accountBalanceSnapshots:
+         *        [accountAddress]: [
+         *          availableBalance: number
+         *          deposit: number
+         *          owedDeposit: number
+         *          timestamp: number
+         *        ]
+         */
+        this.plotData = {
+            enabled: false,
+        };
         this._evmSnapshots = [];
 
         this.configs = {
@@ -238,8 +275,14 @@ module.exports = class TestEnvironment {
         // return to the parent snapshot and save the same snapshot again
         await this.useLastEvmSnapshot();
 
-        // test data can be persisted here
+        // test data can be persisted over a test case here
         this.data = {};
+
+        // plot data can be persisted over a test case here
+        this.plotData = {
+            enabled: false,
+            observedAccounts: [],
+        };
 
         // reset governace parameters
         await Promise.all([
@@ -487,10 +530,6 @@ module.exports = class TestEnvironment {
         );
     }
 
-    /**************************************************************************
-     * Test data functions
-     *************************************************************************/
-
     updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
@@ -572,6 +611,145 @@ module.exports = class TestEnvironment {
         return toBN(
             this.data.tokens[superToken].accounts[account].expectedBalanceDelta
         );
+    }
+
+    /**************************************************************************
+     * Test Plot Data Functions
+     **************************************************************************/
+
+    formatRawBalanceSnapshot(rawBalanceSnapshot) {
+        return {
+            availableBalance: Number(
+                rawBalanceSnapshot.availableBalance.toString()
+            ),
+            deposit: Number(rawBalanceSnapshot.deposit.toString()),
+            owedDeposit: Number(rawBalanceSnapshot.owedDeposit.toString()),
+            timestamp: rawBalanceSnapshot.timestamp,
+        };
+    }
+
+    /**
+     * @dev Sets the plotData object-call this in a more "local" before hook or at the start or end of a test case
+     * @param enabled whether we want to record plot data
+     * @param observedAccounts the accounts (addresses) we want to observe
+     */
+    setPlotData(enabled = false, observedAccounts = []) {
+        _.defaultsDeep(this.plotData, {
+            enabled,
+            observedAccounts,
+        });
+    }
+
+    /**
+     * @dev Takes a balance snapshot for the plotData object if account is observed or observedAccounts is empty
+     * @param account the account we are adding an entry for
+     * @param rawBalanceSnapshot the rawBalanceSnapshot to be formatted and added as an entry (row)
+     */
+    updatePlotDataAccountBalanceSnapshot(
+        superToken,
+        account,
+        rawBalanceSnapshot
+    ) {
+        const observedAccounts = this.plotData.observedAccounts;
+        if (
+            observedAccounts.length > 0 &&
+            !observedAccounts.includes(account)
+        ) {
+            return;
+        }
+
+        // initializes default data for an account if it doesn't exist
+        _.defaultsDeep(this.plotData, {
+            tokens: {
+                [superToken]: {
+                    accountBalanceSnapshots: {
+                        [account]: [],
+                    },
+                },
+            },
+        });
+        const existingAccountBalanceSnapshots =
+            this.plotData.tokens[superToken].accountBalanceSnapshots[account];
+
+        // we only want to add new entries if the timestamp has changed
+        const accountBalanceSnapshotsToMerge =
+            existingAccountBalanceSnapshots.length === 0 ||
+            existingAccountBalanceSnapshots[
+                existingAccountBalanceSnapshots.length - 1
+            ].timestamp !== rawBalanceSnapshot.timestamp
+                ? [
+                      ...existingAccountBalanceSnapshots,
+                      this.formatRawBalanceSnapshot(rawBalanceSnapshot),
+                  ]
+                : [...existingAccountBalanceSnapshots];
+
+        // add a new entry to accountBalanceSnapshots
+        _.merge(this.plotData, {
+            tokens: {
+                [superToken]: {
+                    accountBalanceSnapshots: {
+                        [account]: accountBalanceSnapshotsToMerge,
+                    },
+                },
+            },
+        });
+    }
+
+    /**
+     * @dev Formats the accountBalanceSnapshots object into a processable format.
+     * @param superToken
+     * @returns an easily processable format (for csv)
+     */
+    formatPlotDataIntoProcessableFormat(superToken) {
+        const accountBalanceSnapshots =
+            this.plotData.tokens[superToken].accountBalanceSnapshots;
+        return (
+            Object.entries(accountBalanceSnapshots)
+                // TODO: filter out unchanged account balance (for now)
+                // maybe we want to monitor deposit, owedDeposit, etc,
+                .filter(
+                    (x) =>
+                        !_.every(
+                            x[1],
+                            (y) =>
+                                y.availableBalance == x[1][0].availableBalance
+                        )
+                )
+                // map into new easily processable data
+                .map((x) =>
+                    x[1].map((y) => ({
+                        address: x[0],
+                        availableBalance: y.availableBalance,
+                        deposit: y.deposit,
+                        owedDeposit: y.owedDeposit,
+                        timestamp: y.timestamp,
+                    }))
+                )
+                .flat()
+        );
+    }
+
+    /**
+     * @dev Writes the entirety of the data of a test into a csv file.
+     * @param path the location the file is to be saved
+     * @param superToken
+     */
+    writePlotDataIntoCSVFile(path, superToken) {
+        const csvFormatPlotData =
+            this.formatPlotDataIntoProcessableFormat(superToken);
+        const csvWriter = createCsvWriter({
+            path: "test/output/" + path + ".dat",
+            header: [
+                {id: "address", title: "address"},
+                {id: "availableBalance", title: "availableBalance"},
+                {id: "deposit", title: "deposit"},
+                {id: "owedDeposit", title: "owedDeposit"},
+                {id: "timestamp", title: "timestamp"},
+            ],
+        });
+        csvWriter
+            .writeRecords(csvFormatPlotData)
+            .then(() => console.log("CSV file created"));
     }
 
     /**************************************************************************
@@ -671,6 +849,14 @@ module.exports = class TestEnvironment {
                     address,
                     balances2[address]
                 );
+
+                if (this.plotData.enabled) {
+                    this.updatePlotDataAccountBalanceSnapshot(
+                        superToken.address,
+                        address,
+                        balances2[address]
+                    );
+                }
 
                 this.updateAccountExpectedBalanceDelta(
                     superToken.address,

@@ -779,7 +779,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.5 with zero reward address (agent is liquidator)",
                 () => {
-                    beforeEach(async () => {
+                    this.beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to zero"
@@ -809,7 +809,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.6 with reward address as admin (sender is liquidator)",
                 () => {
-                    beforeEach(async () => {
+                    this.beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to admin"
@@ -837,7 +837,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.7 with zero reward address (sender is liquidator)",
                 () => {
-                    beforeEach(async () => {
+                    this.beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to zero"
@@ -957,7 +957,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.11 with zero reward address out of patrician period",
                 () => {
-                    beforeEach(async () => {
+                    this.beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to zero"

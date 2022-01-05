@@ -13,7 +13,7 @@ import SFError from "./SFError";
 import SuperToken from "./SuperToken";
 import IResolverABI from "./abi/IResolver.json";
 import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
-import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
+import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
@@ -101,6 +101,7 @@ export default class Framework {
 
         const networkName = getNetworkName(options);
         const chainId =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
@@ -137,14 +138,14 @@ export default class Framework {
         }
 
         try {
-            const data = chainIdToDataMap.get(chainId) || {
+            const resolverData = chainIdToResolverDataMap.get(chainId) || {
                 subgraphAPIEndpoint: "",
                 resolverAddress: "",
                 networkName: "",
             };
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
-                : data.resolverAddress;
+                : resolverData.resolverAddress;
             const resolver = new ethers.Contract(
                 resolverAddress,
                 IResolverABI.abi,

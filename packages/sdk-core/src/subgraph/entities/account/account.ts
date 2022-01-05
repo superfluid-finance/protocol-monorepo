@@ -1,16 +1,12 @@
 import {
     BlockNumber,
     RelevantAddressesIntermediate,
+    SubgraphFilterOmitFieldList,
     SubgraphListQuery,
     SubgraphQueryHandler,
     Timestamp,
 } from "../../../queryV2";
-import {
-    Account_Filter,
-    Account_OrderBy,
-    InputMaybe,
-    Scalars,
-} from "../../schema.generated";
+import { Account_Filter, Account_OrderBy } from "../../schema.generated";
 
 import {
     AccountsDocument,
@@ -32,41 +28,10 @@ export type AccountListQuery = SubgraphListQuery<
     Account_OrderBy
 >;
 
-export interface AccountListQueryFilter {
-    createdAtBlockNumber?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_gt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_gte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    createdAtBlockNumber_lt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_lte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_not?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    createdAtTimestamp?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_gt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_gte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    createdAtTimestamp_lt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_lte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_not?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    isSuperApp?: InputMaybe<Scalars["Boolean"]>;
-    updatedAtBlockNumber?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_gt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_gte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    updatedAtBlockNumber_lt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_lte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_not?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    updatedAtTimestamp?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_gt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_gte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    updatedAtTimestamp_lt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_lte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_not?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-}
+export type AccountListQueryFilter = Omit<
+    Account_Filter,
+    SubgraphFilterOmitFieldList
+>;
 
 export class AccountQueryHandler extends SubgraphQueryHandler<
     Account,

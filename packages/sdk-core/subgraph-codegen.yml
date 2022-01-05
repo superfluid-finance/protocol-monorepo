@@ -13,6 +13,9 @@ config:
     preResolveTypes: true
     maybeValue: T | undefined
     inputMaybeValue: T | undefined | null
+    removeComments: true
+    onlyOperationTypes: true
+    disableDescriptions: true
 generates:
     src/subgraph/schema.generated.ts:
         plugins:

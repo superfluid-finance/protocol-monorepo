@@ -4,6 +4,7 @@ export * from './sdkReduxInitialization';
 
 export * from './redux-slices/argTypes';
 export * from './redux-slices/rtk-query/queries/queries';
+export * from './redux-slices/rtk-query/entities/entityQueries';
 export * from './redux-slices/rtk-query/mutations/mutations';
 
 export {ValidationError, PossibleErrors} from './redux-slices/rtk-query/baseQuery';

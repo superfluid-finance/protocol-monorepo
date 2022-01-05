@@ -5,6 +5,8 @@ import { ethers as _ethers } from "ethers";
  */
 export { _ethers };
 
+export * as _generatedSubgraphSchema from "./subgraph/schema.generated";
+
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import Framework from "./Framework";

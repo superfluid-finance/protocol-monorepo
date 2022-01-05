@@ -12,7 +12,7 @@ import {
     takePlusOne,
 } from "./pagination";
 import { SubgraphClient } from "./subgraph/SubgraphClient";
-import { InputMaybe, Scalars } from "./subgraph/schema.generated";
+import { Exact, InputMaybe, Scalars } from "./subgraph/schema.generated";
 
 export type BlockNumber = number;
 export type Timestamp = number;
@@ -41,7 +41,19 @@ export type EntityBase = UpdatedAt &
         id: SubgraphId;
     };
 
-export interface SubgraphListQuery<TFilter, TOrderBy> {
+export type SubgraphFilterOmitFieldList =
+    | "id"
+    | "id_gt"
+    | "id_gte"
+    | "id_in"
+    | "id_lt"
+    | "id_lte"
+    | "id_not";
+
+export interface SubgraphListQuery<
+    TFilter extends { [key: string]: unknown },
+    TOrderBy extends string
+> {
     filter?: TFilter;
     pagination?: Paging;
     order?: Ordering<TOrderBy>;
@@ -49,49 +61,6 @@ export interface SubgraphListQuery<TFilter, TOrderBy> {
 
 export interface SubgraphGetQuery {
     id: SubgraphId;
-}
-
-export interface EntityFilterBase {
-    createdAtBlockNumber?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_gt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_gte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    createdAtBlockNumber_lt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_lte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_not?: InputMaybe<Scalars["BigInt"]>;
-    createdAtBlockNumber_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    createdAtTimestamp?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_gt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_gte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    createdAtTimestamp_lt?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_lte?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_not?: InputMaybe<Scalars["BigInt"]>;
-    createdAtTimestamp_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    // id?: InputMaybe<Scalars['ID']>;
-    // id_gt?: InputMaybe<Scalars['ID']>;
-    // id_gte?: InputMaybe<Scalars['ID']>;
-    // id_in?: InputMaybe<Array<Scalars['ID']>>;
-    // id_lt?: InputMaybe<Scalars['ID']>;
-    // id_lte?: InputMaybe<Scalars['ID']>;
-    // id_not?: InputMaybe<Scalars['ID']>;
-    // id_not_in?: InputMaybe<Array<Scalars['ID']>>;
-    updatedAtBlockNumber?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_gt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_gte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    updatedAtBlockNumber_lt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_lte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_not?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtBlockNumber_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    updatedAtTimestamp?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_gt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_gte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_in?: InputMaybe<Array<Scalars["BigInt"]>>;
-    updatedAtTimestamp_lt?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_lte?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_not?: InputMaybe<Scalars["BigInt"]>;
-    updatedAtTimestamp_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
 }
 
 export interface SubgraphGetQueryHandler<TResult extends ILightEntity> {
@@ -104,8 +73,8 @@ export interface SubgraphGetQueryHandler<TResult extends ILightEntity> {
 export interface SubgraphListQueryHandler<
     TResult extends ILightEntity,
     TQuery extends SubgraphListQuery<TFilter, TOrderBy>,
-    TFilter = NonNullable<TQuery["filter"]>,
-    TOrderBy = NonNullable<TQuery["order"]>["orderBy"]
+    TFilter extends { [key: string]: unknown } = NonNullable<TQuery["filter"]>,
+    TOrderBy extends string = NonNullable<TQuery["order"]>["orderBy"]
 > {
     list(
         subgraphClient: SubgraphClient,
@@ -136,18 +105,18 @@ export abstract class SubgraphQueryHandler<
     TListQuery extends SubgraphListQuery<TFilter, TOrderBy>,
     TSubgraphQuery,
     TSubgraphFilter extends {
-        id?: string | null;
-        id_gt?: string | null | undefined;
-    },
-    TSubgraphQueryVariables extends {
-        first?: InputMaybe<number>;
+        id?: InputMaybe<Scalars["ID"]>;
+        id_gt?: InputMaybe<Scalars["ID"]>;
+    } & TFilter,
+    TSubgraphQueryVariables extends Exact<{
+        first?: InputMaybe<Scalars["Int"]>;
         orderBy?: InputMaybe<TOrderBy>;
         orderDirection?: InputMaybe<OrderDirection>;
-        skip?: InputMaybe<number>;
+        skip?: InputMaybe<Scalars["Int"]>;
         where?: InputMaybe<TSubgraphFilter>;
-    },
-    TFilter = NonNullable<TListQuery["filter"]>,
-    TOrderBy = NonNullable<TListQuery["order"]>["orderBy"]
+    }>,
+    TFilter extends { [key: string]: any } = NonNullable<TListQuery["filter"]>,
+    TOrderBy extends string = NonNullable<TListQuery["order"]>["orderBy"]
 > implements
         SubgraphGetQueryHandler<TResult>,
         SubgraphListQueryHandler<TResult, TListQuery, TFilter, TOrderBy>,
@@ -213,14 +182,13 @@ export abstract class SubgraphQueryHandler<
             return null;
         }
 
-        // @ts-ignore TODO(KK): Couldn't figure out the "could be instantiated with a different subtype of constraint ..." error.
         const response = await this.querySubgraph(subgraphClient, {
             where: {
                 id: query.id.toLowerCase(),
             },
             skip: 0,
             take: 1,
-        });
+        } as unknown as TSubgraphQueryVariables);
 
         return this.mapFromSubgraphResponse(response)[0] ?? null;
     }
@@ -242,14 +210,13 @@ export abstract class SubgraphQueryHandler<
             })
         );
 
-        // @ts-ignore TODO(KK): Couldn't figure out the "could be instantiated with a different subtype of constraint ..." error.
         const subgraphQueryVariables = typeGuard<TSubgraphQueryVariables>({
             where: normalizeSubgraphFilter(subgraphFilter),
             orderBy: query.order?.orderBy,
             orderDirection: query.order?.orderDirection,
             first: takePlusOne(pagination),
             skip: pagination.skip,
-        });
+        } as unknown as TSubgraphQueryVariables);
 
         const subgraphResponse = await this.querySubgraph(
             subgraphClient,

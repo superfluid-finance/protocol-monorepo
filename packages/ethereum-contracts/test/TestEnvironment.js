@@ -290,7 +290,7 @@ module.exports = class TestEnvironment {
                 this.configs.LIQUIDATION_PERIOD
             ),
             await web3tx(
-                this.contracts.governance.set3PSData,
+                this.contracts.governance.setThreePSData,
                 "reset 3Ps data"
             )(
                 this.sf.host.address,
@@ -735,7 +735,7 @@ module.exports = class TestEnvironment {
         const csvFormatPlotData =
             this.formatPlotDataIntoProcessableFormat(superToken);
         const csvWriter = createCsvWriter({
-            path: "test/output/" + path + ".dat",
+            path: "test/output/" + path + ".csv",
             header: [
                 {id: "alias", title: "alias"},
                 {id: "address", title: "address"},

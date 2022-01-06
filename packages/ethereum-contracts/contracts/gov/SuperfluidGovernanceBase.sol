@@ -226,32 +226,6 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             host, superToken,
             SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
     }
-    
-    // CFAv1 3PS - Liquidation Period + Patrician Period
-    event ThreePsConfigurationChanged(
-        ISuperfluid indexed host,
-        ISuperfluidToken indexed superToken,
-        bool isKeySet,
-        uint256 liquidationPeriod,
-        uint256 patricianPeriod);
-
-    function set3PSData(
-        ISuperfluid host,
-        ISuperfluidToken superToken,
-        uint256 liquidationPeriod,
-        uint256 patricianPeriod
-    ) 
-        public
-    {
-        emit ThreePsConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
-        uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
-        return _setConfig(
-            host,
-            superToken,
-            SuperfluidGovernanceConfigs._3PS_CONFIG_KEY,
-            value
-        );
-    }
 
     function setCFAv1LiquidationPeriod(
         ISuperfluid host,
@@ -277,6 +251,51 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         _clearConfig(
             host, superToken,
             SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
+    }
+
+    // CFAv1 3PS - Liquidation Period + Patrician Period
+    event ThreePsConfigurationChanged(
+        ISuperfluid indexed host,
+        ISuperfluidToken indexed superToken,
+        bool isKeySet,
+        uint256 liquidationPeriod,
+        uint256 patricianPeriod);
+
+    function getThreePsData(
+        ISuperfluid host,
+        ISuperfluidToken superToken
+    ) public view
+        returns (uint256 liquidationPeriod, uint256 patricianPeriod)
+        {
+            uint256 threePsData = getConfigAsUint256(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
+            liquidationPeriod = (threePsData >> 32) & type(uint32).max;
+            patricianPeriod = threePsData & type(uint32).max;
+        }
+
+    function setThreePSData(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        uint256 liquidationPeriod,
+        uint256 patricianPeriod
+    ) 
+        public
+    {
+        emit ThreePsConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
+        uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
+        return _setConfig(
+            host,
+            superToken,
+            SuperfluidGovernanceConfigs._3PS_CONFIG_KEY,
+            value
+        );
+    }
+
+    function clearThreePsData(
+        ISuperfluid host,
+        ISuperfluidToken superToken
+    ) public {
+        emit ThreePsConfigurationChanged(host, superToken, false, 0, 0);
+        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
     }
 
     // trustedForwarder

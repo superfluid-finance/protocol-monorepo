@@ -358,7 +358,75 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.4 whiteListNewApp", async () => {
+        it("#2.4 ThreePsData", async () => {
+            await expectRevert(
+                governance.setThreePSData(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    420,
+                    69
+                ),
+                onlyOwnerReason
+            );
+            await expectRevert(
+                governance.clearThreePsData(superfluid.address, ZERO_ADDRESS),
+                onlyOwnerReason
+            );
+
+            await web3tx(
+                governance.setThreePSData,
+                "governance.setThreePSData DEFAULT 420 69"
+            )(superfluid.address, ZERO_ADDRESS, 420, 69, {from: alice});
+            await web3tx(
+                governance.setThreePSData,
+                "governance.setThreePSData FAKE_TOKEN_ADDRESS1 888 33"
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, 888, 33, {
+                from: alice,
+            });
+            let fakeTokenAddress1ThreePsData = await governance.getThreePsData(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1
+            );
+            const fakeTokenAddress2ThreePsData =
+                await governance.getThreePsData(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS2
+                );
+            assert.equal(
+                fakeTokenAddress1ThreePsData.liquidationPeriod.toString(),
+                "888"
+            );
+            assert.equal(
+                fakeTokenAddress1ThreePsData.patricianPeriod.toString(),
+                "33"
+            );
+            assert.equal(
+                fakeTokenAddress2ThreePsData.liquidationPeriod.toString(),
+                "420"
+            );
+            assert.equal(
+                fakeTokenAddress2ThreePsData.patricianPeriod.toString(),
+                "69"
+            );
+            await web3tx(
+                governance.clearThreePsData,
+                "governance.clearThreePsData FAKE_TOKEN_ADDRESS1"
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
+            fakeTokenAddress1ThreePsData = await governance.getThreePsData(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1
+            );
+            assert.equal(
+                fakeTokenAddress1ThreePsData.liquidationPeriod.toString(),
+                "420"
+            );
+            assert.equal(
+                fakeTokenAddress1ThreePsData.patricianPeriod.toString(),
+                "69"
+            );
+        });
+
+        it("#2.5 whiteListNewApp", async () => {
             await expectRevert(
                 governance.whiteListNewApp(
                     superfluid.address,
@@ -375,7 +443,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.5 authorizeAppFactory", async () => {
+        it("#2.6 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );

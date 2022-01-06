@@ -11,7 +11,7 @@ import {
 } from "../../../queryV2";
 import {
     AccountTokenSnapshot_Filter,
-    AccountTokenSnapshot_OrderBy
+    AccountTokenSnapshot_OrderBy,
 } from "../../schema.generated";
 
 import {
@@ -64,8 +64,18 @@ export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
     protected getRelevantAddressesFromFilterCore = (
         filter: AccountTokenSnapshotListQueryFilter
     ): RelevantAddressesIntermediate => ({
-        tokens: [filter.token, filter.token_in, filter.token_not_in],
-        accounts: [filter.account, filter.account_in, filter.account_not_in],
+        tokens: [
+            filter.token,
+            filter.token_in,
+            filter.token_not,
+            filter.token_not_in,
+        ],
+        accounts: [
+            filter.account,
+            filter.account_in,
+            filter.account_not,
+            filter.account_not_in,
+        ],
     });
 
     protected getRelevantAddressesFromResultCore = (

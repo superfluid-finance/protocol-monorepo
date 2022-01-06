@@ -10,7 +10,7 @@ import {
 } from "../../../queryV2";
 import {
     IndexSubscription_Filter,
-    IndexSubscription_OrderBy
+    IndexSubscription_OrderBy,
 } from "../../schema.generated";
 
 import {
@@ -82,6 +82,7 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
         accounts: [
             filter.subscriber,
             filter.subscriber_in,
+            filter.subscriber_not,
             filter.subscriber_not_in,
         ],
     });

@@ -52,9 +52,11 @@ export class StreamQueryHandler extends SubgraphQueryHandler<
         accounts: [
             filter.sender,
             filter.sender_in,
+            filter.sender_not,
             filter.sender_not_in,
             filter.receiver,
             filter.receiver_in,
+            filter.receiver_not,
             filter.receiver_not_in,
         ],
     });

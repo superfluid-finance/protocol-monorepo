@@ -47,9 +47,9 @@ export class AccountQueryHandler extends SubgraphQueryHandler<
     ): Account_Filter => filter;
 
     getRelevantAddressesFromFilterCore = (
-        _filter: AccountListQueryFilter
+        filter: AccountListQueryFilter
     ): RelevantAddressesIntermediate => ({
-        accounts: [],
+        accounts: [filter.id, filter.id_in, filter.id_not, filter.id_not_in],
         tokens: [],
     });
 

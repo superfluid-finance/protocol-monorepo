@@ -53,8 +53,13 @@ export class TokenQueryHandler extends SubgraphQueryHandler<
         filter: TokenListQueryFilter
     ): RelevantAddressesIntermediate => ({
         tokens: [
+            filter.id,
+            filter.id_in,
+            filter.id_not,
+            filter.id_not_in,
             filter.underlyingToken,
             filter.underlyingToken_in,
+            filter.underlyingToken_not,
             filter.underlyingToken_not_in,
         ],
         accounts: [],

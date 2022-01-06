@@ -9,7 +9,7 @@ import {
 } from "../../../queryV2";
 import {
     TokenStatistic_Filter,
-    TokenStatistic_OrderBy
+    TokenStatistic_OrderBy,
 } from "../../schema.generated";
 
 import {
@@ -59,7 +59,12 @@ export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
     protected getRelevantAddressesFromFilterCore = (
         filter: TokenStatisticsListQueryFilter
     ): RelevantAddressesIntermediate => ({
-        tokens: [filter.token, filter.token_in, filter.token_not_in],
+        tokens: [
+            filter.token,
+            filter.token_in,
+            filter.token_not,
+            filter.token_not_in,
+        ],
         accounts: [],
     });
 

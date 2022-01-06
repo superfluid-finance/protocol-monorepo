@@ -11,7 +11,7 @@ import {
 } from "../../../queryV2";
 import {
     StreamPeriod_Filter,
-    StreamPeriod_OrderBy
+    StreamPeriod_OrderBy,
 } from "../../schema.generated";
 
 import {
@@ -66,9 +66,11 @@ export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
         accounts: [
             filter.sender,
             filter.sender_in,
+            filter.sender_not,
             filter.sender_not_in,
             filter.receiver,
             filter.receiver_in,
+            filter.receiver_not,
             filter.receiver_not_in,
         ],
     });

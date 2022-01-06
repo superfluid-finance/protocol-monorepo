@@ -42,13 +42,10 @@ export type EntityBase = UpdatedAt &
     };
 
 export type SubgraphFilterOmitFieldList =
-    | "id"
     | "id_gt"
     | "id_gte"
-    | "id_in"
     | "id_lt"
-    | "id_lte"
-    | "id_not";
+    | "id_lte";
 
 export interface SubgraphListQuery<
     TFilter extends { [key: string]: unknown },

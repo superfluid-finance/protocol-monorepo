@@ -63,9 +63,7 @@ module.exports = class TestEnvironment {
          *          timestamp: number
          *        ]
          */
-        this.plotData = {
-            enabled: false,
-        };
+        this.plotData = {};
         this._evmSnapshots = [];
 
         this.configs = {
@@ -279,10 +277,7 @@ module.exports = class TestEnvironment {
         this.data = {};
 
         // plot data can be persisted over a test case here
-        this.plotData = {
-            enabled: false,
-            observedAccounts: [],
-        };
+        this.plotData = {};
 
         // reset governace parameters
         await Promise.all([
@@ -633,11 +628,12 @@ module.exports = class TestEnvironment {
      * @param enabled whether we want to record plot data
      * @param observedAccounts the accounts (addresses) we want to observe
      */
-    setPlotData(enabled = false, observedAccounts = []) {
-        _.defaultsDeep(this.plotData, {
+    initializePlotData(enabled = false, observedAccounts = []) {
+        this.plotData = {
+            ...this.plotData,
             enabled,
             observedAccounts,
-        });
+        };
     }
 
     /**
@@ -718,6 +714,7 @@ module.exports = class TestEnvironment {
                 // map into new easily processable data
                 .map((x) =>
                     x[1].map((y) => ({
+                        alias: this.toAlias(x[0]),
                         address: x[0],
                         availableBalance: y.availableBalance,
                         deposit: y.deposit,
@@ -740,6 +737,7 @@ module.exports = class TestEnvironment {
         const csvWriter = createCsvWriter({
             path: "test/output/" + path + ".dat",
             header: [
+                {id: "alias", title: "alias"},
                 {id: "address", title: "address"},
                 {id: "availableBalance", title: "availableBalance"},
                 {id: "deposit", title: "deposit"},
@@ -747,9 +745,11 @@ module.exports = class TestEnvironment {
                 {id: "timestamp", title: "timestamp"},
             ],
         });
-        csvWriter
-            .writeRecords(csvFormatPlotData)
-            .then(() => console.log("CSV file created"));
+        if (csvFormatPlotData.length > 0) {
+            csvWriter
+                .writeRecords(csvFormatPlotData)
+                .then(() => console.log("CSV file created"));
+        }
     }
 
     /**************************************************************************

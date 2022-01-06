@@ -710,6 +710,20 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver,
                     flowRate: FLOW_RATE1,
                 });
+
+                t.initializePlotData(true); // observing all accounts
+            });
+            // TODO: regex from # until the end
+            this.afterEach(() => {
+                t.writePlotDataIntoCSVFile(
+                    this.ctx.test.title
+                        .split("#")[1]
+                        // eslint-disable-next-line
+                        .split('"')[0]
+                        .split(" ")
+                        .join("_"),
+                    superToken.address
+                );
             });
 
             it("#1.4.1 should reject when sender account is not critical", async () => {
@@ -993,6 +1007,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                             governance.setRewardAddress,
                             "set reward address to agent"
                         )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
+
+                        t.initializePlotData(true); // observing all accounts
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.12",
@@ -1040,6 +1056,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver: agent,
                     flowRate: FLOW_RATE1,
                 });
+            });
+            // TODO: regex from # until the end
+            this.afterEach(() => {
+                t.writePlotDataIntoCSVFile(
+                    this.ctx.test.title
+                        .split("#")[1]
+                        // eslint-disable-next-line
+                        .split('"')[0]
+                        .split(" ")
+                        .join("_"),
+                    superToken.address
+                );
             });
 
             it("#1.5.1 should be able to liquidate multiple flows when critical", async () => {
@@ -1314,6 +1342,19 @@ describe("Using ConstantFlowAgreement v1", function () {
                     testenv: t,
                     flowRate: FLOW_RATE1,
                 });
+                t.initializePlotData(true); // observing all accounts
+            });
+            // TODO: regex from # until the end
+            this.afterEach(() => {
+                t.writePlotDataIntoCSVFile(
+                    this.ctx.test.title
+                        .split("#")[1]
+                        // eslint-disable-next-line
+                        .split('"')[0]
+                        .split(" ")
+                        .join("_"),
+                    superToken.address
+                );
             });
 
             it("#1.6.1 should be able to liquidate multiple critical flows with an inflow", async () => {
@@ -2473,10 +2514,15 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow(receiver1, "0");
             await expectNetFlow(receiver2, "0");
             await timeTravelOnceAndVerifyAll();
+            t.writePlotDataIntoCSVFile(
+                this.ctx.test.title.split(" ").join("_"),
+                superToken.address
+            );
         });
 
         it("#2.11 mfa-1to1_150pct_create_full_delete_mfa_receiver_flow_by_liquidator", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE.muln(2));
+            t.initializePlotData(true); // observing all accounts
             await t.transferBalance(sender, "mfa", toWad(50));
 
             const mfa = {
@@ -2587,6 +2633,10 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow(receiver1, "0");
             await expectNetFlow(receiver2, "0");
             await t.validateSystemInvariance();
+            t.writePlotDataIntoCSVFile(
+                this.ctx.test.title.split(" ").join("_"),
+                superToken.address
+            );
         });
 
         it("#2.12 mfa-1to2[50,50]_100pct_create-partial_delete-negative_app_balance", async () => {

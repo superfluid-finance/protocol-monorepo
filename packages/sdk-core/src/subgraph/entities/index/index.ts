@@ -29,9 +29,11 @@ export interface Index extends EntityBase {
     token: Address;
 }
 
+export type IndexOrderBy = Index_OrderBy;
+
 export type IndexListQuery = SubgraphListQuery<
     IndexListQueryFilter,
-    Index_OrderBy
+    IndexOrderBy
 >;
 
 export type IndexListQueryFilter = Omit<

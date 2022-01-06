@@ -23,9 +23,11 @@ export interface Stream extends EntityBase {
     token: Address;
 }
 
+export type StreamOrderBy = Stream_OrderBy;
+
 export type StreamListQuery = SubgraphListQuery<
     StreamListQueryFilter,
-    Stream_OrderBy
+    StreamOrderBy
 >;
 
 export type StreamListQueryFilter = Omit<

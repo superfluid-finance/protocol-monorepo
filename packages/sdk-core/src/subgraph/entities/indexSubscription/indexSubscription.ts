@@ -10,7 +10,7 @@ import {
 } from "../../../queryV2";
 import {
     IndexSubscription_Filter,
-    IndexSubscription_OrderBy,
+    IndexSubscription_OrderBy
 } from "../../schema.generated";
 
 import {
@@ -31,9 +31,11 @@ export interface IndexSubscription extends EntityBase {
     publisher: Address;
 }
 
+export type IndexSubscriptionOrderBy = IndexSubscription_OrderBy;
+
 export type IndexSubscriptionsListQuery = SubgraphListQuery<
     IndexSubscriptionListQueryFilter,
-    IndexSubscription_OrderBy
+    IndexSubscriptionOrderBy
 >;
 
 export type IndexSubscriptionListQueryFilter = Omit<

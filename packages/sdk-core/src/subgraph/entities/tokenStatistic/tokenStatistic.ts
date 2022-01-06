@@ -9,7 +9,7 @@ import {
 } from "../../../queryV2";
 import {
     TokenStatistic_Filter,
-    TokenStatistic_OrderBy,
+    TokenStatistic_OrderBy
 } from "../../schema.generated";
 
 import {
@@ -33,9 +33,11 @@ export interface TokenStatistic extends UpdatedAt {
     totalSupply: BigNumber;
 }
 
+export type TokenStatisticOrderBy = TokenStatistic_OrderBy;
+
 export type TokenStatisticListQuery = SubgraphListQuery<
     TokenStatisticsListQueryFilter,
-    TokenStatistic_OrderBy
+    TokenStatisticOrderBy
 >;
 
 export type TokenStatisticsListQueryFilter = Omit<

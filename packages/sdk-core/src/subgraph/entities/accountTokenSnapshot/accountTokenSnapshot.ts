@@ -11,7 +11,7 @@ import {
 } from "../../../queryV2";
 import {
     AccountTokenSnapshot_Filter,
-    AccountTokenSnapshot_OrderBy,
+    AccountTokenSnapshot_OrderBy
 } from "../../schema.generated";
 
 import {
@@ -38,9 +38,11 @@ export interface AccountTokenSnapshot {
     token: Address;
 }
 
+export type AccountTokenSnapshotOrderBy = AccountTokenSnapshot_OrderBy;
+
 export type AccountTokenSnapshotListQuery = SubgraphListQuery<
     AccountTokenSnapshotListQueryFilter,
-    AccountTokenSnapshot_OrderBy
+    AccountTokenSnapshotOrderBy
 >;
 
 export type AccountTokenSnapshotListQueryFilter = Omit<

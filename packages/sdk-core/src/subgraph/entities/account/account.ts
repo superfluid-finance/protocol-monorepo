@@ -23,9 +23,11 @@ export interface Account {
     updatedAtTimestamp: Timestamp;
 }
 
+export type AccountOrderBy = Account_OrderBy;
+
 export type AccountListQuery = SubgraphListQuery<
     AccountListQueryFilter,
-    Account_OrderBy
+    AccountOrderBy
 >;
 
 export type AccountListQueryFilter = Omit<

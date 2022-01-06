@@ -18,6 +18,7 @@ import SuperToken from "./SuperToken";
 export * from "./interfaces";
 export * from "./utils";
 export * from "./pagination";
+export * from "./ordering";
 export * from "./events";
 export * from "./types";
 

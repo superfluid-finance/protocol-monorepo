@@ -27,9 +27,11 @@ export interface Token {
     underlyingAddress: Address;
 }
 
+export type TokenOrderBy = Token_OrderBy;
+
 export type TokenListQuery = SubgraphListQuery<
     TokenListQueryFilter,
-    Token_OrderBy
+    TokenOrderBy
 >;
 
 export type TokenListQueryFilter = Omit<

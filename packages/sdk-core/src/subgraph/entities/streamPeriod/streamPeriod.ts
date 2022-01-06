@@ -11,7 +11,7 @@ import {
 } from "../../../queryV2";
 import {
     StreamPeriod_Filter,
-    StreamPeriod_OrderBy,
+    StreamPeriod_OrderBy
 } from "../../schema.generated";
 
 import {
@@ -36,9 +36,11 @@ export interface StreamPeriod {
     startedAtEvent: SubgraphId;
 }
 
+export type StreamPeriodOrderBy = StreamPeriod_OrderBy;
+
 export type StreamPeriodListQuery = SubgraphListQuery<
     StreamPeriodListQueryFilter,
-    StreamPeriod_OrderBy
+    StreamPeriodOrderBy
 >;
 
 export type StreamPeriodListQueryFilter = Omit<

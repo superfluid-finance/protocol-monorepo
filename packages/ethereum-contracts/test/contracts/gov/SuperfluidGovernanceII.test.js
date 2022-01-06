@@ -358,7 +358,67 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.4 whiteListNewApp", async () => {
+        it("#2.4 SuperTokenMinimalDeposit", async () => {
+            await expectRevert(
+                governance.setSuperTokenMinimalDeposit(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    42069
+                ),
+                onlyOwnerReason
+            );
+            await expectRevert(
+                governance.clearSuperTokenMinimalDeposit(
+                    superfluid.address,
+                    ZERO_ADDRESS
+                ),
+                onlyOwnerReason
+            );
+            await web3tx(
+                governance.setSuperTokenMinimalDeposit,
+                "governance.setSuperTokenMinimalDeposit DEFAULT 42069"
+            )(superfluid.address, ZERO_ADDRESS, 42069, {from: alice});
+            await web3tx(
+                governance.setSuperTokenMinimalDeposit,
+                "governance.setSuperTokenMinimalDeposit FAKE_TOKEN_ADDRESS1 88833"
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, 88833, {
+                from: alice,
+            });
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimalDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "88833"
+            );
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimalDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS2
+                    )
+                ).toString(),
+                "42069"
+            );
+
+            await web3tx(
+                governance.clearSuperTokenMinimalDeposit,
+                "governance.clearSuperTokenMinimalDeposit FAKE_TOKEN_ADDRESS1"
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimalDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "42069"
+            );
+        });
+
+        it("#2.5 whiteListNewApp", async () => {
             await expectRevert(
                 governance.whiteListNewApp(
                     superfluid.address,
@@ -375,7 +435,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.5 authorizeAppFactory", async () => {
+        it("#2.6 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );

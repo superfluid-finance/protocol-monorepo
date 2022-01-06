@@ -253,6 +253,41 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
     }
 
+    event SuperTokenMinimalDepositChanged(
+        ISuperfluid indexed host,
+        ISuperfluidToken indexed superToken,
+        bool isKeySet,
+        uint256 minimalDeposit
+    );
+
+    function getSuperTokenMinimalDeposit(
+        ISuperfluid host,
+        ISuperfluidToken superToken
+    ) public view 
+    returns (uint256 value) 
+    {
+        return getConfigAsUint256(host, superToken,
+            SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMAL_DEPOSIT_KEY);
+    }
+
+    function setSuperTokenMinimalDeposit(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        uint256 value
+    ) public {
+        emit SuperTokenMinimalDepositChanged(host, superToken, true, value);
+        return _setConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMAL_DEPOSIT_KEY, value);
+    }
+
+    function clearSuperTokenMinimalDeposit(
+        ISuperfluid host,
+        ISuperToken superToken
+    ) public 
+    {
+        emit SuperTokenMinimalDepositChanged(host, superToken, false, 0);
+        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMAL_DEPOSIT_KEY);
+    }
+
     // trustedForwarder
     event TrustedForwarderChanged(
         ISuperfluid indexed host,

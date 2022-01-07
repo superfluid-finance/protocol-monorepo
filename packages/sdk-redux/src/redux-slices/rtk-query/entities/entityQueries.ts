@@ -7,10 +7,14 @@ import {
     IndexListQuery,
     IndexSubscription,
     IndexSubscriptionsListQuery,
+    IndexUpdatedEvent,
+    IndexUpdatedEventListQuery,
     Stream,
     StreamListQuery,
     StreamPeriod,
     StreamPeriodListQuery,
+    SubscriptionUnitsUpdatedEvent,
+    SubscriptionUnitsUpdatedEventListQuery,
     Token,
     TokenListQuery,
     TokenStatistic,
@@ -50,3 +54,11 @@ export interface ListTokens extends BaseQuery2, TokenListQuery {}
 export type GetTokenStatistic = BaseGetQuery<TokenStatistic>;
 
 export interface ListTokenStatistics extends BaseQuery2, TokenStatisticListQuery {}
+
+export type GetIndexUpdatedEvent = BaseGetQuery<IndexUpdatedEvent>;
+
+export interface ListIndexUpdatedEvents extends BaseQuery2, IndexUpdatedEventListQuery {}
+
+export type GetSubscriptionUnitsUpdatedEvent = BaseGetQuery<SubscriptionUnitsUpdatedEvent>;
+
+export interface ListSubscriptionUnitsUpdatedEvents extends BaseQuery2, SubscriptionUnitsUpdatedEventListQuery {}

@@ -1,3 +1,4 @@
+import {IndexUpdatedEventQueryHandler, SubscriptionUnitsUpdatedEventQueryHandler} from '@superfluid-finance/sdk-core';
 import {
     Account,
     AccountQueryHandler,
@@ -8,6 +9,7 @@ import {
     IndexQueryHandler,
     IndexSubscription,
     IndexSubscriptionQueryHandler,
+    IndexUpdatedEvent,
     PagedResult,
     RelevantAddresses,
     RelevantAddressProviderFromFilter,
@@ -19,6 +21,7 @@ import {
     SubgraphGetQueryHandler,
     SubgraphListQuery,
     SubgraphListQueryHandler,
+    SubscriptionUnitsUpdatedEvent,
     Token,
     TokenQueryHandler,
     TokenStatistic,
@@ -35,16 +38,20 @@ import {
     GetAccountTokenSnapshot,
     GetIndex2,
     GetIndexSubscription,
+    GetIndexUpdatedEvent,
     GetStream2,
     GetStreamPeriod,
+    GetSubscriptionUnitsUpdatedEvent,
     GetToken,
     GetTokenStatistic,
     ListAccounts,
     ListAccountTokenSnapshots,
     ListIndexes2,
     ListIndexSubscriptions2,
+    ListIndexUpdatedEvents,
     ListStreamPeriods,
     ListStreams2,
+    ListSubscriptionUnitsUpdatedEvents,
     ListTokens,
     ListTokenStatistics,
 } from './entityQueries';
@@ -125,6 +132,19 @@ export const addEntityEndpoints = (builder: SfEndpointBuilder) => {
         tokens: list<Token, ListTokens>(new TokenQueryHandler(), 'Token'),
         tokenStatistic: get<TokenStatistic, GetTokenStatistic>(new TokenStatisticQueryHandler(), 'Token'),
         tokenStatistics: list<TokenStatistic, ListTokenStatistics>(new TokenStatisticQueryHandler(), 'Token'),
+        indexUpdatedEvent: get<IndexUpdatedEvent, GetIndexUpdatedEvent>(new IndexUpdatedEventQueryHandler(), 'Event'),
+        indexUpdatedEvents: list<IndexUpdatedEvent, ListIndexUpdatedEvents>(
+            new IndexUpdatedEventQueryHandler(),
+            'Event'
+        ),
+        subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, GetSubscriptionUnitsUpdatedEvent>(
+            new SubscriptionUnitsUpdatedEventQueryHandler(),
+            'Event'
+        ),
+        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, ListSubscriptionUnitsUpdatedEvents>(
+            new SubscriptionUnitsUpdatedEventQueryHandler(),
+            'Event'
+        ),
     };
 };
 

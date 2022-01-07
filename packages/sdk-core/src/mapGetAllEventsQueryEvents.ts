@@ -5,9 +5,9 @@ import { GetAllEventsQuery } from "./subgraph/queries/getAllEvents.generated";
 const typeGuard = <T>(obj: T) => obj;
 
 export const mapGetAllEventsQueryEvents = (
-    queryResponse: GetAllEventsQuery
+    queryEvents: GetAllEventsQuery["events"]
 ): events.AllEvents[] => {
-    return queryResponse.events.map((x) => {
+    return queryEvents.map((x) => {
         switch (x.__typename) {
             case "AppRegisteredEvent":
                 return typeGuard<events.AppRegisteredEvent>({

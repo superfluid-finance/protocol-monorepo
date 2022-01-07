@@ -408,7 +408,7 @@ export default class Query {
         });
 
         return createPagedResult<AllEvents>(
-            mapGetAllEventsQueryEvents(response),
+            mapGetAllEventsQueryEvents(response.events),
             paging
         );
     };

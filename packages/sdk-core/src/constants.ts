@@ -39,7 +39,7 @@ export const networkNames: string[] = [
     "avalanche-fuji",
 ];
 
-export const chainIdToDataMap = new Map<number, IResolverData>([
+export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         3,
         {

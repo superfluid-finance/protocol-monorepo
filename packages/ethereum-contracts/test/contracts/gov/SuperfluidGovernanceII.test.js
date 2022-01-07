@@ -358,9 +358,9 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.4 ThreePsData", async () => {
+        it("#2.4 ThreePsConfig", async () => {
             await expectRevert(
-                governance.setThreePSData(
+                governance.setThreePsConfig(
                     superfluid.address,
                     ZERO_ADDRESS,
                     420,
@@ -369,59 +369,60 @@ describe("Superfluid Ownable Governance Contract", function () {
                 onlyOwnerReason
             );
             await expectRevert(
-                governance.clearThreePsData(superfluid.address, ZERO_ADDRESS),
+                governance.clearThreePsConfig(superfluid.address, ZERO_ADDRESS),
                 onlyOwnerReason
             );
 
             await web3tx(
-                governance.setThreePSData,
-                "governance.setThreePSData DEFAULT 420 69"
+                governance.setThreePsConfig,
+                "governance.setThreePsConfig DEFAULT 420 69"
             )(superfluid.address, ZERO_ADDRESS, 420, 69, {from: alice});
             await web3tx(
-                governance.setThreePSData,
-                "governance.setThreePSData FAKE_TOKEN_ADDRESS1 888 33"
+                governance.setThreePsConfig,
+                "governance.setThreePsConfig FAKE_TOKEN_ADDRESS1 888 33"
             )(superfluid.address, FAKE_TOKEN_ADDRESS1, 888, 33, {
                 from: alice,
             });
-            let fakeTokenAddress1ThreePsData = await governance.getThreePsData(
-                superfluid.address,
-                FAKE_TOKEN_ADDRESS1
-            );
-            const fakeTokenAddress2ThreePsData =
-                await governance.getThreePsData(
+            let fakeTokenAddress1ThreePsConfig =
+                await governance.getThreePsConfig(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                );
+            const fakeTokenAddress2ThreePsConfig =
+                await governance.getThreePsConfig(
                     superfluid.address,
                     FAKE_TOKEN_ADDRESS2
                 );
             assert.equal(
-                fakeTokenAddress1ThreePsData.liquidationPeriod.toString(),
+                fakeTokenAddress1ThreePsConfig.liquidationPeriod.toString(),
                 "888"
             );
             assert.equal(
-                fakeTokenAddress1ThreePsData.patricianPeriod.toString(),
+                fakeTokenAddress1ThreePsConfig.patricianPeriod.toString(),
                 "33"
             );
             assert.equal(
-                fakeTokenAddress2ThreePsData.liquidationPeriod.toString(),
+                fakeTokenAddress2ThreePsConfig.liquidationPeriod.toString(),
                 "420"
             );
             assert.equal(
-                fakeTokenAddress2ThreePsData.patricianPeriod.toString(),
+                fakeTokenAddress2ThreePsConfig.patricianPeriod.toString(),
                 "69"
             );
             await web3tx(
-                governance.clearThreePsData,
-                "governance.clearThreePsData FAKE_TOKEN_ADDRESS1"
+                governance.clearThreePsConfig,
+                "governance.clearThreePsConfig FAKE_TOKEN_ADDRESS1"
             )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
-            fakeTokenAddress1ThreePsData = await governance.getThreePsData(
+            fakeTokenAddress1ThreePsConfig = await governance.getThreePsConfig(
                 superfluid.address,
                 FAKE_TOKEN_ADDRESS1
             );
             assert.equal(
-                fakeTokenAddress1ThreePsData.liquidationPeriod.toString(),
+                fakeTokenAddress1ThreePsConfig.liquidationPeriod.toString(),
                 "420"
             );
             assert.equal(
-                fakeTokenAddress1ThreePsData.patricianPeriod.toString(),
+                fakeTokenAddress1ThreePsConfig.patricianPeriod.toString(),
                 "69"
             );
         });

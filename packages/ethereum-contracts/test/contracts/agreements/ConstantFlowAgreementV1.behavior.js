@@ -1,6 +1,6 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
-const CFADataModel = require("../utils/ConstantFlowAgreementV1.data");
+const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
 
 //

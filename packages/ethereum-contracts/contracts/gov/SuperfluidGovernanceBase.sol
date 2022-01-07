@@ -261,18 +261,17 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         uint256 liquidationPeriod,
         uint256 patricianPeriod);
 
-    function getThreePsData(
+    function getThreePsConfig(
         ISuperfluid host,
         ISuperfluidToken superToken
     ) public view
         returns (uint256 liquidationPeriod, uint256 patricianPeriod)
         {
-            uint256 threePsData = getConfigAsUint256(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
-            liquidationPeriod = (threePsData >> 32) & type(uint32).max;
-            patricianPeriod = threePsData & type(uint32).max;
+            uint256 threePsConfig = getConfigAsUint256(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
+            (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         }
 
-    function setThreePSData(
+    function setThreePSConfig(
         ISuperfluid host,
         ISuperfluidToken superToken,
         uint256 liquidationPeriod,
@@ -280,6 +279,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     ) 
         public
     {
+        require(liquidationPeriod > patricianPeriod
+            && liquidationPeriod < type(uint32).max
+            && patricianPeriod < type(uint32).max,
+            "SFGov: Invalid liquidationPeriod or patricianPeriod input."
+        );
         emit ThreePsConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
         uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
         return _setConfig(
@@ -290,7 +294,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         );
     }
 
-    function clearThreePsData(
+    function clearThreePsConfig(
         ISuperfluid host,
         ISuperfluidToken superToken
     ) public {

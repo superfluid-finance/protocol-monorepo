@@ -9,7 +9,7 @@ const {
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const traveler = require("ganache-time-traveler");
-const CFADataModel = require("../utils/ConstantFlowAgreementV1.data");
+const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
@@ -715,15 +715,17 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             // TODO: regex from # until the end
             this.afterEach(() => {
-                t.writePlotDataIntoCSVFile(
-                    this.ctx.test.title
-                        .split("#")[1]
-                        // eslint-disable-next-line
-                        .split('"')[0]
-                        .split(" ")
-                        .join("_"),
-                    superToken.address
-                );
+                if (t.plotData.enabled) {
+                    t.writePlotDataIntoCSVFile(
+                        this.ctx.test.title
+                            .split("#")[1]
+                            // eslint-disable-next-line
+                            .split('"')[0]
+                            .split(" ")
+                            .join("_"),
+                        superToken.address
+                    );
+                }
             });
 
             it("#1.4.1 should reject when sender account is not critical", async () => {
@@ -1059,15 +1061,17 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             // TODO: regex from # until the end
             this.afterEach(() => {
-                t.writePlotDataIntoCSVFile(
-                    this.ctx.test.title
-                        .split("#")[1]
-                        // eslint-disable-next-line
-                        .split('"')[0]
-                        .split(" ")
-                        .join("_"),
-                    superToken.address
-                );
+                if (t.plotData.enabled) {
+                    t.writePlotDataIntoCSVFile(
+                        this.ctx.test.title
+                            .split("#")[1]
+                            // eslint-disable-next-line
+                            .split('"')[0]
+                            .split(" ")
+                            .join("_"),
+                        superToken.address
+                    );
+                }
             });
 
             it("#1.5.1 should be able to liquidate multiple flows when critical", async () => {
@@ -1346,15 +1350,17 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             // TODO: regex from # until the end
             this.afterEach(() => {
-                t.writePlotDataIntoCSVFile(
-                    this.ctx.test.title
-                        .split("#")[1]
-                        // eslint-disable-next-line
-                        .split('"')[0]
-                        .split(" ")
-                        .join("_"),
-                    superToken.address
-                );
+                if (t.plotData.enabled) {
+                    t.writePlotDataIntoCSVFile(
+                        this.ctx.test.title
+                            .split("#")[1]
+                            // eslint-disable-next-line
+                            .split('"')[0]
+                            .split(" ")
+                            .join("_"),
+                        superToken.address
+                    );
+                }
             });
 
             it("#1.6.1 should be able to liquidate multiple critical flows with an inflow", async () => {

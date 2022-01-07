@@ -188,4 +188,9 @@ library SuperfluidGovernanceConfigs {
             "org.superfluid-finance.superfluid.appWhiteListing.factory",
             factory));
     }
+
+    function decodeThreePsConfig(uint256 threePsConfig) internal pure returns (uint256 liquidationPeriod, uint256 patricianPeriod) {
+        liquidationPeriod = (threePsConfig >> 32) & type(uint32).max;
+        patricianPeriod = threePsConfig & type(uint32).max;
+    }
 }

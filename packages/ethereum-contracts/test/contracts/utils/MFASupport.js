@@ -1,5 +1,5 @@
 const {toBN} = require("@decentral.ee/web3-helpers");
-const CFADataModel = require("./ConstantFlowAgreementV1.data");
+const CFADataModel = require("../agreements/ConstantFlowAgreementV1.data.js");
 
 module.exports = class MFASupport {
     static async setup({testenv, mfa, roles}) {

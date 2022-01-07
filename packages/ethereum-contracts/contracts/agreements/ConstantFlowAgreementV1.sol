@@ -10,7 +10,8 @@ import {
     ISuperfluidGovernance,
     ISuperApp,
     SuperAppDefinitions,
-    ContextDefinitions
+    ContextDefinitions,
+    SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
@@ -740,19 +741,22 @@ contract ConstantFlowAgreementV1 is
         (,FlowData memory senderAccountState) = _getAccountFlowState(token, flowParams.sender);
 
         int256 signedSingleDeposit = flowData.deposit.toInt256();
-        int256 signedTotalDeposit = senderAccountState.deposit.toInt256();
+        // TODO: GDA deposit should be considered here too
+        int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
         bool isPatricianPeriod;
 
-        // To handle stack too deep overflow issue
+        // To retrieve patrician period
+        // Note: curly brackets are to handle stack too deep overflow issue
         {
-            (, uint256 patricianPeriod) = _decode3PsData(token);
+            if (senderAccountState.flowRate == 0) {
             // if the flowRate is 0, it is always the patricianPeriod
-            int256 timeInDeficit = senderAccountState.flowRate == 0
-                ? patricianPeriod.toInt256()
-                : availableBalance.div(senderAccountState.flowRate);
-            // TODO: confirm that this division above is okay, does it make sense?
-
-            isPatricianPeriod = timeInDeficit.toUint256() <= patricianPeriod;
+                isPatricianPeriod = true;
+            } else {
+                (, uint256 patricianPeriod) = _decode3PsData(token);
+                isPatricianPeriod = availableBalance
+                    .div(senderAccountState.flowRate)
+                    .toUint256() <= patricianPeriod;
+            }
         }
 
         // Liquidation rules:
@@ -761,34 +765,35 @@ contract ConstantFlowAgreementV1 is
         //    -     Agreement Total Deposit = TD
         //    -     Total Reward Left = RL = AB + TD
         // #1 Can the total account deposit still cover the available balance deficit?
-        int256 totalRewardLeft = availableBalance.add(signedTotalDeposit);
+        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
 
         // user is in a critical state
         if (totalRewardLeft >= 0) {
             // the liquidator is always whoever triggers the liquidation, but the 
             // account which receives the reward will depend on the period (PIC or Pleb)
             // #1.a.1 yes: then reward = (SD / TD) * RL
-            int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
+            int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalCFADeposit);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId, // id
-                abi.encode(1, isPatricianPeriod ? 0 : 1), // liquidationTypeData (1 means "v1")
+                abi.encode(1, isPatricianPeriod ? 0 : 1), // liquidationTypeData (1 means "v1") - 0 or 1 for pic or pleb
                 liquidator, // liquidatorAccount
-                isPatricianPeriod, // useDefaultRewardAccount
+                isPatricianPeriod, // useDefaultRewardAccount: only in the PIC period, else liquidator gets reward
                 flowParams.sender, // penaltyAccount
-                rewardAmount.toUint256(), // rewardAmount
-                rewardAmount.mul(-1) // penaltyAccountBalanceDelta
+                rewardAmount.toUint256(), // rewardAmount: remaining deposit of the flow to be liquidated
+                rewardAmount.mul(-1) // penaltyAccountBalanceDelta: amount deducted from the flow sender
             );
         } else {
             // #1.b.1 no: then the liquidator takes full amount of the single deposit
             int256 rewardAmount = signedSingleDeposit;
             token.makeLiquidationPayoutsV2(
-                flowParams.flowId,
-                abi.encode(1, 2), // (1 means "v1") 
-                liquidator,
-                false,
-                flowParams.sender,
-                rewardAmount.toUint256(),
-                totalRewardLeft.mul(-1)
+                flowParams.flowId, // id
+                abi.encode(1, 2), // liquidationTypeData (1 means "v1") - 2 for pirate/bailout period
+                liquidator, // liquidatorAccount
+                false, // useDefaultRewardAccount: out of PIC period, in pirate period, so always false
+                flowParams.sender, // penaltyAccount
+                rewardAmount.toUint256(), // rewardAmount: single deposit of flow
+                totalRewardLeft.mul(-1) // penaltyAccountBalanceDelta: amount to bring sender AB to 0
+                // NOTE: bailoutAmount = rewardAmount + penaltyAccountBalanceDelta + paid by rewardAccount
             );
         }
     }
@@ -892,16 +897,6 @@ contract ConstantFlowAgreementV1 is
     // NOTE:
     // - liquidation period has 32 bits length
     // - patrician period also has 32 bits length
-    
-    function _encode3PsData(
-        uint64 liquidationPeriod,
-        uint64 patricianPeriod
-    ) 
-        internal pure
-        returns(uint256 encoded3PsConfig)
-    {
-        encoded3PsConfig = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
-    }
 
     function _decode3PsData(
         ISuperfluidToken token
@@ -911,8 +906,7 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 configData = gov.getConfigAsUint256(host, token, _3PS_CONFIG_KEY);
-        liquidationPeriod = (configData >> 32) & type(uint32).max;
-        patricianPeriod = configData & type(uint32).max;
+        uint256 threePsConfig = gov.getConfigAsUint256(host, token, _3PS_CONFIG_KEY);
+        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
     }
 }

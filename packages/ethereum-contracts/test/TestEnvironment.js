@@ -290,8 +290,8 @@ module.exports = class TestEnvironment {
                 this.configs.LIQUIDATION_PERIOD
             ),
             await web3tx(
-                this.contracts.governance.setThreePSData,
-                "reset 3Ps data"
+                this.contracts.governance.setThreePSConfig,
+                "reset 3Ps config"
             )(
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
@@ -738,11 +738,11 @@ module.exports = class TestEnvironment {
             path: "test/output/" + path + ".csv",
             header: [
                 {id: "alias", title: "alias"},
-                {id: "address", title: "address"},
+                {id: "timestamp", title: "timestamp"},
                 {id: "availableBalance", title: "availableBalance"},
                 {id: "deposit", title: "deposit"},
                 {id: "owedDeposit", title: "owedDeposit"},
-                {id: "timestamp", title: "timestamp"},
+                {id: "address", title: "address"},
             ],
         });
         if (csvFormatPlotData.length > 0) {

@@ -51,6 +51,21 @@ describe("Using ConstantFlowAgreement v1", function () {
         await t.beforeEachTestCase();
     });
 
+    // TODO: regex from # until the end
+    afterEach(() => {
+        if (t.plotData.enabled) {
+            t.writePlotDataIntoCSVFile(
+                this.ctx.test.title
+                    .split("#")[1]
+                    // eslint-disable-next-line
+                    .split('"')[0]
+                    .split(" ")
+                    .join("_"),
+                superToken.address
+            );
+        }
+    });
+
     async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
         const block1 = await web3.eth.getBlock("latest");
         console.log("current block time", block1.timestamp);
@@ -713,20 +728,6 @@ describe("Using ConstantFlowAgreement v1", function () {
 
                 t.initializePlotData(true); // observing all accounts
             });
-            // TODO: regex from # until the end
-            this.afterEach(() => {
-                if (t.plotData.enabled) {
-                    t.writePlotDataIntoCSVFile(
-                        this.ctx.test.title
-                            .split("#")[1]
-                            // eslint-disable-next-line
-                            .split('"')[0]
-                            .split(" ")
-                            .join("_"),
-                        superToken.address
-                    );
-                }
-            });
 
             it("#1.4.1 should reject when sender account is not critical", async () => {
                 await expectRevert(
@@ -795,7 +796,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.5 with zero reward address (agent is liquidator)",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to zero"
@@ -825,7 +826,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.6 with reward address as admin (sender is liquidator)",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to admin"
@@ -854,7 +855,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.7 with zero reward address (sender is liquidator)",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to zero"
@@ -884,7 +885,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.8 test agent liquidation out of patrician period",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to admin"
@@ -914,7 +915,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.9 test sender reward account liquidation out of patrician period",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to sender"
@@ -944,7 +945,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.10 test reward account liquidation out of patrician period",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to agent"
@@ -974,7 +975,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.11 with zero reward address out of patrician period",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to zero"
@@ -1004,7 +1005,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             context(
                 "#1.4.12 with receiver as liquidator out of patrician period",
                 () => {
-                    this.beforeEach(async () => {
+                    beforeEach(async () => {
                         await web3tx(
                             governance.setRewardAddress,
                             "set reward address to agent"
@@ -1058,20 +1059,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver: agent,
                     flowRate: FLOW_RATE1,
                 });
-            });
-            // TODO: regex from # until the end
-            this.afterEach(() => {
-                if (t.plotData.enabled) {
-                    t.writePlotDataIntoCSVFile(
-                        this.ctx.test.title
-                            .split("#")[1]
-                            // eslint-disable-next-line
-                            .split('"')[0]
-                            .split(" ")
-                            .join("_"),
-                        superToken.address
-                    );
-                }
+                t.initializePlotData(true); // observing all accounts
             });
 
             it("#1.5.1 should be able to liquidate multiple flows when critical", async () => {
@@ -1347,20 +1335,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     flowRate: FLOW_RATE1,
                 });
                 t.initializePlotData(true); // observing all accounts
-            });
-            // TODO: regex from # until the end
-            this.afterEach(() => {
-                if (t.plotData.enabled) {
-                    t.writePlotDataIntoCSVFile(
-                        this.ctx.test.title
-                            .split("#")[1]
-                            // eslint-disable-next-line
-                            .split('"')[0]
-                            .split(" ")
-                            .join("_"),
-                        superToken.address
-                    );
-                }
             });
 
             it("#1.6.1 should be able to liquidate multiple critical flows with an inflow", async () => {

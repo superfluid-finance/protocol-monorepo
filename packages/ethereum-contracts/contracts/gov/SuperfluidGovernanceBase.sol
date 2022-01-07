@@ -271,7 +271,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         }
 
-    function setThreePSConfig(
+    function setThreePsConfig(
         ISuperfluid host,
         ISuperfluidToken superToken,
         uint256 liquidationPeriod,

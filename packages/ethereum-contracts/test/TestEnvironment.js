@@ -290,7 +290,7 @@ module.exports = class TestEnvironment {
                 this.configs.LIQUIDATION_PERIOD
             ),
             await web3tx(
-                this.contracts.governance.setThreePSConfig,
+                this.contracts.governance.setThreePsConfig,
                 "reset 3Ps config"
             )(
                 this.sf.host.address,
@@ -697,6 +697,9 @@ module.exports = class TestEnvironment {
      * @returns an easily processable format (for csv)
      */
     formatPlotDataIntoProcessableFormat(superToken) {
+        if (!this.plotData.tokens) {
+            return [];
+        }
         const accountBalanceSnapshots =
             this.plotData.tokens[superToken].accountBalanceSnapshots;
         return (
@@ -716,9 +719,9 @@ module.exports = class TestEnvironment {
                     x[1].map((y) => ({
                         alias: this.toAlias(x[0]),
                         address: x[0],
-                        availableBalance: y.availableBalance,
-                        deposit: y.deposit,
-                        owedDeposit: y.owedDeposit,
+                        availableBalance: wad4human(y.availableBalance),
+                        deposit: wad4human(y.deposit),
+                        owedDeposit: wad4human(y.owedDeposit),
                         timestamp: y.timestamp,
                     }))
                 )

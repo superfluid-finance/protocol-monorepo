@@ -212,33 +212,43 @@ async function printSuperTokensInformation({
                 const superToken = await sf.contracts.SuperToken.at(
                     pastEvent.token
                 );
-                const symbol = await superToken.symbol.call();
-                const superTokenLogicAddress =
-                    await superToken.getCodeAddress();
-                const isListed =
-                    (
-                        await sf.resolver.get.call(
-                            `supertokens.${sf.version}.${symbol}`
-                        )
-                    ).toLowerCase() == superToken.address.toLowerCase();
-                return {
-                    symbol,
-                    name: await superToken.name.call(),
-                    tokenAddress: superToken.address,
-                    superTokenLogicAddress,
-                    underlyingTokenAddress:
-                        await superToken.getUnderlyingToken.call(),
-                    isListed,
-                };
+                try {
+                    const symbol = await superToken.symbol.call();
+                    const superTokenLogicAddress =
+                        await superToken.getCodeAddress();
+                    const isListed =
+                        (
+                            await sf.resolver.get.call(
+                                `supertokens.${sf.version}.${symbol}`
+                            )
+                        ).toLowerCase() === superToken.address.toLowerCase();
+                    return {
+                        symbol,
+                        name: await superToken.name.call(),
+                        tokenAddress: superToken.address,
+                        superTokenLogicAddress,
+                        underlyingTokenAddress:
+                            await superToken.getUnderlyingToken.call(),
+                        isListed,
+                    };
+                } catch (e) {
+                    console.error(
+                        `Querying SuperToken at ${pastEvent.token} failed, may be a broken token deployment:\n ${e}\n`
+                    );
+                }
             }
         );
 
         console.log("## Listed Super Tokens");
-        superTokens.filter((s) => s.isListed).forEach(printSuperToken);
+        superTokens
+            .filter((s) => s !== undefined && s.isListed)
+            .forEach(printSuperToken);
         console.log("");
 
         console.log("## Unlisted Super Tokens");
-        superTokens.filter((s) => !s.isListed).forEach(printSuperToken);
+        superTokens
+            .filter((s) => s !== undefined && !s.isListed)
+            .forEach(printSuperToken);
         console.log("");
 
         console.log("* - Needs super token logic update");

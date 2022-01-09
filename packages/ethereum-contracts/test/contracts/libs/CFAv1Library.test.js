@@ -8,7 +8,7 @@ const initialSupply = toBN(100);
 
 // const traveler = require("ganache-time-traveler");
 
-describe("CFA Library testing", function () {
+describe("CFAv1 Library testing", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 

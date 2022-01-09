@@ -11,7 +11,7 @@ import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-library CFALibraryV1 {
+library CFAv1Library {
 
     struct InitData {
         ISuperfluid host;
@@ -87,7 +87,7 @@ library CFALibraryV1 {
 
     //update flow with userData
     function updateFlow(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         address receiver,
         ISuperfluidToken token,
         int96 flowRate,
@@ -108,7 +108,7 @@ library CFALibraryV1 {
 
     //delete flow
     function deleteFlow(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         address sender,
         address receiver,
         ISuperfluidToken token
@@ -129,7 +129,7 @@ library CFALibraryV1 {
 
     //delete flow with userData 
     function deleteFlow(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         address sender,
         address receiver,
         ISuperfluidToken token,
@@ -150,7 +150,7 @@ library CFALibraryV1 {
 
   //create flow with ctx 
     function createFlowWithCtx(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         bytes memory ctx,
         address receiver,
         ISuperfluidToken token,
@@ -172,7 +172,7 @@ library CFALibraryV1 {
 
     //create flow with ctx and userData
     function createFlowWithCtx(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         bytes memory ctx,
         address receiver,
         ISuperfluidToken token,
@@ -195,7 +195,7 @@ library CFALibraryV1 {
 
   //update flow with ctx but without userData 
     function updateFlowWithCtx(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         bytes memory ctx,
         address receiver,
         ISuperfluidToken token,
@@ -217,7 +217,7 @@ library CFALibraryV1 {
 
     //update flow with ctx and userData
     function updateFlowWithCtx(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         bytes memory ctx,
         address receiver,
         ISuperfluidToken token,
@@ -240,7 +240,7 @@ library CFALibraryV1 {
 
   //delete flow with ctx 
     function deleteFlowWithCtx(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         bytes memory ctx,
         address sender,
         address receiver,
@@ -262,7 +262,7 @@ library CFALibraryV1 {
 
     //delete flow with ctx and userData 
     function deleteFlowWithCtx(
-        InitData memory cfaLibrary,
+        InitData storage cfaLibrary,
         bytes memory ctx,
         address sender,
         address receiver,

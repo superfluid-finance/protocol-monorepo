@@ -24,22 +24,22 @@ import {
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 import { 
-    CFALibraryV1
-} from "../libs/CFALibraryV1.sol";
+    CFAv1Library
+} from "../apps/CFAv1Library.sol";
 
 contract CFALibraryMock {
 
-    using CFALibraryV1 for CFALibraryV1.InitData;
+    using CFAv1Library for CFAv1Library.InitData;
 
     //initialize cfaV1 variable
-    CFALibraryV1.InitData public cfaV1; 
+    CFAv1Library.InitData public cfaV1; 
 
     constructor(
         ISuperfluid host
     ) {
 
         //initialize InitData struct, and set equal to cfaV1
-        cfaV1 = CFALibraryV1.InitData(
+        cfaV1 = CFAv1Library.InitData(
             host,
             IConstantFlowAgreementV1(
                 address(host.getAgreementClass(
@@ -159,10 +159,10 @@ contract CFALibraryMock {
 
 contract RedirectAll is SuperAppBase {
 
-    using CFALibraryV1 for CFALibraryV1.InitData;
+    using CFAv1Library for CFAv1Library.InitData;
 
     //initialize cfaV1 variable
-    CFALibraryV1.InitData public cfaV1; 
+    CFAv1Library.InitData public cfaV1; 
 
     
     ISuperfluid private _host; // host
@@ -188,7 +188,7 @@ contract RedirectAll is SuperAppBase {
         _acceptedToken = acceptedToken;
         _receiver = receiver;
 
-        cfaV1 = CFALibraryV1.InitData(
+        cfaV1 = CFAv1Library.InitData(
             _host,
             _cfa
         );

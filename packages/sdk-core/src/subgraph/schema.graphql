@@ -686,14 +686,14 @@ enum AgreementLiquidatedByEvent_orderBy {
   bailoutAmount
 }
 
-type AgreementLiquidatedByV2Event implements Event {
+type AgreementLiquidatedV2Event implements Event {
   id: ID!
   transactionHash: Bytes!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, liquidatorAccount, penaltyAccount and rewardAccount addresses.
+  Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
   
   """
   addresses: [Bytes!]!
@@ -702,15 +702,15 @@ type AgreementLiquidatedByV2Event implements Event {
   liquidatorAccount: Bytes!
   agreementClass: Bytes!
   agreementId: Bytes!
-  penaltyAccount: Bytes!
+  targetAccount: Bytes!
   rewardAccount: Bytes!
   rewardAmount: BigInt!
-  penaltyAccountBalanceDelta: BigInt!
+  targetAccountBalanceDelta: BigInt!
   version: BigInt!
   liquidationType: Int!
 }
 
-input AgreementLiquidatedByV2Event_filter {
+input AgreementLiquidatedV2Event_filter {
   id: ID
   id_not: ID
   id_gt: ID
@@ -783,12 +783,12 @@ input AgreementLiquidatedByV2Event_filter {
   agreementId_not_in: [Bytes!]
   agreementId_contains: Bytes
   agreementId_not_contains: Bytes
-  penaltyAccount: Bytes
-  penaltyAccount_not: Bytes
-  penaltyAccount_in: [Bytes!]
-  penaltyAccount_not_in: [Bytes!]
-  penaltyAccount_contains: Bytes
-  penaltyAccount_not_contains: Bytes
+  targetAccount: Bytes
+  targetAccount_not: Bytes
+  targetAccount_in: [Bytes!]
+  targetAccount_not_in: [Bytes!]
+  targetAccount_contains: Bytes
+  targetAccount_not_contains: Bytes
   rewardAccount: Bytes
   rewardAccount_not: Bytes
   rewardAccount_in: [Bytes!]
@@ -803,14 +803,14 @@ input AgreementLiquidatedByV2Event_filter {
   rewardAmount_lte: BigInt
   rewardAmount_in: [BigInt!]
   rewardAmount_not_in: [BigInt!]
-  penaltyAccountBalanceDelta: BigInt
-  penaltyAccountBalanceDelta_not: BigInt
-  penaltyAccountBalanceDelta_gt: BigInt
-  penaltyAccountBalanceDelta_lt: BigInt
-  penaltyAccountBalanceDelta_gte: BigInt
-  penaltyAccountBalanceDelta_lte: BigInt
-  penaltyAccountBalanceDelta_in: [BigInt!]
-  penaltyAccountBalanceDelta_not_in: [BigInt!]
+  targetAccountBalanceDelta: BigInt
+  targetAccountBalanceDelta_not: BigInt
+  targetAccountBalanceDelta_gt: BigInt
+  targetAccountBalanceDelta_lt: BigInt
+  targetAccountBalanceDelta_gte: BigInt
+  targetAccountBalanceDelta_lte: BigInt
+  targetAccountBalanceDelta_in: [BigInt!]
+  targetAccountBalanceDelta_not_in: [BigInt!]
   version: BigInt
   version_not: BigInt
   version_gt: BigInt
@@ -829,7 +829,7 @@ input AgreementLiquidatedByV2Event_filter {
   liquidationType_not_in: [Int!]
 }
 
-enum AgreementLiquidatedByV2Event_orderBy {
+enum AgreementLiquidatedV2Event_orderBy {
   id
   transactionHash
   timestamp
@@ -840,10 +840,10 @@ enum AgreementLiquidatedByV2Event_orderBy {
   liquidatorAccount
   agreementClass
   agreementId
-  penaltyAccount
+  targetAccount
   rewardAccount
   rewardAmount
-  penaltyAccountBalanceDelta
+  targetAccountBalanceDelta
   version
   liquidationType
 }
@@ -4300,7 +4300,7 @@ type Query {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [AgreementLiquidatedByEvent!]!
-  agreementLiquidatedByV2Event(
+  agreementLiquidatedV2Event(
     id: ID!
 
     """
@@ -4317,13 +4317,13 @@ type Query {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): AgreementLiquidatedByV2Event
-  agreementLiquidatedByV2Events(
+  ): AgreementLiquidatedV2Event
+  agreementLiquidatedV2Events(
     skip: Int = 0
     first: Int = 100
-    orderBy: AgreementLiquidatedByV2Event_orderBy
+    orderBy: AgreementLiquidatedV2Event_orderBy
     orderDirection: OrderDirection
-    where: AgreementLiquidatedByV2Event_filter
+    where: AgreementLiquidatedV2Event_filter
 
     """
     The block at which the query should be executed. Can either be a `{ hash:
@@ -4339,7 +4339,7 @@ type Query {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): [AgreementLiquidatedByV2Event!]!
+  ): [AgreementLiquidatedV2Event!]!
   burnedEvent(
     id: ID!
 
@@ -7210,7 +7210,7 @@ type Subscription {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [AgreementLiquidatedByEvent!]!
-  agreementLiquidatedByV2Event(
+  agreementLiquidatedV2Event(
     id: ID!
 
     """
@@ -7227,13 +7227,13 @@ type Subscription {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): AgreementLiquidatedByV2Event
-  agreementLiquidatedByV2Events(
+  ): AgreementLiquidatedV2Event
+  agreementLiquidatedV2Events(
     skip: Int = 0
     first: Int = 100
-    orderBy: AgreementLiquidatedByV2Event_orderBy
+    orderBy: AgreementLiquidatedV2Event_orderBy
     orderDirection: OrderDirection
-    where: AgreementLiquidatedByV2Event_filter
+    where: AgreementLiquidatedV2Event_filter
 
     """
     The block at which the query should be executed. Can either be a `{ hash:
@@ -7249,7 +7249,7 @@ type Subscription {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): [AgreementLiquidatedByV2Event!]!
+  ): [AgreementLiquidatedV2Event!]!
   burnedEvent(
     id: ID!
 

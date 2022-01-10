@@ -564,14 +564,14 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bailoutAmount: BigInt!
 }
 
-type AgreementLiquidatedByV2Event implements Event @entity {
+type AgreementLiquidatedV2Event implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
 
     """
-    Holds the token, liquidatorAccount, penaltyAccount and rewardAccount addresses.
+    Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -579,10 +579,10 @@ type AgreementLiquidatedByV2Event implements Event @entity {
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
     agreementId: Bytes!
-    penaltyAccount: Bytes!
+    targetAccount: Bytes!
     rewardAccount: Bytes!
     rewardAmount: BigInt!
-    penaltyAccountBalanceDelta: BigInt!
+    targetAccountBalanceDelta: BigInt!
     version: BigInt!
     liquidationType: Int!
 }

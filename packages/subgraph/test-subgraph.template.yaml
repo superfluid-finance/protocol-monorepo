@@ -241,7 +241,7 @@ templates:
         - Account
         - AccountTokenSnapshot
         - AgreementLiquidatedByEvent
-        - AgreementLiquidatedByV2Event
+        - AgreementLiquidatedV2Event
         - BurnedEvent
         - MintedEvent
         - SentEvent
@@ -260,8 +260,8 @@ templates:
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleAgreementLiquidatedBy
-        - event: AgreementLiquidatedByV2(address,indexed address,bytes32,indexed address,indexed address,uint256,int256,bytes)
-          handler: handleAgreementLiquidatedByV2
+        - event: AgreementLiquidatedV2(indexed address,bytes32,indexed address,indexed address,address,uint256,int256,bytes)
+          handler: handleAgreementLiquidatedV2
         - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
           handler: handleBurned
         - event: Minted(indexed address,indexed address,uint256,bytes,bytes)

@@ -6,7 +6,7 @@ import {
     Burned,
     Minted,
     Sent,
-    AgreementLiquidatedByV2,
+    AgreementLiquidatedV2,
 } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
@@ -16,7 +16,7 @@ import {
     TokenDowngradedEvent,
     TransferEvent,
     SentEvent,
-    AgreementLiquidatedByV2Event,
+    AgreementLiquidatedV2Event,
 } from "../../generated/schema";
 import {createEventID, tokenHasValidHost} from "../utils";
 import {
@@ -33,7 +33,7 @@ import {BigInt, ethereum, log} from "@graphprotocol/graph-ts";
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
     liquidatorAccount: string,
-    penaltyAccount: string,
+    targetAccount: string,
     bondAccount: string
 ): void {
     getOrInitSuperToken(event.address, event.block);
@@ -44,7 +44,7 @@ function updateHOLEntitiesForLiquidation(
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        penaltyAccount,
+        targetAccount,
         event.address.toHex(),
         event.block
     );
@@ -84,8 +84,8 @@ export function handleAgreementLiquidatedBy(
     );
 }
 
-export function handleAgreementLiquidatedByV2(
-    event: AgreementLiquidatedByV2
+export function handleAgreementLiquidatedV2(
+    event: AgreementLiquidatedV2
 ): void {
     let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
@@ -93,14 +93,14 @@ export function handleAgreementLiquidatedByV2(
         return;
     }
 
-    createAgreementLiquidatedByV2Entity(event);
+    createAgreementLiquidatedV2Entity(event);
 
     let liquidatorAccount = getOrInitAccount(
         event.params.liquidatorAccount,
         event.block
     );
-    let penaltyAccount = getOrInitAccount(
-        event.params.penaltyAccount,
+    let targetAccount = getOrInitAccount(
+        event.params.targetAccount,
         event.block
     );
     let rewardAccount = getOrInitAccount(
@@ -111,7 +111,7 @@ export function handleAgreementLiquidatedByV2(
     updateHOLEntitiesForLiquidation(
         event,
         liquidatorAccount.id,
-        penaltyAccount.id,
+        targetAccount.id,
         rewardAccount.id
     );
 }
@@ -263,19 +263,19 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     ev.save();
 }
 
-function createAgreementLiquidatedByV2Entity(
-    event: AgreementLiquidatedByV2
+function createAgreementLiquidatedV2Entity(
+    event: AgreementLiquidatedV2
 ): void {
-    let ev = new AgreementLiquidatedByV2Event(
-        createEventID("AgreementLiquidatedByV2", event)
+    let ev = new AgreementLiquidatedV2Event(
+        createEventID("AgreementLiquidatedV2", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
-    ev.name = "AgreementLiquidatedByV2";
+    ev.name = "AgreementLiquidatedV2";
     ev.addresses = [
         event.address,
         event.params.liquidatorAccount,
-        event.params.penaltyAccount,
+        event.params.targetAccount,
         event.params.rewardAccount,
     ];
     ev.blockNumber = event.block.number;
@@ -283,10 +283,10 @@ function createAgreementLiquidatedByV2Entity(
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
     ev.agreementId = event.params.id;
-    ev.penaltyAccount = event.params.penaltyAccount;
+    ev.targetAccount = event.params.targetAccount;
     ev.rewardAccount = event.params.rewardAccount;
     ev.rewardAmount = event.params.rewardAmount;
-    ev.penaltyAccountBalanceDelta = event.params.penaltyAccountBalanceDelta;
+    ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
 
     let decoded = ethereum.decode(
         "(uint256, uint8)",

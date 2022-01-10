@@ -256,16 +256,16 @@ query getAllEvents($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 1
             agreementId
             agreementClass
         }
-        ... on AgreementLiquidatedByV2Event {
+        ... on AgreementLiquidatedV2Event {
             ...eventFields
             token
             liquidatorAccount
             agreementClass
             agreementId
-            penaltyAccount
+            targetAccount
             rewardAccount
             rewardAmount
-            penaltyAccountBalanceDelta
+            targetAccountBalanceDelta
             version
             liquidationType
         }

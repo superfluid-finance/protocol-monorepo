@@ -744,6 +744,7 @@ contract ConstantFlowAgreementV1 is
         // TODO: GDA deposit should be considered here too
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
         bool isPatricianPeriod;
+        bytes liquidationTypeData;
 
         // To retrieve patrician period
         // Note: curly brackets are to handle stack too deep overflow issue
@@ -773,27 +774,29 @@ contract ConstantFlowAgreementV1 is
             // account which receives the reward will depend on the period (PIC or Pleb)
             // #1.a.1 yes: then reward = (SD / TD) * RL
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalCFADeposit);
+            liquidationTypeData = abi.encode(1, isPatricianPeriod ? 0 : 1);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId, // id
-                abi.encode(1, isPatricianPeriod ? 0 : 1), // liquidationTypeData (1 means "v1") - 0 or 1 for pic or pleb
-                liquidator, // liquidatorAccount
+                liquidationTypeData, // (1 means "v1" of this encoding schema) - 0 or 1 for pic or pleb
+                liquidator, // liquidatorAddress
                 isPatricianPeriod, // useDefaultRewardAccount: only in the PIC period, else liquidator gets reward
-                flowParams.sender, // penaltyAccount
+                flowParams.sender, // targetAccount
                 rewardAmount.toUint256(), // rewardAmount: remaining deposit of the flow to be liquidated
-                rewardAmount.mul(-1) // penaltyAccountBalanceDelta: amount deducted from the flow sender
+                rewardAmount.mul(-1) // targetAccountBalanceDelta: amount deducted from the flow sender
             );
         } else {
             // #1.b.1 no: then the liquidator takes full amount of the single deposit
             int256 rewardAmount = signedSingleDeposit;
+            liquidationTypeData = abi.encode(1, 2);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId, // id
-                abi.encode(1, 2), // liquidationTypeData (1 means "v1") - 2 for pirate/bailout period
-                liquidator, // liquidatorAccount
+                abi.encode(1, 2), // (1 means "v1" of this encoding schema) - 2 for pirate/bailout period
+                liquidator, // liquidatorAddress
                 false, // useDefaultRewardAccount: out of PIC period, in pirate period, so always false
-                flowParams.sender, // penaltyAccount
+                flowParams.sender, // targetAccount
                 rewardAmount.toUint256(), // rewardAmount: single deposit of flow
-                totalRewardLeft.mul(-1) // penaltyAccountBalanceDelta: amount to bring sender AB to 0
-                // NOTE: bailoutAmount = rewardAmount + penaltyAccountBalanceDelta + paid by rewardAccount
+                totalRewardLeft.mul(-1) // targetAccountBalanceDelta: amount to bring sender AB to 0
+                // NOTE: bailoutAmount = rewardAmount + targetAccountBalanceDelta + paid by rewardAccount
             );
         }
     }

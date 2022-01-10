@@ -415,9 +415,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
         bytes memory liquidationTypeData,
         address liquidatorAccount, // the address executing the liquidation
         bool useDefaultRewardAccount,
-        address penaltyAccount, // the flow sender
+        address targetAccount, // the flow sender
         uint256 rewardAmount,
-        int256 penaltyAccountBalanceDelta
+        int256 targetAccountBalanceDelta
     ) external override onlyAgreement {
         address defaultRewardAccount;
         address rewardAccount;
@@ -446,20 +446,21 @@ abstract contract SuperfluidToken is ISuperfluidToken
             // - pirate/bailout period: reward account has to pay bailout amount
             _balances[rewardAccount] = _balances[rewardAccount]
                 .sub(rewardAmount.toInt256())
-                .sub(penaltyAccountBalanceDelta);
+                .sub(targetAccountBalanceDelta);
         }
 
-        _balances[penaltyAccount] = _balances[penaltyAccount]
-            .add(penaltyAccountBalanceDelta);
+        // if targetAccountBalanceDelta > 0, it is a bailout, else a solvent liquidation
+        _balances[targetAccount] = _balances[targetAccount]
+            .add(targetAccountBalanceDelta);
 
-        emit AgreementLiquidatedByV2(
-            liquidatorAccount,
+        emit AgreementLiquidatedV2(
             msg.sender,
             id,
-            penaltyAccount,
+            liquidatorAccount,
+            targetAccount,
             rewardAccount,
             rewardAmount,
-            penaltyAccountBalanceDelta,
+            targetAccountBalanceDelta,
             liquidationTypeData
         );
     }

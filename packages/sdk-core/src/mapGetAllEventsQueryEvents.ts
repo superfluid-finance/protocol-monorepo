@@ -54,9 +54,9 @@ export const mapGetAllEventsQueryEvents = (
                     rewardAmount: x.rewardAmount,
                     token: x.token,
                 });
-            case "AgreementLiquidatedByV2Event":
-                return typeGuard<events.AgreementLiquidatedByV2Event>({
-                    name: "AgreementLiquidatedByV2",
+            case "AgreementLiquidatedV2Event":
+                return typeGuard<events.AgreementLiquidatedV2Event>({
+                    name: "AgreementLiquidatedV2",
                     id: x.id,
                     blockNumber: Number(x.blockNumber),
                     transactionHash: x.transactionHash,
@@ -65,10 +65,10 @@ export const mapGetAllEventsQueryEvents = (
                     liquidatorAccount: x.liquidatorAccount,
                     agreementClass: x.agreementClass,
                     agreementId: x.agreementId,
-                    penaltyAccount: x.penaltyAccount,
+                    targetAccount: x.targetAccount,
                     rewardAccount: x.rewardAccount,
                     rewardAmount: x.rewardAmount,
-                    penaltyAccountBalanceDelta: x.penaltyAccountBalanceDelta,
+                    targetAccountBalanceDelta: x.targetAccountBalanceDelta,
                     version: x.version,
                     liquidationType: x.liquidationType,
                 });

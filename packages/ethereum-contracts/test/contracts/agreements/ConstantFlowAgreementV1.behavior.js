@@ -281,14 +281,14 @@ async function _shouldChangeFlow({
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
-                    "AgreementLiquidatedByV2",
+                    "AgreementLiquidatedV2",
                     {
-                        liquidatorAccount: cfaDataModel.roles.agent,
                         agreementClass: testenv.sf.agreements.cfa.address,
-                        penaltyAccount: cfaDataModel.roles.sender,
+                        liquidatorAccount: cfaDataModel.roles.agent,
+                        targetAccount: cfaDataModel.roles.sender,
                         rewardAccount: cfaDataModel.roles.reward,
                         rewardAmount: expectedRewardAmount.toString(),
-                        penaltyAccountBalanceDelta: expectedRewardAmount
+                        targetAccountBalanceDelta: expectedRewardAmount
                             .mul(toBN(-1))
                             .toString(),
                         liquidationTypeData,
@@ -340,14 +340,14 @@ async function _shouldChangeFlow({
                 await expectEvent.inTransaction(
                     tx.tx,
                     testenv.sf.contracts.ISuperToken,
-                    "AgreementLiquidatedByV2",
+                    "AgreementLiquidatedV2",
                     {
-                        liquidatorAccount: cfaDataModel.roles.agent,
                         agreementClass: testenv.sf.agreements.cfa.address,
-                        penaltyAccount: cfaDataModel.roles.sender,
+                        liquidatorAccount: cfaDataModel.roles.agent,
+                        targetAccount: cfaDataModel.roles.sender,
                         rewardAccount: cfaDataModel.roles.reward,
                         rewardAmount: expectedRewardAmount.toString(),
-                        penaltyAccountBalanceDelta:
+                        targetAccountBalanceDelta:
                             expectedBailoutAmount.toString(),
                         liquidationTypeData,
                     }

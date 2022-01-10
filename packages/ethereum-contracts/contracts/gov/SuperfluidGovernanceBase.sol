@@ -282,7 +282,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         require(liquidationPeriod > patricianPeriod
             && liquidationPeriod < type(uint32).max
             && patricianPeriod < type(uint32).max,
-            "SFGov: Invalid liquidationPeriod or patricianPeriod input."
+            "SFGov: Invalid liquidationPeriod or patricianPeriod"
         );
         emit ThreePsConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
         uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);

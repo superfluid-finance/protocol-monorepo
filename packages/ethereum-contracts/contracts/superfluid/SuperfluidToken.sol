@@ -429,7 +429,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         }
 
         // we set the rewardAccount to the user who executed the liquidation if
-        // no rewardAccount is set
+        // no rewardAccount is set (ANARCHY MODE - should not occur in reality, for testing purposes)
         if (defaultRewardAccount == address(0)) {
             rewardAccount = liquidatorAccount;
         }

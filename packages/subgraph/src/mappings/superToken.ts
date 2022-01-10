@@ -18,7 +18,7 @@ import {
     SentEvent,
     AgreementLiquidatedByV2Event,
 } from "../../generated/schema";
-import { createEventID, tokenHasValidHost } from "../utils";
+import {createEventID, tokenHasValidHost} from "../utils";
 import {
     getOrInitAccount,
     getOrInitSuperToken,
@@ -27,8 +27,8 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
-import { ethereum } from "@graphprotocol/graph-ts";
+import {getHostAddress} from "../addresses";
+import {BigInt, ethereum, log} from "@graphprotocol/graph-ts";
 
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
@@ -295,7 +295,13 @@ function createAgreementLiquidatedByV2Entity(
     let tuple = decoded.toTuple();
     let version = tuple[0].toBigInt();
     let liquidationType = tuple[1].toI32();
-    ev.version = version;
+    if (version != BigInt.fromI32(1)) {
+        log.error("Version type is incorrect = {}", [version.toString()]);
+    }
+
+    // if version is 0, this means that something went wrong
+    ev.version = version == BigInt.fromI32(1) ? version : BigInt.fromI32(0);
+
     ev.liquidationType = liquidationType;
     ev.save();
 }

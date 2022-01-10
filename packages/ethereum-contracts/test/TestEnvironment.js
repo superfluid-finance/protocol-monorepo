@@ -614,11 +614,9 @@ module.exports = class TestEnvironment {
 
     formatRawBalanceSnapshot(rawBalanceSnapshot) {
         return {
-            availableBalance: Number(
-                rawBalanceSnapshot.availableBalance.toString()
-            ),
-            deposit: Number(rawBalanceSnapshot.deposit.toString()),
-            owedDeposit: Number(rawBalanceSnapshot.owedDeposit.toString()),
+            availableBalance: rawBalanceSnapshot.availableBalance,
+            deposit: rawBalanceSnapshot.deposit,
+            owedDeposit: rawBalanceSnapshot.owedDeposit,
             timestamp: rawBalanceSnapshot.timestamp,
         };
     }
@@ -708,10 +706,8 @@ module.exports = class TestEnvironment {
                 // maybe we want to monitor deposit, owedDeposit, etc,
                 .filter(
                     (x) =>
-                        !_.every(
-                            x[1],
-                            (y) =>
-                                y.availableBalance == x[1][0].availableBalance
+                        !_.every(x[1], (y) =>
+                            y.availableBalance.eq(x[1][0].availableBalance)
                         )
                 )
                 // map into new easily processable data
@@ -719,9 +715,11 @@ module.exports = class TestEnvironment {
                     x[1].map((y) => ({
                         alias: this.toAlias(x[0]),
                         address: x[0],
-                        availableBalance: wad4human(y.availableBalance),
-                        deposit: wad4human(y.deposit),
-                        owedDeposit: wad4human(y.owedDeposit),
+                        availableBalance: wad4human(
+                            y.availableBalance.toString()
+                        ),
+                        deposit: wad4human(y.deposit.toString()),
+                        owedDeposit: wad4human(y.owedDeposit.toString()),
                         timestamp: y.timestamp,
                     }))
                 )
@@ -853,14 +851,6 @@ module.exports = class TestEnvironment {
                     balances2[address]
                 );
 
-                if (this.plotData.enabled) {
-                    this.updatePlotDataAccountBalanceSnapshot(
-                        superToken.address,
-                        address,
-                        balances2[address]
-                    );
-                }
-
                 this.updateAccountExpectedBalanceDelta(
                     superToken.address,
                     address,
@@ -901,6 +891,14 @@ module.exports = class TestEnvironment {
                             superTokenBalance.deposit
                         )
                     );
+
+                if (this.plotData.enabled) {
+                    this.updatePlotDataAccountBalanceSnapshot(
+                        superToken.address,
+                        userAddress,
+                        superTokenBalance
+                    );
+                }
 
                 this.printSingleBalance(
                     `${alias} underlying token balance`,

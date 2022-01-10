@@ -186,6 +186,9 @@ describe("Using ConstantFlowAgreement v1", function () {
         allowCriticalAccount,
         solvencyStatuses,
     }) {
+        // get initial state
+        await t.validateSystemInvariance({allowCriticalAccount});
+
         const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
             superToken: superToken.address,
             account: t.aliases[sender],
@@ -280,6 +283,9 @@ describe("Using ConstantFlowAgreement v1", function () {
         seconds,
         solvencyStatuses,
     }) {
+        // get initial state
+        await t.validateSystemInvariance({allowCriticalAccount});
+
         const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
             superToken: superToken.address,
             account: t.aliases[sender],

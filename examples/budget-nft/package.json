@@ -1,0 +1,26 @@
+{
+  "name": "budget-nft",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@decentral.ee/web3-helpers": "^0.5.3",
+    "@openzeppelin/contracts": "^4.4.1",
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.8",
+    "@superfluid-finance/js-sdk": "^0.5.8",
+    "@truffle/contract": "^4.4.3",
+    "@truffle/hdwallet-provider": "^2.0.0",
+    "dotenv": "^10.0.0",
+    "truffle": "^5.4.28"
+  }
+}

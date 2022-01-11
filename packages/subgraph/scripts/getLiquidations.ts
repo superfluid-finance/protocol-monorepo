@@ -311,7 +311,7 @@ const getLiquidatedStreams = async (
     // Get dictionaries for optimizations
     const superTokenSymbolToBoolDict = superTokensResponse.response.reduce(
         (acc, obj) => {
-            return { ...acc, [obj.underlyingToken.symbol.toLowerCase()]: true };
+            return { ...acc, [obj.underlyingToken?.symbol.toLowerCase()]: true };
         },
         {} as { [symbol: string]: boolean }
     );
@@ -319,7 +319,7 @@ const getLiquidatedStreams = async (
     const superTokenSymbolToIdDict = superTokensResponse.response.reduce(
         (acc, obj) => {
             const { id, underlyingToken } = obj;
-            return { ...acc, [underlyingToken.symbol.toLowerCase()]: id };
+            return { ...acc, [underlyingToken?.symbol.toLowerCase()]: id };
         },
         {} as { [symbol: string]: string }
     );

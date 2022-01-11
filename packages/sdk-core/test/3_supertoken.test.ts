@@ -66,7 +66,6 @@ describe("SuperToken Tests", () => {
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
-                        superTokenFactoryAddress: "",
                     },
                 });
             } catch (err: any) {
@@ -84,7 +83,6 @@ describe("SuperToken Tests", () => {
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
-                        superTokenFactoryAddress: "",
                     },
                 });
             } catch (err: any) {
@@ -561,7 +559,9 @@ describe("SuperToken Tests", () => {
                 daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils.parseUnits("0.000000002").toString(),
+                        indexValue: ethers.utils
+                            .parseUnits("0.000000002")
+                            .toString(),
                     })
                     .exec(alpha)
             )
@@ -619,7 +619,9 @@ describe("SuperToken Tests", () => {
                 daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils.parseUnits("0.000000003").toString(),
+                        indexValue: ethers.utils
+                            .parseUnits("0.000000003")
+                            .toString(),
                     })
                     .exec(alpha)
             )

@@ -174,7 +174,6 @@ export default class Framework {
                 networkName,
                 config: {
                     hostAddress: framework.superfluid,
-                    superTokenFactoryAddress: framework.superTokenFactory,
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
                 },
@@ -243,7 +242,10 @@ export default class Framework {
      * @returns `BatchCall` class
      */
     batchCall = (operations: Operation[]) => {
-        return new BatchCall({ operations, config: this.settings.config });
+        return new BatchCall({
+            operations,
+            hostAddress: this.settings.config.hostAddress,
+        });
     };
 
     /**

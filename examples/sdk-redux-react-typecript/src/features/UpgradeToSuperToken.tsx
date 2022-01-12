@@ -1,16 +1,13 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import {
-    useUpgradeToSuperTokenMutation,
-    useGetAllowanceForUpgradeToSuperTokenQuery,
-} from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const UpgradeToSuperToken: FC = (): ReactElement => {
     const [upgradeToSuperToken, { isLoading, error }] =
-        useUpgradeToSuperTokenMutation();
+        sfApi.useUpgradeToSuperTokenMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 
@@ -23,7 +20,7 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
         data: availableAllowance,
         isFetching: isAllowanceFetching,
         isError: isAllowanceQueryError,
-    } = useGetAllowanceForUpgradeToSuperTokenQuery(
+    } = sfApi.useGetAllowanceForUpgradeToSuperTokenQuery(
         {
             accountAddress: signerAddress,
             superTokenAddress: superToken,

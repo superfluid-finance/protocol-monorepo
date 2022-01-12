@@ -3,7 +3,6 @@ import {
     TrackedTransaction,
     transactionSelectors,
 } from "@superfluid-finance/sdk-redux";
-import { Loader } from "../Loader";
 import {
     Table,
     TableBody,

@@ -31,6 +31,9 @@ To get the package up and running you'll need to install the necessary dependenc
 yarn install && yarn build
 ```
 
+# Tutorial
+
+For the best and most immersive experience of learning how to use the main sdk-core features, I would highly recommend heading over to our [interactive tutorials](https://docs.superfluid.finance/superfluid/protocol-tutorials/interactive-tutorials).
 # Usage
 
 ## Framework Initialization
@@ -73,11 +76,39 @@ const web3jsSf = await Framework.create({
   provider: web3jsProvider
 });
 
+// injected web3.js initialization (Hardhat) 
+// most likely to be used on backend for testing
+// NOTE: if you're using truffle, you should be able to
+// omit the (global as any) as this should be
+// exposed already (in JS at least)
+const injectedWeb3jsSf = await Framework.create({
+  networkName: "custom",
+  provider: (global as any).web3,
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
+});
+
+// injected hardhat ethers initialization
+// most likely to be used on backend for testing
+import hardhat from "hardhat";
+const injectedHardhatEthersSf = await Framework.create({
+  networkName: "custom",
+  provider: hardhat.ethers,
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
+})
+
 // ethers.js + hardhat provider initialization (in testing environment w/ hardhat-ethers)
+import { ethers } from "hardhat";
 const [deployer] = await ethers.getSigners();
 const ethersProvider = deployer.provider;
 const ethersjsSf = await Framework.create({
-  networkName: "matic",
+  networkName: "custom",
+  dataMode: "WEB3_ONLY",
+  resolverAddress: <RESOLVER_ADDRESS>,
+  protocolReleaseVersion: "test",
   provider: ethersProvider
 });
 
@@ -89,6 +120,11 @@ const mmSf = await Framework.create({
 });
 
 // web3modal
+import Web3Modal from "web3modal";
+const web3Modal = new Web3Modal({
+  cacheProvider: false,
+  providerOptions: {}
+});
 const web3ModalRawProvider = await web3Modal.connect();
 const web3ModalProvider = new ethers.providers.Web3Provider(web3ModalRawProvider);
 const web3ModalSf = await Framework.create({
@@ -115,7 +151,7 @@ await onboard.walletSelect();
 
 > Note: You specify your project type in `package.json` - `"type": "module"` or `"type": "commonjs"`.
 
-This is the absolute minimum you need to provide the constructor (`chainId` or `networkName` and a `provider` object) if all you want to do are read operations. It is also important to note that the provider does not need to be an InfuraProvider - it just needs to satisfy the `ethers.Provider` interface.
+The absolute minimum you need to provide the constructor is `chainId` or `networkName` and a `provider` object if all you want to do are read operations. It is also important to note that the provider does not need to be an InfuraProvider - it just needs to satisfy the `SupportedProvider` interface: `ethers.providers.Provider | (typeof ethers & HardhatEthersHelpers) | Web3`.
 
 ## Helper Classes
 
@@ -145,8 +181,6 @@ const sf = await Framework.create({
 type Paging = { take: number, skip?: number, lastId?: string };
 
 const pageResult = await sf.query.
-  listAllResults(paging: Paging);
-  
   // The different queries can take different order by properties 
   // given the properties that exist on the entity itself.
   listAllSuperTokens({ isListed?: boolean },
@@ -331,10 +365,10 @@ const sf = await Framework.create({
 const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
 
 // load the usdcx SuperToken via the Framework
-const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // create an approve operation
-const approveOperation = usdcx.approve("0xab...", ethers.utils.parseUnits("100"));
+const approveOperation = usdcx.approve({ receiver: "0xab...", amount: ethers.utils.parseUnits("100").toString() });
 
 // execute the approve operation, passing in a signer
 const txn = await approveOperation.exec(signer);
@@ -343,7 +377,7 @@ const txn = await approveOperation.exec(signer);
 const receipt = await txn.wait();
 
 // or you can create and execute the transaction in a single line
-const approveTxn = await usdcx.approve("0xab...", ethers.utils.parseUnits("100")).exec(signer);
+const approveTxn = await usdcx.approve({ receiver: "0xab...", amount: ethers.utils.parseUnits("100").toString() }).exec(signer);
 const approveTxnReceipt = await approveTxn.wait();
 ```
 
@@ -358,7 +392,6 @@ import { ConstantFlowAgreementV1 } from "@superfluid-finance/sdk-core";
 
 const config = {
   hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
   cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
   idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
@@ -393,7 +426,7 @@ await sf.cfaV1.getNetFlow({
 sf.cfaV1.createFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   flowRate: string,
   userData?: string
 });
@@ -401,7 +434,7 @@ sf.cfaV1.createFlow({
 sf.cfaV1.updateFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   flowRate: string,
   userData?: string
 });
@@ -409,7 +442,7 @@ sf.cfaV1.updateFlow({
 sf.cfaV1.deleteFlow({
   sender: string,
   receiver: string,
-  token: string,
+  superToken: string,
   userData?: string
 });
 ```
@@ -444,7 +477,7 @@ const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provi
 const createFlowOperation = sf.cfaV1.createFlow({
   sender: "0x...",
   receiver: "0x...",
-  token: "0x...",
+  superToken: "0x...",
   flowRate: "1000000000"
 });
 const txnResponse = await createFlowOperation.exec(signer);
@@ -463,8 +496,7 @@ import { InstantDistributionAgreementV1 } from "@superfluid-finance/sdk-core";
 
 const config = {
   hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-  idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
   idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
@@ -599,7 +631,7 @@ const sf = await Framework.create({
   provider
 });
 
-const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 ```
 
 #### Direct Initialization
@@ -615,7 +647,6 @@ const provider = new ethers.providers.InfuraProvider(
 
 const config = {
   hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
   cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
   idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
@@ -623,7 +654,7 @@ const config = {
 const usdcx = await SuperToken.create({
   address: "0xCAa7349CEA390F89641fe306D93591f87595dc1F",
   config,
-  networkName: "matic",
+  networkName: "matic", // you can also pass in chainId instead (e.g. chainId: 137)
   provider
 });
 ```
@@ -631,7 +662,7 @@ const usdcx = await SuperToken.create({
 #### SuperToken Functions
 
 ```ts
-const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // ERC20 `Token`
 // Read functions
@@ -716,7 +747,7 @@ const sf = await Framework.create({
   provider
 });
 
-const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // Read example
 const name = await usdcx.name();
@@ -781,15 +812,8 @@ const batchCall = sf.batchCall([<OPERATION_A>, <OPERATION_B>, ...]);
 ```ts
 import { SuperToken } from "@superfluid-finance/sdk-core";
 
-const config = {
-  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
-};
-
 const batchCall = new BatchCall({
-  config,
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
   operations: [<OPERATION_A>, <OPERATION_B>, ...],
 });
 ```

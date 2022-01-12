@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useState } from "react";
 import { Box, Container, Paper, Typography } from "@mui/material";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
-import { Framework } from "@superfluid-finance/sdk-redux";
+import { Framework } from "@superfluid-finance/sdk-core";
 import { Loader } from "./Loader";
 import { SignerContext } from "./SignerContext";
 import { ListStreams } from "./features/ListStreams";

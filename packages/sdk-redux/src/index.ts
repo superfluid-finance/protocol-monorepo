@@ -13,3 +13,5 @@ export * from './redux-slices/transactions/trackedTransaction';
 
 export * from './redux-slices/rtk-query/createApiWithReactHooks';
 export * from './redux-slices/rtk-query/createApiWithoutReactHooks';
+
+export * from './redux-slices/rtk-query/queries/adHocSubgraphQuery';

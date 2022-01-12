@@ -19,6 +19,7 @@ import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
 import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
 import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
 
+import {AdHocSubgraphQuery} from './adHocSubgraphQuery';
 import {
     GetAllowanceForUpgradeToSuperToken,
     GetIndex,
@@ -34,6 +35,15 @@ import {
 } from './queries';
 
 export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
+    adHocSubgraph: builder.query<Record<string, unknown> | undefined, AdHocSubgraphQuery>({
+        keepUnusedDataFor: 0,
+        queryFn: async (arg) => {
+            const framework = await getFramework(arg.chainId);
+            return {
+                data: await framework.query.subgraphClient.request(arg.document, arg.variables),
+            };
+        },
+    }),
     getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperToken>({
         keepUnusedDataFor: 0, // We can't listen for "approval" event from Subgraph currently.
         providesTags: (_result, _error, arg) => [

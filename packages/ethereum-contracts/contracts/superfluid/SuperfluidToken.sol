@@ -458,7 +458,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
             id,
             liquidatorAccount,
             targetAccount,
-            rewardAccount,
+            useDefaultRewardAccount ? rewardAccount : liquidatorAccount,
             rewardAmount,
             targetAccountBalanceDelta,
             liquidationTypeData

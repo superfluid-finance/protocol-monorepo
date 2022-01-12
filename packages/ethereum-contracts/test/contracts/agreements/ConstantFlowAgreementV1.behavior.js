@@ -286,7 +286,10 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount: cfaDataModel.roles.reward,
+                        rewardAccount:
+                            time > testenv.configs.PATRICIAN_PERIOD
+                                ? cfaDataModel.roles.agent
+                                : cfaDataModel.roles.reward,
                         rewardAmount: expectedRewardAmount.toString(),
                         targetAccountBalanceDelta: expectedRewardAmount
                             .mul(toBN(-1))
@@ -345,7 +348,7 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount: cfaDataModel.roles.reward,
+                        rewardAccount: cfaDataModel.roles.agent,
                         rewardAmount: expectedRewardAmount.toString(),
                         targetAccountBalanceDelta:
                             expectedBailoutAmount.toString(),

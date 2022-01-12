@@ -1,6 +1,6 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {BN, expectRevert} = require("@openzeppelin/test-helpers");
+const {BN, expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateFlow,
@@ -1039,6 +1039,180 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                 }
             );
+
+            it("#1.4.13 allow liquidation with sender positive net flowrate", async () => {
+                // drain the sender into criticality
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber()
+                );
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+
+                // start a reverse flow leading to a slightly positive sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.add(toBN(1)).toString(),
+                });
+
+                assert.isTrue(
+                    (
+                        await cfa.getNetFlow(
+                            superToken.address,
+                            t.aliases[sender]
+                        )
+                    ).gt(toBN(0))
+                );
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+
+                // account still critical, should be possible to liquidate
+                await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+            });
+
+            it("#1.4.14 correct reward account for patrician period with two-way streams", async () => {
+                // drain the sender into patrician territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        1
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the rewardAddress
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: admin}
+                );
+            });
+
+            it("#1.4.15 correct reward account for plebs period with two-way streams", async () => {
+                // drain the sender into plebs territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        t.configs.PATRICIAN_PERIOD +
+                        1
+                );
+
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+                assert.isTrue(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should got to the agent (plebs rule)
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+            });
+
+            it("#1.4.16 correct reward account for pirate period", async () => {
+                // drain the sender into pirate territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
+                );
+
+                assert.isFalse(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // the agent should get the reward
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+            });
+
+            it("#1.4.17 correct reward account for pirate period with two-way streams", async () => {
+                // drain the sender into pirate territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
+                );
+
+                assert.isFalse(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // the agent should get the reward
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+            });
         });
 
         describe("#1.5 multiple flow liquidations", () => {

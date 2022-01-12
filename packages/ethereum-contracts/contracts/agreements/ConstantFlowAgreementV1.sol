@@ -744,7 +744,7 @@ contract ConstantFlowAgreementV1 is
         // TODO: GDA deposit should be considered here too
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
         bool isPatricianPeriod;
-        bytes liquidationTypeData;
+        bytes memory liquidationTypeData;
 
         // To retrieve patrician period
         // Note: curly brackets are to handle stack too deep overflow issue

@@ -142,7 +142,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 postIsCritical: true,
                 postIsSolvent: true,
             };
-            await _testSolventLiquidation({
+            await _testLiquidation({
                 sender,
                 receiver,
                 by,
@@ -167,7 +167,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                 postIsCritical: true,
                 postIsSolvent: false,
             };
-            await _testBailout({
+            await _testLiquidation({
+                isBailout: true,
                 sender,
                 receiver,
                 by,
@@ -178,13 +179,15 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
     }
 
-    async function _testSolventLiquidation({
+    async function _testLiquidation({
         sender,
         receiver,
         by,
         seconds,
         allowCriticalAccount,
         solvencyStatuses,
+        isBailout,
+        shouldSkipTimeTravel,
     }) {
         // get initial state
         await t.validateSystemInvariance({allowCriticalAccount});
@@ -223,110 +226,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await superToken.isAccountCriticalNow(t.aliases[sender])
             );
         } else {
-            // drain the balance until critical (`seconds` sec extra)
-            await timeTravelOnceAndVerifyAll({
-                time:
-                    t.configs.INIT_BALANCE.div(netFlowRate).toNumber() -
-                    LIQUIDATION_PERIOD +
-                    seconds,
-                allowCriticalAccount: true,
-            });
-        }
-
-        if (solvencyStatuses.postIsCritical) {
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-        } else {
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-        }
-
-        if (solvencyStatuses.postIsSolvent) {
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-        } else {
-            assert.isFalse(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-        }
-
-        const balanceData = await superToken.realtimeBalanceOfNow(
-            t.aliases[sender]
-        );
-        const timeInDeficit = netFlowRate.eq(toBN(0))
-            ? t.configs.PATRICIAN_PERIOD
-            : balanceData.availableBalance
-                  .div(toBN(0).sub(netFlowRate))
-                  .toNumber();
-
-        await shouldDeleteFlow({
-            testenv: t,
-            superToken,
-            sender,
-            receiver,
-            by,
-            time: timeInDeficit,
-            accountFlowInfo,
-        });
-
-        await verifyAll({allowCriticalAccount});
-    }
-
-    async function _testBailout({
-        sender,
-        receiver,
-        by,
-        allowCriticalAccount,
-        seconds,
-        solvencyStatuses,
-    }) {
-        // get initial state
-        await t.validateSystemInvariance({allowCriticalAccount});
-
-        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: t.aliases[sender],
-        });
-        const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
-
-        if (solvencyStatuses.preIsCritical) {
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-        } else {
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-        }
-
-        if (solvencyStatuses.preIsSolvent) {
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-        } else {
-            assert.isFalse(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-        }
-
-        if (netFlowRate.eq(toBN(0))) {
-            // ensure that when testing liquidations when the account has a 0 net flow
-            // that the available balance is negative: still can be liquidated but
-            // they aren't at risk of going insolvent unless their inflow stops
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-        } else {
-            // drain the balance until insolvent
-            await timeTravelOnceAndVerifyAll({
-                time:
-                    t.configs.INIT_BALANCE.div(netFlowRate).toNumber() +
-                    seconds,
-                allowCriticalAccount: true,
-            });
+            // provide the option to skip time travel, especially in the multi flow cases
+            if (!shouldSkipTimeTravel) {
+                const liquidationPeriod = isBailout ? 0 : LIQUIDATION_PERIOD;
+                // drain the balance until critical (`seconds` sec extra)
+                await timeTravelOnceAndVerifyAll({
+                    time:
+                        t.configs.INIT_BALANCE.div(netFlowRate).toNumber() -
+                        liquidationPeriod +
+                        seconds,
+                    allowCriticalAccount: true,
+                });
+            }
         }
 
         if (solvencyStatuses.postIsCritical) {
@@ -1246,7 +1157,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 // NOTE: the solvencyStatuses were added due to these multi flow tests because
                 // the status of the accounts vary now due to the fact that there is more than
                 // a single flow which the user has
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1259,7 +1170,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: true,
                     },
                 });
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: receiver,
@@ -1275,7 +1186,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.2 should be able to liquidate multiple flows when insolvent", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1288,7 +1200,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: false,
                     },
                 });
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1304,7 +1217,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.3 should be able to liquidate an insolvent flow and then a critical one", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1317,7 +1231,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: false,
                     },
                 });
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1333,7 +1247,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.4 should be able to liquidate a critical flow and then an insolvent one", async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1347,7 +1261,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     },
                 });
 
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1363,7 +1278,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.5 test agent multiple critical flow liquidations out of patrician period", async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1377,7 +1292,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     },
                 });
 
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1393,7 +1308,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.6 test agent multiple insolvent flow liquidations out of patrician period", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1407,7 +1323,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     },
                 });
 
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1423,7 +1340,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.7 test agent critical then insolvent flow liquidations out of patrician period", async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1437,7 +1354,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     },
                 });
 
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1453,7 +1371,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.5.8 test agent insolvent then critical flow liquidations out of patrician period", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1467,7 +1386,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     },
                 });
 
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1483,7 +1402,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        describe("#1.6 multiple flow with inflow liquidations", () => {
+        describe("#1.6 sender multi flow with inflow liquidations", () => {
             beforeEach(async () => {
                 await web3tx(
                     governance.setRewardAddress,
@@ -1493,6 +1412,11 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
                 await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
                 await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+                /**
+                 * Sender => Receiver @ 1.1
+                 * Sender => Agent @ 1
+                 * Agent => Sender @ 1
+                 */
                 await shouldCreateFlow({
                     testenv: t,
                     superToken,
@@ -1518,7 +1442,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.1 should be able to liquidate multiple critical flows with an inflow", async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1531,7 +1455,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: true,
                     },
                 });
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1547,7 +1471,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.2 should be able to liquidate multiple insolvent flows with an inflow", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1560,7 +1485,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: false,
                     },
                 });
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1576,7 +1502,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.3 should be able to liquidate insolvent flow then critical flow with an inflow", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1589,7 +1516,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: false,
                     },
                 });
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1605,7 +1532,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.4 should be able to liquidate critical flow then insolvent flow with an inflow", async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1618,7 +1545,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: true,
                     },
                 });
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1635,7 +1563,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             it(`#1.6.5 should be able to liquidate a user with a negative
                  AB and a net flow rate of 0 (crit->crit)`, async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
@@ -1648,7 +1576,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         postIsSolvent: true,
                     },
                 });
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver: agent,
                     by: agent,
@@ -1696,7 +1624,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.7 should reject when account is not critical after a bailout", async () => {
-                await _testBailout({
+                await _testLiquidation({
+                    isBailout: true,
                     sender,
                     receiver,
                     by: agent,
@@ -1750,7 +1679,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.8 should reject when account is not critical after a liquidation", async () => {
-                await _testSolventLiquidation({
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,

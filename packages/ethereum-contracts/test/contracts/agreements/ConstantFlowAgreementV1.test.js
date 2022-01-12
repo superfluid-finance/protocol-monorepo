@@ -989,7 +989,60 @@ describe("Using ConstantFlowAgreement v1", function () {
                 });
             });
 
-            it("#1.4.14 correct reward account for patrician period with two-way streams", async () => {
+            it("#1.4.14a correct reward attribution for patrician period", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into patrician territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        1
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the rewardAddress
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: admin}
+                );
+
+                // reward account (here: admin) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.notEqual(
+                    adminPostBal.toString(),
+                    adminInitBal.toString()
+                );
+
+                assert.equal(agentPostBal.toString(), agentInitBal.toString());
+            });
+
+            it("#1.4.14b correct reward attribution for patrician period with two-way flows", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
                 // drain the sender into patrician territory
                 await timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
@@ -1020,9 +1073,147 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "AgreementLiquidatedV2",
                     {rewardAccount: admin}
                 );
+
+                // reward account (here: admin) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.notEqual(
+                    adminPostBal.toString(),
+                    adminInitBal.toString()
+                );
+
+                assert.equal(agentPostBal.toString(), agentInitBal.toString());
             });
 
-            it("#1.4.15 correct reward account for plebs period with two-way streams", async () => {
+            it("#1.4.14c correct reward attribution for patrician period with multiple outflows", async () => {
+                // start another, larger, outflow
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases.carol,
+                    flowRate: FLOW_RATE1.mul(toBN(5)).toString(),
+                });
+
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into patrician territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(
+                        FLOW_RATE1.mul(toBN(6))
+                    ).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        1
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the rewardAddress
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: admin}
+                );
+
+                // reward account (here: admin) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.notEqual(
+                    adminPostBal.toString(),
+                    adminInitBal.toString()
+                );
+
+                assert.equal(agentPostBal.toString(), agentInitBal.toString());
+            });
+
+            it("#1.4.15a correct reward attribution for plebs period", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into plebs territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        t.configs.PATRICIAN_PERIOD +
+                        1
+                );
+
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+                assert.isTrue(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the agent (plebs rule)
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(adminPostBal.toString(), adminInitBal.toString());
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
+            });
+
+            it("#1.4.15b correct reward attribution for plebs period with two-way flows", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
                 // drain the sender into plebs territory
                 await timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
@@ -1054,16 +1245,99 @@ describe("Using ConstantFlowAgreement v1", function () {
                     by: t.aliases[agent],
                 });
 
-                // rewards should got to the agent (plebs rule)
+                // rewards should go to the agent (plebs rule)
                 await expectEvent.inTransaction(
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
                     {rewardAccount: t.aliases[agent]}
                 );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(adminPostBal.toString(), adminInitBal.toString());
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
             });
 
-            it("#1.4.16 correct reward account for pirate period", async () => {
+            it("#1.4.15c correct reward attribution for plebs period with multiple outflows", async () => {
+                // start another, larger, outflow
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases.carol,
+                    flowRate: FLOW_RATE1.mul(toBN(5)).toString(),
+                });
+
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into plebs territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(
+                        FLOW_RATE1.mul(toBN(6))
+                    ).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        t.configs.PATRICIAN_PERIOD +
+                        1
+                );
+
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+                assert.isTrue(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the agent (plebs rule)
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(adminPostBal.toString(), adminInitBal.toString());
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
+            });
+
+            it("#1.4.16a correct reward attribution for pirate period", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
                 // drain the sender into pirate territory
                 await timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
@@ -1088,9 +1362,26 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "AgreementLiquidatedV2",
                     {rewardAccount: t.aliases[agent]}
                 );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(
+                    adminPostBal.lt(adminInitBal),
+                    true,
+                    "reward account not affected by bailout as expected"
+                );
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
             });
 
-            it("#1.4.17 correct reward account for pirate period with two-way streams", async () => {
+            it("#1.4.16b correct reward attribution for pirate period with two-way flows", async () => {
                 // drain the sender into pirate territory
                 await timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1

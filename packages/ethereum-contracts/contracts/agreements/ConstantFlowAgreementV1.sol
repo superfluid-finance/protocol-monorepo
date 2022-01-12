@@ -746,20 +746,6 @@ contract ConstantFlowAgreementV1 is
         bool isPatricianPeriod;
         bytes memory liquidationTypeData;
 
-        // To retrieve patrician period
-        // Note: curly brackets are to handle stack too deep overflow issue
-        {
-            if (senderAccountState.flowRate == 0) {
-            // if the flowRate is 0, it is always the patricianPeriod
-                isPatricianPeriod = true;
-            } else {
-                (, uint256 patricianPeriod) = _decode3PsData(token);
-                isPatricianPeriod = availableBalance
-                    .div(senderAccountState.flowRate)
-                    .toUint256() <= patricianPeriod;
-            }
-        }
-
         // Liquidation rules:
         //    - let Available Balance = AB (is negative)
         //    -     Agreement Single Deposit = SD
@@ -768,9 +754,18 @@ contract ConstantFlowAgreementV1 is
         // #1 Can the total account deposit still cover the available balance deficit?
         int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
 
+        // To retrieve patrician period
+        // Note: curly brackets are to handle stack too deep overflow issue
+        {
+            (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
+            int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
+            // divisor cannot be zero with existing outflow
+            isPatricianPeriod = totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+        }
+
         // user is in a critical state
         if (totalRewardLeft >= 0) {
-            // the liquidator is always whoever triggers the liquidation, but the 
+            // the liquidator is always whoever triggers the liquidation, but the
             // account which receives the reward will depend on the period (PIC or Pleb)
             // #1.a.1 yes: then reward = (SD / TD) * RL
             int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalCFADeposit);
@@ -903,9 +898,9 @@ contract ConstantFlowAgreementV1 is
 
     function _decode3PsData(
         ISuperfluidToken token
-    ) 
-        internal view 
-        returns(uint256 liquidationPeriod, uint256 patricianPeriod) 
+    )
+        internal view
+        returns(uint256 liquidationPeriod, uint256 patricianPeriod)
     {
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());

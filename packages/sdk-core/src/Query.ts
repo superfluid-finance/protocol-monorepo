@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 import SFError from "./SFError";
 import { AllEvents, IEventFilter } from "./events";
 import {
@@ -456,14 +458,13 @@ export default class Query {
                 )
             );
 
-            if (allEvents.length) {
+            // Filter next events by last timestamp of an event.
+            // NOTE: Make sure to order events by timestamp in ascending order.
+            const lastEvent = _.last(allEvents);
+            if (lastEvent) {
                 callback(allEvents, unsubscribe);
-                // Filter next events by last timestamp of an event.
-                // NOTE: Make sure to order events by timestamp in ascending order.
-                const lastEvent = allEvents.slice(-1)[0];
-
                 // Next event polling is done for events that have a timestamp later than the current latest event.
-                eventQueryTimestamp = lastEvent!.timestamp;
+                eventQueryTimestamp = lastEvent.timestamp;
             }
 
             // This solution sets the interval based on last query returning, opposed to not taking request-response cycles into account at all.

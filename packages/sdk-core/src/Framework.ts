@@ -13,7 +13,7 @@ import SFError from "./SFError";
 import SuperToken from "./SuperToken";
 import IResolverABI from "./abi/IResolver.json";
 import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
-import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
+import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
@@ -138,14 +138,14 @@ export default class Framework {
         }
 
         try {
-            const data = chainIdToDataMap.get(chainId) || {
+            const resolverData = chainIdToResolverDataMap.get(chainId) || {
                 subgraphAPIEndpoint: "",
                 resolverAddress: "",
                 networkName: "",
             };
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
-                : data.resolverAddress;
+                : resolverData.resolverAddress;
             const resolver = new ethers.Contract(
                 resolverAddress,
                 IResolverABI.abi,
@@ -174,7 +174,6 @@ export default class Framework {
                 networkName,
                 config: {
                     hostAddress: framework.superfluid,
-                    superTokenFactoryAddress: framework.superTokenFactory,
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
                 },
@@ -243,7 +242,10 @@ export default class Framework {
      * @returns `BatchCall` class
      */
     batchCall = (operations: Operation[]) => {
-        return new BatchCall({ operations, config: this.settings.config });
+        return new BatchCall({
+            operations,
+            hostAddress: this.settings.config.hostAddress,
+        });
     };
 
     /**

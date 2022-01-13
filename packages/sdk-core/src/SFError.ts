@@ -40,13 +40,13 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
 interface ISFErrorProps {
     type: ErrorType;
     customMessage: string;
-    errorObject?: any;
+    errorObject?: unknown;
 }
 
 export default class SFError {
     readonly type: ErrorType;
     readonly message: string;
-    readonly errorObject?: any;
+    readonly errorObject?: unknown;
 
     constructor(props: ISFErrorProps) {
         const { type, errorObject, customMessage } = props;

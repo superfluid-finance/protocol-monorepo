@@ -14,7 +14,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const defaultNetwork = "polytest"
+const defaultNetwork = "ganache";
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -34,12 +34,23 @@ module.exports = {
   },
 
   networks: {
-    polytest: {
-      url: `${process.env.MUMBAI_ALCHEMY_URL}`,// using alchemy instead of moralis. add your own URL in .env
-      gasPrice: 1000000000,
-      accounts: [`0x${process.env.MUMBAI_DEPLOYER_PRIV_KEY}`]
-      },
-},
+    ganache: {
+      url: "http://127.0.0.1:8545",
+      chain_id: "1337",
+      port: 8545,
+      // accounts: {
+      //   mnemonic: `${process.env.GOERLI_MNEMONIC}`
+      // }
+    },
+    // polytest: {
+    //    url: `${process.env.MUMBAI_ALCHEMY_URL}`,// using alchemy instead of moralis. add your own URL in .env
+    //    gasPrice: 1000000000,
+    //    accounts: [`0x${process.env.MUMBAI_DEPLOYER_PRIV_KEY}`]
+    //    },
+      localhost: {
+        url: "http://localhost:8545",
+      }
+  },
     // rinkeby: {
     //   url: `${process.env.RINKEBY_ALCHEMY_URL}`,
     //   gasPrice:  1500000000,

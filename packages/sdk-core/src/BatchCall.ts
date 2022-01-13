@@ -4,11 +4,10 @@ import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
 import SFError from "./SFError";
 import SuperfluidABI from "./abi/Superfluid.json";
-import { IConfig } from "./interfaces";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
 interface IBatchCallOptions {
-    config: IConfig;
+    hostAddress: string;
     operations: ReadonlyArray<Operation>;
 }
 
@@ -37,7 +36,7 @@ export default class BatchCall {
 
     constructor(options: IBatchCallOptions) {
         this.options = options;
-        this.host = new Host(options.config.hostAddress);
+        this.host = new Host(options.hostAddress);
     }
 
     /**

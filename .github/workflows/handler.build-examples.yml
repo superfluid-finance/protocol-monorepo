@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, nftbillboard-userdata, sdk-redux-react-typecript, budget-nft]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript ]
         install: [locked-install, clean-install]
         node-version: [14.x]
 
@@ -64,7 +64,7 @@ jobs:
           fi
           # ready to build and test, each example project must provide
           # their instructions here
-          ./build-and-test.sh
+          sudo ./build-and-test.sh
        
 
   build-examples-done:

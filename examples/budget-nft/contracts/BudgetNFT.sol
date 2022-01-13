@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.0;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-import {ISuperfluid, ISuperToken, ISuperApp, ISuperAgreement, SuperAppDefinitions} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+import {ISuperfluid, ISuperToken, ISuperApp} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
@@ -20,7 +21,6 @@ contract BudgetNFT is ERC721, Ownable {
 
     uint256 public nextId; // this is so we can increment the number (each stream has new id we store in flowRates)
 
-    //write a deployment script using hardhat - deploy
     constructor(
         string memory _name,
         string memory _symbol,
@@ -65,7 +65,7 @@ contract BudgetNFT is ERC721, Ownable {
     {
         require(flowRate >= 0, "flowRate must be positive!");
 
-        address receiver;
+        address receiver = ownerOf(tokenId);
 
         if (flowRate == 0) {
             // subtract previous flowrate
@@ -81,10 +81,13 @@ contract BudgetNFT is ERC721, Ownable {
     function burnNFT(uint256 tokenId) external onlyOwner exists(tokenId) {
         address receiver = ownerOf(tokenId);
 
+        int96 rate = flowRates[tokenId];
         delete flowRates[tokenId];
         _burn(tokenId);
         //deletes flow to previous holder of nft & receiver of stream after it is burned
-        _deleteFlow(address(this), receiver);
+
+        //we will reduce flow of owner of NFT by total flow rate that was being sent to owner of this token
+        _reduceFlow(receiver, rate);
     }
 
     //now I will insert a hook in the _transfer, executing every time the token is moved

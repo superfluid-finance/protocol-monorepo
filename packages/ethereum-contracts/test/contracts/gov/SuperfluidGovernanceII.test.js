@@ -358,9 +358,9 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.4 SuperTokenMinimalDeposit", async () => {
+        it("#2.4 SuperTokenMinimumDeposit", async () => {
             await expectRevert(
-                governance.setSuperTokenMinimalDeposit(
+                governance.setSuperTokenMinimumDeposit(
                     superfluid.address,
                     ZERO_ADDRESS,
                     42069
@@ -368,25 +368,25 @@ describe("Superfluid Ownable Governance Contract", function () {
                 onlyOwnerReason
             );
             await expectRevert(
-                governance.clearSuperTokenMinimalDeposit(
+                governance.clearSuperTokenMinimumDeposit(
                     superfluid.address,
                     ZERO_ADDRESS
                 ),
                 onlyOwnerReason
             );
             await web3tx(
-                governance.setSuperTokenMinimalDeposit,
-                "governance.setSuperTokenMinimalDeposit DEFAULT 42069"
+                governance.setSuperTokenMinimumDeposit,
+                "governance.setSuperTokenMinimumDeposit DEFAULT 42069"
             )(superfluid.address, ZERO_ADDRESS, 42069, {from: alice});
             await web3tx(
-                governance.setSuperTokenMinimalDeposit,
-                "governance.setSuperTokenMinimalDeposit FAKE_TOKEN_ADDRESS1 88833"
+                governance.setSuperTokenMinimumDeposit,
+                "governance.setSuperTokenMinimumDeposit FAKE_TOKEN_ADDRESS1 88833"
             )(superfluid.address, FAKE_TOKEN_ADDRESS1, 88833, {
                 from: alice,
             });
             assert.equal(
                 (
-                    await governance.getSuperTokenMinimalDeposit(
+                    await governance.getSuperTokenMinimumDeposit(
                         superfluid.address,
                         FAKE_TOKEN_ADDRESS1
                     )
@@ -395,7 +395,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
             assert.equal(
                 (
-                    await governance.getSuperTokenMinimalDeposit(
+                    await governance.getSuperTokenMinimumDeposit(
                         superfluid.address,
                         FAKE_TOKEN_ADDRESS2
                     )
@@ -404,17 +404,54 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             await web3tx(
-                governance.clearSuperTokenMinimalDeposit,
-                "governance.clearSuperTokenMinimalDeposit FAKE_TOKEN_ADDRESS1"
+                governance.clearSuperTokenMinimumDeposit,
+                "governance.clearSuperTokenMinimumDeposit FAKE_TOKEN_ADDRESS1"
             )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
             assert.equal(
                 (
-                    await governance.getSuperTokenMinimalDeposit(
+                    await governance.getSuperTokenMinimumDeposit(
                         superfluid.address,
                         FAKE_TOKEN_ADDRESS1
                     )
                 ).toString(),
                 "42069"
+            );
+
+            await expectRevert(
+                governance.batchUpdateSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    [FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS2],
+                    [42033, 6988]
+                ),
+                onlyOwnerReason
+            );
+            await web3tx(
+                governance.batchUpdateSuperTokenMinimumDeposit,
+                "governance.batchUpdateSuperTokenMinimumDeposit FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS_2"
+            )(
+                superfluid.address,
+                [FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS2],
+                [42033, 6988],
+                {from: alice}
+            );
+
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "42033"
+            );
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS2
+                    )
+                ).toString(),
+                "6988"
             );
         });
 

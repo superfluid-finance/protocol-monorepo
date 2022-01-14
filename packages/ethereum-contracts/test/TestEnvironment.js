@@ -35,6 +35,8 @@ module.exports = class TestEnvironment {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(0),
             LIQUIDATION_PERIOD: 3600,
+            FLOW_RATE1: toWad(1).div(toBN(3600)), // 1 per hour
+            MINIMUM_DEPOSIT: toBN(1).shln(32),
         };
 
         this.constants = Object.assign(
@@ -257,6 +259,14 @@ module.exports = class TestEnvironment {
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
                 this.aliases.admin
+            ),
+            await web3tx(
+                this.contracts.governance.setSuperTokenMinimumDeposit,
+                "set superToken minimum deposit"
+            )(
+                this.sf.host.address,
+                this.constants.ZERO_ADDRESS,
+                this.configs.MINIMUM_DEPOSIT
             ),
         ]);
     }

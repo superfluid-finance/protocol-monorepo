@@ -260,22 +260,12 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
         }
 
-        const balanceData = await superToken.realtimeBalanceOfNow(
-            t.aliases[sender]
-        );
-        const timeInDeficit = netFlowRate.eq(toBN(0))
-            ? t.configs.PATRICIAN_PERIOD
-            : balanceData.availableBalance
-                  .div(toBN(0).sub(netFlowRate))
-                  .toNumber();
-
         await shouldDeleteFlow({
             testenv: t,
             superToken,
             sender,
             receiver,
             by,
-            time: timeInDeficit,
             accountFlowInfo,
         });
 

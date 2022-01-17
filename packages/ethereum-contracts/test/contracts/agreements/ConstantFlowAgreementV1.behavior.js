@@ -16,7 +16,6 @@ async function _shouldChangeFlow({
     mfa,
     userData,
     by,
-    time,
     accountFlowInfo,
 }) {
     console.log(`======== ${fn} begins ========`);
@@ -241,10 +240,6 @@ async function _shouldChangeFlow({
                 // in the patrician period, if it is, the reward recipient is the
                 // rewardAccount, otherwise it is the "agent" or the person who
                 // executes the liquidation
-                const rewardRecipientRole =
-                    time > testenv.configs.PATRICIAN_PERIOD
-                        ? "agent"
-                        : "reward";
 
                 // deposit = signedTotalDeposit
                 const totalRewardLeft = cfaDataModel
@@ -256,7 +251,19 @@ async function _shouldChangeFlow({
                 )
                     .mul(totalRewardLeft)
                     .div(toBN(accountFlowInfo.deposit));
-
+                const totalCFAOutflowRate = toBN(accountFlowInfo.deposit).div(
+                    toBN(testenv.configs.LIQUIDATION_PERIOD)
+                );
+                const isPatricianPeriod = totalRewardLeft
+                    .div(totalCFAOutflowRate)
+                    .gt(
+                        toBN(testenv.configs.LIQUIDATION_PERIOD).sub(
+                            toBN(testenv.configs.PATRICIAN_PERIOD)
+                        )
+                    );
+                const rewardRecipientRole = isPatricianPeriod
+                    ? "reward"
+                    : "agent";
                 testenv.printSingleBalance(
                     `expected reward amount (to ${rewardRecipientRole} account)`,
                     expectedRewardAmount
@@ -276,7 +283,7 @@ async function _shouldChangeFlow({
                 );
                 const liquidationTypeData = web3.eth.abi.encodeParameters(
                     ["uint256", "uint8"],
-                    [1, time > testenv.configs.PATRICIAN_PERIOD ? 1 : 0]
+                    [1, isPatricianPeriod ? 0 : 1]
                 );
                 await expectEvent.inTransaction(
                     tx.tx,
@@ -286,10 +293,9 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount:
-                            time > testenv.configs.PATRICIAN_PERIOD
-                                ? cfaDataModel.roles.agent
-                                : cfaDataModel.roles.reward,
+                        rewardAccount: isPatricianPeriod
+                            ? cfaDataModel.roles.reward
+                            : cfaDataModel.roles.agent,
                         rewardAmount: expectedRewardAmount.toString(),
                         targetAccountBalanceDelta: expectedRewardAmount
                             .mul(toBN(-1))
@@ -522,7 +528,6 @@ async function shouldDeleteFlow({
     receiver,
     mfa,
     by,
-    time,
     accountFlowInfo,
 }) {
     await _shouldChangeFlow({
@@ -534,7 +539,6 @@ async function shouldDeleteFlow({
         flowRate: 0,
         mfa,
         by,
-        time,
         accountFlowInfo,
     });
 }

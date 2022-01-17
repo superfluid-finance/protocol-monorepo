@@ -694,11 +694,10 @@ contract ConstantFlowAgreementV1 is
             // handles the case for when newDeposit is less than the minimumDeposit
             // and we are creating/updating
             if (newDeposit < minimumDeposit && flowParams.flowRate > 0) {
-                newDeposit = minimumDeposit;
                 depositDelta = minimumDeposit.toInt256()
                     .sub(oldFlowData.deposit.toInt256())
                     .add(oldFlowData.owedDeposit.toInt256());
-                revert("TOODLES");
+                newDeposit = minimumDeposit;
             }
 
             // STEP 3: update current flow info
@@ -709,8 +708,6 @@ contract ConstantFlowAgreementV1 is
                 oldFlowData.owedDeposit // leaving it unchanged for later adjustment
             );
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));
-            require(newDeposit >= minimumDeposit, "newDep wrong");
-            require(depositDelta >= minimumDeposit.toInt256(), "deposit delta is wrong");
         }
 
         // STEP 4: update sender and receiver account flow state with the deltas

@@ -21,7 +21,7 @@ describe("Using ConstantFlowAgreement v1", function () {
     const t = TestEnvironment.getSingleton();
 
     const {ZERO_ADDRESS} = t.constants;
-    const {LIQUIDATION_PERIOD, FLOW_RATE1} = t.configs;
+    const {LIQUIDATION_PERIOD, FLOW_RATE1, MINIMUM_DEPOSIT} = t.configs;
 
     let admin, alice, bob, dan;
     let superfluid;
@@ -822,17 +822,11 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         describe("#1.10 should support different flow rates", () => {
-            const MINIMAL_DEPOSIT = toBN(1).shln(32);
-            console.log("MINIMAL_DEPOSIT", MINIMAL_DEPOSIT.toString());
-            console.log(
-                "t.configs.MINIMUM_DEPOSIT",
-                t.configs.MINIMUM_DEPOSIT.toString()
-            );
             [
                 ["small", toBN(2)],
-                // ["typical", FLOW_RATE1],
-                // ["large", toWad(42).div(toBN(3600))],
-                // ["maximum", MAXIMUM_FLOW_RATE.div(toBN(LIQUIDATION_PERIOD))],
+                ["typical", FLOW_RATE1],
+                ["large", toWad(42).div(toBN(3600))],
+                ["maximum", MAXIMUM_FLOW_RATE.div(toBN(LIQUIDATION_PERIOD))],
             ].forEach(([label, flowRate], i) => {
                 it(`#1.10.${i} should support ${label} flow rate (${flowRate})`, async () => {
                     // sufficient liquidity for the test case
@@ -840,18 +834,10 @@ describe("Using ConstantFlowAgreement v1", function () {
                     // - it adds an additional 60 seconds as extra safe margin
                     const marginalLiquidity = flowRate.mul(toBN(60));
                     const sufficientLiquidity = BN.max(
-                        MINIMAL_DEPOSIT.add(marginalLiquidity),
+                        MINIMUM_DEPOSIT.add(marginalLiquidity),
                         flowRate
                             .mul(toBN(LIQUIDATION_PERIOD))
                             .add(marginalLiquidity)
-                    );
-                    console.log(
-                        "marginalLiquidity",
-                        marginalLiquidity.toString()
-                    );
-                    console.log(
-                        "sufficientLiquidity.toString()",
-                        sufficientLiquidity.toString()
                     );
                     await testToken.mint(t.aliases.alice, sufficientLiquidity, {
                         from: t.aliases.alice,

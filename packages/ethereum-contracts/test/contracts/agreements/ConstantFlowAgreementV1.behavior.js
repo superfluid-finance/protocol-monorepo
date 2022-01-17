@@ -509,8 +509,6 @@ async function _shouldChangeFlow({
                 expectedFlowInfo[flowName].owedDeposit.toString(),
                 `wrong owed deposit amount of the ${flowName} flow`
             );
-            console.log(flowData.flowInfo2.deposit);
-            console.log(expectedFlowInfo[flowName].deposit.toString()); // we hardcode this
             assert.equal(
                 flowData.flowInfo2.deposit,
                 expectedFlowInfo[flowName].deposit.toString(),
@@ -695,11 +693,13 @@ async function _shouldChangeFlow({
         // }
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
-            deposit: mainFlowDeposit
-                .add(mainFlowAllowanceUsed)
-                .lt(testenv.configs.MINIMUM_DEPOSIT)
-                ? testenv.configs.MINIMUM_DEPOSIT
-                : mainFlowDeposit,
+            deposit:
+                mainFlowDeposit
+                    .add(mainFlowAllowanceUsed)
+                    .lt(testenv.configs.MINIMUM_DEPOSIT) &&
+                toBN(flowRate).gt(toBN(0))
+                    ? clipDepositNumber(testenv.configs.MINIMUM_DEPOSIT, true) // rounding down
+                    : mainFlowDeposit.add(mainFlowAllowanceUsed),
             owedDeposit: mainFlowAllowanceUsed,
         };
         // console.log("!!!! main",

@@ -279,7 +279,7 @@ class MFASupport {
                     notTouched,
                 });
 
-                const mfaFlowDepositAllowance = clipDepositNumber(
+                const originalMfaFlowDepositAllowance = clipDepositNumber(
                     toBN(depositAllowance)
                         .mul(toBN(mfa.receivers[receiverAlias].proportion))
                         .mul(toBN(mfa.ratioPct))
@@ -287,8 +287,14 @@ class MFASupport {
                         .div(toBN(totalProportions)),
                     true /* rounding down */
                 );
+                const mfaFlowDepositAllowance =
+                    originalMfaFlowDepositAllowance.lt(
+                        testenv.configs.MINIMUM_DEPOSIT
+                    ) && toBN(flowRate).gt(toBN(0))
+                        ? testenv.configs.MINIMUM_DEPOSIT
+                        : originalMfaFlowDepositAllowance;
 
-                const mfaFlowRate = toBN(mfaFlowDepositAllowance).div(
+                const mfaFlowRate = toBN(originalMfaFlowDepositAllowance).div(
                     toBN(testenv.configs.LIQUIDATION_PERIOD)
                 );
 
@@ -698,7 +704,7 @@ async function _shouldChangeFlow({
                     .add(mainFlowAllowanceUsed)
                     .lt(testenv.configs.MINIMUM_DEPOSIT) &&
                 toBN(flowRate).gt(toBN(0))
-                    ? clipDepositNumber(testenv.configs.MINIMUM_DEPOSIT, true) // rounding down
+                    ? testenv.configs.MINIMUM_DEPOSIT
                     : mainFlowDeposit.add(mainFlowAllowanceUsed),
             owedDeposit: mainFlowAllowanceUsed,
         };

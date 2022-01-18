@@ -20,6 +20,9 @@ const TestToken = artifacts.require("TestToken");
 const {BN} = require("@openzeppelin/test-helpers");
 const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
 
+const {
+    clipDepositNumber,
+} = require("./contracts/agreements/ConstantFlowAgreementV1.behavior.js");
 let _singleton;
 
 /**
@@ -36,7 +39,7 @@ module.exports = class TestEnvironment {
             AUM_DUST_AMOUNT: toBN(0),
             LIQUIDATION_PERIOD: 3600,
             FLOW_RATE1: toWad(1).div(toBN(3600)), // 1 per hour
-            MINIMUM_DEPOSIT: toWad(0.25),
+            MINIMUM_DEPOSIT: clipDepositNumber(toWad(0.25), false),
         };
 
         this.constants = Object.assign(

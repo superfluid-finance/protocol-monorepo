@@ -842,21 +842,21 @@ describe("Using ConstantFlowAgreement v1", function () {
                     await testToken.mint(t.aliases.alice, sufficientLiquidity, {
                         from: t.aliases.alice,
                     });
-                    await t.upgradeBalance("alice", sufficientLiquidity);
+                    await t.upgradeBalance(sender, sufficientLiquidity);
 
                     await shouldCreateFlow({
                         testenv: t,
                         superToken,
-                        sender: "alice",
-                        receiver: "bob",
+                        sender,
+                        receiver,
                         flowRate: flowRate.div(toBN(2)),
                     });
 
                     await shouldUpdateFlow({
                         testenv: t,
                         superToken,
-                        sender: "alice",
-                        receiver: "bob",
+                        sender,
+                        receiver,
                         flowRate: flowRate,
                     });
 

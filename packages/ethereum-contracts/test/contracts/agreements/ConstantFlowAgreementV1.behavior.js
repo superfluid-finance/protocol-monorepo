@@ -690,13 +690,6 @@ async function _shouldChangeFlow({
             mainFlowDeposit, // appAllowanceUsed
             newAppAllowanceUsed
         );
-        // adjust deposit allowance refunds to refund less
-        // if (mfaAllowanceUsedDelta.ltn(0)) {
-        //     mfaAllowanceUsedAdjusted = mfaAllowanceUsedAdjusted.add(
-        //         clipDepositNumber(mfaAllowanceUsedDelta.mul(toBN(-1)), true /* rounding down */)
-        //             .add(mfaAllowanceUsedDelta)
-        //     );
-        // }
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
             deposit:
@@ -708,12 +701,6 @@ async function _shouldChangeFlow({
                     : mainFlowDeposit.add(mainFlowAllowanceUsed),
             owedDeposit: mainFlowAllowanceUsed,
         };
-        // console.log("!!!! main",
-        //     flowRate.toString(),
-        //     mainFlowDeposit.toString(),
-        //     mainFlowAppAllowance.toString(),
-        //     newAppAllowanceUsed.toString(),
-        //     mainFlowAllowanceUsed.toString());
     }
 
     // load balance before flow change

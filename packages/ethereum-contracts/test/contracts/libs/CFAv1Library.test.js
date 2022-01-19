@@ -219,8 +219,106 @@ describe("CFAv1 Library testing", function () {
         });
     });
 
-    describe("3 - Expect revert cases", async () => {
-        it("3.1 - Create should revert if flow exists", async () => {
+    describe("3 - Create, update, delete flow w user data, and check withCtx user data functions", async function () {
+        it("3.1 - create flow with user data, run withCtx user data in callback", async () => {
+            await CFALibraryMock.createFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "5858024691358", //10 per month
+                web3.eth.abi.encodeParameter("string", "HODL"),
+                {from: alice}
+            );
+
+            let inFlow = await cfa.getFlow(
+                superToken.address,
+                CFALibraryMock.address,
+                TradeableCashflowMock.address
+            );
+
+            let outFlow = await cfa.getFlow(
+                superToken.address,
+                TradeableCashflowMock.address,
+                bob
+            );
+
+            assert.equal(inFlow.flowRate, "5858024691358");
+            //this second assertion tests the callback inside of tradeable cashflow
+            assert.equal(outFlow.flowRate, "5858024691358");
+            assert.equal(await TradeableCashflowMock.userData(), "HODL");
+        });
+
+        it("3.2 - update flow with user data, run withCtx user data in callback", async () => {
+            await CFALibraryMock.createFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "5858024691358", //10 per month
+                web3.eth.abi.encodeParameter("string", "HODL"),
+                {from: alice}
+            );
+
+            await CFALibraryMock.updateFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "6958024691358", //10 per month
+                web3.eth.abi.encodeParameter("string", "WAGMI"),
+                {from: alice}
+            );
+
+            let inFlow = await cfa.getFlow(
+                superToken.address,
+                CFALibraryMock.address,
+                TradeableCashflowMock.address
+            );
+
+            let outFlow = await cfa.getFlow(
+                superToken.address,
+                TradeableCashflowMock.address,
+                bob
+            );
+
+            assert.equal(inFlow.flowRate, "6958024691358");
+            //this second assertion tests the callback inside of tradeable cashflow
+            assert.equal(outFlow.flowRate, "6958024691358");
+            assert.equal(await TradeableCashflowMock.userData(), "WAGMI");
+        });
+
+        it("3.3 - delete flow with user data, run withCtx user data in callback", async () => {
+            await CFALibraryMock.createFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                "5858024691358", //10 per month
+                web3.eth.abi.encodeParameter("string", "HODL"),
+                {from: alice}
+            );
+
+            await CFALibraryMock.deleteFlowWithUserDataTest(
+                superToken.address,
+                TradeableCashflowMock.address,
+                web3.eth.abi.encodeParameter("string", "NGMI"),
+                {from: alice}
+            );
+
+            let inFlow = await cfa.getFlow(
+                superToken.address,
+                CFALibraryMock.address,
+                TradeableCashflowMock.address
+            );
+
+            let outFlow = await cfa.getFlow(
+                superToken.address,
+                TradeableCashflowMock.address,
+                bob
+            );
+
+            assert.equal(inFlow.flowRate, "0");
+            //this second assertion tests the callback inside of tradeable cashflow
+            assert.equal(outFlow.flowRate, "0");
+            assert.equal(await TradeableCashflowMock.userData(), "NGMI");
+        });
+    });
+
+    describe("4 - Expect revert cases", async () => {
+        it("4.1 - Create should revert if flow exists", async () => {
             await CFALibraryMock.createFlowTest(
                 superToken.address,
                 bob,
@@ -238,7 +336,7 @@ describe("CFAv1 Library testing", function () {
             );
         });
 
-        it("3.2 - Update should revert if flow does not exist", async () => {
+        it("4.2 - Update should revert if flow does not exist", async () => {
             await expectRevert(
                 CFALibraryMock.updateFlowTest(
                     superToken.address,
@@ -250,7 +348,7 @@ describe("CFAv1 Library testing", function () {
             );
         });
 
-        it("3.3 - Delete should revert if flow does not exist", async () => {
+        it("4.3 - Delete should revert if flow does not exist", async () => {
             await expectRevert(
                 CFALibraryMock.deleteFlowTest(superToken.address, alice, {
                     from: bob,
@@ -259,7 +357,7 @@ describe("CFAv1 Library testing", function () {
             );
         });
 
-        it("3.4 - It should revert if given an invalid ctx", async () => {
+        it("4.4 - It should revert if given an invalid ctx", async () => {
             await expectRevert(
                 CFALibraryMock.createFlowWithCtxTest(
                     "0x",

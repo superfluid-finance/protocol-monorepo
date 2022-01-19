@@ -870,7 +870,6 @@ describe("Using ConstantFlowAgreement v1", function () {
         describe("#1.11 should properly handle minimum deposit", () => {
             beforeEach(async () => {
                 // give admin some balance for liquidations
-                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
                 await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
             });
             const flowRateAtMinDeposit = t.configs.MINIMUM_DEPOSIT.div(
@@ -967,6 +966,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                 }
             );
+
             context(
                 "#1.11.3 should be able to create flow where calcDeposit = min deposit.",
                 () => {
@@ -1011,6 +1011,27 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                 }
             );
+
+            it("#1.11.4 should revert if trying to create a flow without enough minimum deposit.", async () => {
+                // transfer balance - (minimumDeposit + 1 away)
+                await t.transferBalance(
+                    sender,
+                    receiver,
+                    t.configs.INIT_BALANCE.sub(
+                        t.configs.MINIMUM_DEPOSIT.add(toBN(1))
+                    )
+                );
+                await expectRevert(
+                    shouldCreateFlow({
+                        testenv: t,
+                        superToken,
+                        sender,
+                        receiver,
+                        flowRate: FLOW_RATE1,
+                    }),
+                    "CFA: not enough available balance"
+                );
+            });
         });
     });
 

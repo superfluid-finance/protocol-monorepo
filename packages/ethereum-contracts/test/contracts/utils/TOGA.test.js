@@ -510,17 +510,8 @@ describe("TOGA", function () {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, maxRate);
         await assertNetFlow(superToken, alice, maxRate);
 
-        const balanceBefore = await superToken.balanceOf(toga.address);
-        const timeToCritical = Number(
-            balanceBefore.div(toBN(maxRate)).toString()
-        );
-        const iterations = Math.ceil(timeToCritical / maxRate);
         // critical stream is liquidated - remaining bond goes to zero
-        for (let i = 0; i < iterations; i++) {
-            // we must iterate over a loop otherwise the time traveler throws an error
-            // about only being able to store a number up to 53 bits
-            await timeTravelOnce(1e6);
-        }
+        await timeTravelOnce(1e6);
 
         await liquidateExitStream(superToken); // a sentinel would do this
 
@@ -670,7 +661,7 @@ describe("TOGA", function () {
         );
     });
 
-    it("#18 previous PIC can't grief new bidder with gas draining send() hook", async () => {
+    it("#18 previous PIC can't grief new bidder with gas draining send() hook [ @skip-on-coverage ]", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);

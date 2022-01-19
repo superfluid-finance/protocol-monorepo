@@ -229,22 +229,16 @@ const E = (module.exports = {
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
         //
         "avalanche-C": {
-            ...createNetworkDefaultConfiguration(
-                "avalanche-C",
-                43114 /* chainId */
-            ),
-            network_id: 1,
+            ...createNetworkDefaultConfiguration("avalanche-C"),
+            network_id: 43114,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         "avalanche-fuji": {
-            ...createNetworkDefaultConfiguration(
-                "avalanche-fuji",
-                43113 /* chainId */
-            ),
-            network_id: 1,
+            ...createNetworkDefaultConfiguration("avalanche-fuji"),
+            network_id: 43113,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,

@@ -660,7 +660,7 @@ describe("TOGA", function () {
         );
     });
 
-    it("#18 previous PIC can't grief new bidder with gas draining send() hook", async () => {
+    it("#18 previous PIC can't grief new bidder with gas draining send() hook [ @skip-on-coverage ]", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);

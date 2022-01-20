@@ -14,6 +14,7 @@ const {
  *
  * Usage: npx truffle exec scripts/gov-transfer-framework-ownership.js : {NEW_GOV_OWNER} [ {NEW_RESOLVER_ADMIN} ]
  *        if NEW_RESOLVER_ADMIN is not set, only governance ownership is changed
+ *        set NEW_GOV_OWNER to the current owner in order to only set a new resolver admin
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -48,7 +49,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    {
+    if (newGovOwner.toLowerCase() !== myAccount.toLowerCase()) {
         const govAddress = await sf.host.getGovernance.call();
         console.log("Governance address", govAddress);
         const ownable = await sf.contracts.Ownable.at(govAddress);
@@ -60,9 +61,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         } else {
             console.log("ERR: I am not owner of the governance.");
         }
+    } else {
+        console.log("I remain the owned of the governance.");
     }
 
-    if (newResolverAdmin !== undefined) {
+    if (
+        newResolverAdmin !== undefined &&
+        newResolverAdmin.toLowerCase() !== myAccount.toLowerCase()
+    ) {
         console.log("Resolver address", sf.resolver.address);
         const ADMIN_ROLE = "0x" + "0".repeat(64);
         const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
@@ -78,5 +84,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         } else {
             console.log("ERR: I am not admin of the resolver.");
         }
+    } else {
+        console.log("I remain the admin of the resolver.");
     }
 });

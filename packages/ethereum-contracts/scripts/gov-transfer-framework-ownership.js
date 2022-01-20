@@ -12,7 +12,8 @@ const {
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/gov-transfer-framework-ownership.js : {NEW_OWNER}
+ * Usage: npx truffle exec scripts/gov-transfer-framework-ownership.js : {NEW_GOV_OWNER} [ {NEW_RESOLVER_ADMIN} ]
+ *        if NEW_RESOLVER_ADMIN is not set, only governance ownership is changed
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -20,14 +21,25 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 ) {
     let {protocolReleaseVersion} = options;
 
-    if (args.length !== 1) {
+    if (args.length !== 1 && args.length !== 2) {
         throw new Error("Wrong number of arguments");
     }
-    const newOwner = args.shift();
+
+    let newResolverAdmin;
+    if (args.length === 2) {
+        newResolverAdmin = args.pop();
+    }
+    const newGovOwner = args.pop();
 
     const myAccount = (await web3.eth.getAccounts())[0];
     console.log("My account", myAccount);
-    console.log("Transfering ownership of the framework to", newOwner);
+    console.log("Transfering ownership of the framework to", newGovOwner);
+    if (newResolverAdmin !== undefined) {
+        console.log(
+            "Transfering admin role of the resolver to",
+            newResolverAdmin
+        );
+    }
 
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
@@ -37,24 +49,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     await sf.initialize();
 
     {
-        console.log("Resolver address", sf.resolver.address);
-        const ADMIN_ROLE = "0x" + "0".repeat(64);
-        const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
-        if (await ac.hasRole(ADMIN_ROLE, myAccount)) {
-            await web3tx(
-                ac.grantRole,
-                "Grant admin rights of the resolver to new owner"
-            )(ADMIN_ROLE, newOwner);
-            await web3tx(
-                ac.revokeRole,
-                "Revoke my admin rights to the resolver"
-            )(ADMIN_ROLE, myAccount);
-        } else {
-            console.log("I am not admin of the resolver.");
-        }
-    }
-
-    {
         const govAddress = await sf.host.getGovernance.call();
         console.log("Governance address", govAddress);
         const ownable = await sf.contracts.Ownable.at(govAddress);
@@ -62,9 +56,27 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             await web3tx(
                 ownable.transferOwnership,
                 "Transfer the ownership of the governance to new owner"
-            )(newOwner);
+            )(newGovOwner);
         } else {
-            console.log("I am not owner of the governance.");
+            console.log("ERR: I am not owner of the governance.");
+        }
+    }
+
+    if (newResolverAdmin !== undefined) {
+        console.log("Resolver address", sf.resolver.address);
+        const ADMIN_ROLE = "0x" + "0".repeat(64);
+        const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
+        if (await ac.hasRole(ADMIN_ROLE, myAccount)) {
+            await web3tx(
+                ac.grantRole,
+                "Grant admin rights of the resolver to new admin"
+            )(ADMIN_ROLE, newResolverAdmin);
+            await web3tx(
+                ac.revokeRole,
+                "Revoke my admin rights to the resolver"
+            )(ADMIN_ROLE, myAccount);
+        } else {
+            console.log("ERR: I am not admin of the resolver.");
         }
     }
 });

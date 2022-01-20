@@ -2,7 +2,7 @@ import {isPlainObject} from '@reduxjs/toolkit';
 import {SerializeQueryArgs} from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs';
 
 export const getSerializeQueryArgs =
-    (): SerializeQueryArgs<unknown> =>
+    (): SerializeQueryArgs<any> =>
     ({endpointName, queryArgs}) => {
         // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
 

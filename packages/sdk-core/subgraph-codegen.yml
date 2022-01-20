@@ -23,6 +23,7 @@ generates:
             - "typescript"
     src/subgraph/queries/:
         config:
+            dedupeFragments: true
             nonOptionalTypename: false
             skipTypename: true
         preset: near-operation-file

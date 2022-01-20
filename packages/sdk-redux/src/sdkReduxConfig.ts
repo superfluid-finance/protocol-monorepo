@@ -1,8 +1,8 @@
 import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
-import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSlice';
-import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraphSlice';
+import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSliceInferredType';
+import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/sfSubgraphSliceInferredType';
 import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
 
 interface FrameworkLocator {

@@ -3,7 +3,6 @@ import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import {BaseQueryFn, CreateApi} from '@reduxjs/toolkit/query';
 
 import {typeGuard} from '../../utils';
-import {BaseQuery, BaseSuperTokenMutation, TransactionInfo} from '../argTypes';
 
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
 import {getSerializeQueryArgs} from './getSerializeQueryArgs';
@@ -24,10 +23,10 @@ export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateAp
     });
 
 export function apiSliceBaseQuery(): BaseQueryFn<
-    BaseSuperTokenMutation | BaseQuery<unknown>,
-    TransactionInfo | Record<string, unknown>,
-    ValidationError,
+    void,
     unknown,
+    ValidationError,
+    Record<string, unknown>,
     MutationMeta
 > {
     return function () {
@@ -35,17 +34,4 @@ export function apiSliceBaseQuery(): BaseQueryFn<
     };
 }
 
-export type ApiSliceEndpointBuilder = EndpointBuilder<
-    BaseQueryFn<
-        BaseSuperTokenMutation | BaseQuery<unknown>,
-        TransactionInfo | Record<string, unknown>,
-        ValidationError,
-        unknown,
-        MutationMeta
-    >,
-    CacheTagTypes,
-    'sfApi'
->;
-
-// NOTE: This might not include all the type info.
-export type SfApiSliceInferredType = ReturnType<typeof createApiSlice>;
+export type ApiSliceEndpointBuilder = EndpointBuilder<ReturnType<typeof apiSliceBaseQuery>, CacheTagTypes, 'sfApi'>;

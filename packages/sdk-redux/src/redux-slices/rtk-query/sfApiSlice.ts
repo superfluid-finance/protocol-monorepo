@@ -1,69 +1,51 @@
-import {isPlainObject} from '@reduxjs/toolkit';
 import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
-import {CreateApi} from '@reduxjs/toolkit/query';
-import _ from 'lodash';
+import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import {BaseQueryFn, CreateApi} from '@reduxjs/toolkit/query';
 
 import {typeGuard} from '../../utils';
+import {BaseQuery, BaseSuperTokenMutation, TransactionInfo} from '../argTypes';
 
-import {baseQuery} from './baseQuery';
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
-import {addEntityEndpoints} from './entities/addEntityEndpoints';
+import {getSerializeQueryArgs} from './getSerializeQueryArgs';
 import {addMutationEndpoints} from './mutations/addMutationEndpoints';
 import {addQueryEndpoints} from './queries/addQueryEndpoints';
+import {MutationMeta, ValidationError} from './returnTypes';
 
 export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
         reducerPath: 'sfApi',
-        baseQuery: baseQuery(),
-        tagTypes: [
-            typeGuard<CacheTagTypes>('Event'),
-            typeGuard<CacheTagTypes>('Index'),
-            typeGuard<CacheTagTypes>('Stream'),
-            typeGuard<CacheTagTypes>('Token'),
-        ],
+        baseQuery: apiSliceBaseQuery(),
+        tagTypes: typeGuard<CacheTagTypes[]>(['Event', 'Index', 'Stream', 'Token']),
         endpoints: (builder) => ({
             ...addQueryEndpoints(builder),
             ...addMutationEndpoints(builder),
-            ...addEntityEndpoints(builder),
         }),
-        serializeQueryArgs: ({endpointName, queryArgs}) => {
-            // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
-
-            // Comment from RTK-Query: Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
-            return `${endpointName}(${JSON.stringify(queryArgs, (_key, value) =>
-                isPlainObject(value)
-                    ? Object.keys(value)
-                          .sort()
-                          .reduce<any>((acc, key) => {
-                              acc[key] = normalizeValue((value as any)[key]);
-                              return acc;
-                          }, {})
-                    : normalizeValue(value)
-            )})`;
-        },
+        serializeQueryArgs: getSerializeQueryArgs(),
     });
+
+export function apiSliceBaseQuery(): BaseQueryFn<
+    BaseSuperTokenMutation | BaseQuery<unknown>,
+    TransactionInfo | Record<string, unknown>,
+    ValidationError,
+    unknown,
+    MutationMeta
+> {
+    return function () {
+        throw new Error('All queries & mutations must use the `queryFn` definition syntax.');
+    };
+}
+
+export type ApiSliceEndpointBuilder = EndpointBuilder<
+    BaseQueryFn<
+        BaseSuperTokenMutation | BaseQuery<unknown>,
+        TransactionInfo | Record<string, unknown>,
+        ValidationError,
+        unknown,
+        MutationMeta
+    >,
+    CacheTagTypes,
+    'sfApi'
+>;
 
 // NOTE: This might not include all the type info.
 export type SfApiSliceInferredType = ReturnType<typeof createApiSlice>;
-
-// NOTE: Regex taken from Ethers.
-const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
-
-// Normalize addresses and empty strings for cache keys.
-const normalizeValue = (value: unknown) => lowerCaseIfAddress(undefinedIfEmpty(value));
-
-const undefinedIfEmpty = (value: unknown) => {
-    if (value === '') {
-        return undefined;
-    }
-    return value;
-};
-
-const lowerCaseIfAddress = (value: unknown) => {
-    if (_.isString(value)) {
-        if (value.match(isAddressRegex)) {
-            return value.toLowerCase();
-        }
-    }
-    return value;
-};

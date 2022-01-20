@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { FormGroup, TextField } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
 import { GenericDataGrid } from "./GenericDataGrid";
 import { TokenStatistic_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
@@ -32,7 +32,7 @@ export const TokenStatistics: FC = (): ReactElement => {
           }
         : undefined;
 
-    const queryResult = sfApi.useTokenStatisticsQuery({
+    const queryResult = sfSubgraph.useTokenStatisticsQuery({
         chainId: queryChainId,
         filter: {},
         pagination: {

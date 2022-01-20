@@ -1,8 +1,8 @@
 import { RequestDocument } from "graphql-request";
-import _ from "lodash";
 
 import { typeGuard } from "./Query";
 import { ILightEntity } from "./interfaces";
+import { normalizeSubgraphFilter } from "./normalizeSubgraphFilter";
 import { OrderDirection, Ordering } from "./ordering";
 import {
     createPagedResult,
@@ -236,35 +236,3 @@ export abstract class SubgraphQueryHandler<
 
     abstract requestDocument: RequestDocument;
 }
-
-const normalizeSubgraphFilter = (value: object) => {
-    return Object.keys(value)
-        .sort()
-        .reduce<any>((acc, key) => {
-            acc[key] = normalizeValue((value as any)[key]);
-            return acc;
-        }, {});
-};
-
-// NOTE: Regex taken from Ethers.
-const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
-
-// Normalize addresses and empty strings for cache keys.
-const normalizeValue = (value: unknown) =>
-    lowerCaseIfAddress(undefinedIfEmpty(value));
-
-const undefinedIfEmpty = (value: unknown) => {
-    if (value === "") {
-        return undefined;
-    }
-    return value;
-};
-
-const lowerCaseIfAddress = (value: unknown) => {
-    if (_.isString(value)) {
-        if (value.match(isAddressRegex)) {
-            return value.toLowerCase();
-        }
-    }
-    return value;
-};

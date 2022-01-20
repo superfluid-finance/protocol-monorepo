@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { FormGroup, TextField } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
 import { GenericDataGrid } from "./GenericDataGrid";
 import { Token_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
@@ -25,12 +25,14 @@ export const Tokens: FC = (): ReactElement => {
 
     const [sortModel, setSortModel] = React.useState<GridSortModel>([]);
 
-    const order = !!sortModel[0] ? {
-        orderBy: sortModel[0].field as Token_OrderBy,
-        orderDirection: sortModel[0].sort!,
-    } : undefined;
+    const order = !!sortModel[0]
+        ? {
+              orderBy: sortModel[0].field as Token_OrderBy,
+              orderDirection: sortModel[0].sort!,
+          }
+        : undefined;
 
-    const queryResult = sfApi.useTokensQuery({
+    const queryResult = sfSubgraph.useTokensQuery({
         chainId: queryChainId,
         filter: {},
         pagination: {

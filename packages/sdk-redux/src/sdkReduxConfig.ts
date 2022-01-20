@@ -2,6 +2,7 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
 import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSlice';
+import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraphSlice';
 import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
 
 interface FrameworkLocator {
@@ -23,13 +24,21 @@ interface ApiSliceLocator {
     setApiSlice: (slice: SfApiSliceInferredType) => void;
 }
 
+interface SubgraphSliceLocator {
+    getSubgraphSlice: () => SfSubgraphSliceInferredType;
+    setSubgraphSlice: (slice: SfSubgraphSliceInferredType) => void;
+}
+
 interface TransactionSliceLocator {
     getTransactionSlice: () => SfTransactionSliceType;
     setTransactionSlice: (slice: SfTransactionSliceType) => void;
 }
 
-export default class SdkReduxConfig implements FrameworkAndSignerLocator, ApiSliceLocator, TransactionSliceLocator {
+export default class SdkReduxConfig
+    implements FrameworkAndSignerLocator, ApiSliceLocator, SubgraphSliceLocator, TransactionSliceLocator
+{
     apiSlice: SfApiSliceInferredType | undefined;
+    subgraphSlice: SfSubgraphSliceInferredType | undefined;
     transactionSlice: SfTransactionSliceType | undefined;
     frameworks = new Map<number, () => Promise<Framework>>();
     signers = new Map<number, () => Promise<Signer>>();
@@ -47,6 +56,14 @@ export default class SdkReduxConfig implements FrameworkAndSignerLocator, ApiSli
         }
 
         return this.apiSlice;
+    }
+
+    getSubgraphSlice(): SfSubgraphSliceInferredType {
+        if (!this.subgraphSlice) {
+            throw Error('The SubgraphSlice has not been set. Are you sure you initialized SDK-Redux properly?');
+        }
+
+        return this.subgraphSlice;
     }
 
     getFramework(chainId: number): Promise<Framework> {
@@ -80,6 +97,15 @@ export default class SdkReduxConfig implements FrameworkAndSignerLocator, ApiSli
             );
         }
         this.apiSlice = slice;
+    }
+
+    setSubgraphSlice(slice: SfSubgraphSliceInferredType): void {
+        if (this.subgraphSlice) {
+            console.log(
+                "Warning! SubgraphSlice was already set and will be overriden. This shouldn't be happening in production."
+            );
+        }
+        this.subgraphSlice = slice;
     }
 
     setFramework(chainId: number, framework: (() => Promise<Framework>) | Framework) {

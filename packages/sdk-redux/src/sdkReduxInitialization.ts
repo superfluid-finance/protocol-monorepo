@@ -4,6 +4,7 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
 import {createApiSlice} from './redux-slices/rtk-query/sfApiSlice';
+import {createSubgraphSlice} from './redux-slices/rtk-query/subgraphSlice';
 import {createTransactionSlice} from './redux-slices/transactions/createTransactionSlice';
 import {getConfig} from './sdkReduxConfig';
 
@@ -17,6 +18,13 @@ export const initializeSfApiSlice = <T extends ModuleName>(createApi: CreateApi<
     const slice = createApiSlice(createApi);
     getConfig().setApiSlice(slice as any);
     return {sfApi: slice};
+};
+
+// TODO(KK): add comment
+export const initializeSubgraphSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
+    const slice = createSubgraphSlice(createApi);
+    getConfig().setApiSlice(slice as any);
+    return {sfSubgraph: slice};
 };
 
 /**

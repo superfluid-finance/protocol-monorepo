@@ -16,6 +16,7 @@ config:
     removeComments: true
     onlyOperationTypes: true
     disableDescriptions: true
+    declarationKind: 'interface'
 generates:
     src/subgraph/schema.generated.ts:
         plugins:

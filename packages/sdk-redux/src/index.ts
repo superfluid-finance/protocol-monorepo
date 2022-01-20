@@ -7,7 +7,7 @@ export * from './redux-slices/rtk-query/queries/queries';
 export * from './redux-slices/rtk-query/entities/entityQueries';
 export * from './redux-slices/rtk-query/mutations/mutations';
 
-export {ValidationError, PossibleErrors} from './redux-slices/rtk-query/baseQuery';
+export {ValidationError, PossibleErrors} from './redux-slices/rtk-query/returnTypes';
 
 export * from './redux-slices/transactions/trackedTransaction';
 

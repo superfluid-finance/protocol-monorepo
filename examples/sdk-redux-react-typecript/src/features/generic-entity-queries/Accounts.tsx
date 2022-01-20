@@ -15,7 +15,7 @@ import {
     TextField,
 } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
 import { GenericDataGrid } from "./GenericDataGrid";
 import { Account_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
@@ -41,7 +41,7 @@ export const Accounts: FC = (): ReactElement => {
 
     const [isSuperApp, setIsSuperApp] = useState<boolean | undefined>();
 
-    const queryResult = sfApi.useAccountsQuery({
+    const queryResult = sfSubgraph.useAccountsQuery({
         chainId: queryChainId,
         filter: {
             isSuperApp: isSuperApp,

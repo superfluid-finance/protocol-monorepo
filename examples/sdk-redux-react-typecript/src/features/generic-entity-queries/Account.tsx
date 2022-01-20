@@ -10,7 +10,7 @@ import {
     TextField,
 } from "@mui/material";
 import { SignerContext } from "../../SignerContext";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { Loader } from "../../Loader";
 import { Error } from "../../Error";
 
@@ -19,7 +19,7 @@ export const Account: FC = (): ReactElement => {
     const [queryChainId, setQueryChainId] = useState<number>(chainId);
     const [accountAddress, setAccountAddress] = useState<string>(signerAddress);
 
-    const {data, isLoading, error, refetch } = sfApi.useAccountQuery({
+    const {data, isLoading, error, refetch } = sfSubgraph.useAccountQuery({
         chainId: queryChainId,
         id: accountAddress,
     });

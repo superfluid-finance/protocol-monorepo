@@ -13,11 +13,11 @@ import {
 
 import {getFramework} from '../../../sdkReduxConfig';
 import {insertIf, typeGuard} from '../../../utils';
-import {SfEndpointBuilder} from '../baseQuery';
 import {createEventTag} from '../cacheTags/eventTags';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
 import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
 import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
+import {ApiSliceEndpointBuilder} from '../sfApiSlice';
 
 import {AdHocSubgraphQuery} from './adHocSubgraphQuery';
 import {
@@ -34,7 +34,7 @@ import {
     ListUserInteractedSuperTokens,
 } from './queries';
 
-export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
+export const addQueryEndpoints = (builder: ApiSliceEndpointBuilder) => ({
     adHocSubgraph: builder.query<Record<string, unknown> | undefined, AdHocSubgraphQuery>({
         keepUnusedDataFor: 0,
         queryFn: async (arg) => {

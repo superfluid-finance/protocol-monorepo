@@ -4,7 +4,7 @@ module.exports = {
     },
     skipFiles: [
         "mocks/",
-        "apps",
+        "apps/SuperAppBase.sol",
         "libs/Strings.sol", // solidity test cases not included in coverage
     ],
     mocha: {

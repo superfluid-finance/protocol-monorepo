@@ -25,6 +25,15 @@
 
 ### 📖 [Docs](https://docs.superfluid.finance)
 
+# Important Notice
+
+We will be deprecating the JS-SDK and stop providing support/fixes in the near future, so please use either:
+-  [sdk-core](https://www.npmjs.com/package/@superfluid-finance/sdk-core) which can be used for both front-end and back-end dApp development, this can be thought of more as a thin wrapper of the protocol contracts and is unconcerned with state.
+
+or
+
+- [sdk-redux](https://www.npmjs.com/package/@superfluid-finance/sdk-redux) for building production-grade front-ends for dApps with state management, caching logic, transaction tracking, react hooks and much more.
+
 # Usage
 
 Here is a quick look at using the SDK.

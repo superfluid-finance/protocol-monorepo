@@ -234,6 +234,8 @@ export const getBalance = ({
     );
 };
 
+// NOTE: This is the only places we are allowed to use explicit any in the
+// sdk-core otherwise this doesn't work properly.
 export const isEthersProvider = (
     provider: any
 ): provider is ethers.providers.Provider => !!provider.getNetwork;

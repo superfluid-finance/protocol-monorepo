@@ -279,7 +279,7 @@ class MFASupport {
                     notTouched,
                 });
 
-                const mfaFlowDepositAllowance = clipDepositNumber(
+                const originalMfaFlowDepositAllowance = clipDepositNumber(
                     toBN(depositAllowance)
                         .mul(toBN(mfa.receivers[receiverAlias].proportion))
                         .mul(toBN(mfa.ratioPct))
@@ -287,8 +287,14 @@ class MFASupport {
                         .div(toBN(totalProportions)),
                     true /* rounding down */
                 );
+                const mfaFlowDepositAllowance =
+                    originalMfaFlowDepositAllowance.lt(
+                        testenv.configs.MINIMUM_DEPOSIT
+                    ) && toBN(flowRate).gt(toBN(0))
+                        ? testenv.configs.MINIMUM_DEPOSIT
+                        : originalMfaFlowDepositAllowance;
 
-                const mfaFlowRate = toBN(mfaFlowDepositAllowance).div(
+                const mfaFlowRate = toBN(originalMfaFlowDepositAllowance).div(
                     toBN(testenv.configs.LIQUIDATION_PERIOD)
                 );
 
@@ -684,24 +690,17 @@ async function _shouldChangeFlow({
             mainFlowDeposit, // appAllowanceUsed
             newAppAllowanceUsed
         );
-        // adjust deposit allowance refunds to refund less
-        // if (mfaAllowanceUsedDelta.ltn(0)) {
-        //     mfaAllowanceUsedAdjusted = mfaAllowanceUsedAdjusted.add(
-        //         clipDepositNumber(mfaAllowanceUsedDelta.mul(toBN(-1)), true /* rounding down */)
-        //             .add(mfaAllowanceUsedDelta)
-        //     );
-        // }
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
-            deposit: mainFlowDeposit.add(mainFlowAllowanceUsed),
+            deposit:
+                mainFlowDeposit
+                    .add(mainFlowAllowanceUsed)
+                    .lt(testenv.configs.MINIMUM_DEPOSIT) &&
+                toBN(flowRate).gt(toBN(0))
+                    ? testenv.configs.MINIMUM_DEPOSIT
+                    : mainFlowDeposit.add(mainFlowAllowanceUsed),
             owedDeposit: mainFlowAllowanceUsed,
         };
-        // console.log("!!!! main",
-        //     flowRate.toString(),
-        //     mainFlowDeposit.toString(),
-        //     mainFlowAppAllowance.toString(),
-        //     newAppAllowanceUsed.toString(),
-        //     mainFlowAllowanceUsed.toString());
     }
 
     // load balance before flow change

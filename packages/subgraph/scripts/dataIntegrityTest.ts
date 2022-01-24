@@ -132,6 +132,10 @@ async function main() {
         maticAddresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
+    // NOTE: this validates net flow rate, but we should aim to
+    // also validate the last updated timestamp
+    // this requires getting the most recent flowUpdated timestamp of a particular flow
+    // and comparing this with the getAccountFlowInfo data instead of getNetFlow data
     async function validateNetFlowRate(
         ats: IDataIntegrityAccountTokenSnapshot
     ) {
@@ -158,6 +162,10 @@ async function main() {
         currentBlockNumber,
         1000
     );
+
+    // NOTE: this gets all streams, including one's that have been deleted
+    // and restarted again => we must only get the one's that are active
+    // which just means where flowRate > 0
     const uniqueStreams = _.uniqBy(
         streams,
         (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
@@ -185,6 +193,7 @@ async function main() {
         1000
     );
 
+    // Account Level Invariant: Validate CFA Data of Current Streams
     const streamPromises = uniqueStreams.map(async (x) => {
         const stream = x;
         try {
@@ -225,6 +234,7 @@ async function main() {
         validateNetFlowRate(x)
     );
 
+    // Account Level Invariant: Validate IDA Data of Indexes
     const indexPromises = indexes.map(async (x) => {
         const index = x;
         try {
@@ -268,6 +278,7 @@ async function main() {
         }
     });
 
+    // Account Level Invariant: Validate IDA Data of Subscriptions
     const subscriptionPromises = subscriptions.map(async (x) => {
         const subscription = x;
         try {
@@ -326,6 +337,20 @@ async function main() {
             console.error("Error: ", error);
         }
     });
+
+    // General TODOS:
+    // Clean this file up, add more comments so it's more maintainable, use the SDK-core for the queries.
+
+    // ACCOUNT LEVEL TODOS
+    // TODO: Balance Data should match - RTB + Claimable === Subgraph Calculated Balance
+    
+    // GLOBAL LEVEL TODOS
+    // TODO: Validate Total Supply of SuperToken (contract) === Total Supply of SuperToken (subgraph) === sum of all accounts RTB 
+    // TODO: CFA Total netflow === 0
+    // TODO: Total Subscriber units sum === Total Publisher Index Units
+    // TODO: SuperTokens w/ Underlying Token => Underlying Token Total Supply >= sum RTB of SuperToken
+    // TODO: Subgraph FlowUpdatedEvents length === on chain FlowUpdated events length AND properties are matching
+    // (can apply to other interested events events)
     const chunkedStreamPromises = chunkPromises(streamPromises, 100);
     const chunkedIndexPromises = chunkPromises(indexPromises, 100);
     const chunkedSubscriptionPromises = chunkPromises(

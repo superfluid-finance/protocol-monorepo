@@ -94,7 +94,7 @@ export interface RelevantAddressProviderFromFilter<TFilter> {
 }
 
 export interface RelevantAddressProviderFromResult<TResult> {
-    getRelevantAddressesFromResult(result?: TResult): RelevantAddresses;
+    getRelevantAddressesFromResult(result?: TResult | null): RelevantAddresses;
 }
 
 export abstract class SubgraphQueryHandler<
@@ -149,7 +149,7 @@ export abstract class SubgraphQueryHandler<
         };
     }
 
-    getRelevantAddressesFromResult(result?: TResult): RelevantAddresses {
+    getRelevantAddressesFromResult(result?: TResult | null): RelevantAddresses {
         // TODO(KK): toLower, deDuplicate
 
         if (!result) {

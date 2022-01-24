@@ -28,7 +28,6 @@ import {
     TokenStatisticQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import {getFramework} from '../../sdkReduxConfig';
 import {BaseGetQuery, BaseQuery2} from '../argTypes';
 
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
@@ -63,22 +62,15 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
         tag: CacheTagTypes
     ) {
         return builder.query<TReturn | null, TQuery>({
-            queryFn: async (arg) => {
-                const framework = await getFramework(arg.chainId);
-                const {chainId, ...query} = arg;
-                const result = await queryHandler.get(framework.query.subgraphClient, query);
-                return {
-                    data: result,
-                };
-            },
-            providesTags: (result, _error, arg) => {
-                if (!result) {
-                    return [];
-                }
-
-                const relevantAddresses = queryHandler.getRelevantAddressesFromResult(result);
-                return provideTagsFromRelevantAddresses(arg.chainId, relevantAddresses, tag);
-            },
+            query: (arg) => ({
+                chainId: arg.chainId,
+                handle: (framework) => {
+                    const {chainId, ...query} = arg;
+                    return queryHandler.get(framework.query.subgraphClient, query);
+                },
+            }),
+            providesTags: (result, _error, arg) =>
+                provideTagsFromRelevantAddresses(arg.chainId, queryHandler.getRelevantAddressesFromResult(result), tag),
         });
     }
 
@@ -92,18 +84,19 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
         tag: CacheTagTypes
     ) {
         return builder.query<PagedResult<TReturn>, TQuery>({
-            queryFn: async (arg) => {
-                const framework = await getFramework(arg.chainId);
-                const {chainId, ...query} = arg;
-                const result = await queryHandler.list(framework.query.subgraphClient, query);
-                return {
-                    data: result,
-                };
-            },
-            providesTags: (_result, _error, arg) => {
-                const relevantAddresses = queryHandler.getRelevantAddressesFromFilter(arg.filter);
-                return provideTagsFromRelevantAddresses(arg.chainId, relevantAddresses, tag);
-            },
+            query: (arg) => ({
+                chainId: arg.chainId,
+                handle: (framework) => {
+                    const {chainId, ...query} = arg;
+                    return queryHandler.list(framework.query.subgraphClient, query);
+                },
+            }),
+            providesTags: (_result, _error, arg) =>
+                provideTagsFromRelevantAddresses(
+                    arg.chainId,
+                    queryHandler.getRelevantAddressesFromFilter(arg.filter),
+                    tag
+                ),
         });
     }
 

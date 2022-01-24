@@ -3,7 +3,7 @@ import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
 import Web3 from "web3";
 
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import {
     BASE_18,
     DAY_IN_SECONDS,

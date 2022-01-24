@@ -1,7 +1,7 @@
 import { DocumentNode } from "graphql";
 import { batchRequests, request } from "graphql-request";
 
-import SFError from "../SFError";
+import { SFError } from "../SFError";
 
 type RequestDocument = string | DocumentNode;
 

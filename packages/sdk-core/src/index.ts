@@ -43,3 +43,4 @@ export * from "./subgraph/events/indexUpdatedEvent/indexUpdatedEvent";
 export * from "./subgraph/events/subscriptionUnitsUpdatedEvents/subscriptionUnitsUpdatedEvents";
 
 export * from "./queryV2";
+export * from "./SFError";

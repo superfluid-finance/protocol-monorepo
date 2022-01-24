@@ -1,5 +1,5 @@
 import { IFrameworkOptions } from "./Framework";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import {
     chainIds,
     chainIdToResolverDataMap,

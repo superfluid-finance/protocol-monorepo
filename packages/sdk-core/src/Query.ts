@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,

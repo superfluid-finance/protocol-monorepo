@@ -1,7 +1,7 @@
 import {SubgraphGetQuery} from '@superfluid-finance/sdk-core';
 
 /**
- * Information about the transaction to locate it.
+ * Information about the transaction to locate it.BaseQu
  */
 export interface TransactionInfo {
     /** The transaction's network chain ID. */

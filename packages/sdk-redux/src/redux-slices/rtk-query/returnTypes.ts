@@ -1,4 +1,5 @@
 import {SerializedError} from '@reduxjs/toolkit';
+import {SFError} from '@superfluid-finance/sdk-core';
 
 export type ValidationError = {
     /**
@@ -14,4 +15,4 @@ export type MutationMeta = {
     monitorAddress: string;
 };
 
-export type PossibleErrors = ValidationError | SerializedError;
+export type PossibleErrors = ValidationError | SerializedError | SFError;

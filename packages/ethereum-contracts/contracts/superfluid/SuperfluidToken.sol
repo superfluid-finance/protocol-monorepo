@@ -28,6 +28,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
+    using SafeCast for int256;
 
     /// @dev Superfluid contract
     ISuperfluid immutable internal _host;
@@ -408,6 +409,61 @@ abstract contract SuperfluidToken is ISuperfluidToken
         }
     }
 
+    /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
+    function makeLiquidationPayoutsV2(
+        bytes32 id,
+        bytes memory liquidationTypeData,
+        address liquidatorAccount, // the address executing the liquidation
+        bool useDefaultRewardAccount,
+        address targetAccount, // the flow sender
+        uint256 rewardAmount,
+        int256 targetAccountBalanceDelta
+    ) external override onlyAgreement {
+        address defaultRewardAccount;
+        address rewardAccount;
+
+        {
+            ISuperfluidGovernance gov = _host.getGovernance();
+            defaultRewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+            rewardAccount = defaultRewardAccount;
+        }
+
+        // we set the rewardAccount to the user who executed the liquidation if
+        // no rewardAccount is set (ANARCHY MODE - should not occur in reality, for testing purposes)
+        if (defaultRewardAccount == address(0)) {
+            rewardAccount = liquidatorAccount;
+        }
+
+        if (useDefaultRewardAccount) {
+            _balances[rewardAccount] = _balances[rewardAccount]
+                .add(rewardAmount.toInt256());
+        } else {
+            _balances[liquidatorAccount] = _balances[liquidatorAccount]
+                .add(rewardAmount.toInt256());
+
+            // this can occur in two cases:
+            // - pleb period: the two amounts cancel each other out
+            // - pirate/bailout period: reward account has to pay bailout amount
+            _balances[rewardAccount] = _balances[rewardAccount]
+                .sub(rewardAmount.toInt256())
+                .sub(targetAccountBalanceDelta);
+        }
+
+        // if targetAccountBalanceDelta > 0, it is a bailout, else a solvent liquidation
+        _balances[targetAccount] = _balances[targetAccount]
+            .add(targetAccountBalanceDelta);
+
+        emit AgreementLiquidatedV2(
+            msg.sender,
+            id,
+            liquidatorAccount,
+            targetAccount,
+            useDefaultRewardAccount ? rewardAccount : liquidatorAccount,
+            rewardAmount,
+            targetAccountBalanceDelta,
+            liquidationTypeData
+        );
+    }
     /**************************************************************************
     * Modifiers
     *************************************************************************/

@@ -1,6 +1,9 @@
 import { gql } from "graphql-request";
 
-export const getStreams = gql`
+/**
+ * Gets current streams (where flow rate > 0)
+ */
+export const getCurrentStreams = gql`
     query getStreams($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: streams(
             block: { number: $blockNumber }
@@ -18,32 +21,17 @@ export const getStreams = gql`
             }
             sender {
                 id
-                accountTokenSnapshots {
-                    totalNetFlowRate
-                    token {
-                        id
-                    }
-                    account {
-                        id
-                    }
-                }
             }
             receiver {
                 id
-                accountTokenSnapshots {
-                    totalNetFlowRate
-                    token {
-                        id
-                    }
-                    account {
-                        id
-                    }
-                }
             }
         }
     }
 `;
 
+/**
+ * Gets indexes with same properties that exist when querying the contract.
+ */
 export const getIndexes = gql`
     query getIndex($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: indexes(
@@ -70,6 +58,9 @@ export const getIndexes = gql`
     }
 `;
 
+/**
+ * Gets subscriptions with same properties that exist when querying the contract.
+ */
 export const getSubscriptions = gql`
     query getSubscription($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: indexSubscriptions(
@@ -88,6 +79,7 @@ export const getSubscriptions = gql`
             units
             indexValueUntilUpdatedAt
             index {
+                id
                 indexId
                 indexValue
                 token {
@@ -96,6 +88,32 @@ export const getSubscriptions = gql`
                 publisher {
                     id
                 }
+            }
+        }
+    }
+`;
+
+/**
+ * Gets account token snapshots of all accounts that have ever interacted with
+ * the Superfluid protocol.
+ */
+export const getAccountTokenSnapshots = gql`
+    query getAccountTokenSnapshots($blockNumber: Int, $first: Int, $createdAt: Int) {
+        response: accountTokenSnapshots(
+            block: { number: $blockNumber }
+            first: $first
+            where: { createdAtTimestamp_gte: $createdAt }
+            orderBy: createdAtTimestamp
+            orderDirection: asc
+        ) {
+            id
+            createdAtTimestamp
+            totalNetFlowRate
+            token {
+                id
+            }
+            account {
+                id
             }
         }
     }

@@ -5,16 +5,12 @@ export interface IBaseEntity {
     readonly createdAtTimestamp: string;
 }
 
-export interface ILightStreamAccount extends ILightEntity {
-    readonly accountTokenSnapshots: IDataIntegrityAccountTokenSnapshot[];
-}
-
 export interface IDataIntegrityStream extends IBaseEntity {
     readonly updatedAtTimestamp: string;
     readonly currentFlowRate: string;
     readonly token: ILightEntity;
-    readonly sender: ILightStreamAccount;
-    readonly receiver: ILightStreamAccount;
+    readonly sender: ILightEntity;
+    readonly receiver: ILightEntity;
 }
 
 export interface IDataIntegrityIndex extends IBaseEntity {
@@ -33,6 +29,7 @@ export interface IDataIntegritySubscription extends IBaseEntity {
     readonly indexValueUntilUpdatedAt: string;
     readonly subscriber: ILightEntity;
     readonly index: {
+        readonly id: string;
         readonly indexId: string;
         readonly indexValue: string;
         readonly token: ILightEntity;
@@ -40,7 +37,7 @@ export interface IDataIntegritySubscription extends IBaseEntity {
     };
 }
 
-export interface IDataIntegrityAccountTokenSnapshot {
+export interface IDataIntegrityAccountTokenSnapshot extends IBaseEntity {
     readonly totalNetFlowRate: string;
     readonly token: ILightEntity;
     readonly account: ILightEntity;

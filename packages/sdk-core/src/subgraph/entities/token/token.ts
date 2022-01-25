@@ -1,13 +1,10 @@
+import { Address, BlockNumber, Timestamp } from "../../mappedSubgraphTypes";
+import { Token_Filter, Token_OrderBy } from "../../schema.generated";
 import {
-    Address,
-    BlockNumber,
     RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
     SubgraphListQuery,
     SubgraphQueryHandler,
-    Timestamp,
-} from "../../../queryV2";
-import { Token_Filter, Token_OrderBy } from "../../schema.generated";
+} from "../../subgraphQueryHandler";
 
 import {
     TokensDocument,
@@ -29,28 +26,16 @@ export interface Token {
 
 export type TokenOrderBy = Token_OrderBy;
 
-export type TokenListQuery = SubgraphListQuery<
-    TokenListQueryFilter,
-    TokenOrderBy
->;
-
-export type TokenListQueryFilter = Omit<
-    Token_Filter,
-    SubgraphFilterOmitFieldList
->;
+export type TokenListQuery = SubgraphListQuery<Token_Filter, Token_OrderBy>;
 
 export class TokenQueryHandler extends SubgraphQueryHandler<
     Token,
     TokenListQuery,
     TokensQuery,
-    Token_Filter,
     TokensQueryVariables
 > {
-    convertToSubgraphFilter = (filter: TokenListQueryFilter): Token_Filter =>
-        filter;
-
     protected getRelevantAddressesFromFilterCore = (
-        filter: TokenListQueryFilter
+        filter: Token_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [
             filter.id,

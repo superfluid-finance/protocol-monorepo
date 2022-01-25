@@ -42,5 +42,10 @@ export * from "./subgraph/entities/tokenStatistic/tokenStatistic";
 export * from "./subgraph/events/indexUpdatedEvent/indexUpdatedEvent";
 export * from "./subgraph/events/subscriptionUnitsUpdatedEvents/subscriptionUnitsUpdatedEvents";
 
-export * from "./queryV2";
+export * from "./subgraph/mappedSubgraphTypes";
 export * from "./SFError";
+export { SubgraphQueryHandler } from "./subgraph/subgraphQueryHandler";
+export { RelevantAddressProviderFromResult } from "./subgraph/subgraphQueryHandler";
+export { RelevantAddressProviderFromFilter } from "./subgraph/subgraphQueryHandler";
+export { RelevantAddressesIntermediate } from "./subgraph/subgraphQueryHandler";
+export { RelevantAddresses } from "./subgraph/subgraphQueryHandler";

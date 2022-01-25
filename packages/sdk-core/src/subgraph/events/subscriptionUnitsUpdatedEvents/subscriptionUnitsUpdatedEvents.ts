@@ -1,15 +1,14 @@
 import { SubscriptionUnitsUpdatedEvent } from "../../../events";
 import { mapGetAllEventsQueryEvents } from "../../../mapGetAllEventsQueryEvents";
 import {
-    RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
-    SubgraphListQuery,
-    SubgraphQueryHandler,
-} from "../../../queryV2";
-import {
     SubscriptionUnitsUpdatedEvent_Filter,
     SubscriptionUnitsUpdatedEvent_OrderBy,
 } from "../../schema.generated";
+import {
+    RelevantAddressesIntermediate,
+    SubgraphListQuery,
+    SubgraphQueryHandler,
+} from "../../subgraphQueryHandler";
 
 import {
     SubscriptionUnitsUpdatedEventsDocument,
@@ -17,55 +16,54 @@ import {
     SubscriptionUnitsUpdatedEventsQueryVariables,
 } from "./subscriptionUnitsUpdatedEvents.generated";
 
-export type SubscriptionUnitsUpdatedEventOrderBy =
-    SubscriptionUnitsUpdatedEvent_OrderBy;
-
-export type SubscriptionUnitsUpdatedEventListQueryFilter = Omit<
-    SubscriptionUnitsUpdatedEvent_Filter,
-    SubgraphFilterOmitFieldList
->;
-
 export type SubscriptionUnitsUpdatedEventListQuery = SubgraphListQuery<
-    SubscriptionUnitsUpdatedEventListQueryFilter,
-    SubscriptionUnitsUpdatedEventOrderBy
+    SubscriptionUnitsUpdatedEvent_Filter,
+    SubscriptionUnitsUpdatedEvent_OrderBy
 >;
 
 export class SubscriptionUnitsUpdatedEventQueryHandler extends SubgraphQueryHandler<
     SubscriptionUnitsUpdatedEvent,
     SubscriptionUnitsUpdatedEventListQuery,
     SubscriptionUnitsUpdatedEventsQuery,
-    SubscriptionUnitsUpdatedEvent_Filter,
     SubscriptionUnitsUpdatedEventsQueryVariables
 > {
-    convertToSubgraphFilter(
-        filter: SubscriptionUnitsUpdatedEventListQueryFilter
-    ): SubscriptionUnitsUpdatedEvent_Filter {
-        return filter;
-    }
-
     protected getRelevantAddressesFromFilterCore(
-        _filter: SubscriptionUnitsUpdatedEventListQueryFilter
+        filter: SubscriptionUnitsUpdatedEvent_Filter
     ): RelevantAddressesIntermediate {
         return {
-            accounts: [],
-            tokens: [],
+            accounts: [
+                filter.publisher,
+                filter.publisher_in,
+                filter.publisher_not,
+                filter.publisher_not_in,
+                filter.subscriber,
+                filter.subscriber_in,
+                filter.subscriber_not,
+                filter.subscriber_not_in,
+            ],
+            tokens: [
+                filter.token,
+                filter.token_in,
+                filter.token_not,
+                filter.token_not_in,
+            ],
         };
     }
 
     protected getRelevantAddressesFromResultCore(
-        _result: SubscriptionUnitsUpdatedEvent
+        result: SubscriptionUnitsUpdatedEvent
     ): RelevantAddressesIntermediate {
         return {
-            accounts: [],
-            tokens: [],
+            accounts: [result.publisher, result.subscriber],
+            tokens: [result.token],
         };
     }
 
     mapFromSubgraphResponse(
-        _response: SubscriptionUnitsUpdatedEventsQuery
+        response: SubscriptionUnitsUpdatedEventsQuery
     ): SubscriptionUnitsUpdatedEvent[] {
         return mapGetAllEventsQueryEvents(
-            _response.subscriptionUnitsUpdatedEvents
+            response.subscriptionUnitsUpdatedEvents
         ) as SubscriptionUnitsUpdatedEvent[];
     }
 

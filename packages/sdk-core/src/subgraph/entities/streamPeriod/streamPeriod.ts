@@ -2,17 +2,18 @@ import {
     Address,
     BigNumber,
     BlockNumber,
-    RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
     SubgraphId,
-    SubgraphListQuery,
-    SubgraphQueryHandler,
     Timestamp,
-} from "../../../queryV2";
+} from "../../mappedSubgraphTypes";
 import {
     StreamPeriod_Filter,
     StreamPeriod_OrderBy,
 } from "../../schema.generated";
+import {
+    RelevantAddressesIntermediate,
+    SubgraphListQuery,
+    SubgraphQueryHandler,
+} from "../../subgraphQueryHandler";
 
 import {
     StreamPeriodsDocument,
@@ -36,31 +37,19 @@ export interface StreamPeriod {
     startedAtEvent: SubgraphId;
 }
 
-export type StreamPeriodOrderBy = StreamPeriod_OrderBy;
-
 export type StreamPeriodListQuery = SubgraphListQuery<
-    StreamPeriodListQueryFilter,
-    StreamPeriodOrderBy
->;
-
-export type StreamPeriodListQueryFilter = Omit<
     StreamPeriod_Filter,
-    SubgraphFilterOmitFieldList
+    StreamPeriod_OrderBy
 >;
 
 export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
     StreamPeriod,
     StreamPeriodListQuery,
     StreamPeriodsQuery,
-    StreamPeriod_Filter,
     StreamPeriodsQueryVariables
 > {
-    convertToSubgraphFilter = (
-        filter: StreamPeriodListQueryFilter
-    ): StreamPeriod_Filter => filter;
-
     protected getRelevantAddressesFromFilterCore = (
-        filter: StreamPeriodListQueryFilter
+        filter: StreamPeriod_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [

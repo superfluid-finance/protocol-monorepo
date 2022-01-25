@@ -1,12 +1,10 @@
+import { BlockNumber, Timestamp } from "../../mappedSubgraphTypes";
+import { Account_Filter, Account_OrderBy } from "../../schema.generated";
 import {
-    BlockNumber,
     RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
     SubgraphListQuery,
     SubgraphQueryHandler,
-    Timestamp,
-} from "../../../queryV2";
-import { Account_Filter, Account_OrderBy } from "../../schema.generated";
+} from "../../subgraphQueryHandler";
 
 import {
     AccountsDocument,
@@ -15,39 +13,27 @@ import {
 } from "./accounts.generated";
 
 export interface Account {
+    id: string;
     createdAtBlockNumber: BlockNumber;
     createdAtTimestamp: Timestamp;
-    id: string;
-    isSuperApp: boolean;
     updatedAtBlockNumber: BlockNumber;
     updatedAtTimestamp: Timestamp;
+    isSuperApp: boolean;
 }
 
-export type AccountOrderBy = Account_OrderBy;
-
 export type AccountListQuery = SubgraphListQuery<
-    AccountListQueryFilter,
-    AccountOrderBy
->;
-
-export type AccountListQueryFilter = Omit<
     Account_Filter,
-    SubgraphFilterOmitFieldList
+    Account_OrderBy
 >;
 
 export class AccountQueryHandler extends SubgraphQueryHandler<
     Account,
     AccountListQuery,
     AccountsQuery,
-    Account_Filter,
     AccountsQueryVariables
 > {
-    convertToSubgraphFilter = (
-        filter: AccountListQueryFilter
-    ): Account_Filter => filter;
-
     getRelevantAddressesFromFilterCore = (
-        filter: AccountListQueryFilter
+        filter: Account_Filter
     ): RelevantAddressesIntermediate => ({
         accounts: [filter.id, filter.id_in, filter.id_not, filter.id_not_in],
         tokens: [],

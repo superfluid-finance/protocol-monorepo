@@ -1,13 +1,16 @@
 import {
     Address,
     BigNumber,
-    EntityBase,
+    BlockNumber,
+    SubgraphId,
+    Timestamp,
+} from "../../mappedSubgraphTypes";
+import { Stream_Filter, Stream_OrderBy } from "../../schema.generated";
+import {
     RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
     SubgraphListQuery,
     SubgraphQueryHandler,
-} from "../../../queryV2";
-import { Stream_Filter, Stream_OrderBy } from "../../schema.generated";
+} from "../../subgraphQueryHandler";
 
 import {
     StreamsDocument,
@@ -15,7 +18,12 @@ import {
     StreamsQueryVariables,
 } from "./streams.generated";
 
-export interface Stream extends EntityBase {
+export interface Stream {
+    id: SubgraphId;
+    createdAtBlockNumber: BlockNumber;
+    createdAtTimestamp: Timestamp;
+    updatedAtTimestamp: Timestamp;
+    updatedAtBlockNumber: BlockNumber;
     currentFlowRate: BigNumber;
     streamedUntilUpdatedAt: BigNumber;
     receiver: Address;
@@ -23,30 +31,16 @@ export interface Stream extends EntityBase {
     token: Address;
 }
 
-export type StreamOrderBy = Stream_OrderBy;
-
-export type StreamListQuery = SubgraphListQuery<
-    StreamListQueryFilter,
-    StreamOrderBy
->;
-
-export type StreamListQueryFilter = Omit<
-    Stream_Filter,
-    SubgraphFilterOmitFieldList
->;
+export type StreamListQuery = SubgraphListQuery<Stream_Filter, Stream_OrderBy>;
 
 export class StreamQueryHandler extends SubgraphQueryHandler<
     Stream,
     StreamListQuery,
     StreamsQuery,
-    Stream_Filter,
     StreamsQueryVariables
 > {
-    convertToSubgraphFilter = (filter: StreamListQueryFilter): Stream_Filter =>
-        filter;
-
     getRelevantAddressesFromFilterCore = (
-        filter: StreamListQueryFilter
+        filter: Stream_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [filter.token, filter.token_in, filter.token_not_in],
         accounts: [

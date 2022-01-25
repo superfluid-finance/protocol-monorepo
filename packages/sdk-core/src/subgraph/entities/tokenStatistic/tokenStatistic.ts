@@ -1,16 +1,18 @@
 import {
     BigNumber,
-    RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
+    BlockNumber,
     SubgraphId,
-    SubgraphListQuery,
-    SubgraphQueryHandler,
-    UpdatedAt,
-} from "../../../queryV2";
+    Timestamp,
+} from "../../mappedSubgraphTypes";
 import {
     TokenStatistic_Filter,
     TokenStatistic_OrderBy,
 } from "../../schema.generated";
+import {
+    RelevantAddressesIntermediate,
+    SubgraphListQuery,
+    SubgraphQueryHandler,
+} from "../../subgraphQueryHandler";
 
 import {
     TokenStatisticsDocument,
@@ -18,8 +20,10 @@ import {
     TokenStatisticsQueryVariables,
 } from "./tokenStatistics.generated";
 
-export interface TokenStatistic extends UpdatedAt {
+export interface TokenStatistic {
     id: SubgraphId;
+    updatedAtTimestamp: Timestamp;
+    updatedAtBlockNumber: BlockNumber;
     totalAmountDistributedUntilUpdatedAt: BigNumber;
     totalAmountStreamedUntilUpdatedAt: BigNumber;
     totalAmountTransferredUntilUpdatedAt: BigNumber;
@@ -36,28 +40,18 @@ export interface TokenStatistic extends UpdatedAt {
 export type TokenStatisticOrderBy = TokenStatistic_OrderBy;
 
 export type TokenStatisticListQuery = SubgraphListQuery<
-    TokenStatisticsListQueryFilter,
-    TokenStatisticOrderBy
->;
-
-export type TokenStatisticsListQueryFilter = Omit<
     TokenStatistic_Filter,
-    SubgraphFilterOmitFieldList
+    TokenStatistic_OrderBy
 >;
 
 export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
     TokenStatistic,
     TokenStatisticListQuery,
     TokenStatisticsQuery,
-    TokenStatistic_Filter,
     TokenStatisticsQueryVariables
 > {
-    convertToSubgraphFilter = (
-        filter: TokenStatisticsListQueryFilter
-    ): TokenStatistic_Filter => filter;
-
     protected getRelevantAddressesFromFilterCore = (
-        filter: TokenStatisticsListQueryFilter
+        filter: TokenStatistic_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [
             filter.token,

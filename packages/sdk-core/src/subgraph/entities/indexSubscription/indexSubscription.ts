@@ -1,17 +1,19 @@
 import {
     Address,
     BigNumber,
-    EntityBase,
-    RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
+    BlockNumber,
     SubgraphId,
-    SubgraphListQuery,
-    SubgraphQueryHandler,
-} from "../../../queryV2";
+    Timestamp,
+} from "../../mappedSubgraphTypes";
 import {
     IndexSubscription_Filter,
     IndexSubscription_OrderBy,
 } from "../../schema.generated";
+import {
+    RelevantAddressesIntermediate,
+    SubgraphListQuery,
+    SubgraphQueryHandler,
+} from "../../subgraphQueryHandler";
 
 import {
     IndexSubscriptionsDocument,
@@ -19,9 +21,13 @@ import {
     IndexSubscriptionsQueryVariables,
 } from "./indexSubscriptions.generated";
 
-export interface IndexSubscription extends EntityBase {
-    approved: boolean;
+export interface IndexSubscription {
     id: SubgraphId;
+    createdAtBlockNumber: BlockNumber;
+    createdAtTimestamp: Timestamp;
+    updatedAtTimestamp: Timestamp;
+    updatedAtBlockNumber: BlockNumber;
+    approved: boolean;
     indexValueUntilUpdatedAt: BigNumber;
     totalAmountReceivedUntilUpdatedAt: BigNumber;
     units: BigNumber;
@@ -31,33 +37,17 @@ export interface IndexSubscription extends EntityBase {
     publisher: Address;
 }
 
-export type IndexSubscriptionOrderBy = IndexSubscription_OrderBy;
-
 export type IndexSubscriptionsListQuery = SubgraphListQuery<
-    IndexSubscriptionListQueryFilter,
-    IndexSubscriptionOrderBy
->;
-
-export type IndexSubscriptionListQueryFilter = Omit<
     IndexSubscription_Filter,
-    SubgraphFilterOmitFieldList
+    IndexSubscription_OrderBy
 >;
 
 export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
     IndexSubscription,
     IndexSubscriptionsListQuery,
     IndexSubscriptionsQuery,
-    IndexSubscription_Filter,
     IndexSubscriptionsQueryVariables
 > {
-    // validateFilter(filter: IndexSubscriptionListQueryFilter) {
-    //     validateIndexSubscriptionRequest(filter);
-    // }
-
-    convertToSubgraphFilter = (
-        filter: IndexSubscriptionListQueryFilter
-    ): IndexSubscription_Filter => filter;
-
     mapFromSubgraphResponse = (
         response: IndexSubscriptionsQuery
     ): IndexSubscription[] =>
@@ -76,7 +66,7 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
     requestDocument = IndexSubscriptionsDocument;
 
     protected getRelevantAddressesFromFilterCore = (
-        filter: IndexSubscriptionListQueryFilter
+        filter: IndexSubscription_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [],
         accounts: [

@@ -1,14 +1,16 @@
 import {
     Address,
     BigNumber,
-    EntityBase,
-    RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
+    BlockNumber,
     SubgraphId,
+    Timestamp,
+} from "../../mappedSubgraphTypes";
+import { Index_Filter, Index_OrderBy } from "../../schema.generated";
+import {
+    RelevantAddressesIntermediate,
     SubgraphListQuery,
     SubgraphQueryHandler,
-} from "../../../queryV2";
-import { Index_Filter, Index_OrderBy } from "../../schema.generated";
+} from "../../subgraphQueryHandler";
 
 import {
     IndexesDocument,
@@ -16,7 +18,12 @@ import {
     IndexesQueryVariables,
 } from "./indexes.generated";
 
-export interface Index extends EntityBase {
+export interface Index {
+    id: SubgraphId;
+    createdAtBlockNumber: BlockNumber;
+    createdAtTimestamp: Timestamp;
+    updatedAtTimestamp: Timestamp;
+    updatedAtBlockNumber: BlockNumber;
     indexId: string;
     indexValue: BigNumber;
     totalAmountDistributedUntilUpdatedAt: BigNumber;
@@ -29,35 +36,16 @@ export interface Index extends EntityBase {
     token: Address;
 }
 
-export type IndexOrderBy = Index_OrderBy;
-
-export type IndexListQuery = SubgraphListQuery<
-    IndexListQueryFilter,
-    IndexOrderBy
->;
-
-export type IndexListQueryFilter = Omit<
-    Index_Filter,
-    SubgraphFilterOmitFieldList
->;
+export type IndexListQuery = SubgraphListQuery<Index_Filter, Index_OrderBy>;
 
 export class IndexQueryHandler extends SubgraphQueryHandler<
     Index,
     IndexListQuery,
     IndexesQuery,
-    Index_Filter,
     IndexesQueryVariables
 > {
-    // validateFilter(filter: IndexSubscriptionListQueryFilter) {}
-
-    convertToSubgraphFilter(
-        filter: NonNullable<IndexListQuery["filter"]>
-    ): Index_Filter {
-        return filter;
-    }
-
     protected getRelevantAddressesFromFilterCore = (
-        filter: IndexListQueryFilter
+        filter: Index_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [
             filter.token,

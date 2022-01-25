@@ -2,17 +2,18 @@ import {
     Address,
     BigNumber,
     BlockNumber,
-    RelevantAddressesIntermediate,
-    SubgraphFilterOmitFieldList,
     SubgraphId,
-    SubgraphListQuery,
-    SubgraphQueryHandler,
     Timestamp,
-} from "../../../queryV2";
+} from "../../mappedSubgraphTypes";
 import {
     AccountTokenSnapshot_Filter,
     AccountTokenSnapshot_OrderBy,
 } from "../../schema.generated";
+import {
+    RelevantAddressesIntermediate,
+    SubgraphListQuery,
+    SubgraphQueryHandler,
+} from "../../subgraphQueryHandler";
 
 import {
     AccountTokenSnapshotsDocument,
@@ -38,31 +39,19 @@ export interface AccountTokenSnapshot {
     token: Address;
 }
 
-export type AccountTokenSnapshotOrderBy = AccountTokenSnapshot_OrderBy;
-
 export type AccountTokenSnapshotListQuery = SubgraphListQuery<
-    AccountTokenSnapshotListQueryFilter,
-    AccountTokenSnapshotOrderBy
->;
-
-export type AccountTokenSnapshotListQueryFilter = Omit<
     AccountTokenSnapshot_Filter,
-    SubgraphFilterOmitFieldList
+    AccountTokenSnapshot_OrderBy
 >;
 
 export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
     AccountTokenSnapshot,
     AccountTokenSnapshotListQuery,
     AccountTokenSnapshotsQuery,
-    AccountTokenSnapshot_Filter,
     AccountTokenSnapshotsQueryVariables
 > {
-    convertToSubgraphFilter = (
-        filter: AccountTokenSnapshotListQueryFilter
-    ): AccountTokenSnapshot_Filter => filter;
-
     protected getRelevantAddressesFromFilterCore = (
-        filter: AccountTokenSnapshotListQueryFilter
+        filter: AccountTokenSnapshot_Filter
     ): RelevantAddressesIntermediate => ({
         tokens: [
             filter.token,

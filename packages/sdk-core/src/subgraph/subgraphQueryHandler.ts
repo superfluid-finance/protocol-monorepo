@@ -1,54 +1,27 @@
 import { RequestDocument } from "graphql-request";
+import _ from "lodash";
 
-import { typeGuard } from "./Query";
-import { ILightEntity } from "./interfaces";
-import { normalizeSubgraphFilter } from "./normalizeSubgraphFilter";
-import { OrderDirection, Ordering } from "./ordering";
+import { typeGuard } from "../Query";
+import { ILightEntity } from "../interfaces";
+import { OrderDirection, Ordering } from "../ordering";
 import {
     createPagedResult,
     createSkipPaging,
     PagedResult,
     Paging,
     takePlusOne,
-} from "./pagination";
-import { SubgraphClient } from "./subgraph/SubgraphClient";
-import { Exact, InputMaybe, Scalars } from "./subgraph/schema.generated";
+} from "../pagination";
 
-export type BlockNumber = number;
-export type Timestamp = number;
-export type SubgraphId = string;
-export type Address = string;
-export type BigNumber = string;
-
-export type BlockNumberInput = string;
-export type TimestampInput = string;
-export type SubgraphIdInput = string;
-export type AddressInput = string;
-export type BigNumberInput = string;
-
-export type UpdatedAt = {
-    updatedAtTimestamp: Timestamp;
-    updatedAtBlockNumber: BlockNumber;
-};
-
-export type CreatedAt = {
-    createdAtBlockNumber: BlockNumber;
-    createdAtTimestamp: Timestamp;
-};
-
-export type EntityBase = UpdatedAt &
-    CreatedAt & {
-        id: SubgraphId;
-    };
-
-export type SubgraphFilterOmitFieldList =
-    | "id_gt"
-    | "id_gte"
-    | "id_lt"
-    | "id_lte";
+import { SubgraphClient } from "./SubgraphClient";
+import { Address, SubgraphId } from "./mappedSubgraphTypes";
+import { normalizeSubgraphFilter } from "./normalizeSubgraphFilter";
+import { Exact, InputMaybe, Scalars } from "./schema.generated";
 
 export interface SubgraphListQuery<
-    TFilter extends { [key: string]: unknown },
+    TFilter extends {
+        id?: InputMaybe<Scalars["ID"]>;
+        id_gt?: InputMaybe<Scalars["ID"]>;
+    },
     TOrderBy extends string
 > {
     filter?: TFilter;
@@ -79,14 +52,14 @@ export interface SubgraphListQueryHandler<
     ): Promise<PagedResult<TResult>>;
 }
 
-export interface RelevantAddressesIntermediate {
-    tokens: (InputMaybe<Address> | InputMaybe<Address>[])[];
-    accounts: (InputMaybe<Address> | InputMaybe<Address>[])[];
-}
-
 export interface RelevantAddresses {
     tokens: Address[];
     accounts: Address[];
+}
+
+export interface RelevantAddressesIntermediate {
+    tokens: (InputMaybe<Address> | InputMaybe<Address>[])[];
+    accounts: (InputMaybe<Address> | InputMaybe<Address>[])[];
 }
 
 export interface RelevantAddressProviderFromFilter<TFilter> {
@@ -101,18 +74,17 @@ export abstract class SubgraphQueryHandler<
     TResult extends ILightEntity,
     TListQuery extends SubgraphListQuery<TFilter, TOrderBy>,
     TSubgraphQuery,
-    TSubgraphFilter extends {
-        id?: InputMaybe<Scalars["ID"]>;
-        id_gt?: InputMaybe<Scalars["ID"]>;
-    } & TFilter,
     TSubgraphQueryVariables extends Exact<{
         first?: InputMaybe<Scalars["Int"]>;
         orderBy?: InputMaybe<TOrderBy>;
         orderDirection?: InputMaybe<OrderDirection>;
         skip?: InputMaybe<Scalars["Int"]>;
-        where?: InputMaybe<TSubgraphFilter>;
+        where?: InputMaybe<TFilter>;
     }>,
-    TFilter extends { [key: string]: any } = NonNullable<TListQuery["filter"]>,
+    TFilter extends {
+        id?: InputMaybe<Scalars["ID"]>;
+        id_gt?: InputMaybe<Scalars["ID"]>;
+    } = NonNullable<TListQuery["filter"]>,
     TOrderBy extends string = NonNullable<TListQuery["order"]>["orderBy"]
 > implements
         SubgraphGetQueryHandler<TResult>,
@@ -120,8 +92,6 @@ export abstract class SubgraphQueryHandler<
         RelevantAddressProviderFromFilter<TFilter>,
         RelevantAddressProviderFromResult<TResult>
 {
-    abstract convertToSubgraphFilter(filter: TFilter): TSubgraphFilter;
-
     protected abstract getRelevantAddressesFromFilterCore(
         filter: TFilter
     ): RelevantAddressesIntermediate;
@@ -131,8 +101,6 @@ export abstract class SubgraphQueryHandler<
     ): RelevantAddressesIntermediate;
 
     getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses {
-        // TODO(KK): toLower, deDuplicate
-
         if (!filter) {
             return {
                 tokens: [],
@@ -142,16 +110,16 @@ export abstract class SubgraphQueryHandler<
 
         const intermediate = this.getRelevantAddressesFromFilterCore(filter);
         return {
-            tokens: intermediate.tokens.flat().filter((x): x is Address => !!x),
-            accounts: intermediate.accounts
-                .flat()
-                .filter((x): x is Address => !!x),
+            tokens: _.uniq(
+                intermediate.tokens.flat().filter((x): x is Address => !!x)
+            ),
+            accounts: _.uniq(
+                intermediate.accounts.flat().filter((x): x is Address => !!x)
+            ),
         };
     }
 
     getRelevantAddressesFromResult(result?: TResult | null): RelevantAddresses {
-        // TODO(KK): toLower, deDuplicate
-
         if (!result) {
             return {
                 tokens: [],
@@ -161,14 +129,15 @@ export abstract class SubgraphQueryHandler<
 
         const intermediate = this.getRelevantAddressesFromResultCore(result);
         return {
-            tokens: intermediate.tokens.flat().filter((x): x is Address => !!x),
-            accounts: intermediate.accounts
-                .flat()
-                .filter((x): x is Address => !!x),
+            tokens: _.uniq(
+                intermediate.tokens.flat().filter((x): x is Address => !!x)
+            ),
+            accounts: _.uniq(
+                intermediate.accounts.flat().filter((x): x is Address => !!x)
+            ),
         };
     }
 
-    // abstract validateFilter(filter: TFilter): void;
     abstract mapFromSubgraphResponse(response: TSubgraphQuery): TResult[];
 
     async get(
@@ -194,15 +163,11 @@ export abstract class SubgraphQueryHandler<
         subgraphClient: SubgraphClient,
         query: SubgraphListQuery<TFilter, TOrderBy>
     ): Promise<PagedResult<TResult>> {
-        // this.validateFilter(query.filter);
-
         const pagination: Paging = query.pagination ?? createSkipPaging();
 
-        const subgraphFilter = typeGuard<TSubgraphFilter>(
+        const subgraphFilter = typeGuard<TFilter>(
             normalizeSubgraphFilter({
-                ...this.convertToSubgraphFilter(
-                    query.filter ?? ({} as TFilter)
-                ),
+                ...(query.filter ?? ({} as TFilter)),
                 id_gt: pagination.lastId,
             })
         );

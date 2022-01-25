@@ -1,6 +1,8 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-waffle";
+import { config as dotenvConfig } from "dotenv";
+dotenvConfig();
 
 /**
  * This Hardhat config is only used for testing the subgraph.
@@ -23,7 +25,7 @@ const config: HardhatUserConfig = {
             chainId: 1337,
         },
         matic: {
-            url: "https://polygon-rpc.com/",
+            url: "https://polygon-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_KEY,
             chainId: 137,
         },
     },

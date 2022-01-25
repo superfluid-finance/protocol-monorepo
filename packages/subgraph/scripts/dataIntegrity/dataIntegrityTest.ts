@@ -88,7 +88,8 @@ async function getAllResults<T extends IBaseEntity>(
     blockNumber: number,
     resultsPerPage: number,
     isUpdatedAt: boolean,
-    timestamp: number = 0
+    timestamp: number = 0,
+    counter: number = 0
 ): Promise<T[]> {
     const baseQuery = {blockNumber, first: resultsPerPage};
     const initialResults = await subgraphRequest<{response: T[]}>(
@@ -105,6 +106,13 @@ async function getAllResults<T extends IBaseEntity>(
               }
     );
 
+    console.log(
+        counter * resultsPerPage +
+            initialResults.response.length +
+            " responses queried."
+    );
+    counter++;
+
     if (initialResults.response.length < resultsPerPage) {
         return initialResults.response;
     }
@@ -115,7 +123,7 @@ async function getAllResults<T extends IBaseEntity>(
         : initialResults.response[initialResults.response.length - 1]
               .createdAtTimestamp;
 
-    return [
+    const responses = [
         ...initialResults.response,
         ...((await getAllResults(
             query,
@@ -123,9 +131,11 @@ async function getAllResults<T extends IBaseEntity>(
             blockNumber,
             resultsPerPage,
             isUpdatedAt,
-            Number(newTimestamp)
+            Number(newTimestamp),
+            counter
         )) as T[]),
     ];
+    return responses;
 }
 
 async function main() {
@@ -279,6 +289,10 @@ async function main() {
         out of ${tokenStatistics.length} total tokenStatistics.`
     );
 
+    console.log("Creating validation promises that shall be resolved...");
+
+    // TODO: these promises are running before we want it to...
+    
     // Account Level Invariant: validate CFA current streams data
     // Create promises to validate account level CFA stream data
     const streamPromises = uniqueStreams.map(async (x) => {
@@ -384,10 +398,12 @@ async function main() {
                 ethers.utils.getAddress(y.token.underlyingAddress) !==
                 ethers.constants.AddressZero
             ) {
-                tokenGroupedRTBSums[y.token.underlyingAddress] =
-                    tokenGroupedRTBSums[y.token.underlyingAddress].add(
-                        realtimeBalance
-                    );
+                tokenGroupedRTBSums[y.token.id] =
+                    tokenGroupedRTBSums[y.token.id] == undefined
+                        ? realtimeBalance
+                        : tokenGroupedRTBSums[y.token.id].add(
+                              realtimeBalance
+                          );
             }
         });
 

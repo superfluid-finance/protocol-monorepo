@@ -1,64 +1,93 @@
 import {
-    Account,
     AccountListQuery,
-    AccountTokenSnapshot,
     AccountTokenSnapshotListQuery,
-    Index,
     IndexListQuery,
-    IndexSubscription,
     IndexSubscriptionsListQuery,
-    IndexUpdatedEvent,
     IndexUpdatedEventListQuery,
-    Stream,
     StreamListQuery,
-    StreamPeriod,
     StreamPeriodListQuery,
-    SubscriptionUnitsUpdatedEvent,
+    SubgraphGetQuery,
     SubscriptionUnitsUpdatedEventListQuery,
-    Token,
     TokenListQuery,
-    TokenStatistic,
     TokenStatisticListQuery,
 } from '@superfluid-finance/sdk-core';
 
-import {BaseGetQuery, BaseQuery2} from '../../argTypes';
+export interface AccountTokenSnapshotQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type AccountTokenSnapshotQuery = BaseGetQuery<AccountTokenSnapshot>;
+export interface AccountTokenSnapshotsQuery extends AccountTokenSnapshotListQuery {
+    chainId: number;
+}
 
-export interface AccountTokenSnapshotsQuery extends BaseQuery2, AccountTokenSnapshotListQuery {}
+export interface AccountQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type AccountQuery = BaseGetQuery<Account>;
+export interface AccountsQuery extends AccountListQuery {
+    chainId: number;
+}
 
-export interface AccountsQuery extends BaseQuery2, AccountListQuery {}
+export interface IndexQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type IndexQuery = BaseGetQuery<Index>;
+export interface IndexesQuery extends IndexListQuery {
+    chainId: number;
+}
 
-export interface IndexesQuery extends BaseQuery2, IndexListQuery {}
+export interface IndexSubscriptionQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type IndexSubscriptionQuery = BaseGetQuery<IndexSubscription>;
+export interface IndexSubscriptionsQuery extends IndexSubscriptionsListQuery {
+    chainId: number;
+}
 
-export interface IndexSubscriptionsQuery extends BaseQuery2, IndexSubscriptionsListQuery {}
+export interface StreamQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type StreamQuery = BaseGetQuery<Stream>;
+export interface StreamsQuery extends StreamListQuery {
+    chainId: number;
+}
 
-export interface StreamsQuery extends BaseQuery2, StreamListQuery {}
+export interface StreamPeriodQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type StreamPeriodQuery = BaseGetQuery<StreamPeriod>;
+export interface StreamPeriodsQuery extends StreamPeriodListQuery {
+    chainId: number;
+}
 
-export interface StreamPeriodsQuery extends BaseQuery2, StreamPeriodListQuery {}
+export interface TokenQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type TokenQuery = BaseGetQuery<Token>;
+export interface TokensQuery extends TokenListQuery {
+    chainId: number;
+}
 
-export interface TokensQuery extends BaseQuery2, TokenListQuery {}
+export interface TokenStatisticQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type TokenStatisticQuery = BaseGetQuery<TokenStatistic>;
+export interface TokenStatisticsQuery extends TokenStatisticListQuery {
+    chainId: number;
+}
 
-export interface TokenStatisticsQuery extends BaseQuery2, TokenStatisticListQuery {}
+export interface IndexUpdatedEventQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type IndexUpdatedEventQuery = BaseGetQuery<IndexUpdatedEvent>;
+export interface IndexUpdatedEventsQuery extends IndexUpdatedEventListQuery {
+    chainId: number;
+}
 
-export interface IndexUpdatedEventsQuery extends BaseQuery2, IndexUpdatedEventListQuery {}
+export interface SubscriptionUnitsUpdatedEventQuery extends SubgraphGetQuery {
+    chainId: number;
+}
 
-export type SubscriptionUnitsUpdatedEventQuery = BaseGetQuery<SubscriptionUnitsUpdatedEvent>;
-
-export interface SubscriptionUnitsUpdatedEventsQuery extends BaseQuery2, SubscriptionUnitsUpdatedEventListQuery {}
+export interface SubscriptionUnitsUpdatedEventsQuery extends SubscriptionUnitsUpdatedEventListQuery {
+    chainId: number;
+}

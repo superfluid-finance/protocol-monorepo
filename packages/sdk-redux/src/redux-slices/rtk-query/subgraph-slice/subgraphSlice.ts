@@ -7,43 +7,47 @@ import {Framework, SFError} from '@superfluid-finance/sdk-core';
 import {getFramework} from '../../../sdkReduxConfig';
 import {typeGuard} from '../../../utils';
 import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
+import {CacheTime} from '../cacheTime';
 import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
 
 import {createSubgraphEndpoints} from './createSubgraphEndpoints';
+import {createCustomSubgraphQueryEndpoints} from './customSubgraphQuery';
 
 export const createSubgraphSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
+        keepUnusedDataFor: CacheTime.OneMinute,
         reducerPath: 'sfSubgraph',
         baseQuery: subgraphSliceBaseQuery(),
         tagTypes: typeGuard<CacheTagTypes[]>(['Event', 'Index', 'Stream', 'Token']),
-        endpoints: (builder) => createSubgraphEndpoints(builder),
+        endpoints: (builder) => ({
+            ...createCustomSubgraphQueryEndpoints(builder),
+            ...createSubgraphEndpoints(builder),
+        }),
         serializeQueryArgs: getSerializeQueryArgs(),
     });
 
-export const subgraphSliceBaseQuery =
-    (): BaseQueryFn<
-        {chainId: number; handle: (framework: Framework) => Promise<unknown>},
-        unknown,
-        SFError,
-        Record<string, unknown>
-    > =>
-    async ({chainId, handle}) => {
-        try {
-            const framework = await getFramework(chainId);
-            return {data: await handle(framework)};
-        } catch (error) {
-            if (error instanceof SFError) {
-                return {
-                    error: error,
-                };
-            } else {
-                throw error;
-            }
-        }
-    };
+type SubgraphSliceArgs = {chainId: number; handle: (framework: Framework) => Promise<unknown>};
+
+export const subgraphSliceBaseQuery = (): BaseQueryFn<SubgraphSliceArgs, unknown, SFError, Record<string, unknown>> =>
+    handleSubgraphQueryWithFramework;
 
 export type SubgraphSliceEndpointBuilder = EndpointBuilder<
     ReturnType<typeof subgraphSliceBaseQuery>,
     CacheTagTypes,
     'sfSubgraph'
 >;
+
+export const handleSubgraphQueryWithFramework = async ({chainId, handle}: SubgraphSliceArgs) => {
+    try {
+        const framework = await getFramework(chainId);
+        return {data: await handle(framework)};
+    } catch (error) {
+        if (error instanceof SFError) {
+            return {
+                error: error,
+            };
+        } else {
+            throw error;
+        }
+    }
+};

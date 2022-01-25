@@ -1,5 +1,3 @@
-import {SubgraphGetQuery} from '@superfluid-finance/sdk-core';
-
 /**
  * Information about the transaction to locate it.BaseQu
  */
@@ -10,20 +8,8 @@ export interface TransactionInfo {
     hash: string;
 }
 
-/**
- * A query that returns a single object.
- */
 export interface BaseQuery<_TReturns> {
     /** Queried network's chain ID. */
-    chainId: number;
-}
-
-export interface BaseGetQuery<_TReturns> extends SubgraphGetQuery {
-    /** Queried network's chain ID. */
-    chainId: number;
-}
-
-export interface BaseQuery2 {
     chainId: number;
 }
 

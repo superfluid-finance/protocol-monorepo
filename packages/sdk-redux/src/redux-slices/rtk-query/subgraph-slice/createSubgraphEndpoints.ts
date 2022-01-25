@@ -17,6 +17,7 @@ import {
     StreamPeriod,
     StreamPeriodQueryHandler,
     StreamQueryHandler,
+    SubgraphGetQuery,
     SubgraphGetQueryHandler,
     SubgraphListQuery,
     SubgraphListQueryHandler,
@@ -28,8 +29,8 @@ import {
     TokenStatisticQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import {BaseGetQuery, BaseQuery2} from '../../argTypes';
 import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
+import {CacheTime} from '../cacheTime';
 
 import {provideTagsFromRelevantAddresses} from './provideTagsFromRelevantAddresses';
 import {
@@ -60,34 +61,35 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
-        account: get<Account, AccountQuery>(new AccountQueryHandler(), 'Event'),
-        accounts: list<Account, AccountsQuery>(new AccountQueryHandler(), 'Event'),
-        accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(new AccountTokenSnapshotQueryHandler(), 'Event'),
-        accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(new AccountTokenSnapshotQueryHandler(), 'Token'),
-        index: get<Index, IndexQuery>(new IndexQueryHandler(), 'Index'),
-        indexes: list<Index, IndexesQuery>(new IndexQueryHandler(), 'Index'),
-        indexSubscription: get<IndexSubscription, IndexSubscriptionQuery>(new IndexSubscriptionQueryHandler(), 'Index'),
-        indexSubscriptions: list<IndexSubscription, IndexSubscriptionsQuery>(new IndexSubscriptionQueryHandler(), 'Index'),
-        stream: get<Stream, StreamQuery>(new StreamQueryHandler(), 'Stream'),
-        streams: list<Stream, StreamsQuery>(new StreamQueryHandler(), 'Stream'),
-        streamPeriod: get<StreamPeriod, StreamPeriodQuery>(new StreamPeriodQueryHandler(), 'Stream'),
-        streamPeriods: list<StreamPeriod, StreamPeriodsQuery>(new StreamPeriodQueryHandler(), 'Stream'),
-        token: get<Token, TokenQuery>(new TokenQueryHandler(), 'Token'),
-        tokens: list<Token, TokensQuery>(new TokenQueryHandler(), 'Token'),
-        tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(new TokenStatisticQueryHandler(), 'Token'),
-        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(new TokenStatisticQueryHandler(), 'Token'),
-        indexUpdatedEvent: get<IndexUpdatedEvent, IndexUpdatedEventQuery>(new IndexUpdatedEventQueryHandler(), 'Event'),
-        indexUpdatedEvents: list<IndexUpdatedEvent, IndexUpdatedEventsQuery>(new IndexUpdatedEventQueryHandler(), 'Event'),
-        subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventQuery>(new SubscriptionUnitsUpdatedEventQueryHandler(), 'Event'),
-        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventsQuery>(new SubscriptionUnitsUpdatedEventQueryHandler(), 'Event'),
+        account: get<Account, AccountQuery>(new AccountQueryHandler(), "Event"),
+        accounts: list<Account, AccountsQuery>(new AccountQueryHandler(), "Event"),
+        accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(new AccountTokenSnapshotQueryHandler(), "Token"),
+        accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(new AccountTokenSnapshotQueryHandler(), "Token"),
+        index: get<Index, IndexQuery>(new IndexQueryHandler(), "Index"),
+        indexes: list<Index, IndexesQuery>(new IndexQueryHandler(), "Index"),
+        indexSubscription: get<IndexSubscription, IndexSubscriptionQuery>(new IndexSubscriptionQueryHandler(), "Index"),
+        indexSubscriptions: list<IndexSubscription, IndexSubscriptionsQuery>(new IndexSubscriptionQueryHandler(), "Index"),
+        stream: get<Stream, StreamQuery>(new StreamQueryHandler(), "Stream"),
+        streams: list<Stream, StreamsQuery>(new StreamQueryHandler(), "Stream"),
+        streamPeriod: get<StreamPeriod, StreamPeriodQuery>(new StreamPeriodQueryHandler(), "Stream"),
+        streamPeriods: list<StreamPeriod, StreamPeriodsQuery>(new StreamPeriodQueryHandler(), "Stream"),
+        token: get<Token, TokenQuery>(new TokenQueryHandler(), "Token"),
+        tokens: list<Token, TokensQuery>(new TokenQueryHandler(), "Token"),
+        tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(new TokenStatisticQueryHandler(), "Token"),
+        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(new TokenStatisticQueryHandler(), "Token"),
+        indexUpdatedEvent: get<IndexUpdatedEvent, IndexUpdatedEventQuery>(new IndexUpdatedEventQueryHandler(), "Event"),
+        indexUpdatedEvents: list<IndexUpdatedEvent, IndexUpdatedEventsQuery>(new IndexUpdatedEventQueryHandler(), "Event"),
+        subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventQuery>(new SubscriptionUnitsUpdatedEventQueryHandler(), "Event"),
+        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventsQuery>(new SubscriptionUnitsUpdatedEventQueryHandler(), "Event")
     };
 
     /**
      * Creates "get" endpoint.
      */
-    function get<TReturn extends ILightEntity, TQuery extends BaseGetQuery<TReturn>>(
+    function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
         queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
-        tag: CacheTagTypes
+        tag: CacheTagTypes,
+        cacheTime?: CacheTime
     ) {
         return builder.query<TReturn | null, TQuery>({
             query: (arg) => {
@@ -99,6 +101,7 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
             },
             providesTags: (result, _error, arg) =>
                 provideTagsFromRelevantAddresses(arg.chainId, queryHandler.getRelevantAddressesFromResult(result), tag),
+            ...(cacheTime ? {keepUnusedDataFor: cacheTime} : {}),
         });
     }
 
@@ -107,7 +110,7 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
      */
     function list<
         TReturn extends ILightEntity,
-        TQuery extends BaseQuery2 & SubgraphListQuery<TFilter, TOrderBy>,
+        TQuery extends {chainId: number} & SubgraphListQuery<TFilter, TOrderBy>,
         TFilter extends {[key: string]: unknown} = NonNullable<TQuery['filter']>,
         TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
     >(

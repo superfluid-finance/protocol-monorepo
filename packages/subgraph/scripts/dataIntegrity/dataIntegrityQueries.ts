@@ -98,19 +98,21 @@ export const getSubscriptions = gql`
  * the Superfluid protocol.
  */
 export const getAccountTokenSnapshots = gql`
-    query getAccountTokenSnapshots($blockNumber: Int, $first: Int, $createdAt: Int) {
+    query getAccountTokenSnapshots($blockNumber: Int, $first: Int, $updatedAt: Int) {
         response: accountTokenSnapshots(
             block: { number: $blockNumber }
             first: $first
-            where: { createdAtTimestamp_gte: $createdAt }
-            orderBy: createdAtTimestamp
+            where: { updatedAtTimestamp_gte: $updatedAt }
+            orderBy: updatedAtTimestamp
             orderDirection: asc
         ) {
             id
-            createdAtTimestamp
+            updatedAtTimestamp
+            balanceUntilUpdatedAt
             totalNetFlowRate
             token {
                 id
+                underlyingAddress
             }
             account {
                 id

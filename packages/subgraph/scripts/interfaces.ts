@@ -3,6 +3,7 @@ import { ILightEntity } from "../test/interfaces";
 export interface IBaseEntity {
     readonly id: string;
     readonly createdAtTimestamp: string;
+    readonly updatedAtTimestamp?: string;
 }
 
 export interface IDataIntegrityStream extends IBaseEntity {
@@ -38,7 +39,8 @@ export interface IDataIntegritySubscription extends IBaseEntity {
 }
 
 export interface IDataIntegrityAccountTokenSnapshot extends IBaseEntity {
+    readonly balanceUntilUpdatedAt: string;
     readonly totalNetFlowRate: string;
-    readonly token: ILightEntity;
+    readonly token: { id: string, underlyingAddress: string };
     readonly account: ILightEntity;
 }

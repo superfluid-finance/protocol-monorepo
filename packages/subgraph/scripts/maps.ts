@@ -31,6 +31,14 @@ export const chainIdToData = new Map([
             name: "kovan",
         },
     ],
+    [
+        69,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-kovan",
+            networkName: "optimism-kovan",
+        }
+    ],
 	[
         100,
         {
@@ -47,12 +55,28 @@ export const chainIdToData = new Map([
             name: "matic",
         },
     ],
+    [
+        43113,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-avalanche-fuji",
+            networkName: "avalanche-fuji",
+        },
+    ],
 	[
         80001,
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
             name: "mumbai",
+        },
+    ],
+    [
+        421611,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-arbitrum-rinkeby",
+            networkName: "arbitrum-rinkeby",
         },
     ],
 ]);

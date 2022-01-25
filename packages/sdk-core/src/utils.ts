@@ -37,6 +37,10 @@ export const isNullOrEmpty = (str: string | null | undefined) => {
     return str == null || str === "";
 };
 
+export function toBN(num: any) {
+    return ethers.BigNumber.from(num);
+}
+
 /**
  * @dev Removes the 8-character signature hash from `callData`.
  * @param callData
@@ -139,10 +143,9 @@ export const flowedAmountSinceUpdatedAt = ({
     currentTimestamp: string;
     updatedAtTimestamp: string;
 }) => {
-    return (
-        (Number(currentTimestamp) - Number(updatedAtTimestamp)) *
-        Number(netFlowRate)
-    );
+    return toBN(currentTimestamp)
+        .sub(toBN(updatedAtTimestamp))
+        .mul(toBN(netFlowRate));
 };
 
 /**
@@ -155,10 +158,14 @@ export const subscriptionTotalAmountDistributedSinceUpdated = (
 ) => {
     return indexSubscriptions.reduce(
         (x, y) =>
-            x +
-            (Number(y.index.indexValue) - Number(y.indexValueUntilUpdatedAt)) *
-                Number(y.units),
-        0
+            toBN(x)
+                .add(
+                    toBN(y.index.indexValue).sub(
+                        toBN(y.indexValueUntilUpdatedAt)
+                    )
+                )
+                .mul(toBN(y.units)),
+        toBN(0)
     );
 };
 
@@ -174,11 +181,14 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
         .filter((x) => x.approved)
         .reduce(
             (x, y) =>
-                x +
-                (Number(y.index.indexValue) -
-                    Number(y.indexValueUntilUpdatedAt)) *
-                    Number(y.units),
-            0
+                toBN(x)
+                    .add(
+                        toBN(y.index.indexValue).sub(
+                            toBN(y.indexValueUntilUpdatedAt)
+                        )
+                    )
+                    .mul(toBN(y.units)),
+            toBN(0)
         );
 };
 
@@ -190,10 +200,9 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
 export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
     indexSubscriptions: IIndexSubscription[]
 ) => {
-    return (
-        subscriptionTotalAmountDistributedSinceUpdated(indexSubscriptions) -
-        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
-    );
+    return subscriptionTotalAmountDistributedSinceUpdated(
+        indexSubscriptions
+    ).sub(subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions));
 };
 
 export const getStringCurrentTimeInSeconds = () =>
@@ -203,14 +212,14 @@ export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) =>
     new Date(Number(timestamp.toString()) * 1000);
 
 /**
- * @dev The formula for calculating the balance until updated at of a user (claimable + received tokens from index)
+ * @dev The formula for calculating the balance until updated at of a user (received tokens from index) using subgraph data.
  * @param currentBalance the current balance until updated at from the `AccountTokenSnapshot` entity
  * @param netFlowRate the net flow rate of the user
  * @param currentTimestamp the current timestamp
  * @param updatedAtTimestamp the updated at timestamp of the `AccountTokenSnapshot` entity
  * @returns the balance since the updated at timestamp
  */
-export const getBalance = ({
+export const calculateAvailableBalance = ({
     currentBalance,
     netFlowRate,
     currentTimestamp,
@@ -223,15 +232,15 @@ export const getBalance = ({
     updatedAtTimestamp: string;
     indexSubscriptions: IIndexSubscription[];
 }) => {
-    return (
-        Number(currentBalance) +
-        flowedAmountSinceUpdatedAt({
-            netFlowRate,
-            currentTimestamp,
-            updatedAtTimestamp,
-        }) +
-        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
-    );
+    return toBN(currentBalance)
+        .add(
+            flowedAmountSinceUpdatedAt({
+                netFlowRate,
+                currentTimestamp,
+                updatedAtTimestamp,
+            })
+        )
+        .add(subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions));
 };
 
 // NOTE: This is the only places we are allowed to use explicit any in the

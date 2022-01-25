@@ -2,7 +2,7 @@ export const normalizeSubgraphFilter = (value: object) => {
     return Object.keys(value)
         .sort()
         .reduce<any>((acc, key) => {
-            acc[key] = normalizeValue((value as any)[key]);
+            acc[key] = normalizeSubgraphFilterValue((value as any)[key]);
             return acc;
         }, {});
 };
@@ -11,7 +11,7 @@ export const normalizeSubgraphFilter = (value: object) => {
 const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
 
 // Normalize addresses and empty strings for cache keys.
-const normalizeValue = (value: unknown) =>
+export const normalizeSubgraphFilterValue = (value: unknown) =>
     lowerCaseIfAddress(undefinedIfEmpty(value));
 
 const undefinedIfEmpty = (value: unknown) => {
@@ -21,11 +21,16 @@ const undefinedIfEmpty = (value: unknown) => {
     return value;
 };
 
-const lowerCaseIfAddress = (value: unknown) => {
+const lowerCaseIfAddress = (value: unknown): unknown => {
     if (typeof value === "string") {
         if (value.match(isAddressRegex)) {
             return value.toLowerCase();
         }
     }
+
+    if (Array.isArray(value)) {
+        return value.map((x) => lowerCaseIfAddress(x));
+    }
+
     return value;
 };

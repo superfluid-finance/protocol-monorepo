@@ -44,8 +44,4 @@ export * from "./subgraph/events/subscriptionUnitsUpdatedEvents/subscriptionUnit
 
 export * from "./subgraph/mappedSubgraphTypes";
 export * from "./SFError";
-export { SubgraphQueryHandler } from "./subgraph/subgraphQueryHandler";
-export { RelevantAddressProviderFromResult } from "./subgraph/subgraphQueryHandler";
-export { RelevantAddressProviderFromFilter } from "./subgraph/subgraphQueryHandler";
-export { RelevantAddressesIntermediate } from "./subgraph/subgraphQueryHandler";
-export { RelevantAddresses } from "./subgraph/subgraphQueryHandler";
+export * from "./subgraph/subgraphQueryHandler";

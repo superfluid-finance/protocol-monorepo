@@ -19,6 +19,8 @@ export const getSerializeQueryArgs =
         )})`;
     };
 
+// TODO(KK): The logic below is duplicated in SDK-Core. Think of a way of sharing it.
+
 // NOTE: Regex taken from Ethers.
 const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
 
@@ -32,11 +34,16 @@ const undefinedIfEmpty = (value: unknown) => {
     return value;
 };
 
-const lowerCaseIfAddress = (value: unknown) => {
+const lowerCaseIfAddress = (value: unknown): unknown => {
     if (typeof value === 'string') {
         if (value.match(isAddressRegex)) {
             return value.toLowerCase();
         }
     }
+
+    if (Array.isArray(value)) {
+        return value.map((x) => lowerCaseIfAddress(x));
+    }
+
     return value;
 };

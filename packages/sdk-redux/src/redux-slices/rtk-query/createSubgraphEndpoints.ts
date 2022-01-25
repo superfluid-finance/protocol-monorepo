@@ -57,6 +57,34 @@ import {provideTagsFromRelevantAddresses} from './entities/provideTagsFromReleva
 import {SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
 export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
+    // NOTE: Ignoring prettier because longer lines are more readable here.
+    // prettier-ignore
+    return {
+        account: get<Account, GetAccount>(new AccountQueryHandler(), 'Event'),
+        accounts: list<Account, ListAccounts>(new AccountQueryHandler(), 'Event'),
+        accountTokenSnapshot: get<AccountTokenSnapshot, GetAccountTokenSnapshot>(new AccountTokenSnapshotQueryHandler(), 'Event'),
+        accountTokenSnapshots: list<AccountTokenSnapshot, ListAccountTokenSnapshots>(new AccountTokenSnapshotQueryHandler(), 'Token'),
+        index: get<Index, GetIndex2>(new IndexQueryHandler(), 'Index'),
+        indexes: list<Index, ListIndexes2>(new IndexQueryHandler(), 'Index'),
+        indexSubscription: get<IndexSubscription, GetIndexSubscription>(new IndexSubscriptionQueryHandler(), 'Index'),
+        indexSubscriptions: list<IndexSubscription, ListIndexSubscriptions2>(new IndexSubscriptionQueryHandler(), 'Index'),
+        stream: get<Stream, GetStream2>(new StreamQueryHandler(), 'Stream'),
+        streams: list<Stream, ListStreams2>(new StreamQueryHandler(), 'Stream'),
+        streamPeriod: get<StreamPeriod, GetStreamPeriod>(new StreamPeriodQueryHandler(), 'Stream'),
+        streamPeriods: list<StreamPeriod, ListStreamPeriods>(new StreamPeriodQueryHandler(), 'Stream'),
+        token: get<Token, GetToken>(new TokenQueryHandler(), 'Token'),
+        tokens: list<Token, ListTokens>(new TokenQueryHandler(), 'Token'),
+        tokenStatistic: get<TokenStatistic, GetTokenStatistic>(new TokenStatisticQueryHandler(), 'Token'),
+        tokenStatistics: list<TokenStatistic, ListTokenStatistics>(new TokenStatisticQueryHandler(), 'Token'),
+        indexUpdatedEvent: get<IndexUpdatedEvent, GetIndexUpdatedEvent>(new IndexUpdatedEventQueryHandler(), 'Event'),
+        indexUpdatedEvents: list<IndexUpdatedEvent, ListIndexUpdatedEvents>(new IndexUpdatedEventQueryHandler(), 'Event'),
+        subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, GetSubscriptionUnitsUpdatedEvent>(new SubscriptionUnitsUpdatedEventQueryHandler(), 'Event'),
+        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, ListSubscriptionUnitsUpdatedEvents>(new SubscriptionUnitsUpdatedEventQueryHandler(), 'Event'),
+    };
+
+    /**
+     * Creates "get" endpoint.
+     */
     function get<TReturn extends ILightEntity, TQuery extends BaseGetQuery<TReturn>>(
         queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
         tag: CacheTagTypes
@@ -74,6 +102,9 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
         });
     }
 
+    /**
+     * Creates "list" endpoint.
+     */
     function list<
         TReturn extends ILightEntity,
         TQuery extends BaseQuery2 & SubgraphListQuery<TFilter, TOrderBy>,
@@ -99,45 +130,4 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
                 ),
         });
     }
-
-    return {
-        account: get<Account, GetAccount>(new AccountQueryHandler(), 'Event'),
-        accounts: list<Account, ListAccounts>(new AccountQueryHandler(), 'Event'),
-        accountTokenSnapshot: get<AccountTokenSnapshot, GetAccountTokenSnapshot>(
-            new AccountTokenSnapshotQueryHandler(),
-            'Event'
-        ),
-        accountTokenSnapshots: list<AccountTokenSnapshot, ListAccountTokenSnapshots>(
-            new AccountTokenSnapshotQueryHandler(),
-            'Token'
-        ),
-        index: get<Index, GetIndex2>(new IndexQueryHandler(), 'Index'),
-        indexes: list<Index, ListIndexes2>(new IndexQueryHandler(), 'Index'),
-        indexSubscription: get<IndexSubscription, GetIndexSubscription>(new IndexSubscriptionQueryHandler(), 'Index'),
-        indexSubscriptions: list<IndexSubscription, ListIndexSubscriptions2>(
-            new IndexSubscriptionQueryHandler(),
-            'Index'
-        ),
-        stream: get<Stream, GetStream2>(new StreamQueryHandler(), 'Stream'),
-        streams: list<Stream, ListStreams2>(new StreamQueryHandler(), 'Stream'),
-        streamPeriod: get<StreamPeriod, GetStreamPeriod>(new StreamPeriodQueryHandler(), 'Stream'),
-        streamPeriods: list<StreamPeriod, ListStreamPeriods>(new StreamPeriodQueryHandler(), 'Stream'),
-        token: get<Token, GetToken>(new TokenQueryHandler(), 'Token'),
-        tokens: list<Token, ListTokens>(new TokenQueryHandler(), 'Token'),
-        tokenStatistic: get<TokenStatistic, GetTokenStatistic>(new TokenStatisticQueryHandler(), 'Token'),
-        tokenStatistics: list<TokenStatistic, ListTokenStatistics>(new TokenStatisticQueryHandler(), 'Token'),
-        indexUpdatedEvent: get<IndexUpdatedEvent, GetIndexUpdatedEvent>(new IndexUpdatedEventQueryHandler(), 'Event'),
-        indexUpdatedEvents: list<IndexUpdatedEvent, ListIndexUpdatedEvents>(
-            new IndexUpdatedEventQueryHandler(),
-            'Event'
-        ),
-        subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, GetSubscriptionUnitsUpdatedEvent>(
-            new SubscriptionUnitsUpdatedEventQueryHandler(),
-            'Event'
-        ),
-        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, ListSubscriptionUnitsUpdatedEvents>(
-            new SubscriptionUnitsUpdatedEventQueryHandler(),
-            'Event'
-        ),
-    };
 };

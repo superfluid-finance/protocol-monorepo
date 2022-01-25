@@ -10,6 +10,7 @@ import {
     getCurrentStreams,
     getSubscriptions,
     getAccountTokenSnapshots,
+    getTokenStatistics,
 } from "./dataIntegrityQueries";
 import {
     IBaseEntity,
@@ -17,6 +18,7 @@ import {
     IDataIntegrityIndex,
     IDataIntegrityStream,
     IDataIntegritySubscription,
+    IDataIntegrityTokenStatistic,
 } from "../interfaces";
 import {chainIdToData} from "../maps";
 import {ConstantFlowAgreementV1} from "../../typechain/ConstantFlowAgreementV1";
@@ -66,7 +68,10 @@ export const getMostRecentIndexedBlockNumber = async (
  * e.g. trying to do a promise for 5,000 items at once.
  */
 function chunkPromises(promises: Promise<void>[], chunkLength: number) {
-    const chunksLength = Math.ceil(promises.length / chunkLength);
+    const chunksLength =
+        promises.length < chunkLength
+            ? promises.length
+            : Math.ceil(promises.length / chunkLength);
     const batches = Array.apply(null, Array(chunksLength)).map((_x, i) =>
         promises.slice(i * chunkLength, chunkLength * (i + 1))
     );
@@ -125,7 +130,7 @@ async function getAllResults<T extends IBaseEntity>(
 
 async function main() {
     let netFlowRateSum = toBN(0);
-    let tokenGroupedUserRTBSums: {[tokenAddress: string]: BigNumber} = {};
+    let tokenGroupedRTBSums: {[tokenAddress: string]: BigNumber} = {};
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId;
     const chainIdData = chainIdToData.get(chainId);
@@ -224,6 +229,16 @@ async function main() {
         false
     );
 
+    console.log("Querying all tokenStatistics via the Subgraph...");
+    // Gets all subscriptions ever created
+    const tokenStatistics = await getAllResults<IDataIntegrityTokenStatistic>(
+        getTokenStatistics,
+        chainIdData.subgraphAPIEndpoint,
+        currentBlockNumber,
+        1000,
+        true
+    );
+
     console.log("Filtering out duplicate entities...");
     const uniqueStreams = _.uniqBy(
         streams,
@@ -252,6 +267,16 @@ async function main() {
     console.log(
         `There are ${uniqueSubscriptions.length} unique subscriptions
         out of ${subscriptions.length} total subscriptions.`
+    );
+
+    // NOTE: we only care about super tokens with underlying for
+    // our data integrity tests
+    const uniqueTokenStatistics = _.uniqBy(tokenStatistics, (x) => x.id).filter(
+        (x) => x.token.underlyingAddress !== ethers.constants.AddressZero
+    );
+    console.log(
+        `There are ${uniqueTokenStatistics.length} unique tokenStatistics
+        out of ${tokenStatistics.length} total tokenStatistics.`
     );
 
     // Account Level Invariant: validate CFA current streams data
@@ -359,8 +384,8 @@ async function main() {
                 ethers.utils.getAddress(y.token.underlyingAddress) !==
                 ethers.constants.AddressZero
             ) {
-                tokenGroupedUserRTBSums[y.token.underlyingAddress] =
-                    tokenGroupedUserRTBSums[y.token.underlyingAddress].add(
+                tokenGroupedRTBSums[y.token.underlyingAddress] =
+                    tokenGroupedRTBSums[y.token.underlyingAddress].add(
                         realtimeBalance
                     );
             }
@@ -512,12 +537,41 @@ async function main() {
         }
     });
 
+    const totalSupplyPromises = uniqueTokenStatistics.map(async (x) => {
+        const superTokenContract = (await ethers.getContractAt(
+            superTokenABI,
+            x.id
+        )) as ISuperToken;
+        const tokenContract = (await ethers.getContractAt(
+            superTokenABI,
+            x.token.underlyingAddress
+        )) as ISuperToken;
+        const totalSupply = await superTokenContract.totalSupply();
+        const aum = await tokenContract.balanceOf(x.id);
+        const tokenSumRTB = tokenGroupedRTBSums[x.id];
+        if (!toBN(x.totalSupply).eq(totalSupply)) {
+            throw new Error(
+                `Subgraph total supply: ${
+                    x.totalSupply
+                } !== on chain total supply: ${totalSupply.toString()}`
+            );
+        }
+        if (!toBN(x.totalSupply).eq(aum)) {
+            throw new Error(
+                `Global invariant failed: subgraph total supply === SuperToken AUM`
+            );
+        }
+        if (!aum.gte(tokenSumRTB)) {
+            throw new Error(
+                `Global invariant failed: SuperToken AUM >= sum RTB of token`
+            );
+        }
+    });
+
     // General TODOS:
     // Clean this file up, add more comments so it's more maintainable.
 
     // GLOBAL LEVEL TODOS
-    // TODO: Validate Total Supply of SuperToken (contract) === Total Supply of SuperToken (subgraph) === sum of all accounts RTB
-    // TODO: SuperTokens w/ Underlying Token => Underlying Token Total Supply >= sum RTB of SuperToken
     // TODO: Subgraph FlowUpdatedEvents length === on chain FlowUpdated events length AND properties are matching
     // (can apply to other interested events events)
 
@@ -574,6 +628,13 @@ async function main() {
         "Validating RTB Invariant: User RTB === Subgraph calculated balance"
     );
     await Promise.all(tokenBalancePromises);
+
+    console.log("Token Statistics Total Supply Tests Starting");
+    const chunkedTotalSupplyPromises = chunkPromises(totalSupplyPromises, 100);
+    for (let i = 0; i < chunkedTotalSupplyPromises.length; i++) {
+        await Promise.all(chunkedTotalSupplyPromises[i]);
+    }
+    console.log("Token Statistics Total Supply validation successful.");
 }
 
 main()

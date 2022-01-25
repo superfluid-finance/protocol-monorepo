@@ -120,3 +120,27 @@ export const getAccountTokenSnapshots = gql`
         }
     }
 `;
+
+/**
+ * Gets account token snapshots of all accounts that have ever interacted with
+ * the Superfluid protocol.
+ */
+export const getTokenStatistics = gql`
+    query getTokenStatistics($blockNumber: Int, $first: Int, $updatedAt: Int) {
+        response: tokenStatistics(
+            block: { number: $blockNumber }
+            first: $first
+            where: { updatedAtTimestamp_gte: $updatedAt }
+            orderBy: updatedAtTimestamp
+            orderDirection: asc
+        ) {
+            id
+            updatedAtTimestamp
+            totalSupply
+            token {
+                id
+                underlyingAddress
+            }
+        }
+    }
+`;

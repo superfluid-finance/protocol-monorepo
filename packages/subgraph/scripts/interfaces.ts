@@ -38,9 +38,17 @@ export interface IDataIntegritySubscription extends IBaseEntity {
     };
 }
 
+// NOTE: IDataIntegrityAccountTokenSnapshot and 
+// IDataIntegrityTokenStatistic only have updatedAtTimestamp
+// not createdAtTimestamp
 export interface IDataIntegrityAccountTokenSnapshot extends IBaseEntity {
     readonly balanceUntilUpdatedAt: string;
     readonly totalNetFlowRate: string;
     readonly token: { id: string, underlyingAddress: string };
     readonly account: ILightEntity;
+}
+
+export interface IDataIntegrityTokenStatistic extends IBaseEntity {
+    readonly totalSupply: string;
+    readonly token: { id: string, underlyingAddress: string };
 }

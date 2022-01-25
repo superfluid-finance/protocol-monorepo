@@ -4,7 +4,7 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
 import {createApiSlice} from './redux-slices/rtk-query/sfApiSlice';
-import {createSubgraphSlice} from './redux-slices/rtk-query/subgraphSlice';
+import {createSubgraphSlice} from './redux-slices/rtk-query/subgraph-slice/subgraphSlice';
 import {createTransactionSlice} from './redux-slices/transactions/createTransactionSlice';
 import {getConfig} from './sdkReduxConfig';
 

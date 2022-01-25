@@ -4,12 +4,12 @@ import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import {CreateApi} from '@reduxjs/toolkit/query';
 import {Framework, SFError} from '@superfluid-finance/sdk-core';
 
-import {getFramework} from '../../sdkReduxConfig';
-import {typeGuard} from '../../utils';
+import {getFramework} from '../../../sdkReduxConfig';
+import {typeGuard} from '../../../utils';
+import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
+import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
 
-import {CacheTagTypes} from './cacheTags/CacheTagTypes';
 import {createSubgraphEndpoints} from './createSubgraphEndpoints';
-import {getSerializeQueryArgs} from './getSerializeQueryArgs';
 
 export const createSubgraphSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({

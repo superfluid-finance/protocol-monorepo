@@ -3,7 +3,7 @@ import {Signer} from 'ethers';
 import _ from 'lodash';
 
 import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSliceInferredType';
-import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/sfSubgraphSliceInferredType';
+import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraph-slice/sfSubgraphSliceInferredType';
 import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
 
 interface FrameworkLocator {

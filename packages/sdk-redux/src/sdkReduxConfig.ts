@@ -1,5 +1,6 @@
 import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
+import _ from 'lodash';
 
 import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSliceInferredType';
 import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/sfSubgraphSliceInferredType';
@@ -7,12 +8,12 @@ import {SfTransactionSliceType} from './redux-slices/transactions/createTransact
 
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;
-    setFramework: (chainId: number, framework: (() => Promise<Framework>) | Framework) => void;
+    setFramework: (chainId: number, frameworkOrFactory: Framework | (() => Promise<Framework>)) => void;
 }
 
 interface SignerLocator {
     getSigner: (chainId: number) => Promise<Signer>;
-    setSigner: (chainId: number, signer: (() => Promise<Signer>) | Signer) => void;
+    setSigner: (chainId: number, signerOrFactory: Signer | (() => Promise<Signer>)) => void;
 }
 
 interface FrameworkAndSignerLocator extends FrameworkLocator, SignerLocator {
@@ -34,14 +35,17 @@ interface TransactionSliceLocator {
     setTransactionSlice: (slice: SfTransactionSliceType) => void;
 }
 
+/**
+ * NOTE: The reason memoization is used is to avoid multiple instantiations by the lazy factories.
+ */
 export default class SdkReduxConfig
     implements FrameworkAndSignerLocator, ApiSliceLocator, SubgraphSliceLocator, TransactionSliceLocator
 {
     apiSlice: SfApiSliceInferredType | undefined;
     subgraphSlice: SfSubgraphSliceInferredType | undefined;
     transactionSlice: SfTransactionSliceType | undefined;
-    frameworks = new Map<number, () => Promise<Framework>>();
-    signers = new Map<number, () => Promise<Signer>>();
+    memoizedLazyFrameworkFactories = new Map<number, () => Promise<Framework>>();
+    memoizedLazySignerFactories = new Map<number, () => Promise<Signer>>();
 
     static getOrCreateSingleton(): SdkReduxConfig {
         if (!globalThis.sdkReduxConfig) {
@@ -54,7 +58,6 @@ export default class SdkReduxConfig
         if (!this.apiSlice) {
             throw Error('The ApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-
         return this.apiSlice;
     }
 
@@ -62,31 +65,29 @@ export default class SdkReduxConfig
         if (!this.subgraphSlice) {
             throw Error('The SubgraphSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-
         return this.subgraphSlice;
     }
 
     getFramework(chainId: number): Promise<Framework> {
-        const frameworkGetter = this.frameworks.get(chainId);
-        if (!frameworkGetter)
+        const frameworkFactory = this.memoizedLazyFrameworkFactories.get(chainId);
+        if (!frameworkFactory)
             throw Error(
                 `Don't know how to get Superfluid Framework. :( Please set up a *framework* source for chain [${chainId}].`
             );
-        return frameworkGetter();
+        return frameworkFactory();
     }
 
     getSigner(chainId: number): Promise<Signer> {
-        const signerGetter = this.signers.get(chainId);
-        if (!signerGetter)
+        const signerFactory = this.memoizedLazySignerFactories.get(chainId);
+        if (!signerFactory)
             throw Error(`Don't know how to get a signer. :( Please set up a *signer* source for chain [${chainId}].`);
-        return signerGetter();
+        return signerFactory();
     }
 
     getTransactionSlice(): SfTransactionSliceType {
         if (!this.transactionSlice) {
             throw Error('The ApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-
         return this.transactionSlice;
     }
 
@@ -108,20 +109,20 @@ export default class SdkReduxConfig
         this.subgraphSlice = slice;
     }
 
-    setFramework(chainId: number, framework: (() => Promise<Framework>) | Framework) {
-        if (framework instanceof Framework) {
-            this.frameworks.set(chainId, () => Promise.resolve(framework));
-        } else {
-            this.frameworks.set(chainId, framework);
-        }
+    setFramework(chainId: number, instanceOrFactory: Framework | (() => Promise<Framework>)) {
+        const frameworkFactory = isFramework(instanceOrFactory)
+            ? () => Promise.resolve(instanceOrFactory)
+            : instanceOrFactory;
+
+        this.memoizedLazyFrameworkFactories.set(chainId, _.memoize(frameworkFactory));
     }
 
-    setSigner(chainId: number, signer: (() => Promise<Signer>) | Signer) {
-        if (isEthersSigner(signer)) {
-            this.signers.set(chainId, () => Promise.resolve(signer));
-        } else {
-            this.signers.set(chainId, signer);
-        }
+    setSigner(chainId: number, instanceOrFactory: Signer | (() => Promise<Signer>)) {
+        const signerFactory = isEthersSigner(instanceOrFactory)
+            ? () => Promise.resolve(instanceOrFactory)
+            : instanceOrFactory;
+
+        this.memoizedLazySignerFactories.set(chainId, _.memoize(signerFactory));
     }
 
     setTransactionSlice(slice: SfTransactionSliceType): void {
@@ -146,3 +147,4 @@ export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
 export const getFrameworkAndSigner = (chainId: number) => getConfig().getFrameworkAndSigner(chainId);
 
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
+const isFramework = (value: any): value is Framework => !!value.cfaV1;

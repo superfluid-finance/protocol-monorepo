@@ -13,16 +13,14 @@ const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
-const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
 const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
-const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
 describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     const {ZERO_ADDRESS} = t.constants;
-    const {LIQUIDATION_PERIOD} = t.configs;
+    const {LIQUIDATION_PERIOD, FLOW_RATE1, MINIMUM_DEPOSIT} = t.configs;
 
     let admin, alice, bob, dan;
     let superfluid;
@@ -2169,7 +2167,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     // - it adds an additional 60 seconds as extra safe margin
                     const marginalLiquidity = flowRate.mul(toBN(60));
                     const sufficientLiquidity = BN.max(
-                        MINIMAL_DEPOSIT.add(marginalLiquidity),
+                        MINIMUM_DEPOSIT.add(marginalLiquidity),
                         flowRate
                             .mul(toBN(LIQUIDATION_PERIOD))
                             .add(marginalLiquidity)
@@ -2177,21 +2175,21 @@ describe("Using ConstantFlowAgreement v1", function () {
                     await testToken.mint(t.aliases.alice, sufficientLiquidity, {
                         from: t.aliases.alice,
                     });
-                    await t.upgradeBalance("alice", sufficientLiquidity);
+                    await t.upgradeBalance(sender, sufficientLiquidity);
 
                     await shouldCreateFlow({
                         testenv: t,
                         superToken,
-                        sender: "alice",
-                        receiver: "bob",
+                        sender,
+                        receiver,
                         flowRate: flowRate.div(toBN(2)),
                     });
 
                     await shouldUpdateFlow({
                         testenv: t,
                         superToken,
-                        sender: "alice",
-                        receiver: "bob",
+                        sender,
+                        receiver,
                         flowRate: flowRate,
                     });
 
@@ -2199,6 +2197,173 @@ describe("Using ConstantFlowAgreement v1", function () {
                         allowCriticalAccount: true,
                     });
                 });
+            });
+        });
+
+        describe("#1.11 should properly handle minimum deposit", () => {
+            beforeEach(async () => {
+                // give admin some balance for liquidations
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+            });
+            const flowRateAtMinDeposit = t.configs.MINIMUM_DEPOSIT.div(
+                toBN(t.configs.LIQUIDATION_PERIOD)
+            );
+
+            // calcDeposit = flowRate * t.configs.LIQUIDATION_PERIOD
+            context(
+                "#1.11.1 should be able to create flow where calcDeposit < min deposit.",
+                () => {
+                    beforeEach(async () => {
+                        await shouldCreateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.div(toBN(2)),
+                        });
+                    });
+
+                    it("#1.11.1.a should handle update flow where calcDeposit < min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.div(toBN(4)),
+                        });
+                    });
+
+                    it("#1.11.1.b should be able to create flow where calcDeposit > min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.mul(toBN(2)),
+                        });
+                    });
+
+                    it("#1.11.1.c should be able to create flow where calcDeposit = min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit,
+                        });
+                    });
+                }
+            );
+
+            context(
+                "#1.11.2 should be able to create flow where calcDeposit > min deposit.",
+                () => {
+                    beforeEach(async () => {
+                        await shouldCreateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.mul(toBN(2)),
+                        });
+                    });
+
+                    it("#1.11.2.a should handle update flow where calcDeposit < min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.div(toBN(2)),
+                        });
+                    });
+
+                    it("#1.11.2.b should be able to update flow where calcDeposit > min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.mul(toBN(4)),
+                        });
+                    });
+
+                    it("#1.11.2.c should be able to update flow where calcDeposit = min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit,
+                        });
+                    });
+                }
+            );
+
+            context(
+                "#1.11.3 should be able to create flow where calcDeposit = min deposit.",
+                () => {
+                    beforeEach(async () => {
+                        await shouldCreateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit,
+                        });
+                    });
+
+                    it("#1.11.3.a should handle update flow where calcDeposit < min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.div(toBN(2)),
+                        });
+                    });
+
+                    it("#1.11.3.b should be able to update flow where calcDeposit > min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit.mul(toBN(2)),
+                        });
+                    });
+
+                    it("#1.11.3.c should be able to update flow where calcDeposit = min deposit.", async () => {
+                        await shouldUpdateFlow({
+                            testenv: t,
+                            superToken,
+                            sender,
+                            receiver,
+                            flowRate: flowRateAtMinDeposit,
+                        });
+                    });
+                }
+            );
+
+            it("#1.11.4 should revert if trying to create a flow without enough minimum deposit.", async () => {
+                // transfer balance - (minimumDeposit + 1 away)
+                await t.transferBalance(
+                    sender,
+                    receiver,
+                    t.configs.INIT_BALANCE.sub(
+                        t.configs.MINIMUM_DEPOSIT.add(toBN(1))
+                    )
+                );
+                await expectRevert(
+                    shouldCreateFlow({
+                        testenv: t,
+                        superToken,
+                        sender,
+                        receiver,
+                        flowRate: FLOW_RATE1,
+                    }),
+                    "CFA: not enough available balance"
+                );
             });
         });
     });

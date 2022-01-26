@@ -4,11 +4,11 @@ module.exports = {
     },
     skipFiles: [
         "mocks/",
-        "apps",
+        "apps/SuperAppBase.sol",
         "libs/Strings.sol", // solidity test cases not included in coverage
     ],
     mocha: {
         grep: "@skip-on-coverage", // Find everything with this tag
-        invert: true               // Run the grep's inverse set.
-    }
+        invert: true, // Run the grep's inverse set.
+    },
 };

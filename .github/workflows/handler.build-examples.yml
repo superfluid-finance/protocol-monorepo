@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, nftbillboard-userdata, sdk-redux-react-typecript]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript ]
         install: [locked-install, clean-install]
         node-version: [14.x]
 

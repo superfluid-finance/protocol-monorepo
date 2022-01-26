@@ -148,16 +148,16 @@ async function _shouldChangeFlow({
             mainFlowDeposit, // appAllowanceUsed
             newAppAllowanceUsed
         );
-        // adjust deposit allowance refunds to refund less
-        // if (mfaAllowanceUsedDelta.ltn(0)) {
-        //     mfaAllowanceUsedAdjusted = mfaAllowanceUsedAdjusted.add(
-        //         clipDepositNumber(mfaAllowanceUsedDelta.mul(toBN(-1)), true /* rounding down */)
-        //             .add(mfaAllowanceUsedDelta)
-        //     );
-        // }
+
         cfaDataModel.expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
-            deposit: mainFlowDeposit.add(mainFlowAllowanceUsed),
+            deposit:
+                mainFlowDeposit
+                    .add(mainFlowAllowanceUsed)
+                    .lt(testenv.configs.MINIMUM_DEPOSIT) &&
+                toBN(flowRate).gt(toBN(0))
+                    ? testenv.configs.MINIMUM_DEPOSIT
+                    : mainFlowDeposit.add(mainFlowAllowanceUsed),
             owedDeposit: mainFlowAllowanceUsed,
         };
     }

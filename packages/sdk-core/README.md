@@ -23,6 +23,30 @@
 
 ### 📖 [Docs](https://docs.superfluid.finance)
 
+# Introduction
+SDK-Core is an application framework for interacting with the Superfluid Protocol without Solidity knowledge.
+
+More specifically, SDK-Core is a wrapper library around `@superfluid-finance/ethereum-contracts` which allows web developers to interact with the Superfluid contracts.
+Under the hood, SDK-Core leverages TypeScript, ethers.js and The Graph and GraphQL.
+
+## Important Disclaimer
+SDK-Core is in early active development and can have breaking releases without warning and without consideration for semantic versioning.
+
+# Features
+* Minimal Framework initialization (`networkName` or `chainId` and `provider`)
+* New Operation syntax for transactions
+* Create/Update/Delete Agreement Operations (Constant Flow Agreement and Instant Distribution Agreement)
+* SuperToken Operations
+* Subgraph-powered GraphQL querying with ordering and pagination
+* Event subscription
+* CFA/IDA/SuperToken Web3 Getters
+* Batch Call functionality for batching multiple Superfluid Operations in one transaction
+
+# Notable Used Technologies
+* TypeScript
+* Ethers
+* GraphQL
+
 # Prerequisites
 
 To get the package up and running you'll need to install the necessary dependencies and build the project:
@@ -34,8 +58,7 @@ yarn install && yarn build
 # Tutorial
 
 For the best and most immersive experience of learning how to use the main sdk-core features, I would highly recommend heading over to our [interactive tutorials](https://docs.superfluid.finance/superfluid/protocol-tutorials/interactive-tutorials).
-# Usage
-
+# Getting Started
 ## Framework Initialization
 
 Here is a quick look at initializing the SDK in different environments:

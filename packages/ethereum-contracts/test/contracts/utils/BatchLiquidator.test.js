@@ -3,15 +3,13 @@ const {expectRevert} = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../../TestEnvironment");
 const BatchLiquidator = artifacts.require("BatchLiquidator");
 
-const {toWad, toBN} = require("@decentral.ee/web3-helpers");
-
 const traveler = require("ganache-time-traveler");
 
 describe("Superfluid Liquidator Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const FLOW_RATE = toWad("1").div(toBN(3600)); // 1 per hour
+    const FLOW_RATE = t.configs.FLOW_RATE1; // 1 per hour
 
     let superToken;
     let batch;

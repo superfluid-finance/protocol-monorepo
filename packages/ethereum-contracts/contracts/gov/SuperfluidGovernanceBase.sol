@@ -83,6 +83,21 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         }
     }
 
+    function batchUpdateSuperTokenMinimumDeposit(
+        ISuperfluid host,
+        ISuperToken[] calldata tokens,
+        uint256[] calldata minimumDeposits
+    ) external {
+        require(tokens.length == minimumDeposits.length, "SFGov: arrays are not the same length");
+        for (uint i = 0; i < minimumDeposits.length; ++i) {
+            setSuperTokenMinimumDeposit(
+                host,
+                tokens[i],
+                minimumDeposits[i]
+            );
+        }
+    }
+
     event ConfigChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
@@ -300,6 +315,40 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     ) public {
         emit ThreePsConfigurationChanged(host, superToken, false, 0, 0);
         return _clearConfig(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
+    }
+    event SuperTokenMinimumDepositChanged(
+        ISuperfluid indexed host,
+        ISuperfluidToken indexed superToken,
+        bool isKeySet,
+        uint256 minimumDeposit
+    );
+
+    function getSuperTokenMinimumDeposit(
+        ISuperfluid host,
+        ISuperfluidToken superToken
+    ) public view 
+    returns (uint256 value) 
+    {
+        return getConfigAsUint256(host, superToken,
+            SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+    }
+
+    function setSuperTokenMinimumDeposit(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        uint256 value
+    ) public {
+        emit SuperTokenMinimumDepositChanged(host, superToken, true, value);
+        return _setConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY, value);
+    }
+
+    function clearSuperTokenMinimumDeposit(
+        ISuperfluid host,
+        ISuperToken superToken
+    ) public 
+    {
+        emit SuperTokenMinimumDepositChanged(host, superToken, false, 0);
+        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
     }
 
     // trustedForwarder

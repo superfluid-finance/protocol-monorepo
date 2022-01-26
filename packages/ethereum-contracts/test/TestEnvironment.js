@@ -21,6 +21,9 @@ const TestToken = artifacts.require("TestToken");
 const {BN} = require("@openzeppelin/test-helpers");
 const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
 
+const {
+    clipDepositNumber,
+} = require("./contracts/agreements/ConstantFlowAgreementV1.behavior.js");
 let _singleton;
 
 /**
@@ -71,6 +74,8 @@ module.exports = class TestEnvironment {
             AUM_DUST_AMOUNT: toBN(0),
             LIQUIDATION_PERIOD: 3600,
             PATRICIAN_PERIOD: 900,
+            FLOW_RATE1: toWad(1).div(toBN(3600)), // 1 per hour
+            MINIMUM_DEPOSIT: clipDepositNumber(toWad(0.25), false),
         };
 
         this.constants = Object.assign(
@@ -305,6 +310,14 @@ module.exports = class TestEnvironment {
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
                 this.aliases.admin
+            ),
+            await web3tx(
+                this.contracts.governance.setSuperTokenMinimumDeposit,
+                `set superToken minimum deposit@${this.configs.MINIMUM_DEPOSIT.toString()}`
+            )(
+                this.sf.host.address,
+                this.constants.ZERO_ADDRESS,
+                this.configs.MINIMUM_DEPOSIT
             ),
         ]);
     }

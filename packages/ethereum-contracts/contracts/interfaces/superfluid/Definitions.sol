@@ -169,6 +169,8 @@ library SuperfluidGovernanceConfigs {
 
     bytes32 constant internal _3PS_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
+    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY = 
+        keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {
         return keccak256(abi.encode(

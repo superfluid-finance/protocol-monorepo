@@ -30,6 +30,11 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     /**
      * @dev Get the deposit required for creating the flow
      * @param flowRate Flow rate to be tested
+     * 
+     * NOTE: 
+     * - if calculated deposit (flowRate * liquidationPeriod) is less
+     *   than the minimum deposit, we use the minimum deposit otherwise
+     *   we use the calculated deposit
      */
     function getDepositRequiredForFlowRate(
         ISuperfluidToken token,

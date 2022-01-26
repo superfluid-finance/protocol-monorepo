@@ -106,8 +106,10 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+        uint256 minimumDeposit = gov.getConfigAsUint256(host, token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
-        return _calculateDeposit(flowRate, liquidationPeriod);
+        uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
+        return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
     }
 
     /// @dev IConstantFlowAgreementV1.createFlow implementation

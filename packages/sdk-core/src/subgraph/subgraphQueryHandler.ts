@@ -58,8 +58,8 @@ export interface RelevantAddresses {
 }
 
 export interface RelevantAddressesIntermediate {
-    tokens: (InputMaybe<Address> | InputMaybe<Address>[])[];
-    accounts: (InputMaybe<Address> | InputMaybe<Address>[])[];
+    tokens: (Address | Address[] | null | undefined)[];
+    accounts: (Address | Address[] | null | undefined)[];
 }
 
 export interface RelevantAddressProviderFromFilter<TFilter> {
@@ -92,13 +92,29 @@ export abstract class SubgraphQueryHandler<
         RelevantAddressProviderFromFilter<TFilter>,
         RelevantAddressProviderFromResult<TResult>
 {
-    protected abstract getRelevantAddressesFromFilterCore(
-        filter: TFilter
-    ): RelevantAddressesIntermediate;
+    abstract getAddressFieldKeysFromFilter(): {
+        accountKeys: (keyof TFilter)[];
+        tokenKeys: (keyof TFilter)[];
+    };
 
-    protected abstract getRelevantAddressesFromResultCore(
-        result: TResult
-    ): RelevantAddressesIntermediate;
+    private filterMagic = (
+        filter: TFilter,
+        addressFieldKeys: (keyof TFilter)[]
+    ) =>
+        addressFieldKeys
+            .map(
+                (key) =>
+                    [
+                        filter[key],
+                        filter[`${key}_in` as keyof TFilter],
+                        filter[`${key}_not` as keyof TFilter],
+                        filter[`${key}_not_in` as keyof TFilter],
+                    ]
+                        .filter((x) => typeof x !== "undefined")
+                        .flat()
+                        .filter((x) => !!x) as Address[]
+            )
+            .flat();
 
     getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses {
         if (!filter) {
@@ -108,16 +124,27 @@ export abstract class SubgraphQueryHandler<
             };
         }
 
-        const intermediate = this.getRelevantAddressesFromFilterCore(filter);
+        const addressFieldKeys = this.getAddressFieldKeysFromFilter();
+
+        const tokenAddresses = this.filterMagic(
+            filter,
+            addressFieldKeys.tokenKeys
+        );
+
+        const accountAddresses = this.filterMagic(
+            filter,
+            addressFieldKeys.accountKeys
+        );
+
         return {
-            tokens: _.uniq(
-                intermediate.tokens.flat().filter((x): x is Address => !!x)
-            ),
-            accounts: _.uniq(
-                intermediate.accounts.flat().filter((x): x is Address => !!x)
-            ),
+            tokens: _.uniq(tokenAddresses),
+            accounts: _.uniq(accountAddresses),
         };
     }
+
+    protected abstract getRelevantAddressesFromResultCore(
+        result: TResult
+    ): RelevantAddressesIntermediate;
 
     getRelevantAddressesFromResult(result?: TResult | null): RelevantAddresses {
         if (!result) {

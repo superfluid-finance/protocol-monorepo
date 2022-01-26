@@ -3,11 +3,9 @@ import {
     AccountTokenSnapshotListQuery,
     IndexListQuery,
     IndexSubscriptionsListQuery,
-    IndexUpdatedEventListQuery,
     StreamListQuery,
     StreamPeriodListQuery,
     SubgraphGetQuery,
-    SubscriptionUnitsUpdatedEventListQuery,
     TokenListQuery,
     TokenStatisticListQuery,
 } from '@superfluid-finance/sdk-core';
@@ -73,21 +71,5 @@ export interface TokenStatisticQuery extends SubgraphGetQuery {
 }
 
 export interface TokenStatisticsQuery extends TokenStatisticListQuery {
-    chainId: number;
-}
-
-export interface IndexUpdatedEventQuery extends SubgraphGetQuery {
-    chainId: number;
-}
-
-export interface IndexUpdatedEventsQuery extends IndexUpdatedEventListQuery {
-    chainId: number;
-}
-
-export interface SubscriptionUnitsUpdatedEventQuery extends SubgraphGetQuery {
-    chainId: number;
-}
-
-export interface SubscriptionUnitsUpdatedEventsQuery extends SubscriptionUnitsUpdatedEventListQuery {
     chainId: number;
 }

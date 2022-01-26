@@ -37,8 +37,6 @@ export interface TokenStatistic {
     totalSupply: BigNumber;
 }
 
-export type TokenStatisticOrderBy = TokenStatistic_OrderBy;
-
 export type TokenStatisticListQuery = SubgraphListQuery<
     TokenStatistic_Filter,
     TokenStatistic_OrderBy
@@ -50,19 +48,15 @@ export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
     TokenStatisticsQuery,
     TokenStatisticsQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore = (
-        filter: TokenStatistic_Filter
-    ): RelevantAddressesIntermediate => ({
-        tokens: [
-            filter.token,
-            filter.token_in,
-            filter.token_not,
-            filter.token_not_in,
-        ],
-        accounts: [],
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof TokenStatistic_Filter)[];
+        tokenKeys: (keyof TokenStatistic_Filter)[];
+    } => ({
+        accountKeys: [],
+        tokenKeys: ["id", "token"],
     });
 
-    protected getRelevantAddressesFromResultCore = (
+    getRelevantAddressesFromResultCore = (
         result: TokenStatistic
     ): RelevantAddressesIntermediate => ({
         tokens: [result.id],

@@ -44,24 +44,15 @@ export class IndexQueryHandler extends SubgraphQueryHandler<
     IndexesQuery,
     IndexesQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore = (
-        filter: Index_Filter
-    ): RelevantAddressesIntermediate => ({
-        tokens: [
-            filter.token,
-            filter.token_in,
-            filter.token_not,
-            filter.token_not_in,
-        ],
-        accounts: [
-            filter.publisher,
-            filter.publisher_in,
-            filter.publisher_not,
-            filter.publisher_not_in,
-        ],
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof Index_Filter)[];
+        tokenKeys: (keyof Index_Filter)[];
+    } => ({
+        accountKeys: ["publisher"],
+        tokenKeys: ["token"],
     });
 
-    protected getRelevantAddressesFromResultCore = (
+    getRelevantAddressesFromResultCore = (
         result: Index
     ): RelevantAddressesIntermediate => ({
         tokens: [result.token],

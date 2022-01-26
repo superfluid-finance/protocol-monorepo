@@ -32,11 +32,12 @@ export class AccountQueryHandler extends SubgraphQueryHandler<
     AccountsQuery,
     AccountsQueryVariables
 > {
-    getRelevantAddressesFromFilterCore = (
-        filter: Account_Filter
-    ): RelevantAddressesIntermediate => ({
-        accounts: [filter.id, filter.id_in, filter.id_not, filter.id_not_in],
-        tokens: [],
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof Account_Filter)[];
+        tokenKeys: (keyof Account_Filter)[];
+    } => ({
+        accountKeys: ["id"],
+        tokenKeys: [],
     });
 
     getRelevantAddressesFromResultCore = (

@@ -48,6 +48,21 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
     IndexSubscriptionsQuery,
     IndexSubscriptionsQueryVariables
 > {
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof IndexSubscription_Filter)[];
+        tokenKeys: (keyof IndexSubscription_Filter)[];
+    } => ({
+        accountKeys: ["subscriber"],
+        tokenKeys: [],
+    });
+
+    getRelevantAddressesFromResultCore = (
+        result: IndexSubscription
+    ): RelevantAddressesIntermediate => ({
+        tokens: [result.token],
+        accounts: [result.subscriber, result.publisher],
+    });
+
     mapFromSubgraphResponse = (
         response: IndexSubscriptionsQuery
     ): IndexSubscription[] =>
@@ -64,23 +79,4 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
         }));
 
     requestDocument = IndexSubscriptionsDocument;
-
-    protected getRelevantAddressesFromFilterCore = (
-        filter: IndexSubscription_Filter
-    ): RelevantAddressesIntermediate => ({
-        tokens: [],
-        accounts: [
-            filter.subscriber,
-            filter.subscriber_in,
-            filter.subscriber_not,
-            filter.subscriber_not_in,
-        ],
-    });
-
-    protected getRelevantAddressesFromResultCore = (
-        result: IndexSubscription
-    ): RelevantAddressesIntermediate => ({
-        tokens: [result.token],
-        accounts: [result.subscriber, result.publisher],
-    });
 }

@@ -27,26 +27,15 @@ export class IndexUpdatedEventQueryHandler extends SubgraphQueryHandler<
     IndexUpdatedEventsQuery,
     IndexUpdatedEventsQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore(
-        filter: IndexUpdatedEvent_Filter
-    ): RelevantAddressesIntermediate {
-        return {
-            accounts: [
-                filter.publisher,
-                filter.publisher_in,
-                filter.publisher_not,
-                filter.publisher_not_in,
-            ],
-            tokens: [
-                filter.token,
-                filter.token_in,
-                filter.token_not,
-                filter.token_not_in,
-            ],
-        };
-    }
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof IndexUpdatedEvent_Filter)[];
+        tokenKeys: (keyof IndexUpdatedEvent_Filter)[];
+    } => ({
+        accountKeys: ["publisher"],
+        tokenKeys: ["token"],
+    });
 
-    protected getRelevantAddressesFromResultCore(
+    getRelevantAddressesFromResultCore(
         result: IndexUpdatedEvent
     ): RelevantAddressesIntermediate {
         return {

@@ -24,8 +24,6 @@ export interface Token {
     underlyingAddress: Address;
 }
 
-export type TokenOrderBy = Token_OrderBy;
-
 export type TokenListQuery = SubgraphListQuery<Token_Filter, Token_OrderBy>;
 
 export class TokenQueryHandler extends SubgraphQueryHandler<
@@ -34,23 +32,15 @@ export class TokenQueryHandler extends SubgraphQueryHandler<
     TokensQuery,
     TokensQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore = (
-        filter: Token_Filter
-    ): RelevantAddressesIntermediate => ({
-        tokens: [
-            filter.id,
-            filter.id_in,
-            filter.id_not,
-            filter.id_not_in,
-            filter.underlyingToken,
-            filter.underlyingToken_in,
-            filter.underlyingToken_not,
-            filter.underlyingToken_not_in,
-        ],
-        accounts: [],
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof Token_Filter)[];
+        tokenKeys: (keyof Token_Filter)[];
+    } => ({
+        accountKeys: [],
+        tokenKeys: ["id", "underlyingToken", "underlyingAddress"],
     });
 
-    protected getRelevantAddressesFromResultCore = (
+    getRelevantAddressesFromResultCore = (
         result: Token
     ): RelevantAddressesIntermediate => ({
         tokens: [result.underlyingAddress, result.id],

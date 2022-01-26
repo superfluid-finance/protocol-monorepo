@@ -10,7 +10,8 @@ import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
 import {CacheTime} from '../cacheTime';
 import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
 
-import {createSubgraphEndpoints} from './createSubgraphEndpoints';
+import {createEntityEndpoints} from './createEntityEndpoints';
+import {createEventEndpoints} from './createEventEndpoints';
 import {createCustomSubgraphQueryEndpoints} from './customSubgraphQuery';
 
 export const createSubgraphSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
@@ -21,7 +22,8 @@ export const createSubgraphSlice = <T extends ModuleName>(createRtkQueryApi: Cre
         tagTypes: typeGuard<CacheTagTypes[]>(['Event', 'Index', 'Stream', 'Token']),
         endpoints: (builder) => ({
             ...createCustomSubgraphQueryEndpoints(builder),
-            ...createSubgraphEndpoints(builder),
+            ...createEntityEndpoints(builder),
+            ...createEventEndpoints(builder),
         }),
         serializeQueryArgs: getSerializeQueryArgs(),
     });

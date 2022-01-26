@@ -39,20 +39,12 @@ export class StreamQueryHandler extends SubgraphQueryHandler<
     StreamsQuery,
     StreamsQueryVariables
 > {
-    getRelevantAddressesFromFilterCore = (
-        filter: Stream_Filter
-    ): RelevantAddressesIntermediate => ({
-        tokens: [filter.token, filter.token_in, filter.token_not_in],
-        accounts: [
-            filter.sender,
-            filter.sender_in,
-            filter.sender_not,
-            filter.sender_not_in,
-            filter.receiver,
-            filter.receiver_in,
-            filter.receiver_not,
-            filter.receiver_not_in,
-        ],
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof Stream_Filter)[];
+        tokenKeys: (keyof Stream_Filter)[];
+    } => ({
+        accountKeys: ["sender", "receiver"],
+        tokenKeys: ["token"],
     });
 
     getRelevantAddressesFromResultCore = (

@@ -27,35 +27,20 @@ export class FlowUpdatedEventQueryHandler extends SubgraphQueryHandler<
     FlowUpdatedEventsQuery,
     FlowUpdatedEventsQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore(
-        filter: FlowUpdatedEvent_Filter
-    ): RelevantAddressesIntermediate {
-        return {
-            accounts: [
-                filter.sender,
-                filter.sender_in,
-                filter.sender_not,
-                filter.sender_not_in,
-                filter.receiver,
-                filter.receiver_in,
-                filter.receiver_not,
-                filter.receiver_not_in,
-            ],
-            tokens: [
-                filter.token,
-                filter.token_in,
-                filter.token_not,
-                filter.token_not_in,
-            ],
-        };
-    }
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof FlowUpdatedEvent_Filter)[];
+        tokenKeys: (keyof FlowUpdatedEvent_Filter)[];
+    } => ({
+        accountKeys: ["sender", "receiver"],
+        tokenKeys: ["token"],
+    });
 
-    protected getRelevantAddressesFromResultCore(
-        _result: FlowUpdatedEvent
+    getRelevantAddressesFromResultCore(
+        result: FlowUpdatedEvent
     ): RelevantAddressesIntermediate {
         return {
-            accounts: [],
-            tokens: [],
+            accounts: [result.sender, result.receiver],
+            tokens: [result.token],
         };
     }
 

@@ -39,6 +39,8 @@ export * from "./subgraph/entities/streamPeriod/streamPeriod";
 export * from "./subgraph/entities/token/token";
 export * from "./subgraph/entities/tokenStatistic/tokenStatistic";
 
+export * from "./subgraph/events/events";
+export * from "./subgraph/events/flowUpdatedEvent";
 export * from "./subgraph/events/indexUpdatedEvent";
 export * from "./subgraph/events/subscriptionUnitsUpdatedEvents";
 

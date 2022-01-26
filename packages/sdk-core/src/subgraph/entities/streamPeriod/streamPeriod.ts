@@ -48,23 +48,15 @@ export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
     StreamPeriodsQuery,
     StreamPeriodsQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore = (
-        filter: StreamPeriod_Filter
-    ): RelevantAddressesIntermediate => ({
-        tokens: [filter.token, filter.token_in, filter.token_not_in],
-        accounts: [
-            filter.sender,
-            filter.sender_in,
-            filter.sender_not,
-            filter.sender_not_in,
-            filter.receiver,
-            filter.receiver_in,
-            filter.receiver_not,
-            filter.receiver_not_in,
-        ],
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof StreamPeriod_Filter)[];
+        tokenKeys: (keyof StreamPeriod_Filter)[];
+    } => ({
+        accountKeys: ["sender", "receiver"],
+        tokenKeys: ["token"],
     });
 
-    protected getRelevantAddressesFromResultCore = (
+    getRelevantAddressesFromResultCore = (
         result: StreamPeriod
     ): RelevantAddressesIntermediate => ({
         tokens: [result.token],

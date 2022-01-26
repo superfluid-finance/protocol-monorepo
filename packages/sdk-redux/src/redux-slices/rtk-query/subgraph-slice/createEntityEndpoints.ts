@@ -8,8 +8,6 @@ import {
     IndexQueryHandler,
     IndexSubscription,
     IndexSubscriptionQueryHandler,
-    IndexUpdatedEvent,
-    IndexUpdatedEventQueryHandler,
     PagedResult,
     RelevantAddressProviderFromFilter,
     RelevantAddressProviderFromResult,
@@ -21,8 +19,6 @@ import {
     SubgraphGetQueryHandler,
     SubgraphListQuery,
     SubgraphListQueryHandler,
-    SubscriptionUnitsUpdatedEvent,
-    SubscriptionUnitsUpdatedEventQueryHandler,
     Token,
     TokenQueryHandler,
     TokenStatistic,
@@ -32,7 +28,6 @@ import {
 import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
 import {CacheTime} from '../cacheTime';
 
-import {provideTagsFromRelevantAddresses} from './provideTagsFromRelevantAddresses';
 import {
     AccountQuery,
     AccountsQuery,
@@ -42,22 +37,19 @@ import {
     IndexQuery,
     IndexSubscriptionQuery,
     IndexSubscriptionsQuery,
-    IndexUpdatedEventQuery,
-    IndexUpdatedEventsQuery,
     StreamPeriodQuery,
     StreamPeriodsQuery,
     StreamQuery,
     StreamsQuery,
-    SubscriptionUnitsUpdatedEventQuery,
-    SubscriptionUnitsUpdatedEventsQuery,
     TokenQuery,
     TokensQuery,
     TokenStatisticQuery,
     TokenStatisticsQuery,
-} from './queryArgs';
+} from './entityQueryArgs';
+import {provideTagsFromRelevantAddresses} from './provideTagsFromRelevantAddresses';
 import {SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
-export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
+export const createEntityEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
@@ -73,14 +65,10 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
         streams: list<Stream, StreamsQuery>(new StreamQueryHandler(), "Stream"),
         streamPeriod: get<StreamPeriod, StreamPeriodQuery>(new StreamPeriodQueryHandler(), "Stream"),
         streamPeriods: list<StreamPeriod, StreamPeriodsQuery>(new StreamPeriodQueryHandler(), "Stream"),
-        token: get<Token, TokenQuery>(new TokenQueryHandler(), "Token"),
+        token: get<Token, TokenQuery>(new TokenQueryHandler(), "Token", CacheTime.ThreeMinutes),
         tokens: list<Token, TokensQuery>(new TokenQueryHandler(), "Token"),
         tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(new TokenStatisticQueryHandler(), "Token"),
-        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(new TokenStatisticQueryHandler(), "Token"),
-        indexUpdatedEvent: get<IndexUpdatedEvent, IndexUpdatedEventQuery>(new IndexUpdatedEventQueryHandler(), "Event"),
-        indexUpdatedEvents: list<IndexUpdatedEvent, IndexUpdatedEventsQuery>(new IndexUpdatedEventQueryHandler(), "Event"),
-        subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventQuery>(new SubscriptionUnitsUpdatedEventQueryHandler(), "Event"),
-        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventsQuery>(new SubscriptionUnitsUpdatedEventQueryHandler(), "Event")
+        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(new TokenStatisticQueryHandler(), "Token")
     };
 
     /**
@@ -101,7 +89,7 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
             },
             providesTags: (result, _error, arg) =>
                 provideTagsFromRelevantAddresses(arg.chainId, queryHandler.getRelevantAddressesFromResult(result), tag),
-            ...(cacheTime ? {keepUnusedDataFor: cacheTime} : {}),
+            keepUnusedDataFor: cacheTime ?? CacheTime.OneMinute,
         });
     }
 
@@ -115,7 +103,8 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
         TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
     >(
         queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>,
-        tag: CacheTagTypes
+        tag: CacheTagTypes,
+        cacheTime?: CacheTime
     ) {
         return builder.query<PagedResult<TReturn>, TQuery>({
             query: (arg) => {
@@ -131,6 +120,7 @@ export const createSubgraphEndpoints = (builder: SubgraphSliceEndpointBuilder) =
                     queryHandler.getRelevantAddressesFromFilter(arg.filter),
                     tag
                 ),
+            keepUnusedDataFor: cacheTime ?? CacheTime.OneMinute,
         });
     }
 };

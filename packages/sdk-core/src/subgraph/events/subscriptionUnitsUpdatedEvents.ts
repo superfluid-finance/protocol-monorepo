@@ -27,30 +27,15 @@ export class SubscriptionUnitsUpdatedEventQueryHandler extends SubgraphQueryHand
     SubscriptionUnitsUpdatedEventsQuery,
     SubscriptionUnitsUpdatedEventsQueryVariables
 > {
-    protected getRelevantAddressesFromFilterCore(
-        filter: SubscriptionUnitsUpdatedEvent_Filter
-    ): RelevantAddressesIntermediate {
-        return {
-            accounts: [
-                filter.publisher,
-                filter.publisher_in,
-                filter.publisher_not,
-                filter.publisher_not_in,
-                filter.subscriber,
-                filter.subscriber_in,
-                filter.subscriber_not,
-                filter.subscriber_not_in,
-            ],
-            tokens: [
-                filter.token,
-                filter.token_in,
-                filter.token_not,
-                filter.token_not_in,
-            ],
-        };
-    }
+    getAddressFieldKeysFromFilter = (): {
+        accountKeys: (keyof SubscriptionUnitsUpdatedEvent_Filter)[];
+        tokenKeys: (keyof SubscriptionUnitsUpdatedEvent_Filter)[];
+    } => ({
+        accountKeys: ["publisher", "subscriber"],
+        tokenKeys: ["token"],
+    });
 
-    protected getRelevantAddressesFromResultCore(
+    getRelevantAddressesFromResultCore(
         result: SubscriptionUnitsUpdatedEvent
     ): RelevantAddressesIntermediate {
         return {

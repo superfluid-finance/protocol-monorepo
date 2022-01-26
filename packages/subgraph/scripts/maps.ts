@@ -1,3 +1,15 @@
+
+import ropstenAddresses from "../config/ropsten.json";
+import rinkebyAddresses from "../config/rinkeby.json";
+import goerliAddresses from "../config/goerli.json";
+import kovanAddresses from "../config/kovan.json";
+import optimismKovanAddresses from "../config/optimism-kovan.json";
+import xdaiAddresses from "../config/xdai.json";
+import maticAddresses from "../config/matic.json";
+import avalancheFujiAddresses from "../config/avalanche-fuji.json";
+import mumbaiAddresses from "../config/mumbai.json";
+import arbitrumRinkebyAddresses from "../config/arbitrum-rinkeby.json";
+
 export const chainIdToData = new Map([
     [
         3,
@@ -5,6 +17,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten",
             name: "ropsten",
+            addresses: ropstenAddresses
         },
     ],
 	[
@@ -13,6 +26,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-rinkeby",
             name: "rinkeby",
+            addresses: rinkebyAddresses
         },
     ],
 	[
@@ -21,6 +35,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli",
             name: "goerli",
+            addresses: goerliAddresses
         },
     ],
 	[
@@ -29,6 +44,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-kovan",
             name: "kovan",
+            addresses: kovanAddresses
         },
     ],
     [
@@ -36,7 +52,8 @@ export const chainIdToData = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-kovan",
-            networkName: "optimism-kovan",
+            name: "optimism-kovan",
+            addresses: optimismKovanAddresses
         }
     ],
 	[
@@ -45,6 +62,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-xdai",
             name: "xdai",
+            addresses: xdaiAddresses
         },
     ],
 	[
@@ -53,6 +71,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-matic",
             name: "matic",
+            addresses: maticAddresses
         },
     ],
     [
@@ -60,7 +79,8 @@ export const chainIdToData = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-avalanche-fuji",
-            networkName: "avalanche-fuji",
+            name: "avalanche-fuji",
+            addresses: avalancheFujiAddresses
         },
     ],
 	[
@@ -69,6 +89,7 @@ export const chainIdToData = new Map([
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
             name: "mumbai",
+            addresses: mumbaiAddresses
         },
     ],
     [
@@ -76,7 +97,8 @@ export const chainIdToData = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-arbitrum-rinkeby",
-            networkName: "arbitrum-rinkeby",
+            name: "arbitrum-rinkeby",
+            addresses: arbitrumRinkebyAddresses
         },
     ],
 ]);

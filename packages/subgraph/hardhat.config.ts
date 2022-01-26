@@ -28,6 +28,10 @@ const config: HardhatUserConfig = {
             url: "https://polygon-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_KEY,
             chainId: 137,
         },
+        mumbai: {
+            url: process.env.MUMBAI_PROVIDER_URL,
+            chainId: 80001
+        }
     },
     mocha: {
         timeout: 250000,

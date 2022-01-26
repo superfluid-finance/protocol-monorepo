@@ -39,8 +39,8 @@ export * from "./subgraph/entities/streamPeriod/streamPeriod";
 export * from "./subgraph/entities/token/token";
 export * from "./subgraph/entities/tokenStatistic/tokenStatistic";
 
-export * from "./subgraph/events/indexUpdatedEvent/indexUpdatedEvent";
-export * from "./subgraph/events/subscriptionUnitsUpdatedEvents/subscriptionUnitsUpdatedEvents";
+export * from "./subgraph/events/indexUpdatedEvent";
+export * from "./subgraph/events/subscriptionUnitsUpdatedEvents";
 
 export * from "./subgraph/mappedSubgraphTypes";
 export * from "./SFError";

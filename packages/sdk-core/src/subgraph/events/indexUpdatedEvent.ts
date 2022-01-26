@@ -1,20 +1,20 @@
-import { IndexUpdatedEvent } from "../../../events";
-import { mapGetAllEventsQueryEvents } from "../../../mapGetAllEventsQueryEvents";
+import { IndexUpdatedEvent } from "../../events";
+import { mapGetAllEventsQueryEvents } from "../../mapGetAllEventsQueryEvents";
 import {
     IndexUpdatedEvent_Filter,
     IndexUpdatedEvent_OrderBy,
-} from "../../schema.generated";
+} from "../schema.generated";
 import {
     RelevantAddressesIntermediate,
     SubgraphListQuery,
     SubgraphQueryHandler,
-} from "../../subgraphQueryHandler";
+} from "../subgraphQueryHandler";
 
 import {
     IndexUpdatedEventsDocument,
     IndexUpdatedEventsQuery,
     IndexUpdatedEventsQueryVariables,
-} from "./indexUpdatedEvents.generated";
+} from "./events.generated";
 
 export type IndexUpdatedEventListQuery = SubgraphListQuery<
     IndexUpdatedEvent_Filter,

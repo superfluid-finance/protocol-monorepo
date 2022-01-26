@@ -1,20 +1,20 @@
-import { SubscriptionUnitsUpdatedEvent } from "../../../events";
-import { mapGetAllEventsQueryEvents } from "../../../mapGetAllEventsQueryEvents";
+import { SubscriptionUnitsUpdatedEvent } from "../../events";
+import { mapGetAllEventsQueryEvents } from "../../mapGetAllEventsQueryEvents";
 import {
     SubscriptionUnitsUpdatedEvent_Filter,
     SubscriptionUnitsUpdatedEvent_OrderBy,
-} from "../../schema.generated";
+} from "../schema.generated";
 import {
     RelevantAddressesIntermediate,
     SubgraphListQuery,
     SubgraphQueryHandler,
-} from "../../subgraphQueryHandler";
+} from "../subgraphQueryHandler";
 
 import {
     SubscriptionUnitsUpdatedEventsDocument,
     SubscriptionUnitsUpdatedEventsQuery,
     SubscriptionUnitsUpdatedEventsQueryVariables,
-} from "./subscriptionUnitsUpdatedEvents.generated";
+} from "./events.generated";
 
 export type SubscriptionUnitsUpdatedEventListQuery = SubgraphListQuery<
     SubscriptionUnitsUpdatedEvent_Filter,

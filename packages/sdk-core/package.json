@@ -48,6 +48,7 @@
         "browserify": "^17.0.0",
         "ethers": "^5.5.2",
         "graphql-request": "^3.7.0",
+        "lodash": "^4.17.21",
         "tsify": "^5.0.4"
     },
     "devDependencies": {

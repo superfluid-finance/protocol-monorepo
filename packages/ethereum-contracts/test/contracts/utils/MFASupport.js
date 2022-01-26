@@ -73,16 +73,23 @@ module.exports = class MFASupport {
                     notTouched,
                 });
 
-                const mfaFlowDepositAllowance = CFADataModel.clipDepositNumber(
-                    toBN(depositAllowance)
-                        .mul(toBN(mfa.receivers[receiverAlias].proportion))
-                        .mul(toBN(mfa.ratioPct))
-                        .divn(100)
-                        .div(toBN(totalProportions)),
-                    true /* rounding down */
-                );
+                const originalMfaFlowDepositAllowance =
+                    CFADataModel.clipDepositNumber(
+                        toBN(depositAllowance)
+                            .mul(toBN(mfa.receivers[receiverAlias].proportion))
+                            .mul(toBN(mfa.ratioPct))
+                            .divn(100)
+                            .div(toBN(totalProportions)),
+                        true /* rounding down */
+                    );
+                const mfaFlowDepositAllowance =
+                    originalMfaFlowDepositAllowance.lt(
+                        testenv.configs.MINIMUM_DEPOSIT
+                    ) && toBN(flowRate).gt(toBN(0))
+                        ? testenv.configs.MINIMUM_DEPOSIT
+                        : originalMfaFlowDepositAllowance;
 
-                const mfaFlowRate = toBN(mfaFlowDepositAllowance).div(
+                const mfaFlowRate = toBN(originalMfaFlowDepositAllowance).div(
                     toBN(testenv.configs.LIQUIDATION_PERIOD)
                 );
 

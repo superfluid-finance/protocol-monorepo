@@ -7,10 +7,14 @@ export const normalizeSubgraphFilter = (value: object) => {
         }, {});
 };
 
-// NOTE: Regex taken from Ethers.
+/**
+ * NOTE: Regex taken from Ethers.
+ */
 const isAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
 
-// Normalize addresses and empty strings for cache keys.
+/**
+ * Normalize addresses and empty strings for cache keys.
+ */
 export const normalizeSubgraphFilterValue = (value: unknown) =>
     lowerCaseIfAddress(undefinedIfEmpty(value));
 

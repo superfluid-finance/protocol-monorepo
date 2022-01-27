@@ -1,5 +1,5 @@
 /**
- * Information about the transaction to locate it.BaseQu
+ * Information about the transaction to locate it.
  */
 export interface TransactionInfo {
     /** The transaction's network chain ID. */

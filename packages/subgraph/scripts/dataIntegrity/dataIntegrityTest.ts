@@ -29,7 +29,7 @@ import {calculateAvailableBalance} from "../../../sdk-core/src/utils";
 import {IIndexSubscription} from "../../../sdk-core/src/interfaces";
 import {BigNumber} from "ethers";
 
-const DEFAULT_CHUNK_LENGTH = 100;
+const DEFAULT_CHUNK_LENGTH = 1;
 
 export const subgraphRequest = async <T>(
     query: string,
@@ -46,7 +46,11 @@ export const subgraphRequest = async <T>(
     }
 };
 
-export const asleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const printProgress = (i: number, total: number, entityText: string) => {
+    if (100 % (i + 1) === 0) {
+        console.log(`${i + 1}/${total} ${entityText} validated."`);
+    }
+};
 
 export const getMostRecentIndexedBlockNumber = async (
     subgraphEndpoint: string
@@ -174,7 +178,13 @@ async function main() {
         addresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
-    console.log("Getting all required data via the Subgraph...");
+    const flowUpdatedEventsFilter = cfaV1.filters.FlowUpdated();
+    const flowUpdatedEvents = await cfaV1.queryFilter(
+        flowUpdatedEventsFilter,
+        addresses.hostStartBlock
+    );
+
+    console.log("\nGetting all required data via the Subgraph...");
 
     console.log("Querying all streams via the Subgraph...");
     // This gets all of the current streams (flow rate > 0)
@@ -228,7 +238,7 @@ async function main() {
         true
     );
 
-    console.log("Data Processing: Filtering out duplicate entities...");
+    console.log("\nData Processing: Filtering out duplicate entities...");
     const uniqueStreams = _.uniqBy(
         streams,
         (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
@@ -268,7 +278,7 @@ async function main() {
         out of ${tokenStatistics.length} total tokenStatistics.`
     );
 
-    console.log("Creating validation promises that shall be resolved...");
+    console.log("\nValidating tegridy' of subgraph data...");
 
     // Account Level Invariant: validate CFA current streams data
     // Create promises to validate account level CFA stream data
@@ -315,7 +325,7 @@ async function main() {
                 }
             })
         );
-        console.log(DEFAULT_CHUNK_LENGTH * (i + 1) + " streams validated.");
+        printProgress(i, uniqueStreams.length, "streams");
     }
     console.log("Stream Tests Successful.");
 
@@ -361,8 +371,7 @@ async function main() {
                 }
             })
         );
-        await asleep(150);
-        console.log(DEFAULT_CHUNK_LENGTH * (i + 1) + " ATS net flow validated.");
+        printProgress(i, uniqueAccountTokenSnapshots.length, "ATS net flow");
     }
     console.log("Net flow rate validation successful.");
 
@@ -382,71 +391,84 @@ async function main() {
 
     console.log(
         "Validating RTB Invariant: User RTB === Subgraph calculated balance"
-    );    
+    );
     const tokenGroupedATSEntities = _.groupBy(
         uniqueAccountTokenSnapshots,
         (x) => x.token.id
     );
     const tokenGroupedATSArray = Object.entries(tokenGroupedATSEntities);
     await Promise.all(
-        tokenGroupedATSArray.map(async (x) => {
-            // does this once for each token
-            const tokenContract = (await ethers.getContractAt(
-                superTokenABI,
-                x[0]
-            )) as ISuperToken;
+        tokenGroupedATSArray.map(async (x, j) => {
+            try {
+                // does this once for each token
+                const tokenContract = (await ethers.getContractAt(
+                    superTokenABI,
+                    x[0]
+                )) as ISuperToken;
 
-            const promises = x[1].map(async (y) => {
-                // does this for each ATS
-                const [realtimeBalance] =
-                    await tokenContract.realtimeBalanceOfNow(y.account.id, {
-                        blockTag: currentBlockNumber,
-                    });
+                const promises = x[1].map(async (y) => {
+                    // does this for each ATS
+                    const [realtimeBalance] =
+                        await tokenContract.realtimeBalanceOfNow(y.account.id, {
+                            blockTag: currentBlockNumber,
+                        });
 
-                // get user's subscriptions
-                // TODO: can groupBy tokenId and subscriber earlier for optimization here
-                const userIndexSubscriptions = uniqueSubscriptions.filter(
-                    (z) =>
-                        z.index.token.id === x[0] &&
-                        z.subscriber.id === y.account.id
-                );
+                    // get user's subscriptions
+                    // TODO: can groupBy tokenId and subscriber earlier for optimization here
+                    const userIndexSubscriptions = uniqueSubscriptions.filter(
+                        (z) =>
+                            z.index.token.id === x[0] &&
+                            z.subscriber.id === y.account.id
+                    );
 
-                // calculate the available balance based on balanceUntilUpdatedAt
-                // as well as indexValue
-                const calculatedAvailableBalance = calculateAvailableBalance({
-                    currentBalance: y.balanceUntilUpdatedAt,
-                    netFlowRate: y.totalNetFlowRate,
-                    currentTimestamp: currentTimestamp.toString(),
-                    updatedAtTimestamp: y.updatedAtTimestamp!,
+                    // calculate the available balance based on balanceUntilUpdatedAt
+                    // as well as indexValue
+                    const calculatedAvailableBalance =
+                        calculateAvailableBalance({
+                            currentBalance: y.balanceUntilUpdatedAt,
+                            netFlowRate: y.totalNetFlowRate,
+                            currentTimestamp: currentTimestamp.toString(),
+                            updatedAtTimestamp: y.updatedAtTimestamp!,
 
-                    // explicit cast for ease of use
-                    indexSubscriptions:
-                        userIndexSubscriptions as unknown as IIndexSubscription[],
+                            // explicit cast for ease of use
+                            indexSubscriptions:
+                                userIndexSubscriptions as unknown as IIndexSubscription[],
+                        });
+
+                    if (!realtimeBalance.eq(calculatedAvailableBalance)) {
+                        throw new Error(
+                            `Realtime balance: ${realtimeBalance.toString()} !== ${calculatedAvailableBalance.toString()}`
+                        );
+                    }
+
+                    // only sum RTB for comparison of supertokens with underlying
+                    if (
+                        ethers.utils.getAddress(y.token.underlyingAddress) !==
+                        ethers.constants.AddressZero
+                    ) {
+                        tokenGroupedRTBSums[y.token.id] =
+                            tokenGroupedRTBSums[y.token.id] == undefined
+                                ? realtimeBalance
+                                : tokenGroupedRTBSums[y.token.id].add(
+                                      realtimeBalance
+                                  );
+                    }
                 });
 
-                if (!realtimeBalance.eq(calculatedAvailableBalance)) {
-                    throw new Error(
-                        `Realtime balance: ${realtimeBalance.toString()} !== ${calculatedAvailableBalance.toString()}`
+                const chunkedBalancePromises = chunkData(
+                    promises,
+                    DEFAULT_CHUNK_LENGTH
+                );
+                for (let i = 0; i < chunkedBalancePromises.length; i++) {
+                    await Promise.all(chunkedBalancePromises[i]);
+                    printProgress(
+                        i,
+                        chunkedBalancePromises.length,
+                        "User RTB === calculated balance"
                     );
                 }
-
-                // only sum RTB for comparison of supertokens with underlying
-                if (
-                    ethers.utils.getAddress(y.token.underlyingAddress) !==
-                    ethers.constants.AddressZero
-                ) {
-                    tokenGroupedRTBSums[y.token.id] =
-                        tokenGroupedRTBSums[y.token.id] == undefined
-                            ? realtimeBalance
-                            : tokenGroupedRTBSums[y.token.id].add(
-                                  realtimeBalance
-                              );
-                }
-            });
-
-            const chunkedBalancePromises = chunkData(promises, DEFAULT_CHUNK_LENGTH);
-            for (let i = 0; i < chunkedBalancePromises.length; i++) {
-                await Promise.all(chunkedBalancePromises[i]);
+            } catch (err) {
+                console.error(err);
             }
         })
     );
@@ -542,7 +564,10 @@ async function main() {
     // Creates promises to validate account level IDA subscriptions data
     console.log("Subscription Tests Starting...");
     console.log("Validating " + uniqueSubscriptions.length + " subscriptions.");
-    const chunkedUniqueSubscriptions = chunkData(uniqueSubscriptions, DEFAULT_CHUNK_LENGTH);
+    const chunkedUniqueSubscriptions = chunkData(
+        uniqueSubscriptions,
+        DEFAULT_CHUNK_LENGTH
+    );
     for (let i = 0; i < chunkedUniqueSubscriptions.length; i++) {
         await Promise.all(
             chunkedUniqueSubscriptions[i].map(async (x) => {
@@ -619,37 +644,44 @@ async function main() {
     console.log("Subscription Tests Successful.");
 
     console.log("Token Statistics Total Supply Tests Starting");
-    const chunkedUniqueTokenStatistics = chunkData(uniqueTokenStatistics, DEFAULT_CHUNK_LENGTH);
+    const chunkedUniqueTokenStatistics = chunkData(
+        uniqueTokenStatistics,
+        DEFAULT_CHUNK_LENGTH
+    );
     for (let i = 0; i < chunkedUniqueTokenStatistics.length; i++) {
         await Promise.all(
             chunkedUniqueTokenStatistics[i].map(async (x) => {
-                const superTokenContract = (await ethers.getContractAt(
-                    superTokenABI,
-                    x.id
-                )) as ISuperToken;
-                const tokenContract = (await ethers.getContractAt(
-                    superTokenABI,
-                    x.token.underlyingAddress
-                )) as ISuperToken;
-                const totalSupply = await superTokenContract.totalSupply();
-                const aum = await tokenContract.balanceOf(x.id);
-                const tokenSumRTB = tokenGroupedRTBSums[x.id];
-                if (!toBN(x.totalSupply).eq(totalSupply)) {
-                    throw new Error(
-                        `Subgraph total supply: ${
-                            x.totalSupply
-                        } !== on chain total supply: ${totalSupply.toString()}`
-                    );
-                }
-                if (!toBN(x.totalSupply).eq(aum)) {
-                    throw new Error(
-                        `Global invariant failed: subgraph total supply === SuperToken AUM`
-                    );
-                }
-                if (!aum.gte(tokenSumRTB)) {
-                    throw new Error(
-                        `Global invariant failed: SuperToken AUM >= sum RTB of token`
-                    );
+                try {
+                    const superTokenContract = (await ethers.getContractAt(
+                        superTokenABI,
+                        x.id
+                    )) as ISuperToken;
+                    const tokenContract = (await ethers.getContractAt(
+                        superTokenABI,
+                        x.token.underlyingAddress
+                    )) as ISuperToken;
+                    const totalSupply = await superTokenContract.totalSupply();
+                    const aum = await tokenContract.balanceOf(x.id);
+                    const tokenSumRTB = tokenGroupedRTBSums[x.id] || toBN(0);
+                    if (!toBN(x.totalSupply).eq(totalSupply)) {
+                        throw new Error(
+                            `Subgraph total supply: ${
+                                x.totalSupply
+                            } !== on chain total supply: ${totalSupply.toString()}`
+                        );
+                    }
+                    if (!toBN(x.totalSupply).eq(aum)) {
+                        throw new Error(
+                            `Global invariant failed: subgraph total supply === SuperToken AUM`
+                        );
+                    }
+                    if (!aum.gte(tokenSumRTB)) {
+                        throw new Error(
+                            `Global invariant failed: SuperToken AUM >= sum RTB of token`
+                        );
+                    }
+                } catch (err) {
+                    console.error(err);
                 }
             })
         );

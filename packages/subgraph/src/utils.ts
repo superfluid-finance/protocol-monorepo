@@ -78,7 +78,10 @@ export function updateTotalSupplyForNativeSuperToken(
     tokenStatistic: TokenStatistic,
     tokenAddress: Address
 ): TokenStatistic {
-    if (token.underlyingAddress.equals(new Address(0))) {
+    if (
+        token.underlyingAddress.equals(new Address(0)) &&
+        tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
+    ) {
         let tokenContract = SuperToken.bind(tokenAddress);
         let totalSupplyResult = tokenContract.try_totalSupply();
         if (totalSupplyResult.reverted) {

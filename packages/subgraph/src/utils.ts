@@ -5,7 +5,7 @@ import {
     StreamRevision,
     IndexSubscription,
     Token,
-    Stream,
+    TokenStatistic,
 } from "../generated/schema";
 
 /**************************************************************************
@@ -71,6 +71,22 @@ export function getIsListedToken(
     let superTokenAddress = result.reverted ? new Address(0) : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;
+}
+
+export function updateTotalSupplyForNativeSuperToken(
+    token: Token,
+    tokenStatistic: TokenStatistic,
+    tokenAddress: Address
+): TokenStatistic {
+    if (token.underlyingAddress.equals(new Address(0))) {
+        let tokenContract = SuperToken.bind(tokenAddress);
+        let totalSupplyResult = tokenContract.try_totalSupply();
+        if (totalSupplyResult.reverted) {
+            return tokenStatistic;
+        }
+        tokenStatistic.totalSupply = totalSupplyResult.value;
+    }
+    return tokenStatistic;
 }
 
 /**

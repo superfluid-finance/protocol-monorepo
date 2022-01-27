@@ -655,8 +655,6 @@ contract ConstantFlowAgreementV1 is
             {
                 (uint256 liquidationPeriod, ) = _decode3PsData(token);
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
-                uint256 liquidationPeriod = gov.getConfigAsUint256(
-                    ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
                 minimumDeposit = gov.getConfigAsUint256(
                     ISuperfluid(msg.sender), token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
                 // rounding up the number for app allowance too

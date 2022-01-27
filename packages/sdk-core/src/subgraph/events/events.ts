@@ -29,9 +29,7 @@ export class EventQueryHandler extends SubgraphQueryHandler<
         tokenKeys: [],
     });
 
-    getRelevantAddressesFromResultCore(
-        _result: AllEvents
-    ): RelevantAddressesIntermediate {
+    getRelevantAddressesFromResultCore(): RelevantAddressesIntermediate {
         return {
             accounts: [],
             tokens: [],

@@ -17,7 +17,7 @@
         "README.md"
     ],
     "scripts": {
-        "build": "run-s generate: && rm -rf dist && run-p build:*",
+        "build": "run-s generate:* && rm -rf dist && run-p build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
         "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny ] > dist/index.umd.js",

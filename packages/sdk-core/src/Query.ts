@@ -65,6 +65,7 @@ import {
     Token_OrderBy,
 } from "./subgraph/schema.generated";
 import { DataMode } from "./types";
+import { typeGuard } from "./utils";
 import {
     validateAccountTokenSnapshotRequest,
     validateEventRequest,
@@ -487,6 +488,3 @@ export default class Query {
         return unsubscribe;
     }
 }
-
-// Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
-export const typeGuard = <T>(obj: T) => obj;

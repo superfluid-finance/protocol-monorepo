@@ -246,3 +246,8 @@ export const isInjectedWeb3 = (provider: any): provider is Web3 =>
 export const isInjectedEthers = (
     provider: any
 ): provider is typeof ethers & HardhatEthersHelpers => !!provider.provider;
+
+/**
+ * Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
+ */
+export const typeGuard = <T>(obj: T) => obj;

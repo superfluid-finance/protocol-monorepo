@@ -1,7 +1,6 @@
 import { RequestDocument } from "graphql-request";
 import _ from "lodash";
 
-import { typeGuard } from "../Query";
 import { ILightEntity } from "../interfaces";
 import { OrderDirection, Ordering } from "../ordering";
 import {
@@ -11,6 +10,7 @@ import {
     Paging,
     takePlusOne,
 } from "../pagination";
+import { typeGuard } from "../utils";
 
 import { SubgraphClient } from "./SubgraphClient";
 import { Address, SubgraphId } from "./mappedSubgraphTypes";

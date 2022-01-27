@@ -1,8 +1,6 @@
 import * as events from "./events";
 import { EventsQuery } from "./subgraph/events/events.generated";
-
-// Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
-const typeGuard = <T>(obj: T) => obj;
+import { typeGuard } from "./utils";
 
 export const mapGetAllEventsQueryEvents = (
     queryEvents: EventsQuery["events"]

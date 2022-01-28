@@ -158,14 +158,12 @@ async function setResolver(sf, key, value) {
     switch (process.env.RESOLVER_ADMIN_TYPE) {
         case "MULTISIG": {
             console.log("Resolver Admin type: MultiSig");
-            // assuming governance owner manages the resolver too...
-            const multis = await sf.contracts.IMultiSigWallet.at(
-                await (
-                    await sf.contracts.Ownable.at(
-                        await sf.host.getGovernance.call()
-                    )
-                ).owner()
-            );
+            const ADMIN_ROLE = "0x" + "0".repeat(64);
+            const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
+            const rmCnt = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
+            // always picks the last admin set (could be more than one)
+            const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, rmCnt - 1);
+            const multis = await sf.contracts.IMultiSigWallet.at(resolverAdmin);
             console.log("MultiSig address: ", multis.address);
             const data = resolver.contract.methods.set(key, value).encodeABI();
             console.log("MultiSig data", data);

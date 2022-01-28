@@ -36,7 +36,7 @@ interface TransactionSliceLocator {
 }
 
 /**
- * NOTE: The reason memoization is used is to avoid multiple instantiations by the lazy factories.
+ * NOTE: The reason memoization is used is to avoid multiple instantiations by the factory functions.
  */
 export default class SdkReduxConfig
     implements FrameworkAndSignerLocator, ApiSliceLocator, SubgraphSliceLocator, TransactionSliceLocator
@@ -44,8 +44,8 @@ export default class SdkReduxConfig
     apiSlice: SfApiSliceInferredType | undefined;
     subgraphSlice: SfSubgraphSliceInferredType | undefined;
     transactionSlice: SfTransactionSliceType | undefined;
-    memoizedLazyFrameworkFactories = new Map<number, () => Promise<Framework>>();
-    memoizedLazySignerFactories = new Map<number, () => Promise<Signer>>();
+    memoizedFrameworkFactories = new Map<number, () => Promise<Framework>>();
+    memoizedSignerFactories = new Map<number, () => Promise<Signer>>();
 
     static getOrCreateSingleton(): SdkReduxConfig {
         if (!globalThis.sdkReduxConfig) {
@@ -69,7 +69,7 @@ export default class SdkReduxConfig
     }
 
     getFramework(chainId: number): Promise<Framework> {
-        const frameworkFactory = this.memoizedLazyFrameworkFactories.get(chainId);
+        const frameworkFactory = this.memoizedFrameworkFactories.get(chainId);
         if (!frameworkFactory)
             throw Error(
                 `Don't know how to get Superfluid Framework. :( Please set up a *framework* source for chain [${chainId}].`
@@ -78,7 +78,7 @@ export default class SdkReduxConfig
     }
 
     getSigner(chainId: number): Promise<Signer> {
-        const signerFactory = this.memoizedLazySignerFactories.get(chainId);
+        const signerFactory = this.memoizedSignerFactories.get(chainId);
         if (!signerFactory)
             throw Error(`Don't know how to get a signer. :( Please set up a *signer* source for chain [${chainId}].`);
         return signerFactory();
@@ -114,7 +114,7 @@ export default class SdkReduxConfig
             ? () => Promise.resolve(instanceOrFactory)
             : instanceOrFactory;
 
-        this.memoizedLazyFrameworkFactories.set(chainId, _.memoize(frameworkFactory));
+        this.memoizedFrameworkFactories.set(chainId, _.memoize(frameworkFactory));
     }
 
     setSigner(chainId: number, instanceOrFactory: Signer | (() => Promise<Signer>)) {
@@ -122,7 +122,7 @@ export default class SdkReduxConfig
             ? () => Promise.resolve(instanceOrFactory)
             : instanceOrFactory;
 
-        this.memoizedLazySignerFactories.set(chainId, _.memoize(signerFactory));
+        this.memoizedSignerFactories.set(chainId, _.memoize(signerFactory));
     }
 
     setTransactionSlice(slice: SfTransactionSliceType): void {

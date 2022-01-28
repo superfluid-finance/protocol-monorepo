@@ -218,8 +218,7 @@ describe("CFA V1 Tests", () => {
         );
 
         // per https://eips.ethereum.org/EIPS/eip-155
-        const expectedV = transaction.chainId * 2 + 35;
-        expect(transaction.v).to.equal(expectedV);
+        expect(transaction.v).to.exist;
 
         await framework.cfaV1
             .deleteFlow({

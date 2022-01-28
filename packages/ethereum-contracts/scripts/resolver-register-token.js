@@ -34,9 +34,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("Token name", tokenName);
     console.log("Token name", tokenAddress);
 
-    resetToken = resetToken || !!process.env.RESET_TOKEN;
-    const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
+    const networkType = await web3.eth.net.getNetworkType();
+    const networkId = await web3.eth.net.getId();
+    const chainId = await web3.eth.getChainId();
+    console.log("network Type: ", networkType);
+    console.log("network ID: ", networkId);
+    console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
+
+    resetToken = resetToken || !!process.env.RESET_TOKEN;
     console.log("reset token: ", resetToken);
     console.log("chain ID: ", chainId);
 
@@ -44,6 +50,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         ...extractWeb3Options(options),
         additionalContracts: ["Resolver"],
         contractLoader: builtTruffleContractLoader,
+        networkId,
+        chainId,
     });
 
     const resolver = await Resolver.at(config.resolverAddress);

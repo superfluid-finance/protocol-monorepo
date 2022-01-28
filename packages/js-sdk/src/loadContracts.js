@@ -44,13 +44,13 @@ function defaultContractLoader(name) {
             contractName: name,
             abi: abis[name],
         };
-    } else throw new Error(`Cannot load contract "${name}"`);
+    } else throw Error(`Cannot load contract "${name}"`);
 }
 
 function setTruffleContractDefaults(c, {networkId, chainId, from}) {
     c.autoGas = true;
     c.estimateGas = 1.25;
-    networkId && c.setNetwork(networkId);
+    c.setNetwork(networkId);
     const defaults = {};
     from && (defaults.from = from);
     // It is important to set chainId to force eip-155 transaction,
@@ -70,6 +70,8 @@ const loadContracts = async ({
     networkId,
     chainId,
 }) => {
+    if (!networkId) throw Error("networkId not provided");
+    if (!chainId) throw Error("chainId not provided");
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
         new Set([...contractNames, ...(additionalContracts || [])])
@@ -98,7 +100,7 @@ const loadContracts = async ({
                 })
             );
             if (from) {
-                throw new Error(
+                throw Error(
                     "Ethers mode does not support default from address"
                 );
             }
@@ -167,7 +169,7 @@ const loadContracts = async ({
             throw Error(`could not load truffle artifacts. ${e}`);
         }
     } else {
-        throw new Error("Unknown mode");
+        throw Error("Unknown mode");
     }
     return contracts;
 };

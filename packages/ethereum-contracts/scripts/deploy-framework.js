@@ -197,6 +197,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
         contractLoader: builtTruffleContractLoader,
         networkId,
+        chainId,
     });
 
     if (!newTestResolver && config.resolverAddress) {

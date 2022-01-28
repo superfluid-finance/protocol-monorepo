@@ -20,10 +20,15 @@ export const initializeSfApiSlice = <T extends ModuleName>(createApi: CreateApi<
     return {sfApi: slice};
 };
 
-// TODO(KK): add comment
+/**
+ * For initializing "sfApi" Redux slice.
+ *
+ * @param createApi Pass in either {@see createApiWithReactHooks} or {@see createApiWithoutReactHooks}.
+ * You can wrap the function with your own function to add even more configuration to the RTK-Query API (e.g. "redux-persist" support).
+ */
 export const initializeSubgraphSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
     const slice = createSubgraphSlice(createApi);
-    getConfig().setApiSlice(slice as any);
+    getConfig().setSubgraphSlice(slice as any);
     return {sfSubgraph: slice};
 };
 

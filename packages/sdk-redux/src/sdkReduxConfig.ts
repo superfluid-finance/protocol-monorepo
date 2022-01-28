@@ -141,6 +141,7 @@ export default class SdkReduxConfig
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
 export const getApiSlice = () => getConfig().getApiSlice();
+export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
 export const getTransactionSlice = () => getConfig().getTransactionSlice();
 export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
 export const getSigner = (chainId: number) => getConfig().getSigner(chainId);

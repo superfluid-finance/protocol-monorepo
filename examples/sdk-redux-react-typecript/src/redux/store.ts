@@ -18,7 +18,7 @@ export const store = configureStore({
         "sfSubgraph": sfSubgraph.reducer
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(sfApi.middleware),
+        getDefaultMiddleware().concat(sfApi.middleware).concat(sfSubgraph.middleware),
 });
 
 export type AppDispatch = typeof store.dispatch;

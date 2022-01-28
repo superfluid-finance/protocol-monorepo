@@ -10,34 +10,24 @@ import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
 import {CacheTime} from '../cacheTime';
 import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
 
-import {createEntityEndpoints} from './createEntityEndpoints';
-import {createEventEndpoints} from './createEventEndpoints';
-import {createCustomSubgraphQueryEndpoints} from './customSubgraphQuery';
-
 export const createSubgraphSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
         keepUnusedDataFor: CacheTime.OneMinute,
         reducerPath: 'sfSubgraph',
         baseQuery: subgraphSliceBaseQuery(),
         tagTypes: typeGuard<CacheTagTypes[]>(['Event', 'Index', 'Stream', 'Token']),
-        endpoints: (builder) => ({
-            ...createCustomSubgraphQueryEndpoints(builder),
-            ...createEntityEndpoints(builder),
-            ...createEventEndpoints(builder),
-        }),
+        endpoints: (_builder: SubgraphSliceEndpointBuilder) => ({}),
         serializeQueryArgs: getSerializeQueryArgs(),
     });
+
+export type SubgraphSliceEndpointBuilder = EndpointBuilder<SubgraphSliceBaseQueryType, CacheTagTypes, 'sfSubgraph'>;
 
 type SubgraphSliceArgs = {chainId: number; handle: (framework: Framework) => Promise<unknown>};
 
 export const subgraphSliceBaseQuery = (): BaseQueryFn<SubgraphSliceArgs, unknown, SFError, Record<string, unknown>> =>
     handleSubgraphQueryWithFramework;
 
-export type SubgraphSliceEndpointBuilder = EndpointBuilder<
-    ReturnType<typeof subgraphSliceBaseQuery>,
-    CacheTagTypes,
-    'sfSubgraph'
->;
+export type SubgraphSliceBaseQueryType = ReturnType<typeof subgraphSliceBaseQuery>;
 
 export const handleSubgraphQueryWithFramework = async ({chainId, handle}: SubgraphSliceArgs) => {
     try {

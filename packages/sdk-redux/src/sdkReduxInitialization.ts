@@ -29,7 +29,7 @@ export const initializeSfApiSlice = <T extends ModuleName>(createApi: CreateApi<
 export const initializeSubgraphSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
     const slice = createSubgraphSlice(createApi);
     getConfig().setSubgraphSlice(slice as any);
-    return {sfSubgraph: slice};
+    return slice;
 };
 
 /**

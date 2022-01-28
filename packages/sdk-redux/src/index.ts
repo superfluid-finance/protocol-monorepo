@@ -15,3 +15,4 @@ export * from './redux-slices/rtk-query/createApiWithReactHooks';
 export * from './redux-slices/rtk-query/createApiWithoutReactHooks';
 
 export * from './redux-slices/rtk-query/subgraph-slice/customSubgraphQuery';
+export * from './redux-slices/rtk-query/subgraph-slice/allSubgraphSliceEndpoints';

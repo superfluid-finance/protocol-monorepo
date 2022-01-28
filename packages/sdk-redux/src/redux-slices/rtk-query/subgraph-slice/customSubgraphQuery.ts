@@ -5,18 +5,14 @@ import {CacheTime} from '../cacheTime';
 
 import {handleSubgraphQueryWithFramework, SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
-type RequestDocument = string | DocumentNode;
-
-declare type Variables = {
-    [key: string]: any;
-};
-
 export interface CustomSubgraphQuery extends BaseQuery<unknown> {
-    document: RequestDocument;
-    variables?: Variables;
+    document: string | DocumentNode;
+    variables?: {
+        [key: string]: any;
+    };
 }
 
-export const createCustomSubgraphQueryEndpoints = (builder: SubgraphSliceEndpointBuilder) => ({
+export const createCustomQueryEndpoints = (builder: SubgraphSliceEndpointBuilder) => ({
     custom: builder.query<unknown, CustomSubgraphQuery>({
         keepUnusedDataFor: CacheTime.None,
         queryFn: (arg) =>

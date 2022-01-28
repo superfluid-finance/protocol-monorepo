@@ -47,11 +47,14 @@ function defaultContractLoader(name) {
     } else throw new Error(`Cannot load contract "${name}"`);
 }
 
-function setTruffleContractDefaults(c, networkId, from) {
+function setTruffleContractDefaults(c, {networkId, chainId, from}) {
     c.autoGas = true;
     c.estimateGas = 1.25;
     networkId && c.setNetwork(networkId);
-    from && c.defaults({from});
+    // It is important to set chainId to force eip-155 transaction,
+    // especially for testing wallet as opposed to metamask which may inject
+    // chainId for you.
+    c.defaults({from, chainId});
 }
 
 const loadContracts = async ({
@@ -62,6 +65,7 @@ const loadContracts = async ({
     additionalContracts,
     contractLoader,
     networkId,
+    chainId,
 }) => {
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
@@ -127,7 +131,11 @@ const loadContracts = async ({
                     const c = (contracts[name] =
                         TruffleContract(_normalizedObject));
                     c.setProvider(web3.currentProvider);
-                    setTruffleContractDefaults(c, networkId, from);
+                    setTruffleContractDefaults(c, {
+                        networkId,
+                        chainId,
+                        from,
+                    });
                 })
             );
         } catch (e) {
@@ -146,7 +154,11 @@ const loadContracts = async ({
             }
             allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));
-                setTruffleContractDefaults(c, networkId, from);
+                setTruffleContractDefaults(c, {
+                    networkId,
+                    chainId,
+                    from,
+                });
             });
         } catch (e) {
             throw Error(`could not load truffle artifacts. ${e}`);

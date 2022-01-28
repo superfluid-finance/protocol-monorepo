@@ -53,8 +53,11 @@ function setTruffleContractDefaults(c, {networkId, chainId, from}) {
     networkId && c.setNetwork(networkId);
     // It is important to set chainId to force eip-155 transaction,
     // especially for testing wallet as opposed to metamask which may inject
-    // chainId for you.
-    c.defaults({from, chainId});
+    // chainId for you
+    c.defaults({
+        from,
+        chainId: "0x" + parseInt(chainId).toString(16),
+    });
 }
 
 const loadContracts = async ({

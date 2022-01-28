@@ -254,18 +254,6 @@ interface ISuperfluidToken {
         returns (bytes32[] memory slotData);
 
     /**
-     * @dev Agreement account state updated event
-     * @param agreementClass Contract address of the agreement
-     * @param account Account of the agrement
-     * @param state Agreement state of the account
-     */
-    event AgreementAccountStateUpdated(
-        address indexed agreementClass,
-        address indexed account,
-        bytes state
-    );
-
-    /**
      * @dev Settle balance from an account by the agreement.
      *      The agreement needs to make sure that the balance delta is balanced afterwards
      * @param account Account to query.

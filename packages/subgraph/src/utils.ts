@@ -85,6 +85,7 @@ export function updateTotalSupplyForNativeSuperToken(
         let tokenContract = SuperToken.bind(tokenAddress);
         let totalSupplyResult = tokenContract.try_totalSupply();
         if (totalSupplyResult.reverted) {
+            log.critical("YAMS", []);
             return tokenStatistic;
         }
         tokenStatistic.totalSupply = totalSupplyResult.value;

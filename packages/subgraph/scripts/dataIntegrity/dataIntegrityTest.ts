@@ -10,10 +10,12 @@ import {
     getSubscriptions,
     getAccountTokenSnapshots,
     getTokenStatistics,
+    getFlowUpdatedEvents,
 } from "./dataIntegrityQueries";
 import {
     IBaseEntity,
     IDataIntegrityAccountTokenSnapshot,
+    IDataIntegrityFlowUpdatedEvent,
     IDataIntegrityIndex,
     IDataIntegrityStream,
     IDataIntegritySubscription,
@@ -47,8 +49,11 @@ export const subgraphRequest = async <T>(
 };
 
 const printProgress = (i: number, total: number, entityText: string) => {
-    if (100 % (i + 1) === 0) {
-        console.log(`${i + 1}/${total} ${entityText} validated."`);
+    if ((i + 1) % 100 === 0) {
+        console.log(`${i + 1}/${total} ${entityText} validated.`);
+    }
+    if (i % total === 0) {
+        console.log(`${i}/${total} ${entityText} validated.`);
     }
 };
 
@@ -95,6 +100,7 @@ async function getAllResults<T extends IBaseEntity>(
     blockNumber: number,
     resultsPerPage: number,
     isUpdatedAt: boolean,
+    isEvent: boolean = false,
     timestamp: number = 0,
     counter: number = 0
 ): Promise<T[]> {
@@ -102,7 +108,12 @@ async function getAllResults<T extends IBaseEntity>(
     const initialResults = await subgraphRequest<{response: T[]}>(
         query,
         endpoint,
-        isUpdatedAt
+        isEvent
+            ? {
+                  ...baseQuery,
+                  timestamp,
+              }
+            : isUpdatedAt
             ? {
                   ...baseQuery,
                   updatedAt: timestamp,
@@ -124,7 +135,9 @@ async function getAllResults<T extends IBaseEntity>(
         return initialResults.response;
     }
 
-    let newTimestamp = isUpdatedAt
+    let newTimestamp = isEvent
+        ? initialResults.response[initialResults.response.length - 1].timestamp
+        : isUpdatedAt
         ? initialResults.response[initialResults.response.length - 1]
               .updatedAtTimestamp
         : initialResults.response[initialResults.response.length - 1]
@@ -138,6 +151,7 @@ async function getAllResults<T extends IBaseEntity>(
             blockNumber,
             resultsPerPage,
             isUpdatedAt,
+            isEvent,
             Number(newTimestamp),
             counter
         )) as T[]),
@@ -178,15 +192,34 @@ async function main() {
         addresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
+    console.log("Querying the blockchain for past events...");
     const flowUpdatedEventsFilter = cfaV1.filters.FlowUpdated();
+    console.log("Querying flow udpated events...");
     const flowUpdatedEvents = await cfaV1.queryFilter(
         flowUpdatedEventsFilter,
         addresses.hostStartBlock
     );
+    const groupedFlowUpdatedEvents = _.groupBy(flowUpdatedEvents, (x) =>
+        x.transactionHash.toLowerCase() + "-" + x.logIndex
+    );
+    console.log("Queried", flowUpdatedEvents.length, "FlowUpdatedEvents.");
 
     console.log("\nGetting all required data via the Subgraph...");
 
+    console.log("Querying all flowUpdatedEvents via the Subgraph...");
+
+    const subgraphFlowUpdatedEvents =
+        await getAllResults<IDataIntegrityFlowUpdatedEvent>(
+            getFlowUpdatedEvents,
+            chainIdData.subgraphAPIEndpoint,
+            currentBlockNumber,
+            1000,
+            false,
+            true
+        );
+
     console.log("Querying all streams via the Subgraph...");
+
     // This gets all of the current streams (flow rate > 0)
     const streams = await getAllResults<IDataIntegrityStream>(
         getCurrentStreams,
@@ -239,6 +272,16 @@ async function main() {
     );
 
     console.log("\nData Processing: Filtering out duplicate entities...");
+
+    const uniqueSubgraphFlowUpdatedEvents = _.uniqBy(
+        subgraphFlowUpdatedEvents,
+        (x) => x.id
+    );
+    console.log(
+        `There are ${uniqueSubgraphFlowUpdatedEvents.length} FlowUpdated events 
+        out of ${subgraphFlowUpdatedEvents.length} total FlowUpdated events.`
+    );
+
     const uniqueStreams = _.uniqBy(
         streams,
         (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
@@ -279,6 +322,68 @@ async function main() {
     );
 
     console.log("\nValidating tegridy' of subgraph data...");
+
+    console.log("Event Tests Starting...");
+    if (flowUpdatedEvents.length === uniqueSubgraphFlowUpdatedEvents.length) {
+        console.log("FlowUpdated events length is the same.");
+    } else {
+        throw new Error("FlowUpdated events length are different.");
+    }
+
+    for (let i = 0; i < subgraphFlowUpdatedEvents.length; i++) {
+        const currentSubgraphFlowUpdatedEvent = subgraphFlowUpdatedEvents[i];
+        const id = currentSubgraphFlowUpdatedEvent.id.split("FlowUpdated-")[1];
+        const currentContractFlowUpdatedEvent = groupedFlowUpdatedEvents[id];
+
+        if (currentContractFlowUpdatedEvent == null) {
+            console.log("currentSubgraphFlowUpdatedEvent", currentSubgraphFlowUpdatedEvent);
+            continue;
+        }
+
+        const tokenFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.token.toLowerCase() ===
+            currentSubgraphFlowUpdatedEvent.token;
+        const senderFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.sender.toLowerCase() ===
+            currentSubgraphFlowUpdatedEvent.sender;
+        const receiverFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.receiver.toLowerCase() ===
+            currentSubgraphFlowUpdatedEvent.receiver;
+        const userDataFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.userData === currentSubgraphFlowUpdatedEvent.userData;
+
+        const flowRateFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.flowRate.eq(toBN(currentSubgraphFlowUpdatedEvent.flowRate));
+        const totalSenderFlowRateFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.totalSenderFlowRate.eq(toBN(currentSubgraphFlowUpdatedEvent.totalSenderFlowRate));
+        const totalReceiverFlowRateFieldIsSame =
+            currentContractFlowUpdatedEvent[0].args.totalReceiverFlowRate.eq(toBN(currentSubgraphFlowUpdatedEvent.totalReceiverFlowRate));
+
+        if (
+            !tokenFieldIsSame ||
+            !senderFieldIsSame ||
+            !receiverFieldIsSame ||
+            !flowRateFieldIsSame ||
+            !totalSenderFlowRateFieldIsSame ||
+            !totalReceiverFlowRateFieldIsSame ||
+            !userDataFieldIsSame
+        ) {
+            console.log(
+                `Subgraph data: ${JSON.stringify(
+                    currentSubgraphFlowUpdatedEvent
+                )} \n On-chain data: ${JSON.stringify(
+                    currentContractFlowUpdatedEvent[0].args
+                )}`
+            );
+            throw new Error("FlowUpdated Event is not the same.");
+        }
+
+        printProgress(
+            i,
+            subgraphFlowUpdatedEvents.length,
+            "FlowUpdated events"
+        );
+    }
 
     // Account Level Invariant: validate CFA current streams data
     // Create promises to validate account level CFA stream data

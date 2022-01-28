@@ -1,9 +1,21 @@
-import { ILightEntity } from "../test/interfaces";
+import {ILightEntity} from "../test/interfaces";
 
 export interface IBaseEntity {
     readonly id: string;
     readonly createdAtTimestamp: string;
+    readonly timestamp?: string;
     readonly updatedAtTimestamp?: string;
+}
+
+export interface IDataIntegrityFlowUpdatedEvent extends IBaseEntity {
+    readonly token: string;
+    readonly transactionHash: string;
+    readonly sender: string;
+    readonly receiver: string;
+    readonly flowRate: string;
+    readonly totalSenderFlowRate: string;
+    readonly totalReceiverFlowRate: string;
+    readonly userData: string;
 }
 
 export interface IDataIntegrityStream extends IBaseEntity {
@@ -38,17 +50,17 @@ export interface IDataIntegritySubscription extends IBaseEntity {
     };
 }
 
-// NOTE: IDataIntegrityAccountTokenSnapshot and 
+// NOTE: IDataIntegrityAccountTokenSnapshot and
 // IDataIntegrityTokenStatistic only have updatedAtTimestamp
 // not createdAtTimestamp
 export interface IDataIntegrityAccountTokenSnapshot extends IBaseEntity {
     readonly balanceUntilUpdatedAt: string;
     readonly totalNetFlowRate: string;
-    readonly token: { id: string, underlyingAddress: string };
+    readonly token: {id: string; underlyingAddress: string};
     readonly account: ILightEntity;
 }
 
 export interface IDataIntegrityTokenStatistic extends IBaseEntity {
     readonly totalSupply: string;
-    readonly token: { id: string, underlyingAddress: string };
+    readonly token: {id: string; underlyingAddress: string};
 }

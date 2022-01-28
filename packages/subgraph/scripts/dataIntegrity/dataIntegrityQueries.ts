@@ -1,4 +1,31 @@
-import { gql } from "graphql-request";
+import {gql} from "graphql-request";
+
+export const getFlowUpdatedEvents = gql`
+    query getFlowUpdatedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: flowUpdatedEvents(
+            block: {number: $blockNumber}
+            first: $first
+            where: {timestamp_gte: $timestamp}
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            sender
+            receiver
+            flowRate
+            totalSenderFlowRate
+            totalReceiverFlowRate
+            userData
+        }
+    }
+`;
 
 /**
  * Gets current streams (where flow rate > 0)
@@ -6,9 +33,9 @@ import { gql } from "graphql-request";
 export const getCurrentStreams = gql`
     query getStreams($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: streams(
-            block: { number: $blockNumber }
+            block: {number: $blockNumber}
             first: $first
-            where: { currentFlowRate_gt: 0, createdAtTimestamp_gte: $createdAt }
+            where: {currentFlowRate_gt: 0, createdAtTimestamp_gte: $createdAt}
             orderBy: createdAtTimestamp
             orderDirection: asc
         ) {
@@ -35,9 +62,9 @@ export const getCurrentStreams = gql`
 export const getIndexes = gql`
     query getIndex($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: indexes(
-            block: { number: $blockNumber }
+            block: {number: $blockNumber}
             first: $first
-            where: { createdAtTimestamp_gte: $createdAt }
+            where: {createdAtTimestamp_gte: $createdAt}
             orderBy: createdAtTimestamp
             orderDirection: asc
         ) {
@@ -64,9 +91,9 @@ export const getIndexes = gql`
 export const getSubscriptions = gql`
     query getSubscription($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: indexSubscriptions(
-            block: { number: $blockNumber }
+            block: {number: $blockNumber}
             first: $first
-            where: { createdAtTimestamp_gte: $createdAt }
+            where: {createdAtTimestamp_gte: $createdAt}
             orderBy: createdAtTimestamp
             orderDirection: asc
         ) {
@@ -98,11 +125,15 @@ export const getSubscriptions = gql`
  * the Superfluid protocol.
  */
 export const getAccountTokenSnapshots = gql`
-    query getAccountTokenSnapshots($blockNumber: Int, $first: Int, $updatedAt: Int) {
+    query getAccountTokenSnapshots(
+        $blockNumber: Int
+        $first: Int
+        $updatedAt: Int
+    ) {
         response: accountTokenSnapshots(
-            block: { number: $blockNumber }
+            block: {number: $blockNumber}
             first: $first
-            where: { updatedAtTimestamp_gte: $updatedAt }
+            where: {updatedAtTimestamp_gte: $updatedAt}
             orderBy: updatedAtTimestamp
             orderDirection: asc
         ) {
@@ -128,9 +159,9 @@ export const getAccountTokenSnapshots = gql`
 export const getTokenStatistics = gql`
     query getTokenStatistics($blockNumber: Int, $first: Int, $updatedAt: Int) {
         response: tokenStatistics(
-            block: { number: $blockNumber }
+            block: {number: $blockNumber}
             first: $first
-            where: { updatedAtTimestamp_gte: $updatedAt }
+            where: {updatedAtTimestamp_gte: $updatedAt}
             orderBy: updatedAtTimestamp
             orderDirection: asc
         ) {

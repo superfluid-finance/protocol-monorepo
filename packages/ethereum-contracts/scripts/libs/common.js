@@ -160,8 +160,9 @@ async function setResolver(sf, key, value) {
             console.log("Resolver Admin type: MultiSig");
             const ADMIN_ROLE = "0x" + "0".repeat(64);
             const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
-            // always picks the first admin set (could be more than one)
-            const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, 0);
+            const rmCnt = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
+            // always picks the last admin set (could be more than one)
+            const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, rmCnt - 1);
             const multis = await sf.contracts.IMultiSigWallet.at(resolverAdmin);
             console.log("MultiSig address: ", multis.address);
             const data = resolver.contract.methods.set(key, value).encodeABI();

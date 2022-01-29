@@ -263,14 +263,30 @@ export default class Framework {
         if (isValidAddress) {
             address = tokenAddressOrSymbol;
         } else {
-            const superTokenKey = `supertokens.${this.settings.protocolReleaseVersion}.${tokenAddressOrSymbol}`;
-            const resolver = new ethers.Contract(
-                this.settings.config.resolverAddress,
-                IResolverABI.abi,
-                this.settings.provider
-            ) as IResolver;
-            const tokenAddress = await resolver.get(superTokenKey);
-            address = tokenAddress;
+            try {
+                const superTokenKey =
+                    "supertokens." +
+                    this.settings.protocolReleaseVersion +
+                    "." +
+                    tokenAddressOrSymbol;
+
+                const resolver = new ethers.Contract(
+                    this.settings.config.resolverAddress,
+                    IResolverABI.abi,
+                    this.settings.provider
+                ) as IResolver;
+                const tokenAddress = await resolver.get(superTokenKey);
+                address = tokenAddress;
+            } catch (err) {
+                throw new SFError({
+                    type: "SUPERTOKEN_INITIALIZATION",
+                    customMessage:
+                        "There was an error with loading the SuperToken with symbol: " +
+                        tokenAddressOrSymbol +
+                        " with the resolver.",
+                    errorObject: err,
+                });
+            }
         }
 
         return await SuperToken.create({

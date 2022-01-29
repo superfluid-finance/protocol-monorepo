@@ -173,6 +173,7 @@ export default class Framework {
                 provider,
                 networkName,
                 config: {
+                    resolverAddress,
                     hostAddress: framework.superfluid,
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
@@ -250,10 +251,31 @@ export default class Framework {
 
     /**
      * @dev Load a `SuperToken` class from the `Framework`.
-     * @param address the `SuperToken` address
+     * @param tokenAddressOrSymbol the `SuperToken` address or symbol
      * @returns `SuperToken` class
      */
-    loadSuperToken = async (address: string): Promise<SuperToken> => {
-        return await SuperToken.create({ ...this.settings, address });
+    loadSuperToken = async (
+        tokenAddressOrSymbol: string
+    ): Promise<SuperToken> => {
+        let address;
+        const isValidAddress = ethers.utils.isAddress(tokenAddressOrSymbol);
+
+        if (isValidAddress) {
+            address = tokenAddressOrSymbol;
+        } else {
+            const superTokenKey = `supertokens.${this.settings.protocolReleaseVersion}.${tokenAddressOrSymbol}`;
+            const resolver = new ethers.Contract(
+                this.settings.config.resolverAddress,
+                IResolverABI.abi,
+                this.settings.provider
+            ) as IResolver;
+            const tokenAddress = await resolver.get(superTokenKey);
+            address = tokenAddress;
+        }
+
+        return await SuperToken.create({
+            ...this.settings,
+            address,
+        });
     };
 }

@@ -1,10 +1,3 @@
-import { ethers as _ethers } from "ethers";
-
-/**
- * The initial motivation to export the internal ethers was to make SDK-Core's UMD build a one-liner.
- */
-export { _ethers };
-
 export * as _generatedSubgraphSchema from "./subgraph/schema.generated";
 
 import BatchCall from "./BatchCall";

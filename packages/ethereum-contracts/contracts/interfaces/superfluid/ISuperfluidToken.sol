@@ -20,6 +20,21 @@ interface ISuperfluidToken {
      */
     function getHost() external view returns(address host);
 
+    /**
+     * @dev Encoded liquidation type data mainly used for handling stack to deep errors
+     * 
+     * Note:
+     * - version: 1 
+     * - liquidationType key:
+     *    - 0 = reward account receives reward (PIC period)
+     *    - 1 = liquidator account receives reward (Pleb period)
+     *    - 2 = liquidator account receives reward (Pirate period/bailout)
+     */
+    struct LiquidationTypeData {
+        uint256 version;
+        uint8 liquidationType;
+    }
+
     /**************************************************************************
      * Real-time balance functions
      *************************************************************************/
@@ -239,18 +254,6 @@ interface ISuperfluidToken {
         returns (bytes32[] memory slotData);
 
     /**
-     * @dev Agreement account state updated event
-     * @param agreementClass Contract address of the agreement
-     * @param account Account of the agrement
-     * @param state Agreement state of the account
-     */
-    event AgreementAccountStateUpdated(
-        address indexed agreementClass,
-        address indexed account,
-        bytes state
-    );
-
-    /**
      * @dev Settle balance from an account by the agreement.
      *      The agreement needs to make sure that the balance delta is balanced afterwards
      * @param account Account to query.
@@ -348,6 +351,74 @@ interface ISuperfluidToken {
         uint256 bailoutAmount
     )
         external;
+
+    /**
+     * @dev Agreement liquidation event v2 (including agent account)
+     * @param agreementClass Contract address of the agreement
+     * @param id Agreement ID
+     * @param liquidatorAccount Address of the executor of the liquidation
+     * @param targetAccount Account of the stream sender
+     * @param rewardAccount Account that collects the reward or bails out insolvent accounts
+     * @param rewardAmount The amount the reward recipient account balance should change by
+     * @param targetAccountBalanceDelta The amount the sender account balance should change by
+     * @param liquidationTypeData The encoded liquidation type data including the version (how to decode)
+     *
+     * NOTE:
+     * Reward account rule:
+     * - if the agreement is liquidated during the PIC period
+     *   - the rewardAccount will get the rewardAmount (remaining deposit), regardless of the liquidatorAccount
+     *   - the targetAccount will pay for the rewardAmount
+     * - if the agreement is liquidated after the PIC period AND the targetAccount is solvent
+     *   - the liquidatorAccount will get the rewardAmount (remaining deposit)
+     *   - the targetAccount will pay for the rewardAmount
+     * - if the targetAccount is insolvent
+     *   - the liquidatorAccount will get the rewardAmount (single deposit)
+     *   - the rewardAccount will pay for both the rewardAmount and bailoutAmount
+     *   - the targetAccount will receive the bailoutAmount
+     */
+    event AgreementLiquidatedV2(
+        address indexed agreementClass,
+        bytes32 id,
+        address indexed liquidatorAccount,
+        address indexed targetAccount,
+        address rewardAccount,
+        uint256 rewardAmount,
+        int256 targetAccountBalanceDelta,
+        bytes liquidationTypeData
+    );
+
+    /**
+     * @dev Make liquidation payouts (v2)
+     * @param id Agreement ID
+     * @param liquidationTypeData Data regarding the version of the liquidation schema and the type
+     * @param liquidatorAccount Address of the executor of the liquidation
+     * @param useDefaultRewardAccount Whether or not the default reward account receives the rewardAmount
+     * @param targetAccount Account of the stream sender
+     * @param rewardAmount The amount the reward recepient account will receive
+     * @param targetAccountBalanceDelta The amount the sender account balance should change by
+     *
+     * - If a bailout is required (bailoutAmount > 0)
+     *   - the actual reward (single deposit) goes to the executor,
+     *   - while the reward account becomes the bailout account
+     *   - total bailout include: bailout amount + reward amount
+     *   - the targetAccount will be bailed out
+     * - If a bailout is not required
+     *   - the targetAccount will pay the rewardAmount
+     *   - the liquidator (reward account in PIC period) will receive the rewardAmount
+     *
+     * Modifiers:
+     *  - onlyAgreement
+     */
+    function makeLiquidationPayoutsV2
+    (
+        bytes32 id,
+        bytes memory liquidationTypeData,
+        address liquidatorAccount,
+        bool useDefaultRewardAccount,
+        address targetAccount,
+        uint256 rewardAmount,
+        int256 targetAccountBalanceDelta
+    ) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

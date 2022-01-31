@@ -387,8 +387,11 @@ const sf = await Framework.create({
 // create a signer
 const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
 
-// load the usdcx SuperToken via the Framework
-const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+// load the usdcx SuperToken via the Framework (using the token address)
+const usdcx = await sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+// OR
+// load the daix SuperToken via the Framework (using the token symbol)
+const daix = await sf.loadSuperToken("DAIx");
 
 // create an approve operation
 const approveOperation = usdcx.approve({ receiver: "0xab...", amount: ethers.utils.parseUnits("100").toString() });
@@ -654,7 +657,7 @@ const sf = await Framework.create({
   provider
 });
 
-const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = await sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 ```
 
 #### Direct Initialization
@@ -685,7 +688,7 @@ const usdcx = await SuperToken.create({
 #### SuperToken Functions
 
 ```ts
-const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = await sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // ERC20 `Token`
 // Read functions
@@ -770,7 +773,7 @@ const sf = await Framework.create({
   provider
 });
 
-const usdcx = sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+const usdcx = await sf.loadSuperToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // Read example
 const name = await usdcx.name();

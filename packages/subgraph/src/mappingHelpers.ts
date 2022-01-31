@@ -20,6 +20,7 @@ import {
     getStreamRevisionPrefix,
     getSubscriptionID,
     getTokenInfoAndReturn,
+    updateTotalSupplyForNativeSuperToken,
     streamRevisionExists,
     ZERO_ADDRESS,
 } from "./utils";
@@ -103,6 +104,11 @@ export function getOrInitSuperToken(
         // Note: we initalize and create tokenStatistic whenever we create a
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
+        tokenStatistic = updateTotalSupplyForNativeSuperToken(
+            token,
+            tokenStatistic,
+            tokenAddress
+        );
         tokenStatistic.save();
 
         // Note: this is necessary otherwise we will not be able to capture

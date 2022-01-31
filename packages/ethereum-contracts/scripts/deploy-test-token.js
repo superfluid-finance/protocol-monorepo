@@ -46,6 +46,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         ...extractWeb3Options(options),
         additionalContracts: ["Resolver", "TestToken"],
         contractLoader: builtTruffleContractLoader,
+        networkId,
+        chainId,
     });
 
     const resolver = await Resolver.at(config.resolverAddress);

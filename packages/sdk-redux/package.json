@@ -51,8 +51,8 @@
         "typescript": "^4.5.2"
     },
     "peerDependencies": {
-        "@superfluid-finance/sdk-core": "^0.1.0",
-        "@reduxjs/toolkit": "^1.6.0 || ^1.7.0"
+        "@reduxjs/toolkit": "^1.6.0 || ^1.7.0",
+        "@superfluid-finance/sdk-core": "^0.1.0"
     },
     "files": [
         "dist/main",

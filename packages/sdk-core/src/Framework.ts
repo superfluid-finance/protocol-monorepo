@@ -251,7 +251,7 @@ export default class Framework {
 
     /**
      * @dev Load a `SuperToken` class from the `Framework`.
-     * @param tokenAddressOrSymbol the `SuperToken` address or symbol
+     * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */
     loadSuperToken = async (

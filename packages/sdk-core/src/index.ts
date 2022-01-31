@@ -1,4 +1,4 @@
-export * as _generatedSubgraphSchema from "./subgraph/schema.generated";
+export * from "./subgraph/schema.generated";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";

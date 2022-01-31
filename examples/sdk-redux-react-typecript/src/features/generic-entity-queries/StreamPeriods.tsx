@@ -11,7 +11,7 @@ import { SignerContext } from "../../SignerContext";
 import { sfSubgraph } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
 import { GenericDataGrid } from "./GenericDataGrid";
-import { StreamPeriod_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
+import { StreamPeriod_OrderBy } from "@superfluid-finance/sdk-core";
 
 export const StreamPeriods: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);

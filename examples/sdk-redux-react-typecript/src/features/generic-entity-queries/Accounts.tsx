@@ -18,7 +18,7 @@ import { SignerContext } from "../../SignerContext";
 import { sfSubgraph } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
 import { GenericDataGrid } from "./GenericDataGrid";
-import { Account_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
+import { Account_OrderBy } from "@superfluid-finance/sdk-core";
 
 export const Accounts: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);

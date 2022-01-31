@@ -11,7 +11,7 @@ import { SignerContext } from "../../SignerContext";
 import { sfSubgraph } from "../../redux/store";
 import { GridSortModel } from "@mui/x-data-grid";
 import { GenericDataGrid } from "./GenericDataGrid";
-import { Token_OrderBy } from "@superfluid-finance/sdk-core/dist/module/subgraph/schema.generated";
+import { Token_OrderBy } from "@superfluid-finance/sdk-core";
 
 export const Tokens: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);

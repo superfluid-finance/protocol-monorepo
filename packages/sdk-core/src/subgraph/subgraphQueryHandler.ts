@@ -2,7 +2,7 @@ import { RequestDocument } from "graphql-request";
 import _ from "lodash";
 
 import { ILightEntity } from "../interfaces";
-import { OrderDirection, Ordering } from "../ordering";
+import { Ordering } from "../ordering";
 import {
     createPagedResult,
     createSkipPaging,
@@ -15,7 +15,7 @@ import { typeGuard } from "../utils";
 import { SubgraphClient } from "./SubgraphClient";
 import { Address, SubgraphId } from "./mappedSubgraphTypes";
 import { normalizeSubgraphFilter } from "./normalizeSubgraphFilter";
-import { Exact, InputMaybe, Scalars } from "./schema.generated";
+import { Exact, InputMaybe, OrderDirection, Scalars } from "./schema.generated";
 
 /**
  * An argument object type that is used for paginated Subgraph queries.

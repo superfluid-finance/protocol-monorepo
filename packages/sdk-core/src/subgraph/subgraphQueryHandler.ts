@@ -17,6 +17,9 @@ import { Address, SubgraphId } from "./mappedSubgraphTypes";
 import { normalizeSubgraphFilter } from "./normalizeSubgraphFilter";
 import { Exact, InputMaybe, Scalars } from "./schema.generated";
 
+/**
+ * An argument object type that is used for paginated Subgraph queries.
+ */
 export interface SubgraphListQuery<
     TFilter extends {
         id?: InputMaybe<Scalars["ID"]>;
@@ -29,10 +32,16 @@ export interface SubgraphListQuery<
     order?: Ordering<TOrderBy>;
 }
 
+/**
+ * An argument object type that is used for single object queries by ID from Subgraph.
+ */
 export interface SubgraphGetQuery {
     id: SubgraphId;
 }
 
+/**
+ * Capable of handling the {@link SubgraphGetQuery} request.
+ */
 export interface SubgraphGetQueryHandler<TResult extends ILightEntity> {
     get(
         subgraphClient: SubgraphClient,
@@ -40,6 +49,9 @@ export interface SubgraphGetQueryHandler<TResult extends ILightEntity> {
     ): Promise<TResult | null>;
 }
 
+/**
+ * Capable of handling the {@link SubgraphGetQuery} request.
+ */
 export interface SubgraphListQueryHandler<
     TResult extends ILightEntity,
     TQuery extends SubgraphListQuery<TFilter, TOrderBy>,
@@ -52,24 +64,40 @@ export interface SubgraphListQueryHandler<
     ): Promise<PagedResult<TResult>>;
 }
 
+/**
+ * "Relevant" means that it's connected.
+ * NOTE: Currently, the relevancy is used to create a caching logic on the SDK-Redux layer.
+ */
 export interface RelevantAddresses {
     tokens: Address[];
     accounts: Address[];
 }
 
+/**
+ * Intermediate data object to pass relevant addresses from query results with less boilerplate code.
+ */
 export interface RelevantAddressesIntermediate {
     tokens: (Address | Address[] | null | undefined)[];
     accounts: (Address | Address[] | null | undefined)[];
 }
 
+/**
+ * Provides relevant address from a inputted filter.
+ */
 export interface RelevantAddressProviderFromFilter<TFilter> {
     getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses;
 }
 
+/**
+ * Provides relevant address from a query result.
+ */
 export interface RelevantAddressProviderFromResult<TResult> {
     getRelevantAddressesFromResult(result?: TResult | null): RelevantAddresses;
 }
 
+/**
+ * A base class to handle common Subgraph query logic.
+ */
 export abstract class SubgraphQueryHandler<
     TResult extends ILightEntity,
     TListQuery extends SubgraphListQuery<TFilter, TOrderBy>,
@@ -97,7 +125,39 @@ export abstract class SubgraphQueryHandler<
         tokenKeys: (keyof TFilter)[];
     };
 
-    private filterMagic = (
+    getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses {
+        if (!filter) {
+            return {
+                tokens: [],
+                accounts: [],
+            };
+        }
+
+        const addressFieldKeys = this.getAddressFieldKeysFromFilter();
+
+        const tokenAddresses =
+            this.getRelevantAddressesFromFilterByAddressFieldKeys(
+                filter,
+                addressFieldKeys.tokenKeys
+            );
+
+        const accountAddresses =
+            this.getRelevantAddressesFromFilterByAddressFieldKeys(
+                filter,
+                addressFieldKeys.accountKeys
+            );
+
+        return {
+            tokens: _.uniq(tokenAddresses),
+            accounts: _.uniq(accountAddresses),
+        };
+    }
+
+    /**
+     * For every primary address field key there are more fields generated which it should look for addresses.
+     * NOTE: The implementation is a bit "magical" but it rids of a bunch of boilerplate and creates a single point for editing.
+     */
+    private getRelevantAddressesFromFilterByAddressFieldKeys = (
         filter: TFilter,
         addressFieldKeys: (keyof TFilter)[]
     ) =>
@@ -115,32 +175,6 @@ export abstract class SubgraphQueryHandler<
                         .filter((x) => !!x) as Address[]
             )
             .flat();
-
-    getRelevantAddressesFromFilter(filter?: TFilter): RelevantAddresses {
-        if (!filter) {
-            return {
-                tokens: [],
-                accounts: [],
-            };
-        }
-
-        const addressFieldKeys = this.getAddressFieldKeysFromFilter();
-
-        const tokenAddresses = this.filterMagic(
-            filter,
-            addressFieldKeys.tokenKeys
-        );
-
-        const accountAddresses = this.filterMagic(
-            filter,
-            addressFieldKeys.accountKeys
-        );
-
-        return {
-            tokens: _.uniq(tokenAddresses),
-            accounts: _.uniq(accountAddresses),
-        };
-    }
 
     protected abstract getRelevantAddressesFromResultCore(
         result: TResult

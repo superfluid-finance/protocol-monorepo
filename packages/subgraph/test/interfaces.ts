@@ -4,9 +4,8 @@
 import { BaseProvider } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
 import BN from "bn.js";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
-import { SuperToken } from "../typechain/SuperToken";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 
@@ -398,6 +397,7 @@ export interface IFlowUpdatedUpdateTestData {
     readonly currentSenderATS: IAccountTokenSnapshot;
     readonly currentReceiverATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
+    readonly provider: BaseProvider;
 }
 
 export interface ITestModifyFlowData {

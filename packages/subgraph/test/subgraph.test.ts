@@ -1,12 +1,11 @@
 import { ethers } from "hardhat";
 import BN from "bn.js";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
 import idaABI from "../abis/IInstantDistributionAgreementV1.json";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
-import { ERC20 } from "../typechain/ERC20";
-import { SuperToken } from "../typechain/SuperToken";
+import { TestToken } from "../typechain";
 import { beforeSetup, getRandomFlowRate } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
@@ -30,7 +29,7 @@ import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let sf: Framework;
-    let dai: ERC20;
+    let dai: TestToken;
     let daix: SuperToken;
     let cfaV1: ConstantFlowAgreementV1;
     let idaV1: InstantDistributionAgreementV1;
@@ -151,14 +150,14 @@ describe("Subgraph Tests", () => {
 
     before(async () => {
         // NOTE: make the token symbol more customizable in the future
-        let [UserAddresses, SF, DAI, DAIx, totalSupply] = await beforeSetup(
+        let {userAddresses, sf, fDAI, fDAIx, signerDict, totalSupply} = await beforeSetup(
             10000000
         );
         initialTotalSupply = totalSupply;
-        userAddresses = UserAddresses;
-        sf = SF;
-        dai = DAI;
-        daix = DAIx;
+        userAddresses = userAddresses;
+        sf = sf;
+        dai = fDAI;
+        daix = fDAIx;
         cfaV1 = (await ethers.getContractAt(
             cfaABI,
             localAddresses.cfaAddress

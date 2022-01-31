@@ -13,7 +13,6 @@
  *************************************************************************/
 import { ContractReceipt } from "@ethersproject/contracts";
 import BN from "bn.js";
-import { InstantDistributionAgreementV1Helper } from "@superfluid-finance/js-sdk/src/InstantDistributionAgreementV1Helper";
 import {
     IExpectedFlowUpdateEvent,
     IExtraEventData,
@@ -62,7 +61,7 @@ import {
     idaEventTypeToEventQueryDataMap,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { Framework } from "@superfluid-finance/sdk-core";
 import { BigNumber } from "@ethersproject/bignumber";
 import { BaseProvider } from "@ethersproject/providers";
 import { getSubscription } from "../queries/holQueries";
@@ -152,6 +151,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             currentSenderATS,
             currentReceiverATS,
             currentTokenStats,
+            provider
         });
 
     const streamedAmountSinceUpdatedAt = toBN(pastStreamData.oldFlowRate).mul(
@@ -458,22 +458,26 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     let updatedAtBlockNumber: string = "";
     let receipt;
     let txn: any;
-    const ida = sf.ida as InstantDistributionAgreementV1Helper;
+    const ida = sf.idaV1;
 
     const { token, publisher, indexId, userData, subscriber } = baseParams;
     const baseData = {
         superToken: token,
         publisher,
-        indexId,
+        indexId: indexId.toString(),
         userData,
-        onTransaction: () => {},
     };
-    const baseSubscriberData = { ...baseData, subscriber };
+    const baseSubscriberData = {...baseData, subscriber};
+    const publisherSigner = await ethers.getSigner(publisher);
+    const subscriberSigner = await ethers.getSigner(subscriber);
+    const senderSigner = await ethers.getSigner(sender || "");
 
     if (type === IDAEventType.IndexCreated) {
-        txn = await ida.createIndex({
-            ...baseData,
-        });
+        txn = await ida
+            .createIndex({
+                ...baseData,
+            })
+            .exec(publisherSigner);
     } else if (type === IDAEventType.IndexUpdated) {
         if (amountOrIndexValue == null || isDistribute == null) {
             throw new Error(
@@ -482,20 +486,26 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
         }
 
         if (isDistribute) {
-            txn = await ida.distribute({
-                ...baseData,
-                amount: amountOrIndexValue.toString(),
-            });
+            txn = await ida
+                .distribute({
+                    ...baseData,
+                    amount: amountOrIndexValue.toString(),
+                })
+                .exec(publisherSigner);
         } else {
-            txn = await ida.updateIndex({
-                ...baseData,
-                indexValue: amountOrIndexValue.toString(),
-            });
+            txn = await ida
+                .updateIndexValue({
+                    ...baseData,
+                    indexValue: amountOrIndexValue.toString(),
+                })
+                .exec(publisherSigner);
         }
     } else if (type === IDAEventType.SubscriptionApproved) {
-        txn = await ida.approveSubscription({
-            ...baseSubscriberData,
-        });
+        txn = await ida
+            .approveSubscription({
+                ...baseSubscriberData,
+            })
+            .exec(subscriberSigner);
     } else if (type === IDAEventType.SubscriptionRevoked) {
         if (isRevoke == null || sender == null) {
             throw new Error(
@@ -504,20 +514,24 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
         }
 
         if (isRevoke) {
-            txn = await ida.revokeSubscription({
-                ...baseSubscriberData,
-            });
+            txn = await ida
+                .revokeSubscription({
+                    ...baseSubscriberData,
+                })
+                .exec(subscriberSigner);
         } else {
-            txn = await ida.deleteSubscription({
-                ...baseSubscriberData,
-                sender,
-            });
+            txn = await ida
+                .deleteSubscription({
+                    ...baseSubscriberData,
+                })
+                .exec(senderSigner);
         }
     } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
-        txn = await ida.claim({
-            ...baseSubscriberData,
-            sender: subscriber,
-        });
+        txn = await ida
+            .claim({
+                ...baseSubscriberData,
+            })
+            .exec(subscriberSigner);
     } else {
         // type === IDAEventType.SubscriptionUnitsUpdated
         if (units == null) {
@@ -526,10 +540,10 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
             );
         }
 
-        txn = await ida.updateSubscription({
+        txn = await ida.updateSubscriptionUnits({
             ...baseSubscriberData,
             units: units.toString(),
-        });
+        }).exec(publisherSigner);
     }
 
     receipt = txn.receipt;

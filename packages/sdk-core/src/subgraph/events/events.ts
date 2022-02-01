@@ -25,7 +25,7 @@ export class EventQueryHandler extends SubgraphQueryHandler<
         accountKeys: (keyof Event_Filter)[];
         tokenKeys: (keyof Event_Filter)[];
     } => ({
-        accountKeys: [],
+        accountKeys: ["addresses"], // Note that "addresses" can contain both accounts and tokens. Not sure what the best thing to do here is.
         tokenKeys: [],
     });
 

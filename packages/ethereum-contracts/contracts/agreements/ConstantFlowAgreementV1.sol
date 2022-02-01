@@ -95,6 +95,51 @@ contract ConstantFlowAgreementV1 is
         return int96(flowrate1);
     }
 
+    enum LiquidationPeriod {
+        Patrician,
+        Pleb,
+        Pirate
+    }
+
+    function getLiquidationPeriod(
+        ISuperfluidToken token, 
+        address sender,
+        int256 availableBalance) 
+        public view 
+        returns(LiquidationPeriod) 
+    {
+        (,FlowData memory senderAccountState) = _getAccountFlowState(token, sender);
+        int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
+
+        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
+        if (totalRewardLeft < 0) {
+            return LiquidationPeriod.Pirate;
+        } else {
+            bool isPatricianPeriod = _isPICPeriod(
+                token,
+                totalRewardLeft,
+                signedTotalCFADeposit
+            );
+            return isPatricianPeriod
+                ? LiquidationPeriod.Patrician
+                : LiquidationPeriod.Pirate;
+        }
+    }
+
+    function _isPICPeriod(
+        ISuperfluidToken token, 
+        int256 availableBalance, 
+        int256 signedTotalCFADeposit)
+        internal view
+        returns(bool)
+    {
+        (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
+        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
+        int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
+        // divisor cannot be zero with existing outflow
+        return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+    }
+
     function getDepositRequiredForFlowRate(
         ISuperfluidToken token,
         int96 flowRate)
@@ -764,7 +809,6 @@ contract ConstantFlowAgreementV1 is
         int256 signedSingleDeposit = flowData.deposit.toInt256();
         // TODO: GDA deposit should be considered here too
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
-        bool isPatricianPeriod;
         bytes memory liquidationTypeData;
 
         // Liquidation rules:
@@ -775,14 +819,7 @@ contract ConstantFlowAgreementV1 is
         // #1 Can the total account deposit still cover the available balance deficit?
         int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
 
-        // To retrieve patrician period
-        // Note: curly brackets are to handle stack too deep overflow issue
-        {
-            (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
-            int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
-            // divisor cannot be zero with existing outflow
-            isPatricianPeriod = totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
-        }
+        bool isPatricianPeriod = _isPICPeriod(token, availableBalance, signedTotalCFADeposit);
 
         // user is in a critical state
         if (totalRewardLeft >= 0) {

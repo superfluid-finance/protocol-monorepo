@@ -47,7 +47,7 @@ import {
     TokenStatisticQuery,
     TokenStatisticsQuery,
 } from './entityQueryArgs';
-import {provideTagsFromRelevantAddresses} from './provideTagsFromRelevantAddresses';
+import {provideCacheTagsFromRelevantAddresses} from './provideCacheTagsFromRelevantAddresses';
 import {SubgraphSliceBaseQueryType, SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
 export const createEntityQueryEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
@@ -91,7 +91,11 @@ function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & Su
             };
         },
         providesTags: (result, _error, arg) =>
-            provideTagsFromRelevantAddresses(arg.chainId, queryHandler.getRelevantAddressesFromResult(result), tag),
+            provideCacheTagsFromRelevantAddresses(
+                arg.chainId,
+                queryHandler.getRelevantAddressesFromResult(result),
+                tag
+            ),
         keepUnusedDataFor: cacheTime ?? CacheTime.OneMinute,
     });
 }
@@ -119,7 +123,11 @@ function list<
             };
         },
         providesTags: (_result, _error, arg) =>
-            provideTagsFromRelevantAddresses(arg.chainId, queryHandler.getRelevantAddressesFromFilter(arg.filter), tag),
+            provideCacheTagsFromRelevantAddresses(
+                arg.chainId,
+                queryHandler.getRelevantAddressesFromFilter(arg.filter),
+                tag
+            ),
         keepUnusedDataFor: cacheTime ?? CacheTime.OneMinute,
     });
 }

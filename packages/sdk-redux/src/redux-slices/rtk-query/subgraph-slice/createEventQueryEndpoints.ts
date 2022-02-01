@@ -31,7 +31,7 @@ import {
     SubscriptionUnitsUpdatedEventQuery,
     SubscriptionUnitsUpdatedEventsQuery,
 } from './eventQueryArgs';
-import {provideTagsFromRelevantAddresses} from './provideTagsFromRelevantAddresses';
+import {provideCacheTagsFromRelevantAddresses} from './provideCacheTagsFromRelevantAddresses';
 import {SubgraphSliceBaseQueryType, SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
 export const createEventQueryEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
@@ -89,7 +89,7 @@ function list<
             };
         },
         providesTags: (_result, _error, arg) =>
-            provideTagsFromRelevantAddresses(
+            provideCacheTagsFromRelevantAddresses(
                 arg.chainId,
                 queryHandler.getRelevantAddressesFromFilter(arg.filter),
                 'Event'

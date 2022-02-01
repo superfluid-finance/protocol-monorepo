@@ -56,7 +56,6 @@ import {
     getExpectedStreamData,
 } from "./updaters";
 import {
-    FlowActionType,
     IDAEventType,
     idaEventTypeToEventQueryDataMap,
     subscriptionEventTypeToIndexEventType,

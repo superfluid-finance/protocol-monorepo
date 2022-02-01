@@ -34,7 +34,8 @@
     },
     "dependencies": {
         "ethers": "^5.5.1",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "graphql-request": "^3.7.0"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.6.0",
@@ -51,7 +52,7 @@
     },
     "peerDependencies": {
         "@reduxjs/toolkit": "^1.6.0 || ^1.7.0",
-        "@superfluid-finance/sdk-core": "^0.1.0"
+        "@superfluid-finance/sdk-core": "^0.2.1"
     },
     "files": [
         "dist/main",

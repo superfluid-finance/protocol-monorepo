@@ -4,9 +4,10 @@ import {getFramework, getFrameworkAndSigner} from '../../../sdkReduxConfig';
 import {MillisecondTimes, typeGuard} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {registerNewTransaction} from '../../transactions/registerNewTransaction';
-import {MutationMeta, SfEndpointBuilder} from '../baseQuery';
 import {invalidateCacheTagsForEvents} from '../cacheTags/invalidateCacheTagsForEvents';
 import {monitorAddressForNextEventToInvalidateCache} from '../cacheTags/monitorAddressForNextEventToInvalidateCache';
+import {MutationMeta} from '../returnTypes';
+import {ApiSliceEndpointBuilder} from '../sfApiSlice';
 
 import {
     ApproveIndexSubscription,
@@ -25,7 +26,7 @@ import {
     UpgradeToSuperToken,
 } from './mutations';
 
-export const addMutationEndpoints = (builder: SfEndpointBuilder) => ({
+export const addMutationEndpoints = (builder: ApiSliceEndpointBuilder) => ({
     approveIndexSubscription: builder.mutation<TransactionInfo, ApproveIndexSubscription>({
         queryFn: async (arg, queryApi) => {
             const [framework, signer] = await getFrameworkAndSigner(arg.chainId);

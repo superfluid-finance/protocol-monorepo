@@ -13,11 +13,11 @@ import {
 
 import {getFramework} from '../../../sdkReduxConfig';
 import {insertIf, typeGuard} from '../../../utils';
-import {SfEndpointBuilder} from '../baseQuery';
 import {createEventTag} from '../cacheTags/eventTags';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
 import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
 import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
+import {ApiSliceEndpointBuilder} from '../sfApiSlice';
 
 import {
     GetAllowanceForUpgradeToSuperToken,
@@ -33,7 +33,7 @@ import {
     ListUserInteractedSuperTokens,
 } from './queries';
 
-export const addQueryEndpoints = (builder: SfEndpointBuilder) => ({
+export const addQueryEndpoints = (builder: ApiSliceEndpointBuilder) => ({
     getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperToken>({
         keepUnusedDataFor: 0, // We can't listen for "approval" event from Subgraph currently.
         providesTags: (_result, _error, arg) => [

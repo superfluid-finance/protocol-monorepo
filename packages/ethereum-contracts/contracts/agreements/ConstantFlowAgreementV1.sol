@@ -122,7 +122,7 @@ contract ConstantFlowAgreementV1 is
             );
             return isPatricianPeriod
                 ? LiquidationPeriod.Patrician
-                : LiquidationPeriod.Pirate;
+                : LiquidationPeriod.Pleb;
         }
     }
 

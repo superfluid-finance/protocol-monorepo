@@ -7,8 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.3.0] - 2022-02-02
 ### Added
+* New query handlers to cover full spectrum of Subgraph querying capabilities
+  * Used by the new release of SDK-redux
+  * Lacks an easy-to-use API for average SDK-core user
 
-### Changed
 ## [0.2.1] - 2022-01-31
 
 ### Added

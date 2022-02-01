@@ -103,13 +103,13 @@ contract ConstantFlowAgreementV1 is
 
     function getLiquidationPeriod(
         ISuperfluidToken token, 
-        address sender,
-        int256 availableBalance) 
+        address sender)
         public view 
         returns(LiquidationPeriod) 
     {
         (,FlowData memory senderAccountState) = _getAccountFlowState(token, sender);
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
+        (int256 availableBalance,,,) = token.realtimeBalanceOfNow(sender);
 
         int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
         if (totalRewardLeft < 0) {

@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import { SignerContext } from "../SignerContext";
 import { Error } from "../Error";
-import { sfApi } from "../redux/store";
+import { sfApi, sfSubgraph } from "../redux/store";
 
 const pageSize = 10;
 
@@ -41,13 +41,16 @@ export const ListEvents: FC = (): ReactElement => {
         isLoading,
         error,
         refetch,
-    } = sfApi.useListEventsQuery(
+    } = sfSubgraph.useEventsQuery(
         {
             chainId: queryChainId,
-            accountAddress,
-            timestamp_gt: undefined,
-            skip: (page - 1) * pageSize,
-            take: pageSize,
+            filter: {
+                addresses_contains: [accountAddress]
+            },
+            pagination: {
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+            }
         },
         {
             pollingInterval: 7500,

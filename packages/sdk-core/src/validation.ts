@@ -1,7 +1,7 @@
 import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 import { ethers } from "ethers";
 
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,

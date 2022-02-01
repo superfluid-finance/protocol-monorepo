@@ -43,6 +43,7 @@ SDK-Redux is in early active development and can have breaking releases without 
 * Ethers
 
 # Requirements
+* SDK-Core
 * Redux store & Redux Toolkit
 * React* (The SDK-Redux generates React Hooks which are recommended but not strictly necessary to use. The SDK-Redux is UI-framework agnostic but we currently have example only for React)
 
@@ -74,9 +75,11 @@ We need to plug in the Superfluid SDK-Redux parts.
 Import the following function:
 ```ts
 import {
+    allSubgraphSliceEndpoints,
+    createApiWithReactHooks,
     initializeSfApiSlice,
-    initializeSfTransactionSlice,
-    createApiWithReactHooks
+    initializeSfSubgraphSlice,
+    initializeSfTransactionSlice
 } from "@superfluid-finance/sdk-redux";
 ```
 
@@ -84,6 +87,8 @@ Create the Redux slices:
 ```ts
 export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
 export const { sfTransactions } = initializeSfTransactionSlice();
+export const sfSubgraph = initializeSfSubgraphSlice(createApiWithReactHooks).injectEndpoints(allSubgraphSliceEndpoints);
+
 ```
 
 Plug in the slices to the Redux store:
@@ -92,6 +97,7 @@ export const store = configureStore({
     reducer: {
         "sfApi": sfApi.reducer,
         "sfTransactions": sfTransactions.reducer,
+        "sfSubgraph": sfSubgraph.reducer
     }
 });
 ```
@@ -104,7 +110,7 @@ export const store = configureStore({
         "sfTransactions": sfTransactions.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(sfApi.middleware),
+        getDefaultMiddleware().concat(sfApi.middleware).concat(sfSubgraph.middleware),
 });
 ```
 
@@ -131,13 +137,20 @@ const {
     isError,
     error,
     refetch,
-} = sfApi.useListStreamsQuery({
+} = sfSubgraph.useStreamsQuery({
     chainId: queryChainId,
-    senderAddress,
-    receiverAddress,
-    superTokenAddress,
-    skip: (page - 1) * pageSize,
-    take: pageSize,
+    filter: {
+      token: superTokenAddress,
+      sender: senderAddress
+    },
+    pagination: {
+        skip: (page - 1) * pageSize,
+        take: pageSize
+    },
+    ordering: {
+      orderBy: "currentFlowRate",
+      orderDirection: "desc"
+    }
 }, {
     pollingInterval: 5000 // Not necessary to use but nice-to-have additional option by RTK-Query.
 });

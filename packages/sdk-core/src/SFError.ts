@@ -1,4 +1,4 @@
-type ErrorType =
+export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
@@ -43,7 +43,7 @@ interface ISFErrorProps {
     errorObject?: unknown;
 }
 
-export default class SFError {
+export class SFError {
     readonly type: ErrorType;
     readonly message: string;
     readonly errorObject?: unknown;

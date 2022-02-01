@@ -9,7 +9,7 @@ import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import Query from "./Query";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import SuperToken from "./SuperToken";
 import IResolverABI from "./abi/IResolver.json";
 import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";

@@ -62,6 +62,7 @@ import {BaseProvider, TransactionResponse} from "@ethersproject/providers";
 import {getSubscription} from "../queries/holQueries";
 import {ethers} from "hardhat";
 import {expect} from "chai";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -467,11 +468,10 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     const baseSubscriberData = {...baseData, subscriber};
     // NOTE: this should never be empty string, one of the addresses will always be
     // not null unless somethign went very wrong.
-    const signer = await ethers.getSigner(
-        publisher || subscriber || sender || ""
-    );
+    let signer: SignerWithAddress;
 
     if (type === IDAEventType.IndexCreated) {
+        signer = await ethers.getSigner(publisher);
         txnResponse = await ida
             .createIndex({
                 ...baseData,
@@ -483,6 +483,8 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 "You must pass isDistribute and amountOrIndexValue for index updated."
             );
         }
+
+        signer = await ethers.getSigner(publisher);
 
         if (isDistribute) {
             txnResponse = await ida
@@ -500,6 +502,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 .exec(signer);
         }
     } else if (type === IDAEventType.SubscriptionApproved) {
+        signer = await ethers.getSigner(subscriber);
         txnResponse = await ida
             .approveSubscription({
                 ...baseSubscriberData,
@@ -513,12 +516,14 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
         }
 
         if (isRevoke) {
+            signer = await ethers.getSigner(subscriber);
             txnResponse = await ida
                 .revokeSubscription({
                     ...baseSubscriberData,
                 })
                 .exec(signer);
         } else {
+            signer = await ethers.getSigner(sender);
             txnResponse = await ida
                 .deleteSubscription({
                     ...baseSubscriberData,
@@ -526,6 +531,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 .exec(signer);
         }
     } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
+        signer = await ethers.getSigner(subscriber);
         txnResponse = await ida
             .claim({
                 ...baseSubscriberData,
@@ -538,6 +544,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 "You must pass units for SubscriptionUnitsUpdated."
             );
         }
+        signer = await ethers.getSigner(publisher);
 
         txnResponse = await ida
             .updateSubscriptionUnits({

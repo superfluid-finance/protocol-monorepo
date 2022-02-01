@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import BN from "bn.js";
+import BN from "bn.js"; 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
 import idaABI from "../abis/IInstantDistributionAgreementV1.json";
@@ -28,7 +28,7 @@ import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
-    let sf: Framework;
+    let framework: Framework;
     let dai: TestToken;
     let daix: SuperToken;
     let cfaV1: ConstantFlowAgreementV1;
@@ -86,7 +86,7 @@ describe("Subgraph Tests", () => {
     function getContracts(): IContracts {
         return {
             cfaV1,
-            sf,
+            framework,
             superToken: daix,
             idaV1,
         };
@@ -150,12 +150,12 @@ describe("Subgraph Tests", () => {
 
     before(async () => {
         // NOTE: make the token symbol more customizable in the future
-        let {userAddresses, sf, fDAI, fDAIx, signerDict, totalSupply} = await beforeSetup(
+        let {users, sf, fDAI, fDAIx, totalSupply} = await beforeSetup(
             10000000
         );
         initialTotalSupply = totalSupply;
-        userAddresses = userAddresses;
-        sf = sf;
+        userAddresses = users;
+        framework = sf;
         dai = fDAI;
         daix = fDAIx;
         cfaV1 = (await ethers.getContractAt(

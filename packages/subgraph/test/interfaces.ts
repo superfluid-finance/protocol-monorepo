@@ -360,7 +360,7 @@ export interface IDistributionLocalData extends IAggregateLocalData {
 }
 
 export interface IContracts {
-    readonly sf: Framework;
+    readonly framework: Framework;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
     readonly superToken: SuperToken;

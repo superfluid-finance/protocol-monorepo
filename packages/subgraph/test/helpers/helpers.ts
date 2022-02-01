@@ -1,5 +1,4 @@
 import { ethers } from "hardhat";
-import { ContractReceipt } from "ethers";
 import { BaseProvider } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
 import { Framework } from "@superfluid-finance/sdk-core";
@@ -22,7 +21,7 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 /**
  * Before setup function - deploy the framework, get signers, deploy test tokens,
  * initialize framework.
- * @param userAddresses
+ * @param tokenAmount
  * @returns
  */
 export const beforeSetup = async (tokenAmount: number) => {
@@ -32,7 +31,7 @@ export const beforeSetup = async (tokenAmount: number) => {
         (x, y) => ({...x, [y.address]: y}),
         {}
     );
-    const userAddresses = signers.map((x) => x.address);
+    const users = signers.map((x) => x.address);
     let totalSupply = 0;
     // names[Bob] = "Bob";
     const sf = await Framework.create({
@@ -95,7 +94,7 @@ export const beforeSetup = async (tokenAmount: number) => {
     );
 
     return {
-        userAddresses,
+        users,
         sf,
         fDAI,
         fDAIx,
@@ -299,7 +298,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const signer = await ethers.getSigner(sender);
     // any because it the txn.receipt doesn't exist on
     // Transaction
-    const txn: any =
+    const txnResponse =
         actionType === FlowActionType.Create
             ? await sfCFA.createFlow({
                   superToken,
@@ -323,15 +322,18 @@ export const modifyFlowAndReturnCreatedFlowData = async (
                   userData: "0x"
               }).exec(signer);
 
-    const receipt: ContractReceipt = txn.receipt;
-    const block = await provider.getBlock(receipt.blockNumber);
+    if (!txnResponse.blockNumber) {
+        throw new Error("No block number");
+    }
+
+    const block = await provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
-    await waitUntilBlockIndexed(receipt.blockNumber);
+    await waitUntilBlockIndexed(txnResponse.blockNumber);
 
     const [, flowRate] = await cfaV1.getFlow(superToken, sender, receiver);
 
     return {
-        receipt,
+        txnResponse,
         timestamp,
         flowRate,
     };

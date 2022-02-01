@@ -66,10 +66,6 @@
             "path": "cz-conventional-changelog"
         }
     },
-    "prettier": {
-        "singleQuote": true,
-        "printWidth": 120
-    },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },

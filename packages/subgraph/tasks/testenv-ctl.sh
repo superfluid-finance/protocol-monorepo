@@ -13,6 +13,7 @@ if [ "$CMD" == "start" ];then
     yarn run build:contracts
     # Get ABIs and generate typechain in subgraph folder based on ABIs
     cd ../subgraph
+    yarn install
     yarn getAbi
     yarn run generate-ethers-types
     cd ../js-sdk

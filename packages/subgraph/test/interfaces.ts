@@ -518,4 +518,5 @@ export interface IGetExpectedIDADataParams {
     readonly currentTokenStats: ITokenStatistic;
     readonly updatedAtBlockNumber: string;
     readonly timestamp: string;
+    readonly provider: BaseProvider;
 }

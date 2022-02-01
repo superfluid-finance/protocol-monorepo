@@ -404,6 +404,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
+        provider
     };
 
     const extraData: IExtraExpectedData = {

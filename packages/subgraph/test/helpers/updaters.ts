@@ -262,9 +262,6 @@ export const getExpectedDataForFlowUpdated = async (
     return { updatedSenderATS, updatedReceiverATS, updatedTokenStats };
 };
 
-// TODO: There must be some way of refactoring all these different
-// IDA functions to be refactored into one, but also modular
-
 export const getExpectedDataForIndexCreated = async (
     data: IGetExpectedIDADataParams
 ) => {

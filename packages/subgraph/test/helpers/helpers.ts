@@ -36,7 +36,7 @@ export const beforeSetup = async (tokenAmount: number) => {
     // names[Bob] = "Bob";
     const sf = await Framework.create({
         networkName: "custom",
-        dataMode: "WEB3_ONLY", // maybe we use our custom subgraph endpoint to do the queries.
+        dataMode: "WEB3_ONLY",
         protocolReleaseVersion: "test",
         provider: Deployer.provider!,
         resolverAddress: RESOLVER_ADDRESS,

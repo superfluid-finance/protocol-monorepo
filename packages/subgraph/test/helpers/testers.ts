@@ -454,7 +454,6 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
 ) {
     let timestamp: string = "";
     let updatedAtBlockNumber: string = "";
-    let receipt;
     let txnResponse: TransactionResponse;
     const ida = sf.idaV1;
 
@@ -466,8 +465,6 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
         userData,
     };
     const baseSubscriberData = {...baseData, subscriber};
-    // NOTE: this should never be empty string, one of the addresses will always be
-    // not null unless somethign went very wrong.
     let signer: SignerWithAddress;
 
     if (type === IDAEventType.IndexCreated) {

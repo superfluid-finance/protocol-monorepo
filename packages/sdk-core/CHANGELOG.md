@@ -7,9 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.3.0] - 2022-02-02
 ### Added
-* New query handlers to cover full spectrum of Subgraph querying capabilities
-  * Used by the new release of SDK-redux
-  * Lacks an easy-to-use API for average SDK-core user
+- New query handlers to cover full spectrum of Subgraph querying capabilities
+  - Used by the new release of SDK-redux
+  - Lacks an easy-to-use API for average SDK-core user
+
+### Changed
+- `_ethers` is not exported for UMD build anymore. Use `window._ethers` instead.
+- `SFError` and `ErrorType` are now exported
+- Generated Subgraph types are now exported (`*_Filter` and `*_OrderBy` types)
+    - There are a lot of Subgraph types, so it does make the namespace crowded. We'll alleviate it in a later release.
 
 ## [0.2.1] - 2022-01-31
 

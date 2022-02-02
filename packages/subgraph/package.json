@@ -40,22 +40,21 @@
         "pre-commit:lint": "yarn lint",
         "generate-sf-meta": "./tasks/getSFMeta.sh",
         "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh",
+        "generate-ethers-types": "typechain --target=ethers-v5 --out-dir=typechain './abis/*.json'",
         "check-updates": "ncu --target minor --dep prod,dev"
     },
     "dependencies": {
-        "@decentral.ee/web3-helpers": "^0.5.3",
         "@graphprotocol/graph-cli": "0.25.1",
         "@graphprotocol/graph-ts": "0.24.1",
-        "@superfluid-finance/js-sdk": "0.5.9",
-        "ganache-time-traveler": "^1.0.16",
-        "mustache": "^4.2.0",
-        "truffle": "^5.4.26"
+        "@superfluid-finance/sdk-core": "0.2.0",
+        "mustache": "^4.2.0"
     },
     "devDependencies": {
         "@ethersproject/providers": "^5.5.1",
         "@nomiclabs/hardhat-ethers": "^2.0.3",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@nomiclabs/hardhat-web3": "^2.0.0",
+        "@typechain/ethers-v5": "^9.0.0",
         "@types/chai": "^4.3.0",
         "@types/lodash": "^4.14.178",
         "@types/mocha": "^9.0.0",
@@ -68,7 +67,8 @@
         "graphql": "^16.2.0",
         "graphql-request": "^3.7.0",
         "hardhat": "^2.8.0",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "typechain": "^7.0.0"
     },
     "workspaces": {
         "nohoist": [

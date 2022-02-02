@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,
@@ -65,6 +65,7 @@ import {
     Token_OrderBy,
 } from "./subgraph/schema.generated";
 import { DataMode } from "./types";
+import { typeGuard } from "./utils";
 import {
     validateAccountTokenSnapshotRequest,
     validateEventRequest,
@@ -85,7 +86,7 @@ export interface IQueryOptions {
  */
 export default class Query {
     options: IQueryOptions;
-    private subgraphClient: SubgraphClient;
+    subgraphClient: SubgraphClient; // TODO(KK): back to private?
 
     constructor(options: IQueryOptions) {
         this.options = options;
@@ -410,7 +411,7 @@ export default class Query {
         });
 
         return createPagedResult<AllEvents>(
-            mapGetAllEventsQueryEvents(response),
+            mapGetAllEventsQueryEvents(response.events),
             paging
         );
     };
@@ -463,7 +464,6 @@ export default class Query {
             const lastEvent = _.last(allEvents);
             if (lastEvent) {
                 callback(allEvents, unsubscribe);
-
                 // Next event polling is done for events that have a timestamp later than the current latest event.
                 eventQueryTimestamp = lastEvent.timestamp;
             }
@@ -488,6 +488,3 @@ export default class Query {
         return unsubscribe;
     }
 }
-
-// Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
-const typeGuard = <T>(obj: T) => obj;

@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation from "./Operation";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import IInstantDistributionAgreementV1ABI from "./abi/IInstantDistributionAgreementV1.json";
 import {
     IAgreementV1Options,

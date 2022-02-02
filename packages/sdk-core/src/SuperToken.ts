@@ -3,7 +3,7 @@ import { ethers, Overrides } from "ethers";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import Token from "./Token";
 import SuperTokenABI from "./abi/SuperToken.json";
 import { networkNameToChainIdMap } from "./constants";

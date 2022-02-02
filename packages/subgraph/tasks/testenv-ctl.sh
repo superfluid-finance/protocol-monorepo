@@ -11,14 +11,17 @@ if [ "$CMD" == "start" ];then
     # Install contract dependencies and build contracts
     yarn install
     yarn run build:contracts
-    # Generate and move typechain to subgraph folder
-    rm -rf typechain
+    # Get ABIs and generate typechain in subgraph folder based on ABIs
+    cd ../subgraph
+    yarn getAbi
     yarn run generate-ethers-types
-    mv typechain ../subgraph
     cd ../js-sdk
     # Get abi.js file for js-sdk to deploy locally
     chmod +x ./tasks/build-abi-js.sh
     ./tasks/build-abi-js.sh
+    cd ../sdk-core
+    # build sdk-core because of auto linking to dependency
+    yarn build
     cd ../subgraph
     # Install subgraph dependencies
     yarn install

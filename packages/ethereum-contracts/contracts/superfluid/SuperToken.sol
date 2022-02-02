@@ -502,16 +502,27 @@ contract SuperToken is
        _burn(msg.sender, account, amount, userData, new bytes(0));
     }
 
-    function selfTransferFrom(
+    function selfApproveFor(
         address account,
         address spender,
+        uint256 amount
+    ) 
+        external override
+        onlySelf
+    {
+        _approve(account, spender, amount);
+    }
+
+    function selfTransferFrom(
+        address spender,
+        address holder,
         address recipient,
         uint256 amount
     ) 
         external override
         onlySelf
     {
-        _transferFrom(account, spender, recipient, amount);
+        _transferFrom(spender, holder, recipient, amount);
     }
 
     /**************************************************************************

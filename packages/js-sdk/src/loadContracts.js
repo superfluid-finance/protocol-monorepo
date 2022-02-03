@@ -47,16 +47,12 @@ function defaultContractLoader(name) {
     } else throw Error(`Cannot load contract "${name}"`);
 }
 
-function setTruffleContractDefaults(c, {networkId, chainId, from}) {
+function setTruffleContractDefaults(c, {networkId, from}) {
     c.autoGas = true;
     c.estimateGas = 1.25;
     c.setNetwork(networkId);
     const defaults = {};
     from && (defaults.from = from);
-    // It is important to set chainId to force eip-155 transaction,
-    // especially for testing wallet as opposed to metamask which may inject
-    // chainId for you
-    defaults.chainId = "0x" + parseInt(chainId).toString(16);
     c.defaults(defaults);
 }
 
@@ -68,10 +64,8 @@ const loadContracts = async ({
     additionalContracts,
     contractLoader,
     networkId,
-    chainId,
 }) => {
     if (!networkId) throw Error("networkId not provided");
-    if (!chainId) throw Error("chainId not provided");
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
         new Set([...contractNames, ...(additionalContracts || [])])
@@ -138,7 +132,6 @@ const loadContracts = async ({
                     c.setProvider(web3.currentProvider);
                     setTruffleContractDefaults(c, {
                         networkId,
-                        chainId,
                         from,
                     });
                 })
@@ -161,7 +154,6 @@ const loadContracts = async ({
                 const c = (contracts[name] = artifacts.require(name));
                 setTruffleContractDefaults(c, {
                     networkId,
-                    chainId,
                     from,
                 });
             });

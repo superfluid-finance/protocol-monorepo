@@ -205,7 +205,6 @@ async function printSuperTokensInformation({
             )),
             ...(await sf.getPastEvents(superTokenFactory, "SuperTokenCreated")),
         ];
-        console.log("!!!!!", latests.length);
         const superTokens = await async.mapLimit(
             latests,
             MAX_REQUESTS,
@@ -243,12 +242,14 @@ async function printSuperTokensInformation({
         console.log("## Listed Super Tokens");
         superTokens
             .filter((s) => s !== undefined && s.isListed)
+            .filter((s) => s.superTokenLogicAddress !== ZERO_ADDRESS) // unintialized proxy
             .forEach(printSuperToken);
         console.log("");
 
         console.log("## Unlisted Super Tokens");
         superTokens
             .filter((s) => s !== undefined && !s.isListed)
+            .filter((s) => s.superTokenLogicAddress !== ZERO_ADDRESS) // unintialized proxy
             .forEach(printSuperToken);
         console.log("");
 

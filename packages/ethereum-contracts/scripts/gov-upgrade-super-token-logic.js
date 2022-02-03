@@ -103,6 +103,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     ).filter((i) => typeof i !== "undefined");
 
     if (tokensToBeUpgraded.length > 0) {
+        console.log(
+            `Batch upgrading ${tokensToBeUpgraded.length} super tokens`
+        );
         await sendGovernanceAction(sf, (gov) =>
             gov.batchUpdateSuperTokenLogic(sf.host.address, tokensToBeUpgraded)
         );

@@ -1,6 +1,6 @@
 export * as _sdkCore from '@superfluid-finance/sdk-core';
 
-export * from './sdkReduxInitialization';
+export * from './initializeSfApiSlice';
 
 export * from './redux-slices/argTypes';
 export * from './redux-slices/rtk-query/queries/queries';
@@ -16,3 +16,7 @@ export * from './redux-slices/rtk-query/createApiWithoutReactHooks';
 
 export * from './redux-slices/rtk-query/subgraph-slice/customSubgraphQuery';
 export * from './redux-slices/rtk-query/subgraph-slice/allSubgraphSliceEndpoints';
+export {setFrameworkForSdkRedux} from './setFrameworkForSdkRedux';
+export {setSignerForSdkRedux} from './setSignerForSdkRedux';
+export {initializeSfTransactionSlice} from './initializeSfTransactionSlice';
+export {initializeSubgraphSlice} from './initializeSubgraphSlice';

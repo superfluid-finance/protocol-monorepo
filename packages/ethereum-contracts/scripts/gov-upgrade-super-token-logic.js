@@ -1,5 +1,6 @@
 const async = require("async");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const {ZERO_ADDRESS} = require("./libs/common");
 
 const MAX_REQUESTS = 100;
 
@@ -84,12 +85,16 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
                 if (latestSuperTokenLogic !== superTokenLogic) {
                     console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic needs to be updated from ${superTokenLogic}`
+                        `SuperToken@${superToken.address} (${symbol}) loogc needs upgrade from ${superTokenLogic}.`
                     );
                     return superTokenAddress;
+                } else if (superTokenLogic === ZERO_ADDRESS) {
+                    console.log(
+                        `SuperToken@${superToken.address} (${symbol}) is likely a not initalized proxy.`
+                    );
                 } else {
                     console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic is up to date`
+                        `SuperToken@${superToken.address} (${symbol}) logic is up to date.`
                     );
                     return undefined;
                 }

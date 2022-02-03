@@ -10,6 +10,7 @@ out
 **/reports
 /dist
 **/dist
+**/dist-newstyle
 /.env
 **/.env
 *.env

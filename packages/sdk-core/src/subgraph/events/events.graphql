@@ -1,0 +1,855 @@
+query flowUpdatedEvents($first: Int, $skip: Int, $where: FlowUpdatedEvent_filter, $orderBy: FlowUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    flowUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...flowUpdatedEvent
+    }
+}
+
+query indexCreatedEvents($first: Int, $skip: Int, $where: IndexCreatedEvent_filter, $orderBy: IndexCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+    indexCreatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...indexCreatedEvent
+    }
+}
+
+query indexDistributionClaimedEvents($first: Int, $skip: Int, $where: IndexDistributionClaimedEvent_filter, $orderBy: IndexDistributionClaimedEvent_orderBy, $orderDirection: OrderDirection) {
+    indexDistributionClaimedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...indexDistributionClaimedEvent
+    }
+}
+
+query indexUpdatedEvents($first: Int, $skip: Int, $where: IndexUpdatedEvent_filter, $orderBy: IndexUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    indexUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...indexUpdatedEvent
+    }
+}
+
+query indexSubscribedEvents($first: Int, $skip: Int, $where: IndexSubscribedEvent_filter, $orderBy: IndexSubscribedEvent_orderBy, $orderDirection: OrderDirection) {
+    indexSubscribedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...indexSubscribedEvent
+    }
+}
+
+query indexUnitsUpdatedEvents($first: Int, $skip: Int, $where: IndexUnitsUpdatedEvent_filter, $orderBy: IndexUnitsUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    indexUnitsUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...indexUnitsUpdatedEvent
+    }
+}
+
+query indexUnsubscribedEvents($first: Int, $skip: Int, $where: IndexUnsubscribedEvent_filter, $orderBy: IndexUnsubscribedEvent_orderBy, $orderDirection: OrderDirection) {
+    indexUnsubscribedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...indexUnsubscribedEvent
+    }
+}
+
+query subscriptionApprovedEvents($first: Int, $skip: Int, $where: SubscriptionApprovedEvent_filter, $orderBy: SubscriptionApprovedEvent_orderBy, $orderDirection: OrderDirection) {
+    subscriptionApprovedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...subscriptionApprovedEvent
+    }
+}
+
+query subscriptionDistributionClaimedEvents($first: Int, $skip: Int, $where: SubscriptionDistributionClaimedEvent_filter, $orderBy: SubscriptionDistributionClaimedEvent_orderBy, $orderDirection: OrderDirection) {
+    subscriptionDistributionClaimedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...subscriptionDistributionClaimedEvent
+    }
+}
+
+query subscriptionRevokedEvents($first: Int, $skip: Int, $where: SubscriptionRevokedEvent_filter, $orderBy: SubscriptionRevokedEvent_orderBy, $orderDirection: OrderDirection) {
+    subscriptionRevokedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...subscriptionRevokedEvent
+    }
+}
+
+query subscriptionUnitsUpdatedEvents($first: Int, $skip: Int, $where: SubscriptionUnitsUpdatedEvent_filter, $orderBy: SubscriptionUnitsUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    subscriptionUnitsUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...subscriptionUnitsUpdatedEvent
+    }
+}
+
+query transferEvents($first: Int, $skip: Int, $where: TransferEvent_filter, $orderBy: TransferEvent_orderBy, $orderDirection: OrderDirection) {
+    transferEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...transferEvent
+    }
+}
+
+query tokenUpgradedEvents($first: Int, $skip: Int, $where: TokenUpgradedEvent_filter, $orderBy: TokenUpgradedEvent_orderBy, $orderDirection: OrderDirection) {
+    tokenUpgradedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...tokenUpgradedEvent
+    }
+}
+
+query tokenDowngradedEvents($first: Int, $skip: Int, $where: TokenDowngradedEvent_filter, $orderBy: TokenDowngradedEvent_orderBy, $orderDirection: OrderDirection) {
+    tokenDowngradedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...tokenDowngradedEvent
+    }
+}
+
+query agreementClassRegisteredEvents($first: Int, $skip: Int, $where: AgreementClassRegisteredEvent_filter, $orderBy: AgreementClassRegisteredEvent_orderBy, $orderDirection: OrderDirection) {
+    agreementClassRegisteredEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...agreementClassRegisteredEvent
+    }
+}
+
+query agreementClassUpdatedEvents($first: Int, $skip: Int, $where: AgreementClassUpdatedEvent_filter, $orderBy: AgreementClassUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    agreementClassUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...agreementClassUpdatedEvent
+    }
+}
+
+query appRegisteredEvents($first: Int, $skip: Int, $where: AppRegisteredEvent_filter, $orderBy: AppRegisteredEvent_orderBy, $orderDirection: OrderDirection) {
+    appRegisteredEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...appRegisteredEvent
+    }
+}
+
+query governanceReplacedEvents($first: Int, $skip: Int, $where: GovernanceReplacedEvent_filter, $orderBy: GovernanceReplacedEvent_orderBy, $orderDirection: OrderDirection) {
+    governanceReplacedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...governanceReplacedEvent
+    }
+}
+
+query jailEvents($first: Int, $skip: Int, $where: JailEvent_filter, $orderBy: JailEvent_orderBy, $orderDirection: OrderDirection) {
+    jailEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...jailEvent
+    }
+}
+
+query superTokenFactoryUpdatedEvents($first: Int, $skip: Int, $where: SuperTokenFactoryUpdatedEvent_filter, $orderBy: SuperTokenFactoryUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    superTokenFactoryUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...superTokenFactoryUpdatedEvent
+    }
+}
+
+query superTokenLogicUpdatedEvents($first: Int, $skip: Int, $where: SuperTokenLogicUpdatedEvent_filter, $orderBy: SuperTokenLogicUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+    superTokenLogicUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...superTokenLogicUpdatedEvent
+    }
+}
+
+query roleAdminChangedEvents($first: Int, $skip: Int, $where: RoleAdminChangedEvent_filter, $orderBy: RoleAdminChangedEvent_orderBy, $orderDirection: OrderDirection) {
+    roleAdminChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...roleAdminChangedEvent
+    }
+}
+
+query roleGrantedEvents($first: Int, $skip: Int, $where: RoleGrantedEvent_filter, $orderBy: RoleGrantedEvent_orderBy, $orderDirection: OrderDirection) {
+    roleGrantedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...roleGrantedEvent
+    }
+}
+
+query roleRevokedEvents($first: Int, $skip: Int, $where: RoleRevokedEvent_filter, $orderBy: RoleRevokedEvent_orderBy, $orderDirection: OrderDirection) {
+    roleRevokedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...roleRevokedEvent
+    }
+}
+
+query cfaV1LiquidationPeriodChangedEvents($first: Int, $skip: Int, $where: CFAv1LiquidationPeriodChangedEvent_filter, $orderBy: CFAv1LiquidationPeriodChangedEvent_orderBy, $orderDirection: OrderDirection) {
+    cfav1LiquidationPeriodChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...cfaV1LiquidationPeriodChangedEvent
+    }
+}
+
+query configChangedEvents($first: Int, $skip: Int, $where: ConfigChangedEvent_filter, $orderBy: ConfigChangedEvent_orderBy, $orderDirection: OrderDirection) {
+    configChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...configChangedEvent
+    }
+}
+
+query rewardAddressChangedEvents($first: Int, $skip: Int, $where: RewardAddressChangedEvent_filter, $orderBy: RewardAddressChangedEvent_orderBy, $orderDirection: OrderDirection) {
+    rewardAddressChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...rewardAddressChangedEvent
+    }
+}
+
+query trustedForwarderChangedEvents($first: Int, $skip: Int, $where: TrustedForwarderChangedEvent_filter, $orderBy: TrustedForwarderChangedEvent_orderBy, $orderDirection: OrderDirection) {
+    trustedForwarderChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...trustedForwarderChangedEvent
+    }
+}
+
+query agreementLiquidatedByEvents($first: Int, $skip: Int, $where: AgreementLiquidatedByEvent_filter, $orderBy: AgreementLiquidatedByEvent_orderBy, $orderDirection: OrderDirection) {
+    agreementLiquidatedByEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...agreementLiquidatedByEvent
+    }
+}
+
+query burnedEvents($first: Int, $skip: Int, $where: BurnedEvent_filter, $orderBy: BurnedEvent_orderBy, $orderDirection: OrderDirection) {
+    burnedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...burnedEvent
+    }
+}
+
+query mintedEvents($first: Int, $skip: Int, $where: MintedEvent_filter, $orderBy: MintedEvent_orderBy, $orderDirection: OrderDirection) {
+    mintedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...mintedEvent
+    }
+}
+
+query sentEvents($first: Int, $skip: Int, $where: SentEvent_filter, $orderBy: SentEvent_orderBy, $orderDirection: OrderDirection) {
+    sentEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...sentEvent
+    }
+}
+
+query customSuperTokenCreatedEvents($first: Int, $skip: Int, $where: CustomSuperTokenCreatedEvent_filter, $orderBy: CustomSuperTokenCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+    customSuperTokenCreatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...customSuperTokenCreatedEvent
+    }
+}
+
+query superTokenCreatedEvents($first: Int, $skip: Int, $where: SuperTokenCreatedEvent_filter, $orderBy: SuperTokenCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+    superTokenCreatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...superTokenCreatedEvent
+    }
+}
+
+query superTokenLogicCreatedEvents($first: Int, $skip: Int, $where: SuperTokenLogicCreatedEvent_filter, $orderBy: SuperTokenLogicCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+    superTokenLogicCreatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        ...superTokenLogicCreatedEvent
+    }
+}
+
+query events($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: Event_orderBy! = id, $orderDirection: OrderDirection! = asc) {
+    events(where: $where, skip: $skip, first: $first, orderBy: $orderBy, orderDirection: $orderDirection) {
+        ... on FlowUpdatedEvent {
+            ...flowUpdatedEvent
+        }
+        ... on IndexCreatedEvent {
+            ...indexCreatedEvent
+        }
+        ... on IndexDistributionClaimedEvent {
+            ...indexDistributionClaimedEvent
+        }
+        ... on IndexUpdatedEvent {
+            ...indexUpdatedEvent
+        }
+        ... on IndexSubscribedEvent {
+            ...indexSubscribedEvent
+        }
+        ... on IndexUnitsUpdatedEvent {
+            ...indexUnitsUpdatedEvent
+        }
+        ... on IndexUnsubscribedEvent {
+            ...indexUnsubscribedEvent
+        }
+        ... on SubscriptionApprovedEvent {
+            ...subscriptionApprovedEvent
+        }
+        ... on SubscriptionDistributionClaimedEvent {
+            ...subscriptionDistributionClaimedEvent
+        }
+        ... on SubscriptionRevokedEvent {
+            ...subscriptionRevokedEvent
+        }
+        ... on SubscriptionUnitsUpdatedEvent {
+            ...subscriptionUnitsUpdatedEvent
+        }
+        ... on TransferEvent {
+            ...transferEvent
+        }
+        ... on TokenUpgradedEvent {
+            ...tokenUpgradedEvent
+        }
+        ... on TokenDowngradedEvent {
+            ...tokenDowngradedEvent
+        }
+        ... on AgreementClassRegisteredEvent {
+            ...agreementClassRegisteredEvent
+        }
+        ... on AgreementClassUpdatedEvent {
+            ...agreementClassUpdatedEvent
+        }
+        ... on AppRegisteredEvent {
+            ...appRegisteredEvent
+        }
+        ... on GovernanceReplacedEvent {
+            ...governanceReplacedEvent
+        }
+        ... on JailEvent {
+            ...jailEvent
+        }
+        ... on SuperTokenFactoryUpdatedEvent {
+            ...superTokenFactoryUpdatedEvent
+        }
+        ... on SuperTokenLogicUpdatedEvent {
+            ...superTokenLogicUpdatedEvent
+        }
+        ... on RoleAdminChangedEvent {
+            ...roleAdminChangedEvent
+        }
+        ... on RoleGrantedEvent {
+            ...roleGrantedEvent
+        }
+        ... on RoleRevokedEvent {
+            ...roleRevokedEvent
+        }
+        ... on CFAv1LiquidationPeriodChangedEvent {
+            ...cfaV1LiquidationPeriodChangedEvent
+        }
+        ... on ConfigChangedEvent {
+            ...configChangedEvent
+        }
+        ... on RewardAddressChangedEvent {
+            ...rewardAddressChangedEvent
+        }
+        ... on TrustedForwarderChangedEvent {
+            ...trustedForwarderChangedEvent
+        }
+        ... on AgreementLiquidatedByEvent {
+            ...agreementLiquidatedByEvent
+        }
+        ... on BurnedEvent {
+            ...burnedEvent
+        }
+        ... on MintedEvent {
+            ...mintedEvent
+        }
+        ... on SentEvent {
+            ...sentEvent
+        }
+        ... on CustomSuperTokenCreatedEvent {
+            ...customSuperTokenCreatedEvent
+        }
+        ... on SuperTokenCreatedEvent {
+            ...superTokenCreatedEvent
+        }
+        ... on SuperTokenLogicCreatedEvent {
+            ...superTokenLogicCreatedEvent
+        }
+    }
+}
+
+fragment eventFields on Event {
+    __typename
+    id
+    blockNumber
+    transactionHash
+    timestamp
+}
+
+fragment flowUpdatedEvent on FlowUpdatedEvent {
+    ...eventFields
+    userData
+    type
+    token
+    sender
+    receiver
+    flowRate
+}
+
+fragment indexCreatedEvent on IndexCreatedEvent {
+    ...eventFields
+    userData
+    token
+    publisher
+    indexId
+    index {
+        id
+    }
+}
+
+fragment indexDistributionClaimedEvent on IndexDistributionClaimedEvent {
+    ...eventFields
+    token
+    subscriber
+    publisher
+    indexId
+    index {
+        id
+    }
+    amount
+}
+
+fragment indexUpdatedEvent on IndexUpdatedEvent {
+    ...eventFields
+    userData
+    totalUnitsPending
+    totalUnitsApproved
+    token
+    publisher
+    oldIndexValue
+    newIndexValue
+    indexId
+    index {
+        id
+    }
+}
+
+fragment indexSubscribedEvent on IndexSubscribedEvent {
+    ...eventFields
+    id
+    userData
+    token
+    subscriber
+    publisher
+    indexId
+    index {
+        id
+    }
+}
+
+fragment indexUnitsUpdatedEvent on IndexUnitsUpdatedEvent {
+    ...eventFields
+    userData
+    units
+    token
+    subscriber
+    publisher
+    oldUnits
+    indexId
+    index {
+        id
+    }
+}
+
+fragment indexUnsubscribedEvent on IndexUnsubscribedEvent {
+    ...eventFields
+    userData
+    token
+    subscriber
+    publisher
+    indexId
+    index {
+        id
+    }
+}
+
+fragment subscriptionApprovedEvent on SubscriptionApprovedEvent {
+    ...eventFields
+    userData
+    token
+    subscription {
+        id
+    }
+    subscriber
+    publisher
+    indexId
+}
+
+fragment subscriptionDistributionClaimedEvent on SubscriptionDistributionClaimedEvent {
+    ...eventFields
+    token
+    subscription {
+        id
+    }
+    subscriber
+    publisher
+    indexId
+    amount
+}
+
+fragment subscriptionRevokedEvent on SubscriptionRevokedEvent {
+    ...eventFields
+    userData
+    subscription {
+        id
+    }
+    subscriber
+    publisher
+    indexId
+    token
+}
+
+fragment subscriptionUnitsUpdatedEvent on SubscriptionUnitsUpdatedEvent {
+    ...eventFields
+    userData
+    units
+    token
+    subscription {
+        id
+    }
+    subscriber
+    publisher
+    oldUnits
+    indexId
+}
+
+fragment transferEvent on TransferEvent {
+    ...eventFields
+    value
+    token
+    to {
+        id
+    }
+    from {
+        id
+    }
+}
+
+fragment tokenUpgradedEvent on TokenUpgradedEvent {
+    ...eventFields
+    amount
+    token
+    account {
+        id
+    }
+}
+
+fragment tokenDowngradedEvent on TokenDowngradedEvent {
+    ...eventFields
+    token
+    blockNumber
+    amount
+    account {
+        id
+    }
+}
+
+fragment agreementClassRegisteredEvent on AgreementClassRegisteredEvent {
+    ...eventFields
+    code
+    agreementType
+}
+
+fragment agreementClassUpdatedEvent on AgreementClassUpdatedEvent {
+    ...eventFields
+    code
+    agreementType
+}
+
+fragment appRegisteredEvent on AppRegisteredEvent {
+    ...eventFields
+    blockNumber
+    app
+}
+
+fragment governanceReplacedEvent on GovernanceReplacedEvent {
+    ...eventFields
+    oldGovernance
+    newGovernance
+}
+
+fragment jailEvent on JailEvent {
+    ...eventFields
+    reason
+    app
+}
+
+fragment superTokenFactoryUpdatedEvent on SuperTokenFactoryUpdatedEvent {
+    ...eventFields
+    newFactory
+}
+
+fragment superTokenLogicUpdatedEvent on SuperTokenLogicUpdatedEvent {
+    ...eventFields
+    token
+    code
+}
+
+fragment roleAdminChangedEvent on RoleAdminChangedEvent {
+    ...eventFields
+    role
+    previousAdminRole
+    newAdminRole
+}
+
+fragment roleGrantedEvent on RoleGrantedEvent {
+    ...eventFields
+    sender
+    role
+    account
+}
+
+fragment roleRevokedEvent on RoleRevokedEvent {
+    ...eventFields
+    sender
+    role
+    account
+}
+
+fragment cfaV1LiquidationPeriodChangedEvent on CFAv1LiquidationPeriodChangedEvent {
+    ...eventFields
+    superToken
+    host
+    liquidationPeriod
+    isKeySet
+}
+
+fragment configChangedEvent on ConfigChangedEvent {
+    ...eventFields
+    value
+    superToken
+    key
+    isKeySet
+    host
+}
+
+fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
+    ...eventFields
+    superToken
+    rewardAddress
+    isKeySet
+    host
+}
+
+fragment trustedForwarderChangedEvent on TrustedForwarderChangedEvent {
+    ...eventFields
+    isKeySet
+    host
+    forwarder
+    enabled
+    superToken
+}
+
+fragment agreementLiquidatedByEvent on AgreementLiquidatedByEvent {
+    ...eventFields
+    token
+    rewardAmount
+    penaltyAccount
+    liquidatorAccount
+    bondAccount
+    bailoutAmount
+    agreementId
+    agreementClass
+}
+
+fragment burnedEvent on BurnedEvent {
+    ...eventFields
+    operatorData
+    operator
+    from
+    data
+    amount
+}
+
+fragment mintedEvent on MintedEvent {
+    ...eventFields
+    operatorData
+    operator
+    data
+    amount
+    to
+}
+
+fragment sentEvent on SentEvent {
+    ...eventFields
+    to
+    operatorData
+    operator
+    data
+    amount
+}
+
+fragment customSuperTokenCreatedEvent on CustomSuperTokenCreatedEvent {
+    ...eventFields
+    token
+}
+
+fragment superTokenCreatedEvent on SuperTokenCreatedEvent {
+    ...eventFields
+    token
+}
+
+fragment superTokenLogicCreatedEvent on SuperTokenLogicCreatedEvent {
+    ...eventFields
+    tokenLogic
+}

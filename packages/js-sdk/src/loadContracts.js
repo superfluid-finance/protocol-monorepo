@@ -44,14 +44,16 @@ function defaultContractLoader(name) {
             contractName: name,
             abi: abis[name],
         };
-    } else throw new Error(`Cannot load contract "${name}"`);
+    } else throw Error(`Cannot load contract "${name}"`);
 }
 
-function setTruffleContractDefaults(c, networkId, from) {
+function setTruffleContractDefaults(c, {networkId, from}) {
     c.autoGas = true;
     c.estimateGas = 1.25;
-    networkId && c.setNetwork(networkId);
-    from && c.defaults({from});
+    c.setNetwork(networkId);
+    const defaults = {};
+    from && (defaults.from = from);
+    c.defaults(defaults);
 }
 
 const loadContracts = async ({
@@ -63,6 +65,7 @@ const loadContracts = async ({
     contractLoader,
     networkId,
 }) => {
+    if (!networkId) throw Error("networkId not provided");
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
         new Set([...contractNames, ...(additionalContracts || [])])
@@ -91,7 +94,7 @@ const loadContracts = async ({
                 })
             );
             if (from) {
-                throw new Error(
+                throw Error(
                     "Ethers mode does not support default from address"
                 );
             }
@@ -127,7 +130,10 @@ const loadContracts = async ({
                     const c = (contracts[name] =
                         TruffleContract(_normalizedObject));
                     c.setProvider(web3.currentProvider);
-                    setTruffleContractDefaults(c, networkId, from);
+                    setTruffleContractDefaults(c, {
+                        networkId,
+                        from,
+                    });
                 })
             );
         } catch (e) {
@@ -146,13 +152,16 @@ const loadContracts = async ({
             }
             allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));
-                setTruffleContractDefaults(c, networkId, from);
+                setTruffleContractDefaults(c, {
+                    networkId,
+                    from,
+                });
             });
         } catch (e) {
             throw Error(`could not load truffle artifacts. ${e}`);
         }
     } else {
-        throw new Error("Unknown mode");
+        throw Error("Unknown mode");
     }
     return contracts;
 };

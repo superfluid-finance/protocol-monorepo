@@ -35,6 +35,21 @@ interface ISuperfluidToken {
      */
     function getHost() external view returns(address host);
 
+    /**
+     * @dev Encoded liquidation type data mainly used for handling stack to deep errors
+     * 
+     * Note:
+     * - version: 1 
+     * - liquidationType key:
+     *    - 0 = reward account receives reward (PIC period)
+     *    - 1 = liquidator account receives reward (Pleb period)
+     *    - 2 = liquidator account receives reward (Pirate period/bailout)
+     */
+    struct LiquidationTypeData {
+        uint256 version;
+        uint8 liquidationType;
+    }
+
     /**************************************************************************
      * Real-time balance functions
      *************************************************************************/
@@ -252,18 +267,6 @@ interface ISuperfluidToken {
     )
         external view
         returns (bytes32[] memory slotData);
-
-    /**
-     * @dev Agreement account state updated event
-     * @param agreementClass Contract address of the agreement
-     * @param account Account of the agrement
-     * @param state Agreement state of the account
-     */
-    event AgreementAccountStateUpdated(
-        address indexed agreementClass,
-        address indexed account,
-        bytes state
-    );
 
     /**
      * @dev Settle balance from an account by the agreement.

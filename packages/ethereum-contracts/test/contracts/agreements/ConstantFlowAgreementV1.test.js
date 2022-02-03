@@ -2085,9 +2085,14 @@ describe("Using ConstantFlowAgreement v1", function () {
                             superToken.address,
                             flowRate.toString()
                         );
-                    const expectedDeposit = CFADataModel.clipDepositNumber(
+                    let expectedDeposit = CFADataModel.clipDepositNumber(
                         toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD))
                     );
+                    expectedDeposit =
+                        expectedDeposit.lt(t.configs.MINIMUM_DEPOSIT) &&
+                        toBN(flowRate).gt(toBN(0))
+                            ? t.configs.MINIMUM_DEPOSIT
+                            : expectedDeposit;
                     console.log(
                         `f(${flowRate.toString()}) = ${expectedDeposit.toString()} ?`
                     );

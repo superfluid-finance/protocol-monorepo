@@ -147,8 +147,11 @@ contract ConstantFlowAgreementV1 is
         returns (uint256 deposit)
     {
         require(flowRate >= 0, "CFA: not for negative flow rate");
-        (uint256 liquidationPeriod, ) = _decode3PsData(token);
+        ISuperfluid host = ISuperfluid(token.getHost());
+        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+        uint256 threePsConfig = gov.getConfigAsUint256(host, token, _3PS_CONFIG_KEY);
+        (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
         return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;

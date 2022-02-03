@@ -11,21 +11,6 @@ import { ISuperAgreement } from "./ISuperAgreement.sol";
  */
 interface ISuperfluidToken {
 
-    /**
-     * @dev Encoded liquidation type data mainly used for handling stack to deep errors
-     * 
-     * Note:
-     * - version: 1 
-     * - liquidationType key:
-     *    - 0 = reward account receives reward (PIC period)
-     *    - 1 = liquidator account receives reward (Pleb period)
-     *    - 2 = liquidator account receives reward (Pirate period/bailout)
-     */
-    struct LiquidationTypeData {
-        uint256 version;
-        uint8 liquidationType;
-    }
-
     /**************************************************************************
      * Basic information
      *************************************************************************/

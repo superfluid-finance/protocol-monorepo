@@ -38,8 +38,8 @@
         "generate": "run-s generate:*",
         "generate:abi-files": "rm -rf src/abi && mkdir src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
-        "generate:graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-matic > src/subgraph/schema.graphql",
-        "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml"
+        "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
+        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-matic > src/subgraph/schema.graphql"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

@@ -83,15 +83,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                     await UUPSProxiable.at(superTokenAddress)
                 ).getCodeAddress();
 
-                if (latestSuperTokenLogic !== superTokenLogic) {
+                if (superTokenLogic === ZERO_ADDRESS) {
+                    console.log(
+                        `SuperToken@${superToken.address} (${symbol}) is likely a not initalized proxy.`
+                    );
+                } else if (latestSuperTokenLogic !== superTokenLogic) {
                     console.log(
                         `SuperToken@${superToken.address} (${symbol}) loogc needs upgrade from ${superTokenLogic}.`
                     );
                     return superTokenAddress;
-                } else if (superTokenLogic === ZERO_ADDRESS) {
-                    console.log(
-                        `SuperToken@${superToken.address} (${symbol}) is likely a not initalized proxy.`
-                    );
                 } else {
                     console.log(
                         `SuperToken@${superToken.address} (${symbol}) logic is up to date.`

@@ -205,6 +205,7 @@ async function printSuperTokensInformation({
             )),
             ...(await sf.getPastEvents(superTokenFactory, "SuperTokenCreated")),
         ];
+        console.log("!!!!!", latests.length);
         const superTokens = await async.mapLimit(
             latests,
             MAX_REQUESTS,

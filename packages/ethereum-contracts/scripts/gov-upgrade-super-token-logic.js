@@ -1,5 +1,6 @@
 const async = require("async");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const {ZERO_ADDRESS} = require("./libs/common");
 
 const MAX_REQUESTS = 100;
 
@@ -82,14 +83,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                     await UUPSProxiable.at(superTokenAddress)
                 ).getCodeAddress();
 
-                if (latestSuperTokenLogic !== superTokenLogic) {
+                if (superTokenLogic === ZERO_ADDRESS) {
                     console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic needs to be updated from ${superTokenLogic}`
+                        `SuperToken@${superToken.address} (${symbol}) is likely a not initalized proxy.`
+                    );
+                } else if (latestSuperTokenLogic !== superTokenLogic) {
+                    console.log(
+                        `SuperToken@${superToken.address} (${symbol}) loogc needs upgrade from ${superTokenLogic}.`
                     );
                     return superTokenAddress;
                 } else {
                     console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic is up to date`
+                        `SuperToken@${superToken.address} (${symbol}) logic is up to date.`
                     );
                     return undefined;
                 }
@@ -98,6 +103,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     ).filter((i) => typeof i !== "undefined");
 
     if (tokensToBeUpgraded.length > 0) {
+        console.log(
+            `Batch upgrading ${tokensToBeUpgraded.length} super tokens`
+        );
         await sendGovernanceAction(sf, (gov) =>
             gov.batchUpdateSuperTokenLogic(sf.host.address, tokensToBeUpgraded)
         );

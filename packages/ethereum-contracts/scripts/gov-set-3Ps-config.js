@@ -4,7 +4,6 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
-    ZERO_ADDRESS,
 } = require("./libs/common");
 
 /**
@@ -52,7 +51,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     if (liquidationPeriod !== 0 || patricianPeriod !== 0) {
         console.log("setting new 3Ps config");
         await sendGovernanceAction(sf, (gov) =>
-            gov.setThreePsConfig(sf.host.address, tokenAddr, liquidationPeriod, patricianPeriod)
+            gov.setThreePsConfig(
+                sf.host.address,
+                tokenAddr,
+                liquidationPeriod,
+                patricianPeriod
+            )
         );
     } else {
         console.log("clearing 3Ps config");

@@ -61,7 +61,7 @@
         "@graphql-codegen/typescript": "^2.4.2",
         "@graphql-codegen/typescript-operations": "^2.2.2",
         "@graphql-typed-document-node/core": "^3.1.1",
-        "@nomiclabs/hardhat-ethers": "^2.0.3",
+        "@nomiclabs/hardhat-ethers": "2.0.3",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@typechain/ethers-v5": "^8.0.5",

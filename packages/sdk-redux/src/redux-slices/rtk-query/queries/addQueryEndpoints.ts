@@ -1,6 +1,6 @@
 import {
-    AllEvents,
     createSkipPaging,
+    EventBase,
     IIndex,
     IIndexSubscription,
     ILightAccountTokenSnapshot,
@@ -157,7 +157,7 @@ export const addQueryEndpoints = (builder: ApiSliceEndpointBuilder) => ({
             };
         },
     }),
-    listEvents: builder.query<PagedResult<AllEvents>, ListEvents>({
+    listEvents: builder.query<PagedResult<EventBase>, ListEvents>({
         providesTags: (_result, _error, arg) => [
             ...insertIf(!arg.accountAddress, createEventTag(arg.chainId)),
             getMostSpecificIndexTag({

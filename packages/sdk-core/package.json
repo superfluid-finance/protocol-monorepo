@@ -20,7 +20,7 @@
         "build": "yarn generate && rm -rf dist && run-p build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
-        "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny ] > dist/index.umd.js",
+        "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny --skipLibCheck ] > dist/index.umd.js",
         "testenv:start": "tasks/testenv-ctl.sh start",
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",

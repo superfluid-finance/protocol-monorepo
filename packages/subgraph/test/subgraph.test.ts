@@ -405,14 +405,15 @@ describe("Subgraph Tests", () => {
                     await asleep(1500);
                 } while (Number(balanceOf.availableBalance) >= 0);
 
-                const liquidator = await ethers.getSigner(userAddresses[2]);
-                await framework.cfaV1
-                    .deleteFlow({
-                        superToken: daix.address,
+                updateGlobalObjectsForFlowUpdated(
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Delete,
+                        newFlowRate: 0,
                         sender: userAddresses[0],
-                        receiver: userAddresses[1]
+                        receiver: userAddresses[1],
                     })
-                    .exec(liquidator);
+                );
             } catch (err) {
                 console.error(err);
             }

@@ -848,7 +848,7 @@ contract ConstantFlowAgreementV1 is
             liquidationTypeData = abi.encode(1, 2);
             token.makeLiquidationPayoutsV2(
                 flowParams.flowId, // id
-                abi.encode(1, 2), // (1 means "v1" of this encoding schema) - 2 for pirate/bailout period
+                liquidationTypeData, // (1 means "v1" of this encoding schema) - 2 for pirate/bailout period
                 liquidator, // liquidatorAddress
                 false, // useDefaultRewardAccount: out of PIC period, in pirate period, so always false
                 flowParams.sender, // targetAccount

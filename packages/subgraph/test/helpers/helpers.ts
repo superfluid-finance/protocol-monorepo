@@ -190,7 +190,7 @@ export function toBN(num: any) {
     return ethers.BigNumber.from(num);
 }
 
-function asleep(ms: number) {
+export function asleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

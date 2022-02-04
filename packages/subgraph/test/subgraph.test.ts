@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import hardhat, { ethers } from "hardhat";
 import BN from "bn.js"; 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
@@ -6,7 +6,7 @@ import idaABI from "../abis/IInstantDistributionAgreementV1.json";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 import { TestToken } from "../typechain";
-import { beforeSetup, getRandomFlowRate } from "./helpers/helpers";
+import { asleep, beforeSetup, getRandomFlowRate, monthlyToSecondRate, toBN } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IContracts,
@@ -361,6 +361,61 @@ describe("Subgraph Tests", () => {
                         receiver: userAddresses[i],
                     })
                 );
+            }
+        });
+
+        it("Should liquidate a stream", async () => {
+            try {
+                let balanceOf;
+                const randomFlowRate = 5000;
+                // update the global environment objects
+                updateGlobalObjectsForFlowUpdated(
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Create,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[1],
+                        totalSupply: initialTotalSupply,
+                    })
+                );
+
+                // get balance of sender
+                let balanceOfSender = await daix.realtimeBalanceOf({
+                    account: userAddresses[0],
+                    providerOrSigner: provider,
+                });
+                const senderSigner = await ethers.getSigner(userAddresses[0]);
+                await daix
+                    .transfer({
+                        receiver: userAddresses[2],
+                        amount: toBN(balanceOfSender.availableBalance)
+                            .sub(toBN(randomFlowRate * 100))
+                            .toString(),
+                    })
+                    .exec(senderSigner);
+
+                // wait for flow to get drained
+                // cannot use time traveler due to
+                // subgraph constraints
+                do {
+                    balanceOf = await daix.realtimeBalanceOf({
+                        account: userAddresses[0],
+                        providerOrSigner: provider,
+                    });
+                    await asleep(1500);
+                } while (Number(balanceOf.availableBalance) >= 0);
+
+                const liquidator = await ethers.getSigner(userAddresses[2]);
+                await framework.cfaV1
+                    .deleteFlow({
+                        superToken: daix.address,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[1]
+                    })
+                    .exec(liquidator);
+            } catch (err) {
+                console.error(err);
             }
         });
     });

@@ -27,10 +27,10 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
-    bytes32 private constant _3PS_CONFIG_KEY =
+    bytes32 private constant CFAV1_3PS_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
 
-    bytes32 private constant _SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
+    bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     using SafeMath for uint256;
@@ -149,8 +149,8 @@ contract ConstantFlowAgreementV1 is
         require(flowRate >= 0, "CFA: not for negative flow rate");
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 minimumDeposit = gov.getConfigAsUint256(host, token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-        uint256 threePsConfig = gov.getConfigAsUint256(host, token, _3PS_CONFIG_KEY);
+        uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAv1_3PS_CONFIG_KEY);
         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
@@ -706,7 +706,7 @@ contract ConstantFlowAgreementV1 is
                 (uint256 liquidationPeriod, ) = _decode3PsData(token);
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
                 minimumDeposit = gov.getConfigAsUint256(
-                    ISuperfluid(msg.sender), token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+                    ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
                 // rounding up the number for app allowance too
                 // CAVEAT:
                 // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
@@ -967,7 +967,7 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 threePsConfig = gov.getConfigAsUint256(host, token, _3PS_CONFIG_KEY);
+        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAv1_3PS_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
     }
 }

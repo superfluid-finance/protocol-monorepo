@@ -372,11 +372,10 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForFlowUpdated(
                     await testFlowUpdated({
                         ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Create,
+                        actionType: FlowActionType.Update,
                         newFlowRate: randomFlowRate,
                         sender: userAddresses[0],
                         receiver: userAddresses[1],
-                        totalSupply: initialTotalSupply,
                     })
                 );
 

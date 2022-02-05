@@ -150,7 +150,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAv1_3PS_CONFIG_KEY);
+        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAV1_3PS_CONFIG_KEY);
         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
@@ -967,7 +967,7 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAv1_3PS_CONFIG_KEY);
+        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAV1_3PS_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
     }
 }

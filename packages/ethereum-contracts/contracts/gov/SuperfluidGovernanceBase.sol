@@ -285,7 +285,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             uint256 threePsConfig = getConfigAsUint256(
                 host, 
                 superToken, 
-                SuperfluidGovernanceConfigs.CFAv1_3PS_CONFIG_KEY
+                SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY
             );
             (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         }
@@ -308,7 +308,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         return _setConfig(
             host,
             superToken,
-            SuperfluidGovernanceConfigs.CFAv1_3PS_CONFIG_KEY,
+            SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY,
             value
         );
     }
@@ -318,7 +318,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken
     ) public {
         emit ThreePsConfigurationChanged(host, superToken, false, 0, 0);
-        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAv1_3PS_CONFIG_KEY);
+        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY);
     }
     event SuperTokenMinimumDepositChanged(
         ISuperfluid indexed host,

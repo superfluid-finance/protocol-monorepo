@@ -385,14 +385,35 @@ describe("Subgraph Tests", () => {
                     providerOrSigner: provider,
                 });
                 const senderSigner = await ethers.getSigner(userAddresses[0]);
+                const transferAmount = toBN(balanceOfSender.availableBalance)
+                    .sub(toBN(randomFlowRate * 100))
+                    .toString();
+
                 await daix
                     .transfer({
                         receiver: userAddresses[2],
-                        amount: toBN(balanceOfSender.availableBalance)
-                            .sub(toBN(randomFlowRate * 100))
-                            .toString(),
+                        amount: transferAmount,
                     })
                     .exec(senderSigner);
+                // update transfer amount
+                const senderATS =
+                    accountTokenSnapshots[
+                        userAddresses[0].toLowerCase() + "-" + daix.address
+                    ];
+                if (senderATS) {
+                    const updatedTransferAmount = toBN(
+                        senderATS.totalAmountTransferredUntilUpdatedAt
+                    ).add(toBN(transferAmount));
+                    accountTokenSnapshots[
+                        userAddresses[0].toLowerCase() +
+                            "-" +
+                            daix.address.toLowerCase()
+                    ] = {
+                        ...senderATS,
+                        totalAmountTransferredUntilUpdatedAt:
+                            updatedTransferAmount.toString(),
+                    };
+                }
 
                 // wait for flow to get drained
                 // cannot use time traveler due to

@@ -27,28 +27,29 @@
         "watch:build": "tsc -p tsconfig.json -w",
         "doc": "run-s doc:html",
         "doc:html": "typedoc src/ --out dist/docs",
-        "doc:json": "typedoc src/ --json dist/docs/typedoc.json"
+        "doc:json": "typedoc src/ --json dist/docs/typedoc.json",
+        "check-updates": "ncu --target minor --dep prod,dev"
     },
     "engines": {
         "node": ">=12"
     },
     "dependencies": {
-        "ethers": "^5.5.1",
-        "lodash": "^4.17.21",
-        "graphql-request": "^3.7.0"
+        "ethers": "^5.5.4",
+        "graphql-request": "^3.7.0",
+        "lodash": "^4.17.21"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.6.0",
-        "@typescript-eslint/parser": "^5.6.0",
-        "eslint": "^8.4.0",
+        "@typescript-eslint/eslint-plugin": "^5.10.2",
+        "@typescript-eslint/parser": "^5.10.2",
+        "eslint": "^8.8.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-eslint-comments": "^3.2.0",
-        "eslint-plugin-import": "^2.25.3",
+        "eslint-plugin-import": "^2.25.4",
         "npm-run-all": "^4.1.5",
         "prettier": "^2.5.1",
         "ts-node": "^10.4.0",
-        "typedoc": "^0.22.10",
-        "typescript": "^4.5.2"
+        "typedoc": "^0.22.11",
+        "typescript": "^4.5.5"
     },
     "peerDependencies": {
         "@reduxjs/toolkit": "^1.6.0 || ^1.7.0",

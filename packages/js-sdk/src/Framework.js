@@ -105,7 +105,6 @@ module.exports = class Framework {
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,
             networkId: this.networkId,
-            chainId: this.chainId,
         });
 
         const resolverAddress =

@@ -1,4 +1,4 @@
-import hardhat, { ethers } from "hardhat";
+import { ethers } from "hardhat";
 import BN from "bn.js"; 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
@@ -29,6 +29,9 @@ import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let framework: Framework;
+    // TODO: Refactor by using the framework to get the tokens and contracts
+    // no need to initialize w/ localAddresses for example
+    // best to utilize framework fully
     let dai: TestToken;
     let daix: SuperToken;
     let cfaV1: ConstantFlowAgreementV1;
@@ -366,14 +369,13 @@ describe("Subgraph Tests", () => {
 
         it("Should liquidate a stream", async () => {
             try {
-                let balanceOf;
-                const randomFlowRate = 5000;
+                const flowRate = 5000;
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
                     await testFlowUpdated({
                         ...getBaseCFAData(provider, daix.address),
                         actionType: FlowActionType.Update,
-                        newFlowRate: randomFlowRate,
+                        newFlowRate: flowRate,
                         sender: userAddresses[0],
                         receiver: userAddresses[1],
                     })
@@ -384,22 +386,29 @@ describe("Subgraph Tests", () => {
                     account: userAddresses[0],
                     providerOrSigner: provider,
                 });
+                const formattedFlowRate = monthlyToSecondRate(5000);
                 const senderSigner = await ethers.getSigner(userAddresses[0]);
                 const transferAmount = toBN(balanceOfSender.availableBalance)
-                    .sub(toBN(randomFlowRate * 100))
+                    // transfer total - 5 seconds of flow
+                    .sub(toBN((formattedFlowRate * 5).toString()))
                     .toString();
 
-                await daix
+                const response = await daix
                     .transfer({
                         receiver: userAddresses[2],
                         amount: transferAmount,
                     })
                     .exec(senderSigner);
+                await response.wait();
+                const block = await provider.getBlock(response.blockNumber!);
                 // update transfer amount
                 const senderATS =
                     accountTokenSnapshots[
-                        userAddresses[0].toLowerCase() + "-" + daix.address
+                        userAddresses[0].toLowerCase() +
+                            "-" +
+                            daix.address.toLowerCase()
                     ];
+
                 if (senderATS) {
                     const updatedTransferAmount = toBN(
                         senderATS.totalAmountTransferredUntilUpdatedAt
@@ -414,16 +423,40 @@ describe("Subgraph Tests", () => {
                             updatedTransferAmount.toString(),
                     };
                 }
+                const tokenStats = tokenStatistics[daix.address.toLowerCase()];
 
+                if (tokenStats) {
+                    const timeDelta = toBN(block.timestamp.toString()).sub(
+                        toBN(tokenStats.updatedAtTimestamp)
+                    );
+                    // TODO: This seems a little strange, I don't see why we need to
+                    // add the streamedAmountDiff into the amountStreamed total
+                    // investigate this further when we refactor these tests
+                    const amountStreamed = toBN(
+                        tokenStats.totalAmountStreamedUntilUpdatedAt
+                    ).add(toBN(tokenStats.totalOutflowRate).mul(timeDelta));
+                    const streamedAmountDiff = amountStreamed.sub(
+                        toBN(tokenStats.totalAmountStreamedUntilUpdatedAt)
+                    );
+                    tokenStatistics[daix.address.toLowerCase()] = {
+                        ...tokenStats,
+                        updatedAtBlockNumber: response.blockNumber!.toString(),
+                        updatedAtTimestamp: block.timestamp.toString(),
+                        totalAmountStreamedUntilUpdatedAt: amountStreamed
+                            .add(streamedAmountDiff)
+                            .toString(),
+                    };
+                }
                 // wait for flow to get drained
                 // cannot use time traveler due to
                 // subgraph constraints
+                let balanceOf;
                 do {
                     balanceOf = await daix.realtimeBalanceOf({
                         account: userAddresses[0],
                         providerOrSigner: provider,
                     });
-                    await asleep(1500);
+                    await asleep(1000);
                 } while (Number(balanceOf.availableBalance) >= 0);
 
                 updateGlobalObjectsForFlowUpdated(

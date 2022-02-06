@@ -103,7 +103,6 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         await modifyFlowAndReturnCreatedFlowData(
             provider,
             framework,
-            cfaV1,
             actionType,
             superToken.address,
             sender,

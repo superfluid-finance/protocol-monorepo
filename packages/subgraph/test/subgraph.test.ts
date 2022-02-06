@@ -25,6 +25,7 @@ import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
 import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
@@ -83,6 +84,68 @@ describe("Subgraph Tests", () => {
         if (data.updatedSubscriberATS) {
             accountTokenSnapshots[data.updatedSubscriberATS.id] =
                 data.updatedSubscriberATS;
+        }
+    }
+
+    async function transferAndUpdate(
+        amount: string,
+        sender: SignerWithAddress,
+        receiver: string
+    ) {
+        let response = await daix
+            .transfer({
+                receiver,
+                amount,
+            })
+            .exec(sender);
+        await response.wait();
+
+        if (!response.blockNumber) {
+            throw new Error("No block number.");
+        }
+
+        let block = await provider.getBlock(response.blockNumber);
+        // update transfer amount
+        const senderATS =
+            accountTokenSnapshots[
+                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
+            ];
+
+        if (senderATS) {
+            const updatedTransferAmount = toBN(
+                senderATS.totalAmountTransferredUntilUpdatedAt
+            ).add(toBN(amount));
+            accountTokenSnapshots[
+                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
+            ] = {
+                ...senderATS,
+                totalAmountTransferredUntilUpdatedAt:
+                    updatedTransferAmount.toString(),
+            };
+        }
+        const tokenStats = tokenStatistics[daix.address.toLowerCase()];
+
+        if (tokenStats) {
+            const timeDelta = toBN(block.timestamp.toString()).sub(
+                toBN(tokenStats.updatedAtTimestamp)
+            );
+            // TODO: This seems a little strange, I don't see why we need to
+            // add the streamedAmountDiff into the amountStreamed total
+            // investigate this further when we refactor these tests
+            const amountStreamed = toBN(
+                tokenStats.totalAmountStreamedUntilUpdatedAt
+            ).add(toBN(tokenStats.totalOutflowRate).mul(timeDelta));
+            const streamedAmountDiff = amountStreamed.sub(
+                toBN(tokenStats.totalAmountStreamedUntilUpdatedAt)
+            );
+            tokenStatistics[daix.address.toLowerCase()] = {
+                ...tokenStats,
+                updatedAtBlockNumber: response.blockNumber!.toString(),
+                updatedAtTimestamp: block.timestamp.toString(),
+                totalAmountStreamedUntilUpdatedAt: amountStreamed
+                    .add(streamedAmountDiff)
+                    .toString(),
+            };
         }
     }
 
@@ -394,60 +457,11 @@ describe("Subgraph Tests", () => {
                     .sub(toBN((formattedFlowRate * 5).toString()))
                     .toString();
 
-                const response = await daix
-                    .transfer({
-                        receiver: userAddresses[2],
-                        amount: transferAmount,
-                    })
-                    .exec(senderSigner);
-                await response.wait();
-                const block = await provider.getBlock(response.blockNumber!);
-                // update transfer amount
-                const senderATS =
-                    accountTokenSnapshots[
-                        userAddresses[0].toLowerCase() +
-                            "-" +
-                            daix.address.toLowerCase()
-                    ];
-
-                if (senderATS) {
-                    const updatedTransferAmount = toBN(
-                        senderATS.totalAmountTransferredUntilUpdatedAt
-                    ).add(toBN(transferAmount));
-                    accountTokenSnapshots[
-                        userAddresses[0].toLowerCase() +
-                            "-" +
-                            daix.address.toLowerCase()
-                    ] = {
-                        ...senderATS,
-                        totalAmountTransferredUntilUpdatedAt:
-                            updatedTransferAmount.toString(),
-                    };
-                }
-                const tokenStats = tokenStatistics[daix.address.toLowerCase()];
-
-                if (tokenStats) {
-                    const timeDelta = toBN(block.timestamp.toString()).sub(
-                        toBN(tokenStats.updatedAtTimestamp)
-                    );
-                    // TODO: This seems a little strange, I don't see why we need to
-                    // add the streamedAmountDiff into the amountStreamed total
-                    // investigate this further when we refactor these tests
-                    const amountStreamed = toBN(
-                        tokenStats.totalAmountStreamedUntilUpdatedAt
-                    ).add(toBN(tokenStats.totalOutflowRate).mul(timeDelta));
-                    const streamedAmountDiff = amountStreamed.sub(
-                        toBN(tokenStats.totalAmountStreamedUntilUpdatedAt)
-                    );
-                    tokenStatistics[daix.address.toLowerCase()] = {
-                        ...tokenStats,
-                        updatedAtBlockNumber: response.blockNumber!.toString(),
-                        updatedAtTimestamp: block.timestamp.toString(),
-                        totalAmountStreamedUntilUpdatedAt: amountStreamed
-                            .add(streamedAmountDiff)
-                            .toString(),
-                    };
-                }
+                await transferAndUpdate(
+                    transferAmount,
+                    senderSigner,
+                    userAddresses[2]
+                );
                 // wait for flow to get drained
                 // cannot use time traveler due to
                 // subgraph constraints
@@ -471,12 +485,11 @@ describe("Subgraph Tests", () => {
                 );
 
                 // transfer balance back to sender
-                await daix
-                    .transfer({
-                        receiver: userAddresses[0],
-                        amount: transferAmount,
-                    })
-                    .exec(receiverSigner);
+                await transferAndUpdate(
+                    transferAmount,
+                    receiverSigner,
+                    userAddresses[0]
+                );
             } catch (err) {
                 console.error(err);
             }

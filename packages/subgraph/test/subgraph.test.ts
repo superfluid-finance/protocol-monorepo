@@ -388,6 +388,7 @@ describe("Subgraph Tests", () => {
                 });
                 const formattedFlowRate = monthlyToSecondRate(5000);
                 const senderSigner = await ethers.getSigner(userAddresses[0]);
+                const receiverSigner = await ethers.getSigner(userAddresses[2]);
                 const transferAmount = toBN(balanceOfSender.availableBalance)
                     // transfer total - 5 seconds of flow
                     .sub(toBN((formattedFlowRate * 5).toString()))
@@ -468,6 +469,14 @@ describe("Subgraph Tests", () => {
                         receiver: userAddresses[1],
                     })
                 );
+
+                // transfer balance back to sender
+                await daix
+                    .transfer({
+                        receiver: userAddresses[0],
+                        amount: transferAmount,
+                    })
+                    .exec(receiverSigner);
             } catch (err) {
                 console.error(err);
             }

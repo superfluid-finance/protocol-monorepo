@@ -39,20 +39,20 @@ export const handleSubgraphQueryWithFramework = async ({chainId, handle}: Subgra
     try {
         const framework = await getFramework(chainId);
         return {data: await handle(framework)};
-    } catch (sfError) {
-        if (sfError instanceof SFError) {
+    } catch (error) {
+        if (error instanceof SFError) {
             const serializedSFError: SerializedSFError = {
-                message: sfError.message,
-                type: sfError.type,
+                message: error.message,
+                type: error.type,
             };
-            if (sfError.errorObject) {
-                serializedSFError.errorObject = miniSerializeError(sfError.errorObject);
+            if (error.errorObject) {
+                serializedSFError.errorObject = miniSerializeError(error.errorObject);
             }
             return {
                 error: serializedSFError,
             };
         } else {
-            throw sfError;
+            throw error;
         }
     }
 };

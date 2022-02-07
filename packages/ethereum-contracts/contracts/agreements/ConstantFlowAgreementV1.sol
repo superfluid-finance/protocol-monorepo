@@ -95,17 +95,11 @@ contract ConstantFlowAgreementV1 is
         return int96(flowrate1);
     }
 
-    enum LiquidationPeriod {
-        Patrician,
-        Pleb,
-        Pirate
-    }
-
     function getLiquidationPeriod(
         ISuperfluidToken token, 
         address sender)
-        public view 
-        returns(LiquidationPeriod) 
+        public view override
+        returns (LiquidationPeriod) 
     {
         (,FlowData memory senderAccountState) = _getAccountFlowState(token, sender);
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();

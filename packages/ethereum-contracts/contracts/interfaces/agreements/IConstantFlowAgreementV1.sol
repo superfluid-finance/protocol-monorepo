@@ -28,6 +28,23 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (int96 flowRate);
 
     /**
+     * @dev Gets the liquidation period based on the 3Ps rules
+     * and the liquidationPeriod and patricianPeriod set in the
+     * governance configs.
+     */
+     function getLiquidationPeriod(
+         ISuperfluidToken token,
+         address sender)
+         public view virtual
+         returns (LiquidationPeriod liquidationPeriod);
+
+    enum LiquidationPeriod {
+        Patrician,
+        Pleb,
+        Pirate
+    }
+
+    /**
      * @dev Get the deposit required for creating the flow
      * @param flowRate Flow rate to be tested
      * 

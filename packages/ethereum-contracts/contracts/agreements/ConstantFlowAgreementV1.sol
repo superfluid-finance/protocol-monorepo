@@ -138,10 +138,13 @@ contract ConstantFlowAgreementV1 is
         (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
         (,FlowData memory senderAccountState) = _getAccountFlowState(token, account);
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
-        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
-        int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
-        // divisor cannot be zero with existing outflow
-        return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+
+        return _isPatricianPeriod(
+            availableBalance, 
+            signedTotalCFADeposit, 
+            liquidationPeriod, 
+            patricianPeriod
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.createFlow implementation
@@ -816,10 +819,12 @@ contract ConstantFlowAgreementV1 is
         // Note: curly brackets are to handle stack too deep overflow issue
         {
             (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
-            int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
-            // divisor cannot be zero with existing outflow
-            isCurrentlyPatricianPeriod =
-                totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+            isCurrentlyPatricianPeriod = _isPatricianPeriod(
+                availableBalance,
+                signedTotalCFADeposit,
+                liquidationPeriod,
+                patricianPeriod
+            );
         }
 
         // user is in a critical state
@@ -968,5 +973,20 @@ contract ConstantFlowAgreementV1 is
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAV1_3PS_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
+    }
+
+    function _isPatricianPeriod(
+        int256 availableBalance,
+        int256 signedTotalCFADeposit,
+        uint256 liquidationPeriod,
+        uint256 patricianPeriod
+    ) 
+        internal pure 
+        returns (bool) 
+    {
+        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
+        int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
+        // divisor cannot be zero with existing outflow
+        return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
     }
 }

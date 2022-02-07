@@ -35,11 +35,9 @@ if [ "$TRUFFLE_NETWORK" == "arbitrum-rinkeby" ];then
     exit 0
 fi
 
-echo LOADER
-npx truffle --network $TRUFFLE_NETWORK run verify SuperfluidLoader@${SUPERFLUID_LOADER}
-
 echo SUPERFLUID_HOST
 npx truffle --network $TRUFFLE_NETWORK run verify Superfluid@${SUPERFLUID_HOST_PROXY}
+
 
 echo SUPERFLUID_GOVERNANCE
 if [ ! -z "$IS_TESTNET" ];then
@@ -83,21 +81,7 @@ jq -s '.[0] * .[1]' \
 }
 EOF
     ) > build/contracts/InstantDistributionAgreementV1.json
-npx truffle --network $TRUFFLE_NETWORK run verify InstantDistributionAgreementV1@${IDA_PROXY}
+npx truffle --network $TRUFFLE_NETWORK run verify InstantDistributionAgreementV1@${IDA_LOGIC}
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
-
-if [ ! -z "${IS_TESTNET}" ];then
-    echo fDAIx
-    npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FDAIX}
-
-    echo fUSDCx
-    npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FUSDCX}
-
-    echo fTUSDx
-    npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FTUSDX}
-
-    echo ETHx
-    npx truffle --network $TRUFFLE_NETWORK run verify SETHProxy@${SUPER_TOKEN_NATIVE_COIN}
-fi
 
 set +x

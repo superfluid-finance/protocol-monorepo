@@ -28,23 +28,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (int96 flowRate);
 
     /**
-     * @dev Gets the liquidation period based on the 3Ps rules
-     * and the liquidationPeriod and patricianPeriod set in the
-     * governance configs.
-     */
-     function getLiquidationPeriod(
-         ISuperfluidToken token,
-         address sender)
-         public view virtual
-         returns (LiquidationPeriod liquidationPeriod);
-
-    enum LiquidationPeriod {
-        Patrician,
-        Pleb,
-        Pirate
-    }
-
-    /**
      * @dev Get the deposit required for creating the flow
      * @param flowRate Flow rate to be tested
      * 
@@ -58,6 +41,27 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         int96 flowRate)
         external view virtual
         returns (uint256 deposit);
+
+    /**
+     * @dev Returns whether it is the patrician period based on
+     * the current timestamp (block.timestamp).
+     */
+    function isPatricianPeriodNow(
+        ISuperfluidToken token, 
+        address account)
+        public view virtual
+        returns (bool isPatricianPeriod, uint256 timestamp);
+
+    /**
+     * @dev Returns whether it is the patrician period based on
+     * the inputted timestamp.
+     */
+    function isPatricianPeriod(
+        ISuperfluidToken token, 
+        address account,
+        uint256 timestamp)
+        public view virtual
+        returns (bool isPatricianPeriod);
 
     /**
      * @dev Create a flow betwen sender and receiver.

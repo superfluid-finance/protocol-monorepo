@@ -21702,17 +21702,10 @@ truffle-flattener@^1.5.0:
     mkdirp "^1.0.4"
     tsort "0.0.1"
 
-<<<<<<< HEAD
-truffle-plugin-verify@^0.5.20:
-  version "0.5.20"
-  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.5.20.tgz#3e8e7059bac716319575e584469c1304f21e0ff5"
-  integrity sha512-s6zG7QbVK5tWPAhRz1oKi/M8SXdRgcWR4PRuHM/BB0qZBcE/82WmnqyC2D/qfqEY+BCgUUWXfc/hyzsgH4dyNw==
-=======
 truffle-plugin-verify@^0.5.21:
   version "0.5.21"
   resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.5.21.tgz#cab1ea49f8287c471c4ef14d34600db903896767"
   integrity sha512-5NxJE/zgep3tWgrjrERhXPPqjB2vXekP6ovGx1AdqdZil7M7CoSWXDum/9cnHAajNJ3uYKsZugM5OoSp8o9cMg==
->>>>>>> dev
   dependencies:
     axios "^0.21.1"
     cli-logger "^0.5.40"

@@ -76,3 +76,4 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
+          OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}

@@ -331,15 +331,15 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
    ) external;
 
    /**
-    * @dev Give `recipient`, `amount` allowance to spend the tokens of
-    * `spender`.
+    * @dev Give `spender`, `amount` allowance to spend the tokens of
+    * `account`.
     *
     * Modifiers:
     *  - onlySelf
     */
    function selfApproveFor(
+        address account,
         address spender,
-        address recipient,
         uint256 amount
    ) external;
 

@@ -105,6 +105,38 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 		bool isKeySet,
         uint256 value);
 
+    function setConfig(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        bytes32 key,
+        address value
+    ) 
+        external override
+    {
+        _setConfig(host, superToken, key, value);
+    }
+
+    function setConfig(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        bytes32 key,
+        uint256 value
+    ) 
+        external override
+    {
+        _setConfig(host, superToken, key, value);
+    }
+
+    function clearConfig(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        bytes32 key
+    ) 
+        external override
+    {
+        _clearConfig(host, superToken, key);
+    }
+
     function _setConfig(
         ISuperfluid host,
         ISuperfluidToken superToken,

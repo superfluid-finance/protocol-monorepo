@@ -355,6 +355,7 @@ const E = (module.exports = {
         snowtrace: process.env.SNOWTRACE_API_KEY,
         optimistic_etherscan: process.env.OPTIMISTIC_API_KEY,
         bscscan: process.env.BSCSCAN_API_KEY,
+        arbiscan: process.env.ARBISCAN_API_KEY,
     },
 });
 

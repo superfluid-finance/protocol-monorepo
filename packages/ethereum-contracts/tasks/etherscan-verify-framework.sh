@@ -35,8 +35,6 @@ if [ "$TRUFFLE_NETWORK" == "arbitrum-rinkeby" ];then
     exit 0
 fi
 
-echo UUPSProxy
-npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPERFLUID_HOST_PROXY}
 
 echo SUPERFLUID_HOST
 npx truffle --network $TRUFFLE_NETWORK run verify Superfluid@${SUPERFLUID_HOST_LOGIC}
@@ -50,7 +48,6 @@ else
 fi
 
 echo SUPERFLUID_SUPER_TOKEN_FACTORY
-npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC}
 
 echo SUPERFLUID_SUPER_TOKEN_LOGIC
@@ -63,14 +60,12 @@ else
 fi
 
 echo CFA
-npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${CFA_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run verify ConstantFlowAgreementV1@${CFA_LOGIC}
 
 echo SlotsBitmapLibrary
 npx truffle --network $TRUFFLE_NETWORK run verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
 
 echo IDA
-npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${IDA_PROXY}
 # HACK: do library link ourselves
 cp -f build/contracts/InstantDistributionAgreementV1.json build/contracts/InstantDistributionAgreementV1.json.bak
 jq -s '.[0] * .[1]' \
@@ -89,19 +84,5 @@ EOF
     ) > build/contracts/InstantDistributionAgreementV1.json
 npx truffle --network $TRUFFLE_NETWORK run verify InstantDistributionAgreementV1@${IDA_LOGIC}
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
-
-if [ ! -z "${IS_TESTNET}" ];then
-    echo fDAIx
-    npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FDAIX}
-
-    echo fUSDCx
-    npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FUSDCX}
-
-    echo fTUSDx
-    npx truffle --network $TRUFFLE_NETWORK run verify UUPSProxy@${SUPER_TOKEN_FTUSDX}
-
-    echo ETHx
-    npx truffle --network $TRUFFLE_NETWORK run verify SETHProxy@${SUPER_TOKEN_NATIVE_COIN}
-fi
 
 set +x

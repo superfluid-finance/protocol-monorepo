@@ -420,14 +420,21 @@ abstract contract SuperfluidToken is ISuperfluidToken
         int256 targetAccountBalanceDelta
     ) external override onlyAgreement {
         address rewardAccount;
+        address defaultRewardAccount;
+
+        {
+            ISuperfluidGovernance gov = _host.getGovernance();
+            defaultRewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+            rewardAccount = defaultRewardAccount;
+        }
+
+        // we set the rewardAccount to the user who executed the liquidation if
+        // no rewardAccount is set (ANARCHY MODE - should not occur in reality, for testing purposes)
+        if (defaultRewardAccount == address(0)) {
+            rewardAccount = liquidatorAccount;
+        }
 
         if (useDefaultRewardAccount) {
-            rewardAccount = _host.getGovernance()
-                .getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-            // fallback not supposed to happen in prod - just for testing purposes
-            if (rewardAccount == address(0)) {
-                rewardAccount = liquidatorAccount;
-            }
             _balances[rewardAccount] = _balances[rewardAccount]
                 .add(rewardAmount.toInt256());
         } else {

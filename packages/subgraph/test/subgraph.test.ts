@@ -1,5 +1,4 @@
 import { ethers } from "hardhat";
-import BN from "bn.js"; 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
 import { beforeSetup, getRandomFlowRate } from "./helpers/helpers";

@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { BaseProvider } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
-import { Framework, ConstantFlowAgreementV1 } from "@superfluid-finance/sdk-core";
+import { Framework } from "@superfluid-finance/sdk-core";
 import { IMeta, IIndexSubscription } from "../interfaces";
 import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";

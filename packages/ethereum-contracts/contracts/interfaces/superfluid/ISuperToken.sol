@@ -324,8 +324,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlySelf
     */
    function selfTransferFrom(
-        address spender,
         address holder,
+        address spender,
         address recipient,
         uint256 amount
    ) external;

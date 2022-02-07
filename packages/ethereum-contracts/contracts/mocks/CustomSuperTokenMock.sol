@@ -19,8 +19,8 @@ abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
     ) external virtual;
 
     function callSelfTransferFrom(
-        address spender,
         address holder,
+        address spender,
         address recipient,
         uint256 amount
     ) external virtual;
@@ -79,12 +79,12 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
     
     // this function self calls transferFrom
     function callSelfTransferFrom(
-        address spender,
         address holder,
+        address spender,
         address recipient,
         uint256 amount
     ) external override {
-        ISuperToken(address(this)).selfTransferFrom(spender, holder, recipient, amount);
+        ISuperToken(address(this)).selfTransferFrom(holder, spender, recipient, amount);
     }
 
     // this function self calls approveFor

@@ -514,8 +514,8 @@ contract SuperToken is
     }
 
     function selfTransferFrom(
-        address spender,
         address holder,
+        address spender,
         address recipient,
         uint256 amount
     ) 

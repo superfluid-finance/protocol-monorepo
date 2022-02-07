@@ -667,13 +667,13 @@ describe("SuperToken's Non Standard Functions", function () {
 
             // specified spender is different than holder without allowance reverts
             await expectRevert(
-                customToken.callSelfTransferFrom(bob, alice, bob, 100),
+                customToken.callSelfTransferFrom(alice, bob, bob, 100),
                 "SuperToken: transfer amount exceeds allowance"
             );
 
             // holder must have enough balance
             await expectRevert(
-                customToken.callSelfTransferFrom(alice, bob, alice, 100),
+                customToken.callSelfTransferFrom(bob, alice, alice, 100),
                 "SuperfluidToken: move amount exceeds balance."
             );
 
@@ -690,7 +690,7 @@ describe("SuperToken's Non Standard Functions", function () {
 
             // recipient cannot be zero address
             await expectRevert(
-                customToken.callSelfTransferFrom(bob, alice, ZERO_ADDRESS, 100),
+                customToken.callSelfTransferFrom(alice, bob, ZERO_ADDRESS, 100),
                 "SuperToken: transfer to zero address"
             );
 
@@ -704,7 +704,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await web3tx(
                 customToken.callSelfTransferFrom,
                 "customToken.callSelfTransferFrom Alice -> Bob"
-            )(bob, alice, bob, 100, {from: bob});
+            )(alice, bob, bob, 100, {from: bob});
             assert.equal((await customToken.balanceOf(bob)).toString(), "100");
             assert.equal((await customToken.balanceOf(alice)).toString(), "0");
 
@@ -765,7 +765,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await web3tx(
                 customToken.callSelfTransferFrom,
                 "customToken.callSelfTransferFrom Alice transfers (100) -> Bob"
-            )(bob, alice, bob, 100);
+            )(alice, bob, bob, 100);
 
             // should be able to call selfApprove and make a regular transferFrom
             await web3tx(

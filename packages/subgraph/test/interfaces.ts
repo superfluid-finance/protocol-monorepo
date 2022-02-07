@@ -3,11 +3,8 @@
  *************************************************************************/
 import { BaseProvider } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
-import BN from "bn.js";
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
-import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
-import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 
 /**
  * Event Entities
@@ -359,13 +356,6 @@ export interface IDistributionLocalData extends IAggregateLocalData {
     readonly subscriptions: { [id: string]: IIndexSubscription | undefined };
 }
 
-export interface IContracts {
-    readonly framework: Framework;
-    readonly cfaV1: ConstantFlowAgreementV1;
-    readonly idaV1: InstantDistributionAgreementV1;
-    readonly superToken: SuperToken;
-}
-
 export interface IFlowUpdatedInitTestData
     extends IStreamLocalData,
         IBaseTestData {
@@ -401,7 +391,8 @@ export interface IFlowUpdatedUpdateTestData {
 }
 
 export interface ITestModifyFlowData {
-    readonly contracts: IContracts;
+    readonly framework: Framework;
+    readonly superToken: SuperToken;
     readonly localData: IStreamLocalData;
     readonly provider: BaseProvider;
     readonly actionType: FlowActionType;
@@ -414,17 +405,18 @@ export interface ITestModifyFlowData {
 }
 
 export interface ITestModifyIDAData {
-    readonly contracts: IContracts;
+    readonly framework: Framework;
+    readonly superToken: SuperToken;
     readonly provider: BaseProvider;
     readonly atsArray: IAccountTokenSnapshot[];
     readonly localData: IDistributionLocalData;
     readonly baseParams: ISubscriberDistributionTesterParams;
     readonly eventType: IDAEventType;
-    readonly units?: BN;
+    readonly units?: BigNumber;
     readonly isRevoke?: boolean;
     readonly sender?: string;
     readonly isDistribute?: boolean;
-    readonly amountOrIndexValue?: BN;
+    readonly amountOrIndexValue?: BigNumber;
 }
 
 export interface IEventQueryData {
@@ -433,7 +425,7 @@ export interface IEventQueryData {
 }
 
 export interface IExtraEventData {
-    readonly units?: BN;
+    readonly units?: BigNumber;
     readonly oldIndexValue?: string;
     readonly newIndexValue?: BigNumber;
     readonly totalUnitsApproved?: BigNumber;

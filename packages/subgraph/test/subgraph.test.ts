@@ -1,15 +1,10 @@
 import { ethers } from "hardhat";
 import BN from "bn.js"; 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
-import cfaABI from "../abis/IConstantFlowAgreementV1.json";
-import idaABI from "../abis/IInstantDistributionAgreementV1.json";
-import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
-import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 import { TestToken } from "../typechain";
 import { beforeSetup, getRandomFlowRate } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
-    IContracts,
     IDistributionLocalData,
     IIndex,
     IStreamData,
@@ -20,7 +15,6 @@ import {
     ISubscriberDistributionTesterParams,
     IUpdateCFAGlobalObjects,
 } from "./interfaces";
-import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
@@ -31,8 +25,6 @@ describe("Subgraph Tests", () => {
     let framework: Framework;
     let dai: TestToken;
     let daix: SuperToken;
-    let cfaV1: ConstantFlowAgreementV1;
-    let idaV1: InstantDistributionAgreementV1;
     let provider = ethers.getDefaultProvider("http://0.0.0.0:8545");
     let initialTotalSupply: string;
 
@@ -83,15 +75,6 @@ describe("Subgraph Tests", () => {
         }
     }
 
-    function getContracts(): IContracts {
-        return {
-            cfaV1,
-            framework,
-            superToken: daix,
-            idaV1,
-        };
-    }
-
     function getStreamLocalData(): IStreamLocalData {
         return {
             accountTokenSnapshots,
@@ -108,7 +91,7 @@ describe("Subgraph Tests", () => {
      * @returns
      */
     function get18DecimalNumber(num: number) {
-        return num.toString() + "0".repeat(18);
+        return (num * 10 ** 18).toString();
     }
 
     function getDistributionLocalData(): IDistributionLocalData {
@@ -131,7 +114,8 @@ describe("Subgraph Tests", () => {
         provider: BaseProvider
     ) {
         return {
-            contracts: getContracts(),
+            framework,
+            superToken: daix,
             localData: getDistributionLocalData(),
             baseParams,
             provider,
@@ -140,7 +124,8 @@ describe("Subgraph Tests", () => {
     }
     function getBaseCFAData(provider: BaseProvider, tokenAddress: string) {
         return {
-            contracts: getContracts(),
+            framework,
+            superToken: daix,
             localData: getStreamLocalData(),
             atsArray: getAccountTokenSnapshotsArray(),
             provider,
@@ -158,14 +143,6 @@ describe("Subgraph Tests", () => {
         framework = sf;
         dai = fDAI;
         daix = fDAIx;
-        cfaV1 = (await ethers.getContractAt(
-            cfaABI,
-            localAddresses.cfaAddress
-        )) as ConstantFlowAgreementV1;
-        idaV1 = (await ethers.getContractAt(
-            idaABI,
-            localAddresses.idaAddress
-        )) as InstantDistributionAgreementV1;
     });
 
     describe("Token Tests", () => {
@@ -417,7 +394,7 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = new BN(get18DecimalNumber(100));
+                let units = ethers.BigNumber.from(get18DecimalNumber(100));
 
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
@@ -428,7 +405,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(get18DecimalNumber(150));
+                units = ethers.BigNumber.from(get18DecimalNumber(150));
 
                 // update sub units again
                 updateGlobalObjectsForIDAEvents(
@@ -440,7 +417,7 @@ describe("Subgraph Tests", () => {
                 );
 
                 // distribute units to non-approved subscribers
-                const amountOrIndexValue = new BN((20).toString());
+                const amountOrIndexValue = ethers.BigNumber.from((20).toString());
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -477,7 +454,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0).toString()),
+                        units: ethers.BigNumber.from((0).toString()),
                     })
                 );
 
@@ -496,7 +473,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(get18DecimalNumber(100)),
+                        units: ethers.BigNumber.from(get18DecimalNumber(100)),
                     })
                 );
 
@@ -505,7 +482,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0).toString()),
+                        units: ethers.BigNumber.from((0).toString()),
                     })
                 );
             }
@@ -541,7 +518,7 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = new BN(get18DecimalNumber(100));
+                let units = ethers.BigNumber.from(get18DecimalNumber(100));
 
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
@@ -560,7 +537,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN((0).toString());
+                units = ethers.BigNumber.from((0).toString());
 
                 // update approved sub units to 0
                 updateGlobalObjectsForIDAEvents(
@@ -595,7 +572,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(get18DecimalNumber(150)),
+                        units: ethers.BigNumber.from(get18DecimalNumber(150)),
                     })
                 );
 
@@ -622,7 +599,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(get18DecimalNumber(175)),
+                        units: ethers.BigNumber.from(get18DecimalNumber(175)),
                     })
                 );
 
@@ -631,7 +608,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0).toString()),
+                        units: ethers.BigNumber.from((0).toString()),
                     })
                 );
                 // update revoked sub w/o units to 0
@@ -639,7 +616,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0).toString()),
+                        units: ethers.BigNumber.from((0).toString()),
                     })
                 );
             }
@@ -686,7 +663,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(get18DecimalNumber(100)),
+                        units: ethers.BigNumber.from(get18DecimalNumber(100)),
                     })
                 );
 
@@ -695,12 +672,12 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(get18DecimalNumber(150)),
+                        units: ethers.BigNumber.from(get18DecimalNumber(150)),
                     })
                 );
 
                 // distribute units to approved subscribers
-                const amountOrIndexValue = new BN(get18DecimalNumber(100));
+                const amountOrIndexValue = ethers.BigNumber.from(get18DecimalNumber(100));
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(
@@ -728,7 +705,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0).toString()),
+                        units: ethers.BigNumber.from((0).toString()),
                     })
                 );
 
@@ -737,7 +714,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN((0).toString()),
+                        units: ethers.BigNumber.from((0).toString()),
                     })
                 );
 
@@ -754,7 +731,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(get18DecimalNumber(150)),
+                        units: ethers.BigNumber.from(get18DecimalNumber(150)),
                     })
                 );
             }
@@ -794,7 +771,7 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update sub units
-                let units = new BN(get18DecimalNumber(100));
+                let units = ethers.BigNumber.from(get18DecimalNumber(100));
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -803,7 +780,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(get18DecimalNumber(150));
+                units = ethers.BigNumber.from(get18DecimalNumber(150));
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -826,7 +803,7 @@ describe("Subgraph Tests", () => {
                 };
 
                 // update sub units
-                let units = new BN(get18DecimalNumber(100));
+                let units = ethers.BigNumber.from(get18DecimalNumber(100));
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -835,7 +812,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(get18DecimalNumber(150));
+                units = ethers.BigNumber.from(get18DecimalNumber(150));
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -847,7 +824,7 @@ describe("Subgraph Tests", () => {
             }
 
             // distribute units to pending + claimed users
-            const amountOrIndexValue = new BN(get18DecimalNumber(200));
+            const amountOrIndexValue = ethers.BigNumber.from(get18DecimalNumber(200));
             updateGlobalObjectsForIDAEvents(
                 await testModifyIDA({
                     ...getBaseIDAData(

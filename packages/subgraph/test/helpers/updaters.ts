@@ -6,8 +6,6 @@
  * the data to what we expect it to be. The output of these functions
  * are what is used to compare against the data obtained from the graph.
  *************************************************************************/
-
-import BN from "bn.js";
 import { BigNumber } from "@ethersproject/bignumber";
 import { SuperToken } from "@superfluid-finance/sdk-core";
 import {
@@ -758,7 +756,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
 
 export const getExpectedDataForSubscriptionUnitsUpdated = async (
     data: IGetExpectedIDADataParams,
-    units: BN
+    units: BigNumber
 ) => {
     const {
         token,
@@ -791,9 +789,8 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
     };
     const subscriptionWithUnitsExists = currentSubscription.units !== "0";
     let updatedTokenStats = { ...currentTokenStats };
-    const stringUnits = units.toString();
 
-    const unitsDelta = toBN(stringUnits).sub(toBN(currentSubscription.units));
+    const unitsDelta = units.sub(toBN(currentSubscription.units));
     if (currentSubscription.approved) {
         updatedIndex = {
             ...updatedIndex,
@@ -820,7 +817,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         ? -1
         : 0;
 
-    if (toBN(stringUnits).eq(toBN(0))) {
+    if (units.eq(toBN(0))) {
         updatedTokenStats = {
             ...getExpectedTokenStatsForCFAEvent(
                 updatedTokenStats,
@@ -852,7 +849,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
     }
 
     if (
-        toBN(stringUnits).gt(toBN(0)) &&
+        units.gt(toBN(0)) &&
         toBN(currentSubscription.units).eq(toBN(0))
     ) {
         updatedIndex = {
@@ -896,7 +893,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
             .add(balanceDelta)
             .toString(),
         indexValueUntilUpdatedAt: updatedIndex.indexValue,
-        units: stringUnits,
+        units: units.toString(),
     };
 
     updatedPublisherATS = await getExpectedATSForCFAEvent(

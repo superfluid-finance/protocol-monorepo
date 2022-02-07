@@ -11,7 +11,6 @@
  * - validate the event based on the expected data
  * - valiate HOL/aggregate entities based on the expected data
  *************************************************************************/
-import BN from "bn.js";
 import {
     IExpectedFlowUpdateEvent,
     IExtraEventData,
@@ -77,7 +76,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
  */
 export async function testFlowUpdated(data: ITestModifyFlowData) {
     const {
-        contracts,
+        framework,
+        superToken,
         localData,
         provider,
         actionType,
@@ -89,7 +89,6 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     } = data;
 
     // Spread operator the variables
-    const {framework, cfaV1, superToken} = contracts;
     const {
         accountTokenSnapshots,
         periodRevisionIndexes,
@@ -103,7 +102,6 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         await modifyFlowAndReturnCreatedFlowData(
             provider,
             framework,
-            cfaV1,
             actionType,
             superToken.address,
             sender,
@@ -158,8 +156,16 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         )
     );
 
-    const senderNetFlow = await cfaV1.getNetFlow(tokenAddress, sender);
-    const receiverNetFlow = await cfaV1.getNetFlow(tokenAddress, receiver);
+    const senderNetFlow = await framework.cfaV1.getNetFlow({
+        superToken: tokenAddress,
+        account: sender,
+        providerOrSigner: provider,
+    });
+    const receiverNetFlow = await framework.cfaV1.getNetFlow({
+        superToken: tokenAddress,
+        account: receiver,
+        providerOrSigner: provider,
+    });
     // validate FlowUpdatedEvent
     const streamedAmountUntilTimestamp = toBN(
         pastStreamData.streamedUntilUpdatedAt
@@ -182,8 +188,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             token: tokenAddress.toLowerCase(),
             totalAmountStreamedUntilTimestamp:
                 streamedAmountUntilTimestamp.toString(),
-            totalReceiverFlowRate: receiverNetFlow.toString(),
-            totalSenderFlowRate: senderNetFlow.toString(),
+            totalReceiverFlowRate: receiverNetFlow,
+            totalSenderFlowRate: senderNetFlow,
             type: actionType,
         },
         getFlowUpdatedEvents,
@@ -232,7 +238,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
 export async function testModifyIDA(data: ITestModifyIDAData) {
     const {
         baseParams,
-        contracts,
+        framework,
+        superToken,
         eventType,
         localData,
         units,
@@ -243,12 +250,11 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         provider,
         atsArray,
     } = data;
-    let indexTotalUnitsApproved: BigNumber = toBN(0);
-    let indexTotalUnitsPending: BigNumber = toBN(0);
-    let newIndexValue: BigNumber = toBN(0);
-    let totalUnits: BigNumber = toBN(0);
+    let indexTotalUnitsApproved = toBN(0);
+    let indexTotalUnitsPending = toBN(0);
+    let newIndexValue = toBN(0);
+    let totalUnits = toBN(0);
 
-    const {framework, idaV1, superToken} = contracts;
     const {accountTokenSnapshots, indexes, subscriptions, tokenStatistics} =
         localData;
     const {token, publisher, indexId, subscriber} = baseParams;
@@ -293,8 +299,14 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
                 "amountOrIndexValue must be passed for IndexUpdated."
             );
         }
-        [, , indexTotalUnitsApproved, indexTotalUnitsPending] =
-            await idaV1.getIndex(token, publisher, indexId);
+        const index = await framework.idaV1.getIndex({
+            superToken: token,
+            publisher,
+            indexId: indexId.toString(),
+            providerOrSigner: provider,
+        });
+        indexTotalUnitsApproved = toBN(index.totalUnitsApproved);
+        indexTotalUnitsPending = toBN(index.totalUnitsPending);
         totalUnits = toBN(currentIndex.totalUnitsApproved).add(
             toBN(currentIndex.totalUnitsPending)
         );
@@ -340,13 +352,15 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
             indexSubscription.subscriber.id
         );
 
-        const [, , , pendingDistribution] = await idaV1.getSubscription(
-            token,
+        const subscription = await framework.idaV1.getSubscription({
+            superToken: token,
             publisher,
-            Number(indexSubscription.index.indexId),
-            subscriberAddress
-        );
-        expect(pendingDistribution.toString()).to.equal("0");
+            indexId: indexSubscription.index.indexId,
+            subscriber: subscriberAddress,
+            providerOrSigner: provider,
+        });
+
+        expect(subscription.pendingDistribution).to.equal("0");
 
         return {
             updatedIndex: currentIndex,
@@ -418,7 +432,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     } = await getExpectedDataForIDA(eventType, expectedDataParams, extraData);
 
     await validateModifyIDA(
-        idaV1,
+        framework,
         updatedIndex,
         updatedSubscription,
         updatedPublisherATS,
@@ -446,11 +460,11 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     provider: BaseProvider,
     type: IDAEventType,
     baseParams: ISubscriberDistributionTesterParams,
-    units?: BN,
+    units?: BigNumber,
     isRevoke?: boolean,
     sender?: string,
     isDistribute?: boolean,
-    amountOrIndexValue?: BN
+    amountOrIndexValue?: BigNumber
 ) {
     let timestamp: string = "";
     let updatedAtBlockNumber: string = "";

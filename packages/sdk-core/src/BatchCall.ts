@@ -1,15 +1,13 @@
 import { ethers } from "ethers";
 
-import { abi as SuperfluidABI } from "../../sdk-core/src/abi/Superfluid.json";
-
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
-import SFError from "./SFError";
-import { IConfig } from "./interfaces";
+import { SFError } from "./SFError";
+import SuperfluidABI from "./abi/Superfluid.json";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
 interface IBatchCallOptions {
-    config: IConfig;
+    hostAddress: string;
     operations: ReadonlyArray<Operation>;
 }
 
@@ -38,7 +36,7 @@ export default class BatchCall {
 
     constructor(options: IBatchCallOptions) {
         this.options = options;
-        this.host = new Host(options.config.hostAddress);
+        this.host = new Host(options.hostAddress);
     }
 
     /**
@@ -47,7 +45,7 @@ export default class BatchCall {
      * @returns {ethers.utils.Result} call agreement function arguments
      */
     getCallAgreementFunctionArgs = (callData: string): ethers.utils.Result =>
-        getTransactionDescription(SuperfluidABI, callData).args;
+        getTransactionDescription(SuperfluidABI.abi, callData).args;
 
     /**
      * @dev Given an `Operation` object, gets the `OperationStruct` object.
@@ -92,7 +90,7 @@ export default class BatchCall {
             );
 
             return {
-                operationType: operationType!,
+                operationType,
                 target: functionArgs["agreementClass"],
                 data,
             };
@@ -100,7 +98,7 @@ export default class BatchCall {
 
         // Handles other cases which are not call agreeement operation
         return {
-            operationType: operationType!,
+            operationType,
             target: populatedTransaction.to,
             data: removeSigHashFromCallData(populatedTransaction.data),
         };

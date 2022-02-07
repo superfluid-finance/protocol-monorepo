@@ -1,13 +1,13 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useClaimFromIndexSubscriptionMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const ClaimFromIndexSubscription: FC = (): ReactElement => {
     const [claim, { isLoading, error }] =
-        useClaimFromIndexSubscriptionMutation();
+        sfApi.useClaimFromIndexSubscriptionMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");

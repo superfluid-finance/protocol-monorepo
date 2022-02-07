@@ -1,8 +1,8 @@
-import request, { gql } from "graphql-request";
+import request, {gql} from "graphql-request";
 import _ from "lodash";
-import { ethers } from "hardhat";
-import { IMeta } from "../test/interfaces";
-import { chainIdToData } from "./maps";
+import {ethers} from "hardhat";
+import {IMeta} from "../test/interfaces";
+import {chainIdToData} from "./maps";
 import CoinGecko from "coingecko-api";
 /**
  * NOTE: Run this file using `npx hardhat run scripts/getLiquidations.ts`.
@@ -66,7 +66,7 @@ const MIN_DOLLAR_AMOUNT = 5;
 export const subgraphRequest = async <T>(
     query: string,
     subgraphEndpoint: string,
-    variables?: { [key: string]: any }
+    variables?: {[key: string]: any}
 ): Promise<T> => {
     try {
         const response = await request<T>(subgraphEndpoint, query, variables);
@@ -102,7 +102,7 @@ async function getAllResults<T>(
     resultsPerPage: number,
     variables: any
 ): Promise<T[]> {
-    const initialResults = await subgraphRequest<{ response: T[] }>(
+    const initialResults = await subgraphRequest<{response: T[]}>(
         query,
         endpoint,
         variables
@@ -146,7 +146,7 @@ const liquidatedByQuery = gql`
         $block: Int!
     ) {
         response: agreementLiquidatedByEvents(
-            block: { number: $block }
+            block: {number: $block}
             where: {
                 timestamp_lte: $lte_timestamp
                 timestamp_gte: $gte_timestamp
@@ -175,8 +175,8 @@ const liquidatedByQuery = gql`
 const tokensQuery = gql`
     query getTokens($id_in: [ID!], $block: Int!) {
         response: tokens(
-            block: { number: $block }
-            where: { underlyingToken_not: null, id_in: $id_in }
+            block: {number: $block}
+            where: {underlyingToken_not: null, id_in: $id_in}
         ) {
             id
             underlyingToken {
@@ -197,7 +197,7 @@ const liquidatedStreamsQuery = gql`
     ) {
         response: streams(
             first: $first
-            block: { number: $block }
+            block: {number: $block}
             where: {
                 sender_in: $sender_in
                 createdAtTimestamp_gte: $createdAtTimestamp_gte
@@ -291,7 +291,7 @@ const getLiquidatedStreams = async (
 
     // get coingecko's list of tokens
     let coingeckoCoinList: {
-        data: { id: string; symbol: string; name: string }[];
+        data: {id: string; symbol: string; name: string}[];
     } = await CoinGeckoClient.coins.list();
 
     // get liquidated tokens
@@ -311,17 +311,21 @@ const getLiquidatedStreams = async (
     // Get dictionaries for optimizations
     const superTokenSymbolToBoolDict = superTokensResponse.response.reduce(
         (acc, obj) => {
-            return { ...acc, [obj.underlyingToken.symbol.toLowerCase()]: true };
+            return obj.underlyingToken
+                ? {...acc, [obj.underlyingToken.symbol.toLowerCase()]: true}
+                : {...acc};
         },
-        {} as { [symbol: string]: boolean }
+        {} as {[symbol: string]: boolean}
     );
 
     const superTokenSymbolToIdDict = superTokensResponse.response.reduce(
         (acc, obj) => {
-            const { id, underlyingToken } = obj;
-            return { ...acc, [underlyingToken.symbol.toLowerCase()]: id };
+            const {id, underlyingToken} = obj;
+            return underlyingToken
+                ? {...acc, [underlyingToken.symbol.toLowerCase()]: id}
+                : {...acc};
         },
-        {} as { [symbol: string]: string }
+        {} as {[symbol: string]: string}
     );
 
     // filter coingecko coin list to only include liquidated tokens
@@ -336,7 +340,7 @@ const getLiquidatedStreams = async (
     });
 
     // create dict of [superTokenId]: price
-    const tokenPrices: { [superToken: string]: string } = filteredCoinList
+    const tokenPrices: {[superToken: string]: string} = filteredCoinList
         .map((x) => {
             const superToken = superTokenSymbolToIdDict[x.symbol.toLowerCase()];
             return {
@@ -345,8 +349,8 @@ const getLiquidatedStreams = async (
             };
         })
         .reduce((acc, obj) => {
-            let { superToken, price } = obj;
-            return { ...acc, [superToken as unknown as string]: price };
+            let {superToken, price} = obj;
+            return {...acc, [superToken as unknown as string]: price};
         }, {});
 
     // get filtered agreement liquidated by events where the minimum amount is greater than MIN_DOLLAR_AMOUNT (5)
@@ -359,7 +363,7 @@ const getLiquidatedStreams = async (
 
     const filteredPenaltyAccountToTxnHashDict =
         filteredAgreementLiquidatedByEvents.reduce((acc, obj) => {
-            const { transactionHash, penaltyAccount, token } = obj;
+            const {transactionHash, penaltyAccount, token} = obj;
             return {
                 ...acc,
                 [penaltyAccount + "-" + token]: [
@@ -367,7 +371,7 @@ const getLiquidatedStreams = async (
                     transactionHash,
                 ],
             };
-        }, {} as { [penaltyTokenAccount: string]: string[] });
+        }, {} as {[penaltyTokenAccount: string]: string[]});
 
     // get addresses of the liquidated users
     const liquidatedIndividuals = filteredAgreementLiquidatedByEvents.map(

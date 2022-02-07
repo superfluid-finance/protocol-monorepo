@@ -1,0 +1,14 @@
+{
+    "extends": "./tsconfig",
+    "compilerOptions": {
+        "target": "ES2019",
+        "outDir": "dist/module",
+        "module": "esnext",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true
+    },
+    "exclude": [
+        "node_modules/**"
+    ]
+}

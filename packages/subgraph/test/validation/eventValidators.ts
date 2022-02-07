@@ -1,4 +1,4 @@
-import { ContractReceipt } from "@ethersproject/contracts";
+import { TransactionResponse } from "@ethersproject/providers";
 import { expect } from "chai";
 import { fetchEventAndEnsureExistence } from "../helpers/helpers";
 import { IEvent } from "../interfaces";
@@ -9,21 +9,21 @@ export const fetchEventAndValidate = async <
     EventType extends IEvent,
     ExpectedDataType
 >(
-    receipt: ContractReceipt,
+    txnResponse: TransactionResponse,
     expectedData: ExpectedDataType,
     query: string,
     queryName: string
 ) => {
     const event = await fetchEventAndEnsureExistence<EventType>(
         query,
-        receipt.transactionHash,
+        txnResponse.hash,
         queryName
     );
 
     // Note: we parse the name of the query (e.g. FlowUpdatedEvent)
     // and use this to validate that the name property has been set properly.
     const parsedQueryName = queryName.split("Event")[0];
-    validateEventData(event, expectedData, receipt, parsedQueryName);
+    validateEventData(event, expectedData, txnResponse, parsedQueryName);
 
     return event;
 };
@@ -43,22 +43,22 @@ export const validateData = <T>(
 
 export const validateBaseEventData = (
     queriedEvent: IEvent,
-    receipt: ContractReceipt,
+    txnResponse: TransactionResponse,
     queryName: string
 ) => {
-    expect(receipt.transactionHash.toLowerCase()).to.eq(
+    expect(txnResponse.hash.toLowerCase()).to.eq(
         queriedEvent.transactionHash
     );
-    expect(receipt.blockNumber.toString()).to.eq(queriedEvent.blockNumber);
+    expect(txnResponse.blockNumber!.toString()).to.eq(queriedEvent.blockNumber);
     expect(queriedEvent.name).to.eq(queryName);
 };
 
 export const validateEventData = (
     queriedEvent: IEvent,
     expectedData: { [key: string]: any },
-    receipt: ContractReceipt,
+    txnResponse: TransactionResponse,
     queryName: string
 ) => {
-    validateBaseEventData(queriedEvent, receipt, queryName);
+    validateBaseEventData(queriedEvent, txnResponse, queryName);
     validateData(queriedEvent, expectedData);
 };

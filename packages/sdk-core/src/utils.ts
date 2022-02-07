@@ -1,7 +1,9 @@
 import { JsonFragment } from "@ethersproject/abi";
+import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
+import Web3 from "web3";
 
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import {
     BASE_18,
     DAY_IN_SECONDS,
@@ -231,3 +233,21 @@ export const getBalance = ({
         subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
     );
 };
+
+// NOTE: This is the only places we are allowed to use explicit any in the
+// sdk-core otherwise this doesn't work properly.
+export const isEthersProvider = (
+    provider: any
+): provider is ethers.providers.Provider => !!provider.getNetwork;
+
+export const isInjectedWeb3 = (provider: any): provider is Web3 =>
+    !!provider.currentProvider;
+
+export const isInjectedEthers = (
+    provider: any
+): provider is typeof ethers & HardhatEthersHelpers => !!provider.provider;
+
+/**
+ * Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
+ */
+export const typeGuard = <T>(obj: T) => obj;

@@ -2,12 +2,11 @@
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {getSfContext} from '../../createSdkReduxParts';
+import {getApiSlice, getFramework, getSubgraphSlice, getTransactionSlice} from '../../sdkReduxConfig';
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
-import {rtkQuerySlice} from '../rtk-query/rtkQuerySlice';
 
-import {transactionSlice, transactionSlicePrefix} from './transactionSlice';
+import {transactionSlicePrefix} from './createTransactionSlice';
 
 /**
  *
@@ -27,11 +26,7 @@ export const waitForOneConfirmation = (
     provider: ethers.providers.Provider,
     transactionHash: string
 ): Promise<ethers.providers.TransactionReceipt> =>
-    provider.waitForTransaction(
-        transactionHash,
-        1,
-        MillisecondTimes.TenMinutes
-    );
+    provider.waitForTransaction(transactionHash, 1, MillisecondTimes.TenMinutes);
 
 /**
  *
@@ -40,35 +35,29 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
     `${transactionSlicePrefix}/trackTransaction`,
     async (arg, {dispatch}) => {
         dispatch(
-            transactionSlice.actions.upsertTransaction({
+            getTransactionSlice().actions.upsertTransaction({
                 chainId: arg.chainId,
                 hash: arg.hash,
                 status: 'Pending',
             })
         );
 
-        const framework = await getSfContext().getFramework(arg.chainId);
+        const framework = await getFramework(arg.chainId);
 
         waitForOneConfirmation(framework.settings.provider, arg.hash)
-            .then(
-                (_transactionReceipt: ethers.providers.TransactionReceipt) => {
-                    // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
+            .then((_transactionReceipt: ethers.providers.TransactionReceipt) => {
+                // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
-                    dispatch(
-                        transactionSlice.actions.upsertTransaction({
-                            chainId: arg.chainId,
-                            hash: arg.hash,
-                            status: 'Succeeded',
-                        })
-                    );
+                dispatch(
+                    getTransactionSlice().actions.upsertTransaction({
+                        chainId: arg.chainId,
+                        hash: arg.hash,
+                        status: 'Succeeded',
+                    })
+                );
 
-                    monitorForLateErrors(
-                        framework.settings.provider,
-                        arg,
-                        dispatch
-                    );
-                }
-            )
+                monitorForLateErrors(framework.settings.provider, arg, dispatch);
+            })
             .catch((ethersError: EthersError) => {
                 notifyOfError(ethersError, arg, dispatch);
             });
@@ -87,25 +76,19 @@ const monitorForLateErrors = (
         .catch((ethersError: EthersError) => {
             if (ethersError.code != ethers.errors.TIMEOUT) {
                 // Completely reset API cache.
-                dispatch(rtkQuerySlice.util.resetApiState());
+                dispatch(getApiSlice().util.resetApiState());
+                dispatch(getSubgraphSlice().util.resetApiState());
                 notifyOfError(ethersError, {chainId, hash: hash}, dispatch);
             }
         });
 };
 
-const notifyOfError = (
-    ethersError: EthersError,
-    {chainId, hash}: TransactionInfo,
-    dispatch: Dispatch
-) => {
+const notifyOfError = (ethersError: EthersError, {chainId, hash}: TransactionInfo, dispatch: Dispatch) => {
     dispatch(
-        transactionSlice.actions.upsertTransaction({
+        getTransactionSlice().actions.upsertTransaction({
             chainId: chainId,
             hash: hash,
-            status:
-                ethersError.code === ethers.errors.TIMEOUT
-                    ? 'Unknown'
-                    : 'Failed',
+            status: ethersError.code === ethers.errors.TIMEOUT ? 'Unknown' : 'Failed',
             ethersErrorCode: ethersError.code,
             ethersErrorMessage: ethersError.message,
         })

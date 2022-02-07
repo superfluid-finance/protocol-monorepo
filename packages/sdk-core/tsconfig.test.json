@@ -1,0 +1,20 @@
+{
+    "extends": "./tsconfig",
+    "compilerOptions": {
+        "target": "es2018",
+        "module": "commonjs",
+        "declaration": false,
+        "declarationMap": false,
+        "strict": true,
+        "esModuleInterop": true,
+        "outDir": "dist/test",
+        "sourceMap": false
+    },
+    "files": [
+        "hardhat.config.ts"
+    ],
+    "include": [
+        "test",
+        "scripts"
+    ]
+}

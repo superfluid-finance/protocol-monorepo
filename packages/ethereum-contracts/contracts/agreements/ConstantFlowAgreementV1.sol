@@ -29,6 +29,9 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
+    bytes32 private constant _SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
+        keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
+
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
@@ -103,8 +106,10 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+        uint256 minimumDeposit = gov.getConfigAsUint256(host, token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
-        return _calculateDeposit(flowRate, liquidationPeriod);
+        uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
+        return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
     }
 
     /// @dev IConstantFlowAgreementV1.createFlow implementation
@@ -648,15 +653,18 @@ contract ConstantFlowAgreementV1 is
             FlowData memory newFlowData
         )
     {
-        { // ecnlosed block to avoid stack too deep error
-
+        { // enclosed block to avoid stack too deep error
+            uint256 minimumDeposit;
+            uint256 newDeposit;
             // STEP 1: calculate deposit required for the flow
             {
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
                 uint256 liquidationPeriod = gov.getConfigAsUint256(
                     ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+                minimumDeposit = gov.getConfigAsUint256(
+                    ISuperfluid(msg.sender), token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
                 // rounding up the number for app allowance too
-                // CAFEAT:
+                // CAVEAT:
                 // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
                 // - The app may be jailed due to negative balance if it does this without its own balance.
                 // Rule of thumbs:
@@ -665,8 +673,27 @@ contract ConstantFlowAgreementV1 is
                 //   deposit can be covered by the allowance always.
                 // - It is advisable for the app to check the allowance usages carefully, and if possible
                 //   Always have some its own balances to cover the deposits.
+
+                // preliminary calc of new deposit required, may be changed later in step 2.
+                // used as a variable holding the new deposit amount in the meantime
                 appAllowanceBase = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
-                depositDelta = appAllowanceBase.toInt256();
+            }
+
+            // STEP 2: apply minimum deposit rule and calculate deposit delta
+            // preliminary calc depositDelta (minimum deposit rule not yet applied)
+            depositDelta = appAllowanceBase.toInt256()
+                .sub(oldFlowData.deposit.toInt256())
+                .add(oldFlowData.owedDeposit.toInt256());
+
+            // preliminary calc newDeposit (minimum deposit rule not yet applied)
+            newDeposit = oldFlowData.deposit.toInt256().add(depositDelta).toUint256();
+
+            // calc depositDelta and newDeposit with minimum deposit rule applied
+            if (newDeposit < minimumDeposit && flowParams.flowRate > 0) {
+                depositDelta = minimumDeposit.toInt256()
+                    .sub(oldFlowData.deposit.toInt256())
+                    .add(oldFlowData.owedDeposit.toInt256());
+                newDeposit = minimumDeposit;
             }
 
             // allowance should be of the same token
@@ -676,16 +703,11 @@ contract ConstantFlowAgreementV1 is
                 appAllowanceBase = 0;
             }
 
-            // STEP 2: calculate deposit delta
-            depositDelta = depositDelta
-                .sub(oldFlowData.deposit.toInt256())
-                .add(oldFlowData.owedDeposit.toInt256());
-
             // STEP 3: update current flow info
             newFlowData = FlowData(
                 flowParams.flowRate > 0 ? currentTimestamp : 0,
                 flowParams.flowRate,
-                oldFlowData.deposit.toInt256().add(depositDelta).toUint256(),
+                newDeposit,
                 oldFlowData.owedDeposit // leaving it unchanged for later adjustment
             );
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));

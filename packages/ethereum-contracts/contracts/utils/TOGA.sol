@@ -11,6 +11,8 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
 import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
+import { TokenCustodian } from "./TokenCustodian.sol";
+
 /**
  * @title TOGA: Transparent Ongoing Auction
  *
@@ -21,6 +23,12 @@ import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Re
  * Via userData parameter (abi-encoded int96), an exitRate can be defined. If omitted, a default will be chosen.
  * The exitRate is the flowrate at which the bond is streamed back to the PIC.
  * Any rewards accrued by this contract (in general the whole token balance) become part of the bond.
+ * When a PIC is outbid, the current bond is transferred to it with ERC777.send().
+ *
+ * changes in v2:
+ * In case that send() fails (e.g. due to a reverting hook), the bond is transferred to a custodian contract.
+ * Funds accumulated there can be withdrawn from there at any time.
+ * The current PIC can increase its bond by sending more funds using ERC777.send().
  *
  * @author Superfluid
  */
@@ -92,7 +100,21 @@ interface ITOGAv1 {
     event ExitRateChanged(ISuperToken indexed token, int96 exitRate);
 }
 
-contract TOGA is ITOGAv1, IERC777Recipient {
+interface ITOGAv2 is ITOGAv1 {
+    /**
+    * @dev allows previous PICs to withdraw bonds which couldn't be sent back to them
+    * @param token The token for which to withdraw funds in custody
+    */
+    function withdrawFundsInCustody(ISuperToken token) external;
+
+    /**
+     * @dev Emitted if a PIC increases its bond
+     * @param additionalBond The additional amount added to the bond
+     */
+    event BondIncreased(ISuperToken indexed token, uint256 additionalBond);
+}
+
+contract TOGA is ITOGAv2, IERC777Recipient {
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
     struct LockablePIC {
         address addr;
@@ -102,19 +124,28 @@ contract TOGA is ITOGAv1, IERC777Recipient {
     ISuperfluid internal immutable _host;
     IConstantFlowAgreementV1 internal immutable _cfa;
     uint256 public immutable minBondDuration;
-    IERC1820Registry constant internal _ERC1820_REGISTRY =
-        IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+    IERC1820Registry constant internal _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
     // solhint-disable-next-line var-name-mixedcase
     uint64 immutable public ERC777_SEND_GAS_LIMIT = 3000000;
+    // takes custody of bonds which the TOGA fails to send back to an outbid PIC
+    TokenCustodian public custodian;
 
-    constructor(ISuperfluid host_, uint256 minBondDuration_) {
+    constructor(ISuperfluid host_, uint256 minBondDuration_, TokenCustodian custodian_) {
         _host = ISuperfluid(host_);
         minBondDuration = minBondDuration_;
         _cfa = IConstantFlowAgreementV1(
             address(host_.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")))
         );
-        _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("ERC777TokensRecipient"), address(this));
-        _ERC1820_REGISTRY.setInterfaceImplementer(address(this), keccak256("TOGAv1"), address(this));
+        bytes32 erc777TokensRecipientHash = keccak256("ERC777TokensRecipient");
+        _ERC1820_REG.setInterfaceImplementer(address(this), erc777TokensRecipientHash, address(this));
+        _ERC1820_REG.setInterfaceImplementer(address(this), keccak256("TOGAv1"), address(this));
+        _ERC1820_REG.setInterfaceImplementer(address(this), keccak256("TOGAv2"), address(this));
+
+        require(
+            _ERC1820_REG.getInterfaceImplementer(address(custodian_), erc777TokensRecipientHash) == address(custodian_),
+            "TOGA: invalid custodian"
+        );
+        custodian = custodian_;
     }
 
     function getCurrentPIC(ISuperToken token) external view override returns(address pic) {
@@ -198,6 +229,10 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         emit ExitRateChanged(token, newExitRate);
     }
 
+    function withdrawFundsInCustody(ISuperToken token) external override {
+        custodian.flush(token, msg.sender);
+    }
+
     // ============ internal ============
 
     function _getCurrentPICBond(ISuperToken token) internal view returns(uint256 bond) {
@@ -235,13 +270,19 @@ contract TOGA is ITOGAv1, IERC777Recipient {
             );
         }
 
-        // send remaining bond to current PIC
-        // If the current PIC causes the send() to fail (iff contract with failing hook), we're sorry for them.
-        // In this case the new PIC will "inherit" the remainder of their bond.
-        // solhint-disable-next-line check-send-result
-        try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {}
+        // if no PIC was set yet, rewards already accumulated become part of the bond of the first PIC
+        if (currentPICAddr != address(0)) {
+            // send remaining bond to current PIC
+            // solhint-disable-next-line check-send-result
+            try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
+            // solhint-disable-next-line no-empty-blocks
+            {} catch {
+                // if sending failed, move the remaining bond to a custody contract
+                // the current PIC can withdraw it in a separate tx anytime later
+                // solhint-disable-next-line check-send-result, multiple-sends
+                token.send(address(custodian), currentPICBond, abi.encode(currentPICAddr));
+            }
+        }
 
         // set new PIC
         // solhint-disable-next-line reentrancy
@@ -280,10 +321,14 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         // if it's not a SuperToken, something will revert along the way
         ISuperToken token = ISuperToken(msg.sender);
 
-        int96 exitRate = userData.length == 0 ?
-            getDefaultExitRateFor(token, amount) :
-            abi.decode(userData, (int96));
-
-        _becomePIC(token, from, amount, exitRate);
+        if(from != _currentPICs[token].addr) {
+            int96 exitRate = userData.length == 0 ?
+                getDefaultExitRateFor(token, amount) :
+                abi.decode(userData, (int96));
+            _becomePIC(token, from, amount, exitRate);
+        } else {
+            // current PIC increases the bond
+            emit BondIncreased(token, amount);
+        }
     }
 }

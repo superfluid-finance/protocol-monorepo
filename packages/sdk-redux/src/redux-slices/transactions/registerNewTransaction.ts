@@ -1,6 +1,6 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import {getSfContext} from '../../createSdkReduxParts';
+import {getFramework} from '../../sdkReduxConfig';
 
 import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
 
@@ -23,7 +23,7 @@ export const registerNewTransaction = async (
      */
     dispatch: ThunkDispatch<any, any, any>
 ) => {
-    const framework = await getSfContext().getFramework(chainId);
+    const framework = await getFramework(chainId);
 
     dispatch(
         trackTransaction({
@@ -33,9 +33,6 @@ export const registerNewTransaction = async (
     );
 
     if (waitForConfirmation) {
-        await waitForOneConfirmation(
-            framework.settings.provider,
-            transactionHash
-        );
+        await waitForOneConfirmation(framework.settings.provider, transactionHash);
     }
 };

@@ -2,8 +2,8 @@ import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation from "./Operation";
-import SFError from "./SFError";
-import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
+import { SFError } from "./SFError";
+import IConstantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import {
     IAgreementV1Options,
     ICreateFlowParams,
@@ -17,7 +17,9 @@ import {
 import { IConstantFlowAgreementV1 } from "./typechain";
 import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 
-const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
+const cfaInterface = new ethers.utils.Interface(
+    IConstantFlowAgreementV1ABI.abi
+);
 
 /**
  * @dev Constant Flow Agreement V1 Helper Class
@@ -35,7 +37,7 @@ export default class ConstantFlowAgreementV1 {
     private get cfaContract() {
         return new ethers.Contract(
             this.options.config.cfaV1Address,
-            IConstantFlowAgreementV1ABI
+            IConstantFlowAgreementV1ABI.abi
         ) as IConstantFlowAgreementV1;
     }
 
@@ -138,6 +140,7 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = ({
@@ -145,6 +148,7 @@ export default class ConstantFlowAgreementV1 {
         receiver,
         superToken,
         userData,
+        overrides,
     }: ICreateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedReceiver = normalizeAddress(receiver);
@@ -159,7 +163,8 @@ export default class ConstantFlowAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
-            userData
+            userData,
+            overrides
         );
     };
 
@@ -169,6 +174,7 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlow = ({
@@ -176,6 +182,7 @@ export default class ConstantFlowAgreementV1 {
         receiver,
         superToken,
         userData,
+        overrides,
     }: IUpdateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedReceiver = normalizeAddress(receiver);
@@ -190,7 +197,8 @@ export default class ConstantFlowAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
-            userData
+            userData,
+            overrides
         );
     };
 
@@ -200,6 +208,7 @@ export default class ConstantFlowAgreementV1 {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     deleteFlow = ({
@@ -207,6 +216,7 @@ export default class ConstantFlowAgreementV1 {
         sender,
         receiver,
         userData,
+        overrides,
     }: IDeleteFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSender = normalizeAddress(sender);
@@ -222,7 +232,8 @@ export default class ConstantFlowAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
-            userData
+            userData,
+            overrides
         );
     };
 

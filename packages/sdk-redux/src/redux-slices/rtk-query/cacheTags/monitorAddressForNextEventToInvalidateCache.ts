@@ -1,7 +1,7 @@
 import {AnyAction} from '@reduxjs/toolkit';
 import {ThunkDispatch} from '@reduxjs/toolkit';
 
-import {getSfContext} from '../../../createSdkReduxParts';
+import {getFramework} from '../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 
@@ -18,16 +18,10 @@ export const monitorAddressForNextEventToInvalidateCache = async (
     transactionInfo: TransactionInfo,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    const framework = await getSfContext().getFramework(
-        transactionInfo.chainId
-    );
+    const framework = await getFramework(transactionInfo.chainId);
     framework.query.on(
         (events, unsubscribe) => {
-            invalidateCacheTagsForEvents(
-                transactionInfo.chainId,
-                events,
-                dispatch
-            );
+            invalidateCacheTagsForEvents(transactionInfo.chainId, events, dispatch);
             unsubscribe();
         },
         MillisecondTimes.OneSecond,

@@ -4,7 +4,6 @@
     <content url="file://$MODULE_DIR$/examples/continuous-auction">
       <sourceFolder url="file://$MODULE_DIR$/examples/continuous-auction/test" isTestSource="true" />
     </content>
-    <content url="file://$MODULE_DIR$/examples/dev-playground" />
     <content url="file://$MODULE_DIR$/examples/flowlottery">
       <sourceFolder url="file://$MODULE_DIR$/examples/flowlottery/test" isTestSource="true" />
     </content>
@@ -18,20 +17,19 @@
     </content>
     <content url="file://$MODULE_DIR$/packages/ethereum-contracts">
       <sourceFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/test" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/build" />
     </content>
     <content url="file://$MODULE_DIR$/packages/js-sdk">
       <sourceFolder url="file://$MODULE_DIR$/packages/js-sdk/test" isTestSource="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/sdk-core">
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
     </content>
     <content url="file://$MODULE_DIR$/packages/sdk-redux">
       <sourceFolder url="file://$MODULE_DIR$/packages/sdk-redux/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/.nyc_output" />
       <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/build" />
-    </content>
-    <content url="file://$MODULE_DIR$/packages/sdk-core">
-      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
-    </content>
-    <content url="file://$MODULE_DIR$/packages/sdk-core">
-      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/dist" />
     </content>
     <content url="file://$MODULE_DIR$/packages/subgraph">
       <sourceFolder url="file://$MODULE_DIR$/packages/subgraph/test" isTestSource="true" />

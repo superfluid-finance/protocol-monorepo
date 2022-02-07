@@ -23,7 +23,7 @@
 # Introduction
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
-More specifically, SDK-Redux is a wrapper library around `@superfluid-fincance/sdk-core` which adds state management to Superfluid related queries and operations.
+More specifically, SDK-Redux is a wrapper library around `@superfluid-finance/sdk-core` which adds state management to Superfluid related queries and operations.
 Under the hood, SDK-Redux leverages popular Redux libraries Redux Toolkit & RTK Query.
 
 ## Important Disclaimer
@@ -43,6 +43,7 @@ SDK-Redux is in early active development and can have breaking releases without 
 * Ethers
 
 # Requirements
+* SDK-Core
 * Redux store & Redux Toolkit
 * React* (The SDK-Redux generates React Hooks which are recommended but not strictly necessary to use. The SDK-Redux is UI-framework agnostic but we currently have example only for React)
 
@@ -71,59 +72,54 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 
 We need to plug in the Superfluid SDK-Redux parts.
 
-Import this function: `import { createSdkReduxParts } from "@superfluid-finance/sdk-redux";`
-
-Then create the pieces:
+Import the following function:
 ```ts
-const {
-    superfluidContext,
-    apiSlice,
-    transactionSlice,
-} = createSdkReduxParts();
+import {
+    allSubgraphSliceEndpoints,
+    createApiWithReactHooks,
+    initializeSfApiSlice,
+    initializeSfSubgraphSlice,
+    initializeSfTransactionSlice
+} from "@superfluid-finance/sdk-redux";
 ```
 
-Plug in the reducer slices:
+Create the Redux slices:
+```ts
+export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
+export const { sfTransactions } = initializeSfTransactionSlice();
+export const sfSubgraph = initializeSfSubgraphSlice(createApiWithReactHooks).injectEndpoints(allSubgraphSliceEndpoints);
+
+```
+
+Plug in the slices to the Redux store:
 ```ts
 export const store = configureStore({
-  reducer: {
-    //
-    [apiSlice.reducerPath]: apiSlice.reducer,
-    [transactionSlice.reducerPath]: transactionSlice.reducer,
-    //
-  },
+    reducer: {
+        "sfApi": sfApi.reducer,
+        "sfTransactions": sfTransactions.reducer,
+        "sfSubgraph": sfSubgraph.reducer
+    }
 });
 ```
 
 Add the middleware:
 ```ts
 export const store = configureStore({
-  reducer: {
-    [apiSlice.reducerPath]: apiSlice.reducer,
-    [transactionSlice.reducerPath]: transactionSlice.reducer,
-  },
-  //
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware)
-  //
+    reducer: {
+        "sfApi": sfApi.reducer,
+        "sfTransactions": sfTransactions.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(sfApi.middleware).concat(sfSubgraph.middleware),
 });
-```
-
-Export the Superfluid Context:
-```ts
-export { superfluidContext };
 ```
 
 Somewhere in your code, give instructions to the `superfluidContext` to locate `Framework` and `Signer`:
 ```ts
-superfluidContext
-    .setFramework(
-        chainId,
-        superfluidFramework
-    )
-    .setSigner(
-        chainId,
-        ethersWeb3Provider.getSigner()
-    );
+import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
+
+setFrameworkForSdkRedux(chainId, sdkCoreFramework);
+setSignerForSdkRedux(chainId, ethersWeb3Provider.getSigner());
 ```
 
 That should be it! You should now be able to dispatch messages to Superfluid reducers & use the React hooks.
@@ -141,13 +137,20 @@ const {
     isError,
     error,
     refetch,
-} = useListStreamsQuery({
+} = sfSubgraph.useStreamsQuery({
     chainId: queryChainId,
-    senderAddress,
-    receiverAddress,
-    superTokenAddress,
-    skip: (page - 1) * pageSize,
-    take: pageSize,
+    filter: {
+      token: superTokenAddress,
+      sender: senderAddress
+    },
+    pagination: {
+        skip: (page - 1) * pageSize,
+        take: pageSize
+    },
+    ordering: {
+      orderBy: "currentFlowRate",
+      orderDirection: "desc"
+    }
 }, {
     pollingInterval: 5000 // Not necessary to use but nice-to-have additional option by RTK-Query.
 });
@@ -158,7 +161,7 @@ Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/
 
 Example using React Hook:
 ```ts
-const tx = await createFlow({
+const tx = await sfApi.createFlow({
     senderAddress: signerAddress,
     receiverAddress: receiver,
     flowRateWei: flowRate,

@@ -1,12 +1,12 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { useDeleteFlowMutation } from "@superfluid-finance/sdk-redux";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
+import { sfApi } from "../redux/store";
 
 export const DeleteStream: FC = (): ReactElement => {
-    const [deleteFlow, { isLoading, error }] = useDeleteFlowMutation();
+    const [deleteFlow, { isLoading, error }] = sfApi.useDeleteFlowMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 

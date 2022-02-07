@@ -1,12 +1,12 @@
 import { DocumentNode } from "graphql";
 import { batchRequests, request } from "graphql-request";
 
-import SFError from "../SFError";
+import { SFError } from "../SFError";
 
 type RequestDocument = string | DocumentNode;
 
 export declare type Variables = {
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 export declare type BatchRequestDocument<V = Variables> = {
@@ -17,7 +17,7 @@ export declare type BatchRequestDocument<V = Variables> = {
 export class SubgraphClient {
     constructor(readonly subgraphUrl: string) {}
 
-    async request<T = any, V = Variables>(
+    async request<T = unknown, V = Variables>(
         document: RequestDocument,
         variables?: V
     ): Promise<T> {
@@ -36,7 +36,7 @@ export class SubgraphClient {
         }
     }
 
-    async batchRequests<T = any, V = Variables>(
+    async batchRequests<T = unknown, V = Variables>(
         documents: BatchRequestDocument<V>[]
     ): Promise<T> {
         try {
@@ -57,7 +57,7 @@ function cleanVariables<V = Variables>(variables: V): V {
     return Object.fromEntries(
         Object.entries(variables)
             .filter(
-                ([_, value]) =>
+                ([, value]) =>
                     value !== "" && value !== null && value !== undefined
             )
             .map(([key, value]) => [

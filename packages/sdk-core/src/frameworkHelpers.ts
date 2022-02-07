@@ -1,8 +1,8 @@
 import { IFrameworkOptions } from "./Framework";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import {
     chainIds,
-    chainIdToDataMap,
+    chainIdToResolverDataMap,
     networkNames,
     networkNameToChainIdMap,
 } from "./constants";
@@ -36,7 +36,7 @@ export const validateFrameworkConstructorOptions = (
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
             customMessage:
-                "You must pass in a provider when initializing the framework.",
+                "You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework.",
         });
     }
 
@@ -73,17 +73,12 @@ export const validateFrameworkConstructorOptions = (
  * @returns SubgraphQueriesEndpoint which is a custom endpoint or based on selected network
  */
 export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
-    if (options.chainId && chainIdToDataMap.get(options.chainId)) {
-        return chainIdToDataMap.get(options.chainId)!.subgraphAPIEndpoint;
-    }
-    if (
-        options.networkName &&
-        networkNameToChainIdMap.get(options.networkName) &&
-        chainIdToDataMap.get(networkNameToChainIdMap.get(options.networkName)!)
-    ) {
-        return chainIdToDataMap.get(
-            networkNameToChainIdMap.get(options.networkName!)!
-        )!.subgraphAPIEndpoint;
+    const chainId = options.networkName
+        ? networkNameToChainIdMap.get(options.networkName)
+        : options.chainId;
+    const resolverData = chainId ? chainIdToResolverDataMap.get(chainId) : null;
+    if (resolverData) {
+        return resolverData.subgraphAPIEndpoint;
     }
 
     /* istanbul ignore next */
@@ -105,10 +100,11 @@ interface INetworkNameParams {
  * @returns the network name
  */
 export const getNetworkName = (options: INetworkNameParams): string => {
-    const networkName =
-        chainIdToDataMap.get(options.chainId!) != null
-            ? chainIdToDataMap.get(options.chainId!)!.networkName
-            : "custom";
-
-    return options.networkName || networkName;
+    return (
+        options.networkName ||
+        (options.chainId
+            ? chainIdToResolverDataMap.get(options.chainId)?.networkName
+            : undefined) ||
+        "custom"
+    );
 };

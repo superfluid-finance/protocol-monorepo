@@ -1,11 +1,11 @@
-import { ethers } from "ethers";
+import { ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import Token from "./Token";
-import { abi as SuperTokenABI } from "./abi/SuperToken.json";
+import SuperTokenABI from "./abi/SuperToken.json";
 import { networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
@@ -87,11 +87,12 @@ export default class SuperToken extends Token {
         }
         const networkName = getNetworkName(options);
         const chainId =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         try {
             const superToken = new ethers.Contract(
                 options.address,
-                SuperTokenABI
+                SuperTokenABI.abi
             ) as ISuperToken;
             const underlyingTokenAddress = await superToken
                 .connect(options.provider)
@@ -116,7 +117,7 @@ export default class SuperToken extends Token {
     private get superTokenContract() {
         return new ethers.Contract(
             this.settings.address,
-            SuperTokenABI
+            SuperTokenABI.abi
         ) as ISuperToken;
     }
 
@@ -159,21 +160,40 @@ export default class SuperToken extends Token {
     /**
      * @dev Downgrade `amount` SuperToken's.
      * @param amount The amount to be downgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    downgrade = ({ amount }: { amount: string }): Operation => {
-        const txn =
-            this.superTokenContract.populateTransaction.downgrade(amount);
+    downgrade = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }): Operation => {
+        const txn = this.superTokenContract.populateTransaction.downgrade(
+            amount,
+            overrides || {}
+        );
         return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
     };
 
     /**
      * @dev Upgrade `amount` SuperToken's.
      * @param amount The amount to be upgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    upgrade = ({ amount }: { amount: string }): Operation => {
-        const txn = this.superTokenContract.populateTransaction.upgrade(amount);
+    upgrade = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }): Operation => {
+        const txn = this.superTokenContract.populateTransaction.upgrade(
+            amount,
+            overrides || {}
+        );
         return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
@@ -241,6 +261,7 @@ export default class SuperToken extends Token {
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = ({
@@ -248,6 +269,7 @@ export default class SuperToken extends Token {
         receiver,
         flowRate,
         userData,
+        overrides,
     }: ISuperTokenCreateFlowParams): Operation => {
         return this.cfaV1.createFlow({
             flowRate,
@@ -255,6 +277,7 @@ export default class SuperToken extends Token {
             sender,
             superToken: this.settings.address,
             userData,
+            overrides,
         });
     };
 
@@ -264,6 +287,7 @@ export default class SuperToken extends Token {
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlow = ({
@@ -271,6 +295,7 @@ export default class SuperToken extends Token {
         receiver,
         flowRate,
         userData,
+        overrides,
     }: ISuperTokenUpdateFlowParams): Operation => {
         return this.cfaV1.updateFlow({
             flowRate,
@@ -278,6 +303,7 @@ export default class SuperToken extends Token {
             sender,
             superToken: this.settings.address,
             userData,
+            overrides,
         });
     };
 
@@ -286,18 +312,21 @@ export default class SuperToken extends Token {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     deleteFlow = ({
         sender,
         receiver,
         userData,
+        overrides,
     }: ISuperTokenDeleteFlowParams): Operation => {
         return this.cfaV1.deleteFlow({
             superToken: this.settings.address,
             sender,
             receiver,
             userData,
+            overrides,
         });
     };
 
@@ -352,16 +381,19 @@ export default class SuperToken extends Token {
      * @dev Creates an IDA Index.
      * @param indexId The id of the index.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createIndex = ({
         indexId,
         userData,
+        overrides,
     }: ISuperTokenBaseIDAParams): Operation => {
         return this.idaV1.createIndex({
             indexId,
             superToken: this.settings.address,
             userData,
+            overrides,
         });
     };
 
@@ -370,18 +402,21 @@ export default class SuperToken extends Token {
      * @param indexId The id of the index.
      * @param amount The amount of tokens to be distributed.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     distribute = ({
         indexId,
         amount,
         userData,
+        overrides,
     }: ISuperTokenDistributeParams): Operation => {
         return this.idaV1.distribute({
             indexId,
             amount,
             superToken: this.settings.address,
             userData,
+            overrides,
         });
     };
 
@@ -390,6 +425,7 @@ export default class SuperToken extends Token {
      * @param indexId The id of the index.
      * @param indexValue The new indexValue.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      *
      * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
@@ -398,12 +434,14 @@ export default class SuperToken extends Token {
         indexId,
         indexValue,
         userData,
+        overrides,
     }: ISuperTokenUpdateIndexValueParams): Operation => {
         return this.idaV1.updateIndexValue({
             indexId,
             indexValue,
             superToken: this.settings.address,
             userData,
+            overrides,
         });
     };
 
@@ -413,6 +451,7 @@ export default class SuperToken extends Token {
      * @param subscriber The subscriber address whose units you want to update.
      * @param units The amount of units you want to update to.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateSubscriptionUnits = ({
@@ -420,6 +459,7 @@ export default class SuperToken extends Token {
         subscriber,
         units,
         userData,
+        overrides,
     }: ISuperTokenUpdateSubscriptionUnitsParams): Operation => {
         return this.idaV1.updateSubscriptionUnits({
             indexId,
@@ -427,6 +467,7 @@ export default class SuperToken extends Token {
             subscriber,
             units,
             userData,
+            overrides,
         });
     };
 
@@ -435,18 +476,21 @@ export default class SuperToken extends Token {
      * @param indexId The id of the index.
      * @param publisher The publisher address whose subscription you want to approve.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     approveSubscription = ({
         indexId,
         publisher,
         userData,
+        overrides,
     }: ISuperTokenPublisherOperationParams): Operation => {
         return this.idaV1.approveSubscription({
             indexId,
             superToken: this.settings.address,
             publisher,
             userData,
+            overrides,
         });
     };
 
@@ -455,18 +499,21 @@ export default class SuperToken extends Token {
      * @param indexId The id of the index.
      * @param publisher The index publisher address you want to revoke for the subscriber.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     revokeSubscription = ({
         indexId,
         publisher,
         userData,
+        overrides,
     }: ISuperTokenPublisherOperationParams): Operation => {
         return this.idaV1.revokeSubscription({
             indexId,
             superToken: this.settings.address,
             publisher,
             userData,
+            overrides,
         });
     };
 
@@ -476,6 +523,7 @@ export default class SuperToken extends Token {
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targeting.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     deleteSubscription = ({
@@ -483,6 +531,7 @@ export default class SuperToken extends Token {
         subscriber,
         publisher,
         userData,
+        overrides,
     }: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.deleteSubscription({
             indexId,
@@ -490,6 +539,7 @@ export default class SuperToken extends Token {
             subscriber,
             publisher,
             userData,
+            overrides,
         });
     };
 
@@ -499,6 +549,7 @@ export default class SuperToken extends Token {
      * @param subscriber The subscriber address who you are claiming for.
      * @param publisher The publisher address of the index you are targeting.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     claim = ({
@@ -506,6 +557,7 @@ export default class SuperToken extends Token {
         subscriber,
         publisher,
         userData,
+        overrides,
     }: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.claim({
             indexId,
@@ -513,6 +565,7 @@ export default class SuperToken extends Token {
             subscriber,
             publisher,
             userData,
+            overrides,
         });
     };
 }

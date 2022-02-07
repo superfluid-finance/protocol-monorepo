@@ -202,4 +202,30 @@ describe("CFA V1 Tests", () => {
                 "0x"
             );
     });
+
+    it("Should return a v in the transaction (EIP-155)", async () => {
+        const flowRate = getPerSecondFlowRateByMonth("100");
+        const txnResponse = await framework.cfaV1
+            .createFlow({
+                flowRate,
+                receiver: alpha.address,
+                superToken: superToken.address,
+            })
+            .exec(deployer);
+        const txnReceipt = await txnResponse.wait();
+        const transaction = await deployer.provider!.getTransaction(
+            txnReceipt.transactionHash
+        );
+
+        // per https://eips.ethereum.org/EIPS/eip-155
+        expect(transaction.v).to.exist;
+
+        await framework.cfaV1
+            .deleteFlow({
+                sender: deployer.address,
+                receiver: alpha.address,
+                superToken: superToken.address,
+            })
+            .exec(deployer);
+    });
 });

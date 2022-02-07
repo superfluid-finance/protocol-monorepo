@@ -435,12 +435,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
         }
         
         if (useDefaultRewardAccount) {
-            rewardAccount = _host.getGovernance()
-                .getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-            // fallback not supposed to happen in prod - just for testing purposes
-            if (rewardAccount == address(0)) {
-                rewardAccount = liquidatorAccount;
-            }
             _balances[rewardAccount] = _balances[rewardAccount]
                 .add(rewardAmount.toInt256());
         } else {

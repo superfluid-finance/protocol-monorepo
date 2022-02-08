@@ -801,7 +801,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .encodeABI(),
                         {from: alice}
                     ),
-                    "unauthroized host"
+                    "unauthorized host"
                 );
                 await expectRevert(
                     fakeHost.callAgreement(
@@ -811,7 +811,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .encodeABI(),
                         {from: alice}
                     ),
-                    "unauthroized host"
+                    "unauthorized host"
                 );
                 await expectRevert(
                     fakeHost.callAgreement(
@@ -821,7 +821,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .encodeABI(),
                         {from: alice}
                     ),
-                    "unauthroized host"
+                    "unauthorized host"
                 );
             });
         });

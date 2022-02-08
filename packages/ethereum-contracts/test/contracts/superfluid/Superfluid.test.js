@@ -2417,4 +2417,10 @@ describe("Superfluid Host Contract", function () {
             );
         });
     });
+
+    describe("Exploits", () => {
+        it("#666.1 impersonante Ctx", async () => {
+            //sf.callAgreement
+        });
+    });
 });

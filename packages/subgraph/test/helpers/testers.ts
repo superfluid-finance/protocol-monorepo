@@ -22,7 +22,6 @@ import {
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
     ITestModifyIDAData,
-    IUpdateIDAGlobalObjects,
 } from "../interfaces";
 import {getFlowUpdatedEvents} from "../queries/eventQueries";
 import {fetchEventAndValidate} from "../validation/eventValidators";
@@ -368,7 +367,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
             updatedPublisherATS: currentPublisherATS,
             updatedSubscriberATS: currentSubscriberATS,
             updatedTokenStats: currentTokenStats,
-        } as IUpdateIDAGlobalObjects;
+        };
     }
 
     let events: IIDAEvents = await fetchIDAEventsAndValidate(
@@ -452,7 +451,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         updatedPublisherATS,
         updatedSubscriberATS,
         updatedTokenStats,
-    } as IUpdateIDAGlobalObjects;
+    };
 }
 
 async function executeIDATransactionByTypeAndWaitForIndexer(

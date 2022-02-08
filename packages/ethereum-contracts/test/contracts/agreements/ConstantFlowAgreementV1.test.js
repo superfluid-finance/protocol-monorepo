@@ -2405,7 +2405,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         from: alice,
                     }
                 ),
-                "ctx is being exploited"
+                "invalid ctx"
             );
         });
     });

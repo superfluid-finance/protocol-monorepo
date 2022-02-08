@@ -7,6 +7,12 @@ export interface IBaseEntity {
     readonly updatedAtTimestamp?: string;
 }
 
+export interface IBaseIndexEvent {
+    readonly publisher: string;
+    readonly token: string;
+    readonly indexId: string;
+}
+
 export interface IDataIntegrityFlowUpdatedEvent extends IBaseEntity {
     readonly token: string;
     readonly transactionHash: string;
@@ -15,6 +21,49 @@ export interface IDataIntegrityFlowUpdatedEvent extends IBaseEntity {
     readonly flowRate: string;
     readonly totalSenderFlowRate: string;
     readonly totalReceiverFlowRate: string;
+    readonly userData: string;
+}
+
+export interface IDataIntegrityIndexCreatedEvent
+    extends IBaseEntity,
+        IBaseIndexEvent {
+    readonly transactionHash: string;
+    readonly userData: string;
+}
+
+export interface IDataIntegrityIndexDistributionClaimedEvent
+    extends IBaseEntity,
+        IBaseIndexEvent {
+    readonly transactionHash: string;
+    readonly subscriber: string;
+    readonly amount: string;
+}
+
+export interface IDataIntegrityIndexUpdatedEvent
+    extends IBaseEntity,
+        IBaseIndexEvent {
+    readonly transactionHash: string;
+    readonly oldIndexValue: string;
+    readonly newIndexValue: string;
+    readonly totalUnitsPending: string;
+    readonly totalUnitsApproved: string;
+    readonly userData: string;
+}
+
+export interface IDataIntegrityIndexSubscribedEvent
+    extends IBaseEntity,
+        IBaseIndexEvent {
+    readonly transactionHash: string;
+    readonly subscriber: string;
+    readonly userData: string;
+}
+
+export interface IDataIntegrityIndexUnitsUpdatedEvent
+    extends IBaseEntity,
+        IBaseIndexEvent {
+    readonly transactionHash: string;
+    readonly subscriber: string;
+    readonly units: string;
     readonly userData: string;
 }
 

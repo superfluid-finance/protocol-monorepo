@@ -1,5 +1,6 @@
 import {gql} from "graphql-request";
 
+// Event Queries
 export const getFlowUpdatedEvents = gql`
     query getFlowUpdatedEvents(
         $blockNumber: Int
@@ -27,6 +28,261 @@ export const getFlowUpdatedEvents = gql`
     }
 `;
 
+export const getIndexCreatedEvents = gql`
+    query getIndexCreatedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: indexCreatedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            publisher
+            indexId
+            userData
+        }
+    }
+`;
+
+export const getIndexDistributionClaimedEvents = gql`
+    query getIndexDistributionClaimedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: indexDistributionClaimedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            publisher
+            indexId
+            subscriber
+            amount
+        }
+    }
+`;
+
+export const getIndexUpdatedEvents = gql`
+    query getIndexUpdatedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: indexUpdatedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            publisher
+            indexId
+            oldIndexValue
+            newIndexValue
+            totalUnitsPending
+            totalUnitsApproved
+            userData
+        }
+    }
+`;
+
+export const getIndexSubscribedEvents = gql`
+    query getIndexSubscribedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: indexSubscribedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            publisher
+            indexId
+            subscriber
+            userData
+        }
+    }
+`;
+
+export const getIndexUnitsUpdatedEvents = gql`
+    query getIndexUnitsUpdatedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: indexUnitsUpdatedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            publisher
+            indexId
+            subscriber
+            units
+            userData
+        }
+    }
+`;
+
+export const getIndexUnsubscribedEvents = gql`
+    query getIndexUnsubscribedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: indexSubscribedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            publisher
+            indexId
+            subscriber
+            userData
+        }
+    }
+`;
+
+export const getSubscriptionApprovedEvents = gql`
+    query getSubscriptionApprovedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: subscriptionApprovedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            subscriber
+            publisher
+            indexId
+            userData
+        }
+    }
+`;
+
+export const getSubscriptionDistributionClaimedEvents = gql`
+    query getSubscriptionDistributionClaimedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: subscriptionDistributionClaimedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            subscriber
+            publisher
+            indexId
+            amount
+        }
+    }
+`;
+
+export const getSubscriptionRevokedEvents = gql`
+    query getSubscriptionRevokedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: subscriptionRevokedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            subscriber
+            publisher
+            indexId
+            userData
+        }
+    }
+`;
+
+export const getSubscriptionUnitsUpdatedEvents = gql`
+    query getSubscriptionUnitsUpdatedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: subscriptionUnitsUpdatedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            subscriber
+            publisher
+            indexId
+            units
+            userData
+        }
+    }
+`;
+
+// Higher Order Entity Queries
 /**
  * Gets current streams (where flow rate > 0)
  */
@@ -120,6 +376,7 @@ export const getSubscriptions = gql`
     }
 `;
 
+// Aggregate Entity Queries
 /**
  * Gets account token snapshots of all accounts that have ever interacted with
  * the Superfluid protocol.

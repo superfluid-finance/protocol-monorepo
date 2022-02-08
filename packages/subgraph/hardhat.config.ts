@@ -31,6 +31,22 @@ const config: HardhatUserConfig = {
         mumbai: {
             url: process.env.MUMBAI_PROVIDER_URL,
             chainId: 80001
+        },
+        ropsten: {
+            url: process.env.ROPSTEN_PROVIDER_URL,
+            chainId: 3
+        },
+        rinkeby: {
+            url: process.env.RINKEBY_PROVIDER_URL,
+            chainId: 4
+        },
+        goerli: {
+            url: process.env.GOERLI_PROVIDER_URL,
+            chainId: 5
+        },
+        opkovan: {
+            url: process.env.OPKOVAN_PROVIDER_URL,
+            chainId: 69
         }
     },
     mocha: {

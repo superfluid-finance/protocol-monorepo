@@ -2384,5 +2384,29 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow("dan", flowRateBD.sub(flowRateDC));
             await timeTravelOnceAndVerifyAll();
         });
+
+        it("#10.4 ctx should not be exploited", async () => {
+            await expectRevert(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .createFlow(
+                            superToken.address,
+                            alice,
+                            FLOW_RATE1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "ctx is being exploited"
+            );
+        });
     });
 });

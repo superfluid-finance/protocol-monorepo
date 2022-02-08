@@ -1409,8 +1409,6 @@ describe("Superfluid Host Contract", function () {
                     );
                 }
             });
-
-            // TODO app allowance functions
         });
 
         describe("#7 callAgreement", () => {
@@ -2415,12 +2413,6 @@ describe("Superfluid Host Contract", function () {
                 ),
                 "SF: authorized factory required"
             );
-        });
-    });
-
-    describe("Exploits", () => {
-        it("#666.1 impersonante Ctx", async () => {
-            //sf.callAgreement
         });
     });
 });

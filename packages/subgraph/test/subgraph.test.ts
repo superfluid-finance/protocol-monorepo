@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
-import { beforeSetup, getRandomFlowRate } from "./helpers/helpers";
+import { beforeSetup, getRandomFlowRate, toBN } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IDistributionLocalData,
@@ -10,9 +10,8 @@ import {
     IStreamLocalData,
     IIndexSubscription,
     ITokenStatistic,
-    IUpdateIDAGlobalObjects,
     ISubscriberDistributionTesterParams,
-    IUpdateCFAGlobalObjects,
+    IUpdateGlobalObjects,
 } from "./interfaces";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
@@ -40,23 +39,26 @@ describe("Subgraph Tests", () => {
     } = {}; // id is ats id
     let tokenStatistics: { [id: string]: ITokenStatistic | undefined } = {}; // id is tokenStats id
 
-    function updateGlobalObjectsForFlowUpdated(data: IUpdateCFAGlobalObjects) {
-        revisionIndexes[data.revisionIndexId] = Number(
-            data.updatedStreamData.revisionIndex
-        );
-        periodRevisionIndexes[data.revisionIndexId] = Number(
-            data.updatedStreamData.periodRevisionIndex
-        );
-
-        streamData[data.updatedStreamData.id] = data.updatedStreamData;
-        accountTokenSnapshots[data.updatedSenderATS.id] = data.updatedSenderATS;
-        accountTokenSnapshots[data.updatedReceiverATS.id] =
-            data.updatedReceiverATS;
-        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
-    }
-
-    function updateGlobalObjectsForIDAEvents(data: IUpdateIDAGlobalObjects) {
-        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+    function updateGlobalObjects(data: IUpdateGlobalObjects) {
+        if (data.revisionIndexId && data.updatedStreamData) {
+            revisionIndexes[data.revisionIndexId] = Number(
+                data.updatedStreamData.revisionIndex
+            );
+            periodRevisionIndexes[data.revisionIndexId] = Number(
+                data.updatedStreamData.periodRevisionIndex
+            );
+        }
+        if (data.updatedStreamData) {
+            streamData[data.updatedStreamData.id] = data.updatedStreamData;
+        }
+        if (data.updatedSenderATS) {
+            accountTokenSnapshots[data.updatedSenderATS.id] =
+                data.updatedSenderATS;
+        }
+        if (data.updatedReceiverATS) {
+            accountTokenSnapshots[data.updatedReceiverATS.id] =
+                data.updatedReceiverATS;
+        }
         if (data.updatedIndex) {
             indexes[data.updatedIndex.id] = data.updatedIndex;
         }
@@ -72,6 +74,7 @@ describe("Subgraph Tests", () => {
             accountTokenSnapshots[data.updatedSubscriberATS.id] =
                 data.updatedSubscriberATS;
         }
+        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
     }
 
     function getStreamLocalData(): IStreamLocalData {
@@ -89,7 +92,7 @@ describe("Subgraph Tests", () => {
      * @param num
      * @returns
      */
-    function get18DecimalNumber(num: number) {
+    function to18DecimalNumString(num: number) {
         return (num * 10 ** 18).toString();
     }
 
@@ -177,16 +180,15 @@ describe("Subgraph Tests", () => {
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Create,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[0],
-                        receiver: userAddresses[i],
-                        totalSupply: initialTotalSupply,
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Create,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    totalSupply: initialTotalSupply,
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -195,15 +197,14 @@ describe("Subgraph Tests", () => {
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Create,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[i],
-                        receiver: userAddresses[0],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Create,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -214,29 +215,27 @@ describe("Subgraph Tests", () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Update,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[0],
-                        receiver: userAddresses[i],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                });
+                updateGlobalObjects(data);
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Update,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[0],
-                        receiver: userAddresses[i],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -244,30 +243,28 @@ describe("Subgraph Tests", () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Update,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[i],
-                        receiver: userAddresses[0],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                });
+                updateGlobalObjects(data);
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
 
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Update,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[i],
-                        receiver: userAddresses[0],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -278,15 +275,14 @@ describe("Subgraph Tests", () => {
             // delete the updated flows from all to deployer
             for (let i = userAddresses.length; i < userAddresses.length; i++) {
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Delete,
-                        newFlowRate: 0,
-                        sender: userAddresses[i],
-                        receiver: userAddresses[0],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Delete,
+                    newFlowRate: 0,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -294,15 +290,14 @@ describe("Subgraph Tests", () => {
             // delete the updated flows from deployer to all
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Delete,
-                        newFlowRate: 0,
-                        sender: userAddresses[0],
-                        receiver: userAddresses[i],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Delete,
+                    newFlowRate: 0,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -311,15 +306,14 @@ describe("Subgraph Tests", () => {
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Create,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[0],
-                        receiver: userAddresses[i],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Create,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -328,15 +322,14 @@ describe("Subgraph Tests", () => {
             const randomFlowRate = getRandomFlowRate(1000);
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
-                updateGlobalObjectsForFlowUpdated(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Update,
-                        newFlowRate: randomFlowRate,
-                        sender: userAddresses[0],
-                        receiver: userAddresses[i],
-                    })
-                );
+                const data = await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                });
+                updateGlobalObjects(data);
             }
         });
     });
@@ -362,12 +355,11 @@ describe("Subgraph Tests", () => {
                     userData: "0x",
                     subscriber: "",
                 };
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.IndexCreated,
-                    })
-                );
+                const data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.IndexCreated,
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -393,97 +385,88 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = ethers.BigNumber.from(get18DecimalNumber(100));
+                let units = toBN(to18DecimalNumString(100));
 
                 // update sub units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                let data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
-                units = ethers.BigNumber.from(get18DecimalNumber(150));
+                units = toBN(to18DecimalNumString(150));
 
                 // update sub units again
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
                 // distribute units to non-approved subscribers
-                const amountOrIndexValue = ethers.BigNumber.from((20).toString());
+                const amountOrIndexValue = toBN((20).toString());
 
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(
-                            { ...baseParams, subscriber: "" },
-                            provider
-                        ),
-                        eventType: IDAEventType.IndexUpdated,
-                        amountOrIndexValue,
-                        isDistribute: false,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(
+                        {...baseParams, subscriber: ""},
+                        provider
+                    ),
+                    eventType: IDAEventType.IndexUpdated,
+                    amountOrIndexValue,
+                    isDistribute: false,
+                });
+                updateGlobalObjects(data);
 
                 // delete subscriptions
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionRevoked,
-                        isRevoke: false,
-                        sender: publisher,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: false,
+                    sender: publisher,
+                });
+                updateGlobalObjects(data);
 
                 // approve deleted sub
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionApproved,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from((0).toString()),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN((0).toString()),
+                });
+                updateGlobalObjects(data);
 
                 // delete subscriptions
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionRevoked,
-                        isRevoke: false,
-                        sender: publisher,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: false,
+                    sender: publisher,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units to > 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from(get18DecimalNumber(100)),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN(to18DecimalNumString(100)),
+                });
+                updateGlobalObjects(data);
 
                 // update sub units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from((0).toString()),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN((0).toString()),
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -517,107 +500,96 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = ethers.BigNumber.from(get18DecimalNumber(100));
+                let units = toBN(to18DecimalNumString(100));
 
                 // update sub units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                let data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
                 // approve sub w/ units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionApproved,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
+                updateGlobalObjects(data);
 
-                units = ethers.BigNumber.from((0).toString());
+                units = toBN((0).toString());
 
                 // update approved sub units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units from 0 to 0 (we should be able to do this technically)
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
                 // revoke approved sub w/o units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionRevoked,
-                        isRevoke: true,
-                        sender: subscriber,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: true,
+                    sender: subscriber,
+                });
+                updateGlobalObjects(data);
 
                 // update revoked sub units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from(get18DecimalNumber(150)),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN(to18DecimalNumString(150)),
+                });
+                updateGlobalObjects(data);
 
                 // approve revoked sub w/ units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionApproved,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
+                updateGlobalObjects(data);
 
                 // revoke approved sub w/ units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionRevoked,
-                        isRevoke: true,
-                        sender: subscriber,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: true,
+                    sender: subscriber,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units on revoked sub w/ units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from(get18DecimalNumber(175)),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN(to18DecimalNumString(175)),
+                });
+                updateGlobalObjects(data);
 
                 // update revoked sub w/ units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from((0).toString()),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN((0).toString()),
+                });
+                updateGlobalObjects(data);
                 // update revoked sub w/o units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from((0).toString()),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN((0).toString()),
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -650,89 +622,80 @@ describe("Subgraph Tests", () => {
                 };
 
                 // approve subscriptions
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionApproved,
-                    })
-                );
+                let data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from(get18DecimalNumber(100)),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN(to18DecimalNumString(100)),
+                });
+                updateGlobalObjects(data);
 
                 // update sub units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from(get18DecimalNumber(150)),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN(to18DecimalNumString(150)),
+                });
+                updateGlobalObjects(data);
 
                 // distribute units to approved subscribers
-                const amountOrIndexValue = ethers.BigNumber.from(get18DecimalNumber(100));
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(
-                            { ...baseParams, subscriber: "" },
-                            provider
-                        ),
-                        eventType: IDAEventType.IndexUpdated,
-                        amountOrIndexValue,
-                        isDistribute: true,
-                    })
-                );
+                const amountOrIndexValue = toBN(to18DecimalNumString(100));
+                data = await testModifyIDA({
+                    ...getBaseIDAData(
+                        {...baseParams, subscriber: ""},
+                        provider
+                    ),
+                    eventType: IDAEventType.IndexUpdated,
+                    amountOrIndexValue,
+                    isDistribute: true,
+                });
+                updateGlobalObjects(data);
 
                 // delete subs
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionRevoked,
-                        isRevoke: false,
-                        sender: publisher,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: false,
+                    sender: publisher,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from((0).toString()),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN((0).toString()),
+                });
+                updateGlobalObjects(data);
 
                 // update not approved sub w/o units to 0 again
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from((0).toString()),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN((0).toString()),
+                });
+                updateGlobalObjects(data);
 
                 // approve subscriptions
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionApproved,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
+                updateGlobalObjects(data);
 
                 // update approved sub w/o units to > 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: ethers.BigNumber.from(get18DecimalNumber(150)),
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units: toBN(to18DecimalNumString(150)),
+                });
+                updateGlobalObjects(data);
             }
         });
 
@@ -762,32 +725,29 @@ describe("Subgraph Tests", () => {
                 };
 
                 // approve subscriptions
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionApproved,
-                    })
-                );
+                let data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
+                updateGlobalObjects(data);
 
                 // update sub units
-                let units = ethers.BigNumber.from(get18DecimalNumber(100));
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                let units = toBN(to18DecimalNumString(100));
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
-                units = ethers.BigNumber.from(get18DecimalNumber(150));
+                units = toBN(to18DecimalNumString(150));
 
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
             }
 
             // update sub units for the other half
@@ -802,39 +762,36 @@ describe("Subgraph Tests", () => {
                 };
 
                 // update sub units
-                let units = ethers.BigNumber.from(get18DecimalNumber(100));
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                let units = toBN(to18DecimalNumString(100));
+                let data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
 
-                units = ethers.BigNumber.from(get18DecimalNumber(150));
+                units = toBN(to18DecimalNumString(150));
 
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
-                    })
-                );
+                data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
+                updateGlobalObjects(data);
             }
 
             // distribute units to pending + claimed users
-            const amountOrIndexValue = ethers.BigNumber.from(get18DecimalNumber(200));
-            updateGlobalObjectsForIDAEvents(
-                await testModifyIDA({
-                    ...getBaseIDAData(
-                        { ...multiBaseParams, subscriber: "" },
-                        provider
-                    ),
-                    eventType: IDAEventType.IndexUpdated,
-                    amountOrIndexValue,
-                    isDistribute: true,
-                })
-            );
+            const amountOrIndexValue = toBN(to18DecimalNumString(200));
+            let data = await testModifyIDA({
+                ...getBaseIDAData(
+                    {...multiBaseParams, subscriber: ""},
+                    provider
+                ),
+                eventType: IDAEventType.IndexUpdated,
+                amountOrIndexValue,
+                isDistribute: true,
+            });
+            updateGlobalObjects(data);
 
             for (
                 let i = Math.floor(userAddresses.length / 2);
@@ -847,12 +804,11 @@ describe("Subgraph Tests", () => {
                 };
 
                 // claim pending units
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionDistributionClaimed,
-                    })
-                );
+                let data = await testModifyIDA({
+                    ...getBaseIDAData(baseParams, provider),
+                    eventType: IDAEventType.SubscriptionDistributionClaimed,
+                });
+                updateGlobalObjects(data);
             }
         });
     });

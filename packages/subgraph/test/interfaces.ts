@@ -317,20 +317,16 @@ export interface IExpectedTokenStats {
     readonly totalAmountStreamedUntilUpdatedAt: string;
 }
 
-export interface IUpdateCFAGlobalObjects {
-    readonly revisionIndexId: string;
-    readonly updatedStreamData: IStreamData;
-    readonly updatedSenderATS: IAccountTokenSnapshot;
-    readonly updatedReceiverATS: IAccountTokenSnapshot;
-    readonly updatedTokenStats: ITokenStatistic;
-}
-
-export interface IUpdateIDAGlobalObjects {
-    readonly updatedTokenStats: ITokenStatistic;
+export interface IUpdateGlobalObjects {
+    readonly revisionIndexId?: string;
+    readonly updatedStreamData?: IStreamData;
+    readonly updatedSenderATS?: IAccountTokenSnapshot;
+    readonly updatedReceiverATS?: IAccountTokenSnapshot;
     readonly updatedPublisherATS?: IAccountTokenSnapshot;
     readonly updatedSubscriberATS?: IAccountTokenSnapshot;
     readonly updatedIndex?: IIndex;
     readonly updatedSubscription?: IIndexSubscription;
+    readonly updatedTokenStats: ITokenStatistic;
 }
 
 export interface IAggregateLocalData {

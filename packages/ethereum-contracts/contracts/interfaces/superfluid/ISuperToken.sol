@@ -316,15 +316,15 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
    ) external;
 
    /**
-    * @dev Transfer tokens from the `holder` to `recipient`. If `spender`
-    * isn't the same as `holder`, checks if `holder` has allowance to 
-    * spend `spender` tokens.
+    * @dev Transfer `amount` tokens from the `sender` to `recipient`.
+    * If `spender` isn't the same as `sender`, checks if `spender` has allowance to
+    * spend tokens of `sender`.
     *
     * Modifiers:
     *  - onlySelf
     */
    function selfTransferFrom(
-        address holder,
+        address sender,
         address spender,
         address recipient,
         uint256 amount

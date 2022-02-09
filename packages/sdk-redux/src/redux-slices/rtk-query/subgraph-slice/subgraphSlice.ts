@@ -1,3 +1,4 @@
+import {miniSerializeError} from '@reduxjs/toolkit';
 import {BaseQueryFn} from '@reduxjs/toolkit/dist/query';
 import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
 import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
@@ -9,6 +10,7 @@ import {typeGuard} from '../../../utils';
 import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
 import {CacheTime} from '../cacheTime';
 import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
+import {SerializedSFError} from '../returnTypes';
 
 export const createSubgraphSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
@@ -24,8 +26,12 @@ export type SubgraphSliceEndpointBuilder = EndpointBuilder<SubgraphSliceBaseQuer
 
 type SubgraphSliceArgs = {chainId: number; handle: (framework: Framework) => Promise<unknown>};
 
-export const subgraphSliceBaseQuery = (): BaseQueryFn<SubgraphSliceArgs, unknown, SFError, Record<string, unknown>> =>
-    handleSubgraphQueryWithFramework;
+export const subgraphSliceBaseQuery = (): BaseQueryFn<
+    SubgraphSliceArgs,
+    unknown,
+    SerializedSFError,
+    Record<string, unknown>
+> => handleSubgraphQueryWithFramework;
 
 export type SubgraphSliceBaseQueryType = ReturnType<typeof subgraphSliceBaseQuery>;
 
@@ -35,8 +41,15 @@ export const handleSubgraphQueryWithFramework = async ({chainId, handle}: Subgra
         return {data: await handle(framework)};
     } catch (error) {
         if (error instanceof SFError) {
+            const serializedSFError: SerializedSFError = {
+                message: error.message,
+                type: error.type,
+            };
+            if (error.errorObject) {
+                serializedSFError.errorObject = miniSerializeError(error.errorObject);
+            }
             return {
-                error: error,
+                error: serializedSFError,
             };
         } else {
             throw error;

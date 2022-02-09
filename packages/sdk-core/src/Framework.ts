@@ -1,7 +1,5 @@
 import { Signer } from "@ethersproject/abstract-signer";
-import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
-import Web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -19,37 +17,13 @@ import {
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import {
+    IFrameworkOptions,
+    IFrameworkSettings,
+} from "./frameworkOptionsAndSettings";
+import { ISignerConstructorOptions } from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
-import { DataMode } from "./types";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
-
-type SupportedProvider =
-    | ethers.providers.Provider
-    | (typeof ethers & HardhatEthersHelpers)
-    | Web3;
-
-// TODO: add convenience function of utilizing provider (optional)
-// instead of having to pass it in every single time
-export interface IFrameworkOptions {
-    chainId?: number;
-    customSubgraphQueriesEndpoint?: string;
-    dataMode?: DataMode;
-    networkName?: string;
-    resolverAddress?: string;
-    protocolReleaseVersion?: string;
-    provider: SupportedProvider;
-}
-
-export interface IFrameworkSettings {
-    chainId: number;
-    customSubgraphQueriesEndpoint: string;
-    dataMode: DataMode;
-    networkName: string;
-    protocolReleaseVersion: string;
-    provider: ethers.providers.Provider;
-    config: IConfig;
-}
 
 /**
  * @dev Superfluid Framework Class

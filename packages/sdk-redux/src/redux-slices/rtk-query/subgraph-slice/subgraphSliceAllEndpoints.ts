@@ -3,7 +3,7 @@ import {createEventQueryEndpoints} from './createEventQueryEndpoints';
 import {createCustomQueryEndpoints} from './customSubgraphQuery';
 import {SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
-export const allSubgraphSliceEndpoints = {
+export const subgraphSliceAllEndpoints = {
     endpoints: (builder: SubgraphSliceEndpointBuilder) => ({
         ...createCustomQueryEndpoints(builder),
         ...createEntityQueryEndpoints(builder),
@@ -11,4 +11,4 @@ export const allSubgraphSliceEndpoints = {
     }),
 };
 
-export default allSubgraphSliceEndpoints;
+export default subgraphSliceAllEndpoints;

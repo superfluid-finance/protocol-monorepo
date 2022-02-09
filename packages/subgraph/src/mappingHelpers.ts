@@ -523,10 +523,14 @@ function updateATSBalanceAndUpdatedAt(
     let superTokenContract = SuperToken.bind(
         Address.fromString(accountTokenSnapshot.token)
     );
-    let newBalance = superTokenContract.balanceOf(
-        Address.fromString(accountTokenSnapshot.account)
+    let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
+        Address.fromString(accountTokenSnapshot.account),
+        block.timestamp
     );
-    accountTokenSnapshot.balanceUntilUpdatedAt = newBalance;
+    if (!newBalanceResult.reverted) {
+        accountTokenSnapshot.balanceUntilUpdatedAt =
+            newBalanceResult.value.value0;
+    }
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
     return accountTokenSnapshot as AccountTokenSnapshot;

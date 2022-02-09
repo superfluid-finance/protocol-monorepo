@@ -1,6 +1,7 @@
 export * as _sdkCore from '@superfluid-finance/sdk-core';
 
 export * from './initializeSfApiSlice';
+export * from './redux-slices/rtk-query/sfApiAllEndpoints';
 
 export * from './redux-slices/argTypes';
 export * from './redux-slices/rtk-query/queries/queries';

@@ -7,5 +7,5 @@ import {getConfig} from './sdkReduxConfig';
 export const initializeSfTransactionSlice = () => {
     const slice = createTransactionSlice();
     getConfig().setTransactionSlice(slice);
-    return {sfTransactions: slice};
+    return slice;
 };

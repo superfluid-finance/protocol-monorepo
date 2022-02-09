@@ -14,5 +14,5 @@ import {getConfig} from './sdkReduxConfig';
 export const initializeSfApiSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
     const slice = createApiSlice(createApi);
     getConfig().setApiSlice(slice as unknown as SfApiSliceInferredType);
-    return {sfApi: slice};
+    return slice;
 };

@@ -10,3 +10,5 @@ export const allSubgraphSliceEndpoints = {
         ...createEventQueryEndpoints(builder),
     }),
 };
+
+export default allSubgraphSliceEndpoints;

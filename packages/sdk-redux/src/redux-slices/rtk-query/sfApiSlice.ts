@@ -6,8 +6,6 @@ import {typeGuard} from '../../utils';
 
 import {CacheTagTypes} from './cacheTags/CacheTagTypes';
 import {getSerializeQueryArgs} from './getSerializeQueryArgs';
-import {addMutationEndpoints} from './mutations/addMutationEndpoints';
-import {addQueryEndpoints} from './queries/addQueryEndpoints';
 import {MutationMeta, ValidationError} from './returnTypes';
 
 export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
@@ -15,10 +13,7 @@ export const createApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateAp
         reducerPath: 'sfApi',
         baseQuery: apiSliceBaseQuery(),
         tagTypes: typeGuard<CacheTagTypes[]>(['Event', 'Index', 'Stream', 'Token']),
-        endpoints: (builder) => ({
-            ...addQueryEndpoints(builder),
-            ...addMutationEndpoints(builder),
-        }),
+        endpoints: () => ({}),
         serializeQueryArgs: getSerializeQueryArgs(),
     });
 

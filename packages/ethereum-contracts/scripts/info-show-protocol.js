@@ -242,12 +242,14 @@ async function printSuperTokensInformation({
         console.log("## Listed Super Tokens");
         superTokens
             .filter((s) => s !== undefined && s.isListed)
+            .filter((s) => s.superTokenLogicAddress !== ZERO_ADDRESS) // unintialized proxy
             .forEach(printSuperToken);
         console.log("");
 
         console.log("## Unlisted Super Tokens");
         superTokens
             .filter((s) => s !== undefined && !s.isListed)
+            .filter((s) => s.superTokenLogicAddress !== ZERO_ADDRESS) // unintialized proxy
             .forEach(printSuperToken);
         console.log("");
 

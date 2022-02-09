@@ -419,8 +419,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
         uint256 rewardAmount,
         int256 targetAccountBalanceDelta
     ) external override onlyAgreement {
-        address defaultRewardAccount;
         address rewardAccount;
+        address defaultRewardAccount;
 
         {
             ISuperfluidGovernance gov = _host.getGovernance();

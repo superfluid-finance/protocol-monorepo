@@ -118,7 +118,7 @@ jobs:
 
       - name: Install, lint and build
         run: |
-          yarn install --frozen-lockfilepull_request
+          yarn install --frozen-lockfile
           yarn lint
           yarn build
 

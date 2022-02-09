@@ -33,7 +33,7 @@ describe("Subgraph Tests", () => {
 
     let streamData: { [id: string]: IStreamData | undefined } = {}; // id is stream id
     let indexes: { [id: string]: IIndex | undefined } = {}; // id is index id
-    let subscription: { [id: string]: IIndexSubscription | undefined } = {}; // id is subscription id
+    let subscriptions: { [id: string]: IIndexSubscription | undefined } = {}; // id is subscription id
     let accountTokenSnapshots: {
         [id: string]: IAccountTokenSnapshot | undefined;
     } = {}; // id is ats id
@@ -63,7 +63,7 @@ describe("Subgraph Tests", () => {
             indexes[data.updatedIndex.id] = data.updatedIndex;
         }
         if (data.updatedSubscription) {
-            subscription[data.updatedSubscription.id] =
+            subscriptions[data.updatedSubscription.id] =
                 data.updatedSubscription;
         }
         if (data.updatedPublisherATS) {
@@ -101,7 +101,7 @@ describe("Subgraph Tests", () => {
             accountTokenSnapshots,
             tokenStatistics,
             indexes,
-            subscriptions: subscription,
+            subscriptions,
         };
     }
 

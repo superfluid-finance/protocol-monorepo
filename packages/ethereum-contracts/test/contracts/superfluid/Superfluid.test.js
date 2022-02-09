@@ -1409,8 +1409,6 @@ describe("Superfluid Host Contract", function () {
                     );
                 }
             });
-
-            // TODO app allowance functions
         });
 
         describe("#7 callAgreement", () => {

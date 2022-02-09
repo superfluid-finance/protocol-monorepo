@@ -22,6 +22,8 @@ import {
     IDataIntegrityStream,
     IDataIntegritySubscription,
     IDataIntegrityTokenStatistic,
+    IOnChainEvents,
+    OnChainIDAEventString,
 } from "../interfaces";
 import {chainIdToData} from "../maps";
 import {ConstantFlowAgreementV1} from "../../typechain/ConstantFlowAgreementV1";
@@ -32,6 +34,7 @@ import {ISuperToken} from "../../typechain";
 import {calculateAvailableBalance} from "../../../sdk-core/src/utils";
 import {IIndexSubscription} from "../../../sdk-core/src/interfaces";
 import {BigNumber} from "ethers";
+import {TypedEvent} from "../../typechain/common";
 
 const DEFAULT_CHUNK_LENGTH = 1;
 
@@ -53,9 +56,6 @@ export const subgraphRequest = async <T>(
 const printProgress = (i: number, total: number, entityText: string) => {
     if ((i + 1) % 100 === 0) {
         console.log(`${i + 1}/${total} ${entityText} validated.`);
-    }
-    if (i % total === 0) {
-        console.log(`${i}/${total} ${entityText} validated.`);
     }
 };
 
@@ -91,6 +91,75 @@ function chunkData<T>(promises: T[], chunkLength: number) {
     );
     return batches;
 }
+
+const validateEvents = <T extends TypedEvent, K>(
+    eventName: string,
+    onchainEvents: T[],
+    subgraphEvents: K[],
+    groupedEvents: _.Dictionary<T[]>
+) => {
+    // base case length equality check
+    if (onchainEvents.length === subgraphEvents.length) {
+        console.log(`${eventName} events length is the same.`);
+    } else {
+        throw new Error(`${eventName} events length are different.`);
+    }
+
+    for (let i = 0; i < subgraphEvents.length; i++) {
+        const currentSubgraphEvent = subgraphEvents[i] as any; // TEMPORARY
+        const id = currentSubgraphEvent.id.split(eventName + "-")[1];
+        const currentOnChainEvent = groupedEvents[id][0];
+        const keys = Object.keys(currentSubgraphEvent);
+        if (currentOnChainEvent == null) {
+            console.log("currentSubgraphEvent", currentSubgraphEvent);
+            continue;
+        }
+
+        // validate the event properties
+        for (let j = 0; j < keys.length; j++) {
+            if (
+                currentOnChainEvent.args[keys[j]] == null ||
+                currentOnChainEvent.args[keys[j]] == undefined
+            ) {
+                continue;
+            }
+            // the properties are usually either string or BigInt
+            if (typeof currentOnChainEvent.args[keys[j]] === "string") {
+                if (
+                    currentOnChainEvent.args[keys[j]].toLowerCase() !==
+                    currentSubgraphEvent[keys[j]]
+                ) {
+                    console.log(
+                        `${keys[j]} - Subgraph: ${
+                            currentSubgraphEvent[keys[j]]
+                        } \n On-chain data: ${currentOnChainEvent.args[
+                            keys[j]
+                        ].toLowerCase()}`
+                    );
+                    throw new Error(`${eventName} Event is not the same.`);
+                }
+            } else {
+                if (
+                    currentOnChainEvent.args[keys[j]].eq(
+                        toBN(currentSubgraphEvent[keys[j]])
+                    ) === false
+                ) {
+                    console.log(
+                        `${keys[j]} - Subgraph: ${
+                            currentSubgraphEvent[keys[j]]
+                        } \n On-chain data: ${currentOnChainEvent.args[
+                            keys[j]
+                        ].toString()}`
+                    );
+                    throw new Error(`${eventName} Event is not the same.`);
+                }
+            }
+        }
+
+        printProgress(i, subgraphEvents.length, eventName + " events");
+    }
+    console.log(`\nAll ${subgraphEvents.length} ${eventName} events validated.\n`);
+};
 
 /**
  * @dev Gets all the results from the graph, we need this function
@@ -164,6 +233,19 @@ async function getAllResults<T extends IBaseEntity>(
 async function main() {
     let netFlowRateSum = toBN(0);
     let tokenGroupedRTBSums: {[tokenAddress: string]: BigNumber} = {};
+    let onchainEvents: IOnChainEvents = {
+        FlowUpdated: {events: [], groupedEvents: {}},
+        IndexCreated: {events: [], groupedEvents: {}},
+        IndexDistributionClaimed: {events: [], groupedEvents: {}},
+        IndexUpdated: {events: [], groupedEvents: {}},
+        IndexSubscribed: {events: [], groupedEvents: {}},
+        IndexUnitsUpdated: {events: [], groupedEvents: {}},
+        IndexUnsubscribed: {events: [], groupedEvents: {}},
+        SubscriptionApproved: {events: [], groupedEvents: {}},
+        SubscriptionDistributionClaimed: {events: [], groupedEvents: {}},
+        SubscriptionRevoked: {events: [], groupedEvents: {}},
+        SubscriptionUnitsUpdated: {events: [], groupedEvents: {}},
+    };
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId;
     const chainIdData = chainIdToData.get(chainId);
@@ -177,7 +259,7 @@ async function main() {
     const block = await ethers.provider.getBlock(currentBlockNumber);
     const currentTimestamp = block.timestamp;
     console.log(
-        "Executing Subgraph Data Integrity Test on " +
+        "\nExecuting Subgraph Data Integrity Test on " +
             chainIdData.name +
             " network."
     );
@@ -194,10 +276,15 @@ async function main() {
         addresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
-    console.log("Querying the blockchain for past events...");
-    const flowUpdatedEventsFilter = cfaV1.filters.FlowUpdated();
+    console.log("\nSubgraph Event Entities Data Integrity Tests Starting...\n");
+    console.log("Querying the blockchain for past events...\n");
+    console.log("Start Block:", addresses.hostStartBlock, "\n");
 
-    console.log("Querying flow updated events...");
+    console.log("Querying flow updated events...\n");
+
+    // TODO: I don't like how we have special logic specifically for
+    // FlowUpdated, this is not really maintainable in the future
+    const flowUpdatedEventsFilter = cfaV1.filters.FlowUpdated();
     const flowUpdatedEvents = await cfaV1.queryFilter(
         flowUpdatedEventsFilter,
         addresses.hostStartBlock
@@ -206,28 +293,45 @@ async function main() {
         flowUpdatedEvents,
         (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
     );
+    onchainEvents["FlowUpdated"] = {
+        events: flowUpdatedEvents,
+        groupedEvents: groupedFlowUpdatedEvents,
+    };
 
-    console.log("Querying index created events...");
+    console.log(flowUpdatedEvents.length, "FlowUpdated events queried.")
+
+    // query and set all the ida events in our onChainEvents object
+    await Promise.all(
+        Object.keys(onchainEvents)
+            .filter((x) => x !== "FlowUpdated") // only IDA events
+            .map(async (x) => {
+                console.log(`Querying ${x} events...\n`);
+                const idaEventString = x as OnChainIDAEventString;
+                const eventsFilter = idaV1.filters[idaEventString]() as any; // TEMPORARY
+                const events = await idaV1.queryFilter(
+                    eventsFilter,
+                    addresses.hostStartBlock
+                );
+                const groupedEvents = _.groupBy(
+                    events,
+                    (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
+                );
+                onchainEvents[idaEventString] = {events, groupedEvents};
+            })
+    );
+
     /**
      * TODOs
      * PATTERN:
-     * - QUERY ALL EVENTS VIA THE CONTRACT ON ETHERS
-     * - QUERY ALL EVENTS VIA THE SUBGRAPH
-     * - QUERY ALL HOL/AGGREGATE ENTITIES VIA THE SUBGRAPH
-     * - COMPARE EVENTS (TOTAL LENGTH SHOULD BE THE SAME)
-     *  - VALIDATE THAT THE DATA ON THE EVENTS ARE MATCHING TOO
-     * - COMPARE HOL/AGGREGATE PROPERTIES THAT WE ARE WATCHING 
+     * - QUERY ALL EVENTS VIA THE CONTRACT ON ETHERS [x]
+     * - QUERY ALL EVENTS VIA THE SUBGRAPH []
+     * - QUERY ALL HOL/AGGREGATE ENTITIES VIA THE SUBGRAPH []
+     * - COMPARE EVENTS (TOTAL LENGTH SHOULD BE THE SAME) []
+     *  - VALIDATE THAT THE DATA ON THE EVENTS ARE MATCHING TOO []
+     * - COMPARE HOL/AGGREGATE PROPERTIES THAT WE ARE WATCHING []
      */
 
-    console.log("Querying index updated events...");
-
-    const indexUpdatedEventsFilter = idaV1.filters.IndexUpdated();
-    const indexUpdatedEvents = await idaV1.queryFilter(
-        indexUpdatedEventsFilter,
-        addresses.hostStartBlock
-    );
-
-    console.log("\nGetting all required data via the Subgraph...");
+    console.log("\nGetting all events data via the Subgraph...");
 
     console.log("Querying all flowUpdatedEvents via the Subgraph...");
 
@@ -252,19 +356,28 @@ async function main() {
             false,
             true
         );
+
+    const uniqueSubgraphFlowUpdatedEvents = _.uniqBy(
+        subgraphFlowUpdatedEvents,
+        (x) => x.id
+    );
     const uniqueSubgraphIndexUpdatedEvents = _.uniqBy(
         subgraphIndexUpdatedEvents,
         (x) => x.id
     );
+
+    console.log("Event Tests Starting...");
     console.log(
-        `uniqueSubgraphIndexUpdatedEvents.length (${
-            uniqueSubgraphIndexUpdatedEvents.length
-        }) === indexUpdatedEvents.length (${indexUpdatedEvents.length}): ${
-            uniqueSubgraphIndexUpdatedEvents.length ===
-            indexUpdatedEvents.length
-        }`
+        `There are ${uniqueSubgraphFlowUpdatedEvents.length} FlowUpdated events 
+        out of ${subgraphFlowUpdatedEvents.length} total FlowUpdated events.`
     );
-    
+
+    validateEvents(
+        "FlowUpdated",
+        onchainEvents["FlowUpdated"].events,
+        uniqueSubgraphFlowUpdatedEvents,
+        onchainEvents["FlowUpdated"].groupedEvents
+    );
 
     console.log("Querying all streams via the Subgraph...");
 
@@ -321,15 +434,6 @@ async function main() {
 
     console.log("\nData Processing: Filtering out duplicate entities...");
 
-    const uniqueSubgraphFlowUpdatedEvents = _.uniqBy(
-        subgraphFlowUpdatedEvents,
-        (x) => x.id
-    );
-    console.log(
-        `There are ${uniqueSubgraphFlowUpdatedEvents.length} FlowUpdated events 
-        out of ${subgraphFlowUpdatedEvents.length} total FlowUpdated events.`
-    );
-
     const uniqueStreams = _.uniqBy(
         streams,
         (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
@@ -365,73 +469,13 @@ async function main() {
         (x) => x.token.underlyingAddress !== ethers.constants.AddressZero
     );
     console.log(
-        `There are ${uniqueTokenStatistics.length} unique tokenStatistics
+        `There are ${uniqueTokenStatistics.length} unique tokenStatistics with an underlying address
         out of ${tokenStatistics.length} total tokenStatistics.`
     );
 
-    console.log("\nValidating tegridy' of subgraph data...");
-
-    console.log("Event Tests Starting...");
-    if (flowUpdatedEvents.length === uniqueSubgraphFlowUpdatedEvents.length) {
-        console.log("FlowUpdated events length is the same.");
-    } else {
-        throw new Error("FlowUpdated events length are different.");
-    }
-
-    for (let i = 0; i < subgraphFlowUpdatedEvents.length; i++) {
-        const currentSubgraphFlowUpdatedEvent = subgraphFlowUpdatedEvents[i];
-        const id = currentSubgraphFlowUpdatedEvent.id.split("FlowUpdated-")[1];
-        const currentContractFlowUpdatedEvent = groupedFlowUpdatedEvents[id];
-
-        if (currentContractFlowUpdatedEvent == null) {
-            console.log("currentSubgraphFlowUpdatedEvent", currentSubgraphFlowUpdatedEvent);
-            continue;
-        }
-
-        const tokenFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.token.toLowerCase() ===
-            currentSubgraphFlowUpdatedEvent.token;
-        const senderFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.sender.toLowerCase() ===
-            currentSubgraphFlowUpdatedEvent.sender;
-        const receiverFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.receiver.toLowerCase() ===
-            currentSubgraphFlowUpdatedEvent.receiver;
-        const userDataFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.userData === currentSubgraphFlowUpdatedEvent.userData;
-
-        const flowRateFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.flowRate.eq(toBN(currentSubgraphFlowUpdatedEvent.flowRate));
-        const totalSenderFlowRateFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.totalSenderFlowRate.eq(toBN(currentSubgraphFlowUpdatedEvent.totalSenderFlowRate));
-        const totalReceiverFlowRateFieldIsSame =
-            currentContractFlowUpdatedEvent[0].args.totalReceiverFlowRate.eq(toBN(currentSubgraphFlowUpdatedEvent.totalReceiverFlowRate));
-
-        if (
-            !tokenFieldIsSame ||
-            !senderFieldIsSame ||
-            !receiverFieldIsSame ||
-            !flowRateFieldIsSame ||
-            !totalSenderFlowRateFieldIsSame ||
-            !totalReceiverFlowRateFieldIsSame ||
-            !userDataFieldIsSame
-        ) {
-            console.log(
-                `Subgraph data: ${JSON.stringify(
-                    currentSubgraphFlowUpdatedEvent
-                )} \n On-chain data: ${JSON.stringify(
-                    currentContractFlowUpdatedEvent[0].args
-                )}`
-            );
-            throw new Error("FlowUpdated Event is not the same.");
-        }
-
-        printProgress(
-            i,
-            subgraphFlowUpdatedEvents.length,
-            "FlowUpdated events"
-        );
-    }
+    console.log(
+        "\nValidating tegridy' of subgraph data for Higher Order Level and Aggregate Entities"
+    );
 
     // Account Level Invariant: validate CFA current streams data
     // Create promises to validate account level CFA stream data

@@ -1,6 +1,6 @@
-import {ethers} from "hardhat";
+import { ethers } from "hardhat";
 import _ from "lodash";
-import {toBN} from "../../test/helpers/helpers";
+import { toBN } from "../../test/helpers/helpers";
 import cfaABI from "../../abis/IConstantFlowAgreementV1.json";
 import idaABI from "../../abis/IInstantDistributionAgreementV1.json";
 import superTokenABI from "../../abis/ISuperToken.json";
@@ -21,45 +21,64 @@ import {
     IDataIntegrityStream,
     IDataIntegritySubscription,
     IDataIntegrityTokenStatistic,
-    IOnChainEvents,
-    OnChainIDAEventString,
+    IOnChainCFAEvents,
+    IOnChainIDAEvents,
 } from "../interfaces";
-import {chainIdToData} from "../maps";
-import {ConstantFlowAgreementV1} from "../../typechain/ConstantFlowAgreementV1";
-import {InstantDistributionAgreementV1} from "../../typechain/InstantDistributionAgreementV1";
-import {ISuperToken} from "../../typechain";
-import {calculateAvailableBalance} from "../../../sdk-core/src/utils";
-import {IIndexSubscription} from "../../../sdk-core/src/interfaces";
-import {BigNumber} from "ethers";
-import { chunkData, getAllResults, getMostRecentIndexedBlockNumber, printProgress, validateEvents } from "./helperFunctions";
+import { chainIdToData } from "../maps";
+import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
+import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
+import { ISuperToken } from "../../typechain";
+import { calculateAvailableBalance } from "../../../sdk-core/src/utils";
+import { IIndexSubscription } from "../../../sdk-core/src/interfaces";
+import { BigNumber } from "ethers";
+import {
+    chunkData,
+    getMostRecentIndexedBlockNumber,
+    keys,
+    printProgress,
+    QueryHelper,
+    validateEvents,
+} from "./helperFunctions";
 
+// currently set to 1 due to limitation with node-fetch
+// // https://github.com/node-fetch/node-fetch/issues/449
 const DEFAULT_CHUNK_LENGTH = 1;
+const MAX_RESULTS_PER_PAGE = 1000; // a limit imposed by subgraph
 
 async function main() {
     let netFlowRateSum = toBN(0);
-    let tokenGroupedRTBSums: {[tokenAddress: string]: BigNumber} = {};
-    let onchainEvents: IOnChainEvents = {
-        FlowUpdated: {events: [], groupedEvents: {}},
-        IndexCreated: {events: [], groupedEvents: {}},
-        IndexDistributionClaimed: {events: [], groupedEvents: {}},
-        IndexUpdated: {events: [], groupedEvents: {}},
-        IndexSubscribed: {events: [], groupedEvents: {}},
-        IndexUnitsUpdated: {events: [], groupedEvents: {}},
-        IndexUnsubscribed: {events: [], groupedEvents: {}},
-        SubscriptionApproved: {events: [], groupedEvents: {}},
-        SubscriptionDistributionClaimed: {events: [], groupedEvents: {}},
-        SubscriptionRevoked: {events: [], groupedEvents: {}},
-        SubscriptionUnitsUpdated: {events: [], groupedEvents: {}},
+    let tokenGroupedRTBSums: { [tokenAddress: string]: BigNumber } = {};
+    let onChainCFAEvents: IOnChainCFAEvents = {
+        FlowUpdated: { events: [], groupedEvents: {} },
     };
+    let onChainIDAEvents: IOnChainIDAEvents = {
+        IndexCreated: { events: [], groupedEvents: {} },
+        IndexDistributionClaimed: { events: [], groupedEvents: {} },
+        IndexUpdated: { events: [], groupedEvents: {} },
+        IndexSubscribed: { events: [], groupedEvents: {} },
+        IndexUnitsUpdated: { events: [], groupedEvents: {} },
+        IndexUnsubscribed: { events: [], groupedEvents: {} },
+        SubscriptionApproved: { events: [], groupedEvents: {} },
+        SubscriptionDistributionClaimed: { events: [], groupedEvents: {} },
+        SubscriptionRevoked: { events: [], groupedEvents: {} },
+        SubscriptionUnitsUpdated: { events: [], groupedEvents: {} },
+    };
+
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId;
     const chainIdData = chainIdToData.get(chainId);
+
     if (chainIdData == null) {
         throw new Error("chainId " + chainId + " is not a supported chainId.");
     }
-    // Give the Indexer 150 block cushion
+
     const currentBlockNumber = await getMostRecentIndexedBlockNumber(
         chainIdData.subgraphAPIEndpoint
+    );
+    const queryHelper = new QueryHelper(
+        chainIdData.subgraphAPIEndpoint,
+        currentBlockNumber,
+        MAX_RESULTS_PER_PAGE
     );
     const block = await ethers.provider.getBlock(currentBlockNumber);
     const currentTimestamp = block.timestamp;
@@ -98,31 +117,30 @@ async function main() {
         flowUpdatedEvents,
         (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
     );
-    onchainEvents["FlowUpdated"] = {
+    onChainCFAEvents["FlowUpdated"] = {
         events: flowUpdatedEvents,
         groupedEvents: groupedFlowUpdatedEvents,
     };
 
-    console.log(flowUpdatedEvents.length, "FlowUpdated events queried.")
+    console.log(flowUpdatedEvents.length, "FlowUpdated events queried.");
 
     // query and set all the ida events in our onChainEvents object
     await Promise.all(
-        Object.keys(onchainEvents)
-            .filter((x) => x !== "FlowUpdated") // only IDA events
-            .map(async (x) => {
-                console.log(`Querying ${x} events...\n`);
-                const idaEventString = x as OnChainIDAEventString;
-                const eventsFilter = idaV1.filters[idaEventString]() as any; // TEMPORARY
-                const events = await idaV1.queryFilter(
-                    eventsFilter,
-                    addresses.hostStartBlock
-                );
-                const groupedEvents = _.groupBy(
-                    events,
-                    (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
-                );
-                onchainEvents[idaEventString] = {events, groupedEvents};
-            })
+        keys(onChainIDAEvents).map(async (x) => {
+            console.log(`Querying ${x} events...\n`);
+            const idaEventName = x;
+            const eventsFilter = idaV1.filters[idaEventName]() as any; // TEMPORARY
+            const events = await idaV1.queryFilter(
+                eventsFilter,
+                addresses.hostStartBlock
+            );
+            const groupedEvents = _.groupBy(
+                events,
+                (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
+            );
+            onChainIDAEvents[idaEventName] = { events, groupedEvents };
+            console.log(events.length, `${idaEventName} events queried.`);
+        })
     );
 
     /**
@@ -130,112 +148,92 @@ async function main() {
      * PATTERN:
      * - QUERY ALL EVENTS VIA THE CONTRACT ON ETHERS [x]
      * - QUERY ALL EVENTS VIA THE SUBGRAPH []
+     *  - PROCESS AND ONLY GET UNIQUE ENTITIES
+     * - VALIDATE ALL EVENTS
+     *  - BASE CASE: EQUAL LENGTH
      * - QUERY ALL HOL/AGGREGATE ENTITIES VIA THE SUBGRAPH []
-     * - COMPARE EVENTS (TOTAL LENGTH SHOULD BE THE SAME) []
-     *  - VALIDATE THAT THE DATA ON THE EVENTS ARE MATCHING TOO []
      * - COMPARE HOL/AGGREGATE PROPERTIES THAT WE ARE WATCHING []
      */
 
     console.log("\nGetting all events data via the Subgraph...");
 
-    console.log("Querying all flowUpdatedEvents via the Subgraph...");
-
+    console.log("\nQuerying all flowUpdatedEvents via the Subgraph...");
     const subgraphFlowUpdatedEvents =
-        await getAllResults<IDataIntegrityFlowUpdatedEvent>(
-            getFlowUpdatedEvents,
-            chainIdData.subgraphAPIEndpoint,
-            currentBlockNumber,
-            1000,
-            false,
-            true
-        );
-
-    console.log("Querying all indexUpdatedEvents via the Subgraph...");
-
-    const subgraphIndexUpdatedEvents =
-        await getAllResults<IDataIntegrityIndexUpdatedEvent>(
-            getIndexUpdatedEvents,
-            chainIdData.subgraphAPIEndpoint,
-            currentBlockNumber,
-            1000,
-            false,
-            true
-        );
-
+        await queryHelper.getAllResults<IDataIntegrityFlowUpdatedEvent>({
+            query: getFlowUpdatedEvents,
+            isEvent: true
+        });
     const uniqueSubgraphFlowUpdatedEvents = _.uniqBy(
         subgraphFlowUpdatedEvents,
         (x) => x.id
     );
+    console.log(
+        `There are ${uniqueSubgraphFlowUpdatedEvents.length} FlowUpdated events 
+            out of ${subgraphFlowUpdatedEvents.length} total FlowUpdated events.`
+    );
+    validateEvents(
+        "FlowUpdated",
+        onChainCFAEvents["FlowUpdated"].events,
+        uniqueSubgraphFlowUpdatedEvents,
+        onChainCFAEvents["FlowUpdated"].groupedEvents
+    );
+
+    console.log("\nQuerying all indexUpdatedEvents via the Subgraph...");
+    const subgraphIndexUpdatedEvents =
+        await queryHelper.getAllResults<IDataIntegrityIndexUpdatedEvent>({
+            query: getIndexUpdatedEvents,
+            isEvent: true
+        });
     const uniqueSubgraphIndexUpdatedEvents = _.uniqBy(
         subgraphIndexUpdatedEvents,
         (x) => x.id
     );
-
-    console.log("Event Tests Starting...");
     console.log(
-        `There are ${uniqueSubgraphFlowUpdatedEvents.length} FlowUpdated events 
-        out of ${subgraphFlowUpdatedEvents.length} total FlowUpdated events.`
+        `There are ${uniqueSubgraphIndexUpdatedEvents.length} IndexUpdated events 
+            out of ${subgraphIndexUpdatedEvents.length} total IndexUpdated events.`
     );
 
-    validateEvents(
-        "FlowUpdated",
-        onchainEvents["FlowUpdated"].events,
-        uniqueSubgraphFlowUpdatedEvents,
-        onchainEvents["FlowUpdated"].groupedEvents
-    );
+    console.log("\nEvent Validation Starting...");
 
     console.log("Querying all streams via the Subgraph...");
 
     // This gets all of the current streams (flow rate > 0)
-    const streams = await getAllResults<IDataIntegrityStream>(
-        getCurrentStreams,
-        chainIdData.subgraphAPIEndpoint,
-        currentBlockNumber,
-        1000,
-        false
-    );
+    const streams = await queryHelper.getAllResults<IDataIntegrityStream>({
+        query: getCurrentStreams,
+        isUpdatedAt: false
+    });
 
     console.log("Querying all account token snapshots via the Subgraph...");
     // This gets account token snapshots of all accounts that have
     // ever interacted with the Super protocol.
     const accountTokenSnapshots =
-        await getAllResults<IDataIntegrityAccountTokenSnapshot>(
-            getAccountTokenSnapshots,
-            chainIdData.subgraphAPIEndpoint,
-            currentBlockNumber,
-            1000,
-            true
-        );
+        await queryHelper.getAllResults<IDataIntegrityAccountTokenSnapshot>({
+            query: getAccountTokenSnapshots,
+            isUpdatedAt: true
+        });
 
     console.log("Querying all indexes via the Subgraph...");
     // Gets all indexes ever created
-    const indexes = await getAllResults<IDataIntegrityIndex>(
-        getIndexes,
-        chainIdData.subgraphAPIEndpoint,
-        currentBlockNumber,
-        1000,
-        false
-    );
+    const indexes = await queryHelper.getAllResults<IDataIntegrityIndex>({
+        query: getIndexes,
+        isUpdatedAt: false
+    });
 
     console.log("Querying all subscriptions via the Subgraph...");
     // Gets all subscriptions ever created
-    const subscriptions = await getAllResults<IDataIntegritySubscription>(
-        getSubscriptions,
-        chainIdData.subgraphAPIEndpoint,
-        currentBlockNumber,
-        1000,
-        false
-    );
+    const subscriptions =
+        await queryHelper.getAllResults<IDataIntegritySubscription>({
+            query: getSubscriptions,
+            isUpdatedAt: false
+        });
 
     console.log("Querying all tokenStatistics via the Subgraph...");
     // Gets all subscriptions ever created
-    const tokenStatistics = await getAllResults<IDataIntegrityTokenStatistic>(
-        getTokenStatistics,
-        chainIdData.subgraphAPIEndpoint,
-        currentBlockNumber,
-        1000,
-        true
-    );
+    const tokenStatistics =
+        await queryHelper.getAllResults<IDataIntegrityTokenStatistic>({
+            query: getTokenStatistics,
+            isUpdatedAt: true
+        });
 
     console.log("\nData Processing: Filtering out duplicate entities...");
 
@@ -296,7 +294,7 @@ async function main() {
                         ethers.utils.getAddress(stream.token.id),
                         ethers.utils.getAddress(stream.sender.id),
                         ethers.utils.getAddress(stream.receiver.id),
-                        {blockTag: currentBlockNumber}
+                        { blockTag: currentBlockNumber }
                     );
 
                     const updatedAtShouldMatch = updatedAtTimestamp.eq(
@@ -597,7 +595,7 @@ async function main() {
                             publisher,
                             indexId,
                             subscriber,
-                            {blockTag: currentBlockNumber}
+                            { blockTag: currentBlockNumber }
                         );
 
                     if (!exist) {

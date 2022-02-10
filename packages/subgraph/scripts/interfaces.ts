@@ -128,71 +128,63 @@ export interface IDataIntegrityTokenStatistic extends IBaseEntity {
     readonly token: {id: string; underlyingAddress: string};
 }
 
-export type OnChainIDAEventString =
-    | "IndexCreated"
-    | "IndexUpdated"
-    | "IndexDistributionClaimed"
-    | "IndexSubscribed"
-    | "IndexUnitsUpdated"
-    | "IndexUnsubscribed"
-    | "SubscriptionApproved"
-    | "SubscriptionDistributionClaimed"
-    | "SubscriptionRevoked"
-    | "SubscriptionUnitsUpdated";
+export const enum IDAEvent {
+    IndexCreated = "IndexCreated",
+    IndexUpdated = "IndexUpdated",
+    IndexDistributionClaimed = "IndexDistributionClaimed",
+    IndexSubscribed = "IndexSubscribed",
+    IndexUnitsUpdated = "IndexUnitsUpdated",
+    IndexUnsubscribed = "IndexUnsubscribed",
+    SubscriptionApproved = "SubscriptionApproved",
+    SubscriptionDistributionClaimed = "SubscriptionDistributionClaimed",
+    SubscriptionRevoked = "SubscriptionRevoked",
+    SubscriptionUnitsUpdated = "SubscriptionUnitsUpdated",
+}
 
-export type EventTypes =
-    | IndexCreatedEvent[]
-    | IndexUpdatedEvent[]
-    | IndexDistributionClaimedEvent[]
-    | IndexSubscribedEvent[]
-    | IndexUnitsUpdatedEvent[]
-    | IndexUnsubscribedEvent[]
-    | SubscriptionApprovedEvent[]
-    | SubscriptionDistributionClaimedEvent[]
-    | SubscriptionRevokedEvent[]
-    | SubscriptionUnitsUpdatedEvent[];
-export interface IOnChainEvents {
+export interface IOnChainCFAEvents {
     ["FlowUpdated"]: {
         events: FlowUpdatedEvent[];
         groupedEvents: _.Dictionary<FlowUpdatedEvent[]>;
     };
-    ["IndexCreated"]: {
+}
+export interface IOnChainIDAEvents {
+    [IDAEvent.IndexCreated]: {
         events: IndexCreatedEvent[];
         groupedEvents: _.Dictionary<IndexCreatedEvent[]>;
     };
-    ["IndexUpdated"]: {
+    [IDAEvent.IndexUpdated]: {
         events: IndexUpdatedEvent[];
         groupedEvents: _.Dictionary<IndexUpdatedEvent[]>;
     };
-    ["IndexDistributionClaimed"]: {
+    [IDAEvent.IndexDistributionClaimed]: {
         events: IndexDistributionClaimedEvent[];
         groupedEvents: _.Dictionary<IndexDistributionClaimedEvent[]>;
     };
-    ["IndexSubscribed"]: {
+    [IDAEvent.IndexSubscribed]: {
         events: IndexSubscribedEvent[];
         groupedEvents: _.Dictionary<IndexSubscribedEvent[]>;
     };
-    ["IndexUnitsUpdated"]: {
+    [IDAEvent.IndexUnitsUpdated]: {
         events: IndexUnitsUpdatedEvent[];
         groupedEvents: _.Dictionary<IndexUnitsUpdatedEvent[]>;
     };
-    ["IndexUnsubscribed"]: {
+    [IDAEvent.IndexUnsubscribed]: {
         events: IndexUnsubscribedEvent[];
         groupedEvents: _.Dictionary<IndexUnsubscribedEvent[]>;
     };
-    ["SubscriptionApproved"]: {
+    [IDAEvent.SubscriptionApproved]: {
         events: SubscriptionApprovedEvent[];
         groupedEvents: _.Dictionary<SubscriptionApprovedEvent[]>;
     };
-    ["SubscriptionDistributionClaimed"]: {
+    [IDAEvent.SubscriptionDistributionClaimed]: {
         events: SubscriptionDistributionClaimedEvent[];
         groupedEvents: _.Dictionary<SubscriptionDistributionClaimedEvent[]>;
     };
-    ["SubscriptionRevoked"]: {
+    [IDAEvent.SubscriptionRevoked]: {
         events: SubscriptionRevokedEvent[];
         groupedEvents: _.Dictionary<SubscriptionRevokedEvent[]>;
     };
-    ["SubscriptionUnitsUpdated"]: {
+    [IDAEvent.SubscriptionUnitsUpdated]: {
         events: SubscriptionUnitsUpdatedEvent[];
         groupedEvents: _.Dictionary<SubscriptionUnitsUpdatedEvent[]>;
     };

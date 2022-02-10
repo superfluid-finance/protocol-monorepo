@@ -1,13 +1,19 @@
-import request, {gql} from "graphql-request";
-import {toBN} from "../../test/helpers/helpers";
-import {IMeta} from "../../test/interfaces";
-import {TypedEvent} from "../../typechain/common";
-import {IBaseEntity} from "../interfaces";
+import request, { gql } from "graphql-request";
+import _ from "lodash";
+import { toBN } from "../../test/helpers/helpers";
+import { IMeta } from "../../test/interfaces";
+import { TypedEvent } from "../../typechain/common";
+import { IBaseEntity, IDAEvent, IOnChainCFAEvents, IOnChainIDAEvents } from "../interfaces";
+
+/**
+ * @dev Extract type of key when using Object.keys.
+ */
+export const keys = Object.keys as <T>(o: T) => Extract<keyof T, string>[];
 
 export const subgraphRequest = async <T>(
     query: string,
     subgraphEndpoint: string,
-    variables?: {[key: string]: any}
+    variables?: { [key: string]: any }
 ): Promise<T> => {
     try {
         const response = await request<T>(subgraphEndpoint, query, variables);
@@ -129,71 +135,146 @@ export const validateEvents = <T extends TypedEvent, K>(
     );
 };
 
-/**
- * @dev Gets all the results from the graph, we need this function
- * due to the 1,000 item limitation imposed by the
- */
-export const getAllResults = async <T extends IBaseEntity>(
-    query: string,
-    endpoint: string,
-    blockNumber: number,
-    resultsPerPage: number,
-    isUpdatedAt: boolean,
-    isEvent: boolean = false,
-    timestamp: number = 0,
-    counter: number = 0
-): Promise<T[]> => {
-    const baseQuery = {blockNumber, first: resultsPerPage};
-    const initialResults = await subgraphRequest<{response: T[]}>(
+export const querySubgraphAndValidateEvents = async <T extends IBaseEntity>({
+    idaEventName,
+    queryHelper,
+    query,
+    onChainCFAEvents,
+    onChainIDAEvents,
+}: {
+    idaEventName: IDAEvent;
+    queryHelper: QueryHelper;
+    query: string;
+    onChainCFAEvents?: IOnChainCFAEvents;
+    onChainIDAEvents?: IOnChainIDAEvents;
+}) => {
+    if (
+        (!onChainCFAEvents && !onChainIDAEvents) ||
+        (onChainCFAEvents && onChainIDAEvents)
+    ) {
+        throw new Error(
+            "You must pass in either onChainCFAEvents OR OnChainIDAEvents"
+        );
+    }
+    const subgraphEvents = await queryHelper.getAllResults<T>({
         query,
-        endpoint,
-        isEvent
-            ? {
-                  ...baseQuery,
-                  timestamp,
-              }
-            : isUpdatedAt
-            ? {
-                  ...baseQuery,
-                  updatedAt: timestamp,
-              }
-            : {
-                  ...baseQuery,
-                  createdAt: timestamp,
-              }
-    );
-
+        isEvent: true,
+    });
+    const uniqueSubgraphEvents = _.uniqBy(subgraphEvents, (x) => x.id);
     console.log(
-        counter * resultsPerPage +
-            initialResults.response.length +
-            " responses queried."
+        `There are ${uniqueSubgraphEvents.length} FlowUpdated events 
+            out of ${subgraphEvents.length} total FlowUpdated events.`
     );
-    counter++;
 
-    if (initialResults.response.length < resultsPerPage) {
-        return initialResults.response;
+    if (onChainCFAEvents) {
+        validateEvents(
+            idaEventName,
+            onChainCFAEvents["FlowUpdated"].events,
+            uniqueSubgraphEvents,
+            onChainCFAEvents["FlowUpdated"].groupedEvents
+        );
     }
 
-    let newTimestamp = isEvent
-        ? initialResults.response[initialResults.response.length - 1].timestamp
-        : isUpdatedAt
-        ? initialResults.response[initialResults.response.length - 1]
-              .updatedAtTimestamp
-        : initialResults.response[initialResults.response.length - 1]
-              .createdAtTimestamp;
-
-    const responses = [
-        ...initialResults.response,
-        ...((await getAllResults(
-            query,
-            endpoint,
-            blockNumber,
-            resultsPerPage,
-            isUpdatedAt,
-            isEvent,
-            Number(newTimestamp),
-            counter
-        )) as T[]),
-    ];
-    return responses;
+    // TODO: figure out a way to remove any
+    if (onChainIDAEvents) {
+        validateEvents(
+            idaEventName,
+            onChainIDAEvents[idaEventName].events as any,
+            uniqueSubgraphEvents,
+            onChainIDAEvents[idaEventName].groupedEvents as any
+        );
+    }
 };
+
+interface IGetAllResultsQueryObject {
+    query: string;
+    isUpdatedAt?: boolean;
+    isEvent?: boolean;
+    timestamp?: number;
+    counter?: number;
+}
+
+export class QueryHelper {
+    readonly endpoint: string;
+    readonly currentBlockNumber: number;
+    readonly resultsPerPage: number;
+
+    constructor(
+        endpoint: string,
+        currentBlockNumber: number,
+        resultsPerPage: number
+    ) {
+        this.endpoint = endpoint;
+        this.currentBlockNumber = currentBlockNumber;
+        this.resultsPerPage = resultsPerPage;
+    }
+
+    /**
+     * @dev Gets all the results given the 1000 item limitation imposed by the Graph.
+     */
+    getAllResults = async <T extends IBaseEntity>({
+        query,
+        isUpdatedAt,
+        isEvent = false,
+        timestamp = 0,
+        counter = 0,
+    }: IGetAllResultsQueryObject): Promise<T[]> => {
+        const baseQuery = {
+            blockNumber: this.currentBlockNumber,
+            first: this.resultsPerPage,
+        };
+        const initialResults = await subgraphRequest<{ response: T[] }>(
+            query,
+            this.endpoint,
+            isEvent
+                ? {
+                      ...baseQuery,
+                      timestamp,
+                  }
+                : // we have this distinction because our aggregate entities
+                // don't have a createdAtTimestamp which would normally be
+                // used to get the next results
+                isUpdatedAt
+                ? {
+                      ...baseQuery,
+                      updatedAt: timestamp,
+                  }
+                : {
+                      ...baseQuery,
+                      createdAt: timestamp,
+                  }
+        );
+
+        console.log(
+            counter * this.resultsPerPage +
+                initialResults.response.length +
+                " responses queried."
+        );
+        counter++;
+
+        if (initialResults.response.length < this.resultsPerPage) {
+            return initialResults.response;
+        }
+
+        let newTimestamp = isEvent
+            ? initialResults.response[initialResults.response.length - 1]
+                  .timestamp
+            : isUpdatedAt
+            ? initialResults.response[initialResults.response.length - 1]
+                  .updatedAtTimestamp
+            : initialResults.response[initialResults.response.length - 1]
+                  .createdAtTimestamp;
+
+        const responses = [
+            ...initialResults.response,
+            ...((await this.getAllResults({
+                query,
+                isUpdatedAt,
+                isEvent,
+                timestamp: Number(newTimestamp),
+                counter,
+            })) as T[]),
+        ];
+        return responses;
+    };
+}

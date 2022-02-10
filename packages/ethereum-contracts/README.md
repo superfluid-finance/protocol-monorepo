@@ -128,10 +128,11 @@ git clone https://github.com/superfluid-finance/protocol-monorepo.git
 cd protocol-monorepo/
 ```
 
-Then install dependencies:
+Then install dependencies and do an initial build:
 
 ```sh
 yarn install
+yarn build
 ```
 
 Now cd to the contracts directory:

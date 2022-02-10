@@ -1,5 +1,6 @@
 const {expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("ethers");
 const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
@@ -358,7 +359,104 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.4 whiteListNewApp", async () => {
+        it("#2.4 SuperTokenMinimumDeposit", async () => {
+            await expectRevert(
+                governance.setSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    42069
+                ),
+                onlyOwnerReason
+            );
+            await expectRevert(
+                governance.clearSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    ZERO_ADDRESS
+                ),
+                onlyOwnerReason
+            );
+            await web3tx(
+                governance.setSuperTokenMinimumDeposit,
+                "governance.setSuperTokenMinimumDeposit DEFAULT 42069"
+            )(superfluid.address, ZERO_ADDRESS, 42069, {from: alice});
+            await web3tx(
+                governance.setSuperTokenMinimumDeposit,
+                "governance.setSuperTokenMinimumDeposit FAKE_TOKEN_ADDRESS1 88833"
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, 88833, {
+                from: alice,
+            });
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "88833"
+            );
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS2
+                    )
+                ).toString(),
+                "42069"
+            );
+
+            await web3tx(
+                governance.clearSuperTokenMinimumDeposit,
+                "governance.clearSuperTokenMinimumDeposit FAKE_TOKEN_ADDRESS1"
+            )(superfluid.address, FAKE_TOKEN_ADDRESS1, {from: alice});
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "42069"
+            );
+
+            await expectRevert(
+                governance.batchUpdateSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    [FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS2],
+                    [42033, 6988]
+                ),
+                onlyOwnerReason
+            );
+            await web3tx(
+                governance.batchUpdateSuperTokenMinimumDeposit,
+                "governance.batchUpdateSuperTokenMinimumDeposit FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS_2"
+            )(
+                superfluid.address,
+                [FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS2],
+                [42033, 6988],
+                {from: alice}
+            );
+
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "42033"
+            );
+            assert.equal(
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS2
+                    )
+                ).toString(),
+                "6988"
+            );
+        });
+
+        it("#2.5 whiteListNewApp", async () => {
             await expectRevert(
                 governance.whiteListNewApp(
                     superfluid.address,
@@ -375,7 +473,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.5 authorizeAppFactory", async () => {
+        it("#2.6 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );
@@ -435,6 +533,178 @@ describe("Superfluid Ownable Governance Contract", function () {
                     superfluid.address,
                     appFactory.address
                 )
+            );
+        });
+
+        it("#2.7 external set/clear config", async () => {
+            const bytesRewardAddressKey = ethers.utils.toUtf8Bytes(
+                "org.superfluid-finance.superfluid.rewardAddress"
+            );
+            const bytesMinimumDepositKey = ethers.utils.toUtf8Bytes(
+                "org.superfluid-finance.superfluid.superTokenMinimumDeposit"
+            );
+            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = ethers.utils.keccak256(
+                bytesRewardAddressKey
+            );
+            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = ethers.utils.keccak256(
+                bytesMinimumDepositKey
+            );
+
+            // only owner can set config
+            await expectRevert(
+                governance.setConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                    FAKE_ADDRESS1
+                ),
+                onlyOwnerReason
+            );
+
+            // only owner can clear config
+            await expectRevert(
+                governance.clearConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
+                ),
+                onlyOwnerReason
+            );
+
+            await web3tx(
+                governance.setConfig,
+                "governance.setConfig FAKE_TOKEN_ADDRESS1 SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY FAKE_ADDRESS2"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                FAKE_ADDRESS2,
+                {
+                    from: alice,
+                }
+            );
+
+            assert.equal(
+                await governance.getRewardAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                FAKE_ADDRESS2
+            );
+            assert.equal(
+                await governance.getConfigAsAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
+                ),
+                FAKE_ADDRESS2
+            );
+
+            // clear address value
+            await web3tx(
+                governance.clearConfig,
+                "governance.clearConfig FAKE_TOKEN_ADDRESS1 SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                {
+                    from: alice,
+                }
+            );
+
+            assert.equal(
+                await governance.getRewardAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                FAKE_ADDRESS1
+            );
+
+            assert.equal(
+                await governance.getConfigAsAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
+                ),
+                FAKE_ADDRESS1
+            );
+
+            // only owner can set config
+            await expectRevert(
+                governance.setConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                    42069
+                ),
+                onlyOwnerReason
+            );
+
+            // only owner can clear config
+            await expectRevert(
+                governance.clearConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                ),
+                onlyOwnerReason
+            );
+
+            await web3tx(
+                governance.setConfig,
+                "governance.setConfig FAKE_TOKEN_ADDRESS1 SUPERTOKEN_MINIMUM_DEPOSIT_KEY 123456"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                123456,
+                {
+                    from: alice,
+                }
+            );
+
+            assert.equal(
+                await governance.getConfigAsUint256(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                ),
+                123456
+            );
+            assert.equal(
+                await governance.getSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                123456
+            );
+
+            await web3tx(
+                governance.clearConfig,
+                "governance.clearConfig FAKE_TOKEN_ADDRESS1 SUPERTOKEN_MINIMUM_DEPOSIT_KEY"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                {
+                    from: alice,
+                }
+            );
+            assert.equal(
+                await governance.getConfigAsUint256(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                ),
+                42069
+            );
+            assert.equal(
+                await governance.getSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                42069
             );
         });
     });

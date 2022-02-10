@@ -1,0 +1,31 @@
+query indexes($first: Int = 10, $orderBy: Index_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Index_filter = {}) {
+    indexes(
+        first: $first
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        skip: $skip
+        where: $where
+    ) {
+        createdAtBlockNumber
+        createdAtTimestamp
+        id
+        indexCreatedEvent {
+            id
+        }
+        indexId
+        indexValue
+        publisher {
+            id
+        }
+        token {
+            id
+        }
+        totalAmountDistributedUntilUpdatedAt
+        totalSubscriptionsWithUnits
+        totalUnits
+        totalUnitsApproved
+        totalUnitsPending
+        updatedAtBlockNumber
+        updatedAtTimestamp
+    }
+}

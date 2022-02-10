@@ -370,8 +370,8 @@ export interface ISignerConstructorOptions {
 }
 
 export interface IConfig {
+    readonly resolverAddress: string;
     readonly hostAddress: string;
-    readonly superTokenFactoryAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
 }

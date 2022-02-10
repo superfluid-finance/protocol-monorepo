@@ -1,4 +1,4 @@
-type ErrorType =
+export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
@@ -40,20 +40,20 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
 interface ISFErrorProps {
     type: ErrorType;
     customMessage: string;
-    errorObject?: any;
+    errorObject?: unknown;
 }
 
-export default class SFError {
+export class SFError {
     readonly type: ErrorType;
     readonly message: string;
-    readonly errorObject?: any;
+    readonly errorObject?: unknown;
 
     constructor(props: ISFErrorProps) {
         const { type, errorObject, customMessage } = props;
 
         const title = errorTypeToTitleMap.get(type);
         const formattedErrorObject = errorObject
-            ? ": " + JSON.stringify(errorObject)
+            ? ": " + JSON.stringify(errorObject, null, 2) // Pretty-print the error: https://stackoverflow.com/a/7220510
             : "";
         this.type = type;
         this.errorObject = errorObject;

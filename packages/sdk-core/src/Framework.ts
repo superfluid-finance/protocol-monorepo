@@ -9,11 +9,11 @@ import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import Query from "./Query";
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 import SuperToken from "./SuperToken";
 import IResolverABI from "./abi/IResolver.json";
 import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
-import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
+import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
@@ -101,6 +101,7 @@ export default class Framework {
 
         const networkName = getNetworkName(options);
         const chainId =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
@@ -137,14 +138,14 @@ export default class Framework {
         }
 
         try {
-            const data = chainIdToDataMap.get(chainId) || {
+            const resolverData = chainIdToResolverDataMap.get(chainId) || {
                 subgraphAPIEndpoint: "",
                 resolverAddress: "",
                 networkName: "",
             };
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
-                : data.resolverAddress;
+                : resolverData.resolverAddress;
             const resolver = new ethers.Contract(
                 resolverAddress,
                 IResolverABI.abi,
@@ -172,8 +173,8 @@ export default class Framework {
                 provider,
                 networkName,
                 config: {
+                    resolverAddress,
                     hostAddress: framework.superfluid,
-                    superTokenFactoryAddress: framework.superTokenFactory,
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
                 },
@@ -242,15 +243,55 @@ export default class Framework {
      * @returns `BatchCall` class
      */
     batchCall = (operations: Operation[]) => {
-        return new BatchCall({ operations, config: this.settings.config });
+        return new BatchCall({
+            operations,
+            hostAddress: this.settings.config.hostAddress,
+        });
     };
 
     /**
      * @dev Load a `SuperToken` class from the `Framework`.
-     * @param address the `SuperToken` address
+     * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */
-    loadSuperToken = async (address: string): Promise<SuperToken> => {
-        return await SuperToken.create({ ...this.settings, address });
+    loadSuperToken = async (
+        tokenAddressOrSymbol: string
+    ): Promise<SuperToken> => {
+        let address;
+        const isValidAddress = ethers.utils.isAddress(tokenAddressOrSymbol);
+
+        if (isValidAddress) {
+            address = tokenAddressOrSymbol;
+        } else {
+            try {
+                const superTokenKey =
+                    "supertokens." +
+                    this.settings.protocolReleaseVersion +
+                    "." +
+                    tokenAddressOrSymbol;
+
+                const resolver = new ethers.Contract(
+                    this.settings.config.resolverAddress,
+                    IResolverABI.abi,
+                    this.settings.provider
+                ) as IResolver;
+                const tokenAddress = await resolver.get(superTokenKey);
+                address = tokenAddress;
+            } catch (err) {
+                throw new SFError({
+                    type: "SUPERTOKEN_INITIALIZATION",
+                    customMessage:
+                        "There was an error with loading the SuperToken with symbol: " +
+                        tokenAddressOrSymbol +
+                        " with the resolver.",
+                    errorObject: err,
+                });
+            }
+        }
+
+        return await SuperToken.create({
+            ...this.settings,
+            address,
+        });
     };
 }

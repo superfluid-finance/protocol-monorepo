@@ -1,4 +1,6 @@
-import SFError from "./SFError";
+import _ from "lodash";
+
+import { SFError } from "./SFError";
 import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,
@@ -63,6 +65,7 @@ import {
     Token_OrderBy,
 } from "./subgraph/schema.generated";
 import { DataMode } from "./types";
+import { typeGuard } from "./utils";
 import {
     validateAccountTokenSnapshotRequest,
     validateEventRequest,
@@ -83,7 +86,7 @@ export interface IQueryOptions {
  */
 export default class Query {
     options: IQueryOptions;
-    private subgraphClient: SubgraphClient;
+    subgraphClient: SubgraphClient; // TODO(KK): back to private?
 
     constructor(options: IQueryOptions) {
         this.options = options;
@@ -408,7 +411,7 @@ export default class Query {
         });
 
         return createPagedResult<AllEvents>(
-            mapGetAllEventsQueryEvents(response),
+            mapGetAllEventsQueryEvents(response.events),
             paging
         );
     };
@@ -456,13 +459,13 @@ export default class Query {
                 )
             );
 
-            if (allEvents.length) {
+            // Filter next events by last timestamp of an event.
+            // NOTE: Make sure to order events by timestamp in ascending order.
+            const lastEvent = _.last(allEvents);
+            if (lastEvent) {
                 callback(allEvents, unsubscribe);
-                // Filter next events by last timestamp of an event.
-                // NOTE: Make sure to order events by timestamp in ascending order.
-                const lastEvent = allEvents.slice(-1)[0];
                 // Next event polling is done for events that have a timestamp later than the current latest event.
-                eventQueryTimestamp = lastEvent!.timestamp;
+                eventQueryTimestamp = lastEvent.timestamp;
             }
 
             // This solution sets the interval based on last query returning, opposed to not taking request-response cycles into account at all.
@@ -485,6 +488,3 @@ export default class Query {
         return unsubscribe;
     }
 }
-
-// Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
-const typeGuard = <T>(obj: T) => obj;

@@ -358,7 +358,7 @@ contract Superfluid is
             assembly { cs := extcodesize(app) }
             require(cs == 0, "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR");
         }
-
+        // FIXME: validate/reconstruct configWord else may introduce undefined future behavior
         require(
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
@@ -853,6 +853,7 @@ contract Superfluid is
         uint256 allowanceIO =
             context.appAllowanceGranted.toUint128() |
             (uint256(context.appAllowanceWanted.toUint128()) << 128);
+        // NOTE: nested encoding done due to stack too deep error when decoding in _decodeCtx
         ctx = abi.encode(
             abi.encode(
                 callInfo,
@@ -987,12 +988,16 @@ contract Superfluid is
         internal pure
         returns (bytes memory dataWithCtx)
     {
-        // 1.a ctx needs to be padded to align with 32 bytes bundary
+        // 1.a ctx needs to be padded to align with 32 bytes boundary
         uint256 dataLen = data.length;
+        // FIXME: assert(dataLen % 32 == 0);
 
         // double check if the ctx is a placeholder ctx
+        // FIXME: This can't check all cases - user can still put nonzero length of zero data
+        // developer experience check
         {
             uint256 placeHolderCtxLength;
+            // NOTE: len(data) is data.length + 32 https://docs.soliditylang.org/en/latest/abi-spec.html
             // solhint-disable-next-line no-inline-assembly
             assembly { placeHolderCtxLength := mload(add(data, dataLen)) }
             require(placeHolderCtxLength == 0, "SF: placerholder ctx should have zero length");
@@ -1009,6 +1014,10 @@ contract Superfluid is
             uint256(ctx.length),
             ctx, new bytes(CallUtils.padLength32(ctx.length) - ctx.length) // ctx padding
         );
+        // NOTE: the alternative placeholderCtx is passing extra calldata to the agreements
+        // agreements would use assembly code to read the ctx
+        // Because selector is part of calldata, we do the padding internally, instead of
+        // outside
     }
 
     modifier validCtx(bytes memory ctx) {

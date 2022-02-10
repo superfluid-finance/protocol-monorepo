@@ -95,6 +95,9 @@ To build with Superfluid, you can use the Javascript SDK package or the SDK core
 
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
+## Bug Bounty
+Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/bug-bounty.md) for more information regarding our Bug Bounty.
+
 ## Examples
 
 See [examples/](examples/) for some Superfluid app examples.

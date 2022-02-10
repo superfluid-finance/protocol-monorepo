@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 ### Added
 - Added `indexValueCurrent` to `IndexSubscription` query to optimize calculating "total amount distributed" in consuming applications
+- Added `indexTotalUnits` to `IndexSubscription` query to optimize calculating "pool percentage" in consuming applications
 
 ## [0.3.0] - 2022-02-02
 ### Added

@@ -75,6 +75,7 @@ We need to plug in the Superfluid SDK-Redux parts.
 Import the following function:
 ```ts
 import {
+    sfApiAllEndpoints,
     allSubgraphSliceEndpoints,
     createApiWithReactHooks,
     initializeSfApiSlice,
@@ -85,9 +86,9 @@ import {
 
 Create the Redux slices:
 ```ts
-export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
-export const { sfTransactions } = initializeSfTransactionSlice();
-export const sfSubgraph = initializeSfSubgraphSlice(createApiWithReactHooks).injectEndpoints(allSubgraphSliceEndpoints);
+export const sfApi = initializeSfApiSlice(createApiWithReactHooks).injectEndpoints(sfApiAllEndpoints);
+export const sfTransactions = initializeSfTransactionSlice();
+export const sfSubgraph = initializeSfSubgraphSlice(createApiWithReactHooks).injectEndpoints(subgraphSliceAllEndpoints);
 
 ```
 

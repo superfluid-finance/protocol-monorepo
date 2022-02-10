@@ -2,9 +2,9 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 import _ from 'lodash';
 
-import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSliceInferredType';
-import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraph-slice/sfSubgraphSliceInferredType';
-import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
+import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSlice';
+import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraph-slice/subgraphSlice';
+import {SfTransactionSliceType} from './redux-slices/transactions/transactionSlice';
 
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;
@@ -140,12 +140,7 @@ export default class SdkReduxConfig
 }
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
-export const getApiSlice = () => getConfig().getApiSlice();
-export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
-export const getTransactionSlice = () => getConfig().getTransactionSlice();
-export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
-export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
-export const getFrameworkAndSigner = (chainId: number) => getConfig().getFrameworkAndSigner(chainId);
-
+export const {getApiSlice, getSubgraphSlice, getTransactionSlice, getFramework, getSigner, getFrameworkAndSigner} =
+    getConfig();
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
 const isFramework = (value: any): value is Framework => !!value.cfaV1;

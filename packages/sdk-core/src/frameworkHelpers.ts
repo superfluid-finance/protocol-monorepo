@@ -1,4 +1,3 @@
-import { IFrameworkOptions } from "./Framework";
 import { SFError } from "./SFError";
 import {
     chainIds,
@@ -6,6 +5,7 @@ import {
     networkNames,
     networkNameToChainIdMap,
 } from "./constants";
+import { IFrameworkOptions } from "./frameworkOptionsAndSettings";
 import { isNullOrEmpty } from "./utils";
 
 export const validateFrameworkConstructorOptions = (

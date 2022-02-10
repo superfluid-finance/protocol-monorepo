@@ -1,6 +1,6 @@
 import {QueryDefinition} from '@reduxjs/toolkit/dist/query';
 import {
-    AllEvents,
+    EventBase,
     EventQueryHandler,
     FlowUpdatedEvent,
     FlowUpdatedEventQueryHandler,
@@ -38,8 +38,8 @@ export const createEventQueryEndpoints = (builder: SubgraphSliceEndpointBuilder)
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
-        event: get<AllEvents, EventQuery>(builder, new EventQueryHandler()),
-        events: list<AllEvents, EventsQuery>(builder, new EventQueryHandler()),
+        event: get<EventBase, EventQuery>(builder, new EventQueryHandler()),
+        events: list<EventBase, EventsQuery>(builder, new EventQueryHandler()),
         flowUpdatedEvent: get<FlowUpdatedEvent, FlowUpdatedEventQuery>(builder, new FlowUpdatedEventQueryHandler()),
         flowUpdatedEvents: list<FlowUpdatedEvent, FlowUpdatedEventsQuery>(builder, new FlowUpdatedEventQueryHandler()),
         indexUpdatedEvent: get<IndexUpdatedEvent, IndexUpdatedEventQuery>(builder, new IndexUpdatedEventQueryHandler()),

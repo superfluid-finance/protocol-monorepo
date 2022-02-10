@@ -6,7 +6,7 @@ import {getApiSlice, getFramework, getSubgraphSlice, getTransactionSlice} from '
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 
-import {transactionSlicePrefix} from './createTransactionSlice';
+import {transactionSlicePrefix} from './transactionSlice';
 
 /**
  *

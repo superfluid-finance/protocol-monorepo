@@ -63,6 +63,7 @@ describe("SuperToken Tests", () => {
                     address: superToken.address,
                     provider: deployer.provider!,
                     config: {
+                        resolverAddress: "",
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
@@ -80,6 +81,7 @@ describe("SuperToken Tests", () => {
                     provider: "" as any,
                     networkName: "custom",
                     config: {
+                        resolverAddress: "",
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",

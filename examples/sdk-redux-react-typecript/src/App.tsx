@@ -34,6 +34,15 @@ import { ClaimFromIndexSubscription } from "./features/ClaimFromIndexSubscriptio
 import { DeleteIndexSubscription } from "./features/DeleteIndexSubscription";
 import { RevokeIndexSubscription } from "./features/RevokeIndexSubscription";
 import { MonitorForEventsToInvalidateCache } from "./features/MonitorForEventsToInvalidateCache";
+import { Account } from "./features/generic-entity-queries/Account";
+import { Accounts } from "./features/generic-entity-queries/Accounts";
+import { AccountTokenSnapshots } from "./features/generic-entity-queries/AccountTokenSnapshots";
+import { Indexes } from "./features/generic-entity-queries/Indexes";
+import { Streams } from "./features/generic-entity-queries/Stream";
+import { StreamPeriods } from "./features/generic-entity-queries/StreamPeriods";
+import { Tokens } from "./features/generic-entity-queries/Tokens";
+import { IndexSubscriptions } from "./features/generic-entity-queries/IndexSubscriptions";
+import { TokenStatistics } from "./features/generic-entity-queries/TokenStatistics";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
@@ -217,6 +226,50 @@ function App() {
                             </SdkListItem>
                             <SdkListItem title="Delete Stream">
                                 <DeleteStream />
+                            </SdkListItem>
+                        </List>
+                        <List
+                            sx={{
+                                width: "100%",
+                                bgcolor: "background.paper",
+                            }}
+                            component="nav"
+                            aria-labelledby="nested-list-subheader"
+                            subheader={
+                                <ListSubheader
+                                    component="div"
+                                    id="nested-list-subheader"
+                                >
+                                    SDK-Redux Entity Queries
+                                </ListSubheader>
+                            }
+                        >
+                            <SdkListItem title="Account">
+                                <Account />
+                            </SdkListItem>
+                            <SdkListItem title="Accounts">
+                                <Accounts />
+                            </SdkListItem>
+                            <SdkListItem title="AccountTokenSnapshots">
+                                <AccountTokenSnapshots />
+                            </SdkListItem>
+                            <SdkListItem title="Indexes">
+                                <Indexes />
+                            </SdkListItem>
+                            <SdkListItem title="IndexSubscriptions">
+                                <IndexSubscriptions />
+                            </SdkListItem>
+                            <SdkListItem title="Streams">
+                                <Streams />
+                            </SdkListItem>
+                            <SdkListItem title="StreamPeriods">
+                                <StreamPeriods />
+                            </SdkListItem>
+                            <SdkListItem title="Tokens">
+                                <Tokens />
+                            </SdkListItem>
+                            <SdkListItem title="TokenStatistics">
+                                <TokenStatistics />
                             </SdkListItem>
                         </List>
                     </SignerContext.Provider>

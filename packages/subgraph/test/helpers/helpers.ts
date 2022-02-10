@@ -1,15 +1,14 @@
 import { ethers } from "hardhat";
-import { ContractReceipt } from "ethers";
 import { BaseProvider } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
-import SuperfluidSDK from "@superfluid-finance/js-sdk";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { Framework } from "@superfluid-finance/sdk-core";
 import { IMeta, IIndexSubscription } from "../interfaces";
 import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
+import TestTokenABI from "../../abis/TestToken.json";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
-import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
-import { Resolver } from "../../typechain";
+import { Resolver, TestToken } from "../../typechain";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -22,65 +21,71 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 /**
  * Before setup function - deploy the framework, get signers, deploy test tokens,
  * initialize framework.
- * @param userAddresses
+ * @param tokenAmount
  * @returns
  */
 export const beforeSetup = async (tokenAmount: number) => {
-    const [Deployer, Alpha, Bravo, Charlie] = (await ethers.getSigners()).map(
-        (x) => x.address
+    const [Deployer, Alpha, Bravo, Charlie] = await ethers.getSigners();
+    const signers = [Deployer, Alpha, Bravo, Charlie];
+    const signerDict: {[address: string]: SignerWithAddress} = signers.reduce(
+        (x, y) => ({...x, [y.address]: y}),
+        {}
     );
-    const userAddresses = [Deployer, Alpha, Bravo, Charlie];
+    const users = signers.map((x) => x.address);
     let totalSupply = 0;
     // names[Bob] = "Bob";
-    const sf: Framework = new SuperfluidSDK.Framework({
-        web3: (global as any).web3,
-        version: "test",
-        tokens: ["fDAI"],
+    const sf = await Framework.create({
+        networkName: "custom",
+        dataMode: "WEB3_ONLY",
+        protocolReleaseVersion: "test",
+        provider: Deployer.provider!,
         resolverAddress: RESOLVER_ADDRESS,
     });
 
-    console.log("\n");
-    await sf.initialize();
+    const resolver = (await ethers.getContractAt(
+        IResolverABI,
+        RESOLVER_ADDRESS
+    )) as Resolver;
 
-    const daix = sf.tokens.fDAIx;
+    console.log("\n");
+    const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
+    const fDAIx = await sf.loadSuperToken(fDAIxAddress);
 
     // types not properly handling this case
-    const dai = await (sf.contracts as any).TestToken.at(
-        daix.underlyingToken.address
-    );
+    const fDAI = new ethers.Contract(
+        fDAIx.underlyingToken.address,
+        TestTokenABI
+    ) as TestToken;
 
     console.log(
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."
     );
     const amount = tokenAmount.toFixed(0);
 
-    for (let i = 0; i < userAddresses.length; i++) {
+    for (let i = 0; i < signers.length; i++) {
         const stringBigIntAmount = ethers.utils.parseUnits(amount).toString();
-        const address = userAddresses[i];
-        await dai.mint(address, stringBigIntAmount, {
-            from: userAddresses[0],
-        });
-        await dai.approve(daix.address, stringBigIntAmount, {
-            from: address,
-        });
-        await daix.upgrade(stringBigIntAmount, {
-            from: address,
-        });
+        await fDAI
+            .connect(signers[0])
+            .mint(signers[i].address, stringBigIntAmount);
+        await fDAI
+            .connect(signers[i])
+            .approve(fDAIx.address, stringBigIntAmount);
+        await fDAIx
+            .upgrade({
+                amount: stringBigIntAmount,
+            })
+            .exec(signers[i]);
         totalSupply += Number(stringBigIntAmount);
     }
-    const resolver = (await ethers.getContractAt(
-        IResolverABI,
-        RESOLVER_ADDRESS
-    )) as Resolver;
 
     // NOTE: although we already set this in initialization, we need to reset it here to ensure
     // we wait for the indexer to catch up before the tests start
-    const txn = await resolver.set("supertokens.test.fDAIx", daix.address);
+    const txn = await resolver.set("supertokens.test.fDAIx", fDAIx.address);
     const receipt = await txn.wait();
     await waitUntilBlockIndexed(receipt.blockNumber);
     const resolverFDAIxAddress = await resolver.get("supertokens.test.fDAIx");
 
-    if (resolverFDAIxAddress !== daix.address) {
+    if (resolverFDAIxAddress !== fDAIx.address) {
         throw new Error("fDAIx not set properly in resolver.");
     }
 
@@ -88,7 +93,14 @@ export const beforeSetup = async (tokenAmount: number) => {
         "\n************** Superfluid Framework Setup Complete **************\n"
     );
 
-    return [userAddresses, sf, dai, daix, totalSupply.toString()];
+    return {
+        users,
+        sf,
+        fDAI,
+        fDAIx,
+        signerDict,
+        totalSupply: totalSupply.toString(),
+    };
 };
 
 export const monthlyToSecondRate = (monthlyRate: number) => {
@@ -282,47 +294,46 @@ export const modifyFlowAndReturnCreatedFlowData = async (
             actionType
         )} a flow **********************`
     );
-    const sfCFA = sf.cfa as ConstantFlowAgreementV1Helper;
+    const sfCFA = sf.cfaV1;
+    const signer = await ethers.getSigner(sender);
     // any because it the txn.receipt doesn't exist on
     // Transaction
-    const txn: any =
+    const txnResponse =
         actionType === FlowActionType.Create
             ? await sfCFA.createFlow({
                   superToken,
                   sender,
                   receiver,
                   flowRate: newFlowRate.toString(),
-                  userData: "0x",
-                  onTransaction: () => {},
-              })
+                  userData: "0x"
+              }).exec(signer)
             : actionType === FlowActionType.Update
             ? await sfCFA.updateFlow({
                   superToken,
                   sender,
                   receiver,
                   flowRate: newFlowRate.toString(),
-                  userData: "0x",
-                  onTransaction: () => {},
-              })
+                  userData: "0x"
+              }).exec(signer)
             : await sfCFA.deleteFlow({
                   superToken,
                   sender,
-                  flowRate: "0",
                   receiver,
-                  by: "",
-                  userData: "0x",
-                  onTransaction: () => {},
-              });
+                  userData: "0x"
+              }).exec(signer);
 
-    const receipt: ContractReceipt = txn.receipt;
-    const block = await provider.getBlock(receipt.blockNumber);
+    if (!txnResponse.blockNumber) {
+        throw new Error("No block number");
+    }
+
+    const block = await provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
-    await waitUntilBlockIndexed(receipt.blockNumber);
+    await waitUntilBlockIndexed(txnResponse.blockNumber);
 
     const [, flowRate] = await cfaV1.getFlow(superToken, sender, receiver);
 
     return {
-        receipt,
+        txnResponse,
         timestamp,
         flowRate,
     };

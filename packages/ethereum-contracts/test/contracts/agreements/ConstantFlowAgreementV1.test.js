@@ -752,9 +752,14 @@ describe("Using ConstantFlowAgreement v1", function () {
                             superToken.address,
                             flowRate.toString()
                         );
-                    const expectedDeposit = clipDepositNumber(
+                    let expectedDeposit = clipDepositNumber(
                         toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD))
                     );
+                    expectedDeposit =
+                        expectedDeposit.lt(t.configs.MINIMUM_DEPOSIT) &&
+                        toBN(flowRate).gt(toBN(0))
+                            ? t.configs.MINIMUM_DEPOSIT
+                            : expectedDeposit;
                     console.log(
                         `f(${flowRate.toString()}) = ${expectedDeposit.toString()} ?`
                     );
@@ -796,7 +801,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .encodeABI(),
                         {from: alice}
                     ),
-                    "AgreementLibrary: unauthroized host"
+                    "unauthorized host"
                 );
                 await expectRevert(
                     fakeHost.callAgreement(
@@ -806,7 +811,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .encodeABI(),
                         {from: alice}
                     ),
-                    "AgreementLibrary: unauthroized host"
+                    "unauthorized host"
                 );
                 await expectRevert(
                     fakeHost.callAgreement(
@@ -816,7 +821,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .encodeABI(),
                         {from: alice}
                     ),
-                    "AgreementLibrary: unauthroized host"
+                    "unauthorized host"
                 );
             });
         });
@@ -2378,6 +2383,30 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow("carol", FLOW_RATE1.add(flowRateDC));
             await expectNetFlow("dan", flowRateBD.sub(flowRateDC));
             await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#10.4 ctx should not be exploited", async () => {
+            await expectRevert(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .createFlow(
+                            superToken.address,
+                            alice,
+                            FLOW_RATE1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
         });
     });
 });

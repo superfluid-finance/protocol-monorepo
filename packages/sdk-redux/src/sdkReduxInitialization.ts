@@ -4,6 +4,7 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
 import {createApiSlice} from './redux-slices/rtk-query/sfApiSlice';
+import {createSubgraphSlice} from './redux-slices/rtk-query/subgraph-slice/subgraphSlice';
 import {createTransactionSlice} from './redux-slices/transactions/createTransactionSlice';
 import {getConfig} from './sdkReduxConfig';
 
@@ -17,6 +18,18 @@ export const initializeSfApiSlice = <T extends ModuleName>(createApi: CreateApi<
     const slice = createApiSlice(createApi);
     getConfig().setApiSlice(slice as any);
     return {sfApi: slice};
+};
+
+/**
+ * For initializing "sfApi" Redux slice.
+ *
+ * @param createApi Pass in either {@see createApiWithReactHooks} or {@see createApiWithoutReactHooks}.
+ * You can wrap the function with your own function to add even more configuration to the RTK-Query API (e.g. "redux-persist" support).
+ */
+export const initializeSubgraphSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
+    const slice = createSubgraphSlice(createApi);
+    getConfig().setSubgraphSlice(slice as any);
+    return slice;
 };
 
 /**

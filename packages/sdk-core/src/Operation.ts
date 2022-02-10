@@ -1,7 +1,7 @@
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 
-import SFError from "./SFError";
+import { SFError } from "./SFError";
 
 export type OperationType =
     | "UNSUPPORTED" // 0

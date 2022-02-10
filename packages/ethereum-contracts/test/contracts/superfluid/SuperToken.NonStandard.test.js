@@ -646,6 +646,137 @@ describe("SuperToken's Non Standard Functions", function () {
             assert.equal((await customToken.balanceOf(alice)).toString(), "0");
             assert.equal((await customToken.totalSupply()).toString(), "0");
         });
+
+        it("#3.4 Custom token can use selfTransferFrom", async () => {
+            await web3tx(customToken.initialize, "customToken.initialize")(
+                ZERO_ADDRESS,
+                0,
+                "Custom SuperTestToken",
+                "CSTT"
+            );
+
+            await web3tx(customToken.selfMint, "customToken.selfMint")(
+                alice,
+                100,
+                "0x"
+            );
+            assert.equal(
+                (await customToken.balanceOf(alice)).toString(),
+                "100"
+            );
+
+            // specified spender is different than holder without allowance reverts
+            await expectRevert(
+                customToken.callSelfTransferFrom(alice, bob, bob, 100),
+                "SuperToken: transfer amount exceeds allowance"
+            );
+
+            // holder must have enough balance
+            await expectRevert(
+                customToken.callSelfTransferFrom(bob, alice, alice, 100),
+                "SuperfluidToken: move amount exceeds balance."
+            );
+
+            // holder cannot be zero address
+            await expectRevert(
+                customToken.callSelfTransferFrom(
+                    ZERO_ADDRESS,
+                    ZERO_ADDRESS,
+                    bob,
+                    100
+                ),
+                "SuperToken: transfer from zero address"
+            );
+
+            // recipient cannot be zero address
+            await expectRevert(
+                customToken.callSelfTransferFrom(alice, bob, ZERO_ADDRESS, 100),
+                "SuperToken: transfer to zero address"
+            );
+
+            // alice approves bob to spend her tokens
+            await web3tx(
+                customToken.approve,
+                "customToken.approve Alice approves (100) -> customToken.address"
+            )(bob, 100, {from: alice});
+            // selfTransferFrom is called from alice => bob, where bob is the spender
+            // (spender and holder are different so approval is required)
+            await web3tx(
+                customToken.callSelfTransferFrom,
+                "customToken.callSelfTransferFrom Alice -> Bob"
+            )(alice, bob, bob, 100, {from: bob});
+            assert.equal((await customToken.balanceOf(bob)).toString(), "100");
+            assert.equal((await customToken.balanceOf(alice)).toString(), "0");
+
+            // should be able to send tokens without approval
+            // as long as spender and holder are the same
+            await web3tx(
+                customToken.callSelfTransferFrom,
+                "customToken.callSelfTransferFrom Bob -> Alice"
+            )(bob, bob, alice, 100, {from: alice});
+            assert.equal((await customToken.balanceOf(bob)).toString(), "0");
+            assert.equal(
+                (await customToken.balanceOf(alice)).toString(),
+                "100"
+            );
+
+            // should be able to send tokens to yourself without approval
+            await web3tx(
+                customToken.callSelfTransferFrom,
+                "customToken.callSelfTransferFrom Alice -> Alice"
+            )(alice, alice, alice, 100);
+        });
+
+        it("#3.5 Custom token can use selfApproveFor", async () => {
+            await web3tx(customToken.initialize, "customToken.initialize")(
+                ZERO_ADDRESS,
+                0,
+                "Custom SuperTestToken",
+                "CSTT"
+            );
+
+            await web3tx(customToken.selfMint, "customToken.selfMint")(
+                alice,
+                100,
+                "0x"
+            );
+            assert.equal(
+                (await customToken.balanceOf(alice)).toString(),
+                "100"
+            );
+
+            // account cannot be zero address
+            await expectRevert(
+                customToken.callSelfApproveFor(ZERO_ADDRESS, bob, 100),
+                "SuperToken: approve from zero address"
+            );
+
+            // spender cannot be zero address
+            await expectRevert(
+                customToken.callSelfApproveFor(alice, ZERO_ADDRESS, 100),
+                "SuperToken: approve to zero address"
+            );
+
+            // should be able to call selfApprove at will + make a selfTransferFrom
+            await web3tx(
+                customToken.callSelfApproveFor,
+                "customToken.callSelfApproveFor Alice approves (100) -> Bob"
+            )(alice, bob, 100, {from: bob});
+            await web3tx(
+                customToken.callSelfTransferFrom,
+                "customToken.callSelfTransferFrom Alice transfers (100) -> Bob"
+            )(alice, bob, bob, 100);
+
+            // should be able to call selfApprove and make a regular transferFrom
+            await web3tx(
+                customToken.callSelfApproveFor,
+                "customToken.callSelfApproveFor Bob approves (100) -> Alice"
+            )(bob, alice, 100, {from: alice});
+            await web3tx(
+                customToken.transferFrom,
+                "customToken.transferFrom Bob transfers (100) -> Alice"
+            )(bob, alice, 100, {from: alice});
+        });
     });
 
     describe("#10 misc", () => {

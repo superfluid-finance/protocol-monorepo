@@ -17,6 +17,19 @@ abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
         uint256 amount,
         bytes memory userData
     ) external virtual;
+
+    function callSelfTransferFrom(
+        address holder,
+        address spender,
+        address recipient,
+        uint256 amount
+    ) external virtual;
+
+    function callSelfApproveFor(
+        address account,
+        address spender,
+        uint256 amount
+    ) external virtual;
 }
 
 // solhint-disable-next-line no-empty-blocks
@@ -62,5 +75,24 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
     ) external override {
         // this makes msg.sender to self
         ISuperToken(address(this)).selfBurn(to, amount, userData);
+    }
+    
+    // this function self calls transferFrom
+    function callSelfTransferFrom(
+        address holder,
+        address spender,
+        address recipient,
+        uint256 amount
+    ) external override {
+        ISuperToken(address(this)).selfTransferFrom(holder, spender, recipient, amount);
+    }
+
+    // this function self calls approveFor
+    function callSelfApproveFor(
+        address account,
+        address spender,
+        uint256 amount
+    ) external override {
+        ISuperToken(address(this)).selfApproveFor(account, spender, amount);
     }
 }

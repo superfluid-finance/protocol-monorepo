@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to the SDK-redux will be documented in this file.
 
+## [Unreleased]
+### Changed
+- Reduce indirection in TypeScript in attempts to resolve WebStorm IDE-s difficulties with inferring types.
+- `SFError` is replaced with `SerializedSFError` to fix Redux's complaint about `SFError` being unserializable.
+
+### Added
+- `initializeSfApiSlice` & `initializeTransactionSlice` return the slice directly, instead of embedding the slice in an object.
+- `initializeSfApiSlice` return the slice without endpoints. The endpoints have to be injected using `.injectEndpoint(sfApiAllEndpoints)`.
+
 ## [0.2.0] - 2022-02-01
 ### Added
 - Introduce new Redux slice `sfSubgraph` ([#571])

@@ -29,6 +29,7 @@ export interface IndexSubscription {
     updatedAtBlockNumber: BlockNumber;
     approved: boolean;
     indexValueUntilUpdatedAt: BigNumber;
+    indexValueCurrent: BigNumber;
     totalAmountReceivedUntilUpdatedAt: BigNumber;
     units: BigNumber;
     index: SubgraphId;
@@ -74,6 +75,7 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             index: x.index.id,
+            indexValueCurrent: x.index.indexValue,
             token: x.index.token.id,
             publisher: x.index.publisher.id,
         }));

@@ -53,6 +53,7 @@ export type AppDispatch = AppStore["dispatch"];
 export const useAppDispatch = () => useDispatch<Dispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
+// NOTE: The serialization is important to override because RTK-Query will have some "undefined" values in the state which Next.js doesn't like to serialize by default.
 export const wrapper = createWrapper<AppStore>(makeStore, {
     debug: true,
     serializeState: (state) => JSON.stringify(state),

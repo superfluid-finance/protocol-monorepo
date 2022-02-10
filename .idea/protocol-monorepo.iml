@@ -18,12 +18,10 @@
     </content>
     <content url="file://$MODULE_DIR$/packages/ethereum-contracts">
       <sourceFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/test" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/build" />
     </content>
     <content url="file://$MODULE_DIR$/packages/js-sdk">
       <sourceFolder url="file://$MODULE_DIR$/packages/js-sdk/test" isTestSource="true" />
-    </content>
-    <content url="file://$MODULE_DIR$/packages/sdk-core">
-      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
     </content>
     <content url="file://$MODULE_DIR$/packages/sdk-core">
       <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />

@@ -4,9 +4,8 @@
 import { BaseProvider } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
 import BN from "bn.js";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
-import { SuperToken } from "../typechain/SuperToken";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 
@@ -361,7 +360,7 @@ export interface IDistributionLocalData extends IAggregateLocalData {
 }
 
 export interface IContracts {
-    readonly sf: Framework;
+    readonly framework: Framework;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
     readonly superToken: SuperToken;
@@ -398,6 +397,7 @@ export interface IFlowUpdatedUpdateTestData {
     readonly currentSenderATS: IAccountTokenSnapshot;
     readonly currentReceiverATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
+    readonly provider: BaseProvider;
 }
 
 export interface ITestModifyFlowData {
@@ -518,4 +518,5 @@ export interface IGetExpectedIDADataParams {
     readonly currentTokenStats: ITokenStatistic;
     readonly updatedAtBlockNumber: string;
     readonly timestamp: string;
+    readonly provider: BaseProvider;
 }

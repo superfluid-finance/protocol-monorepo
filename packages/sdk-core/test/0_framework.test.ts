@@ -245,8 +245,14 @@ describe("Framework Tests", () => {
             framework.batchCall([]);
         });
 
-        it("Should be able to create an instance of a supertoken with framework.", async () => {
+        it("Should be able to create an instance of a supertoken (with address) with framework.", async () => {
             const daix = await framework.loadSuperToken(superToken.address);
+            expect(daix.settings.address).to.equal(superToken.address);
+        });
+
+        it("Should be able to create an instance of a supertoken (with token symbol) with framework.", async () => {
+            const tokenName = await superToken.symbol();
+            const daix = await framework.loadSuperToken(tokenName);
             expect(daix.settings.address).to.equal(superToken.address);
         });
     });

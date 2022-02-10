@@ -11,9 +11,7 @@
  * - validate the event based on the expected data
  * - valiate HOL/aggregate entities based on the expected data
  *************************************************************************/
-import { ContractReceipt } from "@ethersproject/contracts";
 import BN from "bn.js";
-import { InstantDistributionAgreementV1Helper } from "@superfluid-finance/js-sdk/src/InstantDistributionAgreementV1Helper";
 import {
     IExpectedFlowUpdateEvent,
     IExtraEventData,
@@ -27,12 +25,9 @@ import {
     ITestModifyIDAData,
     IUpdateIDAGlobalObjects,
 } from "../interfaces";
-import { getFlowUpdatedEvents } from "../queries/eventQueries";
-import { fetchEventAndValidate } from "../validation/eventValidators";
-import {
-    validateFlowUpdated,
-    validateModifyIDA,
-} from "../validation/validators";
+import {getFlowUpdatedEvents} from "../queries/eventQueries";
+import {fetchEventAndValidate} from "../validation/eventValidators";
+import {validateFlowUpdated, validateModifyIDA} from "../validation/validators";
 import {
     fetchEntityAndEnsureExistence,
     getIndexId,
@@ -57,17 +52,17 @@ import {
     getExpectedStreamData,
 } from "./updaters";
 import {
-    FlowActionType,
     IDAEventType,
     idaEventTypeToEventQueryDataMap,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import { BigNumber } from "@ethersproject/bignumber";
-import { BaseProvider } from "@ethersproject/providers";
-import { getSubscription } from "../queries/holQueries";
-import { ethers } from "hardhat";
-import { expect } from "chai";
+import {Framework} from "@superfluid-finance/sdk-core";
+import {BigNumber} from "@ethersproject/bignumber";
+import {BaseProvider, TransactionResponse} from "@ethersproject/providers";
+import {getSubscription} from "../queries/holQueries";
+import {ethers} from "hardhat";
+import {expect} from "chai";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -94,7 +89,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     } = data;
 
     // Spread operator the variables
-    const { sf, cfaV1, superToken } = contracts;
+    const {framework, cfaV1, superToken} = contracts;
     const {
         accountTokenSnapshots,
         periodRevisionIndexes,
@@ -104,10 +99,10 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     } = localData;
 
     // create/update/delete a flow
-    const { receipt, timestamp, flowRate } =
+    const {txnResponse, timestamp, flowRate} =
         await modifyFlowAndReturnCreatedFlowData(
             provider,
-            sf,
+            framework,
             cfaV1,
             actionType,
             superToken.address,
@@ -116,7 +111,9 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             monthlyToSecondRate(newFlowRate)
         );
     const lastUpdatedAtTimestamp = timestamp.toString();
-    const lastUpdatedBlockNumber = receipt.blockNumber.toString();
+
+    // we know blockNumber is not null as we throw an error if it is
+    const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
     const tokenId = tokenAddress.toLowerCase();
 
     // get or initialize the data
@@ -140,7 +137,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     });
 
     // update and return updated (expected) data
-    const { updatedSenderATS, updatedReceiverATS, updatedTokenStats } =
+    const {updatedSenderATS, updatedReceiverATS, updatedTokenStats} =
         await getExpectedDataForFlowUpdated({
             actionType,
             lastUpdatedBlockNumber,
@@ -152,6 +149,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             currentSenderATS,
             currentReceiverATS,
             currentTokenStats,
+            provider,
         });
 
     const streamedAmountSinceUpdatedAt = toBN(pastStreamData.oldFlowRate).mul(
@@ -170,7 +168,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         IFlowUpdatedEvent,
         IExpectedFlowUpdateEvent
     >(
-        receipt,
+        txnResponse,
         {
             flowRate: flowRate.toString(),
             oldFlowRate: pastStreamData.oldFlowRate,
@@ -250,14 +248,13 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     let newIndexValue: BigNumber = toBN(0);
     let totalUnits: BigNumber = toBN(0);
 
-    const { sf, idaV1, superToken } = contracts;
-    const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
+    const {framework, idaV1, superToken} = contracts;
+    const {accountTokenSnapshots, indexes, subscriptions, tokenStatistics} =
         localData;
-    const { token, publisher, indexId, subscriber } = baseParams;
-
-    const { receipt, timestamp, updatedAtBlockNumber } =
+    const {token, publisher, indexId, subscriber} = baseParams;
+    const {txnResponse, timestamp, updatedAtBlockNumber} =
         await executeIDATransactionByTypeAndWaitForIndexer(
-            sf,
+            framework,
             provider,
             eventType,
             baseParams,
@@ -362,7 +359,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
 
     let events: IIDAEvents = await fetchIDAEventsAndValidate(
         eventType,
-        receipt,
+        txnResponse,
         baseParams,
         extraEventData
     );
@@ -387,7 +384,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
             ...events,
             ...(await fetchIDAEventsAndValidate(
                 otherEventType,
-                receipt,
+                txnResponse,
                 baseParams,
                 extraEventData
             )),
@@ -404,6 +401,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
+        provider,
     };
 
     const extraData: IExtraExpectedData = {
@@ -456,24 +454,26 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
 ) {
     let timestamp: string = "";
     let updatedAtBlockNumber: string = "";
-    let receipt;
-    let txn: any;
-    const ida = sf.ida as InstantDistributionAgreementV1Helper;
+    let txnResponse: TransactionResponse;
+    const ida = sf.idaV1;
 
-    const { token, publisher, indexId, userData, subscriber } = baseParams;
+    const {token, publisher, indexId, userData, subscriber} = baseParams;
     const baseData = {
         superToken: token,
         publisher,
-        indexId,
+        indexId: indexId.toString(),
         userData,
-        onTransaction: () => {},
     };
-    const baseSubscriberData = { ...baseData, subscriber };
+    const baseSubscriberData = {...baseData, subscriber};
+    let signer: SignerWithAddress;
 
     if (type === IDAEventType.IndexCreated) {
-        txn = await ida.createIndex({
-            ...baseData,
-        });
+        signer = await ethers.getSigner(publisher);
+        txnResponse = await ida
+            .createIndex({
+                ...baseData,
+            })
+            .exec(signer);
     } else if (type === IDAEventType.IndexUpdated) {
         if (amountOrIndexValue == null || isDistribute == null) {
             throw new Error(
@@ -481,21 +481,30 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
             );
         }
 
+        signer = await ethers.getSigner(publisher);
+
         if (isDistribute) {
-            txn = await ida.distribute({
-                ...baseData,
-                amount: amountOrIndexValue.toString(),
-            });
+            txnResponse = await ida
+                .distribute({
+                    ...baseData,
+                    amount: amountOrIndexValue.toString(),
+                })
+                .exec(signer);
         } else {
-            txn = await ida.updateIndex({
-                ...baseData,
-                indexValue: amountOrIndexValue.toString(),
-            });
+            txnResponse = await ida
+                .updateIndexValue({
+                    ...baseData,
+                    indexValue: amountOrIndexValue.toString(),
+                })
+                .exec(signer);
         }
     } else if (type === IDAEventType.SubscriptionApproved) {
-        txn = await ida.approveSubscription({
-            ...baseSubscriberData,
-        });
+        signer = await ethers.getSigner(subscriber);
+        txnResponse = await ida
+            .approveSubscription({
+                ...baseSubscriberData,
+            })
+            .exec(signer);
     } else if (type === IDAEventType.SubscriptionRevoked) {
         if (isRevoke == null || sender == null) {
             throw new Error(
@@ -504,20 +513,27 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
         }
 
         if (isRevoke) {
-            txn = await ida.revokeSubscription({
-                ...baseSubscriberData,
-            });
+            signer = await ethers.getSigner(subscriber);
+            txnResponse = await ida
+                .revokeSubscription({
+                    ...baseSubscriberData,
+                })
+                .exec(signer);
         } else {
-            txn = await ida.deleteSubscription({
-                ...baseSubscriberData,
-                sender,
-            });
+            signer = await ethers.getSigner(sender);
+            txnResponse = await ida
+                .deleteSubscription({
+                    ...baseSubscriberData,
+                })
+                .exec(signer);
         }
     } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
-        txn = await ida.claim({
-            ...baseSubscriberData,
-            sender: subscriber,
-        });
+        signer = await ethers.getSigner(subscriber);
+        txnResponse = await ida
+            .claim({
+                ...baseSubscriberData,
+            })
+            .exec(signer);
     } else {
         // type === IDAEventType.SubscriptionUnitsUpdated
         if (units == null) {
@@ -525,22 +541,27 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 "You must pass units for SubscriptionUnitsUpdated."
             );
         }
+        signer = await ethers.getSigner(publisher);
 
-        txn = await ida.updateSubscription({
-            ...baseSubscriberData,
-            units: units.toString(),
-        });
+        txnResponse = await ida
+            .updateSubscriptionUnits({
+                ...baseSubscriberData,
+                units: units.toString(),
+            })
+            .exec(signer);
     }
 
-    receipt = txn.receipt;
+    if (!txnResponse.blockNumber) {
+        throw new Error("No block number");
+    }
 
-    const block = await provider.getBlock(receipt.blockNumber);
-    await waitUntilBlockIndexed(receipt.blockNumber);
+    const block = await provider.getBlock(txnResponse.blockNumber);
+    await waitUntilBlockIndexed(txnResponse.blockNumber);
 
     timestamp = block.timestamp.toString();
-    updatedAtBlockNumber = receipt.blockNumber.toString();
+    updatedAtBlockNumber = txnResponse.blockNumber.toString();
 
-    return { receipt, timestamp, updatedAtBlockNumber };
+    return {txnResponse, timestamp, updatedAtBlockNumber};
 }
 
 function getIDAEventDataForValidation(
@@ -548,7 +569,7 @@ function getIDAEventDataForValidation(
     baseParams: ISubscriberDistributionTesterParams,
     extraEventData: IExtraEventData
 ) {
-    const { token, publisher, indexId, userData, subscriber } = baseParams;
+    const {token, publisher, indexId, userData, subscriber} = baseParams;
     const {
         totalUnitsApproved,
         totalUnitsPending,
@@ -571,23 +592,23 @@ function getIDAEventDataForValidation(
         publisher: publisher.toLowerCase(),
         indexId: indexId.toString(),
         userData,
-        addresses: baseAddresses
+        addresses: baseAddresses,
     };
     const baseSubscriptionEventData = {
         ...baseEventData,
-        subscription: { id: subscriptionId },
+        subscription: {id: subscriptionId},
         subscriber: subscriber.toLowerCase(),
-        addresses: [...baseAddresses, subscriber.toLowerCase()]
+        addresses: [...baseAddresses, subscriber.toLowerCase()],
     };
     const baseIndexEventData = {
         ...baseEventData,
-        index: { id: indexEntityId },
+        index: {id: indexEntityId},
         subscriber: subscriber.toLowerCase(),
-        addresses: [...baseAddresses, subscriber.toLowerCase()]
+        addresses: [...baseAddresses, subscriber.toLowerCase()],
     };
 
     if (type === IDAEventType.IndexCreated) {
-        return { ...baseEventData, index: { id: indexEntityId } };
+        return {...baseEventData, index: {id: indexEntityId}};
     } else if (type === IDAEventType.IndexUpdated) {
         if (
             newIndexValue == null ||
@@ -600,7 +621,7 @@ function getIDAEventDataForValidation(
         }
         return {
             ...baseEventData,
-            index: { id: indexEntityId },
+            index: {id: indexEntityId},
             oldIndexValue,
             newIndexValue: newIndexValue.toString(),
             totalUnitsApproved: totalUnitsApproved.toString(),
@@ -616,7 +637,7 @@ function getIDAEventDataForValidation(
         if (units == null) {
             throw new Error("You must pass units for IndexUnitsUpdated");
         }
-        return { ...baseIndexEventData, units: units.toString() };
+        return {...baseIndexEventData, units: units.toString()};
     } else if (
         [
             IDAEventType.SubscriptionApproved,
@@ -630,7 +651,7 @@ function getIDAEventDataForValidation(
                 "distributionDelta is required for IndexDistributionClaimed"
             );
         }
-        const { userData, ...claimEventIndexData } = baseIndexEventData;
+        const {userData, ...claimEventIndexData} = baseIndexEventData;
         return {
             ...claimEventIndexData,
             distributionDelta: distributionDelta.toString(),
@@ -641,7 +662,7 @@ function getIDAEventDataForValidation(
                 "distributionDelta is required for SubscriptionDistributionClaimed"
             );
         }
-        const { userData, ...claimEventSubscriptionData } =
+        const {userData, ...claimEventSubscriptionData} =
             baseSubscriptionEventData;
         return {
             ...claimEventSubscriptionData,
@@ -661,7 +682,7 @@ function getIDAEventDataForValidation(
 
 async function fetchIDAEventsAndValidate(
     type: IDAEventType,
-    receipt: ContractReceipt,
+    txnResponse: TransactionResponse,
     baseParams: ISubscriberDistributionTesterParams,
     extraEventData: IExtraEventData
 ) {
@@ -677,7 +698,7 @@ async function fetchIDAEventsAndValidate(
 
     return {
         [eventQueryData.queryName]: await fetchEventAndValidate(
-            receipt,
+            txnResponse,
             eventDataToValidate,
             eventQueryData.query,
             eventQueryData.queryName

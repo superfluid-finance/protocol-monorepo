@@ -36,6 +36,20 @@ describe("ConstantFlowAgreementV1Helper class", function () {
         await t.beforeEachTestCase();
     });
 
+    it("eip155 protection check", async () => {
+        const tx = await sf.cfa.createFlow({
+            superToken: superToken.address,
+            sender: alice,
+            receiver: bob,
+            flowRate: "38580246913580", // 100 / mo
+        });
+        const txReceipt = await web3.eth.getTransaction(tx.tx);
+        // per https://eips.ethereum.org/EIPS/eip-155
+        // to use "v" to validate if it is eip-155 enabled transaction
+        console.log("txReceipt", txReceipt);
+        assert.isDefined(txReceipt.v);
+    });
+
     it("createFlow", async () => {
         const tx = await sf.cfa.createFlow({
             superToken: superToken.address,

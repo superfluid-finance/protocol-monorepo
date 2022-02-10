@@ -8,15 +8,24 @@ config:
         BigInt: string
         BigDecimal: string
     enumsAsTypes: true
+    avoidOptionals: false
+    flattenGeneratedTypes: true
+    preResolveTypes: true
+    maybeValue: T | undefined
+    inputMaybeValue: T | undefined | null
+    removeComments: true
+    onlyOperationTypes: true
+    disableDescriptions: true
+    declarationKind: 'interface'
 generates:
     src/subgraph/schema.generated.ts:
         plugins:
             - "typescript"
     src/subgraph/queries/:
         config:
+            dedupeFragments: true
             nonOptionalTypename: false
             skipTypename: true
-            preResolveTypes: true
         preset: near-operation-file
         presetConfig:
             baseTypesPath: ../schema.generated.ts

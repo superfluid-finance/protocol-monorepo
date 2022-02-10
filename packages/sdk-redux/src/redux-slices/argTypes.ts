@@ -8,11 +8,7 @@ export interface TransactionInfo {
     hash: string;
 }
 
-/**
- * A query that returns a single object.
- */
-// @ts-ignore
-export interface BaseQuery<TReturns> {
+export interface BaseQuery<_TReturns> {
     /** Queried network's chain ID. */
     chainId: number;
 }

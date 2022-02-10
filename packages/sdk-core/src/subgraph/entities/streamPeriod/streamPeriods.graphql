@@ -1,0 +1,35 @@
+query streamPeriods($first: Int = 10, $skip: Int = 0, $where: StreamPeriod_filter = {}, $orderBy: StreamPeriod_orderBy = id, $orderDirection: OrderDirection = asc) {
+    streamPeriods(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+    ) {
+        id
+        flowRate
+        startedAtBlockNumber
+        startedAtTimestamp
+        stoppedAtBlockNumber
+        stoppedAtTimestamp
+        totalAmountStreamed
+        token {
+            id
+        }
+        stream {
+            id
+        }
+        sender {
+            id
+        }
+        receiver {
+            id
+        }
+        stoppedAtEvent {
+            id
+        }
+        startedAtEvent {
+            id
+        }
+    }
+}

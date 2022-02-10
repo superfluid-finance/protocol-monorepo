@@ -22,7 +22,7 @@ set -xe
     ganache_pid=$!
     sleep 10 # wait ganache to start
     DISABLE_NATIVE_TRUFFLE=1 npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js | tee deploy.ignore.log
-    export "$(tail -n1 deploy.ignore.log | awk '{ print $2 }')" # export the TEST_RESOLVER_ADDRESS, with some precaution to prevent script injection
+    export "$(tail -n1 deploy.ignore.log | awk '{ print $2 }')" # export the RESOLVER_ADDRESS, with some precaution to prevent script injection
     npx truffle --network ganache exec scripts/deploy.js
     kill -9 $ganache_pid
 )

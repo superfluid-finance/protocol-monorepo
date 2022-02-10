@@ -2,7 +2,7 @@
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {getApiSlice, getFramework, getTransactionSlice} from '../../sdkReduxConfig';
+import {getApiSlice, getFramework, getSubgraphSlice, getTransactionSlice} from '../../sdkReduxConfig';
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 
@@ -77,6 +77,7 @@ const monitorForLateErrors = (
             if (ethersError.code != ethers.errors.TIMEOUT) {
                 // Completely reset API cache.
                 dispatch(getApiSlice().util.resetApiState());
+                dispatch(getSubgraphSlice().util.resetApiState());
                 notifyOfError(ethersError, {chainId, hash: hash}, dispatch);
             }
         });

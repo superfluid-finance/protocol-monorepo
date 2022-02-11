@@ -990,7 +990,8 @@ contract Superfluid is
     {
         // 1.a ctx needs to be padded to align with 32 bytes boundary
         uint256 dataLen = data.length;
-        // FIXME: assert(dataLen % 32 == 0);
+
+        assert(dataLen % 32 == 0);
 
         // double check if the ctx is a placeholder ctx
         // FIXME: This can't check all cases - user can still put nonzero length of zero data

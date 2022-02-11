@@ -135,14 +135,14 @@ export const validateEvents = <T extends TypedEvent, K>(
     );
 };
 
-export const querySubgraphAndValidateEvents = async <T extends IBaseEntity>({
+export const querySubgraphAndValidateEvents = async ({
     idaEventName,
     queryHelper,
     query,
     onChainCFAEvents,
     onChainIDAEvents,
 }: {
-    idaEventName: IDAEvent;
+    idaEventName?: IDAEvent;
     queryHelper: QueryHelper;
     query: string;
     onChainCFAEvents?: IOnChainCFAEvents;
@@ -156,19 +156,28 @@ export const querySubgraphAndValidateEvents = async <T extends IBaseEntity>({
             "You must pass in either onChainCFAEvents OR OnChainIDAEvents"
         );
     }
-    const subgraphEvents = await queryHelper.getAllResults<T>({
+    if (!idaEventName && onChainIDAEvents) {
+        throw new Error(
+            "You must pass in the IDA event name if you are validating IDA events."
+        );
+    }
+
+    const eventName = idaEventName || "FlowUpdated";
+
+    console.log(`\nQuerying all ${eventName} events via the Subgraph...`);
+    const subgraphEvents = await queryHelper.getAllResults({
         query,
         isEvent: true,
     });
     const uniqueSubgraphEvents = _.uniqBy(subgraphEvents, (x) => x.id);
     console.log(
-        `There are ${uniqueSubgraphEvents.length} FlowUpdated events 
-            out of ${subgraphEvents.length} total FlowUpdated events.`
+        `There are ${uniqueSubgraphEvents.length} ${eventName} events 
+            out of ${subgraphEvents.length} total ${eventName} events.`
     );
 
     if (onChainCFAEvents) {
         validateEvents(
-            idaEventName,
+            "FlowUpdated",
             onChainCFAEvents["FlowUpdated"].events,
             uniqueSubgraphEvents,
             onChainCFAEvents["FlowUpdated"].groupedEvents
@@ -176,7 +185,7 @@ export const querySubgraphAndValidateEvents = async <T extends IBaseEntity>({
     }
 
     // TODO: figure out a way to remove any
-    if (onChainIDAEvents) {
+    if (onChainIDAEvents && idaEventName) {
         validateEvents(
             idaEventName,
             onChainIDAEvents[idaEventName].events as any,

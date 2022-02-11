@@ -12,12 +12,13 @@ import {
     getTokenStatistics,
     getFlowUpdatedEvents,
     getIndexUpdatedEvents,
+    getIndexCreatedEvents,
+    idaEventToQueryMap,
 } from "./dataIntegrityQueries";
 import {
+    IDAEvent,
     IDataIntegrityAccountTokenSnapshot,
-    IDataIntegrityFlowUpdatedEvent,
     IDataIntegrityIndex,
-    IDataIntegrityIndexUpdatedEvent,
     IDataIntegrityStream,
     IDataIntegritySubscription,
     IDataIntegrityTokenStatistic,
@@ -37,6 +38,7 @@ import {
     keys,
     printProgress,
     QueryHelper,
+    querySubgraphAndValidateEvents,
     validateEvents,
 } from "./helperFunctions";
 
@@ -106,8 +108,6 @@ async function main() {
 
     console.log("Querying flow updated events...\n");
 
-    // TODO: I don't like how we have special logic specifically for
-    // FlowUpdated, this is not really maintainable in the future
     const flowUpdatedEventsFilter = cfaV1.filters.FlowUpdated();
     const flowUpdatedEvents = await cfaV1.queryFilter(
         flowUpdatedEventsFilter,
@@ -155,47 +155,33 @@ async function main() {
      * - COMPARE HOL/AGGREGATE PROPERTIES THAT WE ARE WATCHING []
      */
 
-    console.log("\nGetting all events data via the Subgraph...");
-
-    console.log("\nQuerying all flowUpdatedEvents via the Subgraph...");
-    const subgraphFlowUpdatedEvents =
-        await queryHelper.getAllResults<IDataIntegrityFlowUpdatedEvent>({
-            query: getFlowUpdatedEvents,
-            isEvent: true
-        });
-    const uniqueSubgraphFlowUpdatedEvents = _.uniqBy(
-        subgraphFlowUpdatedEvents,
-        (x) => x.id
-    );
-    console.log(
-        `There are ${uniqueSubgraphFlowUpdatedEvents.length} FlowUpdated events 
-            out of ${subgraphFlowUpdatedEvents.length} total FlowUpdated events.`
-    );
-    validateEvents(
-        "FlowUpdated",
-        onChainCFAEvents["FlowUpdated"].events,
-        uniqueSubgraphFlowUpdatedEvents,
-        onChainCFAEvents["FlowUpdated"].groupedEvents
-    );
-
-    console.log("\nQuerying all indexUpdatedEvents via the Subgraph...");
-    const subgraphIndexUpdatedEvents =
-        await queryHelper.getAllResults<IDataIntegrityIndexUpdatedEvent>({
-            query: getIndexUpdatedEvents,
-            isEvent: true
-        });
-    const uniqueSubgraphIndexUpdatedEvents = _.uniqBy(
-        subgraphIndexUpdatedEvents,
-        (x) => x.id
-    );
-    console.log(
-        `There are ${uniqueSubgraphIndexUpdatedEvents.length} IndexUpdated events 
-            out of ${subgraphIndexUpdatedEvents.length} total IndexUpdated events.`
-    );
-
     console.log("\nEvent Validation Starting...");
+    
+    console.log("\nCFA Events Validation Starting...");
+    await querySubgraphAndValidateEvents({
+        queryHelper,
+        query: getFlowUpdatedEvents,
+        onChainCFAEvents,
+    });
 
-    console.log("Querying all streams via the Subgraph...");
+    console.log("\nIDA Events Validation Starting...");
+    await Promise.all(
+        keys(onChainIDAEvents).map(async (x) => {
+            const query = idaEventToQueryMap.get(x);
+            if (!query) {
+                throw new Error("No query: invalid IDA event.");
+            }
+            await querySubgraphAndValidateEvents({
+                queryHelper,
+                query,
+                onChainIDAEvents,
+                idaEventName: x,
+            });
+        })
+    );
+    console.log("\nEvents Validation Complete! SUCCESS!");
+
+    console.log("\nQuerying all streams via the Subgraph...");
 
     // This gets all of the current streams (flow rate > 0)
     const streams = await queryHelper.getAllResults<IDataIntegrityStream>({
@@ -203,7 +189,7 @@ async function main() {
         isUpdatedAt: false
     });
 
-    console.log("Querying all account token snapshots via the Subgraph...");
+    console.log("\nQuerying all account token snapshots via the Subgraph...");
     // This gets account token snapshots of all accounts that have
     // ever interacted with the Super protocol.
     const accountTokenSnapshots =
@@ -212,14 +198,14 @@ async function main() {
             isUpdatedAt: true
         });
 
-    console.log("Querying all indexes via the Subgraph...");
+    console.log("\nQuerying all indexes via the Subgraph...");
     // Gets all indexes ever created
     const indexes = await queryHelper.getAllResults<IDataIntegrityIndex>({
         query: getIndexes,
         isUpdatedAt: false
     });
 
-    console.log("Querying all subscriptions via the Subgraph...");
+    console.log("\nQuerying all subscriptions via the Subgraph...");
     // Gets all subscriptions ever created
     const subscriptions =
         await queryHelper.getAllResults<IDataIntegritySubscription>({
@@ -227,7 +213,7 @@ async function main() {
             isUpdatedAt: false
         });
 
-    console.log("Querying all tokenStatistics via the Subgraph...");
+    console.log("\nQuerying all tokenStatistics via the Subgraph...");
     // Gets all subscriptions ever created
     const tokenStatistics =
         await queryHelper.getAllResults<IDataIntegrityTokenStatistic>({
@@ -235,7 +221,7 @@ async function main() {
             isUpdatedAt: true
         });
 
-    console.log("\nData Processing: Filtering out duplicate entities...");
+    console.log("\nData Cleaning: Filtering out duplicate entities...");
 
     const uniqueStreams = _.uniqBy(
         streams,

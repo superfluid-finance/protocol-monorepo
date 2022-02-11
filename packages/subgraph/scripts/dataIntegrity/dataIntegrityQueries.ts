@@ -1,4 +1,5 @@
-import {gql} from "graphql-request";
+import { gql } from "graphql-request";
+import { IDAEvent } from "../interfaces";
 
 // Event Queries
 export const getFlowUpdatedEvents = gql`
@@ -8,9 +9,9 @@ export const getFlowUpdatedEvents = gql`
         $timestamp: Int
     ) {
         response: flowUpdatedEvents(
-            block: {number: $blockNumber}
+            block: { number: $blockNumber }
             first: $first
-            where: {timestamp_gte: $timestamp}
+            where: { timestamp_gte: $timestamp }
             orderBy: timestamp
             orderDirection: asc
         ) {
@@ -289,9 +290,9 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
 export const getCurrentStreams = gql`
     query getStreams($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: streams(
-            block: {number: $blockNumber}
+            block: { number: $blockNumber }
             first: $first
-            where: {currentFlowRate_gt: 0, createdAtTimestamp_gte: $createdAt}
+            where: { currentFlowRate_gt: 0, createdAtTimestamp_gte: $createdAt }
             orderBy: createdAtTimestamp
             orderDirection: asc
         ) {
@@ -318,9 +319,9 @@ export const getCurrentStreams = gql`
 export const getIndexes = gql`
     query getIndex($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: indexes(
-            block: {number: $blockNumber}
+            block: { number: $blockNumber }
             first: $first
-            where: {createdAtTimestamp_gte: $createdAt}
+            where: { createdAtTimestamp_gte: $createdAt }
             orderBy: createdAtTimestamp
             orderDirection: asc
         ) {
@@ -347,9 +348,9 @@ export const getIndexes = gql`
 export const getSubscriptions = gql`
     query getSubscription($blockNumber: Int, $first: Int, $createdAt: Int) {
         response: indexSubscriptions(
-            block: {number: $blockNumber}
+            block: { number: $blockNumber }
             first: $first
-            where: {createdAtTimestamp_gte: $createdAt}
+            where: { createdAtTimestamp_gte: $createdAt }
             orderBy: createdAtTimestamp
             orderDirection: asc
         ) {
@@ -388,9 +389,9 @@ export const getAccountTokenSnapshots = gql`
         $updatedAt: Int
     ) {
         response: accountTokenSnapshots(
-            block: {number: $blockNumber}
+            block: { number: $blockNumber }
             first: $first
-            where: {updatedAtTimestamp_gte: $updatedAt}
+            where: { updatedAtTimestamp_gte: $updatedAt }
             orderBy: updatedAtTimestamp
             orderDirection: asc
         ) {
@@ -416,9 +417,9 @@ export const getAccountTokenSnapshots = gql`
 export const getTokenStatistics = gql`
     query getTokenStatistics($blockNumber: Int, $first: Int, $updatedAt: Int) {
         response: tokenStatistics(
-            block: {number: $blockNumber}
+            block: { number: $blockNumber }
             first: $first
-            where: {updatedAtTimestamp_gte: $updatedAt}
+            where: { updatedAtTimestamp_gte: $updatedAt }
             orderBy: updatedAtTimestamp
             orderDirection: asc
         ) {
@@ -432,3 +433,19 @@ export const getTokenStatistics = gql`
         }
     }
 `;
+
+export const idaEventToQueryMap = new Map([
+    [IDAEvent.IndexCreated, getIndexCreatedEvents],
+    [IDAEvent.IndexUpdated, getIndexUpdatedEvents],
+    [IDAEvent.IndexDistributionClaimed, getIndexDistributionClaimedEvents],
+    [IDAEvent.IndexSubscribed, getIndexSubscribedEvents],
+    [IDAEvent.IndexUnitsUpdated, getIndexUnitsUpdatedEvents],
+    [IDAEvent.IndexUnsubscribed, getIndexUnsubscribedEvents],
+    [IDAEvent.SubscriptionApproved, getSubscriptionApprovedEvents],
+    [
+        IDAEvent.SubscriptionDistributionClaimed,
+        getSubscriptionDistributionClaimedEvents,
+    ],
+    [IDAEvent.SubscriptionRevoked, getSubscriptionRevokedEvents],
+    [IDAEvent.SubscriptionUnitsUpdated, getSubscriptionUnitsUpdatedEvents],
+]);

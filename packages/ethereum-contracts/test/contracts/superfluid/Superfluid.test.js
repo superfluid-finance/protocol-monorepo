@@ -108,10 +108,26 @@ describe("Superfluid Host Contract", function () {
                 ).length;
                 const typeA = web3.utils.sha3("typeA");
                 const typeB = web3.utils.sha3("typeB");
-                const mockA = await AgreementMock.new(typeA, 1);
-                const mockAFake = await AgreementMock.new(typeA, 42);
-                const mockB = await AgreementMock.new(typeB, 1);
-                const mockA2 = await AgreementMock.new(typeA, 2);
+                const mockA = await AgreementMock.new(
+                    superfluid.address,
+                    typeA,
+                    1
+                );
+                const mockAFake = await AgreementMock.new(
+                    superfluid.address,
+                    typeA,
+                    42
+                );
+                const mockB = await AgreementMock.new(
+                    superfluid.address,
+                    typeB,
+                    1
+                );
+                const mockA2 = await AgreementMock.new(
+                    superfluid.address,
+                    typeA,
+                    2
+                );
 
                 assert.isFalse(
                     await superfluid.isAgreementTypeListed.call(typeA)
@@ -286,8 +302,16 @@ describe("Superfluid Host Contract", function () {
 
             it("#2.4 agreement cannot be registered twice", async () => {
                 const typeA = web3.utils.sha3("typeA");
-                const mockA = await AgreementMock.new(typeA, 1);
-                const mockA2 = await AgreementMock.new(typeA, 2);
+                const mockA = await AgreementMock.new(
+                    superfluid.address,
+                    typeA,
+                    1
+                );
+                const mockA2 = await AgreementMock.new(
+                    superfluid.address,
+                    typeA,
+                    2
+                );
 
                 await governance.registerAgreementClass(
                     superfluid.address,
@@ -309,7 +333,11 @@ describe("Superfluid Host Contract", function () {
                 for (let i = 0; i < 254; ++i) {
                     process.stdout.write(".");
                     const typeN = web3.utils.sha3("type." + i);
-                    const mock = await AgreementMock.new(typeN, 1);
+                    const mock = await AgreementMock.new(
+                        superfluid.address,
+                        typeN,
+                        1
+                    );
                     await governance.registerAgreementClass(
                         superfluid.address,
                         mock.address
@@ -330,6 +358,7 @@ describe("Superfluid Host Contract", function () {
                 }
 
                 const badMock = await AgreementMock.new(
+                    superfluid.address,
                     web3.utils.sha3("type.bad"),
                     1
                 );
@@ -344,7 +373,11 @@ describe("Superfluid Host Contract", function () {
 
             it("#2.6 agreement must be registered first", async () => {
                 const typeA = web3.utils.sha3("typeA");
-                const mockA = await AgreementMock.new(typeA, 1);
+                const mockA = await AgreementMock.new(
+                    superfluid.address,
+                    typeA,
+                    1
+                );
 
                 await expectRevert(
                     governance.updateContracts(
@@ -580,6 +613,7 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.CALLBACK_GAS_LIMIT.call()
                 ).toString();
                 agreement = await AgreementMock.new(
+                    superfluid.address,
                     web3.utils.sha3("MockAgreement"),
                     0
                 );
@@ -643,7 +677,11 @@ describe("Superfluid Host Contract", function () {
                 );
 
                 // call from an unregisterred mock agreement
-                let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
+                let mock = await AgreementMock.new(
+                    superfluid.address,
+                    web3.utils.sha3("typeA"),
+                    0
+                );
                 await expectRevert(
                     mock.tryCallAppBeforeCallback(superfluid.address),
                     reason
@@ -668,6 +706,7 @@ describe("Superfluid Host Contract", function () {
 
                 // call from an in personating mock agreement
                 mock = await AgreementMock.new(
+                    superfluid.address,
                     await t.contracts.cfa.agreementType.call(),
                     0
                 );
@@ -1419,13 +1458,18 @@ describe("Superfluid Host Contract", function () {
                     superfluid.callAgreement(alice, "0x", "0x")
                 );
                 // call to an unregisterred mock agreement
-                let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
+                let mock = await AgreementMock.new(
+                    superfluid.address,
+                    web3.utils.sha3("typeA"),
+                    0
+                );
                 await expectRevert(
                     superfluid.callAgreement(mock.address, "0x", "0x"),
                     reason
                 );
                 // call to an in personating mock agreement
                 mock = await AgreementMock.new(
+                    superfluid.address,
                     await t.contracts.cfa.agreementType.call(),
                     0
                 );
@@ -1455,6 +1499,7 @@ describe("Superfluid Host Contract", function () {
                 await t.useLastEvmSnapshot();
 
                 agreement = await AgreementMock.new(
+                    superfluid.address,
                     web3.utils.sha3("MockAgreement"),
                     0
                 );
@@ -1659,6 +1704,7 @@ describe("Superfluid Host Contract", function () {
                 await t.useLastEvmSnapshot();
 
                 agreement = await AgreementMock.new(
+                    superfluid.address,
                     web3.utils.sha3("MockAgreement"),
                     0
                 );
@@ -1848,6 +1894,7 @@ describe("Superfluid Host Contract", function () {
 
             it("#10.2 batchCall call agreement", async () => {
                 let agreement = await AgreementMock.new(
+                    superfluid.address,
                     web3.utils.sha3("MockAgreement"),
                     0
                 );
@@ -1917,6 +1964,7 @@ describe("Superfluid Host Contract", function () {
 
             it("#10.3 batchCall call app action", async () => {
                 let agreement = await AgreementMock.new(
+                    superfluid.address,
                     web3.utils.sha3("MockAgreement"),
                     0
                 );

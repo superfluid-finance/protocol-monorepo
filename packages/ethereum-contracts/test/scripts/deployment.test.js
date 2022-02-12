@@ -12,7 +12,7 @@ const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers").constants;
 
-contract("Embeded deployment scripts", () => {
+contract("Embeded deployment scripts", (accounts) => {
     const errorHandler = (err) => {
         if (err) throw err;
     };
@@ -134,7 +134,7 @@ contract("Embeded deployment scripts", () => {
             const a1 = await web3tx(
                 ConstantFlowAgreementV1.new,
                 "ConstantFlowAgreementV1.new 1"
-            )();
+            )(ZERO_ADDRESS);
             assert.isFalse(
                 await codeChanged(web3, ConstantFlowAgreementV1, a1.address)
             );
@@ -471,4 +471,38 @@ contract("Embeded deployment scripts", () => {
     });
 
     //TODO context("Used with ethers");
+
+    it("[SECURITY-DestructableProxiable] proxiable should not be a proxy", async () => {
+        const attacker = accounts[0];
+        const Destructor = artifacts.require("SuperfluidDesctructorMock");
+        const destructor = await Destructor.new();
+        await deployFramework(errorHandler, {isTruffle: true});
+        const s = await getSuperfluidAddresses();
+        const superfluidLogic = await Superfluid.at(s.superfluidCode);
+        await superfluidLogic.initialize(attacker, {from: attacker});
+        console.log("superfluid(proxy)", s.superfluid.address);
+        console.log("*superfluid(logic)", superfluidLogic.address);
+        console.log("**superfluid", await superfluidLogic.getCodeAddress());
+        await expectRevert(
+            superfluidLogic.updateCode(destructor.address, {from: attacker}),
+            "UUPSProxiable: not upgradable"
+        );
+    });
+
+    it("[SECURITY-DeadloopProxiable] proxy should not be a proxiable", async () => {
+        const TestGovernance = artifacts.require("TestGovernance");
+        await deployFramework(errorHandler, {isTruffle: true});
+        const s = await getSuperfluidAddresses();
+        const gov = await TestGovernance.at(s.gov);
+        assert.equal(gov.address, await s.superfluid.getGovernance());
+        await expectRevert(
+            gov.updateContracts(
+                s.superfluid.address,
+                s.superfluid.address, // a dead loop proxy
+                [],
+                ZERO_ADDRESS
+            ),
+            "UUPSProxiable: proxy loop"
+        );
+    });
 });

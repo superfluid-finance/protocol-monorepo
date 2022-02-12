@@ -506,7 +506,7 @@ contract SuperToken is
         address account,
         address spender,
         uint256 amount
-    ) 
+    )
         external override
         onlySelf
     {
@@ -518,7 +518,7 @@ contract SuperToken is
         address spender,
         address recipient,
         uint256 amount
-    ) 
+    )
         external override
         onlySelf
     {

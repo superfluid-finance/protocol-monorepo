@@ -544,6 +544,11 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bondAccount: Bytes!
     rewardAmount: BigInt!
     bailoutAmount: BigInt!
+    
+    """
+    The amount of time the `penaltyAccount` was in a critical state when they were liquidated.
+    """
+    secondsCritical: BigInt!
 }
 
 type BurnedEvent implements Event @entity {

@@ -810,6 +810,7 @@ fragment agreementLiquidatedByEvent on AgreementLiquidatedByEvent {
     bailoutAmount
     agreementId
     agreementClass
+    secondsCritical
 }
 
 fragment burnedEvent on BurnedEvent {

@@ -19,6 +19,7 @@ import {
 import { createEventID, tokenHasValidHost } from "../utils";
 import {
     getOrInitAccount,
+    getOrInitAccountTokenSnapshot,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
     updateAggregateEntitiesTransferData,
@@ -211,6 +212,20 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     ev.bondAccount = event.params.bondAccount;
     ev.rewardAmount = event.params.rewardAmount;
     ev.bailoutAmount = event.params.bailoutAmount;
+
+    let penaltyATS = getOrInitAccountTokenSnapshot(
+        event.params.penaltyAccount.toHex(),
+        event.address.toHex(),
+        event.block
+    );
+    let timeDiff = event.block.timestamp.minus(penaltyATS.updatedAtTimestamp);
+    let amountFlowed = timeDiff.times(penaltyATS.totalNetFlowRate);
+    let currentUserRealTimeBalanceOf =
+        penaltyATS.balanceUntilUpdatedAt.plus(amountFlowed);
+    
+    // TODO: add this to AgreementLiquidatedV2 event as well
+    ev.secondsCritical = currentUserRealTimeBalanceOf.div(penaltyATS.totalNetFlowRate);
+
     ev.save();
 }
 

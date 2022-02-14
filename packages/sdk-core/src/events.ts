@@ -157,6 +157,7 @@ export interface AgreementLiquidatedByEvent extends EventBase {
     bailoutAmount: string;
     bondAccount: string;
     liquidatorAccount: string;
+    secondsCritical: string;
     penaltyAccount: string;
     rewardAmount: string;
     token: string;

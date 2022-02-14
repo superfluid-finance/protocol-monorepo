@@ -48,6 +48,7 @@ export const mapGetAllEventsQueryEvents = (
                     bailoutAmount: x.bailoutAmount,
                     bondAccount: x.bondAccount,
                     liquidatorAccount: x.liquidatorAccount,
+                    secondsCritical: x.secondsCritical,
                     penaltyAccount: x.penaltyAccount,
                     rewardAmount: x.rewardAmount,
                     token: x.token,

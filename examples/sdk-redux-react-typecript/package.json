@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@types/lodash": "latest",
         "@emotion/react": "latest",
         "@emotion/styled": "latest",
         "@ethersproject/contracts": "latest",
@@ -11,8 +12,8 @@
         "@mui/material": "latest",
         "@mui/x-data-grid": "latest",
         "@reduxjs/toolkit": "latest",
-        "@superfluid-finance/sdk-core": "0.2.1-PR571.d8ac7f1.0",
-        "@superfluid-finance/sdk-redux": "0.1.1-PR571.d8ac7f1.0",
+        "@superfluid-finance/sdk-core": "0.3.0",
+        "@superfluid-finance/sdk-redux": "0.2.0",
         "@types/node": "latest",
         "@types/react": "latest",
         "@types/react-dom": "latest",

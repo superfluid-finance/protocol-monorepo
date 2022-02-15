@@ -4,6 +4,21 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Added `indexValueCurrent` to `IndexSubscription` query to optimize calculating "total amount distributed" in consuming applications
+- Added `indexTotalUnits` to `IndexSubscription` query to optimize calculating "pool percentage" in consuming applications
+
+## [0.3.0] - 2022-02-02
+### Added
+- New query handlers to cover full spectrum of Subgraph querying capabilities
+  - Used by the new release of SDK-redux
+  - Lacks an easy-to-use API for average SDK-core user
+
+### Changed
+- `_ethers` is not exported for UMD build anymore. Use `window._ethers` instead.
+- `SFError` and `ErrorType` are now exported
+- Generated Subgraph types are now exported (`*_Filter` and `*_OrderBy` types)
+    - There are a lot of Subgraph types, so it does make the namespace crowded. We'll alleviate it in a later release.
 
 ## [0.2.1] - 2022-01-31
 
@@ -48,7 +63,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.1...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.0...HEAD
+[0.3.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.1...sdk-core%40v0.3.0
 [0.2.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.0...sdk-core%40v0.2.1
 [0.2.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.1.0...sdk-core%40v0.2.0
 [0.1.0]: https://github.com/superfluid-finance/protocol-monorepo/releases/tag/sdk-core%40v0.1.0

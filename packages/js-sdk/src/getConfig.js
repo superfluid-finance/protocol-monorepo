@@ -34,7 +34,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli",
                 },
             },
         },
@@ -45,7 +45,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-rinkeby",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-rinkeby",
                 },
             },
         },
@@ -57,7 +57,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-ropsten",
                 },
             },
         },
@@ -68,7 +68,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-kovan",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-kovan",
                 },
             },
         },
@@ -83,7 +83,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-matic",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
                 },
             },
         },
@@ -94,7 +94,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai",
                 },
             },
         },
@@ -108,7 +108,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-xdai",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
                 },
             },
         },
@@ -133,7 +133,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-kovan",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-kovan",
                 },
             },
         },
@@ -152,7 +152,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-arbitrum-rinkeby",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-rinkeby",
                 },
             },
         },
@@ -171,7 +171,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-avalanche-fuji",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji",
                 },
             },
         },

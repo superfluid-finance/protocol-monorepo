@@ -53,7 +53,7 @@ export class SFError {
 
         const title = errorTypeToTitleMap.get(type);
         const formattedErrorObject = errorObject
-            ? ": " + JSON.stringify(errorObject)
+            ? ": " + JSON.stringify(errorObject, null, 2) // Pretty-print the error: https://stackoverflow.com/a/7220510
             : "";
         this.type = type;
         this.errorObject = errorObject;

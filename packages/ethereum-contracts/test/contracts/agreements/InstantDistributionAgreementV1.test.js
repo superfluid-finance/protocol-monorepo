@@ -1709,7 +1709,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         .encodeABI(),
                     {from: alice}
                 ),
-                "AgreementLibrary: unauthroized host"
+                "unauthorized host"
             );
             await expectRevert(
                 fakeHost.callAgreement(
@@ -1719,7 +1719,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         .encodeABI(),
                     {from: alice}
                 ),
-                "AgreementLibrary: unauthroized host"
+                "unauthorized host"
             );
             await expectRevert(
                 fakeHost.callAgreement(
@@ -1729,7 +1729,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         .encodeABI(),
                     {from: alice}
                 ),
-                "AgreementLibrary: unauthroized host"
+                "unauthorized host"
             );
             await expectRevert(
                 fakeHost.callAgreement(
@@ -1739,7 +1739,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         .encodeABI(),
                     {from: alice}
                 ),
-                "AgreementLibrary: unauthroized host"
+                "unauthorized host"
             );
             await expectRevert(
                 fakeHost.callAgreement(
@@ -1755,7 +1755,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         .encodeABI(),
                     {from: alice}
                 ),
-                "AgreementLibrary: unauthroized host"
+                "unauthorized host"
             );
         });
     });

@@ -474,7 +474,7 @@ contract("Embeded deployment scripts", (accounts) => {
 
     it("[SECURITY-DestructableProxiable] proxiable should not be a proxy", async () => {
         const attacker = accounts[0];
-        const Destructor = artifacts.require("SuperfluidDesctructorMock");
+        const Destructor = artifacts.require("SuperfluidDestructorMock");
         const destructor = await Destructor.new();
         await deployFramework(errorHandler, {isTruffle: true});
         const s = await getSuperfluidAddresses();

@@ -8,6 +8,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added `indexValueCurrent` to `IndexSubscription` query to optimize calculating "total amount distributed" in consuming applications
 - Added `indexTotalUnits` to `IndexSubscription` query to optimize calculating "pool percentage" in consuming applications
 
+### Breaking
+- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"`.
+
 ## [0.3.0] - 2022-02-02
 ### Added
 - New query handlers to cover full spectrum of Subgraph querying capabilities

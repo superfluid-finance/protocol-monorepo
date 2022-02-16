@@ -113,7 +113,7 @@ describe("Superfluid Host Contract", function () {
                 const typeA = web3.utils.sha3("typeA");
                 const typeB = web3.utils.sha3("typeB");
                 const mockA = await createAgreementMock(typeA, 1);
-                const mockAFake = await (typeA, 42);
+                const mockAFake = await createAgreementMock(typeA, 42);
                 const mockB = await createAgreementMock(typeB, 1);
                 const mockA2 = await createAgreementMock(typeA, 2);
 
@@ -291,11 +291,7 @@ describe("Superfluid Host Contract", function () {
             it("#2.4 agreement cannot be registered twice", async () => {
                 const typeA = web3.utils.sha3("typeA");
                 const mockA = await createAgreementMock(typeA, 1);
-                const mockA2 = await createAgreementMock(
-                    superfluid.address,
-                    typeA,
-                    2
-                );
+                const mockA2 = await createAgreementMock(typeA, 2);
 
                 await governance.registerAgreementClass(
                     superfluid.address,

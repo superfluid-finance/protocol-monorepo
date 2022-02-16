@@ -4,12 +4,19 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.1] - 2022-02-16
+
 ### Added
-- Added `indexValueCurrent` to `IndexSubscription` query to optimize calculating "total amount distributed" in consuming applications
-- Added `indexTotalUnits` to `IndexSubscription` query to optimize calculating "pool percentage" in consuming applications
+- Added `indexValueCurrent` to `IndexSubscription` query to optimize calculating "total amount distributed" in consuming applications ([#629])
+- Added `indexTotalUnits` to `IndexSubscription` query to optimize calculating "pool percentage" in consuming applications ([#630])
+
+### Fixed
+- Typo for `networkName: "arbitrum-rinkeby"` fixed (was expecting `"arbitrium-rinkeby"`) in `Framework.create` ([#637])
 
 ### Breaking
-- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"`.
+- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"` 
+  - Migration: change `networkName` from `"xdai"` to `"gnosis"`
 
 ## [0.3.0] - 2022-02-02
 ### Added
@@ -66,7 +73,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.0...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...HEAD
+[0.3.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.0...sdk-core%40v0.3.1
 [0.3.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.1...sdk-core%40v0.3.0
 [0.2.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.0...sdk-core%40v0.2.1
 [0.2.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.1.0...sdk-core%40v0.2.0
@@ -88,3 +96,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [#550]: https://github.com/superfluid-finance/protocol-monorepo/pull/550
 [#556]: https://github.com/superfluid-finance/protocol-monorepo/pull/556
 [#588]: https://github.com/superfluid-finance/protocol-monorepo/pull/588
+[#629]: https://github.com/superfluid-finance/protocol-monorepo/pull/629
+[#630]: https://github.com/superfluid-finance/protocol-monorepo/pull/630
+[#630]: https://github.com/superfluid-finance/protocol-monorepo/pull/630
+[#637]: https://github.com/superfluid-finance/protocol-monorepo/pull/637

@@ -33,7 +33,7 @@ jobs:
       matrix:
         example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript, sdk-redux-nextjs-typescript ]
         install: [locked-install, clean-install]
-        node-version: [14.x]
+        node-version: [16.x]
 
     steps:
       - uses: actions/checkout@v2

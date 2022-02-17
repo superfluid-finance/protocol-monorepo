@@ -4,7 +4,6 @@ env:
 
 on:
   push:
-    branches-ignore: ["master", "dev"]
     paths:
       - 'examples/**'
       - '.github/workflows/handler.build-examples.yml'
@@ -65,7 +64,7 @@ jobs:
           # ready to build and test, each example project must provide
           # their instructions here
           ./build-and-test.sh
-       
+
 
   build-examples-done:
     name: Build examples done # An aggregated job used for PR criteria

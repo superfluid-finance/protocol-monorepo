@@ -3,10 +3,14 @@ env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
-  # triggered by internal pushes
+  # Triggered by internal pushes
   push:
-    branches-ignore: ["master", "dev"]
-  # triggered by external PRs (filtered in the `check` job)
+    branches-ignore: ["dev", "release-*"]
+  # Triggered by external PRs (filtered in the `check` job)
+  # Notes:
+  # -  https://github.com/superfluid-finance/protocol-monorepo/settings/actions
+  #    Here we can configure approval requirements for external collaborators. Read more:
+  #    https://docs.github.com/en/actions/managing-workflow-runs/approving-workflow-runs-from-public-forks
   pull_request:
 
 jobs:

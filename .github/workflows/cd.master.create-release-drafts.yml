@@ -9,6 +9,15 @@ on:
       - 'packages/**'
       - '.github/workflows/cd.master.*'
 
+# on:
+#   push:
+#     branches:
+#       - "release-js-sdk-v0.6"
+#       - "codeowners_and_release_branches" # FIXME for testing only
+#     paths:
+#       - 'packages/js-sdk'
+#       - '.github/workflows/cd.js-sdk-v0_6.create-release-drafts.yml'
+
 jobs:
 
   create-release-draft:

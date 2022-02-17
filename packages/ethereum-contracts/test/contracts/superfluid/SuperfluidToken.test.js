@@ -26,6 +26,10 @@ describe("SuperfluidToken implementation", function () {
     let acA;
     let acB;
 
+    function createAgreementMock(type, version) {
+        return AgreementMock.new(superfluid.address, type, version);
+    }
+
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
@@ -36,7 +40,7 @@ describe("SuperfluidToken implementation", function () {
         ({superfluid, governance} = t.contracts);
         superToken = t.sf.tokens.TESTx;
 
-        const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
+        const acALogic = await createAgreementMock(web3.utils.sha3("typeA"), 1);
         await web3tx(
             governance.registerAgreementClass,
             "register agreement class typeA"
@@ -44,7 +48,7 @@ describe("SuperfluidToken implementation", function () {
         acA = await AgreementMock.at(
             await superfluid.getAgreementClass(web3.utils.sha3("typeA"))
         );
-        const acBLogic = await AgreementMock.new(web3.utils.sha3("typeB"), 1);
+        const acBLogic = await createAgreementMock(web3.utils.sha3("typeB"), 1);
         await web3tx(
             governance.registerAgreementClass,
             "register agreement class typeB"
@@ -425,7 +429,7 @@ describe("SuperfluidToken implementation", function () {
 
         context("#3.c static balance", () => {
             it("#3.c.1 should only be called by listed agreement", async () => {
-                const acBad = await AgreementMock.new(
+                const acBad = await createAgreementMock(
                     web3.utils.sha3("typeBad"),
                     1
                 );
@@ -464,7 +468,7 @@ describe("SuperfluidToken implementation", function () {
 
     describe("#4 liquidation rules", () => {
         it("#4.1 should only be called by listed agreement", async () => {
-            const acBad = await AgreementMock.new(
+            const acBad = await createAgreementMock(
                 web3.utils.sha3("typeBad"),
                 1
             );

@@ -20,8 +20,11 @@ abstract contract UUPSProxiable is Initializable {
     function updateCode(address newAddress) external virtual;
 
     /**
-     * @dev Proxiable UUID marker function.
-     *      This would help to avoid wrong logic contract to be used for upgrading.
+     * @dev Proxiable UUID marker function, this would help to avoid wrong logic
+     *      contract to be used for upgrading.
+     *
+     * NOTE: The semantics of the UUID deviates from the actual UUPS standard,
+     *       where it is equivalent of _IMPLEMENTATION_SLOT.
      */
     function proxiableUUID() public view virtual returns (bytes32);
 
@@ -37,9 +40,14 @@ abstract contract UUPSProxiable is Initializable {
             proxiableUUID() == UUPSProxiable(newAddress).proxiableUUID(),
             "UUPSProxiable: not compatible logic"
         );
+        require(
+            address(this) != newAddress,
+            "UUPSProxiable: proxy loop"
+        );
         UUPSUtils.setImplementation(newAddress);
         emit CodeUpdated(proxiableUUID(), newAddress);
     }
 
     event CodeUpdated(bytes32 uuid, address codeAddress);
+
 }

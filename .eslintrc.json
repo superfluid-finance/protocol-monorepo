@@ -17,9 +17,9 @@
     "rules": {
         "max-len": [
             "error",
-            120,
             {
-                "code": 80,
+                "code": 120,
+                "tabWidth": 4,
                 "ignoreUrls": true
             }
         ],

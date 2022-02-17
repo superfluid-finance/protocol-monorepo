@@ -2,7 +2,7 @@
 
 Interested in contributing, or just troubleshooting? Great! Let's get this party started.
 
-Before interacting with the Superfluid community, please read and understand our Code of Conduct (TODO).
+Before interacting with the Superfluid community, please read and understand our [Code of Conduct](code_of_conduct.md).
 
 ## Local Development
 

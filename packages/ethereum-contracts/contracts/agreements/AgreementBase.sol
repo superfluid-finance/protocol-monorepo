@@ -9,13 +9,11 @@ abstract contract AgreementBase is
     UUPSProxiable,
     ISuperAgreement
 {
-    address private _host;
+    address immutable internal _host;
 
-    function initialize()
-        external override
-        initializer // OpenZeppelin Initializable
+    constructor(address host)
     {
-        _host = msg.sender;
+        _host = host;
     }
 
     function proxiableUUID()

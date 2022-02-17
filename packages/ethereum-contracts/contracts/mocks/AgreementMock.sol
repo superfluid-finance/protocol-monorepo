@@ -20,7 +20,7 @@ contract AgreementMock is AgreementBase {
     bytes32 immutable private _type;
     uint immutable private _version;
 
-    constructor(bytes32 t, uint v) {
+    constructor(address host, bytes32 t, uint v) AgreementBase(host) {
         _type = t;
         _version = v;
     }

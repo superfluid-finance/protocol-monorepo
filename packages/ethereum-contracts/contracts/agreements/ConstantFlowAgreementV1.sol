@@ -55,6 +55,9 @@ contract ConstantFlowAgreementV1 is
         bytes userData;
     }
 
+    // solhint-disable-next-line no-empty-blocks
+    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+
     /**************************************************************************
      * ISuperAgreement interface
      *************************************************************************/

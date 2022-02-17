@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - "release-sdk-redux-stable"
-      - "codeowners_and_release_branches" # FIXME for testing only
     paths:
       - 'packages/sdk-redux'
       - '.github/workflows/cd.sdk-redux-stable.create-release-drafts.yml'

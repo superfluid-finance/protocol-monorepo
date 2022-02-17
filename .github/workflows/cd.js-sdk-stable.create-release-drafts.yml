@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - "release-js-sdk-stable"
-      - "codeowners_and_release_branches" # FIXME for testing only
     paths:
       - 'packages/js-sdk'
       - '.github/workflows/cd.js-sdk-stable.create-release-drafts.yml'

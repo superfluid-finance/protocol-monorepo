@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { InstantDistributionAgreementV1 } from "../../../typechain/InstantDistributionAgreementV1";
+import {Framework} from "@superfluid-finance/sdk-core";
 import {
     IDAEventType,
 } from "../../helpers/constants";
@@ -66,7 +66,7 @@ const getSubscriptionEventsMap = (
 };
 
 export const fetchSubscriptionAndValidate = async (
-    idaV1: InstantDistributionAgreementV1,
+    framework: Framework,
     expectedSubscription: IIndexSubscription,
     newIndexValue: string,
     eventType: IDAEventType,
@@ -81,7 +81,7 @@ export const fetchSubscriptionAndValidate = async (
         );
 
     validateSubscriptionEntity(
-        idaV1,
+        framework,
         indexSubscription,
         expectedSubscription,
         newIndexValue
@@ -114,7 +114,7 @@ export const fetchSubscriptionAndValidate = async (
 };
 
 export const validateSubscriptionEntity = async (
-    idaV1: InstantDistributionAgreementV1,
+    framework: Framework,
     subgraphSubscription: IIndexSubscription,
     expectedSubscription: IIndexSubscription,
     newIndexValue: string
@@ -127,14 +127,17 @@ export const validateSubscriptionEntity = async (
         subgraphSubscription.subscriber.id
     );
 
-    const [, approved, units, pendingDistribution] =
-        await idaV1.getSubscription(
-            token,
-            publisher,
-            Number(subgraphSubscription.index.indexId),
-            subscriberAddress
-        );
+    const subscription = await framework.idaV1.getSubscription({
+        superToken: token,
+        publisher,
+        indexId: subgraphSubscription.index.indexId,
+        subscriber: subscriberAddress,
+        providerOrSigner: framework.settings.provider,
+    });
 
+    const approved = subscription.approved;
+    const units = subscription.units;
+    const pendingDistribution = subscription.pendingDistribution;
     // Check subgraph data against expected data
     expect(
         subgraphSubscription.approved,
@@ -158,7 +161,7 @@ export const validateSubscriptionEntity = async (
         "Subscription: approved error"
     ).to.equal(approved);
     expect(subgraphSubscription.units, "Subscription: units error").to.equal(
-        units.toString()
+        units
     );
     const calcPendingDistribution = approved
         ? "0"
@@ -167,7 +170,5 @@ export const validateSubscriptionEntity = async (
                   toBN(subgraphSubscription.indexValueUntilUpdatedAt)
               )
           );
-    expect(calcPendingDistribution.toString()).to.equal(
-        pendingDistribution.toString()
-    );
+    expect(calcPendingDistribution.toString()).to.equal(pendingDistribution);
 };

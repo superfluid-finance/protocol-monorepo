@@ -24,7 +24,7 @@ describe("Framework subgraph (goerli) support", function () {
             web3: new Web3(
                 new HDWalletProvider(
                     "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat",
-                    process.env.GOERLI_PROVIDER_URL,
+                    process.env.GOERLI_PROVIDER_URL || "https://goerli.prylabs.net, // use a default one for public pull requests
                     0, //address_index
                     1 // num_addresses
                 )

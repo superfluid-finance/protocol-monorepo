@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: AGPLv3
-pragma solidity >=0.7.0;
+pragma solidity >= 0.7.0;
 pragma experimental ABIEncoderV2;
 
 import {
@@ -21,6 +21,45 @@ library CFAv1Library {
     //@dev for working with the constant flow agreement within solidity
     //the first set of functions are each for callAgreement()
     //the second set of functions are each for use in callAgreementWithContext()
+
+    //create/update/delete flow without userData
+    function flow(
+        InitData storage cfaLibrary,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) internal {
+        if ( flowRate == int96(0) ) {
+            deleteFlow(cfaLibrary, address(this), receiver, token);
+        } else {
+            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
+            if ( existingFlowRate == int96(0) ) {
+                createFlow(cfaLibrary, receiver, token, flowRate);
+            } else {
+                updateFlow(cfaLibrary, receiver, token, flowRate);
+            }
+        }
+    }
+
+    //create/update/delete flow with userData
+    function flow(
+        InitData storage cfaLibrary,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) internal {
+        if ( flowRate == int96(0) ) {
+            deleteFlow(cfaLibrary, address(this), receiver, token, userData);
+        } else {
+            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
+            if ( existingFlowRate == int96(0) ) {
+                createFlow(cfaLibrary, receiver, token, flowRate, userData);
+            } else {
+                updateFlow(cfaLibrary, receiver, token, flowRate, userData);
+            }
+        }
+    }
 
      //create flow without userData
     function createFlow(
@@ -146,6 +185,47 @@ library CFAv1Library {
             ),
             userData
         );
+    }
+
+    //create/update/delete flow with ctx 
+    function flowWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) internal returns (bytes memory newCtx) {
+        if ( flowRate == int96(0) ) {
+            return deleteFlowWithCtx(cfaLibrary, ctx, address(this), receiver, token);
+        } else {
+            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
+            if ( existingFlowRate == int96(0) ) {
+                return createFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate);
+            } else {
+                return updateFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate);
+            }
+        }
+    }
+
+    //create/update/delete flow with ctx and userdata
+    function flowWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        if ( flowRate == int96(0) ) {
+            return deleteFlowWithCtx(cfaLibrary, ctx, address(this), receiver, token, userData);
+        } else {
+            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
+            if ( existingFlowRate == int96(0) ) {
+                return createFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, userData);
+            } else {
+                return updateFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, userData);
+            }
+        }
     }
 
   //create flow with ctx 

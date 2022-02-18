@@ -130,7 +130,7 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/js-sdk test
         env:
-          GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
   test-subgraph:
     name: Build and test subgraph (Feature Branch)

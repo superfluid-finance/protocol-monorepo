@@ -1,0 +1,21 @@
+# REFERENCE: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Workflow files are gatekept by MiaoZC
+.github/ @hellwolf
+tasks/ @hellwolf
+.yarn/ @hellwolf
+
+# Packages
+packages/ethereum-contracts/ @hellwolf
+packages/spec-haskell/ @hellwolf
+packages/js-sdk/ @hellwolf @0xdavinchee
+packages/subgraph/ @0xdavinchee @kasparkallas @hellwolf
+packages/sdk-core/ @0xdavinchee @kasparkallas @hellwolf
+packages/sdk-redux/ @0xdavinchee @kasparkallas @hellwolf
+
+# Examples have no ownership neither
+
+examples/
+
+# By default no owner, so everyone in the FTE team can approve the pull request
+* @superfluid-finance/fte

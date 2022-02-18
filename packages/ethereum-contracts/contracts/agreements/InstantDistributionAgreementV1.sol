@@ -57,6 +57,9 @@ contract InstantDistributionAgreementV1 is
     /// @dev A special id that indicating the subscription is not approved yet
     uint32 private constant _UNALLOCATED_SUB_ID = type(uint32).max;
 
+    // solhint-disable-next-line no-empty-blocks
+    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+
     /// @dev Agreement data for the index
     struct IndexData {
         uint128 indexValue;

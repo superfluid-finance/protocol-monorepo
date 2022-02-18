@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to the SDK-redux will be documented in this file.
 
+## [0.2.1] - 2022-02-16
+### Added
+- Using SDK-Core@v0.3.1, SDK-core bug fix propagated to SDK-redux
 ## [0.2.0] - 2022-02-01
 ### Added
 - Introduce new Redux slice `sfSubgraph` ([#571])
@@ -21,6 +24,7 @@ All notable changes to the SDK-redux will be documented in this file.
     - Handle errors and offer user opportunity to retry
 
 
+[0.2.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-redux%40v0.2.0...sdk-redux%40v0.2.1
 [0.2.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-redux%40v0.1.0...sdk-redux%40v0.2.0
 [0.1.0]: https://github.com/superfluid-finance/protocol-monorepo/releases/tag/sdk-redux%40v0.1.0
 

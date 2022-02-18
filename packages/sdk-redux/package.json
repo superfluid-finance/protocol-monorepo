@@ -5,7 +5,8 @@
     "homepage": "https://docs.superfluid.finance/",
     "repository": {
         "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/sdk-redux"
     },
     "license": "MIT",
     "main": "dist/main/index.js",

@@ -12,7 +12,7 @@ on:
       - '.github/workflows/ci.canary.yml'
 
 jobs:
-  essential-build:
+  essential-build-and-test:
     name: Build and test essential packages of dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
@@ -21,7 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [14.x, 16.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -59,10 +59,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
 
       - name: Run coverage test
         run: |
@@ -143,7 +143,7 @@ jobs:
           fail_ci_if_error: true
           name: sdk-core-coverage
           flags: sdk-core
-  
+
   subgraph-test:
     name: Run test of subgraph on dev branch
 
@@ -158,7 +158,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [16.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -182,14 +182,14 @@ jobs:
           chmod +x setup.sh
           ./setup.sh
         working-directory: ./graph-node/docker
-      
+
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ./graph-node/docker
-      
+
       - name: "Install yarn and ganache-cli"
         run: npm install -g yarn ganache-cli
-      
+
       - name: "Run ganache-cli node"
         run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
@@ -200,17 +200,17 @@ jobs:
   publish:
     name: Publish canary pakcages to registries
 
-    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
+    needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
@@ -238,7 +238,7 @@ jobs:
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build
 
-    needs: [essential-build, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
+    needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 
@@ -250,10 +250,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
 
       - name: Build
         run: |

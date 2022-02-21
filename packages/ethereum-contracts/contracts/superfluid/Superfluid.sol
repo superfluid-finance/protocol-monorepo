@@ -992,9 +992,12 @@ contract Superfluid is
 
         assert(dataLen % 32 == 0);
 
-        // double check if the ctx is a placeholder ctx
-        // FIXME: This can't check all cases - user can still put nonzero length of zero data
-        // developer experience check
+        // Double check if the ctx is a placeholder ctx
+        //
+        // NOTE: This can't check all cases - user can still put nonzero length of zero data
+        // developer experience check. So this is more like a sanity check for clumsy app developers.
+        //
+        // So, agreements MUST NOT TRUST the ctx passed to it, and always use the isCtxValid first.
         {
             uint256 placeHolderCtxLength;
             // NOTE: len(data) is data.length + 32 https://docs.soliditylang.org/en/latest/abi-spec.html

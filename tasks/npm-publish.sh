@@ -2,7 +2,7 @@
 
 D="$(dirname "$0")"
 
-@echo Current Directory: $D
+echo Current Directory: $D
 
 PACKAGE_DIR="$1"
 TAG="$2"

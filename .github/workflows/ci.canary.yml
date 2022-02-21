@@ -227,7 +227,7 @@ jobs:
 
       - name: Publish to npm
         run: |
-          tasks/npm-publish.sh packages/ethereum-contracts test --dry-run
+          tasks/npm-publish.sh packages/ethereum-contracts test  --dry-run
           tasks/npm-publish.sh packages/js-sdk test --dry-run
           tasks/npm-publish.sh packages/sdk-core test --dry-run
           tasks/npm-publish.sh packages/sdk-redux test --dry-run

@@ -2,7 +2,7 @@
 
 D="$(dirname "$0")"
 
-echo Current Directory: $D
+pwd
 
 PACKAGE_DIR="$1"
 TAG="$2"

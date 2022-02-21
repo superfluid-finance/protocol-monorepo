@@ -81,7 +81,7 @@ contract Superfluid is
     /// @dev Agreement list indexed by agreement index minus one
     ISuperAgreement[] internal _agreementClasses;
     /// @dev Mapping between agreement type to agreement index (starting from 1)
-    mapping (bytes\ => uint) internal _agreementClassIndices;
+    mapping (bytes32 => uint) internal _agreementClassIndices;
 
     /// @dev Super token
     ISuperTokenFactory internal _superTokenFactory;

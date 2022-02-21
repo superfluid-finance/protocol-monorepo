@@ -147,7 +147,6 @@ contract Superfluid is
         } else {
             agreementClass = ISuperAgreement(address(agreementClassLogic));
         }
-        agreementClass.initialize();
         // register the agreement proxy
         _agreementClasses.push((agreementClass));
         _agreementClassIndices[agreementType] = _agreementClasses.length;

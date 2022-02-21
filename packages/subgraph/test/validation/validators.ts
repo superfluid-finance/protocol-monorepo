@@ -16,7 +16,7 @@ import {
     fetchATSAndValidate,
     fetchTokenStatsAndValidate,
 } from "./aggregateValidators";
-import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
+import {Framework} from "@superfluid-finance/sdk-core";
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { FlowActionType, IDAEventType } from "../helpers/constants";
@@ -59,7 +59,7 @@ export async function validateFlowUpdated(
 }
 
 export async function validateModifyIDA(
-    idaV1: InstantDistributionAgreementV1,
+    framework: Framework,
     updatedIndex: IIndex,
     updatedSubscription: IIndexSubscription,
     updatedPublisherATS: IAccountTokenSnapshot,
@@ -76,7 +76,7 @@ export async function validateModifyIDA(
     // events
     if (subscriberAddress !== "") {
         await fetchSubscriptionAndValidate(
-            idaV1,
+            framework,
             updatedSubscription,
             updatedIndex.indexValue,
             eventType,
@@ -88,7 +88,7 @@ export async function validateModifyIDA(
         await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
     }
     await fetchIndexAndValidate(
-        idaV1,
+        framework,
         updatedIndex,
         eventType,
         events,

@@ -52,7 +52,7 @@ jobs:
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
+    if: github.repository == 'superfluid-finance/protocol-monorepo x'
 
     runs-on: ubuntu-latest
 
@@ -95,7 +95,7 @@ jobs:
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
+    if: github.repository == 'superfluid-finance/protocol-monorepo x'
 
     runs-on: ubuntu-latest
 
@@ -147,7 +147,7 @@ jobs:
   subgraph-test:
     name: Run test of subgraph on dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
+    if: github.repository == 'superfluid-finance/protocol-monorepo x'
 
     runs-on: ubuntu-latest
 
@@ -227,10 +227,10 @@ jobs:
 
       - name: Publish to npm
         run: |
-          tasks/npm-publish.sh packages/ethereum-contracts test --dry-run
-          tasks/npm-publish.sh packages/js-sdk test --dry-run
-          tasks/npm-publish.sh packages/sdk-core test --dry-run
-          tasks/npm-publish.sh packages/sdk-redux test --dry-run
+          tasks/npm-publish.sh packages/ethereum-contracts test --dry-run --verbose
+          tasks/npm-publish.sh packages/js-sdk test --dry-run --verbose
+          tasks/npm-publish.sh packages/sdk-core test --dry-run --verbose
+          tasks/npm-publish.sh packages/sdk-redux test --dry-run --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

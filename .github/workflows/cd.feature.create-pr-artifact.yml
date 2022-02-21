@@ -2,9 +2,7 @@ name: Create PR Artifact
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
-on:
-  pull_request:
-    types: [opened, reopened, ready_for_review, synchronize]
+on: issue_comment
 
 jobs:
   create_pr_artifact:
@@ -12,7 +10,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: ${{ !github.event.pull_request.draft }}
+    if: |
+      !github.event.pull_request.draft &&
+      github.event.comment.body == 'Bot, please #build-pr-packages' &&
+      (github.event.comment.author_association == 'COLLABORATOR' || github.event.comment.author_association == 'OWNER')
 
     steps:
       - uses: actions/checkout@v2

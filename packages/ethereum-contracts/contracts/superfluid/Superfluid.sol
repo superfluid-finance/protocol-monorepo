@@ -357,8 +357,8 @@ contract Superfluid is
             assembly { cs := extcodesize(app) }
             require(cs == 0, "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR");
         }
-        // FIXME: validate/reconstruct configWord else may introduce undefined future behavior
         require(
+            SuperAppDefinitions.isConfigWordClean(configWord) &&
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
             "SF: invalid config word");

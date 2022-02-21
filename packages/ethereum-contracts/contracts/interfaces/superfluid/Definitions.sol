@@ -33,6 +33,11 @@ library SuperAppDefinitions {
         return (configWord & SuperAppDefinitions.APP_JAIL_BIT) > 0;
     }
 
+    // Validate configWord cleaness for future compatibility, or else may introduce undefined future behavior
+    function isConfigWordClean(uint256 configWord) internal pure returns (bool) {
+        return (configWord & ~(APP_LEVEL_MASK | APP_JAIL_BIT)) == uint256(0);
+    }
+
     /**************************************************************************
     / Callback implementation bit masks
     /**************************************************************************/
@@ -167,7 +172,7 @@ library SuperfluidGovernanceConfigs {
     bytes32 constant internal CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
-    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY = 
+    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {

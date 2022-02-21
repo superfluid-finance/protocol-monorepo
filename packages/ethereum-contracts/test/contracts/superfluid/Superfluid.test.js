@@ -419,7 +419,7 @@ describe("Superfluid Host Contract", function () {
             });
         });
 
-        describe("#4 App Registry", () => {
+        describe.only("#4 App Registry", () => {
             let app;
 
             beforeEach(async () => {
@@ -462,6 +462,14 @@ describe("Superfluid Host Contract", function () {
                     SuperAppMock.new(
                         superfluid.address,
                         1 | (1 << 15) /* jail bit */,
+                        false
+                    ),
+                    reason
+                );
+                await expectRevert(
+                    SuperAppMock.new(
+                        superfluid.address,
+                        1 | (1 << 16) /* garbage bit */,
                         false
                     ),
                     reason

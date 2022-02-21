@@ -15,7 +15,7 @@ jobs:
   essential-build-and-test:
     name: Build and test essential packages of dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
+    if: github.repository == 'superfluid-finance/protocol-monorepo x'
 
     runs-on: ubuntu-latest
 

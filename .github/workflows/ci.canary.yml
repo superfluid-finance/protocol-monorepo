@@ -223,14 +223,14 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           preId=dev.${shortRev}
-          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+          # yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
 
       - name: Publish to npm
         run: |
-          ./tasks/npm-publish.sh packages/ethereum-contracts test  --dry-run
-          ./tasks/npm-publish.sh packages/js-sdk test --dry-run
-          ./tasks/npm-publish.sh packages/sdk-core test --dry-run
-          ./tasks/npm-publish.sh packages/sdk-redux test --dry-run
+          tasks/npm-publish.sh packages/ethereum-contracts test  --dry-run
+          tasks/npm-publish.sh packages/js-sdk test --dry-run
+          tasks/npm-publish.sh packages/sdk-core test --dry-run
+          tasks/npm-publish.sh packages/sdk-redux test --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

@@ -200,7 +200,7 @@ jobs:
   publish:
     name: Publish canary pakcages to registries
 
-    needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
+    # needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 
@@ -238,7 +238,7 @@ jobs:
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build
 
-    # needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
+    needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 

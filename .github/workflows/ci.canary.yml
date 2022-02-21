@@ -214,10 +214,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: true || yarn install --frozen-lockfile
 
       - name: Build
-        run: yarn build
+        run: true || yarn build
 
       - name: Setup canary package versions locally
         run: |

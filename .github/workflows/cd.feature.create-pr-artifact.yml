@@ -12,7 +12,7 @@ jobs:
 
     if: |
       !github.event.pull_request.draft &&
-      github.event.comment.body == 'Bot, please #build-pr-packages' &&
+      contains(github.event.comment.body, '#build-pr-packages') &&
       (github.event.comment.author_association == 'COLLABORATOR' || github.event.comment.author_association == 'OWNER')
 
     steps:

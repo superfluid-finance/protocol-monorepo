@@ -29,6 +29,15 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 
 
+/**
+ * @dev The Superfluid host implementation.
+ *
+ * NOTE:
+ * - Please read ISuperfluid for implementation notes.
+ * - For some deeper technical notes, please visit protocol-monorepo wiki area.
+ *
+ * @author Superfluid
+ */
 contract Superfluid is
     UUPSProxiable,
     ISuperfluid,

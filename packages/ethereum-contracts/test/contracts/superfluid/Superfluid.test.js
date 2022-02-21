@@ -419,7 +419,7 @@ describe("Superfluid Host Contract", function () {
             });
         });
 
-        describe.only("#4 App Registry", () => {
+        describe("#4 App Registry", () => {
             let app;
 
             beforeEach(async () => {

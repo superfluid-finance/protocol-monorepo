@@ -81,7 +81,7 @@ contract Superfluid is
     /// @dev Agreement list indexed by agreement index minus one
     ISuperAgreement[] internal _agreementClasses;
     /// @dev Mapping between agreement type to agreement index (starting from 1)
-    mapping (bytes32 => uint) internal _agreementClassIndices;
+    mapping (bytes\ => uint) internal _agreementClassIndices;
 
     /// @dev Super token
     ISuperTokenFactory internal _superTokenFactory;
@@ -998,8 +998,6 @@ contract Superfluid is
     {
         // 1.a ctx needs to be padded to align with 32 bytes boundary
         uint256 dataLen = data.length;
-
-        assert(dataLen % 32 == 0);
 
         // Double check if the ctx is a placeholder ctx
         //

@@ -536,7 +536,7 @@ module.exports = class TestEnvironment {
         );
     }
 
-    updateAccountBalanceSnapshot(superToken, account, balanceSnapshot , description) {
+    updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
         assert.isDefined(balanceSnapshot.timestamp);
@@ -551,7 +551,6 @@ module.exports = class TestEnvironment {
                                 deposit: balanceSnapshot.deposit,
                                 owedDeposit: balanceSnapshot.owedDeposit,
                                 timestamp: balanceSnapshot.timestamp,
-                                description: "test"
                             },
                         },
                     },
@@ -571,7 +570,7 @@ module.exports = class TestEnvironment {
                                 deposit: 0,
                                 owedDeposit: 0,
                                 timestamp: 0,
-                                description: ""
+                                description: "",
                             },
                         },
                     },
@@ -625,13 +624,13 @@ module.exports = class TestEnvironment {
      * Test Plot Data Functions
      **************************************************************************/
 
-    formatRawBalanceSnapshot(rawBalanceSnapshot , description) {
+    formatRawBalanceSnapshot(rawBalanceSnapshot, description) {
         return {
             availableBalance: rawBalanceSnapshot.availableBalance,
             deposit: rawBalanceSnapshot.deposit,
             owedDeposit: rawBalanceSnapshot.owedDeposit,
             timestamp: rawBalanceSnapshot.timestamp,
-            description: description
+            description: description,
         };
     }
 
@@ -680,7 +679,6 @@ module.exports = class TestEnvironment {
         });
         const existingAccountBalanceSnapshots =
             this.plotData.tokens[superToken].accountBalanceSnapshots[account];
-        console.log("EXISTING PLOT DATA YOOO", existingAccountBalanceSnapshots)
         // we only want to add new entries if the timestamp has changed
         const accountBalanceSnapshotsToMerge =
             existingAccountBalanceSnapshots.length === 0 ||
@@ -689,7 +687,10 @@ module.exports = class TestEnvironment {
             ].timestamp !== rawBalanceSnapshot.timestamp
                 ? [
                       ...existingAccountBalanceSnapshots,
-                      this.formatRawBalanceSnapshot(rawBalanceSnapshot,description),
+                      this.formatRawBalanceSnapshot(
+                          rawBalanceSnapshot,
+                          description
+                      ),
                   ]
                 : [...existingAccountBalanceSnapshots];
 
@@ -737,7 +738,7 @@ module.exports = class TestEnvironment {
                         deposit: wad4human(y.deposit.toString()),
                         owedDeposit: wad4human(y.owedDeposit.toString()),
                         timestamp: y.timestamp,
-                        description: y.description
+                        description: y.description,
                     }))
                 )
                 .flat()
@@ -878,7 +879,11 @@ module.exports = class TestEnvironment {
         );
     }
 
-    async validateSystemInvariance({allowCriticalAccount, tokenSymbol , description} = {}) {
+    async validateSystemInvariance({
+        allowCriticalAccount,
+        tokenSymbol,
+        description,
+    } = {}) {
         tokenSymbol = tokenSymbol || "TEST";
         const testToken = this.sf.tokens[tokenSymbol];
         const superToken = this.sf.tokens[tokenSymbol + "x"];

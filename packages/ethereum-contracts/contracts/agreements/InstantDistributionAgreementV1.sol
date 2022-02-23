@@ -26,7 +26,7 @@ import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
  * @dev The IInstantDistributionAgreementV1 implementation
  *
  * NOTE:
- * - Please read IConstantFlowAgreementV1 for implementation notes.
+ * - Please read IInstantDistributionAgreementV1 for implementation notes.
  * - For some deeper technical notes, please visit protocol-monorepo wiki area.
  *
  * @author Superfluid

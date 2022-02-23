@@ -298,27 +298,33 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     // Transaction
     const txnResponse =
         actionType === FlowActionType.Create
-            ? await sf.cfaV1.createFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  flowRate: newFlowRate.toString(),
-                  userData: "0x"
-              }).exec(signer)
+            ? await sf.cfaV1
+                  .createFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      flowRate: newFlowRate.toString(),
+                      userData: "0x",
+                  })
+                  .exec(signer)
             : actionType === FlowActionType.Update
-            ? await sf.cfaV1.updateFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  flowRate: newFlowRate.toString(),
-                  userData: "0x"
-              }).exec(signer)
-            : await sf.cfaV1.deleteFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  userData: "0x"
-              }).exec(signer);
+            ? await sf.cfaV1
+                  .updateFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      flowRate: newFlowRate.toString(),
+                      userData: "0x",
+                  })
+                  .exec(signer)
+            : await sf.cfaV1
+                  .deleteFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      userData: "0x",
+                  })
+                  .exec(signer);
 
     if (!txnResponse.blockNumber) {
         throw new Error("No block number");
@@ -328,7 +334,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
 
-    const flowData = await sf.cfaV1.getFlow({
+    const {flowRate} = await sf.cfaV1.getFlow({
         superToken,
         sender,
         receiver,
@@ -338,7 +344,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     return {
         txnResponse,
         timestamp,
-        flowRate: toBN(flowData.flowRate),
+        flowRate: toBN(flowRate),
     };
 };
 

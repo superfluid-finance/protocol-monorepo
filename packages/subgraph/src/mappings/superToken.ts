@@ -289,7 +289,7 @@ function createAgreementLiquidatedV2Entity(
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
 
     let decoded = ethereum.decode(
-        "(uint256, uint8)",
+        "(uint256,uint256)",
         event.params.liquidationTypeData
     ) as ethereum.Value;
     let tuple = decoded.toTuple();

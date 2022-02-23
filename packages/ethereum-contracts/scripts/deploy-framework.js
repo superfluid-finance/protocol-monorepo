@@ -61,12 +61,14 @@ async function deployContractIfCodeChanged(
     web3,
     Contract,
     codeAddress,
-    deployFunc
+    deployFunc,
+    codeReplacements
 ) {
     return deployContractIf(
         web3,
         Contract,
-        async () => await codeChanged(web3, Contract, codeAddress),
+        async () =>
+            await codeChanged(web3, Contract, codeAddress, codeReplacements),
         deployFunc
     );
 }
@@ -305,6 +307,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             accounts[0],
             // liquidationPeriod
             config.liquidationPeriod,
+            // patricianPeriod
+            config.patricianPeriod,
             // trustedForwarders
             config.biconomyForwarder ? [config.biconomyForwarder] : []
         );
@@ -326,7 +330,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )();
+        )(superfluid.address);
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         return agreement;
     };
@@ -352,7 +356,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             InstantDistributionAgreementV1.new,
             "InstantDistributionAgreementV1.new"
-        )();
+        )(superfluid.address);
         console.log(
             "New InstantDistributionAgreementV1 address",
             agreement.address
@@ -426,7 +430,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     await superfluid.getAgreementClass.call(CFAv1_TYPE)
                 )
             ).getCodeAddress(),
-            async () => (await deployCFAv1()).address
+            async () => (await deployCFAv1()).address,
+            [
+                // See SuperToken constructor parameter
+                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+            ]
         );
         if (cfaNewLogicAddress !== ZERO_ADDRESS)
             agreementsToUpdate.push(cfaNewLogicAddress);
@@ -440,7 +448,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     await superfluid.getAgreementClass.call(IDAv1_TYPE)
                 )
             ).getCodeAddress(),
-            async () => (await deployIDAv1()).address
+            async () => (await deployIDAv1()).address,
+            [
+                // See SuperToken constructor parameter
+                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+            ]
         );
         if (idaNewLogicAddress !== ZERO_ADDRESS)
             agreementsToUpdate.push(idaNewLogicAddress);

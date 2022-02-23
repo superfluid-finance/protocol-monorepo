@@ -105,6 +105,38 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 		bool isKeySet,
         uint256 value);
 
+    function setConfig(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        bytes32 key,
+        address value
+    ) 
+        external override
+    {
+        _setConfig(host, superToken, key, value);
+    }
+
+    function setConfig(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        bytes32 key,
+        uint256 value
+    ) 
+        external override
+    {
+        _setConfig(host, superToken, key, value);
+    }
+
+    function clearConfig(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        bytes32 key
+    ) 
+        external override
+    {
+        _clearConfig(host, superToken, key);
+    }
+
     function _setConfig(
         ISuperfluid host,
         ISuperfluidToken superToken,
@@ -282,7 +314,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     ) public view
         returns (uint256 liquidationPeriod, uint256 patricianPeriod)
         {
-            uint256 threePsConfig = getConfigAsUint256(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
+            uint256 threePsConfig = getConfigAsUint256(
+                host, 
+                superToken, 
+                SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY
+            );
             (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
         }
 
@@ -304,7 +340,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         return _setConfig(
             host,
             superToken,
-            SuperfluidGovernanceConfigs._3PS_CONFIG_KEY,
+            SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY,
             value
         );
     }
@@ -314,7 +350,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken
     ) public {
         emit ThreePsConfigurationChanged(host, superToken, false, 0, 0);
-        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs._3PS_CONFIG_KEY);
+        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY);
     }
     event SuperTokenMinimumDepositChanged(
         ISuperfluid indexed host,

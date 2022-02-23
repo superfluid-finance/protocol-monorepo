@@ -4,7 +4,6 @@ env:
 
 on:
   push:
-    branches-ignore: ["master", "dev"]
     paths:
       - 'examples/**'
       - '.github/workflows/handler.build-examples.yml'
@@ -32,9 +31,9 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript ]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript, sdk-redux-nextjs-typescript ]
         install: [locked-install, clean-install]
-        node-version: [14.x]
+        node-version: [16.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -65,7 +64,7 @@ jobs:
           # ready to build and test, each example project must provide
           # their instructions here
           ./build-and-test.sh
-       
+
 
   build-examples-done:
     name: Build examples done # An aggregated job used for PR criteria

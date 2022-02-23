@@ -43,6 +43,27 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (uint256 deposit);
 
     /**
+     * @dev Returns whether it is the patrician period based on
+     * the current timestamp (block.timestamp).
+     */
+    function isPatricianPeriodNow(
+        ISuperfluidToken token, 
+        address account)
+        public view virtual
+        returns (bool isPatricianPeriod, uint256 timestamp);
+
+    /**
+     * @dev Returns whether it is the patrician period based on
+     * the inputted timestamp.
+     */
+    function isPatricianPeriod(
+        ISuperfluidToken token, 
+        address account,
+        uint256 timestamp)
+        public view virtual
+        returns (bool isPatricianPeriod);
+
+    /**
      * @dev Create a flow betwen sender and receiver.
      * @param token Super token address.
      * @param receiver Flow receiver address.

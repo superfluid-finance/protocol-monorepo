@@ -3,7 +3,11 @@
     "version": "1.0.0-rc.11",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
-    "repository": "github:superfluid-finance/protocol-monorepo",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/ethereum-contracts"
+    },
     "license": "AGPL-3.0",
     "files": [
         "/contracts/**/*",

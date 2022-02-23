@@ -95,6 +95,9 @@ To build with Superfluid, you can use the Javascript SDK package or the SDK core
 
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
+## Bug Bounty
+Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/bug-bounty.md) for more information regarding our Bug Bounty.
+
 ## Examples
 
 See [examples/](examples/) for some Superfluid app examples.
@@ -119,6 +122,9 @@ Thanks goes to these wonderful people ([🐸](https://allcontributors.org/docs/e
     <td align="center"><a href="http://medium.com/@samparsky"><img src="https://avatars.githubusercontent.com/u/8148384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Omidiora Samuel</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=samparsky" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/iamsahu"><img src="https://avatars.githubusercontent.com/u/46891804?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Prafful</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=iamsahu" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/mjaago"><img src="https://avatars.githubusercontent.com/u/25458626?v=4?s=100" width="100px;" alt=""/><br /><sub><b>mjaago</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=mjaago" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/markcarey"><img src="https://avatars.githubusercontent.com/u/98136?v=4?s=100" width="100px;" alt=""/><br /><sub><b>markcarey</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=markcarey" title="Code">💻</a></td>
   </tr>
 </table>
 

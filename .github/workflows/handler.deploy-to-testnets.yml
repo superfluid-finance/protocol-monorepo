@@ -47,11 +47,11 @@ jobs:
         if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
         run: echo "DO_SKIP=1" >> $GITHUB_ENV
 
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         if: env.DO_SKIP != 1
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
 
       - name: Build
         if: env.DO_SKIP != 1
@@ -76,3 +76,5 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
+          OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
+          ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}

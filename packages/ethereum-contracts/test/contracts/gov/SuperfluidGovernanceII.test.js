@@ -1,5 +1,6 @@
 const {expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("ethers");
 const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
@@ -601,6 +602,178 @@ describe("Superfluid Ownable Governance Contract", function () {
                     superfluid.address,
                     appFactory.address
                 )
+            );
+        });
+
+        it("#2.7 external set/clear config", async () => {
+            const bytesRewardAddressKey = ethers.utils.toUtf8Bytes(
+                "org.superfluid-finance.superfluid.rewardAddress"
+            );
+            const bytesMinimumDepositKey = ethers.utils.toUtf8Bytes(
+                "org.superfluid-finance.superfluid.superTokenMinimumDeposit"
+            );
+            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = ethers.utils.keccak256(
+                bytesRewardAddressKey
+            );
+            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = ethers.utils.keccak256(
+                bytesMinimumDepositKey
+            );
+
+            // only owner can set config
+            await expectRevert(
+                governance.setConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                    FAKE_ADDRESS1
+                ),
+                onlyOwnerReason
+            );
+
+            // only owner can clear config
+            await expectRevert(
+                governance.clearConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
+                ),
+                onlyOwnerReason
+            );
+
+            await web3tx(
+                governance.setConfig,
+                "governance.setConfig FAKE_TOKEN_ADDRESS1 SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY FAKE_ADDRESS2"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                FAKE_ADDRESS2,
+                {
+                    from: alice,
+                }
+            );
+
+            assert.equal(
+                await governance.getRewardAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                FAKE_ADDRESS2
+            );
+            assert.equal(
+                await governance.getConfigAsAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
+                ),
+                FAKE_ADDRESS2
+            );
+
+            // clear address value
+            await web3tx(
+                governance.clearConfig,
+                "governance.clearConfig FAKE_TOKEN_ADDRESS1 SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                {
+                    from: alice,
+                }
+            );
+
+            assert.equal(
+                await governance.getRewardAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                FAKE_ADDRESS1
+            );
+
+            assert.equal(
+                await governance.getConfigAsAddress(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
+                ),
+                FAKE_ADDRESS1
+            );
+
+            // only owner can set config
+            await expectRevert(
+                governance.setConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                    42069
+                ),
+                onlyOwnerReason
+            );
+
+            // only owner can clear config
+            await expectRevert(
+                governance.clearConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                ),
+                onlyOwnerReason
+            );
+
+            await web3tx(
+                governance.setConfig,
+                "governance.setConfig FAKE_TOKEN_ADDRESS1 SUPERTOKEN_MINIMUM_DEPOSIT_KEY 123456"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                123456,
+                {
+                    from: alice,
+                }
+            );
+
+            assert.equal(
+                await governance.getConfigAsUint256(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                ),
+                123456
+            );
+            assert.equal(
+                await governance.getSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                123456
+            );
+
+            await web3tx(
+                governance.clearConfig,
+                "governance.clearConfig FAKE_TOKEN_ADDRESS1 SUPERTOKEN_MINIMUM_DEPOSIT_KEY"
+            )(
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                {
+                    from: alice,
+                }
+            );
+            assert.equal(
+                await governance.getConfigAsUint256(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1,
+                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                ),
+                42069
+            );
+            assert.equal(
+                await governance.getSuperTokenMinimumDeposit(
+                    superfluid.address,
+                    FAKE_TOKEN_ADDRESS1
+                ),
+                42069
             );
         });
     });

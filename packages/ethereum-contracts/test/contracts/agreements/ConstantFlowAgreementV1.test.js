@@ -188,7 +188,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         shouldSkipTimeTravel,
     }) {
         // get initial state
-        await t.validateSystemInvariance({allowCriticalAccount});
+        await t.validateSystemInvariance({allowCriticalAccount , description:"STR:" + receiver});
 
         const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
             superToken: superToken.address,
@@ -267,7 +267,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             accountFlowInfo,
         });
 
-        await verifyAll({allowCriticalAccount});
+        await verifyAll({allowCriticalAccount , description: "LIQ"});
     }
 
     context("#1 without callbacks", () => {
@@ -618,7 +618,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        describe("#1.4 deleteFlow (liquidations)", () => {
+        describe.only("#1.4 deleteFlow (liquidations)", () => {
             beforeEach(async () => {
                 // give admin some balance for liquidations
                 await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
@@ -1405,7 +1405,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        describe("#1.5 multiple flow liquidations", () => {
+        describe.only("#1.5 multiple flow liquidations", () => {
             beforeEach(async () => {
                 await web3tx(
                     governance.setRewardAddress,
@@ -1681,7 +1681,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        describe("#1.6 sender multi flow with inflow liquidations", () => {
+        describe.only("#1.6 sender multi flow with inflow liquidations", () => {
             beforeEach(async () => {
                 await web3tx(
                     governance.setRewardAddress,

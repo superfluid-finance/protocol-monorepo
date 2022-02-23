@@ -536,7 +536,7 @@ module.exports = class TestEnvironment {
         );
     }
 
-    updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
+    updateAccountBalanceSnapshot(superToken, account, balanceSnapshot , description) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
         assert.isDefined(balanceSnapshot.timestamp);
@@ -551,6 +551,7 @@ module.exports = class TestEnvironment {
                                 deposit: balanceSnapshot.deposit,
                                 owedDeposit: balanceSnapshot.owedDeposit,
                                 timestamp: balanceSnapshot.timestamp,
+                                description: "test"
                             },
                         },
                     },
@@ -570,6 +571,7 @@ module.exports = class TestEnvironment {
                                 deposit: 0,
                                 owedDeposit: 0,
                                 timestamp: 0,
+                                description: ""
                             },
                         },
                     },
@@ -623,12 +625,13 @@ module.exports = class TestEnvironment {
      * Test Plot Data Functions
      **************************************************************************/
 
-    formatRawBalanceSnapshot(rawBalanceSnapshot) {
+    formatRawBalanceSnapshot(rawBalanceSnapshot , description) {
         return {
             availableBalance: rawBalanceSnapshot.availableBalance,
             deposit: rawBalanceSnapshot.deposit,
             owedDeposit: rawBalanceSnapshot.owedDeposit,
             timestamp: rawBalanceSnapshot.timestamp,
+            description: description
         };
     }
 
@@ -649,11 +652,13 @@ module.exports = class TestEnvironment {
      * @dev Takes a balance snapshot for the plotData object if account is observed or observedAccounts is empty
      * @param account the account we are adding an entry for
      * @param rawBalanceSnapshot the rawBalanceSnapshot to be formatted and added as an entry (row)
+     * @param description the description to be used to showcase data points in charts
      */
     updatePlotDataAccountBalanceSnapshot(
         superToken,
         account,
-        rawBalanceSnapshot
+        rawBalanceSnapshot,
+        description
     ) {
         const observedAccounts = this.plotData.observedAccounts;
         if (
@@ -675,7 +680,7 @@ module.exports = class TestEnvironment {
         });
         const existingAccountBalanceSnapshots =
             this.plotData.tokens[superToken].accountBalanceSnapshots[account];
-
+        console.log("EXISTING PLOT DATA YOOO", existingAccountBalanceSnapshots)
         // we only want to add new entries if the timestamp has changed
         const accountBalanceSnapshotsToMerge =
             existingAccountBalanceSnapshots.length === 0 ||
@@ -684,7 +689,7 @@ module.exports = class TestEnvironment {
             ].timestamp !== rawBalanceSnapshot.timestamp
                 ? [
                       ...existingAccountBalanceSnapshots,
-                      this.formatRawBalanceSnapshot(rawBalanceSnapshot),
+                      this.formatRawBalanceSnapshot(rawBalanceSnapshot,description),
                   ]
                 : [...existingAccountBalanceSnapshots];
 
@@ -732,6 +737,7 @@ module.exports = class TestEnvironment {
                         deposit: wad4human(y.deposit.toString()),
                         owedDeposit: wad4human(y.owedDeposit.toString()),
                         timestamp: y.timestamp,
+                        description: y.description
                     }))
                 )
                 .flat()
@@ -755,6 +761,7 @@ module.exports = class TestEnvironment {
                 {id: "deposit", title: "deposit"},
                 {id: "owedDeposit", title: "owedDeposit"},
                 {id: "address", title: "address"},
+                {id: "description", title: "description"},
             ],
         });
         if (csvFormatPlotData.length > 0) {
@@ -871,7 +878,7 @@ module.exports = class TestEnvironment {
         );
     }
 
-    async validateSystemInvariance({allowCriticalAccount, tokenSymbol} = {}) {
+    async validateSystemInvariance({allowCriticalAccount, tokenSymbol , description} = {}) {
         tokenSymbol = tokenSymbol || "TEST";
         const testToken = this.sf.tokens[tokenSymbol];
         const superToken = this.sf.tokens[tokenSymbol + "x"];
@@ -907,7 +914,8 @@ module.exports = class TestEnvironment {
                     this.updatePlotDataAccountBalanceSnapshot(
                         superToken.address,
                         userAddress,
-                        superTokenBalance
+                        superTokenBalance,
+                        description
                     );
                 }
 

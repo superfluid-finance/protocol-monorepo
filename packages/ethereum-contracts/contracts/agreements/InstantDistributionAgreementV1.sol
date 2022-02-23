@@ -23,7 +23,7 @@ import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 /**
- * @dev The IConstantFlowAgreementV1 implementation
+ * @dev The IInstantDistributionAgreementV1 implementation
  *
  * NOTE:
  * - Please read IConstantFlowAgreementV1 for implementation notes.

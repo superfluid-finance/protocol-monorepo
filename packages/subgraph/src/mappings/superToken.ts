@@ -16,7 +16,7 @@ import {
     TransferEvent,
     SentEvent,
 } from "../../generated/schema";
-import { createEventID, tokenHasValidHost } from "../utils";
+import { BIG_INT_ONE, BIG_INT_ZERO, createEventID, tokenHasValidHost } from "../utils";
 import {
     getOrInitAccount,
     getOrInitAccountTokenSnapshot,
@@ -222,9 +222,12 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     let amountFlowed = timeDiff.times(penaltyATS.totalNetFlowRate);
     let currentUserRealTimeBalanceOf =
         penaltyATS.balanceUntilUpdatedAt.plus(amountFlowed);
-    
+
     // TODO: add this to AgreementLiquidatedV2 event as well
-    ev.secondsCritical = currentUserRealTimeBalanceOf.div(penaltyATS.totalNetFlowRate);
+    ev.secondsCritical = penaltyATS.totalNetFlowRate.equals(BIG_INT_ZERO)
+        // if the totalNetFlowRate is zero, we set secondsCritical to -1.
+        ? BIG_INT_ZERO.minus(BIG_INT_ONE)
+        : currentUserRealTimeBalanceOf.div(penaltyATS.totalNetFlowRate);
 
     ev.save();
 }

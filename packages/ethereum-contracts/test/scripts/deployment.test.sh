@@ -52,6 +52,5 @@ npx truffle exec scripts/info-show-protocol.js
 npx truffle exec scripts/info-print-contract-addresses.js : >(cat)
 npx truffle exec scripts/info-inspect-account.js : $VITALIK_ADDRESS
 npx truffle exec scripts/info-list-apps.js
-#FIXME npx truffle exec scripts/info-list-addresses.js
 
 npx truffle exec scripts/gov-transfer-framework-ownership.js : $VITALIK_ADDRESS

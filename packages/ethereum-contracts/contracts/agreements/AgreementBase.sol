@@ -5,6 +5,11 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 
 
+/**
+ * @dev The Superfluid agreement base boilerplate contract
+ *
+ * @author Superfluid
+ */
 abstract contract AgreementBase is
     UUPSProxiable,
     ISuperAgreement

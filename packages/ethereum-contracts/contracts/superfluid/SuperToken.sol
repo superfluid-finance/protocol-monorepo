@@ -27,6 +27,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title Superfluid's super token implementation
+ *
  * @author Superfluid
  */
 contract SuperToken is

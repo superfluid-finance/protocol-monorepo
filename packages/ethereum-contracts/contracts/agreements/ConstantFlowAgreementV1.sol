@@ -21,6 +21,15 @@ import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
+/**
+ * @dev The ConstantFlowAgreementV1 implementation
+ *
+ * NOTE:
+ * - Please read IConstantFlowAgreementV1 for implementation notes.
+ * - For some deeper technical notes, please visit protocol-monorepo wiki area.
+ *
+ * @author Superfluid
+ */
 contract ConstantFlowAgreementV1 is
     AgreementBase,
     IConstantFlowAgreementV1

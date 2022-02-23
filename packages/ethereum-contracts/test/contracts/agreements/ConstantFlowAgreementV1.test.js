@@ -680,8 +680,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         describe("#1.7 real-time balance", () => {
-            // #1.7.1 TODO should be able to downgrade full balance
-            // #1.7.2 TODO should be able to downgrade full balance
+            //TODO should be able to downgrade full balance
         });
 
         describe("#1.8 misc", () => {

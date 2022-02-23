@@ -59,6 +59,11 @@ library SuperAppDefinitions {
     uint256 constant internal APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED = 30;
     uint256 constant internal APP_RULE_COMPOSITE_APP_IS_JAILED = 31;
     uint256 constant internal APP_RULE_MAX_APP_LEVEL_REACHED = 40;
+
+    // Validate configWord cleaness for future compatibility, or else may introduce undefined future behavior
+    function isConfigWordClean(uint256 configWord) internal pure returns (bool) {
+        return (configWord & ~(APP_LEVEL_MASK | APP_JAIL_BIT | AGREEMENT_CALLBACK_NOOP_BITMASKS)) == uint256(0);
+    }
 }
 
 /**
@@ -167,7 +172,7 @@ library SuperfluidGovernanceConfigs {
     bytes32 constant internal CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
-    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY = 
+    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {

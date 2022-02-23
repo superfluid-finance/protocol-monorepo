@@ -18,6 +18,8 @@ import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 
 /**
  * @dev Helper library for building super agreement
+ *
+ * @author Superfluid
  */
 library AgreementLibrary {
 

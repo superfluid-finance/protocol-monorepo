@@ -22,6 +22,15 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
+/**
+ * @dev The IInstantDistributionAgreementV1 implementation
+ *
+ * NOTE:
+ * - Please read IInstantDistributionAgreementV1 for implementation notes.
+ * - For some deeper technical notes, please visit protocol-monorepo wiki area.
+ *
+ * @author Superfluid
+ */
 contract InstantDistributionAgreementV1 is
     AgreementBase,
     IInstantDistributionAgreementV1

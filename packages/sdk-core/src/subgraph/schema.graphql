@@ -3219,6 +3219,122 @@ enum OrderDirection {
   desc
 }
 
+type PPPConfigurationChangedEvent implements Event {
+  id: ID!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+  name: String!
+
+  """
+  Empty addresses array.
+  
+  """
+  addresses: [Bytes!]!
+  blockNumber: BigInt!
+  host: Bytes!
+  superToken: Bytes!
+  isKeySet: Boolean!
+  liquidationPeriod: BigInt!
+  patricianPeriod: BigInt!
+}
+
+input PPPConfigurationChangedEvent_filter {
+  id: ID
+  id_not: ID
+  id_gt: ID
+  id_lt: ID
+  id_gte: ID
+  id_lte: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  transactionHash: Bytes
+  transactionHash_not: Bytes
+  transactionHash_in: [Bytes!]
+  transactionHash_not_in: [Bytes!]
+  transactionHash_contains: Bytes
+  transactionHash_not_contains: Bytes
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+  timestamp_in: [BigInt!]
+  timestamp_not_in: [BigInt!]
+  name: String
+  name_not: String
+  name_gt: String
+  name_lt: String
+  name_gte: String
+  name_lte: String
+  name_in: [String!]
+  name_not_in: [String!]
+  name_contains: String
+  name_not_contains: String
+  name_starts_with: String
+  name_not_starts_with: String
+  name_ends_with: String
+  name_not_ends_with: String
+  addresses: [Bytes!]
+  addresses_not: [Bytes!]
+  addresses_contains: [Bytes!]
+  addresses_not_contains: [Bytes!]
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  blockNumber_in: [BigInt!]
+  blockNumber_not_in: [BigInt!]
+  host: Bytes
+  host_not: Bytes
+  host_in: [Bytes!]
+  host_not_in: [Bytes!]
+  host_contains: Bytes
+  host_not_contains: Bytes
+  superToken: Bytes
+  superToken_not: Bytes
+  superToken_in: [Bytes!]
+  superToken_not_in: [Bytes!]
+  superToken_contains: Bytes
+  superToken_not_contains: Bytes
+  isKeySet: Boolean
+  isKeySet_not: Boolean
+  isKeySet_in: [Boolean!]
+  isKeySet_not_in: [Boolean!]
+  liquidationPeriod: BigInt
+  liquidationPeriod_not: BigInt
+  liquidationPeriod_gt: BigInt
+  liquidationPeriod_lt: BigInt
+  liquidationPeriod_gte: BigInt
+  liquidationPeriod_lte: BigInt
+  liquidationPeriod_in: [BigInt!]
+  liquidationPeriod_not_in: [BigInt!]
+  patricianPeriod: BigInt
+  patricianPeriod_not: BigInt
+  patricianPeriod_gt: BigInt
+  patricianPeriod_lt: BigInt
+  patricianPeriod_gte: BigInt
+  patricianPeriod_lte: BigInt
+  patricianPeriod_in: [BigInt!]
+  patricianPeriod_not_in: [BigInt!]
+}
+
+enum PPPConfigurationChangedEvent_orderBy {
+  id
+  transactionHash
+  timestamp
+  name
+  addresses
+  blockNumber
+  host
+  superToken
+  isKeySet
+  liquidationPeriod
+  patricianPeriod
+}
+
 type Query {
   flowUpdatedEvent(
     id: ID!
@@ -4180,7 +4296,7 @@ type Query {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [RewardAddressChangedEvent!]!
-  threePsConfigurationChangedEvent(
+  pppconfigurationChangedEvent(
     id: ID!
 
     """
@@ -4197,13 +4313,13 @@ type Query {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): ThreePsConfigurationChangedEvent
-  threePsConfigurationChangedEvents(
+  ): PPPConfigurationChangedEvent
+  pppconfigurationChangedEvents(
     skip: Int = 0
     first: Int = 100
-    orderBy: ThreePsConfigurationChangedEvent_orderBy
+    orderBy: PPPConfigurationChangedEvent_orderBy
     orderDirection: OrderDirection
-    where: ThreePsConfigurationChangedEvent_filter
+    where: PPPConfigurationChangedEvent_filter
 
     """
     The block at which the query should be executed. Can either be a `{ hash:
@@ -4219,7 +4335,7 @@ type Query {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): [ThreePsConfigurationChangedEvent!]!
+  ): [PPPConfigurationChangedEvent!]!
   trustedForwarderChangedEvent(
     id: ID!
 
@@ -7090,7 +7206,7 @@ type Subscription {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [RewardAddressChangedEvent!]!
-  threePsConfigurationChangedEvent(
+  pppconfigurationChangedEvent(
     id: ID!
 
     """
@@ -7107,13 +7223,13 @@ type Subscription {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): ThreePsConfigurationChangedEvent
-  threePsConfigurationChangedEvents(
+  ): PPPConfigurationChangedEvent
+  pppconfigurationChangedEvents(
     skip: Int = 0
     first: Int = 100
-    orderBy: ThreePsConfigurationChangedEvent_orderBy
+    orderBy: PPPConfigurationChangedEvent_orderBy
     orderDirection: OrderDirection
-    where: ThreePsConfigurationChangedEvent_filter
+    where: PPPConfigurationChangedEvent_filter
 
     """
     The block at which the query should be executed. Can either be a `{ hash:
@@ -7129,7 +7245,7 @@ type Subscription {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): [ThreePsConfigurationChangedEvent!]!
+  ): [PPPConfigurationChangedEvent!]!
   trustedForwarderChangedEvent(
     id: ID!
 
@@ -8939,122 +9055,6 @@ enum SuperTokenLogicUpdatedEvent_orderBy {
   blockNumber
   token
   code
-}
-
-type ThreePsConfigurationChangedEvent implements Event {
-  id: ID!
-  transactionHash: Bytes!
-  timestamp: BigInt!
-  name: String!
-
-  """
-  Empty addresses array.
-  
-  """
-  addresses: [Bytes!]!
-  blockNumber: BigInt!
-  host: Bytes!
-  superToken: Bytes!
-  isKeySet: Boolean!
-  liquidationPeriod: BigInt!
-  patricianPeriod: BigInt!
-}
-
-input ThreePsConfigurationChangedEvent_filter {
-  id: ID
-  id_not: ID
-  id_gt: ID
-  id_lt: ID
-  id_gte: ID
-  id_lte: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  transactionHash: Bytes
-  transactionHash_not: Bytes
-  transactionHash_in: [Bytes!]
-  transactionHash_not_in: [Bytes!]
-  transactionHash_contains: Bytes
-  transactionHash_not_contains: Bytes
-  timestamp: BigInt
-  timestamp_not: BigInt
-  timestamp_gt: BigInt
-  timestamp_lt: BigInt
-  timestamp_gte: BigInt
-  timestamp_lte: BigInt
-  timestamp_in: [BigInt!]
-  timestamp_not_in: [BigInt!]
-  name: String
-  name_not: String
-  name_gt: String
-  name_lt: String
-  name_gte: String
-  name_lte: String
-  name_in: [String!]
-  name_not_in: [String!]
-  name_contains: String
-  name_not_contains: String
-  name_starts_with: String
-  name_not_starts_with: String
-  name_ends_with: String
-  name_not_ends_with: String
-  addresses: [Bytes!]
-  addresses_not: [Bytes!]
-  addresses_contains: [Bytes!]
-  addresses_not_contains: [Bytes!]
-  blockNumber: BigInt
-  blockNumber_not: BigInt
-  blockNumber_gt: BigInt
-  blockNumber_lt: BigInt
-  blockNumber_gte: BigInt
-  blockNumber_lte: BigInt
-  blockNumber_in: [BigInt!]
-  blockNumber_not_in: [BigInt!]
-  host: Bytes
-  host_not: Bytes
-  host_in: [Bytes!]
-  host_not_in: [Bytes!]
-  host_contains: Bytes
-  host_not_contains: Bytes
-  superToken: Bytes
-  superToken_not: Bytes
-  superToken_in: [Bytes!]
-  superToken_not_in: [Bytes!]
-  superToken_contains: Bytes
-  superToken_not_contains: Bytes
-  isKeySet: Boolean
-  isKeySet_not: Boolean
-  isKeySet_in: [Boolean!]
-  isKeySet_not_in: [Boolean!]
-  liquidationPeriod: BigInt
-  liquidationPeriod_not: BigInt
-  liquidationPeriod_gt: BigInt
-  liquidationPeriod_lt: BigInt
-  liquidationPeriod_gte: BigInt
-  liquidationPeriod_lte: BigInt
-  liquidationPeriod_in: [BigInt!]
-  liquidationPeriod_not_in: [BigInt!]
-  patricianPeriod: BigInt
-  patricianPeriod_not: BigInt
-  patricianPeriod_gt: BigInt
-  patricianPeriod_lt: BigInt
-  patricianPeriod_gte: BigInt
-  patricianPeriod_lte: BigInt
-  patricianPeriod_in: [BigInt!]
-  patricianPeriod_not_in: [BigInt!]
-}
-
-enum ThreePsConfigurationChangedEvent_orderBy {
-  id
-  transactionHash
-  timestamp
-  name
-  addresses
-  blockNumber
-  host
-  superToken
-  isKeySet
-  liquidationPeriod
-  patricianPeriod
 }
 
 """

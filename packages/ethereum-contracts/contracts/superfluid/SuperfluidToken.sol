@@ -289,8 +289,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
         FixedSizeData.storeData(slot, slotData);
-        // FIXME change how this is done
-        //_addAgreementClass(msg.sender, account);
         emit AgreementStateUpdated(msg.sender, account, slotId);
     }
 
@@ -355,7 +353,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
             _balances[penaltyAccount] = _balances[penaltyAccount]
                 .sub(signedRewardAmount);
 
-            // TODO deprecate AgreementLiquidated
             emit AgreementLiquidated(
                 msg.sender, id,
                 penaltyAccount,
@@ -385,7 +382,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
             // - penalty applies (excluding the bailout)
             _balances[penaltyAccount] = _balances[penaltyAccount]
                 .add(signedBailoutAmount);
-            // TODO deprecate AgreementLiquidated & Bailout
+            // FIXME deprecate AgreementLiquidated & Bailout
             emit AgreementLiquidated(
                 msg.sender, id,
                 penaltyAccount,

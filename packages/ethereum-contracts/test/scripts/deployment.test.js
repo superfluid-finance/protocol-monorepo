@@ -470,8 +470,6 @@ contract("Embeded deployment scripts", (accounts) => {
         });
     });
 
-    //TODO context("Used with ethers");
-
     it("[SECURITY-DestructableProxiable] proxiable should not be a proxy", async () => {
         const attacker = accounts[0];
         const Destructor = artifacts.require("SuperfluidDestructorMock");

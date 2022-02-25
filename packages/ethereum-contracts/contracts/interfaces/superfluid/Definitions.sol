@@ -59,6 +59,11 @@ library SuperAppDefinitions {
     uint256 constant internal APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED = 30;
     uint256 constant internal APP_RULE_COMPOSITE_APP_IS_JAILED = 31;
     uint256 constant internal APP_RULE_MAX_APP_LEVEL_REACHED = 40;
+
+    // Validate configWord cleaness for future compatibility, or else may introduce undefined future behavior
+    function isConfigWordClean(uint256 configWord) internal pure returns (bool) {
+        return (configWord & ~(APP_LEVEL_MASK | APP_JAIL_BIT | AGREEMENT_CALLBACK_NOOP_BITMASKS)) == uint256(0);
+    }
 }
 
 /**

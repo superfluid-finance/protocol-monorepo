@@ -64,7 +64,7 @@ echo SlotsBitmapLibrary
 npx truffle --network $TRUFFLE_NETWORK run verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
 
 echo IDA
-# HACK: do library link ourselves
+# NOTE: do library linking ourselves
 cp -f build/contracts/InstantDistributionAgreementV1.json build/contracts/InstantDistributionAgreementV1.json.bak
 jq -s '.[0] * .[1]' \
     build/contracts/InstantDistributionAgreementV1.json.bak \

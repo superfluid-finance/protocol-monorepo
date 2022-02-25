@@ -466,6 +466,14 @@ describe("Superfluid Host Contract", function () {
                     ),
                     reason
                 );
+                await expectRevert(
+                    SuperAppMock.new(
+                        superfluid.address,
+                        1 | (1 << 16) /* garbage bit */,
+                        false
+                    ),
+                    reason
+                );
             });
 
             it("#4.4 app double registration should fail", async () => {

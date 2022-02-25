@@ -109,8 +109,6 @@ async function codeChanged(
             new RegExp(r, "g"),
             "0".repeat(r.length)
         );
-        if (codeTrimed === codeTrimed2)
-            throw new Error("Code replacement not found");
         codeTrimed = codeTrimed2;
     });
 

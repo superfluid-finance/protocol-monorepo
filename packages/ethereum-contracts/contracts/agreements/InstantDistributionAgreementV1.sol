@@ -22,6 +22,15 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
+/**
+ * @dev The IInstantDistributionAgreementV1 implementation
+ *
+ * NOTE:
+ * - Please read IInstantDistributionAgreementV1 for implementation notes.
+ * - For some deeper technical notes, please visit protocol-monorepo wiki area.
+ *
+ * @author Superfluid
+ */
 contract InstantDistributionAgreementV1 is
     AgreementBase,
     IInstantDistributionAgreementV1
@@ -56,6 +65,9 @@ contract InstantDistributionAgreementV1 is
     uint32 private constant _MAX_NUM_SUBS = 256;
     /// @dev A special id that indicating the subscription is not approved yet
     uint32 private constant _UNALLOCATED_SUB_ID = type(uint32).max;
+
+    // solhint-disable-next-line no-empty-blocks
+    constructor(ISuperfluid host) AgreementBase(address(host)) {}
 
     /// @dev Agreement data for the index
     struct IndexData {

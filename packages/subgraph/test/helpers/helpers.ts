@@ -6,7 +6,6 @@ import { IMeta, IIndexSubscription } from "../interfaces";
 import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
-import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { Resolver, TestToken } from "../../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -277,7 +276,6 @@ export const getSubscriptionId = (
 export const modifyFlowAndReturnCreatedFlowData = async (
     provider: BaseProvider,
     sf: Framework,
-    cfaV1: ConstantFlowAgreementV1,
     actionType: FlowActionType,
     superToken: string,
     sender: string,
@@ -294,13 +292,12 @@ export const modifyFlowAndReturnCreatedFlowData = async (
             actionType
         )} a flow **********************`
     );
-    const sfCFA = sf.cfaV1;
     const signer = await ethers.getSigner(sender);
     // any because it the txn.receipt doesn't exist on
     // Transaction
     const txnResponse =
         actionType === FlowActionType.Create
-            ? await sfCFA.createFlow({
+            ? await sf.cfaV1.createFlow({
                   superToken,
                   sender,
                   receiver,
@@ -308,14 +305,14 @@ export const modifyFlowAndReturnCreatedFlowData = async (
                   userData: "0x"
               }).exec(signer)
             : actionType === FlowActionType.Update
-            ? await sfCFA.updateFlow({
+            ? await sf.cfaV1.updateFlow({
                   superToken,
                   sender,
                   receiver,
                   flowRate: newFlowRate.toString(),
                   userData: "0x"
               }).exec(signer)
-            : await sfCFA.deleteFlow({
+            : await sf.cfaV1.deleteFlow({
                   superToken,
                   sender,
                   receiver,
@@ -330,12 +327,12 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
 
-    const [, flowRate] = await cfaV1.getFlow(superToken, sender, receiver);
+    const {flowRate} = await sf.cfaV1.getFlow({superToken, sender, receiver, providerOrSigner: provider});
 
     return {
         txnResponse,
         timestamp,
-        flowRate,
+        flowRate: toBN(flowRate),
     };
 };
 

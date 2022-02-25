@@ -1,11 +1,12 @@
 {
     "name": "@superfluid-finance/sdk-redux",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "SDK Redux for streamlined front-end application development with Superfluid Protocol",
     "homepage": "https://docs.superfluid.finance/",
     "repository": {
         "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/sdk-redux"
     },
     "license": "MIT",
     "main": "dist/main/index.js",
@@ -53,7 +54,7 @@
     },
     "peerDependencies": {
         "@reduxjs/toolkit": "^1.6.0 || ^1.7.0",
-        "@superfluid-finance/sdk-core": "0.3.0"
+        "@superfluid-finance/sdk-core": "0.3.1"
     },
     "files": [
         "dist/main",

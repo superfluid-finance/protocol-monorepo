@@ -24,17 +24,21 @@ describe("Framework subgraph (goerli) support", function () {
             web3: new Web3(
                 new HDWalletProvider(
                     "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat",
-                    process.env.GOERLI_PROVIDER_URL,
+                    process.env.POLYGON_MAINNET_PROVIDER_URL ||
+                        // use a default one for public pull requests
+                        "https://polygon-rpc.com/",
                     0, //address_index
                     1 // num_addresses
                 )
             ),
-            tokens: ["fDAIx"],
+            tokens: ["DAIx", "ETHx"],
             version: "v1",
         });
         await sf.initialize();
     });
 
+    // Taking an address from https://docs.ricochet.exchange/docs/network-directory:
+    // DAI >> WETH
     it("subgraphQuery", async () => {
         const data = await sf.subgraphQuery(`{
             _meta {
@@ -60,17 +64,16 @@ describe("Framework subgraph (goerli) support", function () {
 
     it("cfa.listFlows", async () => {
         const flows = await sf.cfa.listFlows({
-            superToken: sf.tokens.fDAIx.address,
-            account: "0xEb85888b31FADF79CB264d065EdcB4a14551c28d",
+            superToken: sf.tokens.DAIx.address,
+            account: "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5",
         });
         assert.isTrue(flows.inFlows.length > 0);
-        assert.isTrue(flows.outFlows.length > 0);
     });
 
     it("ida.listIndices", async () => {
         const indexes = await sf.ida.listIndices({
-            superToken: sf.tokens.fDAIx.address,
-            publisher: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE",
+            superToken: sf.tokens.ETHx.address,
+            publisher: "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5",
         });
         assert.equal(indexes.length, 1);
         assert.equal(indexes[0], 0);
@@ -78,8 +81,8 @@ describe("Framework subgraph (goerli) support", function () {
 
     it("ida.listSubcribers", async () => {
         const subscribers = await sf.ida.listSubcribers({
-            superToken: sf.tokens.fDAIx.address,
-            publisher: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE",
+            superToken: sf.tokens.ETHx.address,
+            publisher: "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5",
             indexId: 0,
         });
         assert.isTrue(subscribers.length > 0);
@@ -92,19 +95,19 @@ describe("Framework subgraph (goerli) support", function () {
             sf.agreements.ida,
             "IndexCreated",
             {
-                token: sf.tokens.fDAIx.address,
-                publisher: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE",
+                token: sf.tokens.ETHx.address,
+                publisher: "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5",
                 indexId: 0,
             }
         );
         assert.isTrue(events.length > 0);
         assert.equal(
             events[0].token.toLowerCase(),
-            sf.tokens.fDAIx.address.toLowerCase()
+            sf.tokens.ETHx.address.toLowerCase()
         );
         assert.equal(
             events[0].publisher.toLowerCase(),
-            "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE".toLowerCase()
+            "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5".toLowerCase()
         );
         assert.equal(events[0].indexId, 0);
         assert.equal(events[0].userData, "0x");

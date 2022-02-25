@@ -27,6 +27,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title Superfluid's super token implementation
+ *
  * @author Superfluid
  */
 contract SuperToken is
@@ -506,7 +507,7 @@ contract SuperToken is
         address account,
         address spender,
         uint256 amount
-    ) 
+    )
         external override
         onlySelf
     {
@@ -518,7 +519,7 @@ contract SuperToken is
         address spender,
         address recipient,
         uint256 amount
-    ) 
+    )
         external override
         onlySelf
     {

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { InstantDistributionAgreementV1 } from "../../../typechain/InstantDistributionAgreementV1";
+import {Framework} from "@superfluid-finance/sdk-core";
 import {
     IDAEventType,
 } from "../../helpers/constants";
@@ -65,7 +65,7 @@ const getIndexEventsMap = (index: IIndex, events: IIDAEvents) => {
 };
 
 export const fetchIndexAndValidate = async (
-    idaV1: InstantDistributionAgreementV1,
+    framework: Framework,
     expectedIndex: IIndex,
     eventType: IDAEventType,
     events: IIDAEvents,
@@ -78,7 +78,7 @@ export const fetchIndexAndValidate = async (
         "Index"
     );
 
-    validateIndexEntity(idaV1, index, expectedIndex);
+    validateIndexEntity(framework, index, expectedIndex);
     const eventTypeToDataMap = getIndexEventsMap(index, events);
 
     if (
@@ -120,18 +120,22 @@ export const fetchIndexAndValidate = async (
 };
 
 export const validateIndexEntity = async (
-    idaV1: InstantDistributionAgreementV1,
+    framework: Framework,
     subgraphIndex: IIndex,
     expectedIndex: IIndex
 ) => {
     const superToken = ethers.utils.getAddress(subgraphIndex.token.id);
     const publisher = ethers.utils.getAddress(subgraphIndex.publisher.id);
-    const [, indexValue, totalUnitsApproved, totalUnitsPending] =
-        await idaV1.getIndex(
+    const index =
+        await framework.idaV1.getIndex({
             superToken,
             publisher,
-            Number(expectedIndex.indexId)
-        );
+            indexId: expectedIndex.indexId,
+            providerOrSigner: framework.settings.provider
+        });
+    const totalUnitsPending = toBN(index.totalUnitsPending);
+    const totalUnitsApproved = toBN(index.totalUnitsApproved);
+    const indexValue = toBN(index.indexValue);
 
     // Check subgraph data against expected data
     expect(subgraphIndex.indexId, "Index: indexId error").to.equal(

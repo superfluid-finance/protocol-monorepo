@@ -110,6 +110,20 @@ export const validateEvents = <T extends TypedEvent, K>(
                     );
                     throw new Error(`${eventName} Event is not the same.`);
                 }
+            } else if (typeof currentOnChainEvent.args[keys[j]] === "number") {
+                if (
+                    toBN(currentOnChainEvent.args[keys[j]]).eq
+                    (toBN(currentSubgraphEvent[keys[j]])) === false
+                ) {
+                    console.log(
+                        `${keys[j]} - Subgraph: ${
+                            currentSubgraphEvent[keys[j]]
+                        } \n On-chain data: ${currentOnChainEvent.args[
+                            keys[j]
+                        ].toString()}`
+                    );
+                    throw new Error(`${eventName} Event is not the same.`);
+                }
             } else {
                 if (
                     currentOnChainEvent.args[keys[j]].eq(

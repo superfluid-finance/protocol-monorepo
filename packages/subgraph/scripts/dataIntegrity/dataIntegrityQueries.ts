@@ -163,7 +163,7 @@ export const getIndexUnsubscribedEvents = gql`
         $first: Int
         $timestamp: Int
     ) {
-        response: indexSubscribedEvents(
+        response: indexUnsubscribedEvents(
             block: { number: $blockNumber }
             first: $first
             where: { timestamp_gte: $timestamp }

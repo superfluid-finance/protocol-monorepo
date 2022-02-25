@@ -11,12 +11,9 @@ import {
     getAccountTokenSnapshots,
     getTokenStatistics,
     getFlowUpdatedEvents,
-    getIndexUpdatedEvents,
-    getIndexCreatedEvents,
     idaEventToQueryMap,
 } from "./dataIntegrityQueries";
 import {
-    IDAEvent,
     IDataIntegrityAccountTokenSnapshot,
     IDataIntegrityIndex,
     IDataIntegrityStream,
@@ -39,7 +36,6 @@ import {
     printProgress,
     QueryHelper,
     querySubgraphAndValidateEvents,
-    validateEvents,
 } from "./helperFunctions";
 
 // currently set to 1 due to limitation with node-fetch
@@ -143,20 +139,8 @@ async function main() {
         })
     );
 
-    /**
-     * TODOs
-     * PATTERN:
-     * - QUERY ALL EVENTS VIA THE CONTRACT ON ETHERS [x]
-     * - QUERY ALL EVENTS VIA THE SUBGRAPH []
-     *  - PROCESS AND ONLY GET UNIQUE ENTITIES
-     * - VALIDATE ALL EVENTS
-     *  - BASE CASE: EQUAL LENGTH
-     * - QUERY ALL HOL/AGGREGATE ENTITIES VIA THE SUBGRAPH []
-     * - COMPARE HOL/AGGREGATE PROPERTIES THAT WE ARE WATCHING []
-     */
+    console.log("\nEvent Entities Validation Starting...");
 
-    console.log("\nEvent Validation Starting...");
-    
     console.log("\nCFA Events Validation Starting...");
     await querySubgraphAndValidateEvents({
         queryHelper,
@@ -181,12 +165,14 @@ async function main() {
     );
     console.log("\nEvents Validation Complete! SUCCESS!");
 
+    console.log("\nSubgraph HOL & Aggregate Entities Data Integrity Tests Starting...\n");
+
     console.log("\nQuerying all streams via the Subgraph...");
 
     // This gets all of the current streams (flow rate > 0)
     const streams = await queryHelper.getAllResults<IDataIntegrityStream>({
         query: getCurrentStreams,
-        isUpdatedAt: false
+        isUpdatedAt: false,
     });
 
     console.log("\nQuerying all account token snapshots via the Subgraph...");
@@ -195,14 +181,14 @@ async function main() {
     const accountTokenSnapshots =
         await queryHelper.getAllResults<IDataIntegrityAccountTokenSnapshot>({
             query: getAccountTokenSnapshots,
-            isUpdatedAt: true
+            isUpdatedAt: true,
         });
 
     console.log("\nQuerying all indexes via the Subgraph...");
     // Gets all indexes ever created
     const indexes = await queryHelper.getAllResults<IDataIntegrityIndex>({
         query: getIndexes,
-        isUpdatedAt: false
+        isUpdatedAt: false,
     });
 
     console.log("\nQuerying all subscriptions via the Subgraph...");
@@ -210,7 +196,7 @@ async function main() {
     const subscriptions =
         await queryHelper.getAllResults<IDataIntegritySubscription>({
             query: getSubscriptions,
-            isUpdatedAt: false
+            isUpdatedAt: false,
         });
 
     console.log("\nQuerying all tokenStatistics via the Subgraph...");
@@ -218,10 +204,10 @@ async function main() {
     const tokenStatistics =
         await queryHelper.getAllResults<IDataIntegrityTokenStatistic>({
             query: getTokenStatistics,
-            isUpdatedAt: true
+            isUpdatedAt: true,
         });
 
-    console.log("\nData Cleaning: Filtering out duplicate entities...");
+    console.log("\nData Cleaning: Filtering out duplicate HOL & Aggregate entities...");
 
     const uniqueStreams = _.uniqBy(
         streams,
@@ -263,11 +249,10 @@ async function main() {
     );
 
     console.log(
-        "\nValidating tegridy' of subgraph data for Higher Order Level and Aggregate Entities"
+        "\nValidating integrity of subgraph data for Higher Order Level and Aggregate Entities"
     );
 
-    // Account Level Invariant: validate CFA current streams data
-    // Create promises to validate account level CFA stream data
+    // Account Level Invariant: a.1 CFA Stream Data is matching
     console.log("Stream Tests Starting...");
     console.log("Validating " + uniqueStreams.length + " streams.");
     const chunkedUniqueStreams = chunkData(uniqueStreams, DEFAULT_CHUNK_LENGTH);
@@ -315,9 +300,7 @@ async function main() {
     }
     console.log("Stream Tests Successful.");
 
-    // Create promises to validate account level CFA stream data
-    // AND
-    // sum net flow rates to validate global invariant: CFA total netflow === 0
+    // Account Level Invariant: a.1 CFA Net Flow's are matching
     console.log("Account Token Snapshot Tests Starting...");
     console.log(
         "Validating " +
@@ -361,108 +344,107 @@ async function main() {
     }
     console.log("Net flow rate validation successful.");
 
+    // Global Invariant: g.1 sum of CFA total netflows should equal 0
     if (netFlowRateSum.eq(toBN(0))) {
-        console.log("'Net flow sum === 0' global invariant successful.");
+        console.log("Net flow sum === 0 global invariant successful");
     } else {
         throw new Error(
-            `'Net flow sum: ${netFlowRateSum.toString()} !== 0' global invariant failed.`
+            `Failed: Net flow sum (${netFlowRateSum.toString()}) !== 0`
         );
     }
 
-    // // Create token balance promises to validate account level RTB === subgraph
-    // // calculated balance
-    // // AND
-    // // sum RTB of supertoken's with underlying to check global invariant:
-    // // underlying Token supply >= sum RTB of token
-
+    // Account Level Invariant: a.0 User RTB === subgraph calculated balance
     console.log(
-        "Validating RTB Invariant: User RTB === Subgraph calculated balance"
+        "Validating Account Level RTB Invariant: User RTB === Subgraph calculated balance"
     );
     const tokenGroupedATSEntities = _.groupBy(
         uniqueAccountTokenSnapshots,
         (x) => x.token.id
     );
     const tokenGroupedATSArray = Object.entries(tokenGroupedATSEntities);
-    await Promise.all(
-        // gotta chunk this so it works
-        tokenGroupedATSArray.map(async (x, j) => {
-            try {
-                // does this once for each token
-                const tokenContract = (await ethers.getContractAt(
-                    superTokenABI,
-                    x[0]
-                )) as ISuperToken;
-
-                const promises = x[1].map(async (y) => {
-                    // does this for each ATS
-                    const [realtimeBalance] =
-                        await tokenContract.realtimeBalanceOfNow(y.account.id, {
-                            blockTag: currentBlockNumber,
-                        });
-
-                    // get user's subscriptions
-                    // TODO: can groupBy tokenId and subscriber earlier for optimization here
-                    const userIndexSubscriptions = uniqueSubscriptions.filter(
-                        (z) =>
-                            z.index.token.id === x[0] &&
-                            z.subscriber.id === y.account.id
+    const chunkedTokenGroupedATSArray = chunkData(tokenGroupedATSArray, DEFAULT_CHUNK_LENGTH);
+    for (let i = 0; i < chunkedTokenGroupedATSArray.length; i++) {
+        await Promise.all(
+            // gotta chunk this so it works
+            chunkedTokenGroupedATSArray[i].map(async (x, _j) => {
+                try {
+                    // does this once for each token
+                    const tokenContract = (await ethers.getContractAt(
+                        superTokenABI,
+                        x[0]
+                    )) as ISuperToken;
+    
+                    const promises = x[1].map(async (y) => {
+                        // does this for each ATS
+                        const [realtimeBalance] =
+                            await tokenContract.realtimeBalanceOfNow(y.account.id, {
+                                blockTag: currentBlockNumber,
+                            });
+    
+                        // get user's subscriptions
+                        // TODO: can groupBy tokenId and subscriber earlier for optimization here
+                        const userIndexSubscriptions = uniqueSubscriptions.filter(
+                            (z) =>
+                                z.index.token.id === x[0] &&
+                                z.subscriber.id === y.account.id
+                        );
+    
+                        // FIXME: THIS IS NOT WORKING CURRENTLY
+                        // calculate the available balance based on balanceUntilUpdatedAt
+                        // as well as indexValue
+                        const calculatedAvailableBalance =
+                            calculateAvailableBalance({
+                                currentBalance: y.balanceUntilUpdatedAt,
+                                netFlowRate: y.totalNetFlowRate,
+                                currentTimestamp: currentTimestamp.toString(),
+                                updatedAtTimestamp: y.updatedAtTimestamp!,
+    
+                                // explicit cast for ease of use
+                                indexSubscriptions:
+                                    userIndexSubscriptions as unknown as IIndexSubscription[],
+                            });
+    
+                        if (!realtimeBalance.eq(calculatedAvailableBalance)) {
+                            throw new Error(
+                                `Realtime balance: ${realtimeBalance.toString()} (on-chain)
+                                !== ${calculatedAvailableBalance.toString()} (calculated w/ subgraph data)`
+                            );
+                        }
+    
+                        // only sum RTB for comparison of supertokens with underlying
+                        if (
+                            ethers.utils.getAddress(y.token.underlyingAddress) !==
+                            ethers.constants.AddressZero
+                        ) {
+                            tokenGroupedRTBSums[y.token.id] =
+                                tokenGroupedRTBSums[y.token.id] == undefined
+                                    ? realtimeBalance
+                                    : tokenGroupedRTBSums[y.token.id].add(
+                                          realtimeBalance
+                                      );
+                        }
+                    });
+    
+                    const chunkedBalancePromises = chunkData(
+                        promises,
+                        DEFAULT_CHUNK_LENGTH
                     );
-
-                    // calculate the available balance based on balanceUntilUpdatedAt
-                    // as well as indexValue
-                    const calculatedAvailableBalance =
-                        calculateAvailableBalance({
-                            currentBalance: y.balanceUntilUpdatedAt,
-                            netFlowRate: y.totalNetFlowRate,
-                            currentTimestamp: currentTimestamp.toString(),
-                            updatedAtTimestamp: y.updatedAtTimestamp!,
-
-                            // explicit cast for ease of use
-                            indexSubscriptions:
-                                userIndexSubscriptions as unknown as IIndexSubscription[],
-                        });
-
-                    // skip this for now, the formula seems to be wrong
-                    // if (!realtimeBalance.eq(calculatedAvailableBalance)) {
-                    //     throw new Error(
-                    //         `Realtime balance: ${realtimeBalance.toString()} (on-chain)
-                    //         !== ${calculatedAvailableBalance.toString()} (calculated w/ subgraph data)`
-                    //     );
-                    // }
-
-                    // only sum RTB for comparison of supertokens with underlying
-                    if (
-                        ethers.utils.getAddress(y.token.underlyingAddress) !==
-                        ethers.constants.AddressZero
-                    ) {
-                        tokenGroupedRTBSums[y.token.id] =
-                            tokenGroupedRTBSums[y.token.id] == undefined
-                                ? realtimeBalance
-                                : tokenGroupedRTBSums[y.token.id].add(
-                                      realtimeBalance
-                                  );
+                    for (let i = 0; i < chunkedBalancePromises.length; i++) {
+                        await Promise.all(chunkedBalancePromises[i]);
+                        printProgress(
+                            i,
+                            chunkedBalancePromises.length,
+                            "User RTB === calculated balance"
+                        );
                     }
-                });
-
-                const chunkedBalancePromises = chunkData(
-                    promises,
-                    DEFAULT_CHUNK_LENGTH
-                );
-                for (let i = 0; i < chunkedBalancePromises.length; i++) {
-                    await Promise.all(chunkedBalancePromises[i]);
-                    printProgress(
-                        i,
-                        chunkedBalancePromises.length,
-                        "User RTB === calculated balance"
-                    );
+                } catch (err) {
+                    console.error(err);
                 }
-            } catch (err) {
-                console.error(err);
-            }
-        })
-    );
+            })
+        );
+    }
 
-    // // Account Level Invariant: Validate IDA indexes data
+    // // Account Level Invariant: a.2.0 Validate IDA indexes data
     // // Creates promises to validate account level IDA index data
     // // AND
     // // global invariant: sum of subscriber units === sum of index totalUnitsApproved + index totalUnitsPending
@@ -530,7 +512,7 @@ async function main() {
                         );
                     }
 
-                    // validate global level invariant regarding total index and total subscription units
+                    // Global Invariant: g.2 IDA Sum IndexSubscription Units = Index total units
                     const subscriptionUnitsSum = uniqueSubscriptions
                         .filter((x) => x.index.id === index.id)
                         .map((x) => toBN(x.units))
@@ -552,7 +534,7 @@ async function main() {
     }
     console.log("Index Tests Successful.");
 
-    // Account Level Invariant: Validate IDA subscriptions data
+    // Account Level Invariant: a.2.1 Validate IDA subscriptions data
     // Creates promises to validate account level IDA subscriptions data
     console.log("Subscription Tests Starting...");
     console.log("Validating " + uniqueSubscriptions.length + " subscriptions.");
@@ -655,23 +637,39 @@ async function main() {
                     const totalSupply = await superTokenContract.totalSupply();
                     const aum = await tokenContract.balanceOf(x.id);
                     const tokenSumRTB = tokenGroupedRTBSums[x.id] || toBN(0);
+                    const getTokenName = async () => {
+                        return await tokenContract.name();
+                    }
+
                     if (!toBN(x.totalSupply).eq(totalSupply)) {
+                        const name = await getTokenName();
+                        console.log(`TOKEN: ${name}`)
                         throw new Error(
-                            `Subgraph total supply: ${
+                            `Failed: Subgraph total supply (${
                                 x.totalSupply
-                            } !== on chain total supply: ${totalSupply.toString()}`
+                            }) !== on-chain total supply (${totalSupply.toString()})`
                         );
                     }
-                    if (!toBN(x.totalSupply).eq(aum)) {
+
+                    // Global Invariant: g.0 Total Supply === SuperToken AUM
+                    if (toBN(x.totalSupply).eq(aum) === false) {
+                        const name = await getTokenName();
+                        console.log(`TOKEN: ${name}`)
                         throw new Error(
-                            `Global invariant failed: subgraph total supply === SuperToken AUM`
+                            `Failed: Subgraph Total Supply (${
+                                x.totalSupply
+                            }) !== SuperToken AUM (${aum.toString()})`
                         );
                     }
-                    // if (!aum.gte(tokenSumRTB)) {
-                    //     throw new Error(
-                    //         `Global invariant failed: SuperToken AUM >= sum RTB of token`
-                    //     );
-                    // }
+
+                    // Global Invariant: g.3 SuperToken AUM >= sum RTB of token
+                    if (aum.gte(tokenSumRTB) === false) {
+                        const name = await getTokenName();
+                        console.log(`TOKEN: ${name}`)
+                        throw new Error(
+                            `Failed: SuperToken AUM ${aum.toString()} >/= sum RTB of token ${tokenSumRTB.toString()}`
+                        );
+                    }
                 } catch (err) {
                     console.error(err);
                 }
@@ -679,13 +677,6 @@ async function main() {
         );
     }
     console.log("Token Statistics Total Supply validation successful.");
-
-    // General TODOS:
-    // Clean this file up, add more comments so it's more maintainable.
-
-    // GLOBAL LEVEL TODOS
-    // TODO: Subgraph FlowUpdatedEvents length === on chain FlowUpdated events length AND properties are matching
-    // (can apply to other interested events events)
 }
 
 main()

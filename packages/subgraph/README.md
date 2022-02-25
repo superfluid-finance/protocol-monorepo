@@ -378,7 +378,7 @@ The helper functions contain the following:
 
 Then we are back in `subgraph.test.ts` and the global state is updated with this new data and the tests continue.
 
-Caveats/Downsides: Unfortunately, given this pattern, the tests are dependent on the previous test passing and this means that if even one tests fail, all of the downstream tests will as well. This also means that moving the tests around won't be easy.
+Caveats/Downsides: Unfortunately, given this pattern, the tests are dependent on the previous test passing and this means that if even one tests fail, all of the downstream tests will as well. This also means that moving the tests around require extra thinking.
 
 # Production
 

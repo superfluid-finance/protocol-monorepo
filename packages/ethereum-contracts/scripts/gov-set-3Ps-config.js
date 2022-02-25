@@ -51,7 +51,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     if (liquidationPeriod !== 0 || patricianPeriod !== 0) {
         console.log("setting new 3Ps config");
         await sendGovernanceAction(sf, (gov) =>
-            gov.setThreePsConfig(
+            gov.setPPPConfig(
                 sf.host.address,
                 tokenAddr,
                 liquidationPeriod,
@@ -61,7 +61,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     } else {
         console.log("clearing 3Ps config");
         await sendGovernanceAction(sf, (gov) =>
-            gov.clearThreePsConfig(sf.host.address, tokenAddr)
+            gov.clearPPPConfig(sf.host.address, tokenAddr)
         );
     }
 });

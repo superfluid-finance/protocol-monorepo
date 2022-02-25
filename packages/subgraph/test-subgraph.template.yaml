@@ -184,7 +184,7 @@ dataSources:
           - ConfigChangedEvent
           - CFAv1LiquidationPeriodChangedEvent
           - RewardAddressChangedEvent
-          - ThreePsConfigurationChanged
+          - PPPConfigurationChanged
           - TrustedForwarderChangedEvent
         abis:
           - name: SuperfluidGovernanceBase
@@ -196,8 +196,8 @@ dataSources:
             handler: handleRewardAddressChanged
           - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
             handler: handleCFAv1LiquidationPeriodChanged
-          - event: ThreePsConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
-            handler: handleThreePsConfigurationChanged
+          - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
+            handler: handlePPPConfigurationChanged
           - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
             handler: handleTrustedForwarderChanged
     - kind: ethereum/contract

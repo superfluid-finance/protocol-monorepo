@@ -255,74 +255,36 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY);
     }
 
-    // CFAv1 liquidationPeriod
+    // CFAv1 liquidationPeriod (DEPRECATED BY PPPConfigurationChanged)
     event CFAv1LiquidationPeriodChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
         bool isKeySet,
         uint256 liquidationPeriod);
 
-    function getCFAv1LiquidationPeriod(
-        ISuperfluid host,
-        ISuperfluidToken superToken
-    )
-        public view
-        returns (uint256 value)
-    {
-        return getConfigAsUint256(
-            host, superToken,
-            SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
-    }
-
-    function setCFAv1LiquidationPeriod(
-        ISuperfluid host,
-        ISuperfluidToken superToken,
-        uint256 value
-    )
-        public
-    {
-        emit CFAv1LiquidationPeriodChanged(host, superToken, true, value);
-        return _setConfig(
-            host, superToken,
-            SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY,
-            value);
-    }
-
-    function clearCFAv1LiquidationPeriod(
-        ISuperfluid host,
-        ISuperfluidToken superToken
-    )
-        public
-    {
-        emit CFAv1LiquidationPeriodChanged(host, superToken, false, 0);
-        _clearConfig(
-            host, superToken,
-            SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
-    }
-
-    // CFAv1 3PS - Liquidation Period + Patrician Period
-    event ThreePsConfigurationChanged(
+    // CFAv1 PPPConfiguration - Liquidation Period + Patrician Period
+    event PPPConfigurationChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
         bool isKeySet,
         uint256 liquidationPeriod,
         uint256 patricianPeriod);
 
-    function getThreePsConfig(
+    function getPPPConfig(
         ISuperfluid host,
         ISuperfluidToken superToken
     ) public view
         returns (uint256 liquidationPeriod, uint256 patricianPeriod)
         {
-            uint256 threePsConfig = getConfigAsUint256(
+            uint256 pppConfig = getConfigAsUint256(
                 host, 
                 superToken, 
-                SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY
+                SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY
             );
-            (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
+            (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
         }
 
-    function setThreePsConfig(
+    function setPPPConfig(
         ISuperfluid host,
         ISuperfluidToken superToken,
         uint256 liquidationPeriod,
@@ -335,22 +297,22 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             && patricianPeriod < type(uint32).max,
             "SFGov: Invalid liquidationPeriod or patricianPeriod"
         );
-        emit ThreePsConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
+        emit PPPConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
         uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
         return _setConfig(
             host,
             superToken,
-            SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY,
+            SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY,
             value
         );
     }
 
-    function clearThreePsConfig(
+    function clearPPPConfig(
         ISuperfluid host,
         ISuperfluidToken superToken
     ) public {
-        emit ThreePsConfigurationChanged(host, superToken, false, 0, 0);
-        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_3PS_CONFIG_KEY);
+        emit PPPConfigurationChanged(host, superToken, false, 0, 0);
+        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY);
     }
     event SuperTokenMinimumDepositChanged(
         ISuperfluid indexed host,

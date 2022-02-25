@@ -506,7 +506,7 @@ type RewardAddressChangedEvent implements Event @entity {
     rewardAddress: Bytes!
 }
 
-type ThreePsConfigurationChangedEvent implements Event @entity {
+type PPPConfigurationChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!

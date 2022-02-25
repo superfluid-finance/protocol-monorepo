@@ -285,15 +285,7 @@ module.exports = class TestEnvironment {
         // reset governace parameters
         await Promise.all([
             await web3tx(
-                this.contracts.governance.setCFAv1LiquidationPeriod,
-                "reset liquidation period"
-            )(
-                this.sf.host.address,
-                this.constants.ZERO_ADDRESS,
-                this.configs.LIQUIDATION_PERIOD
-            ),
-            await web3tx(
-                this.contracts.governance.setThreePsConfig,
+                this.contracts.governance.setPPPConfig,
                 "reset 3Ps config"
             )(
                 this.sf.host.address,

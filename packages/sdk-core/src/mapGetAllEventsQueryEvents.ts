@@ -395,9 +395,9 @@ export const mapGetAllEventsQueryEvents = (
                     token: x.token,
                     code: x.code,
                 }) as events.SuperTokenLogicUpdatedEvent;
-            case "ThreePsConfigurationChangedEvent":
-                return typeGuard<events.ThreePsConfigurationChangedEvent>({
-                    name: "ThreePsConfigurationChanged",
+            case "PPPConfigurationChangedEvent":
+                return typeGuard<events.PPPConfigurationChangedEvent>({
+                    name: "PPPConfigurationChanged",
                     id: x.id,
                     blockNumber: Number(x.blockNumber),
                     transactionHash: x.transactionHash,

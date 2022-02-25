@@ -37,8 +37,8 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
-    bytes32 private constant CFAV1_3PS_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.3PsConfiguration");
+    bytes32 private constant CFAV1_PPP_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
 
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
@@ -118,8 +118,8 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAV1_3PS_CONFIG_KEY);
-        (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
+        uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+        (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
         return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
@@ -983,8 +983,8 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 threePsConfig = gov.getConfigAsUint256(host, token, CFAV1_3PS_CONFIG_KEY);
-        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodeThreePsConfig(threePsConfig);
+        uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
     }
 
     function _isPatricianPeriod(

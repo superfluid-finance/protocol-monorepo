@@ -3,13 +3,13 @@ import {
     RewardAddressChanged,
     CFAv1LiquidationPeriodChanged,
     TrustedForwarderChanged,
-    ThreePsConfigurationChanged,
+    PPPConfigurationChanged,
 } from "../../generated/SuperfluidGovernance/SuperfluidGovernanceBase";
 import {
     CFAv1LiquidationPeriodChangedEvent,
     ConfigChangedEvent,
     RewardAddressChangedEvent,
-    ThreePsConfigurationChangedEvent,
+    PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
 } from "../../generated/schema";
 import { createEventID } from "../utils";
@@ -63,11 +63,11 @@ export function handleCFAv1LiquidationPeriodChanged(
     ev.save();
 }
 
-export function handleThreePsConfigurationChanged(
-    event: ThreePsConfigurationChanged
+export function handlePPPConfigurationChanged(
+    event: PPPConfigurationChanged
 ): void {
-    let ev = new ThreePsConfigurationChangedEvent(
-        createEventID("ThreePsConfigurationChanged", event)
+    let ev = new PPPConfigurationChangedEvent(
+        createEventID("PPPConfigurationChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;

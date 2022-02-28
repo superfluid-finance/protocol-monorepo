@@ -70,10 +70,12 @@ export const validateEvents = <T extends TypedEvent, K>(
     subgraphEvents: K[],
     groupedEvents: _.Dictionary<T[]>
 ) => {
+    let errors = 0;
     // base case length equality check
     if (onchainEvents.length === subgraphEvents.length) {
         console.log(`${eventName} events length is the same.`);
     } else {
+        errors++;
         throw new Error(`${eventName} events length are different.`);
     }
 
@@ -108,6 +110,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                             keys[j]
                         ].toLowerCase()}`
                     );
+                    errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
             } else if (typeof currentOnChainEvent.args[keys[j]] === "number") {
@@ -122,6 +125,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                             keys[j]
                         ].toString()}`
                     );
+                    errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
             } else {
@@ -137,6 +141,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                             keys[j]
                         ].toString()}`
                     );
+                    errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
             }
@@ -147,6 +152,7 @@ export const validateEvents = <T extends TypedEvent, K>(
     console.log(
         `\nAll ${subgraphEvents.length} ${eventName} events validated.\n`
     );
+    return errors;
 };
 
 export const querySubgraphAndValidateEvents = async ({
@@ -190,7 +196,7 @@ export const querySubgraphAndValidateEvents = async ({
     );
 
     if (onChainCFAEvents) {
-        validateEvents(
+        return validateEvents(
             "FlowUpdated",
             onChainCFAEvents["FlowUpdated"].events,
             uniqueSubgraphEvents,
@@ -200,13 +206,14 @@ export const querySubgraphAndValidateEvents = async ({
 
     // TODO: figure out a way to remove any
     if (onChainIDAEvents && idaEventName) {
-        validateEvents(
+        return validateEvents(
             idaEventName,
             onChainIDAEvents[idaEventName].events as any,
             uniqueSubgraphEvents,
             onChainIDAEvents[idaEventName].groupedEvents as any
         );
     }
+    return 0;
 };
 
 interface IGetAllResultsQueryObject {

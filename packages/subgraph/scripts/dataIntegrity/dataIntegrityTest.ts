@@ -28,7 +28,6 @@ import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistribut
 import { ISuperToken } from "../../typechain";
 import { calculateAvailableBalance } from "../../../sdk-core/src/utils";
 import { IIndexSubscription } from "../../../sdk-core/src/interfaces";
-import { BigNumber } from "ethers";
 import {
     chunkData,
     getMostRecentIndexedBlockNumber,
@@ -43,9 +42,22 @@ import {
 const DEFAULT_CHUNK_LENGTH = 1;
 const MAX_RESULTS_PER_PAGE = 1000; // a limit imposed by subgraph
 
+const printTestOutcome = (
+    success: boolean,
+    successText: string,
+    failureText: string
+) => {
+    if (success) {
+        console.log(successText);
+    } else {
+        console.log(failureText);
+    }
+};
+
 async function main() {
     let netFlowRateSum = toBN(0);
-    let tokenGroupedRTBSums: { [tokenAddress: string]: BigNumber } = {};
+    let subscriptionUnitsSum = toBN(0);
+    let indexUnitsSum = toBN(0);
     let onChainCFAEvents: IOnChainCFAEvents = {
         FlowUpdated: { events: [], groupedEvents: {} },
     };
@@ -60,6 +72,16 @@ async function main() {
         SubscriptionDistributionClaimed: { events: [], groupedEvents: {} },
         SubscriptionRevoked: { events: [], groupedEvents: {} },
         SubscriptionUnitsUpdated: { events: [], groupedEvents: {} },
+    };
+    let errorCounts = {
+        a0: 0,
+        a1a: 0,
+        a1b: 0,
+        a2a: 0,
+        a2b: 0,
+        g0: 0,
+        g3: 0,
+        g4: 0,
     };
 
     const network = await ethers.provider.getNetwork();
@@ -139,23 +161,24 @@ async function main() {
         })
     );
 
-    console.log("\nEvent Entities Validation Starting...");
+    console.log("\nCFA/IDA Event Entities Validation Starting (G.3)...");
 
     console.log("\nCFA Events Validation Starting...");
-    await querySubgraphAndValidateEvents({
+    const cfaErrors = await querySubgraphAndValidateEvents({
         queryHelper,
         query: getFlowUpdatedEvents,
         onChainCFAEvents,
     });
 
     console.log("\nIDA Events Validation Starting...");
+    let idaErrors = 0;
     await Promise.all(
         keys(onChainIDAEvents).map(async (x) => {
             const query = idaEventToQueryMap.get(x);
             if (!query) {
                 throw new Error("No query: invalid IDA event.");
             }
-            await querySubgraphAndValidateEvents({
+            idaErrors += await querySubgraphAndValidateEvents({
                 queryHelper,
                 query,
                 onChainIDAEvents,
@@ -163,9 +186,18 @@ async function main() {
             });
         })
     );
-    console.log("\nEvents Validation Complete! SUCCESS!");
 
-    console.log("\nSubgraph HOL & Aggregate Entities Data Integrity Tests Starting...\n");
+    // sum CFA/IDA errors
+    errorCounts.g3 += cfaErrors + idaErrors;
+    printTestOutcome(
+        errorCounts.g3 === 0,
+        "\nSuccess (G.3): CFA/IDA Events Data Matching",
+        "\nFailure (G.3): CFA/IDA Events Data Mismatch"
+    );
+
+    console.log(
+        "\nSubgraph HOL & Aggregate Entities Data Integrity Tests Starting...\n"
+    );
 
     console.log("\nQuerying all streams via the Subgraph...");
 
@@ -207,7 +239,9 @@ async function main() {
             isUpdatedAt: true,
         });
 
-    console.log("\nData Cleaning: Filtering out duplicate HOL & Aggregate entities...");
+    console.log(
+        "\nData Cleaning: Filtering out duplicate HOL & Aggregate entities..."
+    );
 
     const uniqueStreams = _.uniqBy(
         streams,
@@ -252,8 +286,8 @@ async function main() {
         "\nValidating integrity of subgraph data for Higher Order Level and Aggregate Entities"
     );
 
-    // Account Level Invariant: a.1 CFA Stream Data is matching
-    console.log("Stream Tests Starting...");
+    // Account Level Invariant: A.1.a CFA Flow Data is matching
+    console.log("Flow Tests Starting (A.1.a)...");
     console.log("Validating " + uniqueStreams.length + " streams.");
     const chunkedUniqueStreams = chunkData(uniqueStreams, DEFAULT_CHUNK_LENGTH);
     for (let i = 0; i < chunkedUniqueStreams.length; i++) {
@@ -282,6 +316,7 @@ async function main() {
                     };
 
                     if (!updatedAtShouldMatch || !flowRateShouldMatch) {
+                        errorCounts.a1a++;
                         throw new Error(
                             "Values don't match. \n Subgraph Stream: " +
                                 JSON.stringify(compareStream) +
@@ -298,10 +333,14 @@ async function main() {
         );
         printProgress(i, uniqueStreams.length, "streams");
     }
-    console.log("Stream Tests Successful.");
+    printTestOutcome(
+        errorCounts.a1a === 0,
+        "Success (A.1.a): Flow data matching",
+        "Failure (A.1.a): Flow data mismatch"
+    );
 
-    // Account Level Invariant: a.1 CFA Net Flow's are matching
-    console.log("Account Token Snapshot Tests Starting...");
+    // Account Level Invariant: A.1.b CFA Net Flow's are matching
+    console.log("ATS Net Flow Tests Starting (A.1.b)...");
     console.log(
         "Validating " +
             uniqueAccountTokenSnapshots.length +
@@ -328,6 +367,7 @@ async function main() {
                     );
                     netFlowRateSum = netFlowRateSum.add(netFlowRate);
                     if (!netFlowRateShouldMatch) {
+                        errorCounts.a1b++;
                         throw new Error(
                             "Values don't match. \n Subgraph Net Flow Rate: " +
                                 x.totalNetFlowRate +
@@ -342,27 +382,37 @@ async function main() {
         );
         printProgress(i, uniqueAccountTokenSnapshots.length, "ATS net flow");
     }
-    console.log("Net flow rate validation successful.");
+    printTestOutcome(
+        errorCounts.a1b === 0,
+        "Success (A.1.b): Net Flow matching",
+        "Failure (A.1.b): Net Flow mismatch"
+    );
 
-    // Global Invariant: g.1 sum of CFA total netflows should equal 0
-    if (netFlowRateSum.eq(toBN(0))) {
-        console.log("Net flow sum === 0 global invariant successful");
-    } else {
-        throw new Error(
-            `Failed: Net flow sum (${netFlowRateSum.toString()}) !== 0`
-        );
-    }
+    // Global Invariant: G.1 sum of CFA total netflows should equal 0
+    printTestOutcome(
+        netFlowRateSum.eq(toBN(0)),
+        "Success (G.1): Net flow sum === 0",
+        `Failure (G.1): Net flow sum (${netFlowRateSum.toString()}) !== 0`
+    );
 
-    // Account Level Invariant: a.0 User RTB === subgraph calculated balance
+    // Account Level Invariant: A.0 User RTB === subgraph calculated balance
     console.log(
-        "Validating Account Level RTB Invariant: User RTB === Subgraph calculated balance"
+        "Account Level RTB Invariant: User RTB === Subgraph calculated balance Test Starting... (A.0)"
     );
     const tokenGroupedATSEntities = _.groupBy(
         uniqueAccountTokenSnapshots,
         (x) => x.token.id
     );
     const tokenGroupedATSArray = Object.entries(tokenGroupedATSEntities);
-    const chunkedTokenGroupedATSArray = chunkData(tokenGroupedATSArray, DEFAULT_CHUNK_LENGTH);
+    const chunkedTokenGroupedATSArray = chunkData(
+        tokenGroupedATSArray,
+        DEFAULT_CHUNK_LENGTH
+    );
+
+    // get all unique token contracts into an object
+    // then just iterate over and access instead of grouping by token and
+    // making it more complicated
+
     for (let i = 0; i < chunkedTokenGroupedATSArray.length; i++) {
         await Promise.all(
             // gotta chunk this so it works
@@ -373,22 +423,26 @@ async function main() {
                         superTokenABI,
                         x[0]
                     )) as ISuperToken;
-    
+
                     const promises = x[1].map(async (y) => {
                         // does this for each ATS
                         const [realtimeBalance] =
-                            await tokenContract.realtimeBalanceOfNow(y.account.id, {
-                                blockTag: currentBlockNumber,
-                            });
-    
+                            await tokenContract.realtimeBalanceOfNow(
+                                y.account.id,
+                                {
+                                    blockTag: currentBlockNumber,
+                                }
+                            );
+
                         // get user's subscriptions
                         // TODO: can groupBy tokenId and subscriber earlier for optimization here
-                        const userIndexSubscriptions = uniqueSubscriptions.filter(
-                            (z) =>
-                                z.index.token.id === x[0] &&
-                                z.subscriber.id === y.account.id
-                        );
-    
+                        const userIndexSubscriptions =
+                            uniqueSubscriptions.filter(
+                                (z) =>
+                                    z.index.token.id === x[0] &&
+                                    z.subscriber.id === y.account.id
+                            );
+
                         // FIXME: THIS IS NOT WORKING CURRENTLY
                         // calculate the available balance based on balanceUntilUpdatedAt
                         // as well as indexValue
@@ -398,33 +452,21 @@ async function main() {
                                 netFlowRate: y.totalNetFlowRate,
                                 currentTimestamp: currentTimestamp.toString(),
                                 updatedAtTimestamp: y.updatedAtTimestamp!,
-    
+
                                 // explicit cast for ease of use
                                 indexSubscriptions:
                                     userIndexSubscriptions as unknown as IIndexSubscription[],
                             });
-    
+
                         if (!realtimeBalance.eq(calculatedAvailableBalance)) {
+                            errorCounts.a0++;
                             throw new Error(
                                 `Realtime balance: ${realtimeBalance.toString()} (on-chain)
                                 !== ${calculatedAvailableBalance.toString()} (calculated w/ subgraph data)`
                             );
                         }
-    
-                        // only sum RTB for comparison of supertokens with underlying
-                        if (
-                            ethers.utils.getAddress(y.token.underlyingAddress) !==
-                            ethers.constants.AddressZero
-                        ) {
-                            tokenGroupedRTBSums[y.token.id] =
-                                tokenGroupedRTBSums[y.token.id] == undefined
-                                    ? realtimeBalance
-                                    : tokenGroupedRTBSums[y.token.id].add(
-                                          realtimeBalance
-                                      );
-                        }
                     });
-    
+
                     const chunkedBalancePromises = chunkData(
                         promises,
                         DEFAULT_CHUNK_LENGTH
@@ -444,11 +486,17 @@ async function main() {
         );
     }
 
-    // // Account Level Invariant: a.2.0 Validate IDA indexes data
+    printTestOutcome(
+        errorCounts.a0 === 0,
+        "Success (A.0): User RTB === Subgraph calculated balance",
+        "Failure (A.0): User RTB === Subgraph calculated balance mismatch"
+    );
+
+    // // Account Level Invariant: A.2.a Validate IDA indexes data
     // // Creates promises to validate account level IDA index data
     // // AND
     // // global invariant: sum of subscriber units === sum of index totalUnitsApproved + index totalUnitsPending
-    console.log("Index Tests Starting...");
+    console.log("Index Tests Starting (A.2.a, G.2)...");
     console.log("Validating " + uniqueIndexes.length + " indexes.");
     const chunkedUniqueIndexes = chunkData(uniqueIndexes, DEFAULT_CHUNK_LENGTH);
     for (let i = 0; i < chunkedUniqueIndexes.length; i++) {
@@ -471,6 +519,7 @@ async function main() {
                     });
 
                     if (!exist) {
+                        errorCounts.a2a++;
                         throw new Error("This index doesn't exist.");
                     }
 
@@ -500,6 +549,7 @@ async function main() {
                         console.log("superToken:", superToken);
                         console.log("publisher:", publisher);
                         console.log("indexId:", indexId);
+                        errorCounts.a2a++;
                         throw new Error(
                             "Values don't match. \n Subgraph Index: " +
                                 JSON.stringify(compareIndex) +
@@ -512,31 +562,39 @@ async function main() {
                         );
                     }
 
-                    // Global Invariant: g.2 IDA Sum IndexSubscription Units = Index total units
-                    const subscriptionUnitsSum = uniqueSubscriptions
+                    // Global Invariant: G.2 IDA Sum IndexSubscription Units === Index total units
+                    const totalSubscriptionUnits = uniqueSubscriptions
                         .filter((x) => x.index.id === index.id)
                         .map((x) => toBN(x.units))
                         .reduce((x, y) => x.add(y), toBN(0));
                     const indexTotalUnits =
                         totalUnitsApproved.add(totalUnitsPending);
-
-                    if (!subscriptionUnitsSum.eq(indexTotalUnits)) {
-                        throw new Error(`Global invariant failed,
-                        total subscription units !== total index units. \n
-                        Subscription Units Sum: ${subscriptionUnitsSum.toString()} \n
-                        Index Units Sum: ${indexTotalUnits.toString()}`);
-                    }
+                    subscriptionUnitsSum.add(totalSubscriptionUnits);
+                    indexUnitsSum.add(indexTotalUnits);
                 } catch (err) {
                     console.error("Error: ", err);
                 }
             })
         );
     }
-    console.log("Index Tests Successful.");
+    printTestOutcome(
+        errorCounts.a2a === 0,
+        "Success (A.2.a): Index data matching",
+        "Failure (A.2.a): Index data mismatch"
+    );
 
-    // Account Level Invariant: a.2.1 Validate IDA subscriptions data
+    // G.2 Invariant Results
+    printTestOutcome(
+        subscriptionUnitsSum.eq(indexUnitsSum),
+        "Success (G.2): total subscriber units === total index units",
+        `Failure (G.2): Total subscription units !== total index units. \n
+        Subscription Units Sum: ${subscriptionUnitsSum.toString()} \n
+        Index Units Sum: ${indexUnitsSum.toString()}`
+    );
+
+    // Account Level Invariant: A.2.b Validate IDA subscriptions data
     // Creates promises to validate account level IDA subscriptions data
-    console.log("Subscription Tests Starting...");
+    console.log("Subscription Tests Starting (A.2.b)...");
     console.log("Validating " + uniqueSubscriptions.length + " subscriptions.");
     const chunkedUniqueSubscriptions = chunkData(
         uniqueSubscriptions,
@@ -566,7 +624,9 @@ async function main() {
                             { blockTag: currentBlockNumber }
                         );
 
-                    if (!exist) {
+                    // subscription may have been deleted, but it's ok if units === 0
+                    if (!exist && units.gt(toBN(0))) {
+                        errorCounts.a2b++;
                         throw new Error("This subscription doesn't exist.");
                     }
 
@@ -598,6 +658,7 @@ async function main() {
                         !unitsShouldMatch ||
                         !pendingDistributionShouldMatch
                     ) {
+                        errorCounts.a2b++;
                         throw new Error(
                             "Values don't match. \n Subgraph Subscription: " +
                                 JSON.stringify(compareSubscription) +
@@ -615,9 +676,14 @@ async function main() {
             })
         );
     }
-    console.log("Subscription Tests Successful.");
 
-    console.log("Token Statistics Total Supply Tests Starting");
+    printTestOutcome(
+        errorCounts.a2b === 0,
+        "Success (A.2.b): Subscription data matching",
+        "Failure (A.2.b): Subscription data mismatch"
+    );
+
+    console.log("Token Global Invariants Tests Starting (G.0, G.4)");
     const chunkedUniqueTokenStatistics = chunkData(
         uniqueTokenStatistics,
         DEFAULT_CHUNK_LENGTH
@@ -635,39 +701,45 @@ async function main() {
                         x.token.underlyingAddress
                     )) as ISuperToken;
                     const totalSupply = await superTokenContract.totalSupply();
-                    const aum = await tokenContract.balanceOf(x.id);
-                    const tokenSumRTB = tokenGroupedRTBSums[x.id] || toBN(0);
-                    const getTokenName = async () => {
-                        return await tokenContract.name();
-                    }
+                    let aum = await tokenContract.balanceOf(x.id);
+                    const superTokenDecimals =
+                        await superTokenContract.decimals();
+                    const tokenDecimals = await tokenContract.decimals();
+                    const decimalsDifference =
+                        superTokenDecimals - tokenDecimals;
+                    const formattedAUM =
+                        decimalsDifference > 0
+                            ? ethers.utils.parseUnits(
+                                  aum.toString(),
+                                  decimalsDifference
+                              )
+                            : aum;
+
+                    const getTokenNameAndLog = async () => {
+                        const name = await tokenContract.name();
+                        console.log(
+                            `TOKEN (${x.token.underlyingAddress}): ${name}`
+                        );
+                    };
 
                     if (!toBN(x.totalSupply).eq(totalSupply)) {
-                        const name = await getTokenName();
-                        console.log(`TOKEN: ${name}`)
+                        await getTokenNameAndLog();
+                        errorCounts.g4++;
                         throw new Error(
-                            `Failed: Subgraph total supply (${
+                            `Failure: Subgraph total supply (${
                                 x.totalSupply
                             }) !== on-chain total supply (${totalSupply.toString()})`
                         );
                     }
 
-                    // Global Invariant: g.0 Total Supply === SuperToken AUM
-                    if (toBN(x.totalSupply).eq(aum) === false) {
-                        const name = await getTokenName();
-                        console.log(`TOKEN: ${name}`)
+                    // Global Invariant: G.0 Total Supply === SuperToken AUM
+                    if (toBN(x.totalSupply).eq(formattedAUM) === false) {
+                        await getTokenNameAndLog();
+                        errorCounts.g0++;
                         throw new Error(
-                            `Failed: Subgraph Total Supply (${
+                            `Failure (G.0): Subgraph Total Supply (${
                                 x.totalSupply
-                            }) !== SuperToken AUM (${aum.toString()})`
-                        );
-                    }
-
-                    // Global Invariant: g.3 SuperToken AUM >= sum RTB of token
-                    if (aum.gte(tokenSumRTB) === false) {
-                        const name = await getTokenName();
-                        console.log(`TOKEN: ${name}`)
-                        throw new Error(
-                            `Failed: SuperToken AUM ${aum.toString()} >/= sum RTB of token ${tokenSumRTB.toString()}`
+                            }) !== SuperToken AUM (${formattedAUM.toString()})`
                         );
                     }
                 } catch (err) {
@@ -676,7 +748,16 @@ async function main() {
             })
         );
     }
-    console.log("Token Statistics Total Supply validation successful.");
+    printTestOutcome(
+        errorCounts.g0 === 0,
+        "Success (G.0): Total Supply === SuperToken AUM",
+        "Failure (G.0): Total Supply === SuperToken AUM mismatch"
+    );
+    printTestOutcome(
+        errorCounts.g4 === 0,
+        "Success (G.4): Subgraph Total Supply === On-Chain Total Supply",
+        "Failure (G.4): Subgraph Total Supply === On-Chain Total Supply mismatch"
+    );
 }
 
 main()

@@ -399,90 +399,72 @@ async function main() {
     console.log(
         "Account Level RTB Invariant: User RTB === Subgraph calculated balance Test Starting... (A.0)"
     );
-    const tokenGroupedATSEntities = _.groupBy(
+    const uniqueTokens = _.uniqBy(
         uniqueAccountTokenSnapshots,
         (x) => x.token.id
-    );
-    const tokenGroupedATSArray = Object.entries(tokenGroupedATSEntities);
-    const chunkedTokenGroupedATSArray = chunkData(
-        tokenGroupedATSArray,
-        DEFAULT_CHUNK_LENGTH
-    );
+    ).map((x) => x.token.id);
+    let tokenContracts: { [tokenAddress: string]: ISuperToken } = {};
+    for (let i = 0; i < uniqueTokens.length; i++) {
+        tokenContracts[uniqueTokens[i]] = new ethers.Contract(
+            uniqueTokens[i],
+            superTokenABI,
+            ethers.provider
+        ) as ISuperToken;
+    }
 
-    // get all unique token contracts into an object
-    // then just iterate over and access instead of grouping by token and
-    // making it more complicated
-
-    for (let i = 0; i < chunkedTokenGroupedATSArray.length; i++) {
+    for (let i = 0; i < chunkedUniqueAccountTokenSnapshots.length; i++) {
         await Promise.all(
             // gotta chunk this so it works
-            chunkedTokenGroupedATSArray[i].map(async (x, _j) => {
+            chunkedUniqueAccountTokenSnapshots[i].map(async (x, _j) => {
                 try {
                     // does this once for each token
-                    const tokenContract = (await ethers.getContractAt(
-                        superTokenABI,
-                        x[0]
-                    )) as ISuperToken;
+                    const tokenContract = tokenContracts[x.token.id];
 
-                    const promises = x[1].map(async (y) => {
-                        // does this for each ATS
-                        const [realtimeBalance] =
-                            await tokenContract.realtimeBalanceOfNow(
-                                y.account.id,
-                                {
-                                    blockTag: currentBlockNumber,
-                                }
-                            );
+                    // does this for each ATS
+                    const [realtimeBalance] =
+                        await tokenContract.realtimeBalanceOfNow(x.account.id, {
+                            blockTag: currentBlockNumber,
+                        });
 
-                        // get user's subscriptions
-                        // TODO: can groupBy tokenId and subscriber earlier for optimization here
-                        const userIndexSubscriptions =
-                            uniqueSubscriptions.filter(
-                                (z) =>
-                                    z.index.token.id === x[0] &&
-                                    z.subscriber.id === y.account.id
-                            );
-
-                        // FIXME: THIS IS NOT WORKING CURRENTLY
-                        // calculate the available balance based on balanceUntilUpdatedAt
-                        // as well as indexValue
-                        const calculatedAvailableBalance =
-                            calculateAvailableBalance({
-                                currentBalance: y.balanceUntilUpdatedAt,
-                                netFlowRate: y.totalNetFlowRate,
-                                currentTimestamp: currentTimestamp.toString(),
-                                updatedAtTimestamp: y.updatedAtTimestamp!,
-
-                                // explicit cast for ease of use
-                                indexSubscriptions:
-                                    userIndexSubscriptions as unknown as IIndexSubscription[],
-                            });
-
-                        if (!realtimeBalance.eq(calculatedAvailableBalance)) {
-                            errorCounts.a0++;
-                            throw new Error(
-                                `Realtime balance: ${realtimeBalance.toString()} (on-chain)
-                                !== ${calculatedAvailableBalance.toString()} (calculated w/ subgraph data)`
-                            );
-                        }
-                    });
-
-                    const chunkedBalancePromises = chunkData(
-                        promises,
-                        DEFAULT_CHUNK_LENGTH
+                    // get user's subscriptions
+                    // TODO: can groupBy tokenId and subscriber earlier for optimization here
+                    const userIndexSubscriptions = uniqueSubscriptions.filter(
+                        (z) =>
+                            z.index.token.id === x.token.id &&
+                            z.subscriber.id === x.account.id
                     );
-                    for (let i = 0; i < chunkedBalancePromises.length; i++) {
-                        await Promise.all(chunkedBalancePromises[i]);
-                        printProgress(
-                            i,
-                            chunkedBalancePromises.length,
-                            "User RTB === calculated balance"
+
+                    // calculate the available balance based on balanceUntilUpdatedAt
+                    // as well as indexValue
+                    const calculatedAvailableBalance =
+                        calculateAvailableBalance({
+                            currentBalance: x.balanceUntilUpdatedAt,
+                            netFlowRate: x.totalNetFlowRate,
+                            currentTimestamp: currentTimestamp.toString(),
+                            updatedAtTimestamp: x.updatedAtTimestamp!,
+
+                            // explicit cast for ease of use
+                            indexSubscriptions:
+                                userIndexSubscriptions as unknown as IIndexSubscription[],
+                        });
+
+                    if (!realtimeBalance.eq(calculatedAvailableBalance)) {
+                        errorCounts.a0++;
+                        throw new Error(
+                            `Realtime balance: ${realtimeBalance.toString()} (on-chain)
+                                !== ${calculatedAvailableBalance.toString()} (calculated w/ subgraph data)`
                         );
                     }
                 } catch (err) {
                     console.error(err);
                 }
             })
+        );
+
+        printProgress(
+            i,
+            chunkedUniqueAccountTokenSnapshots.length,
+            "User RTB === calculated balance"
         );
     }
 
@@ -492,10 +474,10 @@ async function main() {
         "Failure (A.0): User RTB === Subgraph calculated balance mismatch"
     );
 
-    // // Account Level Invariant: A.2.a Validate IDA indexes data
-    // // Creates promises to validate account level IDA index data
-    // // AND
-    // // global invariant: sum of subscriber units === sum of index totalUnitsApproved + index totalUnitsPending
+    // Account Level Invariant: A.2.a Validate IDA indexes data
+    // Creates promises to validate account level IDA index data
+    // AND
+    //Global Unvariant (G.2): sum of subscriber units === sum of index totalUnitsApproved + index totalUnitsPending
     console.log("Index Tests Starting (A.2.a, G.2)...");
     console.log("Validating " + uniqueIndexes.length + " indexes.");
     const chunkedUniqueIndexes = chunkData(uniqueIndexes, DEFAULT_CHUNK_LENGTH);

@@ -199,9 +199,7 @@ jobs:
 
   publish:
     name: Publish canary pakcages to registries
-
     # needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
-
     runs-on: ubuntu-latest
 
     steps:
@@ -226,14 +224,30 @@ jobs:
           # yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
 
       - name: Publish to npm
-        run: |
-          tasks/npm-publish.sh packages/ethereum-contracts test --dry-run --verbose
-          tasks/npm-publish.sh packages/js-sdk test --dry-run --verbose
-          tasks/npm-publish.sh packages/sdk-core test --dry-run --verbose
-          tasks/npm-publish.sh packages/sdk-redux test --dry-run --verbose
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: |
+          cd packages
+          npm publish ethereum-contracts --tag dev --dry-run --verbose
+          npm publish js-sdk --dry-run --tag dev --verbose
+          npm publish sdk-core --dry-run --tag dev --verbose
+          npm publish sdk-redux --dry-run --tag dev --verbose
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Publish to github
+        uses: actions/checkout@v2
+      - run: |
+          cd packages
+          npm config set //npm.pkg.github.com/:_authToken $TOKEN 
+          npm publish ethereum-contracts --tag dev --dry-run --verbose
+          npm publish js-sdk --tag dev --dry-run  --verbose
+          npm publish sdk-core --tag dev --dry-run --verbose
+          npm publish sdk-redux --tag dev --dry-run --verbose
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build

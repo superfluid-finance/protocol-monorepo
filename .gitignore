@@ -26,5 +26,5 @@ package-lock.json
 
 .vscode/
 *-workspace
-/.npmrc
-**/*/.npmrc
+.npmrc
+

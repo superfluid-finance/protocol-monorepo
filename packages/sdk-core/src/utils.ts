@@ -212,7 +212,7 @@ export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) =>
     new Date(Number(timestamp.toString()) * 1000);
 
 /**
- * @dev The formula for calculating the balance until updated at of a user (received tokens from index) using subgraph data.
+ * @dev The formula for calculating the available balance until updated at of a user (received tokens from index) using subgraph data.
  * @param currentBalance the current balance until updated at from the `AccountTokenSnapshot` entity
  * @param netFlowRate the net flow rate of the user
  * @param currentTimestamp the current timestamp

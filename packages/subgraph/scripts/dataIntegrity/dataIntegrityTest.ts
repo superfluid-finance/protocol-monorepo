@@ -33,6 +33,7 @@ import {
     getMostRecentIndexedBlockNumber,
     keys,
     printProgress,
+    printTestOutcome,
     QueryHelper,
     querySubgraphAndValidateEvents,
 } from "./helperFunctions";
@@ -41,18 +42,6 @@ import {
 // // https://github.com/node-fetch/node-fetch/issues/449
 const DEFAULT_CHUNK_LENGTH = 1;
 const MAX_RESULTS_PER_PAGE = 1000; // a limit imposed by subgraph
-
-const printTestOutcome = (
-    success: boolean,
-    successText: string,
-    failureText: string
-) => {
-    if (success) {
-        console.log(successText);
-    } else {
-        console.log(failureText);
-    }
-};
 
 async function main() {
     let netFlowRateSum = toBN(0);
@@ -147,7 +136,7 @@ async function main() {
         keys(onChainIDAEvents).map(async (x) => {
             console.log(`\nQuerying ${x} events...`);
             const idaEventName = x;
-            const eventsFilter = idaV1.filters[idaEventName]() as any; // TEMPORARY
+            const eventsFilter = idaV1.filters[idaEventName]() as any;
             const events = await idaV1.queryFilter(
                 eventsFilter,
                 addresses.hostStartBlock
@@ -479,7 +468,7 @@ async function main() {
     // Account Level Invariant: A.2.a Validate IDA indexes data
     // Creates promises to validate account level IDA index data
     // AND
-    //Global Unvariant (G.2): sum of subscriber units === sum of index totalUnitsApproved + index totalUnitsPending
+    // Global Invariant (G.2): sum of subscriber units === sum of index totalUnitsApproved + index totalUnitsPending
     console.log("Index Tests Starting (A.2.a, G.2)...");
     console.log("Validating " + uniqueIndexes.length + " indexes.");
     const chunkedUniqueIndexes = chunkData(uniqueIndexes, DEFAULT_CHUNK_LENGTH);

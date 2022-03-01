@@ -307,3 +307,15 @@ export class QueryHelper {
         return responses;
     };
 }
+
+export const printTestOutcome = (
+    success: boolean,
+    successText: string,
+    failureText: string
+) => {
+    if (success) {
+        console.log(successText);
+    } else {
+        console.log(failureText);
+    }
+};

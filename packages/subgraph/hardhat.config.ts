@@ -25,12 +25,16 @@ const config: HardhatUserConfig = {
             chainId: 1337,
         },
         matic: {
-            url: "https://polygon-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_KEY,
+            url: process.env.MATIC_PROVIDER_URL || "",
             chainId: 137,
         },
         mumbai: {
             url: process.env.MUMBAI_PROVIDER_URL || "",
             chainId: 80001
+        },
+        gnosis: {
+            url: process.env.GNOSIS_PROVIDER_URL || "",
+            chainId: 100,
         },
         ropsten: {
             url: process.env.ROPSTEN_PROVIDER_URL || "",
@@ -47,6 +51,18 @@ const config: HardhatUserConfig = {
         opkovan: {
             url: process.env.OPKOVAN_PROVIDER_URL || "",
             chainId: 69
+        },
+        kovan: {
+            url: process.env.KOVAN_PROVIDER_URL || "",
+            chainId: 42
+        },
+        arbrinkeby: {
+            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
+            chainId: 421611
+        },
+        avafuji: {
+            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
+            chainId: 43113
         }
     },
     mocha: {

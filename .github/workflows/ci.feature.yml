@@ -157,6 +157,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: "Install yarn and ganache-cli"
+        run: npm install -g yarn ganache-cli
+
+      - name: "Run ganache-cli node"
+        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v2
         with:
@@ -175,12 +181,6 @@ jobs:
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ./graph-node/docker
-
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
-
-      - name: "Run ganache-cli node"
-        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
       - name: "Run integration test suite"
         run: yarn test

@@ -1,6 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash -xe
 
 D="$(dirname "$0")"
+
+pwd
 
 PACKAGE_DIR="$1"
 TAG="$2"
@@ -12,4 +14,4 @@ npm publish --access public --tag ${TAG} ${PACKAGE_DIR} "$@"
 
 echo "Publishing ${PACKAGE_DIR} @${TAG} to Github Packages"
 $D/npmrc-use-github.sh > .npmrc
-npm publish --tag ${TAG} ${PACKAGE_DIR} "$@"
+npm publish --access public --tag ${TAG} ${PACKAGE_DIR} "$@"

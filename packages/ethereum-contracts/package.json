@@ -5,7 +5,7 @@
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": {
         "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "url": "git://github.com/superfluid-finance/protocol-monorepo.git",
         "directory": "packages/ethereum-contracts"
     },
     "license": "AGPL-3.0",

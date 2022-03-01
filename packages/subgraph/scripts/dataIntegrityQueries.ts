@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { IDAEvent } from "../interfaces";
+import { IDAEvent } from "./interfaces";
 
 // Event Queries
 export const getFlowUpdatedEvents = gql`

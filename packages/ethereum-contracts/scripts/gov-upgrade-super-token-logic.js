@@ -78,7 +78,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                 try {
                     const symbol = await superToken.symbol();
                     if ((await superToken.getHost()) !== sf.host.address) {
-                        throw new Error("Super token is from a different universe");
+                        throw new Error(
+                            "Super token is from a different universe"
+                        );
                     }
                     const superTokenLogic = await (
                         await UUPSProxiable.at(superTokenAddress)
@@ -102,7 +104,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                 } catch {
                     console.warn(
                         `[WARN] SuperToken@${superToken.address} is smelly.`
-                    );                  
+                    );
                     return undefined;
                 }
             }

@@ -337,7 +337,7 @@ async function shouldDistribute({
                 .mul(toBN(idataActual.totalUnitsApproved))
                 .mul(toBN(-1))
                 .toString()
-            // TODO deposit delta
+            // TODO test deposit delta
         );
 
         // subscribers

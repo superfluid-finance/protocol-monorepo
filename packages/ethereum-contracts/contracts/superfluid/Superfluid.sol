@@ -29,6 +29,15 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 
 
+/**
+ * @dev The Superfluid host implementation.
+ *
+ * NOTE:
+ * - Please read ISuperfluid for implementation notes.
+ * - For some deeper technical notes, please visit protocol-monorepo wiki area.
+ *
+ * @author Superfluid
+ */
 contract Superfluid is
     UUPSProxiable,
     ISuperfluid,
@@ -357,8 +366,8 @@ contract Superfluid is
             assembly { cs := extcodesize(app) }
             require(cs == 0, "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR");
         }
-
         require(
+            SuperAppDefinitions.isConfigWordClean(configWord) &&
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
             "SF: invalid config word");
@@ -852,6 +861,7 @@ contract Superfluid is
         uint256 allowanceIO =
             context.appAllowanceGranted.toUint128() |
             (uint256(context.appAllowanceWanted.toUint128()) << 128);
+        // NOTE: nested encoding done due to stack too deep error when decoding in _decodeCtx
         ctx = abi.encode(
             abi.encode(
                 callInfo,
@@ -986,12 +996,18 @@ contract Superfluid is
         internal pure
         returns (bytes memory dataWithCtx)
     {
-        // 1.a ctx needs to be padded to align with 32 bytes bundary
+        // 1.a ctx needs to be padded to align with 32 bytes boundary
         uint256 dataLen = data.length;
 
-        // double check if the ctx is a placeholder ctx
+        // Double check if the ctx is a placeholder ctx
+        //
+        // NOTE: This can't check all cases - user can still put nonzero length of zero data
+        // developer experience check. So this is more like a sanity check for clumsy app developers.
+        //
+        // So, agreements MUST NOT TRUST the ctx passed to it, and always use the isCtxValid first.
         {
             uint256 placeHolderCtxLength;
+            // NOTE: len(data) is data.length + 32 https://docs.soliditylang.org/en/latest/abi-spec.html
             // solhint-disable-next-line no-inline-assembly
             assembly { placeHolderCtxLength := mload(add(data, dataLen)) }
             require(placeHolderCtxLength == 0, "SF: placerholder ctx should have zero length");
@@ -1008,6 +1024,10 @@ contract Superfluid is
             uint256(ctx.length),
             ctx, new bytes(CallUtils.padLength32(ctx.length) - ctx.length) // ctx padding
         );
+        // NOTE: the alternative placeholderCtx is passing extra calldata to the agreements
+        // agreements would use assembly code to read the ctx
+        // Because selector is part of calldata, we do the padding internally, instead of
+        // outside
     }
 
     modifier validCtx(bytes memory ctx) {

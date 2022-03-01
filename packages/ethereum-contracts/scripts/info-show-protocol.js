@@ -78,6 +78,17 @@ async function printGovernanceInformation({sf}) {
         latests.forEach((i) => console.log(i.superToken, i.rewardAddress));
     }
     {
+        console.log("## PPPConfiguration");
+        const latests = (
+            await fetchLatestGovernanceUpdate(gov, "PPPConfigurationChanged", {
+                host: sf.host.address,
+            })
+        ).filter((i) => i.superToken !== ZERO_ADDRESS);
+        latests.forEach((i) =>
+            console.log(i.superToken, i.liquidationPeriod, i.patricianPeriod)
+        );
+    }
+    {
         console.log("## TrustedForwarders");
         const latests = await fetchLatestGovernanceUpdate(
             gov,

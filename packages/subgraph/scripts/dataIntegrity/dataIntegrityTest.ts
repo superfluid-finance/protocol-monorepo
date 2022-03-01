@@ -145,7 +145,7 @@ async function main() {
     // query and set all the ida events in our onChainEvents object
     await Promise.all(
         keys(onChainIDAEvents).map(async (x) => {
-            console.log(`Querying ${x} events...\n`);
+            console.log(`\nQuerying ${x} events...`);
             const idaEventName = x;
             const eventsFilter = idaV1.filters[idaEventName]() as any; // TEMPORARY
             const events = await idaV1.queryFilter(
@@ -163,7 +163,7 @@ async function main() {
 
     console.log("\nCFA/IDA Event Entities Validation Starting (G.3)...");
 
-    console.log("\nCFA Events Validation Starting...");
+    console.log("CFA Events Validation Starting...");
     const cfaErrors = await querySubgraphAndValidateEvents({
         queryHelper,
         query: getFlowUpdatedEvents,
@@ -196,7 +196,7 @@ async function main() {
     );
 
     console.log(
-        "\nSubgraph HOL & Aggregate Entities Data Integrity Tests Starting...\n"
+        "\nSubgraph HOL & Aggregate Entities Data Integrity Tests Starting..."
     );
 
     console.log("\nQuerying all streams via the Subgraph...");
@@ -274,6 +274,8 @@ async function main() {
 
     // NOTE: we only care about super tokens with underlying for
     // our data integrity tests
+    // TODO: Maybe we want to verify those without underlying too in the
+    // future
     const uniqueTokenStatistics = _.uniqBy(tokenStatistics, (x) => x.id).filter(
         (x) => x.token.underlyingAddress !== ethers.constants.AddressZero
     );

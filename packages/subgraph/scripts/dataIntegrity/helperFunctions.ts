@@ -80,8 +80,8 @@ export const validateEvents = <T extends TypedEvent, K>(
     }
 
     for (let i = 0; i < subgraphEvents.length; i++) {
-        const currentSubgraphEvent = subgraphEvents[i] as any; // TEMPORARY
-        const id = currentSubgraphEvent.id.split(eventName + "-")[1];
+        const currentSubgraphEvent = subgraphEvents[i] as any;
+        const id = currentSubgraphEvent.id.split(eventName + "-")[1]; // this yields: txnId-logIndex
         const currentOnChainEvent = groupedEvents[id][0];
         const keys = Object.keys(currentSubgraphEvent);
         if (currentOnChainEvent == null) {
@@ -204,7 +204,6 @@ export const querySubgraphAndValidateEvents = async ({
         );
     }
 
-    // TODO: figure out a way to remove any
     if (onChainIDAEvents && idaEventName) {
         return validateEvents(
             idaEventName,

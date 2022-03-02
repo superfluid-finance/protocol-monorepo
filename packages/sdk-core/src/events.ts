@@ -30,6 +30,7 @@ export type OtherEvents =
     | AgreementClassRegisteredEvent
     | AgreementClassUpdatedEvent
     | AgreementLiquidatedByEvent
+    | AgreementLiquidatedV2Event
     | AppRegisteredEvent
     | BurnedEvent
     | CFAv1LiquidationPeriodChangedEvent
@@ -47,6 +48,7 @@ export type OtherEvents =
     | SuperTokenFactoryUpdatedEvent
     | SuperTokenLogicCreatedEvent
     | SuperTokenLogicUpdatedEvent
+    | PPPConfigurationChangedEvent
     | TrustedForwarderChangedEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
@@ -162,6 +164,20 @@ export interface AgreementLiquidatedByEvent extends EventBase {
     token: string;
 }
 
+export interface AgreementLiquidatedV2Event extends EventBase {
+    name: "AgreementLiquidatedV2";
+    token: string;
+    liquidatorAccount: string;
+    agreementClass: string;
+    agreementId: string;
+    targetAccount: string;
+    rewardAccount: string;
+    rewardAmount: string;
+    targetAccountBalanceDelta: string;
+    version: string;
+    liquidationType: number;
+}
+
 export interface AppRegisteredEvent extends EventBase {
     name: "AppRegistered";
     app: string;
@@ -179,7 +195,7 @@ export interface BurnedEvent extends EventBase {
 export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
     name: "CFAv1LiquidationPeriodChanged";
     host: string;
-    isSet: boolean;
+    isKeySet: boolean;
     liquidationPeriod: number;
     superToken: string;
 }
@@ -187,7 +203,7 @@ export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
 export interface ConfigChangedEvent extends EventBase {
     name: "ConfigChanged";
     host: string;
-    isSet: boolean;
+    isKeySet: boolean;
     key: string;
     superToken: string;
     value: string;
@@ -223,7 +239,7 @@ export interface RewardAddressChangedEvent extends EventBase {
     name: "RewardAddressChanged";
     host: string;
     superToken: string;
-    isSet: boolean;
+    isKeySet: boolean;
     rewardAddress: string;
 }
 
@@ -319,11 +335,20 @@ export interface SuperTokenLogicUpdatedEvent extends EventBase {
     code: string;
 }
 
+export interface PPPConfigurationChangedEvent extends EventBase {
+    name: "PPPConfigurationChanged";
+    host: string;
+    superToken: string;
+    isKeySet: boolean;
+    liquidationPeriod: string;
+    patricianPeriod: string;
+}
+
 export interface TrustedForwarderChangedEvent extends EventBase {
     name: "TrustedForwarderChanged";
     host: string;
     superToken: string;
-    isSet: boolean;
+    isKeySet: boolean;
     forwarder: string;
     enabled: boolean;
 }

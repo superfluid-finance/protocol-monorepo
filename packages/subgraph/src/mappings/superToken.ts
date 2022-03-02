@@ -6,6 +6,7 @@ import {
     Burned,
     Minted,
     Sent,
+    AgreementLiquidatedV2,
 } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
@@ -15,8 +16,9 @@ import {
     TokenDowngradedEvent,
     TransferEvent,
     SentEvent,
+    AgreementLiquidatedV2Event,
 } from "../../generated/schema";
-import { createEventID, tokenHasValidHost } from "../utils";
+import {createEventID, tokenHasValidHost} from "../utils";
 import {
     getOrInitAccount,
     getOrInitSuperToken,
@@ -25,7 +27,33 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
+import {getHostAddress} from "../addresses";
+import {BigInt, ethereum, log} from "@graphprotocol/graph-ts";
+
+function updateHOLEntitiesForLiquidation(
+    event: ethereum.Event,
+    liquidatorAccount: string,
+    targetAccount: string,
+    bondAccount: string
+): void {
+    getOrInitSuperToken(event.address, event.block);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        liquidatorAccount,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        targetAccount,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        bondAccount,
+        event.address.toHex(),
+        event.block
+    );
+}
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedBy
@@ -48,22 +76,43 @@ export function handleAgreementLiquidatedBy(
     );
     let bondAccount = getOrInitAccount(event.params.bondAccount, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(
+    updateHOLEntitiesForLiquidation(
+        event,
         liquidatorAccount.id,
-        event.address.toHex(),
-        event.block
-    );
-    updateATSStreamedAndBalanceUntilUpdatedAt(
         penaltyAccount.id,
-        event.address.toHex(),
+        bondAccount.id
+    );
+}
+
+export function handleAgreementLiquidatedV2(
+    event: AgreementLiquidatedV2
+): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    createAgreementLiquidatedV2Entity(event);
+
+    let liquidatorAccount = getOrInitAccount(
+        event.params.liquidatorAccount,
         event.block
     );
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        bondAccount.id,
-        event.address.toHex(),
+    let targetAccount = getOrInitAccount(
+        event.params.targetAccount,
         event.block
+    );
+    let rewardAccount = getOrInitAccount(
+        event.params.rewardAccount,
+        event.block
+    );
+
+    updateHOLEntitiesForLiquidation(
+        event,
+        liquidatorAccount.id,
+        targetAccount.id,
+        rewardAccount.id
     );
 }
 
@@ -211,6 +260,49 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     ev.bondAccount = event.params.bondAccount;
     ev.rewardAmount = event.params.rewardAmount;
     ev.bailoutAmount = event.params.bailoutAmount;
+    ev.save();
+}
+
+function createAgreementLiquidatedV2Entity(
+    event: AgreementLiquidatedV2
+): void {
+    let ev = new AgreementLiquidatedV2Event(
+        createEventID("AgreementLiquidatedV2", event)
+    );
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.name = "AgreementLiquidatedV2";
+    ev.addresses = [
+        event.address,
+        event.params.liquidatorAccount,
+        event.params.targetAccount,
+        event.params.rewardAccount,
+    ];
+    ev.blockNumber = event.block.number;
+    ev.token = event.address;
+    ev.liquidatorAccount = event.params.liquidatorAccount;
+    ev.agreementClass = event.params.agreementClass;
+    ev.agreementId = event.params.id;
+    ev.targetAccount = event.params.targetAccount;
+    ev.rewardAccount = event.params.rewardAccount;
+    ev.rewardAmount = event.params.rewardAmount;
+    ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
+
+    let decoded = ethereum.decode(
+        "(uint256,uint256)",
+        event.params.liquidationTypeData
+    ) as ethereum.Value;
+    let tuple = decoded.toTuple();
+    let version = tuple[0].toBigInt();
+    let liquidationType = tuple[1].toI32();
+    if (version != BigInt.fromI32(1)) {
+        log.error("Version type is incorrect = {}", [version.toString()]);
+    }
+
+    // if version is 0, this means that something went wrong
+    ev.version = version == BigInt.fromI32(1) ? version : BigInt.fromI32(0);
+
+    ev.liquidationType = liquidationType;
     ev.save();
 }
 

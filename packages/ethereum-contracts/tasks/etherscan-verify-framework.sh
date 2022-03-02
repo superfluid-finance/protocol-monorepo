@@ -41,8 +41,6 @@ npx truffle --network $TRUFFLE_NETWORK run verify Superfluid@${SUPERFLUID_HOST_P
 echo SUPERFLUID_GOVERNANCE
 if [ ! -z "$IS_TESTNET" ];then
     npx truffle --network $TRUFFLE_NETWORK run verify TestGovernance@${SUPERFLUID_GOVERNANCE}
-else
-    npx truffle --network $TRUFFLE_NETWORK run verify SuperfluidOwnableGovernance@${SUPERFLUID_GOVERNANCE}
 fi
 
 echo SUPERFLUID_SUPER_TOKEN_FACTORY

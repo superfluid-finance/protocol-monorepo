@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const traveler = require("ganache-time-traveler");
 
@@ -19,10 +20,8 @@ const TestToken = artifacts.require("TestToken");
 
 const {BN} = require("@openzeppelin/test-helpers");
 const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
+const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data.js");
 
-const {
-    clipDepositNumber,
-} = require("./contracts/agreements/ConstantFlowAgreementV1.behavior.js");
 let _singleton;
 
 /**
@@ -31,15 +30,50 @@ let _singleton;
  */
 module.exports = class TestEnvironment {
     constructor() {
+        /**
+         * SCHEMA:
+         *
+         * tokens:
+         *   [superTokenAddress]:
+         *     accounts:
+         *       [accountAddress]:
+         *         balanceSnapshot:
+         *           - availableBalance: BN
+         *           - deposit: BN
+         *           - owedDeposit: BN
+         *           - timestamp: BN
+         *         expectedBalanceDelta # for available balance
+         *         cfa:
+         *           # see ConstantFlowAgreementV1.behaviour.js
+         *         ida:
+         *           # see InstantDistributionAgreementV1.behaviour.js
+         */
         this.data = {};
+        /**
+         * SCHEMA:
+         *
+         *  enabled: boolean
+         *  observedAccounts: string[]
+         *  tokens:
+         *    [superTokenAddress]:
+         *      accountBalanceSnapshots:
+         *        [accountAddress]: [
+         *          availableBalance: number
+         *          deposit: number
+         *          owedDeposit: number
+         *          timestamp: number
+         *        ]
+         */
+        this.plotData = {};
         this._evmSnapshots = [];
 
         this.configs = {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(0),
             LIQUIDATION_PERIOD: 3600,
+            PATRICIAN_PERIOD: 900,
             FLOW_RATE1: toWad(1).div(toBN(3600)), // 1 per hour
-            MINIMUM_DEPOSIT: clipDepositNumber(toWad(0.25), false),
+            MINIMUM_DEPOSIT: CFADataModel.clipDepositNumber(toWad(0.25), false),
         };
 
         this.constants = Object.assign(
@@ -242,18 +276,22 @@ module.exports = class TestEnvironment {
         // return to the parent snapshot and save the same snapshot again
         await this.useLastEvmSnapshot();
 
-        // test data can be persisted here
+        // test data can be persisted over a test case here
         this.data = {};
+
+        // plot data can be persisted over a test case here
+        this.plotData = {};
 
         // reset governace parameters
         await Promise.all([
             await web3tx(
-                this.contracts.governance.setCFAv1LiquidationPeriod,
-                "reset liquidation period"
+                this.contracts.governance.setPPPConfig,
+                "reset 3Ps config"
             )(
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
-                this.configs.LIQUIDATION_PERIOD
+                this.configs.LIQUIDATION_PERIOD,
+                this.configs.PATRICIAN_PERIOD
             ),
             await web3tx(
                 this.contracts.governance.setRewardAddress,
@@ -490,10 +528,6 @@ module.exports = class TestEnvironment {
         );
     }
 
-    /**************************************************************************
-     * Test data functions
-     *************************************************************************/
-
     updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
@@ -528,6 +562,7 @@ module.exports = class TestEnvironment {
                                 deposit: 0,
                                 owedDeposit: 0,
                                 timestamp: 0,
+                                description: "",
                             },
                         },
                     },
@@ -575,6 +610,158 @@ module.exports = class TestEnvironment {
         return toBN(
             this.data.tokens[superToken].accounts[account].expectedBalanceDelta
         );
+    }
+
+    /**************************************************************************
+     * Test Plot Data Functions
+     **************************************************************************/
+
+    formatRawBalanceSnapshot(rawBalanceSnapshot, description) {
+        return {
+            availableBalance: rawBalanceSnapshot.availableBalance,
+            deposit: rawBalanceSnapshot.deposit,
+            owedDeposit: rawBalanceSnapshot.owedDeposit,
+            timestamp: rawBalanceSnapshot.timestamp,
+            description: description,
+        };
+    }
+
+    /**
+     * @dev Sets the plotData object-call this in a more "local" before hook or at the start or end of a test case
+     * @param enabled whether we want to record plot data
+     * @param observedAccounts the accounts (addresses) we want to observe
+     */
+    initializePlotData(enabled = false, observedAccounts = []) {
+        this.plotData = {
+            ...this.plotData,
+            enabled,
+            observedAccounts,
+        };
+    }
+
+    /**
+     * @dev Takes a balance snapshot for the plotData object if account is observed or observedAccounts is empty
+     * @param account the account we are adding an entry for
+     * @param rawBalanceSnapshot the rawBalanceSnapshot to be formatted and added as an entry (row)
+     * @param description the description to be used to showcase data points in charts
+     */
+    updatePlotDataAccountBalanceSnapshot(
+        superToken,
+        account,
+        rawBalanceSnapshot,
+        description
+    ) {
+        const observedAccounts = this.plotData.observedAccounts;
+        if (
+            observedAccounts.length > 0 &&
+            !observedAccounts.includes(account)
+        ) {
+            return;
+        }
+
+        // initializes default data for an account if it doesn't exist
+        _.defaultsDeep(this.plotData, {
+            tokens: {
+                [superToken]: {
+                    accountBalanceSnapshots: {
+                        [account]: [],
+                    },
+                },
+            },
+        });
+        const existingAccountBalanceSnapshots =
+            this.plotData.tokens[superToken].accountBalanceSnapshots[account];
+        // we only want to add new entries if the timestamp has changed
+        const accountBalanceSnapshotsToMerge =
+            existingAccountBalanceSnapshots.length === 0 ||
+            existingAccountBalanceSnapshots[
+                existingAccountBalanceSnapshots.length - 1
+            ].timestamp !== rawBalanceSnapshot.timestamp
+                ? [
+                      ...existingAccountBalanceSnapshots,
+                      this.formatRawBalanceSnapshot(
+                          rawBalanceSnapshot,
+                          description
+                      ),
+                  ]
+                : [...existingAccountBalanceSnapshots];
+
+        // add a new entry to accountBalanceSnapshots
+        _.merge(this.plotData, {
+            tokens: {
+                [superToken]: {
+                    accountBalanceSnapshots: {
+                        [account]: accountBalanceSnapshotsToMerge,
+                    },
+                },
+            },
+        });
+    }
+
+    /**
+     * @dev Formats the accountBalanceSnapshots object into a processable format.
+     * @param superToken
+     * @returns an easily processable format (for csv)
+     */
+    formatPlotDataIntoProcessableFormat(superToken) {
+        if (!this.plotData.tokens) {
+            return [];
+        }
+        const accountBalanceSnapshots =
+            this.plotData.tokens[superToken].accountBalanceSnapshots;
+        return (
+            Object.entries(accountBalanceSnapshots)
+                // TODO: filter out unchanged account balance (for now)
+                // maybe we want to monitor deposit, owedDeposit, etc,
+                .filter(
+                    (x) =>
+                        !_.every(x[1], (y) =>
+                            y.availableBalance.eq(x[1][0].availableBalance)
+                        )
+                )
+                // map into new easily processable data
+                .map((x) =>
+                    x[1].map((y) => ({
+                        alias: this.toAlias(x[0]),
+                        address: x[0],
+                        availableBalance: wad4human(
+                            y.availableBalance.toString()
+                        ),
+                        deposit: wad4human(y.deposit.toString()),
+                        owedDeposit: wad4human(y.owedDeposit.toString()),
+                        timestamp: y.timestamp,
+                        description: y.description,
+                    }))
+                )
+                .flat()
+        );
+    }
+
+    /**
+     * @dev Writes the entirety of the data of a test into a csv file.
+     * @param path the location the file is to be saved
+     * @param superToken
+     */
+    writePlotDataIntoCSVFile(path, superToken) {
+        const csvFormatPlotData =
+            this.formatPlotDataIntoProcessableFormat(superToken);
+        const csvWriter = createCsvWriter({
+            path: "test/output/" + path + ".csv",
+            header: [
+                {id: "alias", title: "alias"},
+                {id: "timestamp", title: "timestamp"},
+                {id: "availableBalance", title: "availableBalance"},
+                {id: "deposit", title: "deposit"},
+                {id: "owedDeposit", title: "owedDeposit"},
+                {id: "address", title: "address"},
+                {id: "description", title: "description"},
+            ],
+        });
+        if (csvFormatPlotData.length > 0) {
+            csvWriter
+                .writeRecords(csvFormatPlotData)
+                .then(() => console.log("CSV file created"));
+        }
     }
 
     /**************************************************************************
@@ -684,7 +871,11 @@ module.exports = class TestEnvironment {
         );
     }
 
-    async validateSystemInvariance({allowCriticalAccount, tokenSymbol} = {}) {
+    async validateSystemInvariance({
+        allowCriticalAccount,
+        tokenSymbol,
+        description,
+    } = {}) {
         tokenSymbol = tokenSymbol || "TEST";
         const testToken = this.sf.tokens[tokenSymbol];
         const superToken = this.sf.tokens[tokenSymbol + "x"];
@@ -716,6 +907,15 @@ module.exports = class TestEnvironment {
                         )
                     );
 
+                if (this.plotData.enabled) {
+                    this.updatePlotDataAccountBalanceSnapshot(
+                        superToken.address,
+                        userAddress,
+                        superTokenBalance,
+                        description
+                    );
+                }
+
                 this.printSingleBalance(
                     `${alias} underlying token balance`,
                     tokenBalance
@@ -741,7 +941,7 @@ module.exports = class TestEnvironment {
         );
 
         this.printSingleBalance(
-            "Total real-time blances of super tokens",
+            "Total real-time balances of super tokens",
             rtBalanceSum
         );
 

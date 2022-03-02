@@ -1,6 +1,5 @@
-//SPDX-License-Identifier: AGPLv3
+// SPDX-License-Identifier: AGPLv3
 pragma solidity >= 0.7.0;
-pragma experimental ABIEncoderV2;
 
 import {
     ISuperfluid,
@@ -18,11 +17,11 @@ library CFAv1Library {
         IConstantFlowAgreementV1 cfa;
     }
 
-    //@dev for working with the constant flow agreement within solidity
-    //the first set of functions are each for callAgreement()
-    //the second set of functions are each for use in callAgreementWithContext()
+    // @dev for working with the constant flow agreement within solidity
+    // the first set of functions are each for callAgreement()
+    // the second set of functions are each for use in callAgreementWithContext()
 
-    //create/update/delete flow without userData
+    // create/update/delete flow without userData
     function flow(
         InitData storage cfaLibrary,
         address receiver,
@@ -41,7 +40,7 @@ library CFAv1Library {
         }
     }
 
-    //create/update/delete flow with userData
+    // create/update/delete flow with userData
     function flow(
         InitData storage cfaLibrary,
         address receiver,
@@ -61,7 +60,7 @@ library CFAv1Library {
         }
     }
 
-     //create flow without userData
+    // create flow without userData
     function createFlow(
         InitData storage cfaLibrary,
         address receiver,
@@ -77,12 +76,12 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x" //empty user data
+            "0x" // empty user data
         );
     }
     
 
-    //create flow with userData
+    // create flow with userData
     function createFlow(
         InitData storage cfaLibrary, 
         address receiver,
@@ -103,7 +102,7 @@ library CFAv1Library {
         );
     }
 
-    //update flow without userData
+    // update flow without userData
     function updateFlow(
         InitData storage cfaLibrary,
         address receiver,
@@ -119,12 +118,12 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x" //empty user data
+            "0x" // empty user data
         );
     }
     
 
-    //update flow with userData
+    // update flow with userData
     function updateFlow(
         InitData storage cfaLibrary,
         address receiver,
@@ -145,7 +144,7 @@ library CFAv1Library {
         );
     }
 
-    //delete flow
+    // delete flow
     function deleteFlow(
         InitData storage cfaLibrary,
         address sender,
@@ -161,12 +160,12 @@ library CFAv1Library {
                 receiver,
                 new bytes(0) // placeholder
             ),
-            "0x" //empty user data
+            "0x" // empty user data
         );
     }
     
 
-    //delete flow with userData 
+    // delete flow with userData 
     function deleteFlow(
         InitData storage cfaLibrary,
         address sender,
@@ -187,7 +186,7 @@ library CFAv1Library {
         );
     }
 
-    //create/update/delete flow with ctx 
+    // create/update/delete flow with ctx 
     function flowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -207,7 +206,7 @@ library CFAv1Library {
         }
     }
 
-    //create/update/delete flow with ctx and userdata
+    // create/update/delete flow with ctx and userdata
     function flowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -228,7 +227,7 @@ library CFAv1Library {
         }
     }
 
-  //create flow with ctx 
+    // create flow with ctx 
     function createFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -245,12 +244,12 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x", //empty user data
+            "0x", // empty user data
             ctx
         );
     }
 
-    //create flow with ctx and userData
+    // create flow with ctx and userData
     function createFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -273,7 +272,7 @@ library CFAv1Library {
         );
     }
 
-  //update flow with ctx but without userData 
+    // update flow with ctx but without userData 
     function updateFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -290,12 +289,12 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x", //empty user data
+            "0x", // empty user data
             ctx
         );
     }
 
-    //update flow with ctx and userData
+    // update flow with ctx and userData
     function updateFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -318,7 +317,7 @@ library CFAv1Library {
         );
     }
 
-  //delete flow with ctx 
+    // delete flow with ctx 
     function deleteFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -340,7 +339,7 @@ library CFAv1Library {
         );
     }
 
-    //delete flow with ctx and userData 
+    // delete flow with ctx and userData 
     function deleteFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,

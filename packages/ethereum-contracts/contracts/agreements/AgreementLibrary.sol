@@ -15,9 +15,9 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 
 /**
- * @dev Helper library for building super agreement
- *
+ * @title Agreement Library
  * @author Superfluid
+ * @dev Helper library for building super agreement
  */
 library AgreementLibrary {
 

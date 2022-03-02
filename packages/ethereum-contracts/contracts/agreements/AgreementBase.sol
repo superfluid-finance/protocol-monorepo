@@ -6,8 +6,7 @@ import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 
 
 /**
- * @dev The Superfluid agreement base boilerplate contract
- *
+ * @title Superfluid agreement base boilerplate contract
  * @author Superfluid
  */
 abstract contract AgreementBase is

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity ^0.8.0;
 
 import {
     IInstantDistributionAgreementV1,
@@ -14,8 +14,6 @@ import {
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
@@ -23,13 +21,11 @@ import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 /**
- * @dev The IInstantDistributionAgreementV1 implementation
- *
- * NOTE:
- * - Please read IInstantDistributionAgreementV1 for implementation notes.
- * - For some deeper technical notes, please visit protocol-monorepo wiki area.
- *
+ * @title InstantDistributionAgreementV1 contract
  * @author Superfluid
+ * @dev Please read IInstantDistributionAgreementV1 for implementation notes.
+ * @dev For more technical notes, please visit protocol-monorepo wiki area.
+ *
  */
 contract InstantDistributionAgreementV1 is
     AgreementBase,
@@ -47,10 +43,8 @@ contract InstantDistributionAgreementV1 is
         E_NOT_ALLOWED - operation not allowed
      */
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
     using UInt128SafeMath for uint128;
-    using SignedSafeMath for int256;
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
@@ -128,7 +122,7 @@ contract InstantDistributionAgreementV1 is
                 IndexData memory idata;
                 (exist, idata) = _getIndexData(token, iId);
                 assert(exist);
-                dynamicBalance = dynamicBalance.add(
+                dynamicBalance = dynamicBalance + (
                     int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
                 );
             }
@@ -208,7 +202,7 @@ contract InstantDistributionAgreementV1 is
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
         uint128 indexDelta = (amount / totalUnits).toUint128();
         newIndexValue = idata.indexValue.add(indexDelta, "IDA: E_OVERFLOW");
-        actualAmount = uint256(indexDelta).mul(totalUnits);
+        actualAmount = uint256(indexDelta) * totalUnits;
     }
 
     /// @dev IInstantDistributionAgreementV1.updateIndex implementation
@@ -270,10 +264,10 @@ contract InstantDistributionAgreementV1 is
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
         token.settleBalance(publisher,
-            (-int256(newIndexValue - idata.indexValue)).mul(int256(idata.totalUnitsApproved)));
+            (-int256(newIndexValue - idata.indexValue)) * int256(idata.totalUnitsApproved));
         //   - adjust the publisher's deposit amount
         _adjustPublisherDeposit(token, publisher,
-            int256(newIndexValue - idata.indexValue).mul(int256(idata.totalUnitsPending)));
+            int256(newIndexValue - idata.indexValue) * int256(idata.totalUnitsPending));
         // adjust the publisher's index data
         uint128 oldIndexValue = idata.indexValue;
         idata.indexValue = newIndexValue;
@@ -910,6 +904,7 @@ contract InstantDistributionAgreementV1 is
         returns (bool exist)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
+        // FIXME (0.8): - intermediate conversion step required
         uint256 a = uint256(adata[0]);
         exist = a > 0;
     }
@@ -922,11 +917,15 @@ contract InstantDistributionAgreementV1 is
         returns (bool exist, IndexData memory idata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
+        // FIXME (0.8): - intermediate conversion step required
         uint256 a = uint256(adata[0]);
+        // FIXME (0.8): - intermediate conversion step required
         uint256 b = uint256(adata[1]);
         exist = a > 0;
         if (exist) {
+            // FIXME (0.8): - intermediate conversion step required
             idata.indexValue = uint128(a & uint256(int128(-1)));
+            // FIXME (0.8): - intermediate conversion step required
             idata.totalUnitsApproved = uint128(b & uint256(int128(-1)));
             idata.totalUnitsPending = uint128(b >> 128);
         }
@@ -949,6 +948,7 @@ contract InstantDistributionAgreementV1 is
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
+        // FIXME (0.8): - intermediate conversion step required
         return uint256(data[0]);
     }
 
@@ -965,6 +965,7 @@ contract InstantDistributionAgreementV1 is
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
+        // FIXME (0.8): - intermediate conversion step required
         data[0] = bytes32(int256(data[0]) + delta);
         token.updateAgreementStateSlot(
             publisher,
@@ -989,7 +990,7 @@ contract InstantDistributionAgreementV1 is
     {
         data = new bytes32[](2);
         data[0] = bytes32(
-            (uint256(sdata.publisher) << (12*8)) |
+            (uint256(uint160(sdata.publisher)) << (12*8)) |
             (uint256(sdata.indexId) << 32) |
             uint256(sdata.subId)
         );
@@ -1014,6 +1015,7 @@ contract InstantDistributionAgreementV1 is
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & type(uint32).max);
             sdata.subId = uint32(a & type(uint32).max);
+            // FIXME (0.8): - intermediate conversion step required
             sdata.indexValue = uint128(b & uint256(int128(-1)));
             sdata.units = uint128(b >> 128);
         }

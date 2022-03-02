@@ -7,7 +7,7 @@ import {
     ISuperToken,
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  * @dev Upgrader contract for super tokens.

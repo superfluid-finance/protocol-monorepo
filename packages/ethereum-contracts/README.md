@@ -220,6 +220,15 @@ The selected test(s) will run once when starting the session and re-run everytim
 After finishing the session, you can stop the ganache instance you started in the first step (Ctrl-C).
 Also, don't forget to remove `only` keywords from test files before making git commits.
 
+To generate jpeg image charts from the test output run first install these dependencies: numpy , pandas , plotly and kaleido by running:
+```
+python3 -m pip install -U libraryName
+```
+After that is done , just simply run the testDataToCharts script and put the folder containing the csv files as the first argument e.g
+```
+python3 testDataToCharts.py output
+```
+
 ### Troubleshooting
 
 Superfluid requires the [ERC-1820](https://eips.ethereum.org/EIPS/eip-1820) Registry contract to be deployed. That's because [ERC-777](https://eips.ethereum.org/EIPS/eip-777) - the basis for Super Tokens - depends on it.

@@ -75,26 +75,35 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             MAX_REQUESTS,
             async (superTokenAddress) => {
                 const superToken = await ISuperToken.at(superTokenAddress);
-                const symbol = await superToken.symbol();
-                if ((await superToken.getHost()) !== sf.host.address) {
-                    throw new Error("Super token is from a different universe");
-                }
-                const superTokenLogic = await (
-                    await UUPSProxiable.at(superTokenAddress)
-                ).getCodeAddress();
+                try {
+                    const symbol = await superToken.symbol();
+                    if ((await superToken.getHost()) !== sf.host.address) {
+                        throw new Error(
+                            "Super token is from a different universe"
+                        );
+                    }
+                    const superTokenLogic = await (
+                        await UUPSProxiable.at(superTokenAddress)
+                    ).getCodeAddress();
 
-                if (superTokenLogic === ZERO_ADDRESS) {
-                    console.log(
-                        `SuperToken@${superToken.address} (${symbol}) is likely a not initalized proxy.`
-                    );
-                } else if (latestSuperTokenLogic !== superTokenLogic) {
-                    console.log(
-                        `SuperToken@${superToken.address} (${symbol}) loogc needs upgrade from ${superTokenLogic}.`
-                    );
-                    return superTokenAddress;
-                } else {
-                    console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic is up to date.`
+                    if (superTokenLogic === ZERO_ADDRESS) {
+                        console.log(
+                            `SuperToken@${superToken.address} (${symbol}) is likely a not initalized proxy.`
+                        );
+                    } else if (latestSuperTokenLogic !== superTokenLogic) {
+                        console.log(
+                            `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}.`
+                        );
+                        return superTokenAddress;
+                    } else {
+                        console.log(
+                            `SuperToken@${superToken.address} (${symbol}) logic is up to date.`
+                        );
+                        return undefined;
+                    }
+                } catch {
+                    console.warn(
+                        `[WARN] SuperToken@${superToken.address} is smelly.`
                     );
                     return undefined;
                 }

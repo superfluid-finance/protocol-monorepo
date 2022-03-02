@@ -78,27 +78,14 @@ async function printGovernanceInformation({sf}) {
         latests.forEach((i) => console.log(i.superToken, i.rewardAddress));
     }
     {
-        console.log("## CFAv1LiquidationPeriod");
-        console.log(
-            "DEFAULT",
-            (
-                await gov.getCFAv1LiquidationPeriod.call(
-                    sf.host.address,
-                    ZERO_ADDRESS
-                )
-            ).toString()
-        );
+        console.log("## PPPConfiguration");
         const latests = (
-            await fetchLatestGovernanceUpdate(
-                gov,
-                "CFAv1LiquidationPeriodChanged",
-                {
-                    host: sf.host.address,
-                }
-            )
+            await fetchLatestGovernanceUpdate(gov, "PPPConfigurationChanged", {
+                host: sf.host.address,
+            })
         ).filter((i) => i.superToken !== ZERO_ADDRESS);
         latests.forEach((i) =>
-            console.log(i.superToken, i.liquidationPeriod.toString())
+            console.log(i.superToken, i.liquidationPeriod, i.patricianPeriod)
         );
     }
     {

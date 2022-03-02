@@ -24,7 +24,7 @@
         "build": "yarn generate && rm -rf dist && run-s build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
-        "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny ] > dist/index.umd.js",
+        "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny --skipLibCheck ] > dist/index.umd.js",
         "testenv:start": "tasks/testenv-ctl.sh start",
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
@@ -43,7 +43,7 @@
         "generate:abi-files": "rm -rf src/abi && mkdir src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
-        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-matic > src/subgraph/schema.graphql"
+        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

@@ -189,7 +189,7 @@ export function toBN(num: any) {
     return ethers.BigNumber.from(num);
 }
 
-function asleep(ms: number) {
+export function asleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -264,8 +264,8 @@ export const getSubscriptionId = (
  * Create/Update/Delete a flow between a sender and receiver.
  * Also waits for the graph to index and also returns the receipt
  * of the txn and data from the blockchain.
+ * @param provider
  * @param sf
- * @param cfaV1
  * @param actionType
  * @param superToken
  * @param sender
@@ -292,32 +292,39 @@ export const modifyFlowAndReturnCreatedFlowData = async (
             actionType
         )} a flow **********************`
     );
+
     const signer = await ethers.getSigner(sender);
     // any because it the txn.receipt doesn't exist on
     // Transaction
     const txnResponse =
         actionType === FlowActionType.Create
-            ? await sf.cfaV1.createFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  flowRate: newFlowRate.toString(),
-                  userData: "0x"
-              }).exec(signer)
+            ? await sf.cfaV1
+                  .createFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      flowRate: newFlowRate.toString(),
+                      userData: "0x",
+                  })
+                  .exec(signer)
             : actionType === FlowActionType.Update
-            ? await sf.cfaV1.updateFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  flowRate: newFlowRate.toString(),
-                  userData: "0x"
-              }).exec(signer)
-            : await sf.cfaV1.deleteFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  userData: "0x"
-              }).exec(signer);
+            ? await sf.cfaV1
+                  .updateFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      flowRate: newFlowRate.toString(),
+                      userData: "0x",
+                  })
+                  .exec(signer)
+            : await sf.cfaV1
+                  .deleteFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      userData: "0x",
+                  })
+                  .exec(signer);
 
     if (!txnResponse.blockNumber) {
         throw new Error("No block number");
@@ -327,7 +334,12 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
 
-    const {flowRate} = await sf.cfaV1.getFlow({superToken, sender, receiver, providerOrSigner: provider});
+    const {flowRate} = await sf.cfaV1.getFlow({
+        superToken,
+        sender,
+        receiver,
+        providerOrSigner: provider,
+    });
 
     return {
         txnResponse,

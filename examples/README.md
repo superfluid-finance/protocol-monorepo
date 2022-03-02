@@ -11,7 +11,7 @@ To add an example, you can open a PR and contact the Superfluid team in the #dev
 2) The Streaming Call Option
     - Proof of concept which allows you to create a tradeable option NFT where premium is paid for over time via a stream
 3) Rewards Distribution Token
-    - A ERC20 token that tokenizes units in Superfluid [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-tutorials/perform-an-instant-distribution/). 
+    - A ERC20 token that tokenizes units in Superfluid [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-developers/interactive-tutorials/instant-distribution). 
 4) Continuous Auction
     - A continuous auction where users can enter by sending a stream to the contract. In principle, the highest bid is the winner of the auction.
 5) Flowlottery

@@ -718,18 +718,18 @@ await usdcx.totalSupply({
 
 // Write operations
 usdcx.approve({
-  recipient: string,
+  receiver: string,
   amount: string
 });
 
 usdcx.transfer({
-  recipient: string,
+  receiver: string,
   amount: string
 });
 
 usdcx.transferFrom({
   sender: string,
-  recipient: string,
+  receiver: string,
   amount: string
 });
 

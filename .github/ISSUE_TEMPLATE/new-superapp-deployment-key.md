@@ -1,0 +1,20 @@
+---
+name: New Superapp Deployment Key
+about: Create ticket to generate a superApp deployment key
+title: "[Deployment Key] "
+labels: 'Type: Help Me'
+assignees: ''
+
+---
+
+**Describe the SuperApp:**
+
+_A clear and concise description of the SuperApp_
+
+**Network will be deployed?:**
+
+**Link of repo of the contract to be deployed:**
+
+**Contact info for developer:**
+
+**Notes:**

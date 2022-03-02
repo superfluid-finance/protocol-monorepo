@@ -127,6 +127,7 @@ contract ConstantFlowAgreementV1 is
         public view override
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
     {
+        // solhint-disable-next-line not-rely-on-time
         timestamp = block.timestamp;
         isCurrentlyPatricianPeriod = isPatricianPeriod(token, account, timestamp);
     }

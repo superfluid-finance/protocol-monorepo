@@ -184,6 +184,7 @@ dataSources:
           - ConfigChangedEvent
           - CFAv1LiquidationPeriodChangedEvent
           - RewardAddressChangedEvent
+          - PPPConfigurationChanged
           - TrustedForwarderChangedEvent
         abis:
           - name: SuperfluidGovernanceBase
@@ -195,6 +196,8 @@ dataSources:
             handler: handleRewardAddressChanged
           - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
             handler: handleCFAv1LiquidationPeriodChanged
+          - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
+            handler: handlePPPConfigurationChanged
           - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
             handler: handleTrustedForwarderChanged
     - kind: ethereum/contract
@@ -238,6 +241,7 @@ templates:
         - Account
         - AccountTokenSnapshot
         - AgreementLiquidatedByEvent
+        - AgreementLiquidatedV2Event
         - BurnedEvent
         - MintedEvent
         - SentEvent
@@ -256,6 +260,8 @@ templates:
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleAgreementLiquidatedBy
+        - event: AgreementLiquidatedV2(indexed address,bytes32,indexed address,indexed address,address,uint256,int256,bytes)
+          handler: handleAgreementLiquidatedV2
         - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
           handler: handleBurned
         - event: Minted(indexed address,indexed address,uint256,bytes,bytes)

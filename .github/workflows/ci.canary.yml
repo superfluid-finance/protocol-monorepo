@@ -227,13 +227,13 @@ jobs:
 
       - name: Publish to npm
         run: |
-          tasks/npm-publish.sh packages/ethereum-contracts dev
-          tasks/npm-publish.sh packages/js-sdk dev
-          tasks/npm-publish.sh packages/sdk-core dev
-          tasks/npm-publish.sh packages/sdk-redux dev
+          tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
+          tasks/npm-publish.sh packages/js-sdk/ dev --verbose
+          tasks/npm-publish.sh packages/sdk-core/ dev --verbose
+          tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build

@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "1.0.0-rc.11",
+    "version": "1.0.0",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": {
@@ -18,7 +18,8 @@
         "/build/abi.js",
         "artifacts/**/*",
         "scripts/**/*",
-        "test/TestEnvironment.js"
+        "test/TestEnvironment.js",
+        "test/CFADataModel.js"
     ],
     "scripts": {
         "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",
@@ -28,12 +29,12 @@
         "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
-        "test": "run-s test:*:*",
+        "test": "mkdir test/output && run-s test:*:*",
         "test:contracts:js": "truffle test testsuites/all-contracts.js",
         "test:contracts:sol": "truffle test test/contracts/*/*.sol",
         "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
-        "test-coverage": "truffle run coverage --network coverage --file testsuites/all-contracts.js",
+        "test-coverage": "mkdir test/output && truffle run coverage --network coverage --file testsuites/all-contracts.js",
         "posttest": "yarn testenv:stop",
         "generate-ethers-types": "typechain --target=ethers-v5 --out-dir=typechain './build/**/*.json'",
         "lint": "run-s lint:*",
@@ -58,6 +59,7 @@
         "@truffle/hdwallet-provider": "^1.7.0",
         "@typechain/ethers-v5": "^8.0.5",
         "async": "^3.2.3",
+        "csv-writer": "^1.6.0",
         "dotenv": "10.0.0",
         "ethers": "^5.5.4",
         "ganache-time-traveler": "1.0.16",

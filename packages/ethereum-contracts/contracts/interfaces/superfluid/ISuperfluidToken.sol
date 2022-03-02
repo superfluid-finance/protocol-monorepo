@@ -285,7 +285,7 @@ interface ISuperfluidToken {
     );
 
     /**
-     * @dev System bailout occurred (DEPRECATIED BY AgreementLiquidatedBy)
+     * @dev System bailout occurred (DEPRECATED BY AgreementLiquidatedBy)
      * @param bailoutAccount Account that bailout the penalty account
      * @param bailoutAmount Amount of account bailout
      */
@@ -295,7 +295,7 @@ interface ISuperfluidToken {
     );
 
     /**
-     * @dev Agreement liquidation event (including agent account)
+     * @dev Agreement liquidation event (DEPRECATED BY AgreementLiquidatedV2)
      * @param agreementClass Contract address of the agreement
      * @param id Agreement ID
      * @param liquidatorAccount Account of the agent that performed the liquidation.
@@ -323,34 +323,6 @@ interface ISuperfluidToken {
         uint256 rewardAmount,
         uint256 bailoutAmount
     );
-
-    /**
-     * @dev Make liquidation payouts
-     * @param id Agreement ID
-     * @param liquidator Address of the executer of liquidation
-     * @param penaltyAccount Account of the agreement to be penalized
-     * @param rewardAmount Amount of liquidation reward
-     * @param bailoutAmount Amount of account bailout needed
-     *
-     * NOTE:
-     * Liquidation rules:
-     *  - If a bailout is required (bailoutAmount > 0)
-     *     - the actual reward goes to the liquidator,
-     *     - while the reward account becomes the bailout account
-     *     - total bailout include: bailout amount + reward amount
-     *
-     * Modifiers:
-     *  - onlyAgreement
-     */
-    function makeLiquidationPayouts
-    (
-        bytes32 id,
-        address liquidator,
-        address penaltyAccount,
-        uint256 rewardAmount,
-        uint256 bailoutAmount
-    )
-        external;
 
     /**
      * @dev Agreement liquidation event v2 (including agent account)

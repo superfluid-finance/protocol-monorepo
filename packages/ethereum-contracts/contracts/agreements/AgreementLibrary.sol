@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import {
     ISuperfluidGovernance,
@@ -12,8 +11,7 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 
 /**
@@ -23,7 +21,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
  */
 library AgreementLibrary {
 
-    using SignedSafeMath for int256;
     using SafeCast for uint256;
     using SafeCast for int256;
 

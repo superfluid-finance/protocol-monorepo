@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity ^0.8.0;
 
 import {
     IConstantFlowAgreementV1,
@@ -14,9 +14,8 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SignedSafeMath } from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
@@ -41,7 +40,6 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant _SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
     using SafeCast for int256;
@@ -82,7 +80,7 @@ contract ConstantFlowAgreementV1 is
     {
         (bool exist, FlowData memory state) = _getAccountFlowState(token, account);
         if(exist) {
-            dynamicBalance = ((int256(time).sub(int256(state.timestamp))).mul(state.flowRate));
+            dynamicBalance = ((int256(time) - (int256(state.timestamp))) * state.flowRate);
             deposit = state.deposit;
             owedDeposit = state.owedDeposit;
         }
@@ -104,7 +102,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
-        uint256 flowrate1 = deposit.div(liquidationPeriod);
+        uint256 flowrate1 = deposit / liquidationPeriod;
         return int96(flowrate1);
     }
 
@@ -119,7 +117,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, _SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-        require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
+        require(uint256(flowRate).mul(liquidationPeriod) <= uint256(uint96(type(int96).max)), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
         return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
     }
@@ -431,15 +429,15 @@ contract ConstantFlowAgreementV1 is
         returns (int96 newNetFlowRate)
     {
         (, FlowData memory state) = _getAccountFlowState(token, account);
-        int256 dynamicBalance = currentTimestamp.sub(state.timestamp).toInt256()
-            .mul(int256(state.flowRate));
+        int256 dynamicBalance = (currentTimestamp - state.timestamp).toInt256()
+            * int256(state.flowRate);
         if (dynamicBalance != 0) {
             token.settleBalance(account, dynamicBalance);
         }
         state.flowRate = state.flowRate.add(flowRateDelta, "CFA: flowrate overflow");
         state.timestamp = currentTimestamp;
-        state.deposit = state.deposit.toInt256().add(depositDelta).toUint256();
-        state.owedDeposit = state.owedDeposit.toInt256().add(owedDepositDelta).toUint256();
+        state.deposit = (state.deposit.toInt256() + depositDelta).toUint256();
+        state.owedDeposit = (state.owedDeposit.toInt256() + owedDepositDelta).toUint256();
 
         token.updateAgreementStateSlot(account, 0 /* slot id */, _encodeFlowData(state));
 
@@ -532,7 +530,7 @@ contract ConstantFlowAgreementV1 is
                     currentContext.timestamp,
                     currentContext.appAllowanceToken,
                     token, flowParams, oldFlowData);
-            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted.mul(uint256(currentContext.appLevel + 1));
+            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted * uint256(currentContext.appLevel + 1);
             cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of allowance
@@ -569,16 +567,14 @@ contract ConstantFlowAgreementV1 is
             }
 
             int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
-                .sub(oldFlowData.owedDeposit.toInt256());
+                - oldFlowData.owedDeposit.toInt256();
 
             // update flow data and account state with the allowance delta
             {
-                vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
-                        .add(appAllowanceDelta)
-                        .toUint256();
-                vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
-                        .add(appAllowanceDelta)
-                        .toUint256();
+                vars.newFlowData.deposit = (vars.newFlowData.deposit.toInt256()
+                    + appAllowanceDelta).toUint256();
+                vars.newFlowData.owedDeposit = (vars.newFlowData.owedDeposit.toInt256()
+                    + appAllowanceDelta).toUint256();
                 token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
                 // update sender and receiver deposit (for sender) and owed deposit (for receiver)
                 _updateAccountFlowState(
@@ -694,17 +690,17 @@ contract ConstantFlowAgreementV1 is
             // STEP 2: apply minimum deposit rule and calculate deposit delta
             // preliminary calc depositDelta (minimum deposit rule not yet applied)
             depositDelta = appAllowanceBase.toInt256()
-                .sub(oldFlowData.deposit.toInt256())
-                .add(oldFlowData.owedDeposit.toInt256());
+                - oldFlowData.deposit.toInt256()
+                + oldFlowData.owedDeposit.toInt256();
 
             // preliminary calc newDeposit (minimum deposit rule not yet applied)
-            newDeposit = oldFlowData.deposit.toInt256().add(depositDelta).toUint256();
+            newDeposit = (oldFlowData.deposit.toInt256() + depositDelta).toUint256();
 
             // calc depositDelta and newDeposit with minimum deposit rule applied
             if (newDeposit < minimumDeposit && flowParams.flowRate > 0) {
                 depositDelta = minimumDeposit.toInt256()
-                    .sub(oldFlowData.deposit.toInt256())
-                    .add(oldFlowData.owedDeposit.toInt256());
+                    - oldFlowData.deposit.toInt256()
+                    + oldFlowData.owedDeposit.toInt256();
                 newDeposit = minimumDeposit;
             }
 
@@ -788,10 +784,10 @@ contract ConstantFlowAgreementV1 is
         //    -     Agreement Total Deposit = TD
         //    -     Total Reward Left = RL = AB + TD
         // #1 Can the total account deposit can still cover the available balance deficit?
-        int256 totalRewardLeft = availableBalance.add(signedTotalDeposit);
+        int256 totalRewardLeft = availableBalance + signedTotalDeposit;
         if (totalRewardLeft >= 0) {
             // #1.a.1 yes: then reward = (SD / TD) * RL
-            int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
+            int256 rewardAmount = signedSingleDeposit * totalRewardLeft / signedTotalDeposit;
             token.makeLiquidationPayouts(
                 flowParams.flowId,
                 liquidator,
@@ -807,7 +803,7 @@ contract ConstantFlowAgreementV1 is
                 liquidator,
                 flowParams.sender,
                 rewardAmount.toUint256() /* rewardAmount */,
-                totalRewardLeft.mul(-1).toUint256() /* bailoutAmount */
+                (totalRewardLeft * -1).toUint256() /* bailoutAmount */
             );
         }
     }
@@ -840,7 +836,7 @@ contract ConstantFlowAgreementV1 is
         returns(uint256 deposit)
     {
         if (flowRate == 0) return 0;
-        assert(liquidationPeriod <= uint256(type(int96).max));
+        assert(liquidationPeriod <= uint256(uint96(type(int96).max)));
         deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow"));
         return _clipDepositNumber(deposit);
     }

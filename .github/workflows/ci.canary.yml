@@ -258,16 +258,7 @@ jobs:
 
       - name: Get sdk-redux package.json version
         id: sdk-redux-version
-        uses: martinbeentjes/npm-get-version-action@master      - name: Upload build artifacts
-        uses: ./build-artifacts/actions/upload
-        with:
-          hostname: ${{ secrets.BUILD_SERVER }}
-          user: ${{ secrets.BUILD_AGENT_USERNAME }}
-          ssh_key: ${{ secrets.BUILD_AGENT_SSH_KEY }}
-          branch_name: ${{ github.head_ref }}
-          local_build_dir: build/
-          base_build_dir: /var/www/builds/user-v2
-
+        uses: martinbeentjes/npm-get-version-action@master
         with:
           path: packages/sdk-redux
 

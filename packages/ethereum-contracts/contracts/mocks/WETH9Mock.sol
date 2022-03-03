@@ -42,7 +42,7 @@ contract WETH9Mock {
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
         balanceOf[msg.sender] -= wad;
-        msg.sender.transfer(wad);
+        payable(msg.sender).transfer(wad);
         emit Withdrawal(msg.sender, wad);
     }
 
@@ -66,7 +66,9 @@ contract WETH9Mock {
     {
         require(balanceOf[src] >= wad);
 
-        if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
+        // REVIEW (0.8.0): negating uint
+        // PREV: uint(-1)
+        if (src != msg.sender && allowance[src][msg.sender] != type(uint256).max - 1 + 1) {
             require(allowance[src][msg.sender] >= wad);
             allowance[src][msg.sender] -= wad;
         }

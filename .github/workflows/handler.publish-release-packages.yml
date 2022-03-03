@@ -72,7 +72,7 @@ jobs:
         run: tasks/npm-publish.sh packages/sdk-core/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish sdk-redux package
         if: env.PUBLISH_SDK_REDUX == 1

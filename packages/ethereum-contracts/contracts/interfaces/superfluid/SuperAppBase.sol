@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.7.4;
 
 import {
     ISuperfluid,
     ISuperToken,
     ISuperApp,
     SuperAppDefinitions
-} from "../interfaces/superfluid/ISuperfluid.sol";
+} from "./ISuperfluid.sol";
 
 abstract contract SuperAppBase is ISuperApp {
 

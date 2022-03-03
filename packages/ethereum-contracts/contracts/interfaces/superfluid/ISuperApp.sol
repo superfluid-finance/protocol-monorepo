@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.7.4;
 
 import { ISuperToken } from "./ISuperToken.sol";
 
-
 /**
- * @title Superfluid's app interface.
- *
- * NOTE:
- * - Be fearful of the app jail, when the word permitted is used.
- *
+ * @title SuperApp interface
  * @author Superfluid
+ * @dev Be aware of the app being jailed, when the word permitted is used.
+ *
  */
 interface ISuperApp {
 
     /**
-     * @dev Callback before a new agreement is created.
+     * @notice Callback before a new agreement is created.
      * @param superToken The super token used for the agreement.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
@@ -40,7 +37,7 @@ interface ISuperApp {
         returns (bytes memory cbdata);
 
     /**
-     * @dev Callback after a new agreement is created.
+     * @notice Callback after a new agreement is created.
      * @param superToken The super token used for the agreement.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
@@ -65,7 +62,7 @@ interface ISuperApp {
         returns (bytes memory newCtx);
 
     /**
-     * @dev Callback before a new agreement is updated.
+     * @notice Callback before a new agreement is updated.
      * @param superToken The super token used for the agreement.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
@@ -91,7 +88,7 @@ interface ISuperApp {
 
 
     /**
-    * @dev Callback after a new agreement is updated.
+    * @notice Callback after a new agreement is updated.
     * @param superToken The super token used for the agreement.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
@@ -116,7 +113,7 @@ interface ISuperApp {
         returns (bytes memory newCtx);
 
     /**
-    * @dev Callback before a new agreement is terminated.
+    * @notice Callback before a new agreement is terminated.
     * @param superToken The super token used for the agreement.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
@@ -141,7 +138,7 @@ interface ISuperApp {
         returns (bytes memory cbdata);
 
     /**
-    * @dev Callback after a new agreement is terminated.
+    * @notice Callback after a new agreement is terminated.
     * @param superToken The super token used for the agreement.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId

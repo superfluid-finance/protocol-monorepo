@@ -6,7 +6,6 @@ labels: 'Type: Help Me'
 assignees: ''
 
 ---
-
 **Describe the SuperApp:**
 
 _A clear and concise description of the SuperApp_

@@ -35,9 +35,9 @@ module.exports = {
 
   networks: {
     ganache: {
-      url: "http://127.0.0.1:8545",
+      url: "http://127.0.0.1",
       chain_id: "1337",
-      port: 8545,
+      port: process.env.GANACHE_PORT || 8545,
       // accounts: {
       //   mnemonic: `${process.env.GOERLI_MNEMONIC}`
       // }

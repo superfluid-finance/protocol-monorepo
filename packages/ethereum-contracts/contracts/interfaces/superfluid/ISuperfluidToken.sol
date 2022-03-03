@@ -21,9 +21,9 @@ interface ISuperfluidToken {
 
     /**
      * @dev Encoded liquidation type data mainly used for handling stack to deep errors
-     * 
+     *
      * Note:
-     * - version: 1 
+     * - version: 1
      * - liquidationType key:
      *    - 0 = reward account receives reward (PIC period)
      *    - 1 = liquidator account receives reward (Pleb period)
@@ -275,7 +275,8 @@ interface ISuperfluidToken {
         external;
 
     /**
-     * @dev Make liquidation payouts (v2)
+     * @dev Agreement liquidation event (DEPRECATED BY AgreementLiquidatedV2)
+     * @param agreementClass Contract address of the agreement
      * @param id Agreement ID
      * @param liquidationTypeData Data regarding the version of the liquidation schema and the type
      * @param liquidatorAccount Address of the executor of the liquidation
@@ -285,17 +286,16 @@ interface ISuperfluidToken {
      * @param targetAccountBalanceDelta The amount the sender account balance should change by
      *
      * NOTE:
-     * - If a bailout is required (bailoutAmount > 0)
-     *   - the actual reward (single deposit) goes to the executor,
-     *   - while the reward account becomes the bailout account
-     *   - total bailout include: bailout amount + reward amount
-     *   - the targetAccount will be bailed out
-     * - If a bailout is not required
-     *   - the targetAccount will pay the rewardAmount
-     *   - the liquidator (reward account in PIC period) will receive the rewardAmount
+     * Reward account rule:
+     * - if bailout is equal to 0, then
+     *   - the bondAccount will get the rewardAmount,
+     *   - the penaltyAccount will pay for the rewardAmount.
+     * - if bailout is larger than 0, then
+     *   - the liquidatorAccount will get the rewardAmouont,
+     *   - the bondAccount will pay for both the rewardAmount and bailoutAmount,
+     *   - the penaltyAccount will pay for the rewardAmount while get the bailoutAmount.
      *
-     * Modifiers:
-     *  - onlyAgreement
+     * [DEPRECATED] Use AgreementLiquidatedV2 instead
      */
     function makeLiquidationPayoutsV2
     (
@@ -368,6 +368,10 @@ interface ISuperfluidToken {
      * @param penaltyAccount Account of the agreement to be penalized
      * @param rewardAccount Account that collect the reward
      * @param rewardAmount Amount of liquidation reward
+     *
+     * NOTE:
+     *
+     * [DEPRECATED] Use AgreementLiquidatedV2 instead
      */
     event AgreementLiquidated(
         address indexed agreementClass,
@@ -381,6 +385,10 @@ interface ISuperfluidToken {
      * @dev System bailout occurred (DEPRECATED BY AgreementLiquidatedBy)
      * @param bailoutAccount Account that bailout the penalty account
      * @param bailoutAmount Amount of account bailout
+     *
+     * NOTE:
+     *
+     * [DEPRECATED] Use AgreementLiquidatedV2 instead
      */
     event Bailout(
         address indexed bailoutAccount,

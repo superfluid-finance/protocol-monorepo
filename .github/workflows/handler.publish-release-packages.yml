@@ -51,32 +51,32 @@ jobs:
         run: tasks/npm-publish.sh packages/ethereum-contracts/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish js-sdk package
         if: env.PUBLISH_JS_SDK == 1
         run: tasks/npm-publish.sh packages/js-sdk/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish js-sdk package
         if: env.PUBLISH_JS_SDK_V0_6 == 1
         run: tasks/npm-publish.sh packages/js-sdk/ v0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish sdk-core package
         if: env.PUBLISH_SDK_CORE == 1
         run: tasks/npm-publish.sh packages/sdk-core/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish sdk-redux package
         if: env.PUBLISH_SDK_REDUX == 1
         run: tasks/npm-publish.sh packages/sdk-redux/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

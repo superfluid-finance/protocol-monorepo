@@ -1,7 +1,7 @@
 ---
 name: New Superapp Deployment Key
 about: Create ticket to generate a superApp deployment key
-title: "[Deployment Key] "
+title: "[Deployer Whitelisting Request] "
 labels: 'Type: Help Me'
 assignees: ''
 

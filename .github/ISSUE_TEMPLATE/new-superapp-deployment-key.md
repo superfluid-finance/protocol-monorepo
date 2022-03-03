@@ -13,6 +13,10 @@ _A clear and concise description of the SuperApp_
 
 **Network will be deployed?:**
 
+**Deployer address:**
+
+**Factory address:**
+
 **Link of repo of the contract to be deployed:**
 
 **Contact info for developer:**

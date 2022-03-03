@@ -38,7 +38,7 @@
  *      corresponding to the left and right parts of the string.
  */
 
- pragma solidity 0.7.6;
+pragma solidity ^0.8.0;
 
 library Strings {
     struct slice {
@@ -215,7 +215,9 @@ library Strings {
             }
             if (a != b) {
                 // Mask out irrelevant bytes and check again
-                uint256 mask = uint256(-1); // 0xffff...
+                // REVIEW (0.8.0): negating uint
+                // uint256 mask = uint256(-1); // 0xffff...
+                uint256 mask = type(uint256).max - 1 + 1; // 0xffff...
                 if(shortest < 32) {
                   mask = ~(2 ** (8 * (32 - shortest + idx)) - 1);
                 }

@@ -322,7 +322,7 @@ describe("Creating & Exercising", async function () {
 
   describe("Failure modes - when the option should NOT exercise", async function () {
 
-    it("Case # 4 - Option flow is reduced to below the required flowRate", async () => {
+    it("Case #4 - Option flow is reduced to below the required flowRate", async () => {
       //create option
       const { admin, alice } = u;
       await app.createOption(
@@ -384,10 +384,14 @@ describe("Creating & Exercising", async function () {
     assert.equal(afterOptionReady, false, "option should no longer be ready");
     assert.equal(afterContractLinkBalance, 0, "contract shouldn't have link any longer");
     assert.equal(Number(adminLinkBalance) + Number(web3.utils.toWei("1", "ether")), afterAdminLinkBalance, "admin should get all of their link back");
-    alice.flow({
-      flowRate: 0, recipient: u.app
-    });
-  })
+
+    // alice.flow({
+    //   flowRate: 0, recipient: u.app
+    // });
+
+    // console.log("alice flow: ", await u.app.details().cfa.netFlow);
+
+  });
 
     it("Case #5 - Option is out of the money", async () => {
       const { admin, alice } = u;

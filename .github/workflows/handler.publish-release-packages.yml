@@ -80,3 +80,81 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Build sdk-core HTML documentation
+        if: env.PUBLISH_SDK_CORE == 1
+        run: |
+          yarn --cwd packages/sdk-core doc:html
+
+      - name: Get sdk-core package.json version
+        if: env.PUBLISH_SDK_CORE == 1
+        id: sdk-core-version
+        uses: martinbeentjes/npm-get-version-action@master
+        with:
+          path: packages/sdk-core
+
+      - name: Upload sdk-core HTML documentation (versioned)
+        if: env.PUBLISH_SDK_CORE == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-core/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format("{0}refs/sdk-core@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-core-version.outputs.current-version) }}
+          cloudfront_distribution_id: E2GBJEOIC4HGWU
+
+      - name: Create sdk-redux latest documentation redirect
+        run: |
+          mkdir sdk-core-redirect
+          printf '<!DOCTYPE html> <html> <head> <title>Redirecting...</title> <meta charset="UTF-8"> <meta http-equiv="refresh" content="0;URL='${{ format("docs.superfluid.finance/refs/sdk-core@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-redux-version.outputs.current-version) }}'" /> </head> <body> <p>Redirecting...</p> </body> </html>' > sdk-core-redirect/index.html
+
+      - name: Upload sdk-core latest documentation redirect
+        if: env.PUBLISH_SDK_CORE == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: sdk-core-redirect
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format("{0}refs/sdk-redux", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
+          cloudfront_distribution_id: E2GBJEOIC4HGWU
+
+      - name: Build sdk-redux HTML documentation
+        if: env.PUBLISH_SDK_REDUX == 1
+        run: |
+          yarn --cwd packages/sdk-redux doc:html
+
+      - name: Get sdk-redux package.json version
+        if: env.PUBLISH_REDUX_CORE == 1
+        id: sdk-redux-version
+        uses: martinbeentjes/npm-get-version-action@master
+        with:
+          path: packages/sdk-redux
+
+      - name: Upload sdk-redux HTML documentation (versioned)
+        if: env.PUBLISH_REDUX_CORE == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-redux/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format("{0}refs/sdk-redux@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-redux-version.outputs.current-version) }}
+          cloudfront_distribution_id: E2GBJEOIC4HGWU
+
+      - name: Create sdk-redux latest documentation redirect
+        run: |
+          mkdir sdk-redux-redirect
+          printf '<!DOCTYPE html> <html> <head> <title>Redirecting...</title> <meta charset="UTF-8"> <meta http-equiv="refresh" content="0;URL='${{ format("docs.superfluid.finance/refs/sdk-redux@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-redux-version.outputs.current-version) }}'" /> </head> <body> <p>Redirecting...</p> </body> </html>' > sdk-redux-redirect/index.html
+
+      - name: Upload sdk-redux latest documentation redirect
+        if: env.PUBLISH_SDK_REDUX == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: sdk-redux-redirect
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format("{0}refs/sdk-redux", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
+          cloudfront_distribution_id: E2GBJEOIC4HGWU

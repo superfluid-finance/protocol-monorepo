@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma abicoder v2;
-
+pragma solidity ^0.8.0;
 
 import {
     ISuperfluid,
     ISuperToken,
     SuperAppBase,
     SuperAppDefinitions
-} from "../apps/SuperAppBase.sol";
+} from "../interfaces/superfluid/SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-
 /**
- * @dev This is CFA SuperApp that maintains at most one inflw from a sender at any moment.
+ * @dev This is a CFA SuperApp that maintains at most one inflow from a sender at any moment.
  *
  * This can test the deposit allowance logic in the deleteFlow as a recipient.
  */

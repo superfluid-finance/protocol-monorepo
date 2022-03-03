@@ -15,7 +15,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-pragma solidity 0.7.6;
+pragma solidity ^0.8.0;
 
 // solhint-disable reason-string
 

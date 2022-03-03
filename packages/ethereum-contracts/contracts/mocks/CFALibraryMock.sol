@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import {ISuperfluid, ISuperfluidToken, ISuperToken} from "../interfaces/superfluid/ISuperfluid.sol";
 
@@ -8,7 +7,7 @@ import {ISuperApp, ISuperAgreement} from "../interfaces/superfluid/ISuperfluid.s
 
 import {ContextDefinitions, SuperAppDefinitions} from "../interfaces/superfluid/ISuperfluid.sol";
 
-import {SuperAppBase} from "../apps/SuperAppBase.sol";
+import {SuperAppBase} from "../interfaces/superfluid/SuperAppBase.sol";
 
 import {IConstantFlowAgreementV1} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 

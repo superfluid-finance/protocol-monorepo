@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma abicoder v2;
+pragma solidity ^0.8.0;
 
 import {
     ISuperfluid,
@@ -10,7 +9,6 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
 import { AgreementLibrary } from "../agreements/AgreementLibrary.sol";
-
 
 contract AgreementMock is AgreementBase {
 
@@ -48,6 +46,7 @@ contract AgreementMock is AgreementBase {
         bytes32[] memory slotData = token.getAgreementStateSlot(
             address(this), account, _REAL_TIME_BALANCE_SLOT_ID, 3);
         return (
+            // FIXME (0.8): - intermediate conversion step required
             int256(slotData[0]),
             uint256(slotData[1]),
             uint256(slotData[2])
@@ -66,6 +65,7 @@ contract AgreementMock is AgreementBase {
         uint256 owedDeposit
     ) external {
         bytes32[] memory slotData = new bytes32[](3);
+        // FIXME (0.8): - intermediate conversion step required
         slotData[0] = bytes32(uint256(dynamicBalance));
         slotData[1] = bytes32(uint256(deposit));
         slotData[2] = bytes32(uint256(owedDeposit));

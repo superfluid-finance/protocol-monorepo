@@ -2,3 +2,4 @@
 /coverage
 /.coverage_*
 /reports
+/test/output/*

@@ -56,7 +56,7 @@
         "@ethersproject/contracts": "^5.5.0",
         "@ethersproject/providers": "^5.5.3",
         "@openzeppelin/test-helpers": "^0.5.15",
-        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.11",
+        "@superfluid-finance/ethereum-contracts": "1.0.0",
         "@truffle/hdwallet-provider": "^1.7.0",
         "chai-as-promised": "^7.1.1",
         "truffle": "5.4.31",

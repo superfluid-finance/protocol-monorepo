@@ -233,7 +233,7 @@ jobs:
           tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build

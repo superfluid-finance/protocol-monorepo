@@ -307,6 +307,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             accounts[0],
             // liquidationPeriod
             config.liquidationPeriod,
+            // patricianPeriod
+            config.patricianPeriod,
             // trustedForwarders
             config.biconomyForwarder ? [config.biconomyForwarder] : []
         );

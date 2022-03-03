@@ -507,6 +507,12 @@ query events($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $or
         ... on AgreementLiquidatedByEvent {
             ...agreementLiquidatedByEvent
         }
+        ... on AgreementLiquidatedV2Event {
+            ...agreementLiquidatedV2Event
+        }
+        ... on PPPConfigurationChangedEvent {
+            ...pppConfigurationChangedEvent
+        }
         ... on BurnedEvent {
             ...burnedEvent
         }
@@ -810,6 +816,29 @@ fragment agreementLiquidatedByEvent on AgreementLiquidatedByEvent {
     bailoutAmount
     agreementId
     agreementClass
+}
+
+fragment agreementLiquidatedV2Event on AgreementLiquidatedV2Event {
+    ...eventFields
+    token
+    liquidatorAccount
+    agreementClass
+    agreementId
+    targetAccount
+    rewardAccount
+    rewardAmount
+    targetAccountBalanceDelta
+    version
+    liquidationType
+}
+
+fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
+    ...eventFields
+    host
+    superToken
+    isKeySet
+    liquidationPeriod
+    patricianPeriod
 }
 
 fragment burnedEvent on BurnedEvent {

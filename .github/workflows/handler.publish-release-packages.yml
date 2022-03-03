@@ -105,6 +105,7 @@ jobs:
           cloudfront_distribution_id: E2GBJEOIC4HGWU
 
       - name: Create sdk-redux latest documentation redirect
+        if: env.PUBLISH_SDK_CORE == 1
         run: |
           mkdir sdk-core-redirect
           printf '<!DOCTYPE html> <html> <head> <title>Redirecting...</title> <meta charset="UTF-8"> <meta http-equiv="refresh" content="0;URL='${{ format("docs.superfluid.finance/refs/sdk-core@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-redux-version.outputs.current-version) }}'" /> </head> <body> <p>Redirecting...</p> </body> </html>' > sdk-core-redirect/index.html
@@ -126,14 +127,14 @@ jobs:
           yarn --cwd packages/sdk-redux doc:html
 
       - name: Get sdk-redux package.json version
-        if: env.PUBLISH_REDUX_CORE == 1
         id: sdk-redux-version
+        if: env.PUBLISH_SDK_REDUX == 1
         uses: martinbeentjes/npm-get-version-action@master
         with:
           path: packages/sdk-redux
 
       - name: Upload sdk-redux HTML documentation (versioned)
-        if: env.PUBLISH_REDUX_CORE == 1
+        if: env.PUBLISH_SDK_REDUX == 1
         uses: ./build-scripts/s3cloudfront-hosting/actions/sync
         with:
           local_build_dir: packages/sdk-redux/dist/docs
@@ -144,6 +145,7 @@ jobs:
           cloudfront_distribution_id: E2GBJEOIC4HGWU
 
       - name: Create sdk-redux latest documentation redirect
+        if: env.PUBLISH_SDK_REDUX == 1
         run: |
           mkdir sdk-redux-redirect
           printf '<!DOCTYPE html> <html> <head> <title>Redirecting...</title> <meta charset="UTF-8"> <meta http-equiv="refresh" content="0;URL='${{ format("docs.superfluid.finance/refs/sdk-redux@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-redux-version.outputs.current-version) }}'" /> </head> <body> <p>Redirecting...</p> </body> </html>' > sdk-redux-redirect/index.html

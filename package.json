@@ -11,7 +11,7 @@
     "scripts": {
         "first-time-after-git-clone": "yarn install && yarn build",
         "lint": "yarn workspaces run lint",
-        "build": "yarn build-essentials #synonim of build-essentials",
+        "build": "yarn build-essentials #synonym of build-essentials",
         "build-essentials": "for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
         "build-for-contracts-dev": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
         "clean": "rm -rf node_modules; rm -rf packages/*/node_modules",

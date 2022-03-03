@@ -27,7 +27,7 @@ library IDAv1Library {
      *************************************************************************/
 
     /// @dev Gets an index by its ID and publisher.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
@@ -36,7 +36,7 @@ library IDAv1Library {
     /// @return totalUnitsApproved Units of the index approved by subscribers.
     /// @return totalUnitsPending Units of teh index not yet approved by subscribers.
     function getIndex(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId
@@ -50,11 +50,11 @@ library IDAv1Library {
             uint128 totalUnitsPending
         )
     {
-        return lib.ida.getIndex(token, publisher, indexId);
+        return idaLibrary.ida.getIndex(token, publisher, indexId);
     }
 
     /// @dev Calculates the distribution amount based on the amount of tokens desired to distribute.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
@@ -62,7 +62,7 @@ library IDAv1Library {
     /// @return actualAmount Amount to be distributed with correct rounding.
     /// @return newIndexValue The index value after the distribution would be called.
     function calculateDistribution(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
@@ -75,17 +75,21 @@ library IDAv1Library {
             uint128 newIndexValue
         )
     {
-        return lib.ida.calculateDistribution(token, publisher, indexId, amount);
+        return idaLibrary.ida.calculateDistribution(token, publisher, indexId, amount);
     }
 
     /// @dev List all subscriptions of an address
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super token used in the indexes listed.
     /// @param subscriber Subscriber address.
     /// @return publishers Publishers of the indices.
     /// @return indexIds IDs of the indices.
     /// @return unitsList Units owned of the indices.
-    function listSubscriptions(InitData storage lib, ISuperfluidToken token, address subscriber)
+    function listSubscriptions(
+        InitData storage idaLibrary,
+        ISuperfluidToken token,
+        address subscriber
+    )
         internal
         view
         returns (
@@ -94,11 +98,11 @@ library IDAv1Library {
             uint128[] memory unitsList
         )
     {
-        return lib.ida.listSubscriptions(token, subscriber);
+        return idaLibrary.ida.listSubscriptions(token, subscriber);
     }
 
     /// @dev Gets subscription by publisher, index id, and subscriber.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
@@ -108,7 +112,7 @@ library IDAv1Library {
     /// @return units Units held by the subscriber
     /// @return pendingDistribution If not approved, the amount to be claimed on approval.
     function getSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
@@ -123,11 +127,11 @@ library IDAv1Library {
             uint256 pendingDistribution
         )
     {
-        return lib.ida.getSubscription(token, publisher, indexId, subscriber);
+        return idaLibrary.ida.getSubscription(token, publisher, indexId, subscriber);
     }
 
     /// @dev Gets subscription by the agreement ID.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param agreementId Agreement ID, unique to the subscriber and index ID.
     /// @return publisher Publisher of the index.
@@ -136,7 +140,7 @@ library IDAv1Library {
     /// @return units Units held by the subscriber
     /// @return pendingDistribution If not approved, the amount to be claimed on approval.
     function getSubscriptionByID(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         bytes32 agreementId
     )
@@ -150,7 +154,7 @@ library IDAv1Library {
             uint256 pendingDistribution
         )
     {
-        return lib.ida.getSubscriptionByID(token, agreementId);
+        return idaLibrary.ida.getSubscriptionByID(token, agreementId);
     }
 
     /**************************************************************************
@@ -158,32 +162,32 @@ library IDAv1Library {
      *************************************************************************/
 
     /// @dev Creates a new index.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     function createIndex(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId
     ) internal {
-        createIndex(lib, token, indexId, new bytes(0));
+        createIndex(idaLibrary, token, indexId, new bytes(0));
     }
 
     /// @dev Creates a new index. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param userData Arbitrary user data field.
     function createIndex(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.createIndex.selector,
+                idaLibrary.ida.createIndex.selector,
                 token,
                 indexId,
                 new bytes(0) // ctx placeholder
@@ -193,36 +197,36 @@ library IDAv1Library {
     }
 
     /// @dev Creates a new index in a super app callback.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     function createIndexWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId
     ) internal returns (bytes memory newCtx) {
-        return createIndexWithCtx(lib, ctx, token, indexId, new bytes(0));
+        return createIndexWithCtx(idaLibrary, ctx, token, indexId, new bytes(0));
     }
 
     /// @dev Creates a new index in a super app callback. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param userData Arbitrary user data field.
     function createIndexWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.createIndex.selector,
+                idaLibrary.ida.createIndex.selector,
                 token,
                 indexId,
                 new bytes(0) // ctx placeholder
@@ -235,37 +239,37 @@ library IDAv1Library {
     /// @dev Updates an index value. This distributes an amount of tokens equal to
     /// `indexValue - lastIndexValue`. See `distribute` for another way to distribute. This takes
     /// arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param indexValue New TOTAL index value, this will equal the total amount distributed.
     function updateIndexValue(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         uint128 indexValue
     ) internal {
-        updateIndexValue(lib, token, indexId, indexValue, new bytes(0));
+        updateIndexValue(idaLibrary, token, indexId, indexValue, new bytes(0));
     }
 
     /// @dev Updates an index value. This distributes an amount of tokens equal to
     /// `indexValue - lastIndexValue`. See `distribute` for another way to distribute.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param indexValue New TOTAL index value, this will equal the total amount distributed.
     /// @param userData Arbitrary user data field.
     function updateIndexValue(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         uint128 indexValue,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.updateIndex.selector,
+                idaLibrary.ida.updateIndex.selector,
                 token,
                 indexId,
                 indexValue,
@@ -277,20 +281,20 @@ library IDAv1Library {
 
     /// @dev Updates an index value in a super app callback. This distributes an amount of tokens
     /// equal to `indexValue - lastIndexValue`. See `distribute` for another way to distribute.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param indexValue New TOTAL index value, this will equal the total amount distributed.
     function updateIndexValueWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
         uint128 indexValue
     ) internal returns (bytes memory newCtx) {
         return updateIndexValueWithCtx(
-            lib,
+            idaLibrary,
             ctx,
             token,
             indexId,
@@ -302,23 +306,23 @@ library IDAv1Library {
     /// @dev Updates an index value in a super app callback. This distributes an amount of tokens
     /// equal to `indexValue - lastIndexValue`. See `distribute` for another way to distribute.
     /// This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param indexValue New TOTAL index value, this will equal the total amount distributed.
     function updateIndexValueWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
         uint128 indexValue,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.updateIndex.selector,
+                idaLibrary.ida.updateIndex.selector,
                 token,
                 indexId,
                 indexValue,
@@ -331,38 +335,38 @@ library IDAv1Library {
 
     /// @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
     /// passing the new total index value, this function will increase the index value by `amount`.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param amount Amount by which the index value should increase.
     function distribute(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         uint256 amount
     ) internal {
-        distribute(lib, token, indexId, amount, new bytes(0));
+        distribute(idaLibrary, token, indexId, amount, new bytes(0));
     }
 
     /// @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
     /// passing the new total index value, this function will increase the index value by `amount`.
     /// This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param amount Amount by which the index value should increase.
     /// @param userData Arbitrary user data field.
     function distribute(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         uint256 amount,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.distribute.selector,
+                idaLibrary.ida.distribute.selector,
                 token,
                 indexId,
                 amount,
@@ -374,42 +378,42 @@ library IDAv1Library {
 
     /// @dev Distributes tokens in a super app callback. Instead of passing the new total index
     /// value, this function will increase the index value by `amount`.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param amount Amount by which the index value should increase.
     function distributeWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
         uint256 amount
     ) internal returns (bytes memory newCtx) {
-        return distributeWithCtx(lib, ctx, token, indexId, amount, new bytes(0));
+        return distributeWithCtx(idaLibrary, ctx, token, indexId, amount, new bytes(0));
     }
 
     /// @dev Distributes tokens in a super app callback. Instead of passing the new total index
     /// value, this function will increase the index value by `amount`. This takes arbitrary user
     /// data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param amount Amount by which the index value should increase.
     /// @param userData Arbitrary user data field.
     function distributeWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
         uint256 amount,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida, 
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida, 
             abi.encodeWithSelector(
-                lib.ida.distribute.selector,
+                idaLibrary.ida.distribute.selector,
                 token,
                 indexId,
                 amount,
@@ -427,39 +431,39 @@ library IDAv1Library {
     /// @dev Approves a subscription to an index. The subscriber's real time balance will not update
     /// until the subscription is approved, but once approved, the balance will be updated with
     /// prior distributions.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     function approveSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId
     ) internal {
-        approveSubscription(lib, token, publisher, indexId, new bytes(0));
+        approveSubscription(idaLibrary, token, publisher, indexId, new bytes(0));
     }
 
     /// @dev Approves a subscription to an index. The subscriber's real time balance will not update
     /// until the subscription is approved, but once approved, the balance will be updated with
     /// prior distributions.
     /// This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param userData Arbitrary user data field.
     function approveSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.approveSubscription.selector,
+                idaLibrary.ida.approveSubscription.selector,
                 token,
                 publisher,
                 indexId,
@@ -472,20 +476,20 @@ library IDAv1Library {
     /// @dev Approves a subscription to an index in a super app callback. The subscriber's real time
     /// balance will not update until the subscription is approved, but once approved, the balance
     /// will be updated with prior distributions.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     function approveSubscriptionWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId
     ) internal returns (bytes memory newCtx) {
         return approveSubscriptionWithCtx(
-            lib,
+            idaLibrary,
             ctx,
             token,
             publisher,
@@ -497,24 +501,24 @@ library IDAv1Library {
     /// @dev Approves a subscription to an index in a super app callback. The subscriber's real time
     /// balance will not update until the subscription is approved, but once approved, the balance
     /// will be updated with prior distributions. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param userData Arbitrary user data field.
     function approveSubscriptionWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.approveSubscription.selector,
+                idaLibrary.ida.approveSubscription.selector,
                 token,
                 publisher,
                 indexId,
@@ -526,36 +530,36 @@ library IDAv1Library {
     }
 
     /// @dev Revokes a previously approved subscription.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     function revokeSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId
     ) internal {
-        revokeSubscription(lib, token, publisher, indexId, new bytes(0));
+        revokeSubscription(idaLibrary, token, publisher, indexId, new bytes(0));
     }
 
     /// @dev Revokes a previously approved subscription. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param userData Arbitrary user data field.
     function revokeSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.revokeSubscription.selector,
+                idaLibrary.ida.revokeSubscription.selector,
                 token,
                 publisher,
                 indexId,
@@ -566,20 +570,20 @@ library IDAv1Library {
     }
 
     /// @dev Revokes a previously approved subscription in a super app callback.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     function revokeSubscriptionWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId
     ) internal returns (bytes memory newCtx) {
         return revokeSubscriptionWithCtx(
-            lib,
+            idaLibrary,
             ctx,
             token,
             publisher,
@@ -590,24 +594,24 @@ library IDAv1Library {
 
     /// @dev Revokes a previously approved subscription in a super app callback. This takes
     /// arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param userData Arbitrary user data field.
     function revokeSubscriptionWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.revokeSubscription.selector,
+                idaLibrary.ida.revokeSubscription.selector,
                 token,
                 publisher,
                 indexId,
@@ -620,41 +624,41 @@ library IDAv1Library {
 
     /// @dev Updates the units of a subscription. This changes the number of shares the subscriber
     /// holds.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address whose units are to be updated.
     /// @param units New number of units the subscriber holds.
     function updateSubscriptionUnits(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         address subscriber,
         uint128 units
     ) internal {
-        updateSubscriptionUnits(lib, token, indexId, subscriber, units, new bytes(0));
+        updateSubscriptionUnits(idaLibrary, token, indexId, subscriber, units, new bytes(0));
     }
 
     /// @dev Updates the units of a subscription. This changes the number of shares the subscriber
     /// holds. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address whose units are to be updated.
     /// @param units New number of units the subscriber holds.
     /// @param userData Arbitrary user data field.
     function updateSubscriptionUnits(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         uint32 indexId,
         address subscriber,
         uint128 units,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.updateSubscription.selector,
+                idaLibrary.ida.updateSubscription.selector,
                 token,
                 indexId,
                 subscriber,
@@ -667,14 +671,14 @@ library IDAv1Library {
 
     /// @dev Updates the units of a subscription in a super app callback. This changes the number of
     /// shares the subscriber holds.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address whose units are to be updated.
     /// @param units New number of units the subscriber holds.
     function updateSubscriptionUnitsWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
@@ -682,7 +686,7 @@ library IDAv1Library {
         uint128 units
     ) internal returns (bytes memory newCtx) {
         return updateSubscriptionUnitsWithCtx(
-            lib,
+            idaLibrary,
             ctx,
             token,
             indexId,
@@ -694,7 +698,7 @@ library IDAv1Library {
 
     /// @dev Updates the units of a subscription in a super app callback. This changes the number of
     /// shares the subscriber holds. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param indexId ID of the index.
@@ -702,7 +706,7 @@ library IDAv1Library {
     /// @param units New number of units the subscriber holds.
     /// @param userData Arbitrary user data field.
     function updateSubscriptionUnitsWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         uint32 indexId,
@@ -710,10 +714,10 @@ library IDAv1Library {
         uint128 units,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.updateSubscription.selector,
+                idaLibrary.ida.updateSubscription.selector,
                 token,
                 indexId,
                 subscriber,
@@ -726,41 +730,41 @@ library IDAv1Library {
     }
 
     /// @dev Deletes a subscription, setting a subcriber's units to zero.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address whose units are to be deleted.
     function deleteSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber
     ) internal {
-        deleteSubscription(lib, token, publisher, indexId, subscriber, new bytes(0));
+        deleteSubscription(idaLibrary, token, publisher, indexId, subscriber, new bytes(0));
     }
 
     /// @dev Deletes a subscription, setting a subcriber's units to zero. This takes arbitrary user
     /// data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address whose units are to be deleted.
     /// @param userData Arbitrary user data field.
     function deleteSubscription(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.deleteSubscription.selector,
+                idaLibrary.ida.deleteSubscription.selector,
                 token,
                 publisher,
                 indexId,
@@ -772,14 +776,14 @@ library IDAv1Library {
     }
 
     /// @dev Deletes a subscription in a super app callback, setting a subcriber's units to zero.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address whose units are to be deleted.
     function deleteSubscriptionWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
@@ -787,7 +791,7 @@ library IDAv1Library {
         address subscriber
     ) internal returns (bytes memory newCtx) {
         return deleteSubscriptionWithCtx(
-            lib,
+            idaLibrary,
             ctx,
             token,
             publisher,
@@ -799,7 +803,7 @@ library IDAv1Library {
 
     /// @dev Deletes a subscription in a super app callback, setting a subcriber's units to zero.
     /// This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param ctx Context byte string used by the Superfluid host.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
@@ -807,7 +811,7 @@ library IDAv1Library {
     /// @param subscriber Subscriber address whose units are to be deleted.
     /// @param userData Arbitrary user data field.
     function deleteSubscriptionWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
@@ -815,10 +819,10 @@ library IDAv1Library {
         address subscriber,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.deleteSubscription.selector,
+                idaLibrary.ida.deleteSubscription.selector,
                 token,
                 publisher,
                 indexId,
@@ -831,41 +835,41 @@ library IDAv1Library {
     }
 
     /// @dev Claims pending distribution. Subscription should not be approved.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address that receives the claim.
     function claim(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber
     ) internal {
-        claim(lib, token, publisher, indexId, subscriber, new bytes(0));
+        claim(idaLibrary, token, publisher, indexId, subscriber, new bytes(0));
     }
 
     /// @dev Claims pending distribution. Subscription should not be approved. This takes arbitrary
     /// user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address that receives the claim.
     /// @param userData Arbitrary user data field.
     function claim(
-        InitData storage lib,
+        InitData storage idaLibrary,
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber,
         bytes memory userData
     ) internal {
-        lib.host.callAgreement(
-            lib.ida,
+        idaLibrary.host.callAgreement(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.claim.selector,
+                idaLibrary.ida.claim.selector,
                 token,
                 publisher,
                 indexId,
@@ -878,13 +882,13 @@ library IDAv1Library {
 
     /// @dev Claims pending distribution in a super app callback. Subscription should not be
     /// approved.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address that receives the claim.
     function claimWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
@@ -892,7 +896,7 @@ library IDAv1Library {
         address subscriber
     ) internal returns (bytes memory newCtx) {
         return claimWithCtx(
-            lib,
+            idaLibrary,
             ctx,
             token,
             publisher,
@@ -904,14 +908,14 @@ library IDAv1Library {
 
     /// @dev Claims pending distribution in a super app callback. Subscription should not be
     /// approved. This takes arbitrary user data.
-    /// @param lib Storage pointer to host and ida interfaces.
+    /// @param idaLibrary Storage pointer to host and ida interfaces.
     /// @param token Super Token used with the index.
     /// @param publisher Publisher of the index.
     /// @param indexId ID of the index.
     /// @param subscriber Subscriber address that receives the claim.
     /// @param userData Arbitrary user data field.
     function claimWithCtx(
-        InitData storage lib,
+        InitData storage idaLibrary,
         bytes memory ctx,
         ISuperfluidToken token,
         address publisher,
@@ -919,10 +923,10 @@ library IDAv1Library {
         address subscriber,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = lib.host.callAgreementWithContext(
-            lib.ida,
+        (newCtx, ) = idaLibrary.host.callAgreementWithContext(
+            idaLibrary.ida,
             abi.encodeWithSelector(
-                lib.ida.claim.selector,
+                idaLibrary.ida.claim.selector,
                 token,
                 publisher,
                 indexId,

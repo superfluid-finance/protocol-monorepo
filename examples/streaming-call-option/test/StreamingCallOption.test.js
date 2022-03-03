@@ -385,9 +385,9 @@ describe("Creating & Exercising", async function () {
     assert.equal(afterContractLinkBalance, 0, "contract shouldn't have link any longer");
     assert.equal(Number(adminLinkBalance) + Number(web3.utils.toWei("1", "ether")), afterAdminLinkBalance, "admin should get all of their link back");
     alice.flow({
-      flowRate: "0", recipient: u.app
-    })
-    })
+      flowRate: 0, recipient: u.app
+    });
+  })
 
     it("Case #5 - Option is out of the money", async () => {
       const { admin, alice } = u;
@@ -429,7 +429,9 @@ describe("Creating & Exercising", async function () {
     }
 
     let contractFinalLinkBalance = await link.balanceOf(app.address);
-    assert.equal(contractFinalLinkBalance, 0, "contract balance should be empty now")
+    console.log(contractFinalLinkBalance);
+    
+    assert.equal(contractFinalLinkBalance, "0", "contract balance should be empty now")
       
     });
 

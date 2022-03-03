@@ -17,7 +17,7 @@ require('hardhat-deploy');
 
     kovan: {
       url: `${process.env.KOVAN_RPC_URL}`,
-      accounts: [`${process.env.DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
       gas: GAS_LIMIT,
       gasPrice: 11e9, // 10 GWEI
       confirmations: 6, // # of confs to wait between deployments. (default: 0)

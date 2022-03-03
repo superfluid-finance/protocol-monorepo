@@ -22,9 +22,9 @@ interface ISuperfluidToken {
 
     /**
      * @dev Encoded liquidation type data mainly used for handling stack to deep errors
-     * 
+     *
      * Note:
-     * - version: 1 
+     * - version: 1
      * - liquidationType key:
      *    - 0 = reward account receives reward (PIC period)
      *    - 1 = liquidator account receives reward (Pleb period)
@@ -275,6 +275,10 @@ interface ISuperfluidToken {
      * @param penaltyAccount Account of the agreement to be penalized
      * @param rewardAccount Account that collect the reward
      * @param rewardAmount Amount of liquidation reward
+     *
+     * NOTE:
+     *
+     * [DEPRECATED] Use AgreementLiquidatedV2 instead
      */
     event AgreementLiquidated(
         address indexed agreementClass,
@@ -288,6 +292,10 @@ interface ISuperfluidToken {
      * @dev System bailout occurred (DEPRECATED BY AgreementLiquidatedBy)
      * @param bailoutAccount Account that bailout the penalty account
      * @param bailoutAmount Amount of account bailout
+     *
+     * NOTE:
+     *
+     * [DEPRECATED] Use AgreementLiquidatedV2 instead
      */
     event Bailout(
         address indexed bailoutAccount,
@@ -313,6 +321,8 @@ interface ISuperfluidToken {
      *   - the liquidatorAccount will get the rewardAmouont,
      *   - the bondAccount will pay for both the rewardAmount and bailoutAmount,
      *   - the penaltyAccount will pay for the rewardAmount while get the bailoutAmount.
+     *
+     * [DEPRECATED] Use AgreementLiquidatedV2 instead
      */
     event AgreementLiquidatedBy(
         address liquidatorAccount,

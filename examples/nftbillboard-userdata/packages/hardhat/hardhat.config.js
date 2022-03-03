@@ -35,7 +35,7 @@ module.exports = {
 
   networks: {
     ganache: {
-      url: "http://127.0.0.1",
+      url: "http://127.0.0.1:8545",
       chain_id: "1337",
       port: process.env.GANACHE_PORT || 8545,
       // accounts: {

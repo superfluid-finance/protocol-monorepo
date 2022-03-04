@@ -71,7 +71,7 @@ jobs:
           aws_region: eu-west-2
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-          s3_uri: ${{ format("{0}refs/sdk-core@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-core.outputs.PUBLISHED_VERSION) }}
+          s3_uri: ${{ format('{0}refs/sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-core.outputs.PUBLISHED_VERSION) }}
           cloudfront_distribution_id: E2GBJEOIC4HGWU
 
       - name: Upload sdk-core latest documentation redirect
@@ -82,7 +82,7 @@ jobs:
           aws_region: eu-west-2
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-          s3_uri: ${{ format("{0}refs/sdk-core", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
+          s3_uri: ${{ format('{0}refs/sdk-core', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
           cloudfront_distribution_id: E2GBJEOIC4HGWU
 
 
@@ -110,7 +110,7 @@ jobs:
           aws_region: eu-west-2
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-          s3_uri: ${{ format("{0}refs/sdk-redux@{1}", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-redux.outputs.PUBLISHED_VERSION) }}
+          s3_uri: ${{ format('{0}refs/sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-redux.outputs.PUBLISHED_VERSION) }}
           cloudfront_distribution_id: E2GBJEOIC4HGWU
 
       - name: Upload sdk-redux latest documentation redirect
@@ -121,5 +121,5 @@ jobs:
           aws_region: eu-west-2
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-          s3_uri: ${{ format("{0}refs/sdk-redux", secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
+          s3_uri: ${{ format('{0}refs/sdk-redux', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
           cloudfront_distribution_id: E2GBJEOIC4HGWU

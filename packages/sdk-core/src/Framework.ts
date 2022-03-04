@@ -101,7 +101,6 @@ export default class Framework {
 
         const networkName = getNetworkName(options);
         const chainId =
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         const releaseVersion = options.protocolReleaseVersion || "v1";
 

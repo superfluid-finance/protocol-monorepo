@@ -29,8 +29,8 @@ jobs:
         run: |
           # subgraph
           NEW_SUBGRAPH_VERSION=`jq -r .version packages/subgraph/package.json`
-          if [git tag | grep -e '^subgraph' | grep v$NEW_SUBGRAPH_VERSION];then 
-            # echo "PUBLISHED_SUBGRAPH_VERSION=1" >> $GITHUB_ENV
+          if git tag | grep -e '^subgraph' | grep v$NEW_SUBGRAPH_VERSION;then
+            echo "PUBLISHED_SUBGRAPH_VERSION=1" >> $GITHUB_ENV
             echo "subgraph changed: $NEW_SUBGRAPH_VERSION"
           else
             echo subgraph version unchanged

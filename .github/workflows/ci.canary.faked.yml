@@ -27,6 +27,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Build
+        run: | 
+          yarn --cwd packages/sdk-core build
+          yarn --cwd packages/sdk-redux build
+
       - name: Setup canary package versions locally
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})

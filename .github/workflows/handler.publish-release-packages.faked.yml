@@ -3,7 +3,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
-  release:
+  push:
     branches: ["upload-documentation-of-sdks"]
 
 

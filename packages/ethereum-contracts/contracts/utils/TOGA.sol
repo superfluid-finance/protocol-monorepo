@@ -168,24 +168,24 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         public view override
         returns(int96 exitRate)
     {
-        // FIXME (0.8): - intermediate conversion step required
-        return int96(bondAmount / (minBondDuration * 4));
+        // REVIEW (0.8.12): - intermediate conversion step required
+        return int96(int256(bondAmount / (minBondDuration * 4)));
     }
 
     function getMaxExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
         external view override
         returns(int96 exitRate)
     {
-        // FIXME (0.8): - intermediate conversion step required
-        return int96(bondAmount / minBondDuration);
+        // REVIEW (0.8.12): - intermediate conversion step required
+        return int96(int256(bondAmount / minBondDuration));
     }
 
     function changeExitRate(ISuperToken token, int96 newExitRate) external override {
         address currentPICAddr = _currentPICs[token].addr;
         require(msg.sender == currentPICAddr, "TOGA: only PIC allowed");
         require(newExitRate >= 0, "TOGA: negative exitRate not allowed");
-        // FIXME (0.8): - intermediate conversion step required
-        require(uint256(newExitRate) * minBondDuration <= _getCurrentPICBond(token), "TOGA: exitRate too high");
+        // REVIEW (0.8.12): - intermediate conversion step required
+        require(uint256(int256(newExitRate)) * minBondDuration <= _getCurrentPICBond(token), "TOGA: exitRate too high");
 
         (, int96 curExitRate,,) = _cfa.getFlow(token, address(this), currentPICAddr);
         if (curExitRate > 0 && newExitRate > 0) {
@@ -249,8 +249,8 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     function _becomePIC(ISuperToken token, address newPIC, uint256 amount, int96 exitRate) internal {
         require(!_currentPICs[token].lock, "TOGA: reentrancy not allowed");
         require(exitRate >= 0, "TOGA: negative exitRate not allowed");
-        // FIXME (0.8): - intermediate conversion step required
-        require(uint256(exitRate) * minBondDuration <= amount, "TOGA: exitRate too high");
+        // REVIEW (0.8.12): - intermediate conversion step required
+        require(uint256(int256(exitRate)) * minBondDuration <= amount, "TOGA: exitRate too high");
         // cannot underflow because amount was added to the balance before
         uint256 currentPICBond = _getCurrentPICBond(token) - amount;
         require(amount > currentPICBond, "TOGA: bid too low");

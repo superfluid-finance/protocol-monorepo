@@ -77,7 +77,7 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
 
     function downgradeToETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
-        msg.sender.transfer(wad);
+        payable(msg.sender).transfer(wad);
         emit TokenDowngraded(msg.sender, wad);
     }
 

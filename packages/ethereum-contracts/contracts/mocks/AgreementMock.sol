@@ -46,8 +46,8 @@ contract AgreementMock is AgreementBase {
         bytes32[] memory slotData = token.getAgreementStateSlot(
             address(this), account, _REAL_TIME_BALANCE_SLOT_ID, 3);
         return (
-            // FIXME (0.8): - intermediate conversion step required
-            int256(slotData[0]),
+            // REVIEW (0.8.12): - intermediate conversion step required
+            int256(uint256(slotData[0])),
             uint256(slotData[1]),
             uint256(slotData[2])
         );
@@ -65,7 +65,6 @@ contract AgreementMock is AgreementBase {
         uint256 owedDeposit
     ) external {
         bytes32[] memory slotData = new bytes32[](3);
-        // FIXME (0.8): - intermediate conversion step required
         slotData[0] = bytes32(uint256(dynamicBalance));
         slotData[1] = bytes32(uint256(deposit));
         slotData[2] = bytes32(uint256(owedDeposit));

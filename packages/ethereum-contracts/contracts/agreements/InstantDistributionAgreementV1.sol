@@ -123,7 +123,8 @@ contract InstantDistributionAgreementV1 is
                 (exist, idata) = _getIndexData(token, iId);
                 assert(exist);
                 dynamicBalance = dynamicBalance + (
-                    int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
+                    // REVIEW (0.8.12): - intermediate conversion step required
+                    int256(uint256(idata.indexValue - sdata.indexValue)) * int256(uint256(sdata.units))
                 );
             }
         }
@@ -264,10 +265,12 @@ contract InstantDistributionAgreementV1 is
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
         token.settleBalance(publisher,
-            (-int256(newIndexValue - idata.indexValue)) * int256(idata.totalUnitsApproved));
+            // REVIEW (0.8.12): - intermediate conversion step required
+            (-int256(uint256(newIndexValue - idata.indexValue))) * int256(uint256(idata.totalUnitsApproved)));
         //   - adjust the publisher's deposit amount
         _adjustPublisherDeposit(token, publisher,
-            int256(newIndexValue - idata.indexValue) * int256(idata.totalUnitsPending));
+            // REVIEW (0.8.12): - intermediate conversion step required
+            int256(uint256(newIndexValue - idata.indexValue)) * int256(uint256(idata.totalUnitsPending)));
         // adjust the publisher's index data
         uint128 oldIndexValue = idata.indexValue;
         idata.indexValue = newIndexValue;
@@ -378,8 +381,9 @@ contract InstantDistributionAgreementV1 is
         } else {
             cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-
-            int balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+            // REVIEW (0.8.12): - intermediate conversion step required
+            int balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+                * int256(uint256(vars.sdata.units));
 
             // update publisher data and adjust publisher's deposits
             vars.idata.totalUnitsApproved += vars.sdata.units;
@@ -443,8 +447,9 @@ contract InstantDistributionAgreementV1 is
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-
-        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+        // REVIEW (0.8.12): - intermediate conversion step required
+        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+            * int256(uint256(vars.sdata.units));
 
         vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units, "IDA: E_OVERFLOW");
         vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(vars.sdata.units, "IDA: E_OVERFLOW");
@@ -550,8 +555,9 @@ contract InstantDistributionAgreementV1 is
             vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units, "IDA: E_OVERFLOW");
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         }
-
-        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+        // REVIEW (0.8.12): - intermediate conversion step required
+        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+            * int256(uint256(vars.sdata.units));
 
         // adjust publisher's deposit and balances if subscription is pending
         if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
@@ -722,8 +728,9 @@ contract InstantDistributionAgreementV1 is
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-
-        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+        // REVIEW (0.8.12): - intermediate conversion step required
+        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+            * int256(uint256(vars.sdata.units));
 
         // update publisher index agreement data
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
@@ -904,7 +911,6 @@ contract InstantDistributionAgreementV1 is
         returns (bool exist)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
-        // FIXME (0.8): - intermediate conversion step required
         uint256 a = uint256(adata[0]);
         exist = a > 0;
     }
@@ -917,16 +923,14 @@ contract InstantDistributionAgreementV1 is
         returns (bool exist, IndexData memory idata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
-        // FIXME (0.8): - intermediate conversion step required
         uint256 a = uint256(adata[0]);
-        // FIXME (0.8): - intermediate conversion step required
         uint256 b = uint256(adata[1]);
         exist = a > 0;
         if (exist) {
-            // FIXME (0.8): - intermediate conversion step required
-            idata.indexValue = uint128(a & uint256(int128(-1)));
-            // FIXME (0.8): - intermediate conversion step required
-            idata.totalUnitsApproved = uint128(b & uint256(int128(-1)));
+            // REVIEW (0.8.12): - negating uint
+            idata.indexValue = uint128(a & type(uint256).max - 1 + 1);
+            // REVIEW (0.8.12): - negating uint
+            idata.totalUnitsApproved = uint128(b & type(uint256).max - 1 + 1);
             idata.totalUnitsPending = uint128(b >> 128);
         }
     }
@@ -948,7 +952,6 @@ contract InstantDistributionAgreementV1 is
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
-        // FIXME (0.8): - intermediate conversion step required
         return uint256(data[0]);
     }
 
@@ -965,8 +968,8 @@ contract InstantDistributionAgreementV1 is
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
-        // FIXME (0.8): - intermediate conversion step required
-        data[0] = bytes32(int256(data[0]) + delta);
+        // REVIEW (0.8.12): - intermediate conversion step required
+        data[0] = bytes32(uint256(int256(uint256(data[0])) + delta));
         token.updateAgreementStateSlot(
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
@@ -1015,8 +1018,8 @@ contract InstantDistributionAgreementV1 is
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & type(uint32).max);
             sdata.subId = uint32(a & type(uint32).max);
-            // FIXME (0.8): - intermediate conversion step required
-            sdata.indexValue = uint128(b & uint256(int128(-1)));
+            // REVIEW (0.8.12): - negating uint
+            sdata.indexValue = uint128(b & type(uint256).max - 1 + 1);
             sdata.units = uint128(b >> 128);
         }
     }

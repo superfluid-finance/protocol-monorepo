@@ -31,7 +31,6 @@ library SlotsBitmapLibrary {
         public
         returns (uint32 slotId)
     {
-        // FIXME (0.8): - intermediate conversion step required
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             account,
@@ -46,7 +45,6 @@ library SlotsBitmapLibrary {
                     dataStateSlotIDStart + slotId,
                     slotData);
                 // update slot map
-                // FIXME (0.8): - intermediate conversion step required
                 slotData[0] = bytes32(subsBitmap | (1 << uint256(slotId)));
                 token.updateAgreementStateSlot(
                     account,
@@ -66,7 +64,6 @@ library SlotsBitmapLibrary {
     )
         public
     {
-        // FIXME (0.8): - intermediate conversion step required
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             account,
@@ -91,7 +88,6 @@ library SlotsBitmapLibrary {
             uint32[] memory slotIds,
             bytes32[] memory dataList)
     {
-        // FIXME (0.8): - intermediate conversion step required
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             account,

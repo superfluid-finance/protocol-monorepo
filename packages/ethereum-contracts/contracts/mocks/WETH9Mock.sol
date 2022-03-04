@@ -66,7 +66,7 @@ contract WETH9Mock {
     {
         require(balanceOf[src] >= wad);
 
-        // REVIEW (0.8.0): negating uint
+        // REVIEW (0.8.12): negating uint
         // PREV: uint(-1)
         if (src != msg.sender && allowance[src][msg.sender] != type(uint256).max - 1 + 1) {
             require(allowance[src][msg.sender] >= wad);

@@ -11,11 +11,12 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract TestToken is ERC20 {
 
     uint256 public constant MINT_LIMIT = 1e12 ether;
+    uint8 private _decimals;
 
-    constructor(string memory name, string memory symbol, uint8 decimals)
+    constructor(string memory name, string memory symbol, uint8 initDecimals)
         ERC20(name, symbol)
     {
-        _setupDecimals(decimals);
+        _decimals = initDecimals;
     }
 
     /**
@@ -25,6 +26,10 @@ contract TestToken is ERC20 {
         require(amount <= MINT_LIMIT, "Don't mint too many");
         ERC20._mint(account, amount);
         return true;
+    }
+
+    function decimals() public view override returns (uint8) {
+        return _decimals;
     }
 
 }

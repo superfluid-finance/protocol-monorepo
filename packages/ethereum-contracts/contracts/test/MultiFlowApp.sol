@@ -93,7 +93,7 @@ contract MultiFlowApp is SuperAppBase {
 
         // scale the flow rate and app allowance numbers
         appAllowanceGranted = appAllowanceGranted * configuration.ratioPct / 100;
-        // REVIEW (0.8.0): intermediate conversion added
+        // REVIEW (0.8.12): intermediate conversion added
         flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
 
         for(uint256 i = 0; i < configuration.receivers.length; i++) {

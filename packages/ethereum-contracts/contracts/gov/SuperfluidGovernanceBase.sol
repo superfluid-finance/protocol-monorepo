@@ -189,7 +189,8 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             // fallback to default config
             v =  _configs[address(host)][address(0)][key];
         }
-        return address(int160(v.value));
+        // REVIEW (0.8.12): - intermediate conversion step required
+        return address(uint160(v.value));
     }
 
     function getConfigAsUint256(

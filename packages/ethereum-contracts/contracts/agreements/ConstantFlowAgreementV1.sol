@@ -99,8 +99,8 @@ contract ConstantFlowAgreementV1 is
         deposit = _clipDepositNumberRoundingDown(deposit);
         (uint256 liquidationPeriod, ) = _decode3PsData(token);
         uint256 flowrate1 = deposit / liquidationPeriod;
-        // FIXME (0.8): - intermediate conversion step required
-        return int96(flowrate1);
+        // REVIEW (0.8.12): - intermediate conversion step required
+        return int96(int256(flowrate1));
     }
 
     function getDepositRequiredForFlowRate(
@@ -115,8 +115,9 @@ contract ConstantFlowAgreementV1 is
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
-        // FIXME (0.8): - intermediate conversion step required
-        require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
+        // REVIEW (0.8.12): - intermediate conversion step required
+        require(uint256(int256(flowRate))
+            * liquidationPeriod <= uint256(int256(type(int96).max)), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
         return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
     }
@@ -436,7 +437,6 @@ contract ConstantFlowAgreementV1 is
         returns(bool exist, FlowData memory)
     {
         bytes32[] memory data = token.getAgreementStateSlot(address(this), account, 0 /* slotId */, 1 /* length */);
-        // FIXME (0.8): - intermediate conversion step required
         return _decodeFlowData(uint256(data[0]));
     }
 
@@ -449,7 +449,6 @@ contract ConstantFlowAgreementV1 is
         returns (bool exist, FlowData memory)
     {
         bytes32[] memory data = token.getAgreementData(address(this), dId, 1);
-        // FIXME (0.8): - intermediate conversion step required
         return _decodeFlowData(uint256(data[0]));
     }
 
@@ -901,9 +900,9 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
         
-        // FIXME (0.8): - intermediate conversion step required
-        assert(liquidationPeriod <= uint256(type(int96).max));
-        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow"));
+        // REVIEW (0.8.12): - intermediate conversion step required
+        assert(liquidationPeriod <= uint256(int256(type(int96).max)));
+        deposit = uint256(int256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow")));
         return _clipDepositNumber(deposit);
     }
 
@@ -954,8 +953,8 @@ contract ConstantFlowAgreementV1 is
         exist = wordA > 0;
         if (exist) {
             flowData.timestamp = uint32(wordA >> 224);
-            // FIXME (0.8): - intermediate conversion step required
-            flowData.flowRate = int96((wordA >> 128) & uint256(type(uint96).max));
+            // REVIEW (0.8.12): - intermediate conversion step required
+            flowData.flowRate = int96(int256(wordA >> 128) & int256(uint256(type(uint96).max)));
             flowData.deposit = ((wordA >> 64) & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
             flowData.owedDeposit = (wordA & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
         }

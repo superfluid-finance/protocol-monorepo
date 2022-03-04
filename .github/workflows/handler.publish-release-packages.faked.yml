@@ -77,8 +77,6 @@ jobs:
         id: publish-sdk-redux
         if: env.PUBLISH_SDK_REDUX == 1
         run: |
-          tasks/npm-publish.sh packages/sdk-redux/ latest
-
           PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`
           echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
 

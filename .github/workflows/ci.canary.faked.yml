@@ -29,6 +29,7 @@ jobs:
 
       - name: Build
         run: | 
+          yarn --cwd packages/ethereum-contracts build
           yarn --cwd packages/sdk-core build
           yarn --cwd packages/sdk-redux build
 

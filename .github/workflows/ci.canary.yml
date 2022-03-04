@@ -26,11 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/checkout@v2
-        with:
-          repository: superfluid-finance/build-scripts
-          path: build-scripts
-
       - name: Show contexts
         run: |
           echo github.event_name: ${{ github.event_name }}
@@ -211,6 +206,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v2
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1

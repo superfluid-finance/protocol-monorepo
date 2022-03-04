@@ -7,6 +7,9 @@
 /data
 *.ignore.*
 .DS_Store
+.artifacts
+.cache
+.deployments
 
 *.env
 

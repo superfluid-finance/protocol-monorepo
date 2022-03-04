@@ -31,7 +31,7 @@
         "test": "nyc --reporter=html --reporter=lcov --reporter=json npx hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts && copyfiles -f ../../sf-logo.png ./dist/docs/",
+        "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts && copyfiles -f ./sf-logo.png ./dist/docs/",
         "lint": "run-s lint:*",
         "lint:prettier": "prettier \"src/**/*.ts\" --list-different",
         "lint:eslint": "eslint src --ext .ts",

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
     ISuperToken,
     SuperAppBase,
     SuperAppDefinitions
-} from "../apps/SuperAppBase.sol";
+} from "../interfaces/superfluid/SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-
 
 /**
  * @dev Multi Flow (Super) App
@@ -96,7 +94,8 @@ contract MultiFlowApp is SuperAppBase {
 
         // scale the flow rate and app allowance numbers
         appAllowanceGranted = appAllowanceGranted * configuration.ratioPct / 100;
-        flowRate = flowRate * configuration.ratioPct / 100;
+        // REVIEW (0.8.0): intermediate conversion added
+        flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
 
         for(uint256 i = 0; i < configuration.receivers.length; i++) {
             ReceiverData memory receiverData = configuration.receivers[i];

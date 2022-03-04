@@ -28,22 +28,8 @@ jobs:
 
       - name: Parse Tag
         run: |
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/ethereum-contracts@";then
-            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
-          fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@";then
-            if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@v0.6";then
-              echo "PUBLISH_JS_SDK_V0_6=1" >> $GITHUB_ENV
-            else
-              echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
-            fi
-          fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
-            echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
-          fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-redux@";then
-            echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
-          fi
+          echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
+          echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
 
       - name: Build package
         run: |

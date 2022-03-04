@@ -198,7 +198,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
   publish:
-    name: Publish canary pakcages to registries
+    name: Publish canary packages to registries
 
     needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
 
@@ -206,6 +206,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v2
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -234,6 +239,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Build HTML documentation of SDK-s
+        run: |
+          yarn --cwd packages/sdk-core doc:html
+          yarn --cwd packages/sdk-redux doc:html
+      
+      - name: Get versions for sdk-core & sdk-redux
+        id: sdk-versions
+        run: |
+          SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
+          echo "::set-output name=SDK_CORE_VERSION::$SDK_CORE_VERSION"
+
+          SDK_REDUX_VERSION=`jq -r .version packages/sdk-redux/package.json`
+          echo "::set-output name=SDK_REDUX_VERSION::$SDK_REDUX_VERSION"
+      
+      - name: Upload sdk-core HTML documentation
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-core/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_CORE_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
+
+      - name: Upload sdk-redux HTML documentation
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-redux/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_REDUX_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
 
   deploy:
     name: Deploy and upgrade testnets with canary ethereum-contracts build

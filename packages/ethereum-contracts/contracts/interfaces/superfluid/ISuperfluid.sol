@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
+pragma abicoder v2;
 pragma solidity >= 0.7.4;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";

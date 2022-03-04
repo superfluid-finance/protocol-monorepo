@@ -275,8 +275,7 @@ interface ISuperfluidToken {
         external;
 
     /**
-     * @dev Agreement liquidation event (DEPRECATED BY AgreementLiquidatedV2)
-     * @param agreementClass Contract address of the agreement
+     * @dev Make liquidation payouts (v2)
      * @param id Agreement ID
      * @param liquidationTypeData Data regarding the version of the liquidation schema and the type
      * @param liquidatorAccount Address of the executor of the liquidation
@@ -285,17 +284,17 @@ interface ISuperfluidToken {
      * @param rewardAmount The amount the reward recepient account will receive
      * @param targetAccountBalanceDelta The amount the sender account balance should change by
      *
-     * NOTE:
-     * Reward account rule:
-     * - if bailout is equal to 0, then
-     *   - the bondAccount will get the rewardAmount,
-     *   - the penaltyAccount will pay for the rewardAmount.
-     * - if bailout is larger than 0, then
-     *   - the liquidatorAccount will get the rewardAmouont,
-     *   - the bondAccount will pay for both the rewardAmount and bailoutAmount,
-     *   - the penaltyAccount will pay for the rewardAmount while get the bailoutAmount.
+     * - If a bailout is required (bailoutAmount > 0)
+     *   - the actual reward (single deposit) goes to the executor,
+     *   - while the reward account becomes the bailout account
+     *   - total bailout include: bailout amount + reward amount
+     *   - the targetAccount will be bailed out
+     * - If a bailout is not required
+     *   - the targetAccount will pay the rewardAmount
+     *   - the liquidator (reward account in PIC period) will receive the rewardAmount
      *
-     * [DEPRECATED] Use AgreementLiquidatedV2 instead
+     * Modifiers:
+     *  - onlyAgreement
      */
     function makeLiquidationPayoutsV2
     (
@@ -397,9 +396,9 @@ interface ISuperfluidToken {
 
     /**
      * @dev Agreement liquidation event (DEPRECATED BY AgreementLiquidatedV2)
+     * @param liquidatorAccount Account of the agent that performed the liquidation.
      * @param agreementClass Contract address of the agreement
      * @param id Agreement ID
-     * @param liquidatorAccount Account of the agent that performed the liquidation.
      * @param penaltyAccount Account of the agreement to be penalized
      * @param bondAccount Account that collect the reward or bailout accounts
      * @param rewardAmount Amount of liquidation reward

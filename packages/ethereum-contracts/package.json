@@ -32,6 +32,7 @@
         "test": "mkdir test/output && run-s test:*:*",
         "test:contracts:js": "truffle test testsuites/all-contracts.js",
         "test:contracts:sol": "truffle test test/contracts/*/*.sol",
+        "test:contracts:0.7.4-compatibility": "./test/test-0.7.4.sh",
         "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
         "test-coverage": "mkdir test/output && truffle run coverage --network coverage --file testsuites/all-contracts.js",

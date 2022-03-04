@@ -10,11 +10,10 @@ import {
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
- * @dev Multi Flow (Super) App
- *
- * A super app that can split incoming flows to multiple outgoing flows.
- *
- * This is used for testing CFA callbacks logic.
+ * @title Multi Flow (Super) App
+ * @author Superfluid
+ * @dev A super app that can split incoming flows to multiple outgoing flows.
+ *      This is used for testing CFA callbacks logic.
  */
 contract MultiFlowApp is SuperAppBase {
 

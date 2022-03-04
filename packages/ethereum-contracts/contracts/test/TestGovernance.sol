@@ -11,6 +11,8 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 /**
+ * @title Test governance contract
+ * @author Superfluid 
  * @dev A initializable version of the governance for testing purpose
  */
 contract TestGovernance is

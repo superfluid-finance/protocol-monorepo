@@ -4,6 +4,8 @@ pragma solidity 0.8.12;
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
+ * @title Test token contract
+ * @author Superfluid
  * @dev Test ERC20 token that allows any one mint new tokens.
  */
 contract TestToken is ERC20 {

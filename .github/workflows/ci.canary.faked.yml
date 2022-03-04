@@ -70,5 +70,5 @@ jobs:
           aws_region: eu-west-2
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-          s3_uri: ${{ format('{0}refs/sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-redux-version.outputs.SDK_REDUX_VERSION) }}
+          s3_uri: ${{ format('{0}refs/sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_REDUX_VERSION) }}
           cloudfront_distribution_id: E2GBJEOIC4HGWU

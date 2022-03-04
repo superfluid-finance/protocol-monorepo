@@ -11,7 +11,7 @@ library CallUtils {
     /// @notice This is needed in order to get the human-readable revert message from a call
     /// @param res Response of the call
     /// @return Revert message string
-    // FIXME Custom Errors, per 0.8.0 feature maybe?
+    // FIXME (0.8.12): Custom Errors, per 0.8.0 feature maybe?
     function getRevertMsg(bytes memory res) internal pure returns (string memory) {
         // If the _res length is less than 68, then the transaction failed silently (without a revert message)
         if (res.length < 68) return "CallUtils: target reverted";

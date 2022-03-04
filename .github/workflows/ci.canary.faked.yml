@@ -1,4 +1,4 @@
-name: CI Canary
+name: FAKED = CI Canary
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 

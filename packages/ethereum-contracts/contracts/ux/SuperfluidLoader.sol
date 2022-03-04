@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma abicoder v2;
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { IResolver } from "../interfaces/ux/IResolver.sol";
 import {
@@ -11,11 +11,10 @@ import {
 
 import { Strings } from "../libs/Strings.sol";
 
-
 /**
- * @dev Superfluid Loader
- *
- * A on-chain utility contract for loading framework objects in one view function.
+ * @title Superfluid loader contract
+ * @author Superfluid
+ * @dev A on-chain utility contract for loading framework objects in one view function.
  *
  * NOTE:
  * Q: Why don't we just use https://www.npmjs.com/package/ethereum-multicall?

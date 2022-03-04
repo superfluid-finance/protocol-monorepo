@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -8,29 +8,29 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
 import { TokenCustodian } from "./TokenCustodian.sol";
 
 /**
  * @title TOGA: Transparent Ongoing Auction
- *
- * TOGA is a simple implementation of a continuous auction.
- * It's used to designate PICs (Patrician In Charge) - a role defined per Super Token.
- * Anybody can become the PIC for a Super Token by staking the highest bond (denominated in the token).
- * Staking is done by simply using ERC777.send(), transferring the bond amount to be staked to this contract.
- * Via userData parameter (abi-encoded int96), an exitRate can be defined. If omitted, a default will be chosen.
- * The exitRate is the flowrate at which the bond is streamed back to the PIC.
- * Any rewards accrued by this contract (in general the whole token balance) become part of the bond.
- * When a PIC is outbid, the current bond is transferred to it with ERC777.send().
- *
- * changes in v2:
- * In case that send() fails (e.g. due to a reverting hook), the bond is transferred to a custodian contract.
- * Funds accumulated there can be withdrawn from there at any time.
- * The current PIC can increase its bond by sending more funds using ERC777.send().
- *
  * @author Superfluid
+ *
+ * @dev TOGA is a simple implementation of a continuous auction.
+ *      It's used to designate PICs (Patrician In Charge) - a role defined per Super Token.
+ *      Anybody can become the PIC for a Super Token by staking the highest bond (denominated in the token).
+ *      Staking is done by simply using ERC777.send(), transferring the bond amount to be staked to this contract.
+ *      Via userData parameter (abi-encoded int96), an exitRate can be defined. If omitted, a default will be chosen.
+ *      The exitRate is the flowrate at which the bond is streamed back to the PIC.
+ *      Any rewards accrued by this contract (in general the whole token balance) become part of the bond.
+ *      When a PIC is outbid, the current bond is transferred to it with ERC777.send().
+ *      
+ *      changes in v2:
+ *      In case that send() fails (e.g. due to a reverting hook), the bond is transferred to a custodian contract.
+ *      Funds accumulated there can be withdrawn from there at any time.
+ *      The current PIC can increase its bond by sending more funds using ERC777.send().
+ *
  */
 interface ITOGAv1 {
     /**
@@ -168,6 +168,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         public view override
         returns(int96 exitRate)
     {
+        // FIXME (0.8): - intermediate conversion step required
         return int96(bondAmount / (minBondDuration * 4));
     }
 
@@ -175,6 +176,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         external view override
         returns(int96 exitRate)
     {
+        // FIXME (0.8): - intermediate conversion step required
         return int96(bondAmount / minBondDuration);
     }
 
@@ -182,6 +184,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         address currentPICAddr = _currentPICs[token].addr;
         require(msg.sender == currentPICAddr, "TOGA: only PIC allowed");
         require(newExitRate >= 0, "TOGA: negative exitRate not allowed");
+        // FIXME (0.8): - intermediate conversion step required
         require(uint256(newExitRate) * minBondDuration <= _getCurrentPICBond(token), "TOGA: exitRate too high");
 
         (, int96 curExitRate,,) = _cfa.getFlow(token, address(this), currentPICAddr);
@@ -246,6 +249,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     function _becomePIC(ISuperToken token, address newPIC, uint256 amount, int96 exitRate) internal {
         require(!_currentPICs[token].lock, "TOGA: reentrancy not allowed");
         require(exitRate >= 0, "TOGA: negative exitRate not allowed");
+        // FIXME (0.8): - intermediate conversion step required
         require(uint256(exitRate) * minBondDuration <= amount, "TOGA: exitRate too high");
         // cannot underflow because amount was added to the balance before
         uint256 currentPICBond = _getCurrentPICBond(token) - amount;

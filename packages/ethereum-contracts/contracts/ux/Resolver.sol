@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { IResolver } from "../interfaces/ux/IResolver.sol";
 
-
 /**
+ * @title Resolver contract
+ * @author Superfluid
  * @dev A simple implementation of IResolver using OZ AccessControl
  *
  * NOTE:

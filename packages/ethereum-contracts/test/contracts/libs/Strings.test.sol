@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable
 // ADAPTED FROM: https://github.com/Arachnid/solidity-stringutils/
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import '../../../contracts/libs/Strings.sol';
 import "truffle/Assert.sol";

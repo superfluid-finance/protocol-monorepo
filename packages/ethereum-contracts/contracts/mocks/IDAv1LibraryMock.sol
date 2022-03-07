@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.7.6;
+pragma experimental ABIEncoderV2;
 
-import {ISuperfluid, ISuperfluidToken} from "../interfaces/superfluid/ISuperfluid.sol";
+import {ISuperfluid, ISuperfluidToken, ISuperToken} from "../interfaces/superfluid/ISuperfluid.sol";
+
+import {SuperAppBase, SuperAppDefinitions} from "../apps/SuperAppBase.sol";
 
 import {
     IInstantDistributionAgreementV1
@@ -14,8 +17,17 @@ contract IDAv1LibraryMock {
 
     IDAv1Library.InitData internal _idaLib;
 
-    constructor(ISuperfluid host, IInstantDistributionAgreementV1 ida) {
-        _idaLib = IDAv1Library.InitData(host, ida);
+    bytes32 internal constant _IDAV1_HASH = keccak256(
+        "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+    );
+
+    constructor(ISuperfluid host) {
+        _idaLib = IDAv1Library.InitData(
+            host,
+            IInstantDistributionAgreementV1(
+                address(host.getAgreementClass(_IDAV1_HASH))
+            )
+        );
     }
 
     /**************************************************************************
@@ -112,23 +124,6 @@ contract IDAv1LibraryMock {
         _idaLib.createIndex(token, indexId, userData);
     }
 
-    function createIndexWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId
-    ) external returns (bytes memory) {
-        return _idaLib.createIndexWithCtx(ctx, token, indexId);
-    }
-
-    function createIndexWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.createIndexWithCtx(ctx, token, indexId, userData);
-    }
-
     function updateIndexValueTest(
         ISuperfluidToken token,
         uint32 indexId,
@@ -146,25 +141,6 @@ contract IDAv1LibraryMock {
         _idaLib.updateIndexValue(token, indexId, indexValue, userData);
     }
 
-    function updateIndexValueWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        uint128 indexValue
-    ) external returns (bytes memory) {
-        return _idaLib.updateIndexValueWithCtx(ctx, token, indexId, indexValue);
-    }
-
-    function updateIndexValueWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        uint128 indexValue,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.updateIndexValueWithCtx(ctx, token, indexId, indexValue, userData);
-    }
-
     function distributeTest(ISuperfluidToken token, uint32 indexId, uint256 amount) external {
         _idaLib.distribute(token, indexId, amount);
     }
@@ -176,25 +152,6 @@ contract IDAv1LibraryMock {
         bytes memory userData
     ) external {
         _idaLib.distribute(token, indexId, amount, userData);
-    }
-
-    function distributeWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        uint256 amount
-    ) external returns (bytes memory) {
-        return _idaLib.distributeWithCtx(ctx, token, indexId, amount);
-    }
-
-    function distributeWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        uint256 amount,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.distributeWithCtx(ctx, token, indexId, amount, userData);
     }
 
     /**************************************************************************
@@ -218,25 +175,6 @@ contract IDAv1LibraryMock {
         _idaLib.approveSubscription(token, publisher, indexId, userData);
     }
 
-    function approveSubscriptionWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId
-    ) external returns (bytes memory) {
-        return _idaLib.approveSubscriptionWithCtx(ctx, token, publisher, indexId);
-    }
-
-    function approveSubscriptionWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.approveSubscriptionWithCtx(ctx, token, publisher, indexId, userData);
-    }
-
     function revokeSubscriptionTest(
         ISuperfluidToken token,
         address publisher,
@@ -252,25 +190,6 @@ contract IDAv1LibraryMock {
         bytes memory userData
     ) external {
         _idaLib.revokeSubscription(token, publisher, indexId, userData);
-    }
-
-    function revokeSubscriptionWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId
-    ) external returns (bytes memory) {
-        return _idaLib.revokeSubscriptionWithCtx(ctx, token, publisher, indexId);
-    }
-
-    function revokeSubscriptionWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.revokeSubscriptionWithCtx(ctx, token, publisher, indexId, userData);
     }
 
     function updateSubscriptionUnitsTest(
@@ -292,34 +211,6 @@ contract IDAv1LibraryMock {
         _idaLib.updateSubscriptionUnits(token, indexId, subscriber, units, userData);
     }
 
-    function updateSubscriptionUnitsWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        address subscriber,
-        uint128 units
-    ) external returns (bytes memory) {
-        return _idaLib.updateSubscriptionUnitsWithCtx(ctx, token, indexId, subscriber, units);
-    }
-
-    function updateSubscriptionUnitsWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        uint32 indexId,
-        address subscriber,
-        uint128 units,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.updateSubscriptionUnitsWithCtx(
-            ctx,
-            token,
-            indexId,
-            subscriber,
-            units,
-            userData
-        );
-    }
-
     function deleteSubscriptionTest(
         ISuperfluidToken token,
         address publisher,
@@ -337,34 +228,6 @@ contract IDAv1LibraryMock {
         bytes memory userData
     ) external {
         _idaLib.deleteSubscription(token, publisher, indexId, subscriber, userData);
-    }
-
-    function deleteSubscriptionWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId,
-        address subscriber
-    ) external returns (bytes memory) {
-        return _idaLib.deleteSubscriptionWithCtx(ctx, token, publisher, indexId, subscriber);
-    }
-
-    function deleteSubscriptionWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId,
-        address subscriber,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.deleteSubscriptionWithCtx(
-            ctx, 
-            token, 
-            publisher, 
-            indexId, 
-            subscriber, 
-            userData
-        );
     }
 
     function claimTest(
@@ -385,25 +248,153 @@ contract IDAv1LibraryMock {
     ) external {
         _idaLib.claim(token, publisher, indexId, subscriber, userData);
     }
+}
 
-    function claimWithCtxTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId,
-        address subscriber
-    ) external returns (bytes memory) {
-        return _idaLib.claimWithCtx(ctx, token, publisher, indexId, subscriber);
+// IDA LIBRARY SUPER APP CALLBACK MOCK
+contract IDAv1LibrarySuperAppMock is IDAv1LibraryMock, SuperAppBase {
+    using IDAv1Library for IDAv1Library.InitData;
+
+    bytes internal constant _MOCK_USER_DATA = abi.encode("oh hello");
+
+    constructor(ISuperfluid host) IDAv1LibraryMock(host) {
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+            // SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            // SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+
+        host.registerApp(configWord);
     }
 
-    function claimWithCtxUserDataTest(
-        bytes memory ctx,
-        ISuperfluidToken token,
-        address publisher,
-        uint32 indexId,
-        address subscriber,
-        bytes memory userData
-    ) external returns (bytes memory) {
-        return _idaLib.claimWithCtx(ctx, token, publisher, indexId, subscriber, userData);
+    function afterAgreementCreated(
+        ISuperToken token,
+        address,
+        bytes32,
+        bytes calldata,
+        bytes calldata,
+        bytes calldata ctx
+    ) external override returns (bytes memory newCtx) {
+        return _callbackTest(token, ctx);
+    }
+
+    function afterAgreementUpdated(
+        ISuperToken token,
+        address,
+        bytes32,
+        bytes calldata,
+        bytes calldata,
+        bytes calldata ctx
+    ) external override returns (bytes memory newCtx) {
+        return _callbackTest(token, ctx);
+    }
+
+    enum FunctionIndex {
+        CREATE_INDEX,
+        CREATE_INDEX_USER_DATA,
+        UPDATE_INDEX,
+        UPDATE_INDEX_USER_DATA,
+        DISTRIBUTE,
+        DISTRIBUTE_USER_DATA,
+        APROVE_SUBSCRIPTION,
+        APROVE_SUBSCRIPTION_USER_DATA,
+        REVOKE_SUBSCRIPTION,
+        REVOKE_SUBSCRIPTION_USER_DATA,
+        UPDATE_SUBSCRIPTION,
+        UPDATE_SUBSCRIPTION_USER_DATA,
+        DELETE_SUBSCRIPTION,
+        DELETE_SUBSCRIPTION_USER_DATA,
+        CLAIM,
+        CLAIM_USER_DATA
+    }
+
+    /// @dev extracts some user data to test out all callback library functions
+    /// @param token super token
+    /// @param ctx Context string
+    /// @return New Context
+    function _callbackTest(
+        ISuperToken token,
+        bytes memory ctx
+    ) internal returns (bytes memory) {
+
+        // extract userData, then decode everything else
+        bytes memory userData = _idaLib.host.decodeCtx(ctx).userData;
+        (
+            uint8 functionIndex,
+            uint32 indexId,
+            address publisher,
+            address subscriber,
+            uint128 units
+        ) = abi.decode(userData, (uint8, uint32, address, address, uint128));
+
+        if (functionIndex == uint8(FunctionIndex.CREATE_INDEX)) {
+            return _idaLib.createIndexWithCtx(ctx, token, indexId);
+        } else if (functionIndex == uint8(FunctionIndex.CREATE_INDEX_USER_DATA)) {
+            return _idaLib.createIndexWithCtx(ctx, token, indexId, _MOCK_USER_DATA);
+        } else if (functionIndex == uint8(FunctionIndex.UPDATE_INDEX)) {
+            return _idaLib.updateIndexValueWithCtx(ctx, token, indexId, units);
+        } else if (functionIndex == uint8(FunctionIndex.UPDATE_INDEX_USER_DATA)) {
+            return _idaLib.updateIndexValueWithCtx(ctx, token, indexId, units, _MOCK_USER_DATA);
+        } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE)) {
+            return _idaLib.distributeWithCtx(ctx, token, indexId, units);
+        } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE_USER_DATA)) {
+            return _idaLib.distributeWithCtx(ctx, token, indexId, units, _MOCK_USER_DATA);
+        } else if (functionIndex == uint8(FunctionIndex.APROVE_SUBSCRIPTION)) {
+            return _idaLib.approveSubscriptionWithCtx(ctx, token, publisher, indexId);
+        } else if (functionIndex == uint8(FunctionIndex.APROVE_SUBSCRIPTION_USER_DATA)) {
+            return _idaLib.approveSubscriptionWithCtx(
+                ctx,
+                token,
+                publisher,
+                indexId,
+                _MOCK_USER_DATA
+            );
+        } else if (functionIndex == uint8(FunctionIndex.REVOKE_SUBSCRIPTION)) {
+            return _idaLib.revokeSubscriptionWithCtx(ctx, token, publisher, indexId);
+        } else if (functionIndex == uint8(FunctionIndex.REVOKE_SUBSCRIPTION_USER_DATA)) {
+            return _idaLib.revokeSubscriptionWithCtx(
+                ctx,
+                token,
+                publisher,
+                indexId,
+                _MOCK_USER_DATA
+            );
+        } else if (functionIndex == uint8(FunctionIndex.UPDATE_SUBSCRIPTION)) {
+            return _idaLib.updateSubscriptionUnitsWithCtx(ctx, token, indexId, subscriber, units);
+        } else if (functionIndex == uint8(FunctionIndex.UPDATE_SUBSCRIPTION_USER_DATA)) {
+            return _idaLib.updateSubscriptionUnitsWithCtx(
+                ctx,
+                token,
+                indexId,
+                subscriber,
+                units,
+                _MOCK_USER_DATA
+            );
+        } else if (functionIndex == uint8(FunctionIndex.DELETE_SUBSCRIPTION)) {
+            return _idaLib.deleteSubscriptionWithCtx(ctx, token, publisher, indexId, subscriber);
+        } else if (functionIndex == uint8(FunctionIndex.DELETE_SUBSCRIPTION_USER_DATA)) {
+            return _idaLib.deleteSubscriptionWithCtx(
+                ctx,
+                token,
+                publisher,
+                indexId,
+                subscriber,
+                _MOCK_USER_DATA
+            );
+        } else if (functionIndex == uint8(FunctionIndex.CLAIM)) {
+            return _idaLib.claimWithCtx(ctx, token, publisher, indexId, subscriber);
+        } else if (functionIndex == uint8(FunctionIndex.CLAIM_USER_DATA)) {
+            return _idaLib.claimWithCtx(
+                ctx,
+                token,
+                publisher,
+                indexId,
+                subscriber,
+                _MOCK_USER_DATA
+            );
+        } else {
+            revert("invalid function index");
+        }
     }
 }

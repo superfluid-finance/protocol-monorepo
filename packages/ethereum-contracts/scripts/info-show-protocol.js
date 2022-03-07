@@ -75,17 +75,38 @@ async function printGovernanceInformation({sf}) {
                 host: sf.host.address,
             })
         ).filter((i) => i.superToken !== ZERO_ADDRESS);
-        latests.forEach((i) => console.log(i.superToken, i.rewardAddress));
+        latests.forEach((i) =>
+            console.log(
+                "SuperToken: " + i.superToken,
+                "\nReward Address: " + i.rewardAddress,
+                "\n---"
+            )
+        );
     }
     {
         console.log("## PPPConfiguration");
+        const defaultPPPConfiguration = await gov.getPPPConfig(
+            sf.host.address,
+            ZERO_ADDRESS
+        );
+        console.log(
+            "DEFAULT",
+            "\nLiquidation Period: " +
+                defaultPPPConfiguration.liquidationPeriod,
+            "\nPatrician Period: " + defaultPPPConfiguration.patricianPeriod
+        );
         const latests = (
             await fetchLatestGovernanceUpdate(gov, "PPPConfigurationChanged", {
                 host: sf.host.address,
             })
         ).filter((i) => i.superToken !== ZERO_ADDRESS);
         latests.forEach((i) =>
-            console.log(i.superToken, i.liquidationPeriod, i.patricianPeriod)
+            console.log(
+                "SuperToken: " + i.superToken,
+                "\nLiquidation Period: " + i.liquidationPeriod,
+                "\nPatrician Period: " + i.patricianPeriod,
+                "\n---"
+            )
         );
     }
     {
@@ -99,7 +120,13 @@ async function printGovernanceInformation({sf}) {
         );
         latests
             .filter((i) => !!i.enabled)
-            .forEach((i) => console.log(i.superToken, i.forwarder));
+            .forEach((i) =>
+                console.log(
+                    "SuperToken: " + i.superToken,
+                    "\nForwarder: " + i.forwarder,
+                    "\n---"
+                )
+            );
     }
     return {gov};
 }

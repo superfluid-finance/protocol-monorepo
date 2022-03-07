@@ -14,7 +14,7 @@
     "module": "dist/module/index.js",
     "keywords": [],
     "scripts": {
-        "pre-commit": "[ ! -z \"$(git status -s .)\" ] && run-s lint:*",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "build": "rm -rf dist && run-p build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",

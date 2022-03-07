@@ -29,7 +29,8 @@
         "doc": "run-s doc:html",
         "doc:html": "typedoc src/ --out dist/docs && copyfiles -f ./sf-logo.png ./dist/docs/",
         "doc:json": "typedoc src/ --json dist/docs/typedoc.json",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "loc": "sloc src"
     },
     "engines": {
         "node": ">=12"

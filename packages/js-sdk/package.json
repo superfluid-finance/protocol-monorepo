@@ -38,7 +38,8 @@
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
         "pre-commit:lint": "yarn lint",
         "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "loc": "sloc -e 'abi\\.js' src"
     },
     "dependencies": {
         "@ethersproject/abi": "^5.5.0",

@@ -43,7 +43,8 @@
         "lint:check-no-focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
         "pre-commit:lint": "yarn lint",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "loc": "tasks/loc.sh"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",

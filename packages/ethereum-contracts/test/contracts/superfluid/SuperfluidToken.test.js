@@ -476,6 +476,7 @@ describe("SuperfluidToken implementation", function () {
                 acBad.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     bob,
                     alice,
                     0,
@@ -498,10 +499,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10" /* reward */,
-                    "0"
+                    "-10"
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
                 assert.equal(await availableBalanceOf(bob), "-10");
@@ -512,10 +514,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     admin /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10" /* reward */,
-                    "0" /* bailout */
+                    "-10" /* targetAccountBalanceDelta */
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
                 assert.equal(await availableBalanceOf(bob), "-10");
@@ -526,10 +529,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    false,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10" /* reward */,
-                    "5" /* bailout */
+                    "5" /* targetAccountBalanceDelta */
                 );
                 assert.equal(await availableBalanceOf(admin), "-15");
                 assert.equal(await availableBalanceOf(bob), "5");
@@ -550,10 +554,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10",
-                    "0"
+                    "-10"
                 );
                 assert.equal(await availableBalanceOf(bob), "-10");
                 assert.equal(await availableBalanceOf(alice), "10");
@@ -563,8 +568,9 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    false,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10",
                     "5"
                 );

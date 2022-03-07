@@ -105,13 +105,10 @@ async function codeChanged(
 
     // extra replacements usually for constructor parameters
     replacements.forEach((r) => {
-        let codeTrimed2 = codeTrimed.replace(
+        codeTrimed = codeTrimed.replace(
             new RegExp(r, "g"),
             "0".repeat(r.length)
         );
-        if (codeTrimed === codeTrimed2)
-            throw new Error("Code replacement not found");
-        codeTrimed = codeTrimed2;
     });
 
     if (debug) {

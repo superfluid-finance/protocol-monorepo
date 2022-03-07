@@ -23,6 +23,7 @@ contract TestGovernance is
         ISuperfluid host,
         address rewardAddress,
         uint256 liquidationPeriod,
+        uint256 patricianPeriod,
         address[] memory trustedForwarders
     )
         external
@@ -35,7 +36,7 @@ contract TestGovernance is
 
         setRewardAddress(_host, ISuperfluidToken(address(0)), rewardAddress);
 
-        setCFAv1LiquidationPeriod(_host, ISuperfluidToken(address(0)), liquidationPeriod);
+        setPPPConfig(host, ISuperfluidToken(address(0)), liquidationPeriod, patricianPeriod);
 
         for (uint i = 0; i < trustedForwarders.length; ++i) {
             enableTrustedForwarder(_host, ISuperfluidToken(address(0)), trustedForwarders[i]);

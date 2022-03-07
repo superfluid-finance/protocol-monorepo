@@ -52,6 +52,24 @@ export const mapGetAllEventsQueryEvents = (
                     rewardAmount: x.rewardAmount,
                     token: x.token,
                 });
+            case "AgreementLiquidatedV2Event":
+                return typeGuard<events.AgreementLiquidatedV2Event>({
+                    name: "AgreementLiquidatedV2",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    timestamp: Number(x.timestamp),
+                    token: x.token,
+                    liquidatorAccount: x.liquidatorAccount,
+                    agreementClass: x.agreementClass,
+                    agreementId: x.agreementId,
+                    targetAccount: x.targetAccount,
+                    rewardAccount: x.rewardAccount,
+                    rewardAmount: x.rewardAmount,
+                    targetAccountBalanceDelta: x.targetAccountBalanceDelta,
+                    version: x.version,
+                    liquidationType: x.liquidationType,
+                });
             case "BurnedEvent":
                 return typeGuard<events.BurnedEvent>({
                     name: "Burned",
@@ -73,7 +91,7 @@ export const mapGetAllEventsQueryEvents = (
                     transactionHash: x.transactionHash,
                     timestamp: Number(x.timestamp),
                     host: x.host,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     liquidationPeriod: Number(x.liquidationPeriod),
                     superToken: x.superToken,
                 }) as events.CFAv1LiquidationPeriodChangedEvent;
@@ -85,7 +103,7 @@ export const mapGetAllEventsQueryEvents = (
                     transactionHash: x.transactionHash,
                     timestamp: Number(x.timestamp),
                     host: x.host,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     key: x.key,
                     superToken: x.superToken,
                     value: x.value,
@@ -234,7 +252,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     host: x.host,
                     superToken: x.superToken,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     rewardAddress: x.rewardAddress,
                 });
             case "RoleAdminChangedEvent":
@@ -377,6 +395,19 @@ export const mapGetAllEventsQueryEvents = (
                     token: x.token,
                     code: x.code,
                 }) as events.SuperTokenLogicUpdatedEvent;
+            case "PPPConfigurationChangedEvent":
+                return typeGuard<events.PPPConfigurationChangedEvent>({
+                    name: "PPPConfigurationChanged",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    timestamp: Number(x.timestamp),
+                    host: x.host,
+                    superToken: x.superToken,
+                    isKeySet: x.isKeySet,
+                    liquidationPeriod: x.liquidationPeriod,
+                    patricianPeriod: x.patricianPeriod,
+                });
             case "TokenDowngradedEvent":
                 return typeGuard<events.TokenDowngradedEvent>({
                     name: "TokenDowngraded",
@@ -420,7 +451,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     host: x.host,
                     superToken: x.superToken,
-                    isSet: x.isKeySet,
+                    isKeySet: x.isKeySet,
                     forwarder: x.forwarder,
                     enabled: x.enabled,
                 });

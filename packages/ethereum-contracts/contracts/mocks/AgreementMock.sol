@@ -120,12 +120,24 @@ contract AgreementMock is AgreementBase {
     function makeLiquidationPayoutsFor(
         ISuperfluidToken token,
         bytes32 id,
+        bool useDefaultRewardAccount,
         address liquidator,
-        address penaltyAccount,
+        address targetAccount,
         uint256 rewardAmount,
-        uint256 bailoutAmount
+        int256 targetAccountBalanceDelta
     ) external {
-        token.makeLiquidationPayouts(id, liquidator, penaltyAccount, rewardAmount, bailoutAmount);
+        bytes memory liquidationTypeData = useDefaultRewardAccount
+            ? abi.encode(1, 0)
+            : abi.encode(1, 2);
+        token.makeLiquidationPayoutsV2(
+            id,
+            liquidationTypeData,
+            liquidator,
+            useDefaultRewardAccount,
+            targetAccount,
+            rewardAmount,
+            targetAccountBalanceDelta
+        );
     }
 
     /**

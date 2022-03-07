@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
-import { beforeSetup, getRandomFlowRate, toBN } from "./helpers/helpers";
+import { asleep, beforeSetup, getRandomFlowRate, monthlyToSecondRate, toBN } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IDistributionLocalData,
@@ -17,10 +17,14 @@ import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
 import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let framework: Framework;
+    // TODO: Refactor by using the framework to get the tokens and contracts
+    // no need to initialize w/ localAddresses for example
+    // best to utilize framework fully
     let dai: TestToken;
     let daix: SuperToken;
     let provider = ethers.getDefaultProvider("http://0.0.0.0:8545");
@@ -75,6 +79,68 @@ describe("Subgraph Tests", () => {
                 data.updatedSubscriberATS;
         }
         tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+    }
+
+    async function transferAndUpdate(
+        amount: string,
+        sender: SignerWithAddress,
+        receiver: string
+    ) {
+        let response = await daix
+            .transfer({
+                receiver,
+                amount,
+            })
+            .exec(sender);
+        await response.wait();
+
+        if (!response.blockNumber) {
+            throw new Error("No block number.");
+        }
+
+        let block = await provider.getBlock(response.blockNumber);
+        // update transfer amount
+        const senderATS =
+            accountTokenSnapshots[
+                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
+            ];
+
+        if (senderATS) {
+            const updatedTransferAmount = toBN(
+                senderATS.totalAmountTransferredUntilUpdatedAt
+            ).add(toBN(amount));
+            accountTokenSnapshots[
+                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
+            ] = {
+                ...senderATS,
+                totalAmountTransferredUntilUpdatedAt:
+                    updatedTransferAmount.toString(),
+            };
+        }
+        const tokenStats = tokenStatistics[daix.address.toLowerCase()];
+
+        if (tokenStats) {
+            const timeDelta = toBN(block.timestamp.toString()).sub(
+                toBN(tokenStats.updatedAtTimestamp)
+            );
+            // TODO: This seems a little strange, I don't see why we need to
+            // add the streamedAmountDiff into the amountStreamed total
+            // investigate this further when we refactor these tests
+            const amountStreamed = toBN(
+                tokenStats.totalAmountStreamedUntilUpdatedAt
+            ).add(toBN(tokenStats.totalOutflowRate).mul(timeDelta));
+            const streamedAmountDiff = amountStreamed.sub(
+                toBN(tokenStats.totalAmountStreamedUntilUpdatedAt)
+            );
+            tokenStatistics[daix.address.toLowerCase()] = {
+                ...tokenStats,
+                updatedAtBlockNumber: response.blockNumber!.toString(),
+                updatedAtTimestamp: block.timestamp.toString(),
+                totalAmountStreamedUntilUpdatedAt: amountStreamed
+                    .add(streamedAmountDiff)
+                    .toString(),
+            };
+        }
     }
 
     function getStreamLocalData(): IStreamLocalData {
@@ -330,6 +396,71 @@ describe("Subgraph Tests", () => {
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
+            }
+        });
+
+        it("Should liquidate a stream", async () => {
+            try {
+                const flowRate = 5000;
+                // update the global environment objects
+                updateGlobalObjects(
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: flowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[1],
+                    })
+                );
+
+                // get balance of sender
+                let balanceOfSender = await daix.realtimeBalanceOf({
+                    account: userAddresses[0],
+                    providerOrSigner: provider,
+                });
+                const formattedFlowRate = monthlyToSecondRate(5000);
+                const senderSigner = await ethers.getSigner(userAddresses[0]);
+                const receiverSigner = await ethers.getSigner(userAddresses[2]);
+                const transferAmount = toBN(balanceOfSender.availableBalance)
+                    // transfer total - 5 seconds of flow
+                    .sub(toBN((formattedFlowRate * 5).toString()))
+                    .toString();
+
+                await transferAndUpdate(
+                    transferAmount,
+                    senderSigner,
+                    userAddresses[2]
+                );
+                // wait for flow to get drained
+                // cannot use time traveler due to
+                // subgraph constraints
+                let balanceOf;
+                do {
+                    balanceOf = await daix.realtimeBalanceOf({
+                        account: userAddresses[0],
+                        providerOrSigner: provider,
+                    });
+                    await asleep(1000);
+                } while (Number(balanceOf.availableBalance) >= 0);
+
+                updateGlobalObjects(
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Delete,
+                        newFlowRate: 0,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[1],
+                    })
+                );
+
+                // transfer balance back to sender
+                await transferAndUpdate(
+                    transferAmount,
+                    receiverSigner,
+                    userAddresses[0]
+                );
+            } catch (err) {
+                console.error(err);
             }
         });
     });

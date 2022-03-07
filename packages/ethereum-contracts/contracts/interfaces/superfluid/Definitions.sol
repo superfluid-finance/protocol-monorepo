@@ -168,11 +168,9 @@ library SuperfluidGovernanceConfigs {
 
     bytes32 constant internal SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY =
         keccak256("org.superfluid-finance.superfluid.rewardAddress");
-
-    bytes32 constant internal CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
-
-    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
+    bytes32 constant internal CFAV1_PPP_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
+    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY = 
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {
@@ -192,5 +190,10 @@ library SuperfluidGovernanceConfigs {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.factory",
             factory));
+    }
+
+    function decodePPPConfig(uint256 pppConfig) internal pure returns (uint256 liquidationPeriod, uint256 patricianPeriod) {
+        liquidationPeriod = (pppConfig >> 32) & type(uint32).max;
+        patricianPeriod = pppConfig & type(uint32).max;
     }
 }

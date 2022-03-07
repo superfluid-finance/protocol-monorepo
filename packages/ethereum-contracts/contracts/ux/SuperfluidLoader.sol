@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: AGPLv3
-pragma abicoder v2;
 pragma solidity 0.8.12;
 
 import { IResolver } from "../interfaces/ux/IResolver.sol";

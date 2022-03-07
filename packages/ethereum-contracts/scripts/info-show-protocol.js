@@ -13,27 +13,34 @@ const MAX_REQUESTS = 100;
 async function printHostInformation({sf}) {
     let host;
     console.log("# Host\n");
-    host = await sf.contracts.Superfluid.at(sf.host.address);
-    console.log("address", host.address);
-    console.log(
-        "code address",
-        await (
-            await sf.contracts.UUPSProxiable.at(sf.host.address)
-        ).getCodeAddress()
-    );
-    console.log(
-        "NON_UPGRADABLE_DEPLOYMENT",
-        await host.NON_UPGRADABLE_DEPLOYMENT.call()
-    );
-    console.log(
-        "APP_WHITE_LISTING_ENABLED",
-        (await host.APP_WHITE_LISTING_ENABLED.call()).toString()
-    );
-    console.log("MAX_APP_LEVEL", (await host.MAX_APP_LEVEL.call()).toString());
-    console.log(
-        "CALLBACK_GAS_LIMIT",
-        (await host.CALLBACK_GAS_LIMIT.call()).toString()
-    );
+    try {
+        host = await sf.contracts.Superfluid.at(sf.host.address);
+        console.log("address", host.address);
+        console.log(
+            "code address",
+            await (
+                await sf.contracts.UUPSProxiable.at(sf.host.address)
+            ).getCodeAddress()
+        );
+        console.log(
+            "NON_UPGRADABLE_DEPLOYMENT",
+            await host.NON_UPGRADABLE_DEPLOYMENT.call()
+        );
+        console.log(
+            "APP_WHITE_LISTING_ENABLED",
+            (await host.APP_WHITE_LISTING_ENABLED.call()).toString()
+        );
+        console.log(
+            "MAX_APP_LEVEL",
+            (await host.MAX_APP_LEVEL.call()).toString()
+        );
+        console.log(
+            "CALLBACK_GAS_LIMIT",
+            (await host.CALLBACK_GAS_LIMIT.call()).toString()
+        );
+    } catch {
+        console.error("Error printing host information.");
+    }
     return {host};
 }
 
@@ -70,36 +77,88 @@ async function printGovernanceInformation({sf}) {
             "DEFAULT",
             await gov.getRewardAddress.call(sf.host.address, ZERO_ADDRESS)
         );
-        const latests = (
-            await fetchLatestGovernanceUpdate(gov, "RewardAddressChanged", {
-                host: sf.host.address,
-            })
-        ).filter((i) => i.superToken !== ZERO_ADDRESS);
-        latests.forEach((i) => console.log(i.superToken, i.rewardAddress));
+        try {
+            const latests = (
+                await fetchLatestGovernanceUpdate(gov, "RewardAddressChanged", {
+                    host: sf.host.address,
+                })
+            ).filter((i) => i.superToken !== ZERO_ADDRESS);
+            latests.forEach((i) =>
+                console.log(
+                    "SuperToken: " + i.superToken,
+                    "\nReward Address: " + i.rewardAddress,
+                    "\n---"
+                )
+            );
+        } catch (e) {
+            console.warn(
+                "There was an error fetching RewardAddressChanged past events.",
+                e
+            );
+        }
     }
     {
         console.log("## PPPConfiguration");
-        const latests = (
-            await fetchLatestGovernanceUpdate(gov, "PPPConfigurationChanged", {
-                host: sf.host.address,
-            })
-        ).filter((i) => i.superToken !== ZERO_ADDRESS);
-        latests.forEach((i) =>
-            console.log(i.superToken, i.liquidationPeriod, i.patricianPeriod)
+        const defaultPPPConfiguration = await gov.getPPPConfig(
+            sf.host.address,
+            ZERO_ADDRESS
         );
+        console.log(
+            "DEFAULT",
+            "\nLiquidation Period: " +
+                defaultPPPConfiguration.liquidationPeriod,
+            "\nPatrician Period: " + defaultPPPConfiguration.patricianPeriod
+        );
+        try {
+            const latests = (
+                await fetchLatestGovernanceUpdate(
+                    gov,
+                    "PPPConfigurationChanged",
+                    {
+                        host: sf.host.address,
+                    }
+                )
+            ).filter((i) => i.superToken !== ZERO_ADDRESS);
+            latests.forEach((i) =>
+                console.log(
+                    "SuperToken: " + i.superToken,
+                    "\nLiquidation Period: " + i.liquidationPeriod,
+                    "\nPatrician Period: " + i.patricianPeriod,
+                    "\n---"
+                )
+            );
+        } catch (e) {
+            console.warn(
+                "There was an error fetching PPPConfigurationChanged past events.",
+                e
+            );
+        }
     }
     {
         console.log("## TrustedForwarders");
-        const latests = await fetchLatestGovernanceUpdate(
-            gov,
-            "TrustedForwarderChanged",
-            {
-                host: sf.host.address,
-            }
-        );
-        latests
-            .filter((i) => !!i.enabled)
-            .forEach((i) => console.log(i.superToken, i.forwarder));
+        try {
+            const latests = await fetchLatestGovernanceUpdate(
+                gov,
+                "TrustedForwarderChanged",
+                {
+                    host: sf.host.address,
+                }
+            );
+            latests
+                .filter((i) => !!i.enabled)
+                .forEach((i) =>
+                    console.log(
+                        "SuperToken: " + i.superToken,
+                        "\nForwarder: " + i.forwarder,
+                        "\n---"
+                    )
+                );
+        } catch (e) {
+            console.warn(
+                "There was an error fetching TrustedForwarderChanged past events.",
+                e
+            );
+        }
     }
     return {gov};
 }
@@ -127,24 +186,28 @@ async function printResolverInformation({sf}) {
     console.log("address", sf.resolver.address);
     const ADMIN_ROLE = "0x" + "0".repeat(64);
     const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
-    const maybeMembers = Array.from(
-        new Set([
-            ...(
-                await sf.getPastEvents(ac, "RoleGranted", {
-                    role: ADMIN_ROLE,
-                })
-            ).map((i) => i.account),
-            ...(
-                await sf.getPastEvents(ac, "RoleRevoked", {
-                    role: ADMIN_ROLE,
-                })
-            ).map((i) => i.account),
-        ])
-    );
-    for (let i = 0; i < maybeMembers.length; ++i) {
-        if (await ac.hasRole(ADMIN_ROLE, maybeMembers[i])) {
-            console.log("admin", i, maybeMembers[i]);
+    try {
+        const maybeMembers = Array.from(
+            new Set([
+                ...(
+                    await sf.getPastEvents(ac, "RoleGranted", {
+                        role: ADMIN_ROLE,
+                    })
+                ).map((i) => i.account),
+                ...(
+                    await sf.getPastEvents(ac, "RoleRevoked", {
+                        role: ADMIN_ROLE,
+                    })
+                ).map((i) => i.account),
+            ])
+        );
+        for (let i = 0; i < maybeMembers.length; ++i) {
+            if (await ac.hasRole(ADMIN_ROLE, maybeMembers[i])) {
+                console.log("admin", i, maybeMembers[i]);
+            }
         }
+    } catch (e) {
+        console.error("There was an error printing resolver information:", e);
     }
     console.log("");
 }
@@ -170,17 +233,22 @@ async function printSuperTokensInformation({
         const superToken = await sf.contracts.SuperToken.at(
             sf.tokens[sf.config.nativeTokenSymbol + "x"].address
         );
-        const symbol = await superToken.symbol.call();
-        const superTokenLogicAddress = await (
-            await sf.contracts.UUPSProxiable.at(superToken.address)
-        ).getCodeAddress();
-        printSuperToken({
-            symbol,
-            name: await superToken.name.call(),
-            tokenAddress: superToken.address,
-            superTokenLogicAddress,
-            underlyingTokenAddress: await superToken.getUnderlyingToken.call(),
-        });
+        try {
+            const symbol = await superToken.symbol.call();
+            const superTokenLogicAddress = await (
+                await sf.contracts.UUPSProxiable.at(superToken.address)
+            ).getCodeAddress();
+            printSuperToken({
+                symbol,
+                name: await superToken.name.call(),
+                tokenAddress: superToken.address,
+                superTokenLogicAddress,
+                underlyingTokenAddress:
+                    await superToken.getUnderlyingToken.call(),
+            });
+        } catch {
+            console.warn(`[WARN] SuperToken@${superToken.address} is smelly.`);
+        }
     }
     console.log("");
 

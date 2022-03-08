@@ -44,7 +44,7 @@
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
         "pre-commit:lint": "yarn lint",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "loc": "tasks/loc.sh"
+        "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",

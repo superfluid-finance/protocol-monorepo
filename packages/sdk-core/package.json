@@ -44,7 +44,7 @@
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
         "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",
-        "loc": "sloc -e 'generated\\.ts$|^typechain/' src"
+        "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

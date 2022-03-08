@@ -45,7 +45,8 @@
         "generate-sf-meta": "./tasks/getSFMeta.sh",
         "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh",
         "generate-ethers-types": "typechain --target=ethers-v5 --out-dir=typechain './abis/*.json'",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "cloc": "cloc src"
     },
     "dependencies": {
         "@graphprotocol/graph-cli": "0.26.0",

@@ -39,7 +39,7 @@
         "pre-commit:lint": "yarn lint",
         "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "loc": "sloc -e 'abi\\.js' src"
+        "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
         "@ethersproject/abi": "^5.5.0",

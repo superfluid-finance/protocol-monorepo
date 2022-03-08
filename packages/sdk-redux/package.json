@@ -30,7 +30,7 @@
         "doc:html": "typedoc src/ --out dist/docs && copyfiles -f ./sf-logo.png ./dist/docs/",
         "doc:json": "typedoc src/ --json dist/docs/typedoc.json",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "loc": "sloc src"
+        "cloc": "sh tasks/cloc.sh"
     },
     "engines": {
         "node": ">=12"

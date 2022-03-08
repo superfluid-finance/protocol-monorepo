@@ -87,7 +87,7 @@ module.exports = {
     ganache: {
       host: "127.0.0.1",
       network_id: "*",
-      port: process.env.GANACHE_PORT || 8545,
+      port: 8545 || process.env.GANACHE_PORT,
     },
 
     goerli: {

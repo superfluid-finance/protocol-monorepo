@@ -190,8 +190,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      *************************************************************************/
 
     /**
-     * @notice Approve the subscription of an index
-     * @dev indexId (agreementId) is the keccak256 hash of encodePacked("publisher", publisher, indexId)
+     * @dev Approve the subscription of an index
      * @param token Super token address
      * @param publisher The publisher of the index
      * @param indexId Id of the index
@@ -245,7 +244,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     /**
-    * @dev Revoke the subscription of an index
+    * @notice Revoke the subscription of an index
+    * @dev "Unapproves" the subscription and moves approved units to pending
     * @param token Super token address
     * @param publisher The publisher of the index
     * @param indexId Id of the index
@@ -294,8 +294,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     /**
-     * @notice Update the nuber of units of a subscription
-     * @dev indexId (agreementId) is the keccak256 hash of encodePacked("publisher", publisher, indexId)
+     * @dev Update the nuber of units of a subscription
      * @param token Super token address
      * @param indexId Id of the index
      * @param subscriber The subscriber of the index
@@ -426,8 +425,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
                 uint128[] memory unitsList);
 
     /**
-     * @notice Delete the subscription of an user
-     * @dev indexId (agreementId) is the keccak256 hash of encodePacked("publisher", publisher, indexId)
+     * @dev Delete the subscription of an user
      * @param token Super token address
      * @param publisher The publisher of the index
      * @param indexId Id of the index
@@ -454,8 +452,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     /**
-    * @notice Claim pending distributions
-    * @dev indexId (agreementId) is the keccak256 hash of encodePacked("publisher", publisher, indexId)
+    * @dev Claim pending distributions
     * @param token Super token address
     * @param publisher The publisher of the index
     * @param indexId Id of the index

@@ -76,7 +76,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
      *
-     * @return Returns Sucess a boolean value indicating whether the operation succeeded.
+     * @return Returns Success a boolean value indicating whether the operation succeeded.
      *
      * Emits a {Transfer} event.
      */
@@ -94,7 +94,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
      *
-     * @return Returns Sucess a boolean value indicating whether the operation succeeded.
+     * @return Returns Success a boolean value indicating whether the operation succeeded.
      *
      * IMPORTANT: Beware that changing an allowance with this method brings the risk
      * that someone may use both the old and the new allowance by unfortunate
@@ -112,7 +112,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *         allowance mechanism. `amount` is then deducted from the caller's
      *         allowance.
      *
-     * @return Returns Sucess a boolean value indicating whether the operation succeeded.
+     * @return Returns Success a boolean value indicating whether the operation succeeded.
      *
      * Emits a {Transfer} event.
      */

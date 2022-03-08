@@ -993,6 +993,7 @@ contract InstantDistributionAgreementV1 is
     {
         data = new bytes32[](2);
         data[0] = bytes32(
+            // REVIEW (0.8.12): - intermediate conversion step required
             (uint256(uint160(sdata.publisher)) << (12*8)) |
             (uint256(sdata.indexId) << 32) |
             uint256(sdata.subId)

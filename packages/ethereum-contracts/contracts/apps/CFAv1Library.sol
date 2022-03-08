@@ -25,7 +25,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create/update/delete flow without userData
+     * @dev Create/update/delete flow without userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param receiver The receiver of the flow
      * @param token The token to flow
@@ -50,7 +50,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create/update/delete flow with userData
+     * @dev Create/update/delete flow with userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param receiver The receiver of the flow
      * @param token The token to flow
@@ -77,7 +77,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create flow without userData
+     * @dev Create flow without userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param receiver The receiver of the flow
      * @param token The token to flow
@@ -103,7 +103,7 @@ library CFAv1Library {
     }
     
     /**
-     * @notice Create flow with userData
+     * @dev Create flow with userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param receiver The receiver of the flow
      * @param token The token to flow
@@ -131,7 +131,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Update flow without userData
+     * @dev Update flow without userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param receiver The receiver of the flow
      * @param token The token to flow
@@ -158,7 +158,7 @@ library CFAv1Library {
     
 
     /**
-     * @notice Update flow with userData
+     * @dev Update flow with userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param receiver The receiver of the flow
      * @param token The token to flow
@@ -186,7 +186,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Delete flow without userData
+     * @dev Delete flow without userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
@@ -213,7 +213,7 @@ library CFAv1Library {
     
 
     /**
-     * @notice Delete flow with userData
+     * @dev Delete flow with userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
@@ -241,7 +241,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create/update/delete flow with context
+     * @dev Create/update/delete flow with context
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver The receiver of the flow
@@ -268,7 +268,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create/update/delete flow with context and userData
+     * @dev Create/update/delete flow with context and userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver The receiver of the flow
@@ -297,7 +297,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create flow with context and userData
+     * @dev Create flow with context and userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver The receiver of the flow
@@ -326,7 +326,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Create flow with context and userData
+     * @dev Create flow with context and userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver The receiver of the flow
@@ -357,7 +357,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Update flow with context
+     * @dev Update flow with context
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver The receiver of the flow
@@ -386,7 +386,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Update flow with context and userData
+     * @dev Update flow with context and userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver The receiver of the flow
@@ -417,7 +417,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Delete flow with context
+     * @dev Delete flow with context
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param sender The sender of the flow
@@ -446,7 +446,7 @@ library CFAv1Library {
     }
 
     /**
-     * @notice Delete flow with context and userData
+     * @dev Delete flow with context and userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param sender The sender of the flow

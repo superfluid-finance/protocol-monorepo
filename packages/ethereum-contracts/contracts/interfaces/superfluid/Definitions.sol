@@ -168,7 +168,7 @@ library BatchOperation {
 }
 
 /**
- * @title Sueprfluid governance configs library
+ * @title Superfluid governance configs library
  * @author Superfluid
  */
 library SuperfluidGovernanceConfigs {

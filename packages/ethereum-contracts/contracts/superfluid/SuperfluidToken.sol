@@ -7,7 +7,6 @@ import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { FixedSizeData } from "../libs/FixedSizeData.sol";
 

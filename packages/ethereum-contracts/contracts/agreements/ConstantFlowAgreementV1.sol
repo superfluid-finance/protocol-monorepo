@@ -783,7 +783,6 @@ contract ConstantFlowAgreementV1 is
             totalReceiverFlowRate,
             flowParams.userData);
     }
-
     function _requireAvailableBalance(
         ISuperfluidToken token,
         ISuperfluid.Context memory currentContext

@@ -122,7 +122,7 @@ describe("Miscellaneous for test coverages", function () {
             );
             await expectRevert(
                 tester.testInt96SafeMathMul(MAX_INT96_DIV_2_PLUS_1, 2),
-                "revert"
+                "testInt96SafeMathMul overflow"
             );
             assert.equal(
                 (
@@ -132,11 +132,11 @@ describe("Miscellaneous for test coverages", function () {
             );
             await expectRevert(
                 tester.testInt96SafeMathMul(MIN_INT96_DIV_2_MINUS_1, 2),
-                "revert"
+                "testInt96SafeMathMul overflow"
             );
             await expectRevert(
                 tester.testInt96SafeMathMul("-1", MIN_INT96),
-                "revert"
+                "testInt96SafeMathMul overflow"
             );
 
             // testInt96SafeMathAdd
@@ -152,7 +152,7 @@ describe("Miscellaneous for test coverages", function () {
             );
             await expectRevert(
                 tester.testInt96SafeMathAdd(MAX_INT96, "1"),
-                "revert"
+                "testInt96SafeMathAdd overflow"
             );
 
             // testInt96SafeMathSub
@@ -168,7 +168,7 @@ describe("Miscellaneous for test coverages", function () {
             );
             await expectRevert(
                 tester.testInt96SafeMathSub(MIN_INT96, "1"),
-                "revert"
+                "testInt96SafeMathSub overflow"
             );
             // testInt96SafeMathDiv
             assert.equal(
@@ -208,12 +208,12 @@ describe("Miscellaneous for test coverages", function () {
 
             await expectRevert(
                 tester.testInt96SafeMathDiv(MIN_INT96, 0),
-                "revert"
+                "testInt96SafeMathDiv overflow"
             );
 
             await expectRevert(
                 tester.testInt96SafeMathDiv(MIN_INT96, -1),
-                "revert"
+                "testInt96SafeMathDiv overflow"
             );
         });
 
@@ -240,11 +240,11 @@ describe("Miscellaneous for test coverages", function () {
             );
             await expectRevert(
                 tester.testUInt128SafeMathAdd("1", MAX_UINT128),
-                "revert"
+                "testUInt128SafeMathAdd overflow"
             );
             await expectRevert(
                 tester.testInt128SafeMathSub("0", "1"),
-                "revert"
+                "testInt96SafeMathSub overflow"
             );
         });
     });

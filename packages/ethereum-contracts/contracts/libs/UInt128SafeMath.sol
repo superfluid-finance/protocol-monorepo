@@ -27,7 +27,12 @@ library UInt128SafeMath {
      * - Addition cannot overflow.
      */
     function add(uint128 a, uint128 b, string memory errorMessage) internal pure returns (uint128) {
-        uint128 c = a + b;
+        uint128 c;
+
+        unchecked {
+            c = a + b;
+        }
+
         require(c >= a, errorMessage);
 
         return c;

@@ -375,7 +375,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         receiver: t.aliases.carol,
                         flowRate: MAXIMUM_FLOW_RATE.toString(),
                     }),
-                    "CallUtils: target reverted"
+                    "CFA: deposit overflow"
                 );
             });
 
@@ -511,7 +511,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         receiver: t.aliases[receiver],
                         flowRate: MAXIMUM_FLOW_RATE.toString(),
                     }),
-                    "CallUtils: target reverted"
+                    "CFA: deposit overflow"
                 );
             });
 

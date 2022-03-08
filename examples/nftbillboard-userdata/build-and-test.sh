@@ -5,7 +5,7 @@ set -xe
 
 # build contracts & UI
 yarn install --frozen-lockfile
-export GANACHE_PORT=8545
+export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
 echo "Ganache port: $GANACHE_PORT"
 yarn ganache-cli --port $GANACHE_PORT &
 ganache_pid=$!

@@ -5,6 +5,10 @@ set -xe
 
 # build contracts & UI
 yarn install --frozen-lockfile
+# test contracts
+yarn test
+
+export RELEASE_VERSION=test
 export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
 echo "Ganache port: $GANACHE_PORT"
 yarn ganache-cli --port $GANACHE_PORT &
@@ -15,7 +19,6 @@ yarn build
 
 kill -9 $ganache_pid
 
-# test contracts
-yarn test
+
 
 

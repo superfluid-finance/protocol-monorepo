@@ -9,7 +9,7 @@ yarn install --frozen-lockfile
 yarn test
 
 export RELEASE_VERSION=test
-export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
+export GANACHE_PORT=$(( 5000 + $RANDOM % 1000 ))
 echo "Ganache port: $GANACHE_PORT"
 yarn ganache-cli --port $GANACHE_PORT &
 ganache_pid=$!

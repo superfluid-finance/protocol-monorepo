@@ -10,11 +10,8 @@ const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const Web3 = require("web3");
-const hardhatConfig = require("../hardhat.config");
 const { defaultNetwork } = require("../hardhat.config");
 const config = require("../hardhat.config");
-
-const network = "localhost";
 
 require("dotenv");
 //your address here...

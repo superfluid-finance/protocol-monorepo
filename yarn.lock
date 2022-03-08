@@ -7292,6 +7292,11 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
+cloc@^2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/cloc/-/cloc-2.9.0.tgz#70bcac923342acf8724ec3f618e7f6fd900706ba"
+  integrity sha512-Eo97MtQ5nozSd5CFcYgwUg5Ej7GVcdopVd5T+SGwJc3VAmu0vNxV/ZDl06QAQhCUkM2EGKl8nhhP1BZuQXGiZg==
+
 clone-buffer@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/clone-buffer/-/clone-buffer-1.0.0.tgz#e3e25b207ac4e701af721e2cb5a16792cac3dc58"
@@ -11365,9 +11370,9 @@ globby@^9.2.0:
     pify "^4.0.1"
     slash "^2.0.0"
 
-"gluegun@git+https://github.com/edgeandnode/gluegun.git#v4.3.1-pin-colors-dep":
+"gluegun@https://github.com/edgeandnode/gluegun#v4.3.1-pin-colors-dep":
   version "4.3.1"
-  resolved "git+https://github.com/edgeandnode/gluegun.git#b34b9003d7bf556836da41b57ef36eb21570620a"
+  resolved "https://github.com/edgeandnode/gluegun#b34b9003d7bf556836da41b57ef36eb21570620a"
   dependencies:
     apisauce "^1.0.1"
     app-module-path "^2.2.0"

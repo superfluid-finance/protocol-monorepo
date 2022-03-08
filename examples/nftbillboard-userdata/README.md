@@ -8,7 +8,7 @@ Note: this code has not been audited and is for example purposes only.
 
 We're excited to see what you build 💻
 
-Usage
+### Usage
 
 1) Go get some test DAIx tokens at app.superfluid.finance on Mumbai testnet.
 2) Add your own private key, public address and rpc URL for Mumbai inside of a ```.env``` file using the format in ```packages/hardhat/env.example```

@@ -7,7 +7,7 @@ import {ISuperApp, ISuperAgreement} from "../interfaces/superfluid/ISuperfluid.s
 
 import {ContextDefinitions, SuperAppDefinitions} from "../interfaces/superfluid/ISuperfluid.sol";
 
-import {SuperAppBase} from "../interfaces/superfluid/SuperAppBase.sol";
+import {SuperAppBase} from "../apps/SuperAppBase.sol";
 
 import {IConstantFlowAgreementV1} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 

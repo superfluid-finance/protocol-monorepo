@@ -215,9 +215,8 @@ library Strings {
             }
             if (a != b) {
                 // Mask out irrelevant bytes and check again
-                // REVIEW (0.8.12): negating uint
-                // uint256 mask = uint256(-1); // 0xffff...
-                uint256 mask = type(uint256).max - 1 + 1; // 0xffff...
+                // NOTE uint(-1) is equal to type(uint256).max
+                uint256 mask = type(uint256).max; // 0xffff...
                 if(shortest < 32) {
                   mask = ~(2 ** (8 * (32 - shortest + idx)) - 1);
                 }

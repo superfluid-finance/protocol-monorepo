@@ -21,7 +21,7 @@ contract NativeSuperTokenProxy is INativeSuperTokenCustom, CustomSuperTokenBase,
         external override
     {
         ISuperToken(address(this)).initialize(
-            // REVIEW (0.8.12): - 0x0 was considered to be type of `int_const 0`
+            // NOTE this is the verbose intention
             IERC20(0x0000000000000000000000000000000000000000), // no underlying/wrapped token
             18, // shouldn't matter if there's no wrapped token
             name,

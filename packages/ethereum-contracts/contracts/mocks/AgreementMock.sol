@@ -9,8 +9,11 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
 import { AgreementLibrary } from "../agreements/AgreementLibrary.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract AgreementMock is AgreementBase {
+
+    using SafeCast for uint256;
 
     uint256 constant private _REAL_TIME_BALANCE_SLOT_ID = 65552025;
 
@@ -46,8 +49,7 @@ contract AgreementMock is AgreementBase {
         bytes32[] memory slotData = token.getAgreementStateSlot(
             address(this), account, _REAL_TIME_BALANCE_SLOT_ID, 3);
         return (
-            // REVIEW (0.8.12): - intermediate conversion step required
-            int256(uint256(slotData[0])),
+            uint256(slotData[0]).toInt256(),
             uint256(slotData[1]),
             uint256(slotData[2])
         );

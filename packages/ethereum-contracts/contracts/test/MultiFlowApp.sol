@@ -6,7 +6,7 @@ import {
     ISuperToken,
     SuperAppBase,
     SuperAppDefinitions
-} from "../interfaces/superfluid/SuperAppBase.sol";
+} from "../apps/SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
@@ -93,7 +93,7 @@ contract MultiFlowApp is SuperAppBase {
 
         // scale the flow rate and app allowance numbers
         appAllowanceGranted = appAllowanceGranted * configuration.ratioPct / 100;
-        // REVIEW (0.8.12): intermediate conversion added
+        // NOTE casting to int96 is okay here because ratioPct is uint8
         flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
 
         for(uint256 i = 0; i < configuration.receivers.length; i++) {

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.12;
 
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
 import {
     ISuperfluid,
     ISuperToken,
@@ -115,6 +117,8 @@ interface ITOGAv2 is ITOGAv1 {
 }
 
 contract TOGA is ITOGAv2, IERC777Recipient {
+
+    using SafeCast for uint256;
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
     struct LockablePIC {
         address addr;
@@ -168,23 +172,20 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         public view override
         returns(int96 exitRate)
     {
-        // REVIEW (0.8.12): - intermediate conversion step required
-        return int96(int256(bondAmount / (minBondDuration * 4)));
+        return int96((bondAmount / (minBondDuration * 4)).toInt256());
     }
 
     function getMaxExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
         external view override
         returns(int96 exitRate)
     {
-        // REVIEW (0.8.12): - intermediate conversion step required
-        return int96(int256(bondAmount / minBondDuration));
+        return int96((bondAmount / minBondDuration).toInt256());
     }
 
     function changeExitRate(ISuperToken token, int96 newExitRate) external override {
         address currentPICAddr = _currentPICs[token].addr;
         require(msg.sender == currentPICAddr, "TOGA: only PIC allowed");
         require(newExitRate >= 0, "TOGA: negative exitRate not allowed");
-        // REVIEW (0.8.12): - intermediate conversion step required
         require(uint256(int256(newExitRate)) * minBondDuration <= _getCurrentPICBond(token), "TOGA: exitRate too high");
 
         (, int96 curExitRate,,) = _cfa.getFlow(token, address(this), currentPICAddr);
@@ -249,7 +250,6 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     function _becomePIC(ISuperToken token, address newPIC, uint256 amount, int96 exitRate) internal {
         require(!_currentPICs[token].lock, "TOGA: reentrancy not allowed");
         require(exitRate >= 0, "TOGA: negative exitRate not allowed");
-        // REVIEW (0.8.12): - intermediate conversion step required
         require(uint256(int256(exitRate)) * minBondDuration <= amount, "TOGA: exitRate too high");
         // cannot underflow because amount was added to the balance before
         uint256 currentPICBond = _getCurrentPICBond(token) - amount;

@@ -15,7 +15,6 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
@@ -39,7 +38,6 @@ contract ConstantFlowAgreementV1 is
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     using SafeCast for uint256;
-    using SignedSafeMath for int256;
     using SafeCast for int256;
     using Int96SafeMath for int96;
 
@@ -99,7 +97,9 @@ contract ConstantFlowAgreementV1 is
         deposit = _clipDepositNumberRoundingDown(deposit);
         (uint256 liquidationPeriod, ) = _decode3PsData(token);
         uint256 flowrate1 = deposit / liquidationPeriod;
-        // REVIEW (0.8.12): - intermediate conversion step required
+
+        // NOTE downcasting is safe as we constrain deposit to less than
+        // 2 ** 95 so the resulting value flowRate1 will fit into int96
         return int96(int256(flowrate1));
     }
 
@@ -115,7 +115,6 @@ contract ConstantFlowAgreementV1 is
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
-        // REVIEW (0.8.12): - intermediate conversion step required
         require(uint256(int256(flowRate))
             * liquidationPeriod <= uint256(int256(type(int96).max)), "CFA: flow rate too big");
         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
@@ -820,7 +819,7 @@ contract ConstantFlowAgreementV1 is
         //    -     Agreement Total Deposit = TD
         //    -     Total Reward Left = RL = AB + TD
         // #1 Can the total account deposit still cover the available balance deficit?
-        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
+        int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
         
         // To retrieve patrician period
         // Note: curly brackets are to handle stack too deep overflow issue
@@ -899,7 +898,6 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
         
-        // REVIEW (0.8.12): - intermediate conversion step required
         assert(liquidationPeriod <= uint256(int256(type(int96).max)));
         deposit = uint256(int256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow")));
         return _clipDepositNumber(deposit);
@@ -952,7 +950,7 @@ contract ConstantFlowAgreementV1 is
         exist = wordA > 0;
         if (exist) {
             flowData.timestamp = uint32(wordA >> 224);
-            // REVIEW (0.8.12): - intermediate conversion step required
+            // NOTE because we are upcasting from type(uint96).max to uint256 to int256, we do not need to use safecast
             flowData.flowRate = int96(int256(wordA >> 128) & int256(uint256(type(uint96).max)));
             flowData.deposit = ((wordA >> 64) & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
             flowData.owedDeposit = (wordA & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
@@ -994,7 +992,7 @@ contract ConstantFlowAgreementV1 is
         internal pure 
         returns (bool) 
     {
-        int256 totalRewardLeft = availableBalance.add(signedTotalCFADeposit);
+        int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
         int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
         // divisor cannot be zero with existing outflow
         return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);

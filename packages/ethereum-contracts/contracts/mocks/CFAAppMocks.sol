@@ -6,7 +6,7 @@ import {
     ISuperToken,
     SuperAppBase,
     SuperAppDefinitions
-} from "../interfaces/superfluid/SuperAppBase.sol";
+} from "../apps/SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**

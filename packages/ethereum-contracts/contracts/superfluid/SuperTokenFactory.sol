@@ -143,7 +143,7 @@ abstract contract SuperTokenFactoryBase is
         external override
     {
         // odd solidity stuff..
-        // REVIEW (0.8.12): - intermediate conversion step required
+        // NOTE payable necessary because UUPSProxy has a payable fallback function
         address payable a = payable(address(uint160(customSuperTokenProxy)));
         UUPSProxy(a).initializeProxy(address(_superTokenLogic));
 

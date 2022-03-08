@@ -123,7 +123,8 @@ contract InstantDistributionAgreementV1 is
                 (exist, idata) = _getIndexData(token, iId);
                 assert(exist);
                 dynamicBalance = dynamicBalance + (
-                    // REVIEW (0.8.12): - intermediate conversion step required
+                    // NOTE casting these values to int256 is okay because the original values
+                    // are uint128
                     int256(uint256(idata.indexValue - sdata.indexValue)) * int256(uint256(sdata.units))
                 );
             }
@@ -265,11 +266,13 @@ contract InstantDistributionAgreementV1 is
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
         token.settleBalance(publisher,
-            // REVIEW (0.8.12): - intermediate conversion step required
+            // NOTE casting these values to int256 is okay because the original values
+            // are uint128
             (-int256(uint256(newIndexValue - idata.indexValue))) * int256(uint256(idata.totalUnitsApproved)));
         //   - adjust the publisher's deposit amount
         _adjustPublisherDeposit(token, publisher,
-            // REVIEW (0.8.12): - intermediate conversion step required
+            // NOTE casting these values to int256 is okay because the original values
+            // are uint128
             int256(uint256(newIndexValue - idata.indexValue)) * int256(uint256(idata.totalUnitsPending)));
         // adjust the publisher's index data
         uint128 oldIndexValue = idata.indexValue;
@@ -381,7 +384,8 @@ contract InstantDistributionAgreementV1 is
         } else {
             cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-            // REVIEW (0.8.12): - intermediate conversion step required
+            // NOTE casting these values to int256 is okay because the original values
+            // are uint128
             int balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
                 * int256(uint256(vars.sdata.units));
 
@@ -447,7 +451,8 @@ contract InstantDistributionAgreementV1 is
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-        // REVIEW (0.8.12): - intermediate conversion step required
+        // NOTE downcasting these values to int256 is okay because the original values
+        // are uint128
         int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
             * int256(uint256(vars.sdata.units));
 
@@ -555,7 +560,8 @@ contract InstantDistributionAgreementV1 is
             vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units, "IDA: E_OVERFLOW");
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         }
-        // REVIEW (0.8.12): - intermediate conversion step required
+        // NOTE casting these values to int256 is okay because the original values
+        // are uint128
         int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
             * int256(uint256(vars.sdata.units));
 
@@ -728,7 +734,8 @@ contract InstantDistributionAgreementV1 is
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-        // REVIEW (0.8.12): - intermediate conversion step required
+        // NOTE casting these values to int256 is okay because the original values
+        // are uint128
         int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
             * int256(uint256(vars.sdata.units));
 
@@ -927,10 +934,11 @@ contract InstantDistributionAgreementV1 is
         uint256 b = uint256(adata[1]);
         exist = a > 0;
         if (exist) {
-            // REVIEW (0.8.12): - negating uint
-            idata.indexValue = uint128(a & type(uint256).max - 1 + 1);
-            // REVIEW (0.8.12): - negating uint
-            idata.totalUnitsApproved = uint128(b & type(uint256).max - 1 + 1);
+            // NOTE We will do an unsafe downcast from uint256 => uint128
+            // as we know this is safe
+            // see https://gist.github.com/0xdavinchee/9834dc689543f19ec07872ad7d766b09
+            idata.indexValue = uint128(a);
+            idata.totalUnitsApproved = uint128(b);
             idata.totalUnitsPending = uint128(b >> 128);
         }
     }
@@ -968,8 +976,7 @@ contract InstantDistributionAgreementV1 is
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
-        // REVIEW (0.8.12): - intermediate conversion step required
-        data[0] = bytes32(uint256(int256(uint256(data[0])) + delta));
+        data[0] = bytes32(uint256(uint256(data[0]).toInt256() + delta));
         token.updateAgreementStateSlot(
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
@@ -993,7 +1000,6 @@ contract InstantDistributionAgreementV1 is
     {
         data = new bytes32[](2);
         data[0] = bytes32(
-            // REVIEW (0.8.12): - intermediate conversion step required
             (uint256(uint160(sdata.publisher)) << (12*8)) |
             (uint256(sdata.indexId) << 32) |
             uint256(sdata.subId)
@@ -1019,8 +1025,10 @@ contract InstantDistributionAgreementV1 is
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & type(uint32).max);
             sdata.subId = uint32(a & type(uint32).max);
-            // REVIEW (0.8.12): - negating uint
-            sdata.indexValue = uint128(b & type(uint256).max - 1 + 1);
+            // NOTE We will do an unsafe downcast from uint256 => uint128
+            // as we know this is safe
+            // see https://gist.github.com/0xdavinchee/9834dc689543f19ec07872ad7d766b09
+            sdata.indexValue = uint128(b);
             sdata.units = uint128(b >> 128);
         }
     }

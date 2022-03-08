@@ -12,7 +12,7 @@ import { ISuperToken } from "./ISuperToken.sol";
 interface ISuperApp {
 
     /**
-     * @notice Callback before a new agreement is created.
+     * @dev Callback before a new agreement is created.
      * @param superToken The super token used for the agreement.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
@@ -37,7 +37,7 @@ interface ISuperApp {
         returns (bytes memory cbdata);
 
     /**
-     * @notice Callback after a new agreement is created.
+     * @dev Callback after a new agreement is created.
      * @param superToken The super token used for the agreement.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
@@ -62,7 +62,7 @@ interface ISuperApp {
         returns (bytes memory newCtx);
 
     /**
-     * @notice Callback before a new agreement is updated.
+     * @dev Callback before a new agreement is updated.
      * @param superToken The super token used for the agreement.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
@@ -88,7 +88,7 @@ interface ISuperApp {
 
 
     /**
-    * @notice Callback after a new agreement is updated.
+    * @dev Callback after a new agreement is updated.
     * @param superToken The super token used for the agreement.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
@@ -113,7 +113,7 @@ interface ISuperApp {
         returns (bytes memory newCtx);
 
     /**
-    * @notice Callback before a new agreement is terminated.
+    * @dev Callback before a new agreement is terminated.
     * @param superToken The super token used for the agreement.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
@@ -138,7 +138,7 @@ interface ISuperApp {
         returns (bytes memory cbdata);
 
     /**
-    * @notice Callback after a new agreement is terminated.
+    * @dev Callback after a new agreement is terminated.
     * @param superToken The super token used for the agreement.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId

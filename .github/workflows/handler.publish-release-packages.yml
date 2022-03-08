@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/checkout@v2
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
+
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
@@ -67,16 +72,86 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
+
+
       - name: Publish sdk-core package
+        id: publish-sdk-core
         if: env.PUBLISH_SDK_CORE == 1
-        run: tasks/npm-publish.sh packages/sdk-core/ latest
+        run: |
+          tasks/npm-publish.sh packages/sdk-core/ latest
+
+          PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`
+          echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
+
+          # Build documentation with redirect from root
+          yarn --cwd packages/sdk-core doc:html
+          mkdir sdk-core-redirect
+          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL='https://refs.superfluid.finance/sdk-core@$PUBLISHED_VERSION'" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' \
+          > sdk-core-redirect/index.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
+      - name: Upload sdk-core HTML documentation
+        if: env.PUBLISH_SDK_CORE == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-core/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-core.outputs.PUBLISHED_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
+
+      - name: Upload sdk-core latest documentation redirect
+        if: env.PUBLISH_SDK_CORE == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: sdk-core-redirect
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-core', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
+
+
+
       - name: Publish sdk-redux package
+        id: publish-sdk-redux
         if: env.PUBLISH_SDK_REDUX == 1
-        run: tasks/npm-publish.sh packages/sdk-redux/ latest
+        run: |
+          tasks/npm-publish.sh packages/sdk-redux/ latest
+
+          PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`
+          echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
+
+          # Build documentation with redirect from root
+          yarn --cwd packages/sdk-redux doc:html
+          mkdir sdk-redux-redirect
+          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL='https://refs.superfluid.finance/sdk-redux@$PUBLISHED_VERSION'" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' \
+          > sdk-redux-redirect/index.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          
+      - name: Upload sdk-redux HTML documentation
+        if: env.PUBLISH_SDK_REDUX == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-redux/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-redux.outputs.PUBLISHED_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
+
+      - name: Upload sdk-redux latest documentation redirect
+        if: env.PUBLISH_SDK_REDUX == 1
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: sdk-redux-redirect
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-redux', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO

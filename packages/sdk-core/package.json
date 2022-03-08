@@ -31,19 +31,20 @@
         "test": "nyc --reporter=html --reporter=lcov --reporter=json npx hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts",
+        "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts && copyfiles -f ./sf-logo.png ./dist/docs/",
         "lint": "run-s lint:*",
         "lint:prettier": "prettier \"src/**/*.ts\" --list-different",
         "lint:eslint": "eslint src --ext .ts",
         "fix": "run-s fix:*",
         "fix:prettier": "yarn lint:prettier --write",
         "fix:eslint": "yarn lint:eslint --fix",
-        "pre-commit": "run-s lint:*",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "generate": "run-s generate:*",
         "generate:abi-files": "rm -rf src/abi && mkdir src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
-        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql"
+        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",
+        "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
@@ -77,6 +78,7 @@
         "@typescript-eslint/parser": "^5.10.2",
         "chai": "^4.3.6",
         "chai-ethers": "^0.0.1",
+        "copyfiles": "^2.4.1",
         "coveralls": "^3.1.1",
         "dotenv": "^10.0.0",
         "eslint": "^8.8.0",

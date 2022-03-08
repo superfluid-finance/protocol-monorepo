@@ -25,6 +25,7 @@
         "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
+        "build:contracts-size": "bash tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
         "testenv:start": "test/testenv-ctl.sh start",
         "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
@@ -41,9 +42,10 @@
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
         "lint:check-no-focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
-        "pre-commit": "run-s pre-commit:*",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
         "pre-commit:lint": "yarn lint",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",

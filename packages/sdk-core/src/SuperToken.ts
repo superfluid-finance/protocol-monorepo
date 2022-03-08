@@ -87,7 +87,6 @@ export default class SuperToken extends Token {
         }
         const networkName = getNetworkName(options);
         const chainId =
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         try {
             const superToken = new ethers.Contract(

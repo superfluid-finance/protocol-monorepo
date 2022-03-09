@@ -51,6 +51,7 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.5.0",
+        "@arachnid/solidity-string-utils": "Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "@superfluid-finance/js-sdk": "0.5.11",
         "@truffle/contract": "4.4.6",
         "ethereumjs-tx": "2.1.2",

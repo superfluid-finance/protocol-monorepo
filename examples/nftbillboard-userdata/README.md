@@ -8,16 +8,23 @@ Note: this code has not been audited and is for example purposes only.
 
 We're excited to see what you build 💻
 
-Usage
+### Usage
 
 1) Go get some test DAIx tokens at app.superfluid.finance on Mumbai testnet.
 2) Add your own private key, public address and rpc URL for Mumbai inside of a ```.env``` file using the format in ```packages/hardhat/env.example```
-3) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable.
+3) Deploy Your Billboard NFT by following the instructions below.
+4) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable.
 
 
 
-For initial setup and contract deployment:
+### For Initial Setup and Contract Deployment:
 
+- You need to change the `defaultNetwork` inside of `hardhat.config.js` to reflect your target network.
+- If you're deploying locally, `ganache` or `localhost` should suffice. 
+- If you're deploying to a live mainnet or testnet, you should change the default network and make sure that your private key and rpc url for that network are correct in your `.env` file.
+- Inside of the deploy script, you will also need to add the address of the `host`, `cfa`, and super token you plan to use at the top of the file prior to deployment.
+
+Once the above is complete, you can run:
 ```yarn install```
 ```yarn deploy```
 

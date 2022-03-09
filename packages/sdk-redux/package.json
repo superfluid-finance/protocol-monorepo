@@ -14,7 +14,7 @@
     "module": "dist/module/index.js",
     "keywords": [],
     "scripts": {
-        "pre-commit": "run-s lint:*",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "build": "rm -rf dist && run-p build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
@@ -29,7 +29,8 @@
         "doc": "run-s doc:html",
         "doc:html": "typedoc src/ --out dist/docs && copyfiles -f ./sf-logo.png ./dist/docs/",
         "doc:json": "typedoc src/ --json dist/docs/typedoc.json",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "cloc": "sh tasks/cloc.sh"
     },
     "engines": {
         "node": ">=12"

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 /**
- * @dev Super app definitions library
+ * @title Super app definitions library
+ * @author Superfluid
  */
 library SuperAppDefinitions {
 
@@ -67,7 +68,8 @@ library SuperAppDefinitions {
 }
 
 /**
- * @dev Context definitions library
+ * @title Context definitions library
+ * @author Superfluid
  */
 library ContextDefinitions {
 
@@ -103,7 +105,8 @@ library ContextDefinitions {
 }
 
 /**
- * @dev Batch operation library
+ * @title Batch operation library
+ * @author Superfluid
  */
 library BatchOperation {
     /**
@@ -164,6 +167,10 @@ library BatchOperation {
     uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION = 2 + 200;
 }
 
+/**
+ * @title Superfluid governance configs library
+ * @author Superfluid
+ */
 library SuperfluidGovernanceConfigs {
 
     bytes32 constant internal SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY =

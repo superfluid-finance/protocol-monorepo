@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -24,10 +23,9 @@ import { CallUtils } from "../libs/CallUtils.sol";
 
 import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
 
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
+/// FIXME Lots of reverts in here - can put custom errors
 
 /**
  * @dev The Superfluid host implementation.
@@ -44,9 +42,7 @@ contract Superfluid is
     BaseRelayRecipient
 {
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
-    using SignedSafeMath for int256;
 
     struct AppManifest {
         uint256 configWord;
@@ -532,7 +528,7 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
+        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
         newCtx = _updateContext(context);
     }
 
@@ -547,8 +543,8 @@ contract Superfluid is
     {
         Context memory context = decodeCtx(ctx);
 
-        context.appAllowanceWanted = context.appAllowanceWanted.add(appAllowanceWantedMore);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
+        context.appAllowanceWanted = context.appAllowanceWanted + appAllowanceWantedMore;
+        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
 
         newCtx = _updateContext(context);
     }

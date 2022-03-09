@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
@@ -16,10 +16,9 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
@@ -38,7 +37,6 @@ contract SuperToken is
 
     using SafeMath for uint256;
     using SafeCast for uint256;
-    using SignedSafeMath for int256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
@@ -404,7 +402,7 @@ contract SuperToken is
 
     function increaseAllowance(address spender, uint256 addedValue)
         public override returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
         return true;
     }
 
@@ -575,7 +573,7 @@ contract SuperToken is
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
-        uint256 actualUpgradedAmount = amountAfter.sub(amountBefore);
+        uint256 actualUpgradedAmount = amountAfter - amountBefore;
         require(
             underlyingAmount == actualUpgradedAmount,
             "SuperToken: inflationary/deflationary tokens not supported");
@@ -603,7 +601,7 @@ contract SuperToken is
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransfer(account, underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
-        uint256 actualDowngradedAmount = amountBefore.sub(amountAfter);
+        uint256 actualDowngradedAmount = amountBefore - amountAfter;
         require(
             underlyingAmount == actualDowngradedAmount,
             "SuperToken: inflationary/deflationary tokens not supported");

@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.5.0;
+pragma solidity >= 0.8.0;
 
 /**
- * @dev ERC20 token info interface
- *
- * NOTE: ERC20 standard interface does not specify these functions, but
- * often the token implementations have them.
- *
+ * @title ERC20 token info interface
+ * @author Superfluid
+ * @dev ERC20 standard interface does not specify these functions, but
+ *      often the token implementations have them.
  */
 interface TokenInfo {
     /**

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -11,6 +11,8 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 /**
+ * @title Test governance contract
+ * @author Superfluid 
  * @dev A initializable version of the governance for testing purpose
  */
 contract TestGovernance is

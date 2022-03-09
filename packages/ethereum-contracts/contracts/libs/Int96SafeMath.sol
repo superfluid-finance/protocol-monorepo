@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-
-pragma solidity ^0.7.0;
+pragma solidity 0.8.12;
 
 /**
  * @title Int96SafeMath
@@ -28,8 +27,12 @@ library Int96SafeMath {
         }
 
         require(!(a == -1 && b == _INT96_MIN), errorMessage);
-
-        int96 c = a * b;
+        int96 c;
+        
+        unchecked {
+            c = a * b;
+        }
+        
         require(c / a == b, errorMessage);
 
         return c;
@@ -67,7 +70,12 @@ library Int96SafeMath {
      * - Subtraction cannot overflow.
      */
     function sub(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
-        int96 c = a - b;
+        int96 c;
+
+        unchecked {
+            c = a - b;
+        }
+
         require((b >= 0 && c <= a) || (b < 0 && c > a), errorMessage);
 
         return c;
@@ -84,7 +92,12 @@ library Int96SafeMath {
      * - Addition cannot overflow.
      */
     function add(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
-        int96 c = a + b;
+        int96 c;
+        
+        unchecked {
+            c = a + b;
+        }
+
         require((b >= 0 && c >= a) || (b < 0 && c < a), errorMessage);
 
         return c;

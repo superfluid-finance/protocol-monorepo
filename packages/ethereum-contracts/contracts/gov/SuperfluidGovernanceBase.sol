@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -15,7 +15,8 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 
 /**
- * @dev Base superfluid governance implementation
+ * @title Base superfluid governance implementation
+ * @author Superfluid
  */
 abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 {
@@ -188,7 +189,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             // fallback to default config
             v =  _configs[address(host)][address(0)][key];
         }
-        return address(int160(v.value));
+        return address(uint160(v.value));
     }
 
     function getConfigAsUint256(

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -10,13 +9,11 @@ import {
 } from "../apps/SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-
 /**
- * @dev Multi Flow (Super) App
- *
- * A super app that can split incoming flows to multiple outgoing flows.
- *
- * This is used for testing CFA callbacks logic.
+ * @title Multi Flow (Super) App
+ * @author Superfluid
+ * @dev A super app that can split incoming flows to multiple outgoing flows.
+ *      This is used for testing CFA callbacks logic.
  */
 contract MultiFlowApp is SuperAppBase {
 
@@ -96,7 +93,8 @@ contract MultiFlowApp is SuperAppBase {
 
         // scale the flow rate and app allowance numbers
         appAllowanceGranted = appAllowanceGranted * configuration.ratioPct / 100;
-        flowRate = flowRate * configuration.ratioPct / 100;
+        // NOTE casting to int96 is okay here because ratioPct is uint8
+        flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
 
         for(uint256 i = 0; i < configuration.receivers.length; i++) {
             ReceiverData memory receiverData = configuration.receivers[i];

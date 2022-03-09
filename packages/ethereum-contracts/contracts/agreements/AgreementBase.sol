@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 
 
 /**
- * @dev The Superfluid agreement base boilerplate contract
- *
+ * @title Superfluid agreement base boilerplate contract
  * @author Superfluid
  */
 abstract contract AgreementBase is

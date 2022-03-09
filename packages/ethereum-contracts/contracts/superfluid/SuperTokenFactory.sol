@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperTokenFactory,
@@ -143,7 +143,8 @@ abstract contract SuperTokenFactoryBase is
         external override
     {
         // odd solidity stuff..
-        address payable a = address(uint160(customSuperTokenProxy));
+        // NOTE payable necessary because UUPSProxy has a payable fallback function
+        address payable a = payable(address(uint160(customSuperTokenProxy)));
         UUPSProxy(a).initializeProxy(address(_superTokenLogic));
 
         emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));

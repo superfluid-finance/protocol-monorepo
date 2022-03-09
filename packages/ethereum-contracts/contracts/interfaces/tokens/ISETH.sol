@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 import { ISuperToken } from "../superfluid/ISuperToken.sol";
 
 
 /**
- * @dev Super ETH (SETH) custom token functions
- *
+ * @title Super ETH (SETH) custom token interface
  * @author Superfluid
  */
 interface ISETHCustom {
@@ -23,8 +22,7 @@ interface ISETHCustom {
 }
 
 /**
- * @dev Super ETH (SETH) full interface
- *
+ * @title Super ETH (SETH) full interface
  * @author Superfluid
  */
 // solhint-disable-next-line no-empty-blocks

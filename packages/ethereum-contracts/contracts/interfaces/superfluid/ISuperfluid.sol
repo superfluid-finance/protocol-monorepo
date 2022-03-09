@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
-// This is required by the batchCall and decodeCtx
-pragma experimental ABIEncoderV2;
+pragma solidity >= 0.8.0;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
@@ -19,17 +17,16 @@ import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 
-
 /**
- * @dev Superfluid host interface.
-
- * It is the central contract of the system where super agreement, super app
- * and super token features are connected together.
+ * @title Host interface
+ * @author Superfluid
+ * NOTE:
+ * This is the central contract of the system where super agreement, super app
+ * and super token features are connected.
  *
- * The superfluid host contract is also the entry point for the protocol users,
+ * The Superfluid host contract is also the entry point for the protocol users,
  * where batch call and meta transaction are provided for UX improvements.
  *
- * @author Superfluid
  */
 interface ISuperfluid {
 
@@ -38,31 +35,41 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
-     * @dev Get the current governace of the Superfluid host
+     * @dev Get the current governance address of the Superfluid host
      */
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
-    event GovernanceReplaced(ISuperfluidGovernance oldGov, ISuperfluidGovernance newGov);
     /**
      * @dev Replace the current governance with a new one
      */
     function replaceGovernance(ISuperfluidGovernance newGov) external;
+    /**
+     * @dev Governance replaced event
+     * @param oldGov Address of the old governance contract
+     * @param newGov Address of the new governance contract
+     */
+    event GovernanceReplaced(ISuperfluidGovernance oldGov, ISuperfluidGovernance newGov);
 
     /**************************************************************************
      * Agreement Whitelisting
      *************************************************************************/
 
-    event AgreementClassRegistered(bytes32 agreementType, address code);
     /**
      * @dev Register a new agreement class to the system
-     * @param agreementClassLogic INitial agreement class code
+     * @param agreementClassLogic Initial agreement class code
      *
      * Modifiers:
      *  - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
+    /**
+     * @notice Agreement class registered event
+     * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
+     * @param agreementType The agreement type registered
+     * @param code Address of the new agreement 
+     */
+    event AgreementClassRegistered(bytes32 agreementType, address code);
 
-    event AgreementClassUpdated(bytes32 agreementType, address code);
     /**
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
@@ -71,9 +78,17 @@ interface ISuperfluid {
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
+    /**
+     * @notice Agreement class updated event
+     * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
+     * @param agreementType The agreement type updated
+     * @param code Address of the new agreement 
+     */
+    event AgreementClassUpdated(bytes32 agreementType, address code);
 
     /**
-    * @dev Check if the agreement class is whitelisted
+    * @notice Check if the agreement type is whitelisted
+    * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
     */
     function isAgreementTypeListed(bytes32 agreementType) external view returns(bool yes);
 
@@ -83,7 +98,8 @@ interface ISuperfluid {
     function isAgreementClassListed(ISuperAgreement agreementClass) external view returns(bool yes);
 
     /**
-    * @dev Get agreement class
+    * @notice Get agreement class
+    * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
     */
     function getAgreementClass(bytes32 agreementType) external view returns(ISuperAgreement agreementClass);
 
@@ -96,7 +112,8 @@ interface ISuperfluid {
         returns (ISuperAgreement[] memory agreementClasses);
 
     /**
-    * @dev Create a new bitmask by adding a agreement class to it.
+    * @notice Create a new bitmask by adding a agreement class to it
+    * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
     * @param bitmap Agreement class bitmap
     */
     function addToAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
@@ -104,7 +121,8 @@ interface ISuperfluid {
         returns (uint256 newBitmap);
 
     /**
-    * @dev Create a new bitmask by removing a agreement class from it.
+    * @notice Create a new bitmask by removing a agreement class from it
+    * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
     * @param bitmap Agreement class bitmap
     */
     function removeFromAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
@@ -127,47 +145,48 @@ interface ISuperfluid {
      */
     function getSuperTokenFactoryLogic() external view returns (address logic);
 
-    event SuperTokenFactoryUpdated(ISuperTokenFactory newFactory);
     /**
      * @dev Update super token factory
      * @param newFactory New factory logic
      */
     function updateSuperTokenFactory(ISuperTokenFactory newFactory) external;
-
-    event SuperTokenLogicUpdated(ISuperToken indexed token, address code);
     /**
-     * @dev Update the super token logic to the latest
-     *
-     * NOTE:
-     * - Refer toISuperTokenFactory.Upgradability for expected behaviours.
+     * @dev SuperToken factory updated event
+     * @param newFactory Address of the new factory
+     */
+    event SuperTokenFactoryUpdated(ISuperTokenFactory newFactory);
+
+    /**
+     * @notice Update the super token logic to the latest
+     * @dev Refer to ISuperTokenFactory.Upgradability for expected behaviours
      */
     function updateSuperTokenLogic(ISuperToken token) external;
+    /**
+     * @dev SuperToken logic updated event
+     * @param code Address of the new SuperToken logic
+     */
+    event SuperTokenLogicUpdated(ISuperToken indexed token, address code);
 
     /**************************************************************************
      * App Registry
      *************************************************************************/
 
     /**
+     * @dev Message sender declares it as a super app
+     * @param configWord The super app manifest configuration, flags are defined in
+     * `SuperAppDefinitions`
+     */
+    function registerApp(uint256 configWord) external;
+    /**
      * @dev App registered event
+     * @param app Address of jailed app
      */
     event AppRegistered(ISuperApp indexed app);
 
     /**
-     * @dev Jail event for the app
-     */
-    event Jail(ISuperApp indexed app, uint256 reason);
-
-    /**
-     * @dev Message sender declares it as a super app
-     * @param configWord The super app manifest configuration, flags are defined in
-     *                   `SuperAppDefinitions`
-     */
-    function registerApp(uint256 configWord) external;
-
-    /**
      * @dev Message sender declares it as a super app, using a registration key
      * @param configWord The super app manifest configuration, flags are defined in
-     *                   `SuperAppDefinitions`
+     * `SuperAppDefinitions`
      * @param registrationKey The registration key issued by the governance
      */
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
@@ -175,7 +194,7 @@ interface ISuperfluid {
     /**
      * @dev Message sender declares app as a super app
      * @param configWord The super app manifest configuration, flags are defined in
-     *                   `SuperAppDefinitions`
+     * `SuperAppDefinitions`
      * NOTE: only factory contracts authorized by governance can register super apps
      */
     function registerAppByFactory(ISuperApp app, uint256 configWord) external;
@@ -213,15 +232,15 @@ interface ISuperfluid {
     function isAppJailed(ISuperApp app) external view returns (bool isJail);
 
     /**
-     * @dev White-list the target app for app composition for the source app (msg.sender)
-     * @param targetApp The taget super app address
+     * @dev Whitelist the target app for app composition for the source app (msg.sender)
+     * @param targetApp The target super app address
      */
     function allowCompositeApp(ISuperApp targetApp) external;
 
     /**
-     * @dev Query if source app  is allowed to call the target app as downstream app.
+     * @dev Query if source app is allowed to call the target app as downstream app
      * @param app Super app address
-     * @param targetApp The taget super app address
+     * @param targetApp The target super app address
      */
     function isCompositeAppAllowed(
         ISuperApp app,
@@ -297,6 +316,12 @@ interface ISuperfluid {
         external
         // onlyAgreement
         returns (bytes memory newCtx);
+    /**
+     * @dev Jail event for the app
+     * @param app Address of jailed app
+     * @param reason Reason the app is jailed (see Definitions.sol for the full list)
+     */
+    event Jail(ISuperApp indexed app, uint256 reason);
 
     /**************************************************************************
      * Contextless Call Proxies
@@ -312,6 +337,7 @@ interface ISuperfluid {
 
      /**
       * @dev Call agreement function
+      * @param agreementClass The agreement address you are calling
       * @param callData The contextual call data with placeholder ctx
       * @param userData Extra user data being sent to the super app callbacks
       */
@@ -325,10 +351,11 @@ interface ISuperfluid {
         returns(bytes memory returnedData);
 
     /**
-     * @dev Call app action
-     * @param callData The contextual call data.
+     * @notice Call app action
+     * @dev Main use case is calling app action in a batch call via the host
+     * @param callData The contextual call data
      *
-     * NOTE: See callAgreement about contextual call data.
+     * NOTE: See "Contextless Call Proxies" above for more about contextual call data.
      */
     function callAppAction(
         ISuperApp app,
@@ -351,7 +378,7 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
-     * @dev ABIv2 Encoded memory data of context
+     * @dev Context Struct
      *
      * NOTE on backward compatibility:
      * - Non-dynamic fields are padded to 32bytes and packed
@@ -368,7 +395,7 @@ interface ISuperfluid {
         uint8 appLevel;
         // type of call
         uint8 callType;
-        // the system timestsamp
+        // the system timestamp
         uint256 timestamp;
         // The intended message sender for the call
         address msgSender;
@@ -430,7 +457,7 @@ interface ISuperfluid {
      * @dev Batch operation data
      */
     struct Operation {
-        // Operation. Defined in BatchOperation (Definitions.sol)
+        // Operation type. Defined in BatchOperation (Definitions.sol)
         uint32 operationType;
         // Operation target
         address target;
@@ -440,13 +467,13 @@ interface ISuperfluid {
 
     /**
      * @dev Batch call function
-     * @param operations Array of batch operations.
+     * @param operations Array of batch operations
      */
     function batchCall(Operation[] memory operations) external;
 
     /**
      * @dev Batch call function for trusted forwarders (EIP-2771)
-     * @param operations Array of batch operations.
+     * @param operations Array of batch operations
      */
     function forwardBatchCall(Operation[] memory operations) external;
 
@@ -456,7 +483,7 @@ interface ISuperfluid {
      * While they cannot be explicitly stated in function definitions, they are
      * listed in function definition comments instead for clarity.
      *
-     * TODO: turning these off because solidity-coverage don't like it
+     * TODO: turning these off because solidity-coverage doesn't like it
      *************************************************************************/
 
      /* /// @dev The current superfluid context is clean.

@@ -194,7 +194,7 @@ describe("Superfluid Super Upgrader Contract", function () {
                         from: backend[0],
                     }
                 ),
-                "ERC20: transfer amount exceeds allowance"
+                "ERC20: insufficient allowance"
             );
         });
 
@@ -216,7 +216,7 @@ describe("Superfluid Super Upgrader Contract", function () {
                         from: backend[0],
                     }
                 ),
-                "ERC20: transfer amount exceeds allowance"
+                "ERC20: insufficient allowance"
             );
         });
 
@@ -333,12 +333,12 @@ describe("Superfluid Super Upgrader Contract", function () {
 
             await expectRevert(
                 upgrader.grantBackendAgent(eve, {from: eve}),
-                "AccessControl: sender must be an admin to grant"
+                `AccessControl: account ${eve.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
             );
 
             await expectRevert(
                 upgrader.revokeBackendAgent(backend[1], {from: eve}),
-                "AccessControl: sender must be an admin to revoke."
+                `AccessControl: account ${eve.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
             );
         });
 

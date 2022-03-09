@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
-import { Math } from "@openzeppelin/contracts/math/Math.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { FixedSizeData } from "../libs/FixedSizeData.sol";
-
 
 /**
  * @title Superfluid's token implementation
@@ -25,9 +21,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     bytes32 private constant _REWARD_ADDRESS_CONFIG_KEY =
         keccak256("org.superfluid-finance.superfluid.rewardAddress");
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
-    using SignedSafeMath for int256;
     using SafeCast for int256;
 
     /// @dev Superfluid contract
@@ -97,16 +91,16 @@ abstract contract SuperfluidToken is ISuperfluidToken
                          account,
                          timestamp
                      );
-            deposit = deposit.add(agreementDeposit);
-            owedDeposit = owedDeposit.add(agreementOwedDeposit);
+            deposit = deposit + agreementDeposit;
+            owedDeposit = owedDeposit + agreementOwedDeposit;
             // 1. Available Balance = Dynamic Balance - Max(0, Deposit - OwedDeposit)
             // 2. Deposit should not be shared between agreements
             availableBalance = availableBalance
-                .add(agreementDynamicBalance)
-                .sub(
+                + agreementDynamicBalance
+                - (
                     agreementDeposit > agreementOwedDeposit ?
-                    (agreementDeposit - agreementOwedDeposit).toInt256() : 0
-                );
+                    (agreementDeposit - agreementOwedDeposit) : 0
+                ).toInt256();
         }
     }
 
@@ -159,9 +153,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
         (int256 availableBalance, uint256 deposit, uint256 owedDeposit) =
             realtimeBalanceOf(account, timestamp);
         // Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
-        int realtimeBalance = availableBalance.add(
-            (deposit > owedDeposit ? (deposit - owedDeposit).toInt256() : 0)
-        );
+        int realtimeBalance = availableBalance
+            + (deposit > owedDeposit ? (deposit - owedDeposit) : 0).toInt256();
         return realtimeBalance >= 0;
     }
 
@@ -192,8 +185,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     )
         internal
     {
-        _balances[account] = _balances[account].add(amount.toInt256());
-        _totalSupply = _totalSupply.add(amount);
+        _balances[account] = _balances[account] + amount.toInt256();
+        _totalSupply = _totalSupply + amount;
     }
 
     function _burn(
@@ -204,8 +197,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, block.timestamp);
         require(availableBalance >= amount.toInt256(), "SuperfluidToken: burn amount exceeds balance");
-        _balances[account] = _balances[account].sub(amount.toInt256());
-        _totalSupply = _totalSupply.sub(amount);
+        _balances[account] = _balances[account] - amount.toInt256();
+        _totalSupply = _totalSupply - amount;
     }
 
     function _move(
@@ -217,8 +210,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         (int256 availableBalance,,) = realtimeBalanceOf(from, block.timestamp);
         require(availableBalance >= amount, "SuperfluidToken: move amount exceeds balance");
-        _balances[from] = _balances[from].sub(amount);
-        _balances[to] = _balances[to].add(amount);
+        _balances[from] = _balances[from] - amount;
+        _balances[to] = _balances[to] + amount;
     }
 
     /**************************************************************************
@@ -313,7 +306,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         external override
         onlyAgreement
     {
-        _balances[account] = _balances[account].add(delta);
+        _balances[account] = _balances[account] + delta;
     }
 
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
@@ -343,22 +336,22 @@ abstract contract SuperfluidToken is ISuperfluidToken
         
         if (useDefaultRewardAccount) {
             _balances[rewardAccount] = _balances[rewardAccount]
-                .add(rewardAmount.toInt256());
+                + rewardAmount.toInt256();
         } else {
             _balances[liquidatorAccount] = _balances[liquidatorAccount]
-                .add(rewardAmount.toInt256());
+                + rewardAmount.toInt256();
 
             // this can occur in two cases:
             // - pleb period: the two amounts cancel each other out
             // - pirate/bailout period: reward account has to pay bailout amount
             _balances[rewardAccount] = _balances[rewardAccount]
-                .sub(rewardAmount.toInt256())
-                .sub(targetAccountBalanceDelta);
+                - rewardAmount.toInt256()
+                - targetAccountBalanceDelta;
         }
 
         // if targetAccountBalanceDelta > 0, it is a bailout, else a solvent liquidation
         _balances[targetAccount] = _balances[targetAccount]
-            .add(targetAccountBalanceDelta);
+            + targetAccountBalanceDelta;
 
         emit AgreementLiquidatedV2(
             msg.sender,

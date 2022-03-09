@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
-import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
-// contract which takes custody of funds which couldn't be sent to the designated recipient
+/**
+ * @title Token custodian contract
+ * @author Superfluid
+ * @dev Contract which takes custody of funds which couldn't be sent to the designated recipient
+ */
 contract TokenCustodian is IERC777Recipient {
     IERC1820Registry constant internal _ERC1820_REGISTRY =
     IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);

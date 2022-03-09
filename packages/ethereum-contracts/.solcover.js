@@ -5,7 +5,6 @@ module.exports = {
     skipFiles: [
         "mocks/",
         "apps/SuperAppBase.sol",
-        "libs/Strings.sol", // solidity test cases not included in coverage
     ],
     mocha: {
         grep: "@skip-on-coverage", // Find everything with this tag

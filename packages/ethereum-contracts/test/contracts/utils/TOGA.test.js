@@ -20,7 +20,7 @@ describe("TOGA", function () {
     let superfluid, erc1820, cfa;
     let toga, custodian;
     let superToken;
-    const MIN_BOND_DURATION = 3600 * 24 * 7; // 604800 s
+    const MIN_BOND_DURATION = 3600 * 24 * 7; // 604800 s | 7 days
     const EXIT_RATE_1 = 1; // 1 wad per second
     const EXIT_RATE_1E3 = 1e3; // 1000 wad per second
     const EXIT_RATE_1E6 = 1e6; // 1000000 wad per second

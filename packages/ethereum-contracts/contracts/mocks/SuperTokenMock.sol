@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
     ISuperAgreement,
     SuperToken
 } from "../superfluid/SuperToken.sol";
-
 
 contract SuperTokenStorageLayoutTester is SuperToken {
 

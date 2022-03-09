@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperToken,
@@ -20,7 +20,9 @@ interface IWETH is IERC20 {
 }
 
 /**
- * SETH receive fallback logic contract
+ * @title SETH receive logic contract
+ * @author Superfluid
+ * @dev SETH receive fallback logic contract
  */
 contract SETHReceiveLogic {
 
@@ -39,8 +41,7 @@ contract SETHReceiveLogic {
 }
 
 /**
- * @dev Super ETH (SETH) custom super totken implementation
- *
+ * @dev Super ETH (SETH) custom super token implementation
  * @author Superfluid
  */
 contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
@@ -76,7 +77,7 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
 
     function downgradeToETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
-        msg.sender.transfer(wad);
+        payable(msg.sender).transfer(wad);
         emit TokenDowngraded(msg.sender, wad);
     }
 

@@ -8,7 +8,7 @@ pragma solidity 0.8.12;
 library CallUtils {
 
     /// @dev Bubble up the revert from the returnedData (supports Panic, Error & Custom Errors)
-    /// @notice This is needed in order to get the human-readable revert message from a call
+    /// @notice This is needed in order to provide some human-readable revert message from a call
     /// @param res Response of the call
     function revertFromReturnedData(bytes memory returnedData) internal pure {
         if (returnedData.length < 4) {
@@ -41,7 +41,7 @@ library CallUtils {
                 }
                 revert(reason);
             } else {
-                // case 3: Error(string) (Defined since 0.7.0)
+                // case 3: Error(string) (Defined at least since 0.7.0)
                 // case 4: Custom errors (Defined since 0.8.0)
                 uint len = returnedData.length;
                 assembly {

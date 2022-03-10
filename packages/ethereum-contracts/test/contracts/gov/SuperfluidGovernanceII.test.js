@@ -617,7 +617,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                     superfluid.address,
                     FAKE_TOKEN_ADDRESS1
                 ),
-                ZERO_ADDRESS
+                FAKE_ADDRESS1
             );
 
             assert.equal(
@@ -626,7 +626,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                     FAKE_TOKEN_ADDRESS1,
                     SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY
                 ),
-                ZERO_ADDRESS
+                FAKE_ADDRESS1
             );
 
             // only owner can set config
@@ -696,14 +696,14 @@ describe("Superfluid Ownable Governance Contract", function () {
                     FAKE_TOKEN_ADDRESS1,
                     SUPERTOKEN_MINIMUM_DEPOSIT_KEY
                 ),
-                0
+                42069
             );
             assert.equal(
                 await governance.getSuperTokenMinimumDeposit(
                     superfluid.address,
                     FAKE_TOKEN_ADDRESS1
                 ),
-                0
+                42069
             );
         });
     });

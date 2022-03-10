@@ -9,7 +9,7 @@ library CallUtils {
 
     /// @dev Bubble up the revert from the returnedData (supports Panic, Error & Custom Errors)
     /// @notice This is needed in order to provide some human-readable revert message from a call
-    /// @param res Response of the call
+    /// @param returnedData Response of the call
     function revertFromReturnedData(bytes memory returnedData) internal pure {
         if (returnedData.length < 4) {
             // case 1: catch all
@@ -19,9 +19,8 @@ library CallUtils {
             assembly {
                 errorSelector := mload(add(returnedData, 0x20))
             }
-            //revert RePanic(uint256(uint32(errorSelector)));
             if (errorSelector == bytes4(0x4e487b71) /* `seth sig "Panic(uint256)"` */) {
-                // case 2: Panics(uint256) (Defined since 0.8.0)
+                // case 2: Panic(uint256) (Defined since 0.8.0)
                 // solhint-disable-next-line max-line-length
                 // ref: https://docs.soliditylang.org/en/v0.8.0/control-structures.html#panic-via-assert-and-error-via-require)
                 string memory reason = "CallUtils: target panicked: 0x__";
@@ -30,7 +29,7 @@ library CallUtils {
                     errorCode := mload(add(returnedData, 0x24))
                     let reasonWord := mload(add(reason, 0x20))
                     // [0..9] is converted to ['0'..'9']
-                    // [0xa..0xf] is not correctly convereted to ['a'..'f']
+                    // [0xa..0xf] is not correctly converted to ['a'..'f']
                     // but since panic code doesn't have those cases, we will ignore them for now!
                     let e1 := add(and(errorCode, 0xf), 0x30)
                     let e2 := shl(8, add(shr(4, and(errorCode, 0xf0)), 0x30))
@@ -49,22 +48,6 @@ library CallUtils {
                 }
             }
         }
-    }
-
-    /// @dev Get the revert message from a call
-    /// @notice This is needed in order to get the human-readable revert message from a call
-    /// @param res Response of the call
-    /// @return Revert message string
-    // FIXME (0.8.12): Custom Errors, per 0.8.0 feature maybe?
-    function getRevertMsg(bytes memory res) internal pure returns (string memory) {
-        // If the _res length is less than 68, then the transaction failed silently (without a revert message)
-        if (res.length < 68) return "CallUtils: target reverted";
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            // Slice the sighash.
-            res := add(res, 0x04)
-        }
-        return abi.decode(res, (string)); // All that remains is the revert string
     }
 
     /**

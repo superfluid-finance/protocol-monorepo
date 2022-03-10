@@ -738,7 +738,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#6.3 beforeAgreementCreated callback assert or revert", async () => {
+            it("#6.3 beforeAgreementCreated callback assert or revert [ @skip-on-coverage ]", async () => {
                 await app.setNextCallbackAction(1 /* assert */, "0x");
                 await expectRevert(
                     superfluid.callAgreement(
@@ -822,7 +822,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#6.5 afterAgreementCreated callback assert or revert", async () => {
+            it("#6.5 afterAgreementCreated callback assert or revert [ @skip-on-coverage ]", async () => {
                 await app.setNextCallbackAction(1 /* assert */, "0x");
                 await expectRevert(
                     superfluid.callAgreement(

@@ -751,7 +751,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    "CallUtils: target reverted"
+                    "CallUtils: target revert()"
                 );
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -766,7 +766,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    "CallUtils: target reverted"
+                    "CallUtils: target revert()"
                 );
 
                 await app.setNextCallbackAction(
@@ -835,7 +835,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    "CallUtils: target reverted"
+                    "CallUtils: target revert()"
                 );
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -850,7 +850,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    "CallUtils: target reverted"
+                    "CallUtils: target revert()"
                 );
 
                 await app.setNextCallbackAction(
@@ -996,7 +996,7 @@ describe("Superfluid Host Contract", function () {
                                 .encodeABI(),
                             "0x"
                         ),
-                        "CallUtils: target reverted"
+                        "CallUtils: target revert()"
                     );
                 });
 
@@ -1535,14 +1535,14 @@ describe("Superfluid Host Contract", function () {
                         app.address,
                         app.contract.methods.actionAssert("0x").encodeABI()
                     ),
-                    "CallUtils: target reverted"
+                    "CallUtils: target panicked: 0x01"
                 );
                 await expectRevert(
                     superfluid.callAppAction(
                         app.address,
                         app.contract.methods.actionRevert("0x").encodeABI()
                     ),
-                    "CallUtils: target reverted"
+                    "CallUtils: target revert()"
                 );
                 await expectRevert(
                     superfluid.callAppAction(

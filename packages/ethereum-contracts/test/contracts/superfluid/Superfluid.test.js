@@ -751,6 +751,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
+                    // FIXME: this should be expecting a panic error
                     "CallUtils: target revert()"
                 );
 
@@ -835,6 +836,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
+                    // FIXME: this should be expecting a panic error
                     "CallUtils: target revert()"
                 );
 

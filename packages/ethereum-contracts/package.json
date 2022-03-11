@@ -48,9 +48,9 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
+        "@arachnid/solidity-string-utils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.5.0",
-        "@arachnid/solidity-string-utils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "@superfluid-finance/js-sdk": "0.5.11",
         "@truffle/contract": "4.4.6",
         "ethereumjs-tx": "2.1.2",
@@ -63,6 +63,7 @@
         "async": "^3.2.3",
         "csv-writer": "^1.6.0",
         "dotenv": "10.0.0",
+        "ganache-cli": "^6.12.2",
         "ganache-time-traveler": "1.0.16",
         "readline": "1.3.0",
         "solhint": "3.3.6",

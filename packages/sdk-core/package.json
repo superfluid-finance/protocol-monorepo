@@ -40,7 +40,7 @@
         "fix:eslint": "yarn lint:eslint --fix",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "generate": "run-s generate:*",
-        "generate:abi-files": "rm -rf src/abi && mkdir src/abi && tasks/build-abi-json.sh",
+        "generate:abi-files": "rm -rf src/abi && mkdir -p src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
         "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",

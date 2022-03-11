@@ -30,13 +30,13 @@
         "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
-        "test": "mkdir test/output && run-s test:*:*",
+        "test": "mkdir -p test/output && run-s test:*:*",
         "test:contracts:js": "truffle test testsuites/all-contracts.js",
         "test-contracts:sol": "truffle test test/contracts/*/*.sol",
         "test-contracts:0.8.0-compatibility": "./test/test-0.8.0.sh",
         "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
-        "test-coverage": "mkdir test/output && truffle run coverage --network coverage --file testsuites/all-contracts.js",
+        "test-coverage": "mkdir -p test/output && truffle run coverage --network coverage --file testsuites/all-contracts.js",
         "posttest": "yarn testenv:stop",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
@@ -48,9 +48,9 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
+        "@arachnid/solidity-string-utils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.5.0",
-        "@arachnid/solidity-string-utils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "@superfluid-finance/js-sdk": "0.5.11",
         "@truffle/contract": "4.4.6",
         "ethereumjs-tx": "2.1.2",
@@ -66,7 +66,7 @@
         "ganache-time-traveler": "1.0.16",
         "readline": "1.3.0",
         "solhint": "3.3.6",
-        "solidity-coverage": "0.7.20",
+        "solidity-coverage": "0.7.18",
         "truffle-flattener": "^1.5.0",
         "truffle-plugin-verify": "^0.5.21"
     }

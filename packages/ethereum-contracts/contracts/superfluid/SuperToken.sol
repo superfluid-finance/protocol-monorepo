@@ -143,8 +143,6 @@ contract SuperToken is
 
         address operator = msg.sender;
 
-        _callTokensToSend(operator, holder, recipient, amount, "", "");
-
         _move(operator, holder, recipient, amount, "", "");
 
         if (spender != holder) {
@@ -153,8 +151,6 @@ contract SuperToken is
                 spender,
                 _allowances[holder][spender].sub(amount, "SuperToken: transfer amount exceeds allowance"));
         }
-
-        _callTokensReceived(operator, holder, recipient, amount, "", "", false);
 
         return true;
     }

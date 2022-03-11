@@ -12,10 +12,10 @@
         "first-time-after-git-clone": "yarn install && yarn build",
         "lint": "yarn workspaces run lint",
         "build": "yarn build-essentials #synonym of build-essentials",
-        "build-essentials": "for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
-        "build-for-contracts-dev": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
+        "build-essentials": "set -e;for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
+        "build-for-contracts-dev": "set -e;for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
         "clean": "rm -rf node_modules; rm -rf packages/*/node_modules",
-        "test": "for i in ethereum-contracts js-sdk sdk-core;do yarn workspace @superfluid-finance/$i test;done",
+        "test": "set -e;for i in ethereum-contracts js-sdk sdk-core;do yarn workspace @superfluid-finance/$i test;done",
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
         "show-versions": "lerna ls --long",
         "postinstall": "husky install"

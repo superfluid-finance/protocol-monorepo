@@ -165,7 +165,7 @@ contract SuperfluidMock is Superfluid {
         bool success;
         (success, returnedData) = address(this).staticcall(data);
         if (success) return returnedData;
-        else revert(CallUtils.getRevertMsg(returnedData));
+        else CallUtils.revertFromReturnedData(returnedData);
     }
 
     function testIsValidAbiEncodedBytes() external pure {

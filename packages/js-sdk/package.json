@@ -60,7 +60,6 @@
         "@superfluid-finance/ethereum-contracts": "1.0.0",
         "@truffle/hdwallet-provider": "^1.7.0",
         "chai-as-promised": "^7.1.1",
-        "truffle": "5.4.31",
         "web3": "^1.7.0",
         "webpack": "^5.68.0",
         "webpack-bundle-analyzer": "^4.5.0",

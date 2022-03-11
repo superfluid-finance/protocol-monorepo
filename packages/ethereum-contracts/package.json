@@ -19,8 +19,7 @@
         "/build/abi.js",
         "artifacts/**/*",
         "scripts/**/*",
-        "test/TestEnvironment.js",
-        "test/CFADataModel.js"
+        "utils/**/*"
     ],
     "scripts": {
         "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",

@@ -16,6 +16,6 @@ contract FakeSuperfluidMock {
         // solhint-disable-next-line avoid-low-level-calls
         (success, returnedData) = agreement.call(callData);
         assert(!success);
-        revert(CallUtils.getRevertMsg(returnedData));
+        CallUtils.revertFromReturnedData(returnedData);
     }
 }

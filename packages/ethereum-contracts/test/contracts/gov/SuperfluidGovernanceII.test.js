@@ -1,6 +1,5 @@
 const {expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {ethers} = require("ethers");
 const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
@@ -543,17 +542,11 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#2.7 external set/clear config", async () => {
-            const bytesRewardAddressKey = ethers.utils.toUtf8Bytes(
+            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = web3.utils.keccak256(
                 "org.superfluid-finance.superfluid.rewardAddress"
             );
-            const bytesMinimumDepositKey = ethers.utils.toUtf8Bytes(
+            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = web3.utils.keccak256(
                 "org.superfluid-finance.superfluid.superTokenMinimumDeposit"
-            );
-            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = ethers.utils.keccak256(
-                bytesRewardAddressKey
-            );
-            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = ethers.utils.keccak256(
-                bytesMinimumDepositKey
             );
 
             // only owner can set config

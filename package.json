@@ -34,6 +34,7 @@
         "prettier": "^2.5.1",
         "prettier-eslint": "^12.0.0",
         "syncpack": "^6.2.0",
+        "truffle": "^5.5.4",
         "ts-node": "^10.4.0",
         "typescript": "^4.5.2"
     },

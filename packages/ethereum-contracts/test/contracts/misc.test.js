@@ -90,6 +90,63 @@ describe("Miscellaneous for test coverages", function () {
     });
 
     describe("Libs", () => {
+        it("CallUtils", async () => {
+            const CallUtilsMock = artifacts.require("CallUtilsMock");
+            const callUtilsMock = await CallUtilsMock.new();
+            await expectRevert(
+                callUtilsMock.revertTest("revertEmpty()"),
+                "CallUtils: target revert()"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertAssert()"),
+                "CallUtils: target panicked: 0x01"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertOverflow()"),
+                "CallUtils: target panicked: 0x11"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertDivByZero()"),
+                "CallUtils: target panicked: 0x12"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertEnum()"),
+                "CallUtils: target panicked: 0x21"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertPop()"),
+                "CallUtils: target panicked: 0x31"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertArrayAccess()"),
+                "CallUtils: target panicked: 0x32"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertBigArray()"),
+                "CallUtils: target panicked: 0x41"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest(
+                    "revertZeroInitializedFunctionPointer()"
+                ),
+                "CallUtils: target panicked: 0x51"
+            );
+
+            await expectRevert(
+                callUtilsMock.revertTest("revertString()"),
+                "gm"
+            );
+            // TODO: Add revert custom error tests
+        });
+
         it("Int96SafeMath", async () => {
             const MAX_INT96 = toBN("39614081257132168796771975167");
             const MAX_INT96_DIV_2 = toBN("19807040628566084398385987583");

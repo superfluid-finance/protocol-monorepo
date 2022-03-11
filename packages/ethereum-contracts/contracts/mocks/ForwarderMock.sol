@@ -33,7 +33,7 @@ contract ForwarderMock {
             "unknown IRelayRecipient.versionRecipient");
         // solhint-disable-next-line avoid-low-level-calls
         (success, ret) = req.to.call{gas : req.gas, value : req.value}(abi.encodePacked(req.data, req.from));
-        if (!success) revert(CallUtils.getRevertMsg(ret));
+        if (!success) CallUtils.revertFromReturnedData(ret);
     }
 
 }

@@ -598,7 +598,7 @@ contract Superfluid is
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
         if (!success) {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -646,7 +646,7 @@ contract Superfluid is
             ctx = abi.decode(returnedData, (bytes));
             require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -698,7 +698,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
     }
 
@@ -728,7 +728,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
     }
 
@@ -971,9 +971,8 @@ contract Superfluid is
             // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
             if (gasleft() > gasLeftBefore / 63) {
                 if (!isTermination) {
-                    revert(CallUtils.getRevertMsg(returnedData));
+                    CallUtils.revertFromReturnedData(returnedData);
                 } else {
-                    //revert(CallUtils.getRevertMsg(returnedData)); { }
                     _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
                 }
             } else {

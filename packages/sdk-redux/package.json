@@ -41,18 +41,7 @@
         "lodash": "^4.17.21"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.10.2",
-        "@typescript-eslint/parser": "^5.10.2",
-        "copyfiles": "^2.4.1",
-        "eslint": "^8.8.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-eslint-comments": "^3.2.0",
-        "eslint-plugin-import": "^2.25.4",
-        "npm-run-all": "^4.1.5",
-        "prettier": "^2.5.1",
-        "ts-node": "^10.4.0",
-        "typedoc": "^0.22.11",
-        "typescript": "^4.5.5"
+        "@reduxjs/toolkit": "^1.7.1"
     },
     "peerDependencies": {
         "@reduxjs/toolkit": "^1.6.0 || ^1.7.0",

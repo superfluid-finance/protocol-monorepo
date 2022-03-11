@@ -8,7 +8,7 @@ TESTENV_MNEMONIC="candy maple cake sugar pudding cream honey rich smooth crumble
 CMD=$1
 
 start_ganache() {
-    ganache-cli --networkId 4447 --chainId 4447 --port 47545 --mnemonic "$TESTENV_MNEMONIC"
+    ganache-cli --networkId 4447 --port 47545 --mnemonic "$TESTENV_MNEMONIC"
 }
 
 kill_ganache() {

@@ -121,6 +121,15 @@ contract Superfluid is
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Time
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function getNow() public view  returns (uint256) {
+        // solhint-disable-next-line not-rely-on-time
+        return block.timestamp;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Governance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -584,8 +593,7 @@ contract Superfluid is
         bytes memory  ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: agreementSelector,
             userData: userData,
@@ -629,8 +637,7 @@ contract Superfluid is
         bytes memory ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: 0,
             userData: "",

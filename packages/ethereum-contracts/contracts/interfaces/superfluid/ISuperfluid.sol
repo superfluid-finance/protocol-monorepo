@@ -31,6 +31,17 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 interface ISuperfluid {
 
     /**************************************************************************
+     * Time
+     *
+     * > The Oracle: You have the sight now, Neo. You are looking at the world without time.
+     * > Neo: Then why can't I see what happens to her?
+     * > The Oracle: We can never see past the choices we don't understand.
+     * >       - The Oracle and Neo conversing about the future of Trinity and the effects of Neo's choices
+     *************************************************************************/
+
+    function getNow() external view returns (uint256);
+
+    /**************************************************************************
      * Governance
      *************************************************************************/
 
@@ -66,7 +77,7 @@ interface ISuperfluid {
      * @notice Agreement class registered event
      * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
      * @param agreementType The agreement type registered
-     * @param code Address of the new agreement 
+     * @param code Address of the new agreement
      */
     event AgreementClassRegistered(bytes32 agreementType, address code);
 
@@ -82,7 +93,7 @@ interface ISuperfluid {
      * @notice Agreement class updated event
      * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
      * @param agreementType The agreement type updated
-     * @param code Address of the new agreement 
+     * @param code Address of the new agreement
      */
     event AgreementClassUpdated(bytes32 agreementType, address code);
 

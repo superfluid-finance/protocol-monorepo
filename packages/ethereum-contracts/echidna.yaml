@@ -1,0 +1,1 @@
+cryticArgs: ["--solc", "solc-0.8.12"]

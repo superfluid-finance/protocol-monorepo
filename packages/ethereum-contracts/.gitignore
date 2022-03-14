@@ -3,3 +3,4 @@
 /.coverage_*
 /reports
 /test/output/*
+/crytic-export

@@ -631,6 +631,7 @@ contract Superfluid is
         internal
         cleanCtx
         isAppActive(app)
+        isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
         //Build context data
@@ -717,6 +718,7 @@ contract Superfluid is
         external override
         validCtx(ctx)
         isAppActive(app)
+        isValidAppAction(callData)
         returns(bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -1061,6 +1063,19 @@ contract Superfluid is
         uint256 w = _appManifests[app].configWord;
         require(w > 0, "SF: not a super app");
         require(!SuperAppDefinitions.isAppJailed(w), "SF: app is jailed");
+        _;
+    }
+
+    modifier isValidAppAction(bytes memory callData) {
+        bytes4 actionSelector = CallUtils.parseSelector(callData);
+        if (actionSelector == ISuperApp.beforeAgreementCreated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.beforeAgreementUpdated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.beforeAgreementTerminated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector) {
+            revert("SF: agreement callback is not action");
+        }
         _;
     }
 }

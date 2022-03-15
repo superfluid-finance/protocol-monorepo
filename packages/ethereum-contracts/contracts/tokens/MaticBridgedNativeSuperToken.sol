@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperToken,
@@ -13,10 +13,10 @@ import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 
 
 /**
- * @dev Native SuperToken with interfaces for the Matic POS bridge to mint and burn.
- * See https://docs.polygon.technology/docs/develop/ethereum-matic/pos/mapping-assets/
- *
+ * @title Matic bridged native super token proxy contract
  * @author Superfluid
+ * @dev Native SuperToken with interfaces for the Matic POS bridge to mint and burn.
+ * @dev See https://docs.polygon.technology/docs/develop/ethereum-matic/pos/mapping-assets/
  */
 contract MaticBridgedNativeSuperTokenProxy is IMaticBridgedNativeSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
     address public childChainManager;

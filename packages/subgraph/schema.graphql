@@ -506,6 +506,24 @@ type RewardAddressChangedEvent implements Event @entity {
     rewardAddress: Bytes!
 }
 
+type PPPConfigurationChangedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    host: Bytes!
+    superToken: Bytes!
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    liquidationPeriod: BigInt!
+    patricianPeriod: BigInt!
+}
+
 type TrustedForwarderChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
@@ -544,6 +562,29 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bondAccount: Bytes!
     rewardAmount: BigInt!
     bailoutAmount: BigInt!
+}
+
+type AgreementLiquidatedV2Event implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    token: Bytes!
+    liquidatorAccount: Bytes!
+    agreementClass: Bytes!
+    agreementId: Bytes!
+    targetAccount: Bytes!
+    rewardAccount: Bytes!
+    rewardAmount: BigInt!
+    targetAccountBalanceDelta: BigInt!
+    version: BigInt!
+    liquidationType: Int!
 }
 
 type BurnedEvent implements Event @entity {

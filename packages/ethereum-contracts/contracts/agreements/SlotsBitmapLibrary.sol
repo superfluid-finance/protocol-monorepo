@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluidToken
 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 
 /**
+ * @title Slots Bitmap library
+ * @author Superfluid
  * @dev A library implements slots bitmap on Superfluid Token storage
- *
  * NOTE:
  * - A slots bitmap allows you to iterate through a list of data efficiently.
  * - A data slot can be enabled or disabled with the help of bitmap.

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 /**
- * @dev Super app definitions library
+ * @title Super app definitions library
+ * @author Superfluid
  */
 library SuperAppDefinitions {
 
@@ -67,7 +68,8 @@ library SuperAppDefinitions {
 }
 
 /**
- * @dev Context definitions library
+ * @title Context definitions library
+ * @author Superfluid
  */
 library ContextDefinitions {
 
@@ -103,7 +105,8 @@ library ContextDefinitions {
 }
 
 /**
- * @dev Batch operation library
+ * @title Batch operation library
+ * @author Superfluid
  */
 library BatchOperation {
     /**
@@ -164,15 +167,17 @@ library BatchOperation {
     uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION = 2 + 200;
 }
 
+/**
+ * @title Superfluid governance configs library
+ * @author Superfluid
+ */
 library SuperfluidGovernanceConfigs {
 
     bytes32 constant internal SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY =
         keccak256("org.superfluid-finance.superfluid.rewardAddress");
-
-    bytes32 constant internal CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
-
-    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
+    bytes32 constant internal CFAV1_PPP_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
+    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY = 
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {
@@ -192,5 +197,10 @@ library SuperfluidGovernanceConfigs {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.factory",
             factory));
+    }
+
+    function decodePPPConfig(uint256 pppConfig) internal pure returns (uint256 liquidationPeriod, uint256 patricianPeriod) {
+        liquidationPeriod = (pppConfig >> 32) & type(uint32).max;
+        patricianPeriod = pppConfig & type(uint32).max;
     }
 }

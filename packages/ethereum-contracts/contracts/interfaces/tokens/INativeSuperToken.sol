@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 import { ISuperToken } from "../superfluid/ISuperToken.sol";
 
 /**
- * @dev Native SuperToken custom token functions
- *
+ * @title Native SuperToken custom interface
  * @author Superfluid
  */
 interface INativeSuperTokenCustom {
@@ -13,8 +12,7 @@ interface INativeSuperTokenCustom {
 }
 
 /**
- * @dev Native SuperToken full interface
- *
+ * @title Native SuperToken interface
  * @author Superfluid
  */
 interface INativeSuperToken is INativeSuperTokenCustom, ISuperToken {

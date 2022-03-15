@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
-import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 
-
+/**
+ * @title ERC777 helper library
+ * @author Superfluid
+ */
 library ERC777Helper {
 
     IERC1820Registry constant internal _ERC1820_REGISTRY =

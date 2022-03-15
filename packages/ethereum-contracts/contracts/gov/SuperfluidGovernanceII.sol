@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -8,7 +8,8 @@ import { SuperfluidGovernanceBase } from "./SuperfluidGovernanceBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 
 /**
- * @dev A proxy for governance which is both ownable and upgradable
+ * @title A proxy for governance which is both ownable and upgradable
+ * @author Superfluid
  * IMPORTANT! Make sure the inheritance order remains in sync with the logic contract (Ownable first)!
  */
 // solhint-disable-next-line no-empty-blocks

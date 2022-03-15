@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
 import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 
 
 /**
- * @dev Full upgradable super token proxy
+ * @title Full upgradable super token proxy contract
+ * @author Superfluid
  */
 contract FullUpgradableSuperTokenProxy is Proxy {
 

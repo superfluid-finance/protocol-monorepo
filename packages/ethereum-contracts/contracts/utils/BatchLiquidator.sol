@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
-
+pragma solidity 0.8.12;
 
 import { ISuperfluid, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
- * @title Superfluid's batch liquidations
- *
+ * @title Batch liquidator contract
  * @author Superfluid
  */
 contract BatchLiquidator {

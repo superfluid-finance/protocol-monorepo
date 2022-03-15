@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-
-// MODIFIED FROM: https://github.com/opengsn/forwarder/blob/master/contracts/BaseRelayRecipient.sol
+pragma solidity 0.8.12;
 
 import "../interfaces/ux/IRelayRecipient.sol";
 
 /**
- * A base contract to be inherited by any contract that want to receive relayed transactions
- * A subclass must use "_msgSender()" instead of "msg.sender"
+ * @title Base relay recipient contract
+ * @author Superfluid
+ * @dev A base contract to be inherited by any contract that want to receive relayed transactions
+ *      A subclass must use "_msgSender()" instead of "msg.sender"
+ *      MODIFIED FROM: https://github.com/opengsn/forwarder/blob/master/contracts/BaseRelayRecipient.sol
  */
 abstract contract BaseRelayRecipient is IRelayRecipient {
 

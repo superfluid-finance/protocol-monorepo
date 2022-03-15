@@ -37,26 +37,29 @@ module.exports = {
     ganache: {
       url: "http://127.0.0.1:8545",
       chain_id: "1337",
-      port: 8545,
+      port: process.env.GANACHE_PORT || 8545,
       // accounts: {
       //   mnemonic: `${process.env.GOERLI_MNEMONIC}`
       // }
     },
+  
     // polytest: {
     //    url: `${process.env.MUMBAI_ALCHEMY_URL}`,// using alchemy instead of moralis. add your own URL in .env
     //    gasPrice: 1000000000,
     //    accounts: [`0x${process.env.MUMBAI_DEPLOYER_PRIV_KEY}`]
-    //    },
-      localhost: {
-        url: "http://localhost:8545",
-      }
-  },
+    // },
+
+    // localhost: {
+    //   url: "http://localhost:8545",
+    // },
+
     // rinkeby: {
     //   url: `${process.env.RINKEBY_ALCHEMY_URL}`,
     //   gasPrice:  1500000000,
     //   accounts: [`0x${process.env.RINKEBY_DEPLOYER_PRIVATE_KEY}`]
     //   },
     // },
+  },
     namedAccounts: {
       deployer: {
         default: 0, // here this will by default take the first account as deployer

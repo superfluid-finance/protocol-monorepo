@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 import { ISuperToken } from "./ISuperToken.sol";
 
-
 /**
- * @title Superfluid's app interface.
- *
- * NOTE:
- * - Be fearful of the app jail, when the word permitted is used.
- *
+ * @title SuperApp interface
  * @author Superfluid
+ * @dev Be aware of the app being jailed, when the word permitted is used.
+ *
  */
 interface ISuperApp {
 

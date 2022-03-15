@@ -35,10 +35,11 @@
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
-        "pre-commit": "run-s pre-commit:*",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
         "pre-commit:lint": "yarn lint",
         "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
-        "check-updates": "ncu --target minor --dep prod,dev"
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
         "@ethersproject/abi": "^5.5.0",
@@ -56,10 +57,9 @@
         "@ethersproject/contracts": "^5.5.0",
         "@ethersproject/providers": "^5.5.3",
         "@openzeppelin/test-helpers": "^0.5.15",
-        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.11",
+        "@superfluid-finance/ethereum-contracts": "1.0.0",
         "@truffle/hdwallet-provider": "^1.7.0",
         "chai-as-promised": "^7.1.1",
-        "truffle": "5.4.31",
         "web3": "^1.7.0",
         "webpack": "^5.68.0",
         "webpack-bundle-analyzer": "^4.5.0",

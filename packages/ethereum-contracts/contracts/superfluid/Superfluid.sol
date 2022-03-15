@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -24,10 +23,9 @@ import { CallUtils } from "../libs/CallUtils.sol";
 
 import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
 
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
+/// FIXME Lots of reverts in here - can put custom errors
 
 /**
  * @dev The Superfluid host implementation.
@@ -44,9 +42,7 @@ contract Superfluid is
     BaseRelayRecipient
 {
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
-    using SignedSafeMath for int256;
 
     struct AppManifest {
         uint256 configWord;
@@ -532,7 +528,7 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
+        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
         newCtx = _updateContext(context);
     }
 
@@ -547,8 +543,8 @@ contract Superfluid is
     {
         Context memory context = decodeCtx(ctx);
 
-        context.appAllowanceWanted = context.appAllowanceWanted.add(appAllowanceWantedMore);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
+        context.appAllowanceWanted = context.appAllowanceWanted + appAllowanceWantedMore;
+        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
 
         newCtx = _updateContext(context);
     }
@@ -602,7 +598,7 @@ contract Superfluid is
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
         if (!success) {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -650,7 +646,7 @@ contract Superfluid is
             ctx = abi.decode(returnedData, (bytes));
             require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -702,7 +698,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
     }
 
@@ -732,7 +728,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
     }
 
@@ -975,9 +971,8 @@ contract Superfluid is
             // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
             if (gasleft() > gasLeftBefore / 63) {
                 if (!isTermination) {
-                    revert(CallUtils.getRevertMsg(returnedData));
+                    CallUtils.revertFromReturnedData(returnedData);
                 } else {
-                    //revert(CallUtils.getRevertMsg(returnedData)); { }
                     _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
                 }
             } else {

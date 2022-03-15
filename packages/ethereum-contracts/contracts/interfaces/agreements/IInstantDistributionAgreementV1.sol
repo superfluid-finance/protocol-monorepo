@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 
 
 /**
- * @title Superfluid's instant distribution agreement interface.
- *
+ * @title Instant Distribution Agreement interface
  * @author Superfluid
  *
  * Notes:
- *   - A publisher can create as many as indeces as possibily identifiable with `indexId`.
+ *   - A publisher can create as many as indices as possibly identifiable with `indexId`.
  *     - `indexId` is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
- *       Despite knowing sha-3 collision is only theoratical.
- *   - A publisher can create subscription to an index for any subscriber.
+ *       Despite knowing sha-3 collision is only theoretical.
+ *   - A publisher can create a subscription to an index for any subscriber.
  *   - A subscription consists of:
  *     - The index it subscribes to.
  *     - Number of units subscribed.
@@ -22,16 +21,16 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  *     - Current value as `uint128 indexValue`.
  *     - Total units of the approved subscriptions as `uint128 totalUnitsApproved`.
  *     - Total units of the non approved subscription as `uint128 totalUnitsPending`.
- *   - A publisher can update index with new value that doesn't decrease.
- *   - A publisher can update subscription with any number of units.
- *   - A publisher or a subscriber can delete subscription and reset units to zero.
+ *   - A publisher can update an index with a new value that doesn't decrease.
+ *   - A publisher can update a subscription with any number of units.
+ *   - A publisher or a subscriber can delete a subscription and reset its units to zero.
  *   - A subscriber must approve the index in order to receive distributions from the publisher
  *     each time the index is updated.
  *     - The amount distributed is $$\Delta{index} * units$$
  *   - Distributions to a non approved subscription stays in the publisher's deposit until:
- *     - the subscriber approve the subscription (side effect),
- *     - the publisher update the subscription (side effect),
- *     - the subscriber delete the subscription even if it is never approved (side effect),
+ *     - the subscriber approves the subscription (side effect),
+ *     - the publisher updates the subscription (side effect),
+ *     - the subscriber deletes the subscription even if it is never approved (side effect),
  *     - or the subscriber can explicitly claim them.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
@@ -46,9 +45,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      *************************************************************************/
 
     /**
-     * @dev Create a new index for the publisher.
-     * @param token Super token address.
-     * @param indexId Id of the index.
+     * @dev Create a new index for the publisher
+     * @param token Super token address
+     * @param indexId Id of the index
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
      * # App callbacks
      *
@@ -61,7 +61,13 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
-
+    /**
+    * @dev Index created event
+    * @param token Super token address
+    * @param publisher Index creator and publisher
+    * @param indexId The specified indexId of the newly created index
+    * @param userData The user provided data
+    */
     event IndexCreated(
         ISuperfluidToken indexed token,
         address indexed publisher,
@@ -69,14 +75,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     /**
-     * @dev Query the data of a index.
-     * @param token Super token address.
-     * @param publisher The publisher of the index.
-     * @param indexId Id of the index.
-     * @return exist Does the index exist.
-     * @return indexValue Value of the current index.
-     * @return totalUnitsApproved Total units approved for the index.
-     * @return totalUnitsPending Total units pending approval for the index.
+     * @dev Query the data of a index
+     * @param token Super token address
+     * @param publisher The publisher of the index
+     * @param indexId Id of the index
+     * @return exist Does the index exist
+     * @return indexValue Value of the current index
+     * @return totalUnitsApproved Total units approved for the index
+     * @return totalUnitsPending Total units pending approval for the index
      */
     function getIndex(
         ISuperfluidToken token,
@@ -93,10 +99,12 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
     /**
      * @dev Calculate actual distribution amount
-     * @param token Super token address.
-     * @param publisher The publisher of the index.
-     * @param indexId Id of the index.
-     * @param amount The amount of tokens desired to be distributed.
+     * @param token Super token address
+     * @param publisher The publisher of the index
+     * @param indexId Id of the index
+     * @param amount The amount of tokens desired to be distributed
+     * @return actualAmount The amount to be distributed after ensuring no rounding errors
+     * @return newIndexValue The index value given the desired amount of tokens to be distributed
      */
     function calculateDistribution(
        ISuperfluidToken token,
@@ -110,10 +118,11 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
                uint128 newIndexValue);
 
     /**
-     * @dev Update index value of an index.
-     * @param token Super token address.
-     * @param indexId Id of the index.
-     * @param indexValue Value of the index.
+     * @dev Update index value of an index
+     * @param token Super token address
+     * @param indexId Id of the index
+     * @param indexValue Value of the index
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
      * # App callbacks
      *
@@ -127,7 +136,17 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
-
+    /**
+      * @dev Index updated event
+      * @param token Super token address
+      * @param publisher Index updater and publisher
+      * @param indexId The specified indexId of the updated index
+      * @param oldIndexValue The previous index value
+      * @param newIndexValue The updated index value
+      * @param totalUnitsPending The total units pending when the indexValue was updated
+      * @param totalUnitsApproved The total units approved when the indexValue was updated
+      * @param userData The user provided data
+      */
     event IndexUpdated(
         ISuperfluidToken indexed token,
         address indexed publisher,
@@ -139,17 +158,18 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     /**
-     * @dev Distribute tokens through the index.
-     * @param token Super token address.
-     * @param indexId Id of the index.
-     * @param amount The amount of tokens desired to be distributed.
+     * @dev Distribute tokens through the index
+     * @param token Super token address
+     * @param indexId Id of the index
+     * @param amount The amount of tokens desired to be distributed
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
      * NOTE:
      * - This is a convenient version of updateIndex. It adds to the index
-     *   a delta that equals to `amount / totalUnits`.
+     *   a delta that equals to `amount / totalUnits`
      * - The actual amount distributed could be obtained via
      *   `calculateDistribution`. This is due to precision error with index
-     *   value and units data range.
+     *   value and units data range
      *
      * # App callbacks
      *
@@ -170,10 +190,11 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      *************************************************************************/
 
     /**
-     * @dev Approve the subscription of an index.
-     * @param token Super token address.
-     * @param publisher The publisher of the index.
-     * @param indexId Id of the index.
+     * @dev Approve the subscription of an index
+     * @param token Super token address
+     * @param publisher The publisher of the index
+     * @param indexId Id of the index
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
      * # App callbacks
      *
@@ -192,7 +213,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
-
+    /**
+      * @dev Index subscribed event
+      * @param token Super token address
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param subscriber The approved subscriber
+      * @param userData The user provided data
+      */
     event IndexSubscribed(
         ISuperfluidToken indexed token,
         address indexed publisher,
@@ -200,6 +228,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         address subscriber,
         bytes userData);
 
+    /**
+      * @dev Subscription approved event
+      * @param token Super token address
+      * @param subscriber The approved subscriber
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param userData The user provided data
+      */
     event SubscriptionApproved(
         ISuperfluidToken indexed token,
         address indexed subscriber,
@@ -208,10 +244,12 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     /**
-    * @dev Revoke the subscription of an index.
-    * @param token Super token address.
-    * @param publisher The publisher of the index.
-    * @param indexId Id of the index.
+    * @notice Revoke the subscription of an index
+    * @dev "Unapproves" the subscription and moves approved units to pending
+    * @param token Super token address
+    * @param publisher The publisher of the index
+    * @param indexId Id of the index
+    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
     *
     * # App callbacks
     * - AgreementUpdated callback to the publisher:
@@ -225,14 +263,29 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
          external
          virtual
          returns(bytes memory newCtx);
-
+    /**
+      * @dev Index unsubscribed event
+      * @param token Super token address
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param subscriber The unsubscribed subscriber
+      * @param userData The user provided data
+      */
     event IndexUnsubscribed(
         ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
         address subscriber,
         bytes userData);
-
+    
+    /**
+      * @dev Subscription approved event
+      * @param token Super token address
+      * @param subscriber The approved subscriber
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param userData The user provided data
+      */
     event SubscriptionRevoked(
         ISuperfluidToken indexed token,
         address indexed subscriber,
@@ -241,11 +294,12 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     /**
-     * @dev Update the nuber of units of a subscription.
-     * @param token Super token address.
-     * @param indexId Id of the index.
-     * @param subscriber The subscriber of the index.
-     * @param units Number of units of the subscription.
+     * @dev Update the nuber of units of a subscription
+     * @param token Super token address
+     * @param indexId Id of the index
+     * @param subscriber The subscriber of the index
+     * @param units Number of units of the subscription
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
      * # App callbacks
      *
@@ -266,6 +320,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    /**
+      * @dev Index units updated event
+      * @param token Super token address
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param subscriber The subscriber units updated
+      * @param units The new units amount
+      * @param userData The user provided data
+      */
     event IndexUnitsUpdated(
         ISuperfluidToken indexed token,
         address indexed publisher,
@@ -273,7 +336,16 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         address subscriber,
         uint128 units,
         bytes userData);
-
+    
+    /**
+      * @dev Subscription units updated event
+      * @param token Super token address
+      * @param subscriber The subscriber units updated
+      * @param indexId The specified indexId
+      * @param publisher Index publisher
+      * @param units The new units amount
+      * @param userData The user provided data
+      */
     event SubscriptionUnitsUpdated(
         ISuperfluidToken indexed token,
         address indexed subscriber,
@@ -284,14 +356,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
     /**
      * @dev Get data of a subscription
-     * @param token Super token address.
-     * @param publisher The publisher of the index.
-     * @param indexId Id of the index.
-     * @param subscriber The subscriber of the index.
+     * @param token Super token address
+     * @param publisher The publisher of the index
+     * @param indexId Id of the index
+     * @param subscriber The subscriber of the index
      * @return exist Does the subscription exist?
      * @return approved Is the subscription approved?
-     * @return units Units of the suscription.
-     * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription.
+     * @return units Units of the suscription
+     * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription
      */
     function getSubscription(
         ISuperfluidToken token,
@@ -309,14 +381,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             );
 
     /**
-     * @dev Get data of a subscription by agreement ID
-     * @param token Super token address.
-     * @param agreementId The agreement ID.
-     * @return publisher The publisher of the index.
-     * @return indexId Id of the index.
+     * @notice Get data of a subscription by agreement ID
+     * @dev indexId (agreementId) is the keccak256 hash of encodePacked("publisher", publisher, indexId)
+     * @param token Super token address
+     * @param agreementId The agreement ID
+     * @return publisher The publisher of the index
+     * @return indexId Id of the index
      * @return approved Is the subscription approved?
-     * @return units Units of the suscription.
-     * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription.
+     * @return units Units of the suscription
+     * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription
      */
     function getSubscriptionByID(
         ISuperfluidToken token,
@@ -333,12 +406,12 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             );
 
     /**
-     * @dev List subscriptions of an user.
-     * @param token Super token address.
-     * @param subscriber The user, a subscriber.
-     * @return publishers Publishers of the subcriptions.
-     * @return indexIds Indexes of the subscriptions.
-     * @return unitsList Units of the subscriptions.
+     * @dev List subscriptions of an user
+     * @param token Super token address
+     * @param subscriber The subscriber's address
+     * @return publishers Publishers of the subcriptions
+     * @return indexIds Indexes of the subscriptions
+     * @return unitsList Units of the subscriptions
      */
     function listSubscriptions(
         ISuperfluidToken token,
@@ -352,11 +425,12 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
                 uint128[] memory unitsList);
 
     /**
-     * @dev Delete the subscription of an user.
-     * @param token Super token address.
-     * @param publisher The publisher of the index.
-     * @param indexId Id of the index.
-     * @param subscriber The user, a subscriber.
+     * @dev Delete the subscription of an user
+     * @param token Super token address
+     * @param publisher The publisher of the index
+     * @param indexId Id of the index
+     * @param subscriber The subscriber's address
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
      * # App callbacks
      *
@@ -378,13 +452,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     /**
-    * @dev Claim pending distributions.
-    * @param token Super token address.
-    * @param publisher The publisher of the index.
-    * @param indexId Id of the index.
-    * @param subscriber The user, a subscriber.
+    * @dev Claim pending distributions
+    * @param token Super token address
+    * @param publisher The publisher of the index
+    * @param indexId Id of the index
+    * @param subscriber The subscriber's address
+    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
     *
-    * The subscription should not exist yet.
+    * The subscription should not be approved yet
     *
     * # App callbacks
     *
@@ -400,14 +475,30 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         external
         virtual
         returns(bytes memory newCtx);
-
+    
+    /**
+      * @dev Index distribution claimed event
+      * @param token Super token address
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param subscriber The subscriber units updated
+      * @param amount The pending amount claimed
+      */
     event IndexDistributionClaimed(
         ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
         address subscriber,
         uint256 amount);
-
+    
+    /**
+      * @dev Subscription distribution claimed event
+      * @param token Super token address
+      * @param subscriber The subscriber units updated
+      * @param publisher Index publisher
+      * @param indexId The specified indexId
+      * @param amount The pending amount claimed
+      */
     event SubscriptionDistributionClaimed(
         ISuperfluidToken indexed token,
         address indexed subscriber,

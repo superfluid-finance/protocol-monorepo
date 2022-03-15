@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.12;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     ISuperToken,
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
- * @dev Upgrader contract for super tokens.
- *
+ * @title Super upgrader contract
+ * @author Superfluid
  * NOTE:
  * - User would need to first SuperToken.approve the `SuperUpgrader` for the job.
  * - Using access control to allow multiple backend agent to upgrade tokens for the users
  * - Risk taken by the user is that the underlying tokens are converted to the Super Tokens by the upgrader agents.
  */
-contract SuperUpgrader is AccessControl {
+contract SuperUpgrader is AccessControlEnumerable {
 
     using SafeERC20 for IERC20;
     // Create a new role identifier for the backend role
     bytes32 public constant BACKEND_ROLE = keccak256("BACKEND_ROLE");
-
-    using SafeMath for uint256;
 
     event OptoutAutoUpgrade(address indexed account);
     event OptinAutoUpgrade(address indexed account);
@@ -57,19 +54,18 @@ contract SuperUpgrader is AccessControl {
             (hasRole(BACKEND_ROLE, msg.sender) &&
             !_optout[account])
         , "operation not allowed");
-        //get underlying token
+        // get underlying token
         ISuperToken superToken = ISuperToken(superTokenAddr);
-        //get tokens from user
+        // get tokens from user
         IERC20 token = IERC20(superToken.getUnderlyingToken());
         uint256 beforeBalance = token.balanceOf(address(this));
         token.safeTransferFrom(account, address(this), amount);
         token.safeApprove(address(superToken), 0);
         token.safeApprove(address(superToken), amount);
-        //upgrade tokens and send back to user
+        // upgrade tokens and send back to user
         superToken.upgradeTo(
             account,
-            token.balanceOf(address(this)).sub(beforeBalance),
-            "");
+            token.balanceOf(address(this)) - beforeBalance, new bytes(0));
     }
 
     /**
@@ -84,7 +80,7 @@ contract SuperUpgrader is AccessControl {
      */
     function grantBackendAgent(address account) external {
         require(account != address(0), "operation not allowed");
-        //grantRole will check if sender is adminRole member
+        // grantRole will check if sender is adminRole member
         grantRole(BACKEND_ROLE, account);
     }
 
@@ -92,7 +88,7 @@ contract SuperUpgrader is AccessControl {
      * @dev Remove account to BACKEND_ROLE 
      */
     function revokeBackendAgent(address account) external {
-        //grantRole will check if sender is adminRole member
+        // grantRole will check if sender is adminRole member
         revokeRole(BACKEND_ROLE, account);
     }
 

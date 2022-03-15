@@ -15,6 +15,4 @@ interface INativeSuperTokenCustom {
  * @title Native SuperToken interface
  * @author Superfluid
  */
-interface INativeSuperToken is INativeSuperTokenCustom, ISuperToken {
-    function initialize(string calldata name, string calldata symbol, uint256 initialSupply) external override;
-}
+interface INativeSuperToken is INativeSuperTokenCustom, ISuperToken {}

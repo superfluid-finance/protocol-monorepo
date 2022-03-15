@@ -19,6 +19,7 @@
     <content url="file://$MODULE_DIR$/packages/ethereum-contracts">
       <sourceFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/artifacts" />
     </content>
     <content url="file://$MODULE_DIR$/packages/js-sdk">
       <sourceFolder url="file://$MODULE_DIR$/packages/js-sdk/test" isTestSource="true" />

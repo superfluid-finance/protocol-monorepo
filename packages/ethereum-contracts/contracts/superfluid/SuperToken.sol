@@ -103,7 +103,7 @@ contract SuperToken is
         _symbol = s;
 
         // register interfaces
-        ERC777Helper.register(address(this));
+        //ERC777Helper.register(address(this));
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -311,11 +311,11 @@ contract SuperToken is
     )
         private
     {
-        address implementer = ERC777Helper._ERC1820_REGISTRY.getInterfaceImplementer(
+        /* address implementer = ERC777Helper._ERC1820_REGISTRY.getInterfaceImplementer(
             from, ERC777Helper._TOKENS_SENDER_INTERFACE_HASH);
         if (implementer != address(0)) {
             IERC777Sender(implementer).tokensToSend(operator, from, to, amount, userData, operatorData);
-        }
+        } */
     }
 
     /**
@@ -340,7 +340,7 @@ contract SuperToken is
     )
         private
     {
-        address implementer = ERC777Helper._ERC1820_REGISTRY.getInterfaceImplementer(
+        /* address implementer = ERC777Helper._ERC1820_REGISTRY.getInterfaceImplementer(
             to, ERC777Helper._TOKENS_RECIPIENT_INTERFACE_HASH);
         if (implementer != address(0)) {
             IERC777Recipient(implementer).tokensReceived(operator, from, to, amount, userData, operatorData);
@@ -348,7 +348,7 @@ contract SuperToken is
             require(
                 !to.isContract(),
                 "SuperToken: not an ERC777TokensRecipient");
-        }
+        } */
     }
 
     /**************************************************************************

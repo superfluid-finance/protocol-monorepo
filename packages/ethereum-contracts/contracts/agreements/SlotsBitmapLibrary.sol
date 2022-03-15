@@ -28,7 +28,7 @@ library SlotsBitmapLibrary {
         uint256 dataStateSlotIDStart,
         bytes32 data
     )
-        public
+        internal
         returns (uint32 slotId)
     {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
@@ -62,7 +62,7 @@ library SlotsBitmapLibrary {
         uint256 bitmapStateSlotId,
         uint32 slotId
     )
-        public
+        internal
     {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
@@ -83,7 +83,7 @@ library SlotsBitmapLibrary {
        uint256 bitmapStateSlotId,
        uint256 dataStateSlotIDStart
     )
-        public view
+        internal view
         returns (
             uint32[] memory slotIds,
             bytes32[] memory dataList)

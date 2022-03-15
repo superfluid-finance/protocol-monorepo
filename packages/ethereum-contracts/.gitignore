@@ -4,3 +4,4 @@
 /reports
 /test/output/*
 /crytic-export
+/corpus

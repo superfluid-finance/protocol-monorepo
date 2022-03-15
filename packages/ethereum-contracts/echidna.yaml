@@ -1,3 +1,2 @@
-testMode: "assertion"
 cryticArgs: ["--solc", "solc-0.8.12", "--truffle-ignore-compile"]
-sender: ["0x100", "0x200", "0x300", "0x400", "0x500"]
+corpusDir: "corpus"

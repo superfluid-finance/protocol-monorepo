@@ -8,7 +8,7 @@ import {
     ISuperAgreement
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import { strings } from "@arachnid/solidity-string-utils/strings.sol";
+import { strings } from "solidity-stringutils";
 
 /**
  * @title Superfluid loader contract

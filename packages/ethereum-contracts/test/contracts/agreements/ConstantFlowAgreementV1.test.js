@@ -3616,6 +3616,86 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
     });
 
+    context("#4 Access Control List", () => {
+        it("#4.1 should correctly encode, decode and generate flow operator id", async () => {
+            // TODO: should encode flow operator data
+            // TODO: should decode flow operator data
+            // TODO: should get boolean flow operator permissions
+            // TODO: should get boolean flow operator permissions
+        });
+
+        it("#4.2 should revert if attempting to encode unclean permissions", async () => {
+            // TODO: should disallow and revert attempts to encode unclean permissions (> 7 for example)
+        });
+
+        it("#4.3 should properly update flow operator permissions with same maxFlowRate", async () => {
+            // SAME FLOWRATE, different permissions
+            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
+            //       and _getFlowOperatorData
+            // TODO: should be able to update permissions to allow create
+            // TODO: should be able to update permissions to allow update
+            // TODO: should be able to update permissions to allow delete
+        });
+
+        it("#4.4 should properly update one flow operator permission with different maxFlowRate", async () => {
+            // DIFFERENT FLOWRATE, same permissions
+            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
+            //       and _getFlowOperatorData
+            // TODO: should be able to update permissions to allow create with two two different max flow rate
+        });
+
+        it("#4.5 should properly update flow operator permissions with different maxFlowRate", async () => {
+            // DIFFERENT FLOWRATE, different permissions
+            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
+            //       and _getFlowOperatorData
+            // TODO: should be able to update permissions to allow create
+            // TODO: should be able to update permissions to allow update
+            // TODO: should be able to update permissions to allow delete
+        });
+
+        it("#4.6 should properly update one flow operator permission with same maxFlowRate", async () => {
+            // same FLOWRATE, same permissions
+            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
+            //       and _getFlowOperatorData
+            // TODO: should be able to update permissions to allow create
+        });
+
+        it("#4.7 should be able to authorize flow operator with full control", async () => {
+            // TODO: should be able to authorize a flow operator with full control after authorizing some
+            // TODO: should be able to authorize a flow operator with full control from scratch
+        });
+
+        it("#4.8 should be able to revoke flow operator with full control", async () => {
+            // after each test create/update/delete (expect these to fail)
+            // TODO: should be able to revoke a flow operator with full control even though none exists
+            // TODO: should be able to revoke a flow operator with full control after authorizing some
+            // TODO: should be able to revoke after authorizing full control
+        });
+
+        it("#4.9 should revert if attempting to create/update/delete without permissions to do so", async () => {
+            // TODO: revert for each case (make a helper function/behavior for this)
+        });
+
+        it("#4.10 should revert if attempting to create/update with flow rate exceeding maxFlowRate", async () => {
+            // TODO: on the initial flow creation (> maxFlowRate)
+            // TODO: on subsequent flow creations (sum of flowRates > maxFlowRate)
+        });
+
+        it("#4.11 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
+            // TODO: approve to create at max flow rate and create a flow
+            // TODO: then revert attempt to update and revert attempt to delete (no permissions)
+            // TODO: approve to update at max flow rate and update the flow
+            // TODO: then revert attempt to delete
+            // TODO: approve to delete then delete the flow
+        });
+
+        it("#4.12 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
+            // TODO: should just be able to create/update/delete flows as a full control flow operator
+        });
+
+        it("#4.13 should allow deleting flow rate as approved flow operator", async () => {});
+    });
+
     context("#10 scenarios", () => {
         it("#10.1 two accounts sending to each other with the same flow rate", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);

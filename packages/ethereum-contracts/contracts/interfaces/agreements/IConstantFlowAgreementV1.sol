@@ -70,6 +70,89 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (bool isPatricianPeriod);
 
     /**
+     * @dev `sender` updates permissions for the `flowOperator` with `maxFlowRate`
+     * @param token Super token address
+     * @param sender The permission granter address
+     * @param flowOperator The permission grantee address
+     * @param permissions A bitmask representation of the desired permissions
+     * @param maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     */
+    function updateFlowOperatorPermissions(
+        ISuperfluidToken token,
+        address sender,
+        address flowOperator,
+        uint8 permissions,
+        int96 maxFlowRate,
+        bytes calldata ctx
+    ) external virtual;
+
+    /**
+     * @dev `sender` grants `flowOperator` create/update/delete permissions with maxFlowRate as type(int96).max
+     * @param token Super token address
+     * @param sender The permission granter address
+     * @param flowOperator The permission grantee address
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     */
+    function authorizeFlowOperatorWithFullControl(
+        ISuperfluidToken token,
+        address sender,
+        address flowOperator,
+        bytes calldata ctx
+    ) external virtual;
+
+     /**
+     * @notice `sender` revokes `flowOperator` create/update/delete permissions
+     * @dev `permissions` and `maxFlowRate` will both be set to 0
+     * @param token Super token address
+     * @param sender The permission granter address
+     * @param flowOperator The permission grantee address
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     */
+    function revokeFlowOperatorWithFullControl(
+        ISuperfluidToken token,
+        address sender,
+        address flowOperator,
+        bytes calldata ctx
+    ) external virtual;
+
+    /**
+     * @notice Get the permissions of a flow operator between `sender` and `flowOperator` for `token`
+     * @param token Super token address
+     * @param sender The permission granter address
+     * @param flowOperator The permission grantee address
+     * @return permissions A bitmask representation of the desired permissions
+     * @return maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
+     */
+    function getFlowOperatorData(
+       ISuperfluidToken token,
+       address sender,
+       address flowOperator
+    )
+        external view virtual
+        returns (
+            uint8 permissions,
+            int96 maxFlowRate
+        );
+
+    /**
+     * @notice Get flow operator using flowOperatorId
+     * @param token Super token address
+     * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
+     * @return permissions A bitmask representation of the desired permissions
+     * @return maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
+     */
+    function getFlowOperatorDataByID(
+       ISuperfluidToken token,
+       bytes32 flowOperatorId
+    )
+        external view virtual
+        returns (
+            uint8 permissions,
+            int96 maxFlowRate
+        );
+
+    /**
      * @notice Create a flow betwen ctx.msgSender and receiver
      * @dev flowId (agreementId) is the keccak256 hash of encoded sender and receiver
      * @param token Super token address
@@ -95,6 +178,26 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     )
         external virtual
         returns(bytes memory newCtx);
+
+    // TODO uncomment
+    /**
+    * @notice Create a flow between sender and receiver
+    * @dev A flow created by an approved flow operator (see above for details on callbacks)
+    * @param token Super token address
+    * @param sender Flow sender address (has granted permissions)
+    * @param receiver Flow receiver address
+    * @param flowRate New flow rate in amount per second
+    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+    */
+    // function createFlowByOperator(
+    //     ISuperfluidToken token,
+    //     address sender,
+    //     address receiver,
+    //     int96 flowRate,
+    //     bytes calldata ctx
+    // )
+    //     external virtual
+    //     returns(bytes memory newCtx);
 
     /**
      * @notice Update the flow rate between ctx.msgSender and receiver
@@ -126,6 +229,25 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
+    // TODO uncomment
+    /**
+    * @notice Update a flow between sender and receiver
+    * @dev A flow updated by an approved flow operator (see above for details on callbacks)
+    * @param token Super token address
+    * @param sender Flow sender address (has granted permissions)
+    * @param receiver Flow receiver address
+    * @param flowRate New flow rate in amount per second
+    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+    */
+    // function updateFlowByOperator(
+    //     ISuperfluidToken token,
+    //     address sender,
+    //     address receiver,
+    //     int96 flowRate,
+    //     bytes calldata ctx
+    // )
+    //     external virtual
+    //     returns(bytes memory newCtx);
 
     /**
      * @dev Get the flow data between `sender` and `receiver` of `token`
@@ -251,6 +373,24 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
          int256 totalSenderFlowRate,
          int256 totalReceiverFlowRate,
          bytes userData
+     );
+     
+     // TODO: FlowUpdatedV2
+
+    /**
+     * @dev Flow operator updated event
+     * @param token Super token address
+     * @param sender Flow sender address
+     * @param flowOperator Flow operator address
+     * @param permissions Octo bitmask representation of permissions
+     * @param maxFlowRate Maximum allowed flowRate 
+     */
+     event FlowOperatorUpdated(
+         ISuperfluidToken indexed token,
+         address indexed sender,
+         address indexed flowOperator,
+         uint8 permissions,
+         int96 maxFlowRate
      );
 
 }

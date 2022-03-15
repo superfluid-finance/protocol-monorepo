@@ -8,9 +8,10 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
-    SuperAppDefinitions,
-    ContextDefinitions,
     BatchOperation,
+    ContextDefinitions,
+    FlowOperatorDefinitions,
+    SuperAppDefinitions,
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";

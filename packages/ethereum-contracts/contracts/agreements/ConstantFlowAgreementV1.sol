@@ -9,6 +9,7 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
+    FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
     SuperfluidGovernanceConfigs
@@ -54,6 +55,11 @@ contract ConstantFlowAgreementV1 is
         address receiver;
         int96 flowRate;
         bytes userData;
+    }
+
+    struct FlowOperatorData {
+        uint8 permissions;
+        int96 maxFlowRate;
     }
 
     // solhint-disable-next-line no-empty-blocks
@@ -418,6 +424,110 @@ contract ConstantFlowAgreementV1 is
     }
 
     /**************************************************************************
+     * ACL Functions
+     *************************************************************************/
+
+    // TODO:
+    // - create/updateFlowByOperator needs to be implemented with specific considerations
+    // - modify delete flow needs to update the state of these accordingly
+    // - create a FlowUpdatedV2 event
+
+    /// @dev IConstantFlowAgreementV1.createFlowByOperator implementation
+    // function createFlowByOperator(
+    //     ISuperfluidToken token,
+    //     address sender,
+    //     address receiver,
+    //     int96 flowRate,
+    //     bytes calldata ctx
+    // ) external override returns(bytes memory newCtx) {
+    //     FlowParams memory flowParams;
+    //     // TODO implement logic - will have to abstract out and combine w/ stuff from the OG version of the function
+    // }
+    
+    // /// @dev IConstantFlowAgreementV1.updateFlowByOperator implementation
+    // function updateFlowByOperator(
+    //     ISuperfluidToken token,
+    //     address sender,
+    //     address receiver,
+    //     int96 flowRate,
+    //     bytes calldata ctx
+    // ) external override returns(bytes memory newCtx) {
+    //     FlowParams memory flowParams;
+    //     // TODO implement logic - will have to abstract out and combine w/ stuff from the OG version of the function
+    // }
+
+    /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
+    function updateFlowOperatorPermissions(
+        ISuperfluidToken token, 
+        address sender,
+        address flowOperator,
+        uint8 permissions,
+        int96 maxFlowRate,
+        bytes calldata ctx
+    ) public override {
+        require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        require(sender == currentContext.msgSender, "CFA: Unauthorized update of flow operator permissions");
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = permissions;
+        flowOperatorData.maxFlowRate = maxFlowRate;
+        bytes32 flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+    }
+
+    /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
+    function authorizeFlowOperatorWithFullControl(
+        ISuperfluidToken token, 
+        address sender,
+        address flowOperator,
+        bytes calldata ctx
+    ) external override {
+        updateFlowOperatorPermissions(
+            token,
+            sender,
+            flowOperator,
+            FlowOperatorDefinitions.AUTHORIZE_FULL_CONTROL,
+            type(int96).max,
+            ctx
+        );
+    }
+
+    /// @dev IConstantFlowAgreementV1.revokeFlowOperatorWithFullControl implementation
+    function revokeFlowOperatorWithFullControl(
+        ISuperfluidToken token, 
+        address sender,
+        address flowOperator,
+        bytes calldata ctx
+    ) external override {
+        // REVOKE_FULL_CONTROL = 0
+        updateFlowOperatorPermissions(token, sender, flowOperator, 0, 0, ctx);
+    }
+
+    /// @dev IConstantFlowAgreementV1.getFlowOperatorData implementation
+    function getFlowOperatorData(
+        ISuperfluidToken token, 
+        address sender,
+        address flowOperator
+    ) 
+        external view override
+        returns(uint8 permissions, int96 maxFlowRate) {
+        bytes32 flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
+        (permissions, maxFlowRate) = getFlowOperatorDataByID(token, flowOperatorId);
+    }
+
+    /// @dev IConstantFlowAgreementV1.getFlowOperatorDataByID implementation
+    function getFlowOperatorDataByID(
+        ISuperfluidToken token, 
+        bytes32 flowOperatorId
+    ) 
+        public view override
+        returns(uint8 permissions, int96 maxFlowRate) {
+        (, FlowOperatorData memory flowOperatorData) = _getFlowOperatorData(token, flowOperatorId);
+        permissions = flowOperatorData.permissions;
+        maxFlowRate = flowOperatorData.maxFlowRate;
+    }
+
+    /**************************************************************************
      * Internal State Functions
      *************************************************************************/
 
@@ -449,6 +559,19 @@ contract ConstantFlowAgreementV1 is
     {
         bytes32[] memory data = token.getAgreementData(address(this), dId, 1);
         return _decodeFlowData(uint256(data[0]));
+    }
+
+    function _getFlowOperatorData
+    (
+        ISuperfluidToken token,
+        bytes32 flowOperatorId
+    )
+        private view
+        returns (bool exist, FlowOperatorData memory)
+    {
+        // 1 because we are storing the flowOperator data in one word
+        bytes32[] memory data = token.getAgreementData(address(this), flowOperatorId, 1);
+        return _decodeFlowOperatorData(uint256(data[0]));
     }
 
     function _updateAccountFlowState(
@@ -996,5 +1119,63 @@ contract ConstantFlowAgreementV1 is
         int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
         // divisor cannot be zero with existing outflow
         return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+    }
+
+    /**************************************************************************
+     * ACL Pure Functions
+     *************************************************************************/
+
+    function _generateFlowOperatorId(address sender, address flowOperator) private pure returns(bytes32 id) {
+        return keccak256(abi.encode("flowOperator", sender, flowOperator));
+    }
+
+    //
+    // Data packing:
+    //
+    // WORD A: | reserved   | maxFlowRate | permissions |
+    //         | 152        | 96          | 8           |
+    //
+    // NOTE:
+    // - maxFlowRate has 96 bits length
+    // - permissions is an 8-bit octo bitmask
+
+    function _encodeFlowOperatorData
+    (
+        FlowOperatorData memory flowOperatorData
+    )
+        internal pure
+        returns(bytes32[] memory data)
+    {
+        data = new bytes32[](1);
+        data[0] = bytes32(
+            uint256(flowOperatorData.permissions) << 8 |
+            (uint256(int256(flowOperatorData.maxFlowRate)) << 96)
+        );
+    }
+
+    function _decodeFlowOperatorData
+    (
+        uint256 wordA
+    )
+        internal pure
+        returns(bool exist, FlowOperatorData memory flowOperatorData)
+    {
+        exist = wordA > 0;
+        if (exist) {
+            flowOperatorData.maxFlowRate = int96(int256(wordA >> 96));
+            flowOperatorData.permissions = uint8(wordA >> 8) & type(uint8).max;
+        }
+    }
+
+    function _getBooleanFlowOperatorPermissions
+    (
+        uint8 permissions
+    )
+        internal pure
+        returns (bool createAllowed, bool updateAllowed, bool deleteAllowed)
+    {
+        createAllowed = permissions & uint8(1) == 1;
+        updateAllowed = (permissions >> 1) & uint8(1) == 1;
+        deleteAllowed = (permissions >> 2) & uint8(1) == 1;
     }
 }

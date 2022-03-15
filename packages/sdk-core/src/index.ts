@@ -37,6 +37,8 @@ export * from "./subgraph/events/flowUpdatedEvent";
 export * from "./subgraph/events/indexUpdatedEvent";
 export * from "./subgraph/events/subscriptionUnitsUpdatedEvents";
 
+export * from "./subgraph/meta/meta";
+
 export * from "./subgraph/mappedSubgraphTypes";
 export * from "./SFError";
 export * from "./subgraph/subgraphQueryHandler";

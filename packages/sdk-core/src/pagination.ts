@@ -28,6 +28,15 @@ export type LastIdPaging = {
 };
 
 /**
+ * WARNING: Works only with number literal of {@see Number.POSITIVE_INFINITY}.
+ * WARNING: Works only with the new QueryHandlers.
+ * Recursively gets all the possible Subgraph results.
+ */
+export type InfinityPaging = {
+    readonly take: number;
+};
+
+/**
  * @dev PagedResult Interface
  */
 export interface PagedResult<T extends ILightEntity> {
@@ -67,8 +76,17 @@ export const createPagedResult = <T extends ILightEntity>(
     };
 };
 
-function isSkipPaging(paging: Paging): paging is SkipPaging {
-    return paging.skip !== undefined;
+export function isSkipPaging(paging?: Paging): paging is SkipPaging {
+    return paging?.skip !== undefined;
+}
+
+export function isInfinityPaging(paging?: Paging): paging is InfinityPaging {
+    return (
+        paging !== undefined &&
+        paging.skip === undefined &&
+        paging.lastId === undefined &&
+        paging.take === Infinity
+    );
 }
 
 export const createSkipPaging = ({

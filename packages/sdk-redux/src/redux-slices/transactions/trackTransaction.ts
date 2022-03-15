@@ -1,10 +1,12 @@
 // Having a single "track" action makes it easy to use transaction tracking logic.
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
+import {AllEvents, EventQueryHandler, PagedResult} from '@superfluid-finance/sdk-core';
 import {ethers} from 'ethers';
 
 import {getApiSlice, getFramework, getSubgraphSlice, getTransactionSlice} from '../../sdkReduxConfig';
-import {MillisecondTimes} from '../../utils';
+import {MillisecondTimes, retry} from '../../utils';
 import {TransactionInfo} from '../argTypes';
+import {invalidateCacheTagsForEvents} from '../rtk-query/cacheTags/invalidateCacheTagsForEvents';
 
 import {transactionSlicePrefix} from './createTransactionSlice';
 
@@ -45,7 +47,7 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
         const framework = await getFramework(arg.chainId);
 
         waitForOneConfirmation(framework.settings.provider, arg.hash)
-            .then((_transactionReceipt: ethers.providers.TransactionReceipt) => {
+            .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
                 // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
                 dispatch(
@@ -56,7 +58,22 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
                     })
                 );
 
+                // TODO(KK): "get RPC slice"
+                dispatch(getApiSlice().util.resetApiState());
+
                 monitorForLateErrors(framework.settings.provider, arg, dispatch);
+
+                retry<PagedResult<AllEvents>>(
+                    () =>
+                        new EventQueryHandler().list(framework.query.subgraphClient, {
+                            block: {number: transactionReceipt.blockNumber},
+                            pagination: {take: Infinity},
+                        }),
+                    10, // retry count
+                    250 // retry interval
+                ).then((subgraphEventsQueryResult) =>
+                    invalidateCacheTagsForEvents(arg.chainId, subgraphEventsQueryResult.data, dispatch)
+                );
             })
             .catch((ethersError: EthersError) => {
                 notifyOfError(ethersError, arg, dispatch);

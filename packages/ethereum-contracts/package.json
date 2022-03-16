@@ -51,7 +51,7 @@
         "@arachnid/solidity-string-utils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.5.0",
-        "@superfluid-finance/js-sdk": "0.5.11",
+        "@superfluid-finance/js-sdk": "0.5.12",
         "@truffle/contract": "4.4.6",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.3",

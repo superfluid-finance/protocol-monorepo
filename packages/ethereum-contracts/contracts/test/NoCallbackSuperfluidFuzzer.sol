@@ -8,11 +8,13 @@ import "../test/TestGovernance.sol";
 import "../agreements/ConstantFlowAgreementV1.sol";
 import "../agreements/InstantDistributionAgreementV1.sol";
 import "../apps/CFAv1Library.sol";
+import "../apps/IDAv1Library.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
 contract SuperfluidTester {
 
     CFAv1Library.InitData private _cfaLib;
+    IDAv1Library.InitData private _idaLib;
     IERC20 private _token;
     ISuperToken private _superToken;
 
@@ -25,6 +27,8 @@ contract SuperfluidTester {
         ISuperToken superToken) {
         _cfaLib.host = host;
         _cfaLib.cfa = cfa;
+        _idaLib.host = host;
+        _idaLib.cfa = cfa;
         _token = token;
         _superToken = superToken;
     }
@@ -53,6 +57,7 @@ contract NoCallbackSuperfluidFuzzer {
     Superfluid private immutable _host;
     TestGovernance private immutable _gov;
     ConstantFlowAgreementV1 private immutable _cfa;
+    InstantDistributionAgreementV1 private immutable _ida;
     ERC20PresetMinterPauser private immutable _token;
     ISuperToken private immutable _superToken;
     SuperfluidTester[N_TEST_ACCOUNTS] private _testers;
@@ -70,6 +75,9 @@ contract NoCallbackSuperfluidFuzzer {
 
         _cfa = new ConstantFlowAgreementV1(_host);
         _gov.registerAgreementClass(_host, address(_cfa));
+
+        _ida = new InstantDistributionAgreementV1(_host);
+        _gov.registerAgreementClass(_host, address(_ida));
 
         _token = new ERC20PresetMinterPauser("FTT", "FTT");
 

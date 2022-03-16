@@ -53,7 +53,7 @@ export const networkNames: string[] = [
     GNOSIS,
     MATIC,
     OPTIMISM_MAINNET,
-    ARBITRUN_ONE,
+    ARBITRUM_ONE,
 ];
 
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([

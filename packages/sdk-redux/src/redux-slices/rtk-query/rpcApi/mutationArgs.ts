@@ -1,9 +1,8 @@
-import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../argTypes';
-import RpcApiEndpointBuilder from './rpcApiEndpointBuilder';
 import {getFramework, getSigner} from '../../../sdkReduxConfig';
+import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../argTypes';
 import {registerNewTransaction} from '../../transactions/registerNewTransaction';
 
-
+import RpcApiEndpointBuilder from './rpcApiEndpointBuilder';
 
 // query: (arg) => ({
 //     ...arg,
@@ -47,7 +46,6 @@ import {registerNewTransaction} from '../../transactions/registerNewTransaction'
 // }),
 
 export const endpointsTest = (builder: RpcApiEndpointBuilder) => ({
-
     upgradeToSuperToken: builder.mutation<TransactionInfo, SuperTokenUpgrade>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
@@ -132,14 +130,7 @@ export const endpointsTest = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-
-
 });
-
-
-
-
-
 
 /**
  * Downgrade `amount` SuperToken's.
@@ -159,8 +150,6 @@ export interface MonitorForEventsToInvalidateCache {
     address: string | NothingString;
 }
 
-
-
 /**
  * Upgrade `amount` SuperToken's.
  * NOTE: Initiates request for allowance if necessary.
@@ -173,7 +162,7 @@ export interface SuperTokenUpgrade extends BaseSuperTokenMutation {
 /**
  * Transfer `receiver` `amount` tokens.
  */
- export interface SuperTokenTransfer extends BaseSuperTokenMutation {
+export interface SuperTokenTransfer extends BaseSuperTokenMutation {
     /** The receiver of the transfer. */
     receiverAddress: string;
     /** The amount to be transferred. */

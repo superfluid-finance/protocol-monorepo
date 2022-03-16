@@ -1,7 +1,9 @@
-import { RpcApiBaseQuery } from "./rpcApiBaseQuery";
-import { CacheTagTypes } from "../cacheTags/CacheTagTypes";
-import RpcApiReducerPath from "./rpcApiReducerPath";
 import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+
+import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
+
+import {RpcApiBaseQuery} from './rpcApiBaseQuery';
+import RpcApiReducerPath from './rpcApiReducerPath';
 
 type RpcApiEndpointBuilder = EndpointBuilder<RpcApiBaseQuery, CacheTagTypes, RpcApiReducerPath>;
 

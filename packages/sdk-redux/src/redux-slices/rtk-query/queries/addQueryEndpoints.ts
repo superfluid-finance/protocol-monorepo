@@ -1,4 +1,3 @@
-
 import {getFramework} from '../../../sdkReduxConfig';
 import {typeGuard} from '../../../utils';
 import {getMostSpecificIndexTag} from '../cacheTags/indexTags';
@@ -6,11 +5,7 @@ import {getMostSpecificStreamTag} from '../cacheTags/streamTags';
 import {getMostSpecificTokenTag} from '../cacheTags/tokenTags';
 import {ApiSliceEndpointBuilder} from '../sfApiSlice';
 
-import {
-    GetAllowanceForUpgradeToSuperToken,
-    GetRealtimeBalance,
-    GetRealtimeBalanceResult,
-} from './queries';
+import {GetAllowanceForUpgradeToSuperToken, GetRealtimeBalance, GetRealtimeBalanceResult} from './queries';
 
 export const addQueryEndpoints = (builder: ApiSliceEndpointBuilder) => ({
     getAllowanceForUpgradeToSuperToken: builder.query<string, GetAllowanceForUpgradeToSuperToken>({

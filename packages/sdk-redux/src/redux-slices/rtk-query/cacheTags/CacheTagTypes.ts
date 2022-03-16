@@ -1,10 +1,15 @@
 // NOTE: If you add a type here then you have to also add it to tag types on the RTK Query slice.
+
+import { typeGuard } from "../../../utils";
+
 /**
  * All possible cache tag types.
  * @private
  * @category Cache Tags
  */
 export type CacheTagTypes = 'Event' | 'Index' | 'Stream' | 'Token';
+
+export const cacheTagTypes = typeGuard<CacheTagTypes[]>(['Event', 'Index', 'Stream', 'Token']); 
 
 /**
  * Create a cache tag for RTK-Query.

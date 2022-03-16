@@ -179,7 +179,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
-    // TODO uncomment
     /**
     * @notice Create a flow between sender and receiver
     * @dev A flow created by an approved flow operator (see above for details on callbacks)
@@ -189,15 +188,15 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     * @param flowRate New flow rate in amount per second
     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
     */
-    // function createFlowByOperator(
-    //     ISuperfluidToken token,
-    //     address sender,
-    //     address receiver,
-    //     int96 flowRate,
-    //     bytes calldata ctx
-    // )
-    //     external virtual
-    //     returns(bytes memory newCtx);
+    function createFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes calldata ctx
+    )
+        external virtual
+        returns(bytes memory newCtx);
 
     /**
      * @notice Update the flow rate between ctx.msgSender and receiver
@@ -229,7 +228,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
-    // TODO uncomment
     /**
     * @notice Update a flow between sender and receiver
     * @dev A flow updated by an approved flow operator (see above for details on callbacks)
@@ -239,15 +237,15 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     * @param flowRate New flow rate in amount per second
     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
     */
-    // function updateFlowByOperator(
-    //     ISuperfluidToken token,
-    //     address sender,
-    //     address receiver,
-    //     int96 flowRate,
-    //     bytes calldata ctx
-    // )
-    //     external virtual
-    //     returns(bytes memory newCtx);
+    function updateFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes calldata ctx
+    )
+        external virtual
+        returns(bytes memory newCtx);
 
     /**
      * @dev Get the flow data between `sender` and `receiver` of `token`
@@ -375,7 +373,28 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
          bytes userData
      );
      
-     // TODO: FlowUpdatedV2
+     /**
+      * @dev Flow updated v2 event
+      * @param token Super token address
+      * @param sender Flow sender address
+      * @param receiver Flow recipient address
+      * @param flowOperator Flow operator address
+      * @param flowRate Flow rate in amount per second for this flow
+      * @param totalSenderFlowRate Total flow rate in amount per second for the sender
+      * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
+      * @param userData The user provided data
+      */
+     event FlowUpdatedV2(
+         ISuperfluidToken indexed token,
+         address indexed sender,
+         address indexed receiver,
+         address flowOperator,
+         int96 flowRate,
+         int256 totalSenderFlowRate,
+         int256 totalReceiverFlowRate,
+         uint256 deposit,
+         bytes userData
+     );
 
     /**
      * @dev Flow operator updated event

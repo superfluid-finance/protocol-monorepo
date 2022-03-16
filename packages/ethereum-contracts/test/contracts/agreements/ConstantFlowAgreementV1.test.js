@@ -3693,7 +3693,9 @@ describe("Using ConstantFlowAgreement v1", function () {
             // TODO: should just be able to create/update/delete flows as a full control flow operator
         });
 
-        it("#4.13 should allow deleting flow rate as approved flow operator", async () => {});
+        it("#4.13 should revert if you try to call create/updateFlowByOperator if you are a sender", async () => {});
+
+        it("#4.14 shouldn't decrease the maxFlowRate if they have set maxFlowRate to type(int96).max", async () => {});
     });
 
     context("#10 scenarios", () => {

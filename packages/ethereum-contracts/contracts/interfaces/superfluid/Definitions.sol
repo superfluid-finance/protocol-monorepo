@@ -118,7 +118,7 @@ library ContextDefinitions {
     uint8 constant internal REVOKE_FLOW_OPERATOR_UPDATE = ~(uint8(1) << 1);
     uint8 constant internal REVOKE_FLOW_OPERATOR_DELETE = ~(uint8(1) << 2);
 
-    function isPermissionsClean(uint8 permissions) public pure returns (bool) {
+    function isPermissionsClean(uint8 permissions) internal pure returns (bool) {
         return (
             permissions & ~(AUTHORIZE_FLOW_OPERATOR_CREATE
                 | AUTHORIZE_FLOW_OPERATOR_UPDATE

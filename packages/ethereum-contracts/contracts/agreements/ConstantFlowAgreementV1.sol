@@ -173,32 +173,26 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        FlowParams memory flowParams;
-        require(receiver != address(0), "CFA: receiver is zero");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
-        flowParams.sender = currentContext.msgSender;
-        flowParams.receiver = receiver;
-        flowParams.flowRate = flowRate;
-        flowParams.userData = currentContext.userData;
-        require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
-        require(flowParams.flowRate > 0, "CFA: invalid flow rate");
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
-        require(!exist, "CFA: flow already exist");
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)))
-        {
-            newCtx = _changeFlowToApp(
-                receiver,
-                token, flowParams, oldFlowData,
-                ctx, currentContext, FlowChangeType.CREATE_FLOW);
-        } else {
-            newCtx = _changeFlowToNonApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext);
-        }
+        bytes32 flowId = _generateFlowId(currentContext.msgSender, receiver);
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
 
-        _requireAvailableBalance(token, currentContext);
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = currentContext.msgSender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = flowRate;
+
+        newCtx = _createOrUpdateFlow(
+            flowVars,
+            flowId,
+            FlowChangeType.CREATE_FLOW,
+            exist,
+            ctx,
+            currentContext,
+            oldFlowData
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlow implementation
@@ -212,31 +206,26 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        FlowParams memory flowParams;
-        require(receiver != address(0), "CFA: receiver is zero");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
-        flowParams.sender = currentContext.msgSender;
-        flowParams.receiver = receiver;
-        flowParams.flowRate = flowRate;
-        flowParams.userData = currentContext.userData;
-        require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
-        require(flowParams.flowRate > 0, "CFA: invalid flow rate");
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
-        require(exist, "CFA: flow does not exist");
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-            newCtx = _changeFlowToApp(
-                receiver,
-                token, flowParams, oldFlowData,
-                ctx, currentContext, FlowChangeType.UPDATE_FLOW);
-        } else {
-            newCtx = _changeFlowToNonApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext);
-        }
+        bytes32 flowId = _generateFlowId(currentContext.msgSender, receiver);
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
 
-        _requireAvailableBalance(token, currentContext);
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = currentContext.msgSender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = flowRate;
+
+        newCtx = _createOrUpdateFlow(
+            flowVars,
+            flowId,
+            FlowChangeType.UPDATE_FLOW,
+            exist,
+            ctx,
+            currentContext,
+            oldFlowData
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.deleteFlow implementation
@@ -424,37 +413,180 @@ contract ConstantFlowAgreementV1 is
     }
 
     /**************************************************************************
+     * Internal Helper Functions
+     *************************************************************************/
+
+    // Stack variables for _createOrUpdateFlow function, to avoid stack too deep issue
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars_createOrUpdateFlow {
+        ISuperfluidToken token;
+        address sender;
+        address receiver;
+        int96 flowRate;
+    }
+
+    /**
+     * @dev Abstracts logic utilized by both createFlow and updateFlow previously
+     * @param flowVars see _StackVars_createOrUpdateFlow struct
+     * @param flowId flowId (agreementId) is the keccak256 hash of encoded sender and receiver
+     * @param flowChangeType whether the flow is a create or update 
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param currentContext the Context struct
+     * @param oldFlowData the oldFlowData
+     */
+    function _createOrUpdateFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        bytes32 flowId,
+        FlowChangeType flowChangeType,
+        bool exist,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext,
+        FlowData memory oldFlowData
+    ) 
+        internal
+        returns(bytes memory newCtx)
+    {
+        require(flowVars.receiver != address(0), "CFA: receiver is zero");
+
+        FlowParams memory flowParams;
+        flowParams.flowId = flowId;
+        flowParams.sender = flowVars.sender;
+        flowParams.receiver = flowVars.receiver;
+        flowParams.flowRate = flowVars.flowRate;
+        flowParams.userData = currentContext.userData;
+        require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
+        require(flowParams.flowRate > 0, "CFA: invalid flow rate");
+        require(
+            !exist && flowChangeType == FlowChangeType.CREATE_FLOW ||
+            flowChangeType == FlowChangeType.UPDATE_FLOW, "CFA: flow already exist"
+        );
+        require(
+            exist && flowChangeType == FlowChangeType.UPDATE_FLOW ||
+            flowChangeType == FlowChangeType.CREATE_FLOW, "CFA: flow does not exist"
+        );
+
+        if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+            newCtx = _changeFlowToApp(
+                flowVars.receiver,
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext, flowChangeType);
+        } else {
+            newCtx = _changeFlowToNonApp(
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext);
+        }
+
+        _requireAvailableBalance(flowVars.token, currentContext);
+    }
+
+    /**************************************************************************
      * ACL Functions
      *************************************************************************/
 
     // TODO:
-    // - create/updateFlowByOperator needs to be implemented with specific considerations
     // - modify delete flow needs to update the state of these accordingly
     // - create a FlowUpdatedV2 event
 
     /// @dev IConstantFlowAgreementV1.createFlowByOperator implementation
-    // function createFlowByOperator(
-    //     ISuperfluidToken token,
-    //     address sender,
-    //     address receiver,
-    //     int96 flowRate,
-    //     bytes calldata ctx
-    // ) external override returns(bytes memory newCtx) {
-    //     FlowParams memory flowParams;
-    //     // TODO implement logic - will have to abstract out and combine w/ stuff from the OG version of the function
-    // }
+    function createFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes calldata ctx
+    ) 
+        external override
+        returns(bytes memory newCtx)
+    {
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        require(currentContext.msgSender != sender, "CFA: You cannot createFlowByOperator as the sender");
+
+        {
+            // check if flow operator has create permissions
+            bytes32 flowOperatorId = _generateFlowOperatorId(sender, currentContext.msgSender);
+            (uint8 permissions, int96 maxFlowRate) = getFlowOperatorDataByID(token, flowOperatorId);
+            bool createAllowed = permissions & uint8(1) == 1;
+            require(createAllowed, "CFA: You don't have permission to create a flow");
+
+            // check if desired flow rate is allowed
+            int96 newMaxFlowRate = maxFlowRate == type(int96).max
+                ? maxFlowRate
+                : maxFlowRate - flowRate;
+            require(newMaxFlowRate >= 0, "CFA: flow rate exceeds the maxFlowRate");
+            _updateFlowOperatorMaxFlowRate(token, flowOperatorId, permissions, maxFlowRate);
+        }
+
+        // check if flow exists
+        bytes32 flowId = _generateFlowId(sender, receiver);
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
+
+        {
+            _StackVars_createOrUpdateFlow memory flowVars;
+            flowVars.token = token;
+            flowVars.sender = sender;
+            flowVars.receiver = receiver;
+            flowVars.flowRate = flowRate;
+            newCtx = _createOrUpdateFlow(
+                flowVars,
+                flowId,
+                FlowChangeType.CREATE_FLOW,
+                exist,
+                ctx,
+                currentContext,
+                oldFlowData
+            );
+        }
+    }
     
     // /// @dev IConstantFlowAgreementV1.updateFlowByOperator implementation
-    // function updateFlowByOperator(
-    //     ISuperfluidToken token,
-    //     address sender,
-    //     address receiver,
-    //     int96 flowRate,
-    //     bytes calldata ctx
-    // ) external override returns(bytes memory newCtx) {
-    //     FlowParams memory flowParams;
-    //     // TODO implement logic - will have to abstract out and combine w/ stuff from the OG version of the function
-    // }
+    function updateFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes calldata ctx
+    ) 
+        external override
+        returns(bytes memory newCtx)
+    {
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        require(currentContext.msgSender != sender, "CFA: You cannot updateFlowByOperator as the sender");
+
+        // check if flow exists
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
+
+        {
+            // check if flow operator has create permissions
+            bytes32 flowOperatorId = _generateFlowOperatorId(sender, currentContext.msgSender);
+            (uint8 permissions, int96 maxFlowRate) = getFlowOperatorDataByID(token, flowOperatorId);
+            bool updateAllowed = (permissions >> 1) & uint8(1) == 1;
+            require(updateAllowed, "CFA: You don't have permission to update a flow");
+
+            // check if desired flow rate is allowed
+            int96 newMaxFlowRate = maxFlowRate == type(int96).max || oldFlowData.flowRate >= flowRate
+                ? maxFlowRate
+                : maxFlowRate - flowRate;
+            require(newMaxFlowRate >= 0, "CFA: flow rate exceeds the maxFlowRate");
+            _updateFlowOperatorMaxFlowRate(token, flowOperatorId, permissions, newMaxFlowRate);
+        }
+        
+        {
+            _StackVars_createOrUpdateFlow memory flowVars;
+            flowVars.token = token;
+            flowVars.sender = sender;
+            flowVars.receiver = receiver;
+            flowVars.flowRate = flowRate;
+            newCtx = _createOrUpdateFlow(
+                flowVars,
+                _generateFlowId(sender, receiver),
+                FlowChangeType.UPDATE_FLOW,
+                exist,
+                ctx,
+                currentContext,
+                oldFlowData
+            );
+        }
+    }
 
     /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
     function updateFlowOperatorPermissions(
@@ -509,8 +641,9 @@ contract ConstantFlowAgreementV1 is
         address sender,
         address flowOperator
     ) 
-        external view override
-        returns(uint8 permissions, int96 maxFlowRate) {
+        public view override
+        returns(uint8 permissions, int96 maxFlowRate)
+    {
         bytes32 flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
         (permissions, maxFlowRate) = getFlowOperatorDataByID(token, flowOperatorId);
     }
@@ -521,7 +654,8 @@ contract ConstantFlowAgreementV1 is
         bytes32 flowOperatorId
     ) 
         public view override
-        returns(uint8 permissions, int96 maxFlowRate) {
+        returns(uint8 permissions, int96 maxFlowRate)
+    {
         (, FlowOperatorData memory flowOperatorData) = _getFlowOperatorData(token, flowOperatorId);
         permissions = flowOperatorData.permissions;
         maxFlowRate = flowOperatorData.maxFlowRate;
@@ -572,6 +706,21 @@ contract ConstantFlowAgreementV1 is
         // 1 because we are storing the flowOperator data in one word
         bytes32[] memory data = token.getAgreementData(address(this), flowOperatorId, 1);
         return _decodeFlowOperatorData(uint256(data[0]));
+    }
+
+    function _updateFlowOperatorMaxFlowRate
+    (
+        ISuperfluidToken token,
+        bytes32 flowOperatorId,
+        uint8 existingPermissions,
+        int96 newMaxFlowRate
+    ) 
+        private 
+    {
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = existingPermissions;
+        flowOperatorData.maxFlowRate = newMaxFlowRate;
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
     }
 
     function _updateAccountFlowState(
@@ -904,6 +1053,17 @@ contract ConstantFlowAgreementV1 is
             totalSenderFlowRate,
             totalReceiverFlowRate,
             flowParams.userData);
+
+        // emit FlowUpdatedV2(
+        //     token,
+        //     flowParams.sender,
+        //     flowParams.receiver,
+        //     flowParams.sender, // TODO FLOWOPERATOR
+        //     flowParams.flowRate,
+        //     totalSenderFlowRate,
+        //     totalReceiverFlowRate,
+        //     69,
+        //     flowParams.userData);
     }
     function _requireAvailableBalance(
         ISuperfluidToken token,

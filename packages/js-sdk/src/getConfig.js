@@ -125,6 +125,13 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         10: {
             // op mainnet
             nativeTokenSymbol: "ETH",
+            resolverAddress: "0x743B5f46BC86caF41bE4956d9275721E0531B186",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet",
+                },
+            },
         },
         69: {
             // op kovan testnet

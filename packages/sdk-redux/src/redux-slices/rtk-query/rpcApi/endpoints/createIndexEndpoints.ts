@@ -1,8 +1,7 @@
-import {getFramework, getSigner} from '../../../sdkReduxConfig';
-import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../argTypes';
-import {registerNewTransaction} from '../../transactions/registerNewTransaction';
-
-import RpcApiEndpointBuilder from './rpcApiEndpointBuilder';
+import {getFramework, getSigner} from '../../../../sdkReduxConfig';
+import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../../argTypes';
+import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
+import RpcApiEndpointBuilder from '../rpcApiEndpointBuilder';
 
 /**
  * Creates an IDA Index.
@@ -85,7 +84,7 @@ export interface IndexSubscriptionClaim extends BaseSuperTokenMutation {
     userDataBytes: string | NothingString;
 }
 
-export const createIndexMutationEndpoints = (builder: RpcApiEndpointBuilder) => ({
+export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
     indexCreate: builder.mutation<TransactionInfo, IndexCreate>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);

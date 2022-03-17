@@ -1,13 +1,12 @@
-import {getFramework, getSigner} from '../../../sdkReduxConfig';
-import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../argTypes';
-import {registerNewTransaction} from '../../transactions/registerNewTransaction';
-
-import RpcApiEndpointBuilder from './rpcApiEndpointBuilder';
+import {getFramework, getSigner} from '../../../../sdkReduxConfig';
+import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../../argTypes';
+import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
+import RpcApiEndpointBuilder from '../rpcApiEndpointBuilder';
 
 /**
  * Create a flow of the token of this class.
  */
-export interface CreateFlow extends BaseSuperTokenMutation {
+export interface FlowCreate extends BaseSuperTokenMutation {
     /** The sender of the flow. Signer is used when left empty. */
     senderAddress?: string;
     /** The receiver of the flow. */
@@ -44,8 +43,8 @@ export interface FlowDelete extends BaseSuperTokenMutation {
     userDataBytes: string | NothingString;
 }
 
-export const createFlowMutationEndpoints = (builder: RpcApiEndpointBuilder) => ({
-    flowCreate: builder.mutation<TransactionInfo, CreateFlow>({
+export const createFlowEndpoints = (builder: RpcApiEndpointBuilder) => ({
+    flowCreate: builder.mutation<TransactionInfo, FlowCreate>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);

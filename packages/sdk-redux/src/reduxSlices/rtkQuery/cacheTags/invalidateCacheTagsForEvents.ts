@@ -1,7 +1,7 @@
 import {AnyAction, ThunkDispatch} from '@reduxjs/toolkit';
 import {AllEvents} from '@superfluid-finance/sdk-core';
 
-import {getApiSlice, getSubgraphSlice} from '../../../sdkReduxConfig';
+import {getRpcSlice, getSubgraphSlice} from '../../../sdkReduxConfig';
 
 import {createEventTag} from './eventTags';
 import {createIndexTags} from './indexTags';
@@ -23,7 +23,7 @@ export const invalidateCacheTagsForEvents = (
         .map((event) => [createEventTag(chainId), ...getEventSpecificTags(event, chainId)])
         .flat();
 
-    dispatch(getApiSlice().util.invalidateTags(tagsToInvalidate));
+    dispatch(getRpcSlice().util.invalidateTags(tagsToInvalidate));
     dispatch(getSubgraphSlice().util.invalidateTags(tagsToInvalidate));
 };
 

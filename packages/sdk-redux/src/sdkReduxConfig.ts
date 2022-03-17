@@ -2,6 +2,8 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 import _ from 'lodash';
 
+// NOTE: This file is marked for side-effects inside the package.json for efficient tree-shaking.
+
 import {RpcSliceEmpty} from './reduxSlices/rtkQuery/rpcSlice/rpcSlice';
 import {SubgraphSliceEmpty} from './reduxSlices/rtkQuery/subgraphSlice/subgraphSlice';
 import {TransactionSlice} from './reduxSlices/transactionSlice/createTransactionSlice';
@@ -132,11 +134,7 @@ export default class SdkReduxConfig
 }
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
-export const getApiSlice = () => getConfig().getRpcSlice();
-export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
-export const getTransactionSlice = () => getConfig().getTransactionSlice();
-export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
-export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
+export const {getRpcSlice, getSubgraphSlice, getTransactionSlice, getFramework, getSigner} = getConfig();
 
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
 const isFramework = (value: any): value is Framework => !!value.cfaV1;

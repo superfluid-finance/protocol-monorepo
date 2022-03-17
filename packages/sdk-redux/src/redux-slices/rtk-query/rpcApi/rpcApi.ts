@@ -9,7 +9,7 @@ import rpcApiBaseQuery from './rpcApiBaseQuery';
 import RpcApiEndpointBuilder from './rpcApiEndpointBuilder';
 import RpcApiReducerPath from './rpcApiReducerPath';
 
-const createRpcApi = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
+export const createRpcApi = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
         reducerPath: typeGuard<RpcApiReducerPath>('Superfluid/rpcApi'),
         baseQuery: rpcApiBaseQuery(),
@@ -18,4 +18,4 @@ const createRpcApi = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
         serializeQueryArgs: getSerializeQueryArgs(),
     });
 
-export default createRpcApi;
+export type RpcApiEmpty = ReturnType<typeof createRpcApi>;

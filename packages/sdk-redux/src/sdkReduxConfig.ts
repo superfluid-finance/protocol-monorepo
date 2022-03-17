@@ -2,7 +2,7 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 import _ from 'lodash';
 
-import {SfApiSliceInferredType} from './redux-slices/rtk-query/sfApiSliceInferredType';
+import {RpcApiEmpty} from './redux-slices/rtk-query/rpcApi/rpcApi';
 import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraph-slice/sfSubgraphSliceInferredType';
 import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
 
@@ -16,13 +16,9 @@ interface SignerLocator {
     setSigner: (chainId: number, signerOrFactory: Signer | (() => Promise<Signer>)) => void;
 }
 
-interface FrameworkAndSignerLocator extends FrameworkLocator, SignerLocator {
-    getFrameworkAndSigner: (chainId: number) => Promise<[framework: Framework, signer: Signer]>;
-}
-
-interface ApiSliceLocator {
-    getApiSlice: () => SfApiSliceInferredType;
-    setApiSlice: (slice: SfApiSliceInferredType) => void;
+interface RpcApiLocator {
+    getRpcApi: () => RpcApiEmpty;
+    setRpcApi: (api: RpcApiEmpty) => void;
 }
 
 interface SubgraphSliceLocator {
@@ -39,9 +35,9 @@ interface TransactionSliceLocator {
  * NOTE: The reason memoization is used is to avoid multiple instantiations by the factory functions.
  */
 export default class SdkReduxConfig
-    implements FrameworkAndSignerLocator, ApiSliceLocator, SubgraphSliceLocator, TransactionSliceLocator
+    implements FrameworkLocator, SignerLocator, RpcApiLocator, SubgraphSliceLocator, TransactionSliceLocator
 {
-    apiSlice: SfApiSliceInferredType | undefined;
+    apiSlice: RpcApiEmpty | undefined;
     subgraphSlice: SfSubgraphSliceInferredType | undefined;
     transactionSlice: SfTransactionSliceType | undefined;
     memoizedFrameworkFactories = new Map<number, () => Promise<Framework>>();
@@ -54,7 +50,7 @@ export default class SdkReduxConfig
         return globalThis.sdkReduxConfig;
     }
 
-    getApiSlice(): SfApiSliceInferredType {
+    getRpcApi(): RpcApiEmpty {
         if (!this.apiSlice) {
             throw Error('The ApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
@@ -91,7 +87,7 @@ export default class SdkReduxConfig
         return this.transactionSlice;
     }
 
-    setApiSlice(slice: SfApiSliceInferredType): void {
+    setRpcApi(slice: RpcApiEmpty): void {
         if (this.apiSlice) {
             console.log(
                 "Warning! ApiAlice was already set and will be overriden. This shouldn't be happening in production."
@@ -133,19 +129,14 @@ export default class SdkReduxConfig
         }
         this.transactionSlice = slice;
     }
-
-    async getFrameworkAndSigner(chainId: number): Promise<[framework: Framework, signer: Signer]> {
-        return await Promise.all([this.getFramework(chainId), this.getSigner(chainId)]);
-    }
 }
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
-export const getApiSlice = () => getConfig().getApiSlice();
+export const getApiSlice = () => getConfig().getRpcApi();
 export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
 export const getTransactionSlice = () => getConfig().getTransactionSlice();
 export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
 export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
-export const getFrameworkAndSigner = (chainId: number) => getConfig().getFrameworkAndSigner(chainId);
 
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
 const isFramework = (value: any): value is Framework => !!value.cfaV1;

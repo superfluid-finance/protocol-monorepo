@@ -5,9 +5,9 @@ import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const RevokeIndexSubscription: FC = (): ReactElement => {
-    const [trigger, { isLoading, error }] =
-        sfApi.useRevokeIndexSubscriptionMutation();
+export const IndexSubscriptionApprove: FC = (): ReactElement => {
+    const [approve, { isLoading, error }] =
+        sfApi.useIndexSubscriptionApproveMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
@@ -18,13 +18,13 @@ export const RevokeIndexSubscription: FC = (): ReactElement => {
         useState<boolean>(false);
 
     const handleOperation = (e: SyntheticEvent) => {
-        trigger({
+        approve({
             waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
-            publisherAddress
+            publisherAddress,
         });
     };
 
@@ -79,7 +79,7 @@ export const RevokeIndexSubscription: FC = (): ReactElement => {
                                 fullWidth={true}
                                 onClick={handleOperation}
                             >
-                                Revoke
+                                Approve
                             </Button>
                         </FormGroup>
                     </form>

@@ -1,42 +1,32 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { Button, FormGroup, TextField, Switch } from "@mui/material";
+import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const UpgradeToSuperToken: FC = (): ReactElement => {
-    const [upgradeToSuperToken, { isLoading, error }] =
-        sfApi.useUpgradeToSuperTokenMutation();
+export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
+    const [update, { isLoading, error }] =
+        sfApi.useIndexUpdateSubscriptionUnitsMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
-
-    const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
+    const [subscriberAddress, setSubscriberAddress] = useState<string>("");
+    const [indexId, setIndexId] = useState<string>("");
+    const [unitsNumber, setUnitsNumber] = useState<string>("");
+    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const {
-        data: availableAllowance,
-        isFetching: isAllowanceFetching,
-        isError: isAllowanceQueryError,
-    } = sfApi.useGetAllowanceForUpgradeToSuperTokenQuery(
-        {
-            accountAddress: signerAddress,
-            superTokenAddress: superToken,
-            chainId: chainId,
-        },
-        {
-            skip: !superToken,
-        }
-    );
-
-    const handleUpgradeToSuperToken = (e: SyntheticEvent) => {
-        upgradeToSuperToken({
+    const handleOperation = (e: SyntheticEvent) => {
+        update({
             waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
-            amountWei: amount,
+            indexId,
+            userDataBytes,
+            unitsNumber,
+            subscriberAddress,
         });
     };
 
@@ -47,11 +37,6 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
             ) : (
                 <>
                     {error && <Error error={error} />}
-                    {availableAllowance &&
-                        !isAllowanceFetching &&
-                        !isAllowanceQueryError && (
-                            <p>Available allowance: {availableAllowance}</p>
-                        )}
                     <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                         <FormGroup>
                             <TextField
@@ -63,9 +48,30 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
                             />
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Amount"
+                                label="Index ID"
                                 onChange={(e) =>
-                                    setAmount(e.currentTarget.value)
+                                    setIndexId(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Subscriber"
+                                onChange={(e) =>
+                                    setSubscriberAddress(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Units"
+                                onChange={(e) =>
+                                    setUnitsNumber(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="User Data"
+                                onChange={(e) =>
+                                    setUserDataBytes(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -80,9 +86,9 @@ export const UpgradeToSuperToken: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleUpgradeToSuperToken}
+                                onClick={handleOperation}
                             >
-                                Upgrade
+                                Update
                             </Button>
                         </FormGroup>
                     </form>

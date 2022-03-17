@@ -1,31 +1,42 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { Button, FormGroup, Switch, TextField } from "@mui/material";
+import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const DeleteIndexSubscription: FC = (): ReactElement => {
-    const [trigger, { isLoading, error }] =
-        sfApi.useDeleteIndexSubscriptionMutation();
+export const SuperTokenUpgrade: FC = (): ReactElement => {
+    const [upgradeToSuperToken, { isLoading, error }] =
+        sfApi.useSuperTokenUpgradeMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
+
+    const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [publisherAddress, setPublisherAddress] = useState<string>("");
-    const [indexId, setIndexId] = useState<string>("");
-    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const handleOperation = (e: SyntheticEvent) => {
-        trigger({
+    const {
+        data: availableAllowance,
+        isFetching: isAllowanceFetching,
+        isError: isAllowanceQueryError,
+    } = sfApi.useSuperTokenUpgradeAllowanceQuery(
+        {
+            accountAddress: signerAddress,
+            superTokenAddress: superToken,
+            chainId: chainId,
+        },
+        {
+            skip: !superToken,
+        }
+    );
+
+    const handleUpgradeToSuperToken = (e: SyntheticEvent) => {
+        upgradeToSuperToken({
             waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
-            indexId,
-            userDataBytes,
-            publisherAddress,
-            subscriberAddress: signerAddress,
+            amountWei: amount,
         });
     };
 
@@ -36,6 +47,11 @@ export const DeleteIndexSubscription: FC = (): ReactElement => {
             ) : (
                 <>
                     {error && <Error error={error} />}
+                    {availableAllowance &&
+                        !isAllowanceFetching &&
+                        !isAllowanceQueryError && (
+                            <p>Available allowance: {availableAllowance}</p>
+                        )}
                     <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                         <FormGroup>
                             <TextField
@@ -47,23 +63,9 @@ export const DeleteIndexSubscription: FC = (): ReactElement => {
                             />
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Publisher"
+                                label="Amount"
                                 onChange={(e) =>
-                                    setPublisherAddress(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="Index ID"
-                                onChange={(e) =>
-                                    setIndexId(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="User Data"
-                                onChange={(e) =>
-                                    setUserDataBytes(e.currentTarget.value)
+                                    setAmount(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -78,9 +80,9 @@ export const DeleteIndexSubscription: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleOperation}
+                                onClick={handleUpgradeToSuperToken}
                             >
-                                Delete
+                                Upgrade
                             </Button>
                         </FormGroup>
                     </form>

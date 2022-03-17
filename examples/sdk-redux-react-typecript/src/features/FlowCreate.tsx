@@ -5,14 +5,15 @@ import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const CreateStream: FC = (): ReactElement => {
-    const [createFlow, { isLoading, error }] = sfApi.useCreateFlowMutation();
+export const FlowCreate: FC = (): ReactElement => {
+    const [createFlow, { isLoading, error }] = sfApi.useFlowCreateMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
     const [flowRate, setFlowRate] = useState<string>("");
+    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
@@ -24,6 +25,7 @@ export const CreateStream: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             waitForConfirmation,
+            userDataBytes
         });
     };
 
@@ -56,6 +58,13 @@ export const CreateStream: FC = (): ReactElement => {
                                 type="number"
                                 onChange={(e) =>
                                     setFlowRate(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="User Data"
+                                onChange={(e) =>
+                                    setUserDataBytes(e.currentTarget.value)
                                 }
                             />
                             <Switch

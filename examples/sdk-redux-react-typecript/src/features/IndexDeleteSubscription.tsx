@@ -1,27 +1,31 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { Button, FormGroup, TextField, Switch } from "@mui/material";
+import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const DowngradeFromSuperToken: FC = (): ReactElement => {
-    const [downgradeFromSuperToken, { isLoading, error }] =
-        sfApi.useDowngradeFromSuperTokenMutation();
+export const IndexDeleteSubscription: FC = (): ReactElement => {
+    const [trigger, { isLoading, error }] =
+        sfApi.useIndexDeleteSubscriptionMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
-
-    const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
+    const [publisherAddress, setPublisherAddress] = useState<string>("");
+    const [indexId, setIndexId] = useState<string>("");
+    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
-        downgradeFromSuperToken({
+    const handleOperation = (e: SyntheticEvent) => {
+        trigger({
+            waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
-            amountWei: amount,
-            waitForConfirmation
+            indexId,
+            userDataBytes,
+            publisherAddress,
+            subscriberAddress: signerAddress,
         });
     };
 
@@ -43,9 +47,23 @@ export const DowngradeFromSuperToken: FC = (): ReactElement => {
                             />
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Amount"
+                                label="Publisher"
                                 onChange={(e) =>
-                                    setAmount(e.currentTarget.value)
+                                    setPublisherAddress(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Index ID"
+                                onChange={(e) =>
+                                    setIndexId(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="User Data"
+                                onChange={(e) =>
+                                    setUserDataBytes(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -60,9 +78,9 @@ export const DowngradeFromSuperToken: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleDowngradeFromSuperToken}
+                                onClick={handleOperation}
                             >
-                                Downgrade
+                                Delete
                             </Button>
                         </FormGroup>
                     </form>

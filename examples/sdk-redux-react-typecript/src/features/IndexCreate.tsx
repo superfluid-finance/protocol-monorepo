@@ -5,27 +5,23 @@ import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const ClaimFromIndexSubscription: FC = (): ReactElement => {
-    const [claim, { isLoading, error }] =
-        sfApi.useClaimFromIndexSubscriptionMutation();
+export const IndexCreate: FC = (): ReactElement => {
+    const [createIndex, { isLoading, error }] = sfApi.useIndexCreateMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
-    const [publisherAddress, setPublisherAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
     const handleOperation = (e: SyntheticEvent) => {
-        claim({
+        createIndex({
             waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
-            publisherAddress,
-            subscriberAddress: signerAddress,
         });
     };
 
@@ -43,13 +39,6 @@ export const ClaimFromIndexSubscription: FC = (): ReactElement => {
                                 label="SuperToken"
                                 onChange={(e) =>
                                     setSuperToken(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="Publisher"
-                                onChange={(e) =>
-                                    setPublisherAddress(e.currentTarget.value)
                                 }
                             />
                             <TextField
@@ -80,7 +69,7 @@ export const ClaimFromIndexSubscription: FC = (): ReactElement => {
                                 fullWidth={true}
                                 onClick={handleOperation}
                             >
-                                Claim
+                                Create
                             </Button>
                         </FormGroup>
                     </form>

@@ -1,32 +1,27 @@
 import { SignerContext } from "../SignerContext";
 import { Loader } from "../Loader";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
-import { Button, FormGroup, Switch, TextField } from "@mui/material";
+import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
-export const UpdateIndexSubscriptionUnits: FC = (): ReactElement => {
-    const [update, { isLoading, error }] =
-        sfApi.useUpdateIndexSubscriptionUnitsMutation();
+export const SuperTokenDowngrade: FC = (): ReactElement => {
+    const [downgradeFromSuperToken, { isLoading, error }] =
+        sfApi.useSuperTokenDowngradeMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
+
+    const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [subscriberAddress, setSubscriberAddress] = useState<string>("");
-    const [indexId, setIndexId] = useState<string>("");
-    const [unitsNumber, setUnitsNumber] = useState<string>("");
-    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
-    const handleOperation = (e: SyntheticEvent) => {
-        update({
-            waitForConfirmation,
+    const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
+        downgradeFromSuperToken({
             chainId,
             superTokenAddress: superToken,
-            indexId,
-            userDataBytes,
-            unitsNumber,
-            subscriberAddress,
+            amountWei: amount,
+            waitForConfirmation
         });
     };
 
@@ -48,30 +43,9 @@ export const UpdateIndexSubscriptionUnits: FC = (): ReactElement => {
                             />
                             <TextField
                                 sx={{ m: 1 }}
-                                label="Index ID"
+                                label="Amount"
                                 onChange={(e) =>
-                                    setIndexId(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="Subscriber"
-                                onChange={(e) =>
-                                    setSubscriberAddress(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="Units"
-                                onChange={(e) =>
-                                    setUnitsNumber(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="User Data"
-                                onChange={(e) =>
-                                    setUserDataBytes(e.currentTarget.value)
+                                    setAmount(e.currentTarget.value)
                                 }
                             />
                             <Switch
@@ -86,9 +60,9 @@ export const UpdateIndexSubscriptionUnits: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
-                                onClick={handleOperation}
+                                onClick={handleDowngradeFromSuperToken}
                             >
-                                Update
+                                Downgrade
                             </Button>
                         </FormGroup>
                     </form>

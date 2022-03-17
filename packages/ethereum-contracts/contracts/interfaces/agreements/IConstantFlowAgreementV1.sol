@@ -121,6 +121,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param token Super token address
      * @param sender The permission granter address
      * @param flowOperator The permission grantee address
+     * @return flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
      * @return permissions A bitmask representation of the desired permissions
      * @return maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
      */
@@ -129,8 +130,9 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
        address sender,
        address flowOperator
     )
-        external view virtual
+        public view virtual
         returns (
+            bytes32 flowOperatorId,
             uint8 permissions,
             int96 maxFlowRate
         );

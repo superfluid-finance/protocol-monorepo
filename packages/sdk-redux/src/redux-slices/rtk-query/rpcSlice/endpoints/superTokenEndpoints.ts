@@ -1,11 +1,11 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
-import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
+import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {SuperTokenDowngradeMutation, SuperTokenTransferMutation, SuperTokenUpgradeMutation} from './superTokenArgs';
 
-export const createSuperTokenEndpoints = (builder: RpcApiEndpointBuilder) => ({
+export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
     superTokenUpgrade: builder.mutation<TransactionInfo, SuperTokenUpgradeMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);

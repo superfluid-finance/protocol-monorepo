@@ -1,10 +1,10 @@
-import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
+import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
 import {createBaseEndpoints} from './baseEndpoints';
 import {createEntityEndpoints} from './entityEndpoints';
 import {createEventQueryEndpoints} from './eventEndpoints';
 
-export const allSubgraphApiEndpoints = {
-    endpoints: (builder: SubgraphApiEndpointBuilder) =>
+export const allSubgraphEndpoints = {
+    endpoints: (builder: SubgraphEndpointBuilder) =>
         Object.assign(createBaseEndpoints(builder), createEntityEndpoints(builder), createEventQueryEndpoints(builder)),
 };

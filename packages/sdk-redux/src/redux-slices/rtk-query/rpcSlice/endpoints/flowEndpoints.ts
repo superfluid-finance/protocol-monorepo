@@ -1,11 +1,11 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
-import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
+import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {FlowCreateMutation, FlowDeleteMutation, FlowUpdateMutation} from './flowArgs';
 
-export const createFlowEndpoints = (builder: RpcApiEndpointBuilder) => ({
+export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
     flowCreate: builder.mutation<TransactionInfo, FlowCreateMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);

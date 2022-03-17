@@ -1,7 +1,7 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
-import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
+import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {
     IndexCreateMutation,
@@ -13,7 +13,7 @@ import {
     IndexUpdateSubscriptionUnitsMutation,
 } from './indexArgs';
 
-export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
+export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     indexCreate: builder.mutation<TransactionInfo, IndexCreateMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);

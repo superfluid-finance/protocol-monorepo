@@ -1,10 +1,10 @@
-import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
+import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {createFlowEndpoints} from './flowEndpoints';
 import {createIndexEndpoints} from './indexEndpoints';
 import {createSuperTokenEndpoints} from './superTokenEndpoints';
 
-export const allRpcApiEndpoints = {
-    endpoints: (builder: RpcApiEndpointBuilder) =>
+export const allRpcEndpoints = {
+    endpoints: (builder: RpcEndpointBuilder) =>
         Object.assign(createFlowEndpoints(builder), createIndexEndpoints(builder), createSuperTokenEndpoints(builder)),
 };

@@ -20,7 +20,7 @@ import {
 import {getFramework} from '../../../../sdkReduxConfig';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
-import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
+import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
 import {
     EventQuery,
@@ -33,7 +33,7 @@ import {
     SubscriptionUnitsUpdatedEventsQuery,
 } from './eventArgs';
 
-export const createEventQueryEndpoints = (builder: SubgraphApiEndpointBuilder) => {
+export const createEventQueryEndpoints = (builder: SubgraphEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
@@ -52,7 +52,7 @@ export const createEventQueryEndpoints = (builder: SubgraphApiEndpointBuilder) =
  * Creates "get" endpoint.
  */
 function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
-    builder: SubgraphApiEndpointBuilder,
+    builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>
 ) {
     return builder.query<TReturn | null, TQuery>({
@@ -75,7 +75,7 @@ function list<
     TFilter extends {[key: string]: unknown} = NonNullable<TQuery['filter']>,
     TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
 >(
-    builder: SubgraphApiEndpointBuilder,
+    builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>
 ) {
     return builder.query<PagedResult<TReturn>, TQuery>({

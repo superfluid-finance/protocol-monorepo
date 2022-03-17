@@ -29,7 +29,7 @@ import {getFramework} from '../../../../sdkReduxConfig';
 import {CacheTagTypes} from '../../cacheTags/CacheTagTypes';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
-import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
+import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
 import {
     AccountQuery,
@@ -50,7 +50,7 @@ import {
     TokenStatisticsQuery,
 } from './entityArgs';
 
-export const createEntityEndpoints = (builder: SubgraphApiEndpointBuilder) => {
+export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
@@ -77,7 +77,7 @@ export const createEntityEndpoints = (builder: SubgraphApiEndpointBuilder) => {
  * Creates "get" endpoint.
  */
 function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
-    builder: SubgraphApiEndpointBuilder,
+    builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
     tag: CacheTagTypes,
     cacheTime?: CacheTime
@@ -108,7 +108,7 @@ function list<
     TFilter extends {[key: string]: unknown} = NonNullable<TQuery['filter']>,
     TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
 >(
-    builder: SubgraphApiEndpointBuilder,
+    builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>,
     tag: CacheTagTypes,
     cacheTime?: CacheTime

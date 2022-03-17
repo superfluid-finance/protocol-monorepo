@@ -65,17 +65,18 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     function isPatricianPeriod(
         ISuperfluidToken token, 
         address account,
-        uint256 timestamp)
+        uint256 timestamp
+    )
         public view virtual
         returns (bool isPatricianPeriod);
 
     /**
-     * @dev `sender` updates permissions for the `flowOperator` with `maxFlowRate`
+     * @dev `sender` updates permissions for the `flowOperator` with `flowRateAllowance`
      * @param token Super token address
      * @param sender The permission granter address
      * @param flowOperator The permission grantee address
      * @param permissions A bitmask representation of the desired permissions
-     * @param maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
+     * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      */
     function updateFlowOperatorPermissions(
@@ -83,12 +84,14 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address flowOperator,
         uint8 permissions,
-        int96 maxFlowRate,
+        int96 flowRateAllowance,
         bytes calldata ctx
-    ) external virtual;
+    ) 
+        external virtual
+        returns(bytes memory newCtx);
 
     /**
-     * @dev `sender` grants `flowOperator` create/update/delete permissions with maxFlowRate as type(int96).max
+     * @dev `sender` grants `flowOperator` create/update/delete permissions with flowRateAllowance as type(int96).max
      * @param token Super token address
      * @param sender The permission granter address
      * @param flowOperator The permission grantee address
@@ -99,11 +102,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address flowOperator,
         bytes calldata ctx
-    ) external virtual;
+    )
+        external virtual
+        returns(bytes memory newCtx);
 
      /**
      * @notice `sender` revokes `flowOperator` create/update/delete permissions
-     * @dev `permissions` and `maxFlowRate` will both be set to 0
+     * @dev `permissions` and `flowRateAllowance` will both be set to 0
      * @param token Super token address
      * @param sender The permission granter address
      * @param flowOperator The permission grantee address
@@ -114,7 +119,9 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address flowOperator,
         bytes calldata ctx
-    ) external virtual;
+    )
+        external virtual
+        returns(bytes memory newCtx);
 
     /**
      * @notice Get the permissions of a flow operator between `sender` and `flowOperator` for `token`
@@ -123,7 +130,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param flowOperator The permission grantee address
      * @return flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
      * @return permissions A bitmask representation of the desired permissions
-     * @return maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
+     * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
     function getFlowOperatorData(
        ISuperfluidToken token,
@@ -134,7 +141,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (
             bytes32 flowOperatorId,
             uint8 permissions,
-            int96 maxFlowRate
+            int96 flowRateAllowance
         );
 
     /**
@@ -142,7 +149,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param token Super token address
      * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
      * @return permissions A bitmask representation of the desired permissions
-     * @return maxFlowRate The maximum flow rate the `flowOperator` is allowed to set
+     * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
     function getFlowOperatorDataByID(
        ISuperfluidToken token,
@@ -151,7 +158,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external view virtual
         returns (
             uint8 permissions,
-            int96 maxFlowRate
+            int96 flowRateAllowance
         );
 
     /**
@@ -404,14 +411,14 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param sender Flow sender address
      * @param flowOperator Flow operator address
      * @param permissions Octo bitmask representation of permissions
-     * @param maxFlowRate Maximum allowed flowRate 
+     * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
      event FlowOperatorUpdated(
          ISuperfluidToken indexed token,
          address indexed sender,
          address indexed flowOperator,
          uint8 permissions,
-         int96 maxFlowRate
+         int96 flowRateAllowance
      );
 
 }

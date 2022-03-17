@@ -59,7 +59,7 @@ contract ConstantFlowAgreementV1 is
 
     struct FlowOperatorData {
         uint8 permissions;
-        int96 maxFlowRate;
+        int96 flowRateAllowance;
     }
 
     // solhint-disable-next-line no-empty-blocks
@@ -254,7 +254,7 @@ contract ConstantFlowAgreementV1 is
         int256 availableBalance;
         (availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
         (, uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
-        bool deleteAllowed = (permissions >> 2) & uint8(1) == 1;
+        bool deleteAllowed = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
 
         // delete should only be called by sender or receiver
         // unless it is a liquidation (availale balance < 0)
@@ -270,15 +270,6 @@ contract ConstantFlowAgreementV1 is
                 require(availableBalance < 0, "CFA: sender account is not critical");
             }
         }
-
-        // sender/receiver/flowOperator deleting or liquidation is allowed
-        require(
-            (availableBalance >= 0 &&
-            (currentContext.msgSender == sender ||
-            currentContext.msgSender == receiver ||
-            deleteAllowed)) || availableBalance < 0,
-            "CFA: You don't have permission to delete this flow"
-        );
 
         if (availableBalance < 0) {
             _makeLiquidationPayouts(
@@ -326,12 +317,10 @@ contract ConstantFlowAgreementV1 is
                     newCtx, currentContext);
             }
         // flowOperator case OR liquidation case (when the msgSender isn't the sender or receiver)
-        } else /* liquidations */ {
+        } else /* liquidations or flowOperator deleting a flow */ {
             // if the sender is an app and is critical
-            // TODO we should check availableBalance < 0 and allow this case to be the one for 
-            // flowOperator deleting a flow
             // we jail the app
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender)) && availableBalance < 0) {
                 newCtx = ISuperfluid(msg.sender).jailApp(
                     newCtx,
                     ISuperApp(sender),
@@ -514,10 +503,6 @@ contract ConstantFlowAgreementV1 is
      * ACL Functions
      *************************************************************************/
 
-    // TODO:
-    // - modify delete flow needs to update the state of these accordingly
-    // - create a FlowUpdatedV2 event
-
     /// @dev IConstantFlowAgreementV1.createFlowByOperator implementation
     function createFlowByOperator(
         ISuperfluidToken token,
@@ -537,17 +522,19 @@ contract ConstantFlowAgreementV1 is
             (
                 bytes32 flowOperatorId, 
                 uint8 permissions, 
-                int96 maxFlowRate
+                int96 flowRateAllowance
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
-            bool createAllowed = permissions & uint8(1) == 1;
-            require(createAllowed, "CFA: You don't have permission to create a flow");
+            require(
+                _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.CREATE_FLOW),
+                "CFA: You don't have permission to create a flow"
+            );
 
             // check if desired flow rate is allowed
-            int96 newMaxFlowRate = maxFlowRate == type(int96).max
-                ? maxFlowRate
-                : maxFlowRate - flowRate;
-            require(newMaxFlowRate >= 0, "CFA: flow rate exceeds the maxFlowRate");
-            _updateFlowOperatorMaxFlowRate(token, flowOperatorId, permissions, maxFlowRate);
+            int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max
+                ? flowRateAllowance
+                : flowRateAllowance - flowRate;
+            require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the flowRateAllowance");
+            _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
 
         // check if flow exists
@@ -596,15 +583,17 @@ contract ConstantFlowAgreementV1 is
                 uint8 permissions, 
                 int96 maxFlowRate
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
-            bool updateAllowed = (permissions >> 1) & uint8(1) == 1;
-            require(updateAllowed, "CFA: You don't have permission to update a flow");
+            require(
+                _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.UPDATE_FLOW),
+                "CFA: You don't have permission to update a flow"
+            );
 
             // check if desired flow rate is allowed
-            int96 newMaxFlowRate = maxFlowRate == type(int96).max || oldFlowData.flowRate >= flowRate
+            int96 updatedFlowRateAllowance = maxFlowRate == type(int96).max || oldFlowData.flowRate >= flowRate
                 ? maxFlowRate
-                : maxFlowRate - flowRate;
-            require(newMaxFlowRate >= 0, "CFA: flow rate exceeds the maxFlowRate");
-            _updateFlowOperatorMaxFlowRate(token, flowOperatorId, permissions, newMaxFlowRate);
+                : maxFlowRate - (flowRate - oldFlowData.flowRate);
+            require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the maxFlowRate");
+            _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
         
         {
@@ -631,17 +620,20 @@ contract ConstantFlowAgreementV1 is
         address sender,
         address flowOperator,
         uint8 permissions,
-        int96 maxFlowRate,
+        int96 flowRateAllowance, // flowRateBudget
         bytes calldata ctx
-    ) public override {
+    ) public override returns(bytes memory newCtx) {
+        newCtx = ctx;
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         require(sender == currentContext.msgSender, "CFA: Unauthorized update of flow operator permissions");
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
-        flowOperatorData.maxFlowRate = maxFlowRate;
+        flowOperatorData.flowRateAllowance = flowRateAllowance;
         bytes32 flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
         token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+
+        emit FlowOperatorUpdated(token, sender, flowOperator, permissions, flowRateAllowance);
     }
 
     /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
@@ -650,8 +642,11 @@ contract ConstantFlowAgreementV1 is
         address sender,
         address flowOperator,
         bytes calldata ctx
-    ) external override {
-        updateFlowOperatorPermissions(
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        newCtx = updateFlowOperatorPermissions(
             token,
             sender,
             flowOperator,
@@ -667,9 +662,12 @@ contract ConstantFlowAgreementV1 is
         address sender,
         address flowOperator,
         bytes calldata ctx
-    ) external override {
+    ) 
+        external override
+        returns(bytes memory newCtx)
+    {
         // REVOKE_FULL_CONTROL = 0
-        updateFlowOperatorPermissions(token, sender, flowOperator, 0, 0, ctx);
+        newCtx = updateFlowOperatorPermissions(token, sender, flowOperator, 0, 0, ctx);
     }
 
     /// @dev IConstantFlowAgreementV1.getFlowOperatorData implementation
@@ -679,12 +677,12 @@ contract ConstantFlowAgreementV1 is
         address flowOperator
     ) 
         public view override
-        returns(bytes32 flowOperatorId, uint8 permissions, int96 maxFlowRate)
+        returns(bytes32 flowOperatorId, uint8 permissions, int96 flowRateAllowance)
     {
         flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
         (, FlowOperatorData memory flowOperatorData) = _getFlowOperatorData(token, flowOperatorId);
         permissions = flowOperatorData.permissions;
-        maxFlowRate = flowOperatorData.maxFlowRate;
+        flowRateAllowance = flowOperatorData.flowRateAllowance;
     }
 
     /// @dev IConstantFlowAgreementV1.getFlowOperatorDataByID implementation
@@ -693,11 +691,11 @@ contract ConstantFlowAgreementV1 is
         bytes32 flowOperatorId
     ) 
         external view override
-        returns(uint8 permissions, int96 maxFlowRate)
+        returns(uint8 permissions, int96 flowRateAllowance)
     {
         (, FlowOperatorData memory flowOperatorData) = _getFlowOperatorData(token, flowOperatorId);
         permissions = flowOperatorData.permissions;
-        maxFlowRate = flowOperatorData.maxFlowRate;
+        flowRateAllowance = flowOperatorData.flowRateAllowance;
     }
 
     /**************************************************************************
@@ -747,18 +745,18 @@ contract ConstantFlowAgreementV1 is
         return _decodeFlowOperatorData(uint256(data[0]));
     }
 
-    function _updateFlowOperatorMaxFlowRate
+    function _updateFlowRateAllowance
     (
         ISuperfluidToken token,
         bytes32 flowOperatorId,
         uint8 existingPermissions,
-        int96 newMaxFlowRate
+        int96 updatedFlowRateAllowance
     ) 
         private 
     {
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = existingPermissions;
-        flowOperatorData.maxFlowRate = newMaxFlowRate;
+        flowOperatorData.flowRateAllowance = updatedFlowRateAllowance;
         token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
     }
 
@@ -1331,11 +1329,11 @@ contract ConstantFlowAgreementV1 is
     //
     // Data packing:
     //
-    // WORD A: | reserved   | maxFlowRate | permissions |
-    //         | 152        | 96          | 8           |
+    // WORD A: | reserved  | permissions | reserved | flowRateAllowance |
+    //         | 120       | 8           | 32       | 96                |
     //
     // NOTE:
-    // - maxFlowRate has 96 bits length
+    // - flowRateAllowance has 96 bits length
     // - permissions is an 8-bit octo bitmask
     // - ...0 0 0 (...delete update create)
 
@@ -1348,8 +1346,8 @@ contract ConstantFlowAgreementV1 is
     {
         data = new bytes32[](1);
         data[0] = bytes32(
-            uint256(flowOperatorData.permissions) << 8 |
-            (uint256(int256(flowOperatorData.maxFlowRate)) << 96)
+            uint256(flowOperatorData.permissions) << 128 |
+            uint256(int256(flowOperatorData.flowRateAllowance))
         );
     }
 
@@ -1362,20 +1360,25 @@ contract ConstantFlowAgreementV1 is
     {
         exist = wordA > 0;
         if (exist) {
-            flowOperatorData.maxFlowRate = int96(int256(wordA >> 96));
-            flowOperatorData.permissions = uint8(wordA >> 8) & type(uint8).max;
+            flowOperatorData.flowRateAllowance = int96(int256(wordA));
+            flowOperatorData.permissions = uint8(wordA >> 128) & type(uint8).max;
         }
     }
 
     function _getBooleanFlowOperatorPermissions
     (
-        uint8 permissions
+        uint8 permissions,
+        FlowChangeType flowChangeType
     )
         internal pure
-        returns (bool createAllowed, bool updateAllowed, bool deleteAllowed)
+        returns (bool flowchangeTypeAllowed)
     {
-        createAllowed = permissions & uint8(1) == 1;
-        updateAllowed = (permissions >> 1) & uint8(1) == 1;
-        deleteAllowed = (permissions >> 2) & uint8(1) == 1;
+        if (flowChangeType == FlowChangeType.CREATE_FLOW) {
+            flowchangeTypeAllowed = permissions & uint8(1) == 1;
+        } else if (flowChangeType == FlowChangeType.UPDATE_FLOW) {
+            flowchangeTypeAllowed = (permissions >> 1) & uint8(1) == 1;
+        } else { /** flowChangeType === FlowChangeType.DELETE_FLOW */
+            flowchangeTypeAllowed = (permissions >> 2) & uint8(1) == 1;
+        }
     }
 }

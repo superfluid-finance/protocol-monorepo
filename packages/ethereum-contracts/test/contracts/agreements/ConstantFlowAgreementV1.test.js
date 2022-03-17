@@ -15,6 +15,10 @@ const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
 const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
 
+const ALLOW_CREATE = 1 << 0;
+const ALLOW_UPDATE = 1 << 1;
+const ALLOW_DELETE = 1 << 2;
+
 describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
@@ -271,6 +275,83 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         await verifyAll({allowCriticalAccount, description: "LIQ"});
+    }
+
+    // TODO: consider moving these functions elsewhere
+    const getFlowOperatorId = (sender, flowOperator) => {
+        return web3.utils.keccak256(
+            web3.eth.abi.encodeParameters(
+                ["string", "address", "address"],
+                ["flowOperator", sender, flowOperator]
+            )
+        );
+    };
+
+    async function getUpdateFlowOperatorPermissionsPromise(
+        token,
+        sender,
+        flowOperator,
+        permissions,
+        flowRateAllowance,
+        ctx,
+        from
+    ) {
+        return superfluid.callAgreement(
+            cfa.address,
+            cfa.contract.methods
+                .updateFlowOperatorPermissions(
+                    token,
+                    sender,
+                    flowOperator,
+                    permissions,
+                    flowRateAllowance,
+                    ctx
+                )
+                .encodeABI(),
+            "0x",
+            {from}
+        );
+    }
+
+    async function shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+        token,
+        sender,
+        flowOperator,
+        permissions,
+        flowRateAllowance,
+        ctx,
+        from
+    ) {
+        const tx = await getUpdateFlowOperatorPermissionsPromise(
+            token,
+            sender,
+            flowOperator,
+            permissions,
+            flowRateAllowance,
+            ctx,
+            from
+        );
+
+        // validate event was emitted with correct values
+        await expectEvent.inTransaction(
+            tx.tx,
+            cfa.contract,
+            "FlowOperatorUpdated",
+            {
+                token,
+                sender,
+                flowOperator,
+                permissions,
+                flowRateAllowance,
+            }
+        );
+
+        // validate agreementData was properly updated
+        const data = await cfa.getFlowOperatorData(token, sender, flowOperator);
+        const expectedFlowOperatorId = getFlowOperatorId(sender, flowOperator);
+        assert.equal(data.flowOperatorId, expectedFlowOperatorId);
+        assert.equal(data.permissions.toString(), permissions);
+        assert.equal(data.flowRateAllowance.toString(), flowRateAllowance);
     }
 
     context("#1 without callbacks", () => {
@@ -3617,71 +3698,180 @@ describe("Using ConstantFlowAgreement v1", function () {
     });
 
     context("#4 Access Control List", () => {
-        it("#4.1 should correctly encode, decode and generate flow operator id", async () => {
-            // TODO: should encode flow operator data
-            // TODO: should decode flow operator data
-            // TODO: should get boolean flow operator permissions
-            // TODO: should get boolean flow operator permissions
+        it("#4.1 should revert if attempting to encode unclean permissions", async () => {
+            await expectRevert(
+                getUpdateFlowOperatorPermissionsPromise(
+                    superToken.address,
+                    alice,
+                    admin,
+                    69,
+                    42069,
+                    "0x",
+                    alice
+                ),
+                "CFA: Unclean permissions"
+            );
         });
 
-        it("#4.2 should revert if attempting to encode unclean permissions", async () => {
-            // TODO: should disallow and revert attempts to encode unclean permissions (> 7 for example)
+        it("#4.2 should revert on unauthorized update of flow operator permissions", async () => {
+            // admin trying to grant themselves permission to
+            await expectRevert(
+                getUpdateFlowOperatorPermissionsPromise(
+                    superToken.address,
+                    alice,
+                    admin,
+                    7,
+                    99999999999999,
+                    "0x",
+                    admin
+                ),
+                "CFA: Unauthorized update of flow operator permissions"
+            );
         });
 
-        it("#4.3 should properly update flow operator permissions with same maxFlowRate", async () => {
-            // SAME FLOWRATE, different permissions
-            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
-            //       and _getFlowOperatorData
-            // TODO: should be able to update permissions to allow create
-            // TODO: should be able to update permissions to allow update
-            // TODO: should be able to update permissions to allow delete
+        it("#4.3 should properly update flow operator permissions with same flowRateAllowance", async () => {
+            const data = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            const expectedFlowOperatorId = getFlowOperatorId(alice, admin);
+            assert.equal(data.flowOperatorId, expectedFlowOperatorId);
+            assert.equal(data.permissions.toString(), "0");
+            assert.equal(data.flowRateAllowance.toString(), "0");
+
+            let permissions = ALLOW_CREATE;
+            // allow create
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "42069",
+                "0x",
+                alice
+            );
+
+            // allow update
+            permissions = ALLOW_UPDATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "42069",
+                "0x",
+                alice
+            );
+
+            // allow delete
+            // can set flowRateAllowance with just delete as well
+            permissions = ALLOW_DELETE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "42069",
+                "0x",
+                alice
+            );
         });
 
-        it("#4.4 should properly update one flow operator permission with different maxFlowRate", async () => {
-            // DIFFERENT FLOWRATE, same permissions
-            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
-            //       and _getFlowOperatorData
-            // TODO: should be able to update permissions to allow create with two two different max flow rate
+        it("#4.4 should properly update one flow operator permission with different flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "42069",
+                "0x",
+                alice
+            );
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "3388",
+                "0x",
+                alice
+            );
         });
 
-        it("#4.5 should properly update flow operator permissions with different maxFlowRate", async () => {
-            // DIFFERENT FLOWRATE, different permissions
-            // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
-            //       and _getFlowOperatorData
-            // TODO: should be able to update permissions to allow create
-            // TODO: should be able to update permissions to allow update
-            // TODO: should be able to update permissions to allow delete
+        it("#4.5 should properly update flow operator permissions with different flowRateAllowance", async () => {
+            // stack the permissions
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "42069",
+                "0x",
+                alice
+            );
+
+            permissions = permissions | ALLOW_UPDATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "3388",
+                "0x",
+                alice
+            );
+
+            permissions = permissions | ALLOW_DELETE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent(
+                superToken.address,
+                alice,
+                admin,
+                permissions.toString(),
+                "123456",
+                "0x",
+                alice
+            );
         });
 
-        it("#4.6 should properly update one flow operator permission with same maxFlowRate", async () => {
+        it("#4.6 should properly update one flow operator permission with same flowRateAllowance", async () => {
             // same FLOWRATE, same permissions
             // TODO: for each test getFlowOperatordData, this tests getFlowOperatorDataByID
             //       and _getFlowOperatorData
             // TODO: should be able to update permissions to allow create
         });
 
-        it("#4.7 should be able to authorize flow operator with full control", async () => {
+        it("#4.7 should properly set multiple permissions with updateFlowOperatorPermissions", async () => {});
+
+        it("#4.8 should be able to set permissions whilst setting flowRateAllowance as 0", async () => {});
+
+        it("#4.9 should be able to set flowRateAllowance whilst not settings permissions", async () => {});
+
+        it("#4.10 should be able to authorize flow operator with full control", async () => {
             // TODO: should be able to authorize a flow operator with full control after authorizing some
             // TODO: should be able to authorize a flow operator with full control from scratch
         });
 
-        it("#4.8 should be able to revoke flow operator with full control", async () => {
+        it("#4.11 should be able to revoke flow operator with full control", async () => {
             // after each test create/update/delete (expect these to fail)
             // TODO: should be able to revoke a flow operator with full control even though none exists
             // TODO: should be able to revoke a flow operator with full control after authorizing some
             // TODO: should be able to revoke after authorizing full control
         });
 
-        it("#4.9 should revert if attempting to create/update/delete without permissions to do so", async () => {
+        it("#4.12 should revert if attempting to create/update/delete without permissions to do so", async () => {
             // TODO: revert for each case (make a helper function/behavior for this)
         });
 
-        it("#4.10 should revert if attempting to create/update with flow rate exceeding maxFlowRate", async () => {
-            // TODO: on the initial flow creation (> maxFlowRate)
-            // TODO: on subsequent flow creations (sum of flowRates > maxFlowRate)
+        it("#4.13 should revert if create/update with flow rate exceeding flowRateAllowance", async () => {
+            // TODO: on the initial flow creation (> flowRateAllowance)
+            // TODO: on subsequent flow creations (sum of flowRates > flowRateAllowance)
         });
 
-        it("#4.11 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
+        it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
             // TODO: approve to create at max flow rate and create a flow
             // TODO: then revert attempt to update and revert attempt to delete (no permissions)
             // TODO: approve to update at max flow rate and update the flow
@@ -3689,13 +3879,23 @@ describe("Using ConstantFlowAgreement v1", function () {
             // TODO: approve to delete then delete the flow
         });
 
-        it("#4.12 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
+        it("#4.15 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
             // TODO: should just be able to create/update/delete flows as a full control flow operator
         });
 
-        it("#4.13 should revert if you try to call create/updateFlowByOperator if you are a sender", async () => {});
+        it("#4.16 should revert if you try to call create/updateFlowByOperator if you are a sender", async () => {});
 
-        it("#4.14 shouldn't decrease the maxFlowRate if they have set maxFlowRate to type(int96).max", async () => {});
+        it("#4.17 shouldn't decrease flowRateAllowance if it is type(int96).max", async () => {});
+
+        it("#4.18 shouldn't decrease flowRateAllowance if the user updates to a lower flowRate", async () => {});
+
+        it("#4.19 should decrease flowRateAllowance properly if the user creates a flow", async () => {});
+
+        it("#4.20 should decrease flowRateAllowance properly if the user updatesto a higher flowRate", async () => {});
+
+        it("#4.21 should reset flowRateAllowance properly if the user updates the flowOperatorData", async () => {
+            // TODO (higher, lower, same as original flowRateAllowance amount)
+        });
     });
 
     context("#10 scenarios", () => {

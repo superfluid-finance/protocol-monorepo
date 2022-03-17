@@ -3,8 +3,8 @@ import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
 import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
-import rpcApi from './redux-slices/rtk-query/rpcApi/rpcApi';
-import {createSubgraphSlice} from './redux-slices/rtk-query/subgraph-slice/subgraphSlice';
+import {createRpcApiSlice} from './redux-slices/rtk-query/rpcApi/rpcApi';
+import {createSubgraphApiSlice} from './redux-slices/rtk-query/subgraphApi/subgraphApi';
 import {createTransactionSlice} from './redux-slices/transactions/createTransactionSlice';
 import {getConfig} from './sdkReduxConfig';
 
@@ -14,10 +14,10 @@ import {getConfig} from './sdkReduxConfig';
  * @param createApi Pass in either {@see createApiWithReactHooks} or {@see createApiWithoutReactHooks}.
  * You can wrap the function with your own function to add even more configuration to the RTK-Query API (e.g. "redux-persist" support).
  */
-export const initializeRpcApi = <T extends ModuleName>(createApi: CreateApi<T>) => {
-    const slice = rpcApi(createApi);
-    getConfig().setApiSlice(slice as any);
-    return {sfApi: slice};
+export const initializeRpcApiSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
+    const rpcApiSlice = createRpcApiSlice(createApi);
+    getConfig().setRpcApi(rpcApiSlice as any);
+    return rpcApiSlice;
 };
 
 /**
@@ -26,19 +26,19 @@ export const initializeRpcApi = <T extends ModuleName>(createApi: CreateApi<T>) 
  * @param createApi Pass in either {@see createApiWithReactHooks} or {@see createApiWithoutReactHooks}.
  * You can wrap the function with your own function to add even more configuration to the RTK-Query API (e.g. "redux-persist" support).
  */
-export const initializeSubgraphSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
-    const slice = createSubgraphSlice(createApi);
-    getConfig().setSubgraphSlice(slice as any);
-    return slice;
+export const initializeSubgraphApiSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
+    const subgraphApiSlice = createSubgraphApiSlice(createApi);
+    getConfig().setSubgraphSlice(subgraphApiSlice as any);
+    return subgraphApiSlice;
 };
 
 /**
  * For initializing "sfTransaction" Redux slice.
  */
-export const initializeSfTransactionSlice = () => {
-    const slice = createTransactionSlice();
-    getConfig().setTransactionSlice(slice);
-    return {sfTransactions: slice};
+export const initializeTransactionSlice = () => {
+    const transactionSlice = createTransactionSlice();
+    getConfig().setTransactionSlice(transactionSlice);
+    return transactionSlice;
 };
 
 /**

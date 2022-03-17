@@ -1,4 +1,3 @@
-import {QueryDefinition} from '@reduxjs/toolkit/dist/query';
 import {
     Account,
     AccountQueryHandler,
@@ -26,8 +25,11 @@ import {
     TokenStatisticQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
-import {CacheTime} from '../cacheTime';
+import {getFramework} from '../../../../sdkReduxConfig';
+import {CacheTagTypes} from '../../cacheTags/CacheTagTypes';
+import {CacheTime} from '../../cacheTime';
+import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
+import SubgraphApiEndpointBuilder from '../subgraphApiEndpointBuilder';
 
 import {
     AccountQuery,
@@ -47,10 +49,8 @@ import {
     TokenStatisticQuery,
     TokenStatisticsQuery,
 } from './entityQueryArgs';
-import {provideCacheTagsFromRelevantAddresses} from './provideCacheTagsFromRelevantAddresses';
-import {SubgraphSliceBaseQueryType, SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
-export const createEntityQueryEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
+export const createEntityQueryEndpoints = (builder: SubgraphApiEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
@@ -77,17 +77,16 @@ export const createEntityQueryEndpoints = (builder: SubgraphSliceEndpointBuilder
  * Creates "get" endpoint.
  */
 function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
-    builder: SubgraphSliceEndpointBuilder,
+    builder: SubgraphApiEndpointBuilder,
     queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
     tag: CacheTagTypes,
     cacheTime?: CacheTime
-): QueryDefinition<TQuery, SubgraphSliceBaseQueryType, CacheTagTypes, TReturn | null> {
+) {
     return builder.query<TReturn | null, TQuery>({
-        query: (arg) => {
-            const {chainId, ...coreQuery} = arg;
+        queryFn: async (arg) => {
+            const framework = await getFramework(arg.chainId);
             return {
-                chainId,
-                handle: (framework) => queryHandler.get(framework.query.subgraphClient, coreQuery),
+                data: await queryHandler.get(framework.query.subgraphClient, arg),
             };
         },
         providesTags: (result, _error, arg) =>
@@ -109,17 +108,16 @@ function list<
     TFilter extends {[key: string]: unknown} = NonNullable<TQuery['filter']>,
     TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
 >(
-    builder: SubgraphSliceEndpointBuilder,
+    builder: SubgraphApiEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>,
     tag: CacheTagTypes,
     cacheTime?: CacheTime
-): QueryDefinition<TQuery, SubgraphSliceBaseQueryType, CacheTagTypes, PagedResult<TReturn>> {
+) {
     return builder.query<PagedResult<TReturn>, TQuery>({
-        query: (arg) => {
-            const {chainId, ...coreQuery} = arg;
+        queryFn: async (arg) => {
+            const framework = await getFramework(arg.chainId);
             return {
-                chainId,
-                handle: (framework) => queryHandler.list(framework.query.subgraphClient, coreQuery),
+                data: await queryHandler.list(framework.query.subgraphClient, arg),
             };
         },
         providesTags: (_result, _error, arg) =>

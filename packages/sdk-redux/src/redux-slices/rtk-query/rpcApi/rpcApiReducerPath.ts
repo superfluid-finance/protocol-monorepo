@@ -1,3 +1,3 @@
-type RpcApiReducerPath = 'Superfluid/rpcApi';
+type RpcApiReducerPath = 'superfluid/rpcApi';
 
 export default RpcApiReducerPath;

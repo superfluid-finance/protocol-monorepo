@@ -1,4 +1,3 @@
-import {QueryDefinition} from '@reduxjs/toolkit/dist/query';
 import {
     AllEvents,
     EventQueryHandler,
@@ -18,8 +17,10 @@ import {
     SubscriptionUnitsUpdatedEventQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
-import {CacheTime} from '../cacheTime';
+import {getFramework} from '../../../../sdkReduxConfig';
+import {CacheTime} from '../../cacheTime';
+import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
+import SubgraphApiEndpointBuilder from '../subgraphApiEndpointBuilder';
 
 import {
     EventQuery,
@@ -31,10 +32,8 @@ import {
     SubscriptionUnitsUpdatedEventQuery,
     SubscriptionUnitsUpdatedEventsQuery,
 } from './eventQueryArgs';
-import {provideCacheTagsFromRelevantAddresses} from './provideCacheTagsFromRelevantAddresses';
-import {SubgraphSliceBaseQueryType, SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
-export const createEventQueryEndpoints = (builder: SubgraphSliceEndpointBuilder) => {
+export const createEventQueryEndpoints = (builder: SubgraphApiEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
@@ -53,15 +52,14 @@ export const createEventQueryEndpoints = (builder: SubgraphSliceEndpointBuilder)
  * Creates "get" endpoint.
  */
 function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
-    builder: SubgraphSliceEndpointBuilder,
+    builder: SubgraphApiEndpointBuilder,
     queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>
-): QueryDefinition<TQuery, SubgraphSliceBaseQueryType, CacheTagTypes, TReturn | null> {
+) {
     return builder.query<TReturn | null, TQuery>({
-        query: (arg) => {
-            const {chainId, ...coreQuery} = arg;
+        queryFn: async (arg) => {
+            const framework = await getFramework(arg.chainId);
             return {
-                chainId,
-                handle: (framework) => queryHandler.get(framework.query.subgraphClient, coreQuery),
+                data: await queryHandler.get(framework.query.subgraphClient, arg),
             };
         },
         keepUnusedDataFor: CacheTime.Forever, // Events don't change (unless re-org but that's handled by invalidating whole cache anyway).
@@ -77,15 +75,14 @@ function list<
     TFilter extends {[key: string]: unknown} = NonNullable<TQuery['filter']>,
     TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
 >(
-    builder: SubgraphSliceEndpointBuilder,
+    builder: SubgraphApiEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>
-): QueryDefinition<TQuery, SubgraphSliceBaseQueryType, CacheTagTypes, PagedResult<TReturn>> {
+) {
     return builder.query<PagedResult<TReturn>, TQuery>({
-        query: (arg) => {
-            const {chainId, ...coreQuery} = arg;
+        queryFn: async (arg) => {
+            const framework = await getFramework(arg.chainId);
             return {
-                chainId,
-                handle: (framework) => queryHandler.list(framework.query.subgraphClient, coreQuery),
+                data: await queryHandler.list(framework.query.subgraphClient, arg),
             };
         },
         providesTags: (_result, _error, arg) =>

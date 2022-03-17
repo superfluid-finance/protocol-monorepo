@@ -1,10 +1,11 @@
+import SubgraphApiEndpointBuilder from '../subgraphApiEndpointBuilder';
+
 import {createEntityQueryEndpoints} from './createEntityQueryEndpoints';
 import {createEventQueryEndpoints} from './createEventQueryEndpoints';
 import {createCustomQueryEndpoints} from './customSubgraphQuery';
-import {SubgraphSliceEndpointBuilder} from './subgraphSlice';
 
 export const allSubgraphSliceEndpoints = {
-    endpoints: (builder: SubgraphSliceEndpointBuilder) => ({
+    endpoints: (builder: SubgraphApiEndpointBuilder) => ({
         ...createCustomQueryEndpoints(builder),
         ...createEntityQueryEndpoints(builder),
         ...createEventQueryEndpoints(builder),

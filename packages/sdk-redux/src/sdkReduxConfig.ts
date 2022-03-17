@@ -3,7 +3,7 @@ import {Signer} from 'ethers';
 import _ from 'lodash';
 
 import {RpcApiEmpty} from './redux-slices/rtk-query/rpcApi/rpcApi';
-import {SfSubgraphSliceInferredType} from './redux-slices/rtk-query/subgraph-slice/sfSubgraphSliceInferredType';
+import {SubgraphApiEmpty} from './redux-slices/rtk-query/subgraphApi/subgraphApi';
 import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
 
 interface FrameworkLocator {
@@ -22,8 +22,8 @@ interface RpcApiLocator {
 }
 
 interface SubgraphSliceLocator {
-    getSubgraphSlice: () => SfSubgraphSliceInferredType;
-    setSubgraphSlice: (slice: SfSubgraphSliceInferredType) => void;
+    getSubgraphSlice: () => SubgraphApiEmpty;
+    setSubgraphSlice: (slice: SubgraphApiEmpty) => void;
 }
 
 interface TransactionSliceLocator {
@@ -38,7 +38,7 @@ export default class SdkReduxConfig
     implements FrameworkLocator, SignerLocator, RpcApiLocator, SubgraphSliceLocator, TransactionSliceLocator
 {
     apiSlice: RpcApiEmpty | undefined;
-    subgraphSlice: SfSubgraphSliceInferredType | undefined;
+    subgraphSlice: SubgraphApiEmpty | undefined;
     transactionSlice: SfTransactionSliceType | undefined;
     memoizedFrameworkFactories = new Map<number, () => Promise<Framework>>();
     memoizedSignerFactories = new Map<number, () => Promise<Signer>>();
@@ -57,7 +57,7 @@ export default class SdkReduxConfig
         return this.apiSlice;
     }
 
-    getSubgraphSlice(): SfSubgraphSliceInferredType {
+    getSubgraphSlice(): SubgraphApiEmpty {
         if (!this.subgraphSlice) {
             throw Error('The SubgraphSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
@@ -96,7 +96,7 @@ export default class SdkReduxConfig
         this.apiSlice = slice;
     }
 
-    setSubgraphSlice(slice: SfSubgraphSliceInferredType): void {
+    setSubgraphSlice(slice: SubgraphApiEmpty): void {
         if (this.subgraphSlice) {
             console.log(
                 "Warning! SubgraphSlice was already set and will be overriden. This shouldn't be happening in production."

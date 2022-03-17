@@ -374,7 +374,7 @@ contract SuperToken is
         returns(uint256 balance)
     {
         // solhint-disable-next-line not-rely-on-time
-        (int256 availableBalance, , ) = super.realtimeBalanceOf(account, block.timestamp);
+        (int256 availableBalance, , ,) = super.realtimeBalanceOfNow(account);
         return availableBalance < 0 ? 0 : uint256(availableBalance);
     }
 

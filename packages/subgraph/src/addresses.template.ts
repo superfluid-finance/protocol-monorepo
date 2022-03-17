@@ -44,10 +44,10 @@ export function getHostAddress(): Address {
         address = "";
     }
     if (network == "arbitrum-one") {
-        address = "";
+        address = "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192";
     }
     if (network == "optimism") {
-        address = "";
+        address = "0x567c4B141ED61923967cA25Ef4906C8781069a10";
     }
     return Address.fromString(address);
 }
@@ -92,10 +92,10 @@ export function getResolverAddress(): Address {
         address = "";
     }
     if (network == "arbitrum-one") {
-        address = "";
+        address = "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F";
     }
     if (network == "optimism") {
-        address = "";
+        address = "0x743B5f46BC86caF41bE4956d9275721E0531B186";
     }
     return Address.fromString(address);
 }

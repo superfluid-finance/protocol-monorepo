@@ -6,7 +6,7 @@ import {ethers} from 'ethers';
 import {getApiSlice, getFramework, getSubgraphSlice, getTransactionSlice} from '../../sdkReduxConfig';
 import {MillisecondTimes, retry} from '../../utils';
 import {TransactionInfo} from '../argTypes';
-import {invalidateCacheTagsForEvents} from '../rtk-query/cacheTags/invalidateCacheTagsForEvents';
+import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 
 import {transactionSlicePrefix} from './createTransactionSlice';
 

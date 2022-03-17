@@ -7,7 +7,7 @@ export interface IndexCreateMutation extends BaseSuperTokenMutation {
     /** The id of the index. */
     indexId: string;
     /** Extra user data provided. */
-    userDataBytes: string;
+    userDataBytes: string | NothingString;
 }
 
 /**

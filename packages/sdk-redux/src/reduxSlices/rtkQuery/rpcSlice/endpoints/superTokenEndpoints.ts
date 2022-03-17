@@ -1,9 +1,15 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {getMostSpecificTokenTag} from '../../cacheTags/tokenTags';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
-import {SuperTokenDowngradeMutation, SuperTokenTransferMutation, SuperTokenUpgradeMutation} from './superTokenArgs';
+import {
+    SuperTokenDowngradeMutation,
+    SuperTokenTransferMutation,
+    SuperTokenUpgradeAllowanceQuery,
+    SuperTokenUpgradeMutation,
+} from './superTokenArgs';
 
 export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
     superTokenUpgrade: builder.mutation<TransactionInfo, SuperTokenUpgradeMutation>({
@@ -32,6 +38,28 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 },
             };
         },
+    }),
+    superTokenUpgradeAllowance: builder.query<string, SuperTokenUpgradeAllowanceQuery>({
+        queryFn: async (arg) => {
+            const framework = await getFramework(arg.chainId);
+            const superToken = await framework.loadSuperToken(arg.superTokenAddress);
+
+            return {
+                data: await superToken.underlyingToken.allowance({
+                    providerOrSigner: framework.settings.provider,
+                    owner: arg.accountAddress,
+                    spender: superToken.address,
+                }),
+            };
+        },
+        providesTags: (_result, _error, arg) => [
+            getMostSpecificTokenTag({
+                chainId: arg.chainId,
+                address1: arg.superTokenAddress,
+                address2: arg.accountAddress,
+                address3: undefined,
+            }),
+        ],
     }),
     superTokenDowngrade: builder.mutation<TransactionInfo, SuperTokenDowngradeMutation>({
         queryFn: async (arg, queryApi) => {

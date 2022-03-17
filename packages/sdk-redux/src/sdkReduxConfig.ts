@@ -2,9 +2,9 @@ import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 import _ from 'lodash';
 
-import {RpcSliceEmpty} from './redux-slices/rtk-query/rpcSlice/rpcSlice';
-import {SubgraphSliceEmpty} from './redux-slices/rtk-query/subgraphSlice/subgraphSlice';
-import {TransactionSlice} from './redux-slices/transactionSlice/createTransactionSlice';
+import {RpcSliceEmpty} from './reduxSlices/rtkQuery/rpcSlice/rpcSlice';
+import {SubgraphSliceEmpty} from './reduxSlices/rtkQuery/subgraphSlice/subgraphSlice';
+import {TransactionSlice} from './reduxSlices/transactionSlice/createTransactionSlice';
 
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;

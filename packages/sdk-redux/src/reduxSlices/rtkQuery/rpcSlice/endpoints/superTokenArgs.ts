@@ -1,4 +1,4 @@
-import {BaseSuperTokenMutation} from '../../../argTypes';
+import {BaseQuery, BaseSuperTokenMutation} from '../../../argTypes';
 
 /**
  * Downgrade `amount` SuperToken's.
@@ -10,11 +10,21 @@ export interface SuperTokenDowngradeMutation extends BaseSuperTokenMutation {
 
 /**
  * Upgrade `amount` SuperToken's.
- * NOTE: Initiates request for allowance if necessary.
  */
 export interface SuperTokenUpgradeMutation extends BaseSuperTokenMutation {
     /** The amount to be upgraded. */
     amountWei: string;
+}
+
+/**
+ * How much does the underlying token have allowance for super token upgrade.
+ */
+export interface SuperTokenUpgradeAllowanceQuery extends BaseQuery<string> {
+    /**
+     * Account who's allowance to check.
+     */
+    accountAddress: string;
+    superTokenAddress: string;
 }
 
 /**

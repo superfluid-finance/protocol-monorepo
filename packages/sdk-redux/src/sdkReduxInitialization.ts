@@ -3,9 +3,9 @@ import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
 import {Framework} from '@superfluid-finance/sdk-core';
 import {Signer} from 'ethers';
 
-import {createRpcSlice} from './redux-slices/rtk-query/rpcSlice/rpcSlice';
-import {createSubgraphSlice} from './redux-slices/rtk-query/subgraphSlice/subgraphSlice';
-import {createTransactionSlice} from './redux-slices/transactionSlice/createTransactionSlice';
+import {createRpcSlice} from './reduxSlices/rtkQuery/rpcSlice/rpcSlice';
+import {createSubgraphSlice} from './reduxSlices/rtkQuery/subgraphSlice/subgraphSlice';
+import {createTransactionSlice} from './reduxSlices/transactionSlice/createTransactionSlice';
 import {getConfig} from './sdkReduxConfig';
 
 /**

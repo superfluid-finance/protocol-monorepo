@@ -12,7 +12,7 @@ export interface CustomSubgraphQuery extends BaseQuery<unknown> {
 /**
  * Continuously poll for new events to know when to invalidate cache for re-fetching of the data.
  */
-export interface MonitorForEventsToInvalidateCache {
+export interface MonitorForEventsToInvalidateCacheMutation {
     /** The chain to poll. */
     chainId: number;
     /** The address (account or token) to filter events for. */

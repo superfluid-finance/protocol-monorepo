@@ -3,10 +3,10 @@ import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
 import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
 
-import {SuperTokenDowngrade, SuperTokenTransfer, SuperTokenUpgrade} from './superTokenArgs';
+import {SuperTokenDowngradeMutation, SuperTokenTransferMutation, SuperTokenUpgradeMutation} from './superTokenArgs';
 
 export const createSuperTokenEndpoints = (builder: RpcApiEndpointBuilder) => ({
-    superTokenUpgrade: builder.mutation<TransactionInfo, SuperTokenUpgrade>({
+    superTokenUpgrade: builder.mutation<TransactionInfo, SuperTokenUpgradeMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -33,7 +33,7 @@ export const createSuperTokenEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    superTokenDowngrade: builder.mutation<TransactionInfo, SuperTokenDowngrade>({
+    superTokenDowngrade: builder.mutation<TransactionInfo, SuperTokenDowngradeMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -60,7 +60,7 @@ export const createSuperTokenEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    superTokenTransfer: builder.mutation<TransactionInfo, SuperTokenTransfer>({
+    superTokenTransfer: builder.mutation<TransactionInfo, SuperTokenTransferMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);

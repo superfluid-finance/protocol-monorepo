@@ -4,7 +4,7 @@ import {invalidateCacheTagsForEvents} from '../../cacheTags/invalidateCacheTagsF
 import {CacheTime} from '../../cacheTime';
 import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
 
-import {CustomSubgraphQuery, MonitorForEventsToInvalidateCache} from './baseArgs';
+import {CustomSubgraphQuery, MonitorForEventsToInvalidateCacheMutation} from './baseArgs';
 
 export const createBaseEndpoints = (builder: SubgraphApiEndpointBuilder) => ({
     custom: builder.query<unknown, CustomSubgraphQuery>({
@@ -16,7 +16,7 @@ export const createBaseEndpoints = (builder: SubgraphApiEndpointBuilder) => ({
             };
         },
     }),
-    monitorForEventsToInvalidateCache: builder.mutation<true, MonitorForEventsToInvalidateCache>({
+    monitorForEventsToInvalidateCache: builder.mutation<true, MonitorForEventsToInvalidateCacheMutation>({
         queryFn: () => {
             // No-op
             return {

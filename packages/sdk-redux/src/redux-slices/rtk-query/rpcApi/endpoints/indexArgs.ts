@@ -3,7 +3,7 @@ import {BaseSuperTokenMutation, NothingString} from '../../../argTypes';
 /**
  * Creates an IDA Index.
  */
-export interface IndexCreate extends BaseSuperTokenMutation {
+export interface IndexCreateMutation extends BaseSuperTokenMutation {
     /** The id of the index. */
     indexId: string;
     /** Extra user data provided. */
@@ -13,7 +13,7 @@ export interface IndexCreate extends BaseSuperTokenMutation {
 /**
  * Updates the `units` allocated to a Subscription.
  */
-export interface IndexUpdateSubscriptionUnits extends BaseSuperTokenMutation {
+export interface IndexUpdateSubscriptionUnitsMutation extends BaseSuperTokenMutation {
     /** The subscriber address whose units you want to update. */
     subscriberAddress: string;
     /** The id of the index. */
@@ -27,7 +27,7 @@ export interface IndexUpdateSubscriptionUnits extends BaseSuperTokenMutation {
 /**
  * Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
  */
-export interface IndexDeleteSubscription extends BaseSuperTokenMutation {
+export interface IndexDeleteSubscriptionMutation extends BaseSuperTokenMutation {
     /** The id of the index. */
     indexId: string;
     /** The subscriber address whose subscription you want to delete. */
@@ -41,7 +41,7 @@ export interface IndexDeleteSubscription extends BaseSuperTokenMutation {
 /**
  * Distributes `amount` of token to an index
  */
-export interface IndexDistribute extends BaseSuperTokenMutation {
+export interface IndexDistributeMutation extends BaseSuperTokenMutation {
     /** The id of the index. */
     indexId: string;
     /** The amount of tokens to be distributed. */
@@ -53,7 +53,7 @@ export interface IndexDistribute extends BaseSuperTokenMutation {
 /**
  * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
  */
-export interface IndexSubscriptionApprove extends BaseSuperTokenMutation {
+export interface IndexSubscriptionApproveMutation extends BaseSuperTokenMutation {
     indexId: string;
     publisherAddress: string;
     userDataBytes: string | NothingString;
@@ -62,7 +62,7 @@ export interface IndexSubscriptionApprove extends BaseSuperTokenMutation {
 /**
  * Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
  */
-export interface IndexSubscriptionRevoke extends BaseSuperTokenMutation {
+export interface IndexSubscriptionRevokeMutation extends BaseSuperTokenMutation {
     /** The id of the index. */
     indexId: string;
     /** The index publisher address you want to revoke for the subscriber. */
@@ -74,7 +74,7 @@ export interface IndexSubscriptionRevoke extends BaseSuperTokenMutation {
 /**
  * Claims any pending tokens allocated to the Subscription (unapproved).
  */
-export interface IndexSubscriptionClaim extends BaseSuperTokenMutation {
+export interface IndexSubscriptionClaimMutation extends BaseSuperTokenMutation {
     indexId: string;
     publisherAddress: string;
     subscriberAddress: string;

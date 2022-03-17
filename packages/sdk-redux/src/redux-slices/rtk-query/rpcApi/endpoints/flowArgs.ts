@@ -3,7 +3,7 @@ import {BaseSuperTokenMutation, NothingString} from '../../../argTypes';
 /**
  * Create a flow of the token of this class.
  */
-export interface FlowCreate extends BaseSuperTokenMutation {
+export interface FlowCreateMutation extends BaseSuperTokenMutation {
     /** The sender of the flow. Signer is used when left empty. */
     senderAddress?: string;
     /** The receiver of the flow. */
@@ -17,7 +17,7 @@ export interface FlowCreate extends BaseSuperTokenMutation {
 /**
  * Update a flow of the token of this class.
  */
-export interface FlowUpdate extends BaseSuperTokenMutation {
+export interface FlowUpdateMutation extends BaseSuperTokenMutation {
     /** The sender of the flow. If not specified then signer address is used. */
     senderAddress?: string;
     /** The receiver of the flow. */
@@ -31,7 +31,7 @@ export interface FlowUpdate extends BaseSuperTokenMutation {
 /**
  * Delete a flow of the token of this class.
  */
-export interface FlowDelete extends BaseSuperTokenMutation {
+export interface FlowDeleteMutation extends BaseSuperTokenMutation {
     /** The sender of the flow. */
     senderAddress?: string;
     /** The receiver of the flow. */

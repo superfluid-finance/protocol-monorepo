@@ -3,7 +3,7 @@ import {BaseSuperTokenMutation} from '../../../argTypes';
 /**
  * Downgrade `amount` SuperToken's.
  */
-export interface SuperTokenDowngrade extends BaseSuperTokenMutation {
+export interface SuperTokenDowngradeMutation extends BaseSuperTokenMutation {
     /** The amount to be downgraded. */
     amountWei: string;
 }
@@ -12,7 +12,7 @@ export interface SuperTokenDowngrade extends BaseSuperTokenMutation {
  * Upgrade `amount` SuperToken's.
  * NOTE: Initiates request for allowance if necessary.
  */
-export interface SuperTokenUpgrade extends BaseSuperTokenMutation {
+export interface SuperTokenUpgradeMutation extends BaseSuperTokenMutation {
     /** The amount to be upgraded. */
     amountWei: string;
 }
@@ -20,7 +20,7 @@ export interface SuperTokenUpgrade extends BaseSuperTokenMutation {
 /**
  * Transfer `receiver` `amount` tokens.
  */
-export interface SuperTokenTransfer extends BaseSuperTokenMutation {
+export interface SuperTokenTransferMutation extends BaseSuperTokenMutation {
     /** The receiver of the transfer. */
     receiverAddress: string;
     /** The amount to be transferred. */

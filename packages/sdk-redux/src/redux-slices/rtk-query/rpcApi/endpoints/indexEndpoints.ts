@@ -4,17 +4,17 @@ import {registerNewTransaction} from '../../../transactions/registerNewTransacti
 import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
 
 import {
-    IndexCreate,
-    IndexDeleteSubscription,
-    IndexDistribute,
-    IndexSubscriptionApprove,
-    IndexSubscriptionClaim,
-    IndexSubscriptionRevoke,
-    IndexUpdateSubscriptionUnits,
+    IndexCreateMutation,
+    IndexDeleteSubscriptionMutation,
+    IndexDistributeMutation,
+    IndexSubscriptionApproveMutation,
+    IndexSubscriptionClaimMutation,
+    IndexSubscriptionRevokeMutation,
+    IndexUpdateSubscriptionUnitsMutation,
 } from './indexArgs';
 
 export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
-    indexCreate: builder.mutation<TransactionInfo, IndexCreate>({
+    indexCreate: builder.mutation<TransactionInfo, IndexCreateMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -42,7 +42,7 @@ export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    indexDistribute: builder.mutation<TransactionInfo, IndexDistribute>({
+    indexDistribute: builder.mutation<TransactionInfo, IndexDistributeMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -71,7 +71,7 @@ export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    indexUpdateSubscriptionUnits: builder.mutation<TransactionInfo, IndexUpdateSubscriptionUnits>({
+    indexUpdateSubscriptionUnits: builder.mutation<TransactionInfo, IndexUpdateSubscriptionUnitsMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -101,7 +101,7 @@ export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    indexSubscriptionApprove: builder.mutation<TransactionInfo, IndexSubscriptionApprove>({
+    indexSubscriptionApprove: builder.mutation<TransactionInfo, IndexSubscriptionApproveMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -130,7 +130,7 @@ export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    indexSubscriptionClaim: builder.mutation<TransactionInfo, IndexSubscriptionClaim>({
+    indexSubscriptionClaim: builder.mutation<TransactionInfo, IndexSubscriptionClaimMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -160,7 +160,7 @@ export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    indexDeleteSubscription: builder.mutation<TransactionInfo, IndexDeleteSubscription>({
+    indexDeleteSubscription: builder.mutation<TransactionInfo, IndexDeleteSubscriptionMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -190,7 +190,7 @@ export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    indexSubscriptionRevoke: builder.mutation<TransactionInfo, IndexSubscriptionRevoke>({
+    indexSubscriptionRevoke: builder.mutation<TransactionInfo, IndexSubscriptionRevokeMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);

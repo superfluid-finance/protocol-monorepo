@@ -3,10 +3,10 @@ import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
 import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
 
-import {FlowCreate, FlowDelete, FlowUpdate} from './flowArgs';
+import {FlowCreateMutation, FlowDeleteMutation, FlowUpdateMutation} from './flowArgs';
 
 export const createFlowEndpoints = (builder: RpcApiEndpointBuilder) => ({
-    flowCreate: builder.mutation<TransactionInfo, FlowCreate>({
+    flowCreate: builder.mutation<TransactionInfo, FlowCreateMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -38,7 +38,7 @@ export const createFlowEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    flowUpdate: builder.mutation<TransactionInfo, FlowUpdate>({
+    flowUpdate: builder.mutation<TransactionInfo, FlowUpdateMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
@@ -69,7 +69,7 @@ export const createFlowEndpoints = (builder: RpcApiEndpointBuilder) => ({
             };
         },
     }),
-    flowDelete: builder.mutation<TransactionInfo, FlowDelete>({
+    flowDelete: builder.mutation<TransactionInfo, FlowDeleteMutation>({
         queryFn: async (arg, queryApi) => {
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);

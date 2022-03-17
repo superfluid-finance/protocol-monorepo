@@ -134,7 +134,11 @@ export default class SdkReduxConfig
 }
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
-export const {getRpcSlice, getSubgraphSlice, getTransactionSlice, getFramework, getSigner} = getConfig();
+export const getRpcSlice = () => getConfig().getRpcSlice();
+export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
+export const getTransactionSlice = () => getConfig().getTransactionSlice();
+export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
+export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
 
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
 const isFramework = (value: any): value is Framework => !!value.cfaV1;

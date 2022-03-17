@@ -28,7 +28,7 @@ export const initializeRpcApiSlice = <T extends ModuleName>(createApi: CreateApi
  */
 export const initializeSubgraphApiSlice = <T extends ModuleName>(createApi: CreateApi<T>) => {
     const subgraphApiSlice = createSubgraphApiSlice(createApi);
-    getConfig().setSubgraphSlice(subgraphApiSlice as any);
+    getConfig().setSubgraphApi(subgraphApiSlice as any);
     return subgraphApiSlice;
 };
 

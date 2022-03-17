@@ -2,7 +2,7 @@ import {getFramework} from '../../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../../utils';
 import {invalidateCacheTagsForEvents} from '../../cacheTags/invalidateCacheTagsForEvents';
 import {CacheTime} from '../../cacheTime';
-import SubgraphApiEndpointBuilder from '../subgraphApiEndpointBuilder';
+import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
 
 import {CustomSubgraphQuery, MonitorForEventsToInvalidateCache} from './baseArgs';
 

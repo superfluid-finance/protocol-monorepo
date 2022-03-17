@@ -1,7 +1,7 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
-import RpcApiEndpointBuilder from '../rpcApiEndpointBuilder';
+import {RpcApiEndpointBuilder} from '../rpcApiEndpointBuilder';
 
 import {SuperTokenDowngrade, SuperTokenTransfer, SuperTokenUpgrade} from './superTokenArgs';
 

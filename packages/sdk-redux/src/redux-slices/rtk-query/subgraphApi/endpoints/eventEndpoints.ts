@@ -20,7 +20,7 @@ import {
 import {getFramework} from '../../../../sdkReduxConfig';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
-import SubgraphApiEndpointBuilder from '../subgraphApiEndpointBuilder';
+import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
 
 import {
     EventQuery,

@@ -3,8 +3,6 @@ import {EndpointBuilder} from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
 
 import {SubgraphApiBaseQuery} from './subgraphApiBaseQuery';
-import SuperfluidApiReducerPath from './subgraphApiReducerPath';
+import {SuperfluidApiReducerPath} from './subgraphApiReducerPath';
 
-type SubgraphApiEndpointBuilder = EndpointBuilder<SubgraphApiBaseQuery, CacheTagTypes, SuperfluidApiReducerPath>;
-
-export default SubgraphApiEndpointBuilder;
+export type SubgraphApiEndpointBuilder = EndpointBuilder<SubgraphApiBaseQuery, CacheTagTypes, SuperfluidApiReducerPath>;

@@ -29,7 +29,7 @@ import {getFramework} from '../../../../sdkReduxConfig';
 import {CacheTagTypes} from '../../cacheTags/CacheTagTypes';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
-import SubgraphApiEndpointBuilder from '../subgraphApiEndpointBuilder';
+import {SubgraphApiEndpointBuilder} from '../subgraphApiEndpointBuilder';
 
 import {
     AccountQuery,

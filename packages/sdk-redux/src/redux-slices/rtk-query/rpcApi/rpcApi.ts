@@ -5,9 +5,9 @@ import {typeGuard} from '../../../utils';
 import {cacheTagTypes} from '../cacheTags/CacheTagTypes';
 import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
 
-import rpcApiBaseQuery from './rpcApiBaseQuery';
-import RpcApiEndpointBuilder from './rpcApiEndpointBuilder';
-import RpcApiReducerPath from './rpcApiReducerPath';
+import {rpcApiBaseQuery} from './rpcApiBaseQuery';
+import {RpcApiEndpointBuilder} from './rpcApiEndpointBuilder';
+import {RpcApiReducerPath} from './rpcApiReducerPath';
 
 export const createRpcApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({

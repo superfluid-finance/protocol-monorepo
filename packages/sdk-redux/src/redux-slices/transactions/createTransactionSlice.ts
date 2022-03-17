@@ -2,7 +2,7 @@ import {createSlice} from '@reduxjs/toolkit';
 
 import {transactionsAdapter} from './trackedTransaction';
 
-export const transactionSlicePrefix = 'sfTransactions' as const;
+export const transactionSlicePrefix = 'superfluid/transactions' as const;
 
 export const createTransactionSlice = () =>
     createSlice({
@@ -13,4 +13,4 @@ export const createTransactionSlice = () =>
         },
     });
 
-export type SfTransactionSliceType = ReturnType<typeof createTransactionSlice>;
+export type TransactionSlice = ReturnType<typeof createTransactionSlice>;

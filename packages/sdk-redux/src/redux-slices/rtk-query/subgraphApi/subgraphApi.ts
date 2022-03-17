@@ -6,9 +6,9 @@ import {cacheTagTypes} from '../cacheTags/CacheTagTypes';
 import {CacheTime} from '../cacheTime';
 import {getSerializeQueryArgs} from '../getSerializeQueryArgs';
 
-import subgraphApiBaseQuery from './subgraphApiBaseQuery';
-import SubgraphApiEndpointBuilder from './subgraphApiEndpointBuilder';
-import SuperfluidApiReducerPath from './subgraphApiReducerPath';
+import {subgraphApiBaseQuery} from './subgraphApiBaseQuery';
+import {SubgraphApiEndpointBuilder} from './subgraphApiEndpointBuilder';
+import {SuperfluidApiReducerPath} from './subgraphApiReducerPath';
 
 export const createSubgraphApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {RpcApiEmpty} from './redux-slices/rtk-query/rpcApi/rpcApi';
 import {SubgraphApiEmpty} from './redux-slices/rtk-query/subgraphApi/subgraphApi';
-import {SfTransactionSliceType} from './redux-slices/transactions/createTransactionSlice';
+import {TransactionSlice} from './redux-slices/transactions/createTransactionSlice';
 
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;
@@ -22,13 +22,13 @@ interface RpcApiLocator {
 }
 
 interface SubgraphSliceLocator {
-    getSubgraphSlice: () => SubgraphApiEmpty;
-    setSubgraphSlice: (slice: SubgraphApiEmpty) => void;
+    getSubgraphApi: () => SubgraphApiEmpty;
+    setSubgraphApi: (api: SubgraphApiEmpty) => void;
 }
 
 interface TransactionSliceLocator {
-    getTransactionSlice: () => SfTransactionSliceType;
-    setTransactionSlice: (slice: SfTransactionSliceType) => void;
+    getTransactionSlice: () => TransactionSlice;
+    setTransactionSlice: (slice: TransactionSlice) => void;
 }
 
 /**
@@ -37,9 +37,9 @@ interface TransactionSliceLocator {
 export default class SdkReduxConfig
     implements FrameworkLocator, SignerLocator, RpcApiLocator, SubgraphSliceLocator, TransactionSliceLocator
 {
-    apiSlice: RpcApiEmpty | undefined;
-    subgraphSlice: SubgraphApiEmpty | undefined;
-    transactionSlice: SfTransactionSliceType | undefined;
+    rpcApi: RpcApiEmpty | undefined;
+    subgraphApi: SubgraphApiEmpty | undefined;
+    transactionSlice: TransactionSlice | undefined;
     memoizedFrameworkFactories = new Map<number, () => Promise<Framework>>();
     memoizedSignerFactories = new Map<number, () => Promise<Signer>>();
 
@@ -51,17 +51,17 @@ export default class SdkReduxConfig
     }
 
     getRpcApi(): RpcApiEmpty {
-        if (!this.apiSlice) {
+        if (!this.rpcApi) {
             throw Error('The ApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-        return this.apiSlice;
+        return this.rpcApi;
     }
 
-    getSubgraphSlice(): SubgraphApiEmpty {
-        if (!this.subgraphSlice) {
+    getSubgraphApi(): SubgraphApiEmpty {
+        if (!this.subgraphApi) {
             throw Error('The SubgraphSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-        return this.subgraphSlice;
+        return this.subgraphApi;
     }
 
     getFramework(chainId: number): Promise<Framework> {
@@ -80,7 +80,7 @@ export default class SdkReduxConfig
         return signerFactory();
     }
 
-    getTransactionSlice(): SfTransactionSliceType {
+    getTransactionSlice(): TransactionSlice {
         if (!this.transactionSlice) {
             throw Error('The ApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
@@ -88,21 +88,21 @@ export default class SdkReduxConfig
     }
 
     setRpcApi(slice: RpcApiEmpty): void {
-        if (this.apiSlice) {
+        if (this.rpcApi) {
             console.log(
                 "Warning! ApiAlice was already set and will be overriden. This shouldn't be happening in production."
             );
         }
-        this.apiSlice = slice;
+        this.rpcApi = slice;
     }
 
-    setSubgraphSlice(slice: SubgraphApiEmpty): void {
-        if (this.subgraphSlice) {
+    setSubgraphApi(slice: SubgraphApiEmpty): void {
+        if (this.subgraphApi) {
             console.log(
                 "Warning! SubgraphSlice was already set and will be overriden. This shouldn't be happening in production."
             );
         }
-        this.subgraphSlice = slice;
+        this.subgraphApi = slice;
     }
 
     setFramework(chainId: number, instanceOrFactory: Framework | (() => Promise<Framework>)) {
@@ -121,7 +121,7 @@ export default class SdkReduxConfig
         this.memoizedSignerFactories.set(chainId, _.memoize(signerFactory));
     }
 
-    setTransactionSlice(slice: SfTransactionSliceType): void {
+    setTransactionSlice(slice: TransactionSlice): void {
         if (this.transactionSlice) {
             console.log(
                 "Warning! TransactionSlice was already set and will be overriden. This shouldn't be happening in production."
@@ -133,7 +133,7 @@ export default class SdkReduxConfig
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
 export const getApiSlice = () => getConfig().getRpcApi();
-export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
+export const getSubgraphSlice = () => getConfig().getSubgraphApi();
 export const getTransactionSlice = () => getConfig().getTransactionSlice();
 export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
 export const getSigner = (chainId: number) => getConfig().getSigner(chainId);

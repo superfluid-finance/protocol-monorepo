@@ -31,7 +31,7 @@ import {
     IndexUpdatedEventsQuery,
     SubscriptionUnitsUpdatedEventQuery,
     SubscriptionUnitsUpdatedEventsQuery,
-} from './eventQueryArgs';
+} from './eventArgs';
 
 export const createEventQueryEndpoints = (builder: SubgraphApiEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.

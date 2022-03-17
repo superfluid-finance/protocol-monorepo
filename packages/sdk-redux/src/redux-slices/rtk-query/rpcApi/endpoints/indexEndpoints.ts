@@ -1,88 +1,17 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
-import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../../argTypes';
+import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
 import RpcApiEndpointBuilder from '../rpcApiEndpointBuilder';
 
-/**
- * Creates an IDA Index.
- */
-export interface IndexCreate extends BaseSuperTokenMutation {
-    /** The id of the index. */
-    indexId: string;
-    /** Extra user data provided. */
-    userDataBytes: string;
-}
-
-/**
- * Updates the `units` allocated to a Subscription.
- */
-export interface IndexUpdateSubscriptionUnits extends BaseSuperTokenMutation {
-    /** The subscriber address whose units you want to update. */
-    subscriberAddress: string;
-    /** The id of the index. */
-    indexId: string;
-    /** The amount of units you want to update to. */
-    unitsNumber: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
- */
-export interface IndexDeleteSubscription extends BaseSuperTokenMutation {
-    /** The id of the index. */
-    indexId: string;
-    /** The subscriber address whose subscription you want to delete. */
-    publisherAddress: string;
-    /** The publisher address of the index you are targeting. */
-    subscriberAddress: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Distributes `amount` of token to an index
- */
-export interface IndexDistribute extends BaseSuperTokenMutation {
-    /** The id of the index. */
-    indexId: string;
-    /** The amount of tokens to be distributed. */
-    amountWei: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
- */
-export interface IndexSubscriptionApprove extends BaseSuperTokenMutation {
-    indexId: string;
-    publisherAddress: string;
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
- */
-export interface IndexSubscriptionRevoke extends BaseSuperTokenMutation {
-    /** The id of the index. */
-    indexId: string;
-    /** The index publisher address you want to revoke for the subscriber. */
-    publisherAddress: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Claims any pending tokens allocated to the Subscription (unapproved).
- */
-export interface IndexSubscriptionClaim extends BaseSuperTokenMutation {
-    indexId: string;
-    publisherAddress: string;
-    subscriberAddress: string;
-    userDataBytes: string | NothingString;
-}
+import {
+    IndexCreate,
+    IndexDeleteSubscription,
+    IndexDistribute,
+    IndexSubscriptionApprove,
+    IndexSubscriptionClaim,
+    IndexSubscriptionRevoke,
+    IndexUpdateSubscriptionUnits,
+} from './indexArgs';
 
 export const createIndexEndpoints = (builder: RpcApiEndpointBuilder) => ({
     indexCreate: builder.mutation<TransactionInfo, IndexCreate>({

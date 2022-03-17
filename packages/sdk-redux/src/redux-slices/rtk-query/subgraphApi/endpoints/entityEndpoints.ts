@@ -48,9 +48,9 @@ import {
     TokensQuery,
     TokenStatisticQuery,
     TokenStatisticsQuery,
-} from './entityQueryArgs';
+} from './entityArgs';
 
-export const createEntityQueryEndpoints = (builder: SubgraphApiEndpointBuilder) => {
+export const createEntityEndpoints = (builder: SubgraphApiEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {

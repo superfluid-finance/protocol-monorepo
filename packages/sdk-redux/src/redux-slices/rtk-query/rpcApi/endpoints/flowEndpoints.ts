@@ -1,47 +1,9 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
-import {BaseSuperTokenMutation, NothingString, TransactionInfo} from '../../../argTypes';
+import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransaction} from '../../../transactions/registerNewTransaction';
 import RpcApiEndpointBuilder from '../rpcApiEndpointBuilder';
 
-/**
- * Create a flow of the token of this class.
- */
-export interface FlowCreate extends BaseSuperTokenMutation {
-    /** The sender of the flow. Signer is used when left empty. */
-    senderAddress?: string;
-    /** The receiver of the flow. */
-    receiverAddress: string;
-    /** The specified flow rate. */
-    flowRateWei: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Update a flow of the token of this class.
- */
-export interface FlowUpdate extends BaseSuperTokenMutation {
-    /** The sender of the flow. If not specified then signer address is used. */
-    senderAddress?: string;
-    /** The receiver of the flow. */
-    receiverAddress: string;
-    /** The specified flow rate. */
-    flowRateWei: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
-
-/**
- * Delete a flow of the token of this class.
- */
-export interface FlowDelete extends BaseSuperTokenMutation {
-    /** The sender of the flow. */
-    senderAddress?: string;
-    /** The receiver of the flow. */
-    receiverAddress: string;
-    /** Extra user data provided. */
-    userDataBytes: string | NothingString;
-}
+import {FlowCreate, FlowDelete, FlowUpdate} from './flowArgs';
 
 export const createFlowEndpoints = (builder: RpcApiEndpointBuilder) => ({
     flowCreate: builder.mutation<TransactionInfo, FlowCreate>({

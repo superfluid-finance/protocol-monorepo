@@ -19,11 +19,13 @@ const {
  * Usage: npx truffle exec scripts/deploy-super-token.js : {UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS}
  *
  * NOTE:
- * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the ZERO_ADDRESS, then the SETH contract will be deployed.
+ * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the ZERO_ADDRESS or the native token symbol
+ *   of the network, then the SETH contract will be deployed.
  * - Otherwise an ERC20 super token wrapper will be created for the underlying ERC20 token specified in
  *   UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS. This underlying token needs to already be registered in the resolver.
  * - A resolver entry `supertokens.${protocolReleaseVersion}.${UNDERLYING_TOKEN_SYMBOL}x` will be created
  *   for the super token address.
+ * - The caller needs to have permission to set resolver entries.
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -73,8 +75,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     let tokenAddress;
     let superTokenKey;
     let deploymentFn;
-    if (tokenSymbolOrAddress === ZERO_ADDRESS) {
+    if (
+        tokenSymbolOrAddress === ZERO_ADDRESS ||
+        tokenSymbolOrAddress === sf.config.nativeTokenSymbol
+    ) {
         // deploy wrapper for the native token
+        tokenSymbol = sf.config.nativeTokenSymbol;
         superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
         deploymentFn = async () => {
             console.log("Creating SETH Proxy...");

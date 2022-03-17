@@ -31,15 +31,10 @@ describe("Framework class", function () {
             isTruffle: false,
             web3,
         });
-        // wrapper for the native token
-        await deploySuperToken(
-            t.createErrorHandler(),
-            [":", "0x0000000000000000000000000000000000000000"],
-            {
-                isTruffle: false,
-                web3,
-            }
-        );
+        await deploySuperToken(t.createErrorHandler(), [":", "ETH"], {
+            isTruffle: false,
+            web3,
+        });
         await deploySuperToken(t.createErrorHandler(), [":", "fDAI"], {
             isTruffle: false,
             web3,

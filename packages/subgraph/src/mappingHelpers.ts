@@ -90,6 +90,10 @@ export function getOrInitSuperToken(
     }
 
     if (token == null) {
+        // Note: this is necessary otherwise we will not be able to capture
+        // template data source events.
+        SuperTokenTemplate.create(tokenAddress);
+
         token = new Token(tokenId);
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
@@ -110,10 +114,6 @@ export function getOrInitSuperToken(
             tokenAddress
         );
         tokenStatistic.save();
-
-        // Note: this is necessary otherwise we will not be able to capture
-        // template data source events.
-        SuperTokenTemplate.create(tokenAddress);
 
         // If the token has an underlying ERC20, we create a token entity for it.
         let underlyingToken = Token.load(token.underlyingAddress.toHex());

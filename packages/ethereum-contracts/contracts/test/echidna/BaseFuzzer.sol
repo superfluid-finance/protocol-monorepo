@@ -2,53 +2,34 @@
 // solhint-disable reason-string
 pragma solidity >= 0.8.0;
 
-import "../superfluid/Superfluid.sol";
-import "../superfluid/SuperToken.sol";
-import "../test/TestGovernance.sol";
-import "../agreements/ConstantFlowAgreementV1.sol";
-import "../agreements/InstantDistributionAgreementV1.sol";
-import "../apps/CFAv1Library.sol";
-import "../apps/IDAv1Library.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
-contract SuperfluidTester {
+import "../../superfluid/Superfluid.sol";
+import "../../superfluid/SuperToken.sol";
+import "../../test/TestGovernance.sol";
+import "../../agreements/ConstantFlowAgreementV1.sol";
+import "../../agreements/InstantDistributionAgreementV1.sol";
+import "../../apps/CFAv1Library.sol";
+import "../../apps/IDAv1Library.sol";
+import "./SuperfluidTester.sol";
 
-    CFAv1Library.InitData private _cfaLib;
-    IDAv1Library.InitData private _idaLib;
-    IERC20 private _token;
-    ISuperToken private _superToken;
+abstract contract AbstractBaseFuzzer {
 
-    using CFAv1Library for CFAv1Library.InitData;
+    function token() virtual internal view returns (IERC20);
+    function superToken() virtual internal view returns (ISuperToken);
+    function cfa() virtual internal view returns (IConstantFlowAgreementV1);
+    function ida() virtual internal view returns (IInstantDistributionAgreementV1);
 
-    constructor (
-        Superfluid host,
-        IConstantFlowAgreementV1 cfa,
-        IERC20 token,
-        ISuperToken superToken) {
-        _cfaLib.host = host;
-        _cfaLib.cfa = cfa;
-        _idaLib.host = host;
-        _idaLib.cfa = cfa;
-        _token = token;
-        _superToken = superToken;
-    }
+    function getTester1(uint8 a) virtual internal view
+        returns (SuperfluidTester testerA);
 
-    function upgradeSuperToken(uint256 amount) external {
-        _token.approve(address(_superToken), amount);
-        _superToken.upgrade(amount);
-    }
+    function getTester2(uint8 a, uint8 b) virtual internal view
+        returns (SuperfluidTester testerA, SuperfluidTester testerB);
 
-    function downgradeSuperToken(uint256 amount) external {
-        _superToken.downgrade(amount);
-    }
-
-    function flow(address receiver, int96 flowRate) external {
-        _cfaLib.flow(receiver, _superToken, flowRate);
-    }
-
+    function superTokenBalanceOfNow(address a) virtual internal view returns (int256);
 }
 
-contract NoCallbackSuperfluidFuzzer {
+contract BaseFuzzer is AbstractBaseFuzzer {
 
     uint private constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint private constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
@@ -89,80 +70,76 @@ contract NoCallbackSuperfluidFuzzer {
             "FTTx");
 
         for (uint i = 0; i < N_TEST_ACCOUNTS; ++i) {
-            _testers[i] = new SuperfluidTester(_host, _cfa, _token, _superToken);
+            _testers[i] = new SuperfluidTester(_host, _cfa, _ida, _token, _superToken);
             _token.mint(address(_testers[i]), INIT_TOKEN_BALANCE);
             _testers[i].upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
         }
     }
 
-    function _getTester1(uint8 a)
-        private view
+    function token() override internal view returns (IERC20) { return _token; }
+    function superToken() override internal view returns (ISuperToken) { return _superToken; }
+    function cfa() override internal view returns (IConstantFlowAgreementV1) { return _cfa; }
+    function ida() override internal view returns (IInstantDistributionAgreementV1) { return _ida; }
+
+    function getTester1(uint8 a)
+        override internal view
         returns (SuperfluidTester testerA) {
         testerA = _testers[a % N_TEST_ACCOUNTS];
     }
 
-    function _getTester2(uint8 a, uint8 b)
-        private view
+    function getTester2(uint8 a, uint8 b)
+        override internal view
         returns (SuperfluidTester testerA, SuperfluidTester testerB) {
         testerA = _testers[a % N_TEST_ACCOUNTS];
         testerB = _testers[((a % N_TEST_ACCOUNTS) + (b % (N_TEST_ACCOUNTS - 1))) % N_TEST_ACCOUNTS];
     }
 
+    function superTokenBalanceOfNow(address a) override internal view returns (int256 avb) {
+        (avb,,,) = _superToken.realtimeBalanceOfNow(a);
+    }
+
     function upgrade(uint8 a, uint64 amount) public {
         require(amount > 0);
-        SuperfluidTester tester = _getTester1(a);
+        SuperfluidTester tester = getTester1(a);
 
-        uint256 a1 = _superToken.balanceOf(address(tester));
-        uint256 b1 = _token.balanceOf(address(tester));
+        int256 a1 = superTokenBalanceOfNow(address(tester));
+        int256 b1 = int256(_token.balanceOf(address(tester)));
         tester.upgradeSuperToken(amount);
-        uint256 a2 = _superToken.balanceOf(address(tester));
-        uint256 b2 = _token.balanceOf(address(tester));
-        assert(amount == b1 - b2);
+        int256 a2 = superTokenBalanceOfNow(address(tester));
+        int256 b2 = int256(_token.balanceOf(address(tester)));
+        assert(int256(uint256(amount)) == b1 - b2);
         assert(b1 - b2 == a2 - a1);
         _expectedTotalSupply += amount;
     }
 
     function downgrade(uint8 a, uint64 amount) public {
         require(amount > 0);
-        SuperfluidTester tester = _getTester1(a);
+        SuperfluidTester tester = getTester1(a);
 
-        uint256 a1 = _superToken.balanceOf(address(tester));
-        uint256 b1 = _token.balanceOf(address(tester));
+        int256 a1 = superTokenBalanceOfNow(address(tester));
+        int256 b1 = int256(_token.balanceOf(address(tester)));
         tester.downgradeSuperToken(amount);
-        uint256 a2 = _superToken.balanceOf(address(tester));
-        uint256 b2 = _token.balanceOf(address(tester));
-        assert(amount == b2 - b1);
+        int256 a2 = superTokenBalanceOfNow(address(tester));
+        int256 b2 = int256(_token.balanceOf(address(tester)));
+        assert(int256(uint256(amount)) == b2 - b1);
         assert(b2 - b1 == a1 - a2);
         _expectedTotalSupply -= amount;
     }
 
-    function createFlow(uint8 a, uint8 b, uint32 flowRate) public {
-        require(flowRate > 0);
-        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTester2(a, b);
-
-        testerA.flow(address(testerB), int96(uint96(flowRate)));
-    }
-
-    function deleteFlow(uint8 a, uint8 b) public {
-        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTester2(a, b);
-
-        testerA.flow(address(testerB), 0);
-    }
-
-    function totalSupplyInvariant() public {
+    function totalSupplyInvariant() public view {
         assert(_superToken.totalSupply() == _expectedTotalSupply);
     }
 
-    function liquiditySumInvanriant() public {
+    function liquiditySumInvanriant() public view {
         int256 liquiditySum;
         for (uint i = 0; i < N_TEST_ACCOUNTS; ++i) {
-            (int256 avb, uint256 d, uint256 od,) = _superToken.realtimeBalanceOfNow(address(_testers[i]));
+            (int256 avb, uint256 d, uint256 od, ) = _superToken.realtimeBalanceOfNow(address(_testers[i]));
             liquiditySum += avb + int256(d) - int256(od);
         }
         assert(int256(_expectedTotalSupply) == liquiditySum);
     }
 
-    function netFlowRateSumInvanriant() public {
+    function netFlowRateSumInvanriant() public view {
         int96 netFlowRateSum;
         for (uint i = 0; i < N_TEST_ACCOUNTS; ++i) {
             netFlowRateSum += _cfa.getNetFlow(_superToken, address(_testers[i]));

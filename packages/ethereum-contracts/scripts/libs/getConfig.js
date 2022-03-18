@@ -116,6 +116,7 @@ module.exports = function getConfig(chainId) {
             // optimism mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
@@ -140,7 +141,7 @@ module.exports = function getConfig(chainId) {
             // arbitrum one mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["ETHx"],
+            tokenList: ["DAIx", "USDCx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc

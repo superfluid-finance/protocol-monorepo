@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol";
 

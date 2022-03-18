@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.6;
-pragma abicoder v2;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -19,7 +18,7 @@ import {
 
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 
 contract LotterySuperApp is Ownable, SuperAppBase {
@@ -27,7 +26,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
     /// @dev Entrance fee for the game (hardcoded to $1)
     uint256 constant private _ENTRANCE_FEE = 1e18;
     /// @dev Minimum flow rate to participate (hardcoded to $10 / mo)
-    int96 constant private _MINIMUM_FLOW_RATE = int96(uint256(10e18) / uint256(3600 * 24 * 30));
+    int96 constant private _MINIMUM_FLOW_RATE = int96(int256(uint256(10e18) / uint256(3600 * 24 * 30)));
 
     string constant private _ERR_STR_NO_TICKET = "LotterySuperApp: need ticket to play";
     string constant private _ERR_STR_LOW_FLOW_RATE = "LotterySuperApp: flow rate too low";

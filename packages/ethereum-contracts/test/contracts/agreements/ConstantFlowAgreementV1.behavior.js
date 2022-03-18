@@ -1,8 +1,12 @@
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
 
+const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
+
+// TODO: we need to refactor this function to handle:
+// - createFlowByOperator and updateFlowByOperator
 //
 // test functions
 //
@@ -543,8 +547,236 @@ async function shouldDeleteFlow({
     });
 }
 
+const getFlowOperatorId = (sender, flowOperator) => {
+    return web3.utils.keccak256(
+        web3.eth.abi.encodeParameters(
+            ["string", "address", "address"],
+            ["flowOperator", sender, flowOperator]
+        )
+    );
+};
+
+function getUpdateFlowOperatorPermissionsPromise({
+    testenv,
+    token,
+    sender,
+    flowOperator,
+    permissions,
+    flowRateAllowance,
+    ctx,
+    from,
+}) {
+    const {cfa, superfluid} = testenv.contracts;
+    return superfluid.callAgreement(
+        cfa.address,
+        cfa.contract.methods
+            .updateFlowOperatorPermissions(
+                token,
+                sender,
+                flowOperator,
+                permissions,
+                flowRateAllowance,
+                ctx
+            )
+            .encodeABI(),
+        "0x",
+        {from}
+    );
+}
+
+function getAuthorizeFlowOperatorWithFullControlPromise({
+    testenv,
+    token,
+    sender,
+    flowOperator,
+    ctx,
+    from,
+    isRevokeFullControl,
+}) {
+    const {cfa, superfluid} = testenv.contracts;
+    const methodSignature = isRevokeFullControl
+        ? "revokeFlowOperatorWithFullControl"
+        : "authorizeFlowOperatorWithFullControl";
+    return superfluid.callAgreement(
+        cfa.address,
+        cfa.contract.methods[methodSignature](
+            token,
+            sender,
+            flowOperator,
+            ctx
+        ).encodeABI(),
+        "0x",
+        {from}
+    );
+}
+
+function getChangeFlowByFlowOperatorPromise({
+    testenv,
+    methodSignature,
+    token,
+    sender,
+    receiver,
+    flowOperator,
+    flowRate,
+    ctx,
+}) {
+    const {cfa, superfluid} = testenv.contracts;
+    if (methodSignature === "deleteFlow") {
+        return superfluid.callAgreement(
+            cfa.address,
+            cfa.contract.methods
+                .deleteFlow(token, sender, receiver, ctx)
+                .encodeABI(),
+            "0x",
+            {from: flowOperator}
+        );
+    }
+    return superfluid.callAgreement(
+        cfa.address,
+        cfa.contract.methods[methodSignature](
+            token,
+            sender,
+            receiver,
+            flowRate,
+            ctx
+        ).encodeABI(),
+        "0x",
+        {from: flowOperator}
+    );
+}
+
+async function shouldRevertUpdateFlowOperatorPermissions({
+    testenv,
+    token,
+    sender,
+    flowOperator,
+    permissions,
+    flowRateAllowance,
+    ctx,
+    from,
+    expectedErrorString,
+}) {
+    await expectRevert(
+        getUpdateFlowOperatorPermissionsPromise({
+            testenv,
+            token,
+            sender,
+            flowOperator,
+            permissions,
+            flowRateAllowance,
+            ctx,
+            from,
+        }),
+        expectedErrorString
+    );
+}
+
+async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+    testenv,
+    token,
+    sender,
+    flowOperator,
+    permissions,
+    flowRateAllowance,
+    ctx,
+    from,
+    isFullControl,
+    isFullControlRevoke,
+}) {
+    const {cfa} = testenv.contracts;
+    let tx;
+    if (isFullControl && isFullControlRevoke) {
+        throw new Error("You cannot grant full control and revoke it.");
+    }
+    // updateFlowOperatorPermissions
+    if (!isFullControl && !isFullControlRevoke) {
+        tx = await getUpdateFlowOperatorPermissionsPromise({
+            testenv,
+            token,
+            sender,
+            flowOperator,
+            permissions,
+            flowRateAllowance,
+            ctx,
+            from,
+        });
+    }
+
+    if (isFullControl || isFullControlRevoke) {
+        tx = await getAuthorizeFlowOperatorWithFullControlPromise({
+            testenv,
+            token,
+            sender,
+            flowOperator,
+            ctx,
+            from,
+            isRevokeFullControl: isFullControlRevoke,
+        });
+    }
+
+    const expectedPermissions = isFullControl
+        ? "7" // 1 1 1
+        : isFullControlRevoke
+        ? "0" // 0 0 0
+        : permissions;
+    const expectedFlowRateAllowance = isFullControl
+        ? MAXIMUM_FLOW_RATE
+        : isFullControlRevoke
+        ? "0"
+        : flowRateAllowance;
+    // validate event was emitted with correct values
+    await expectEvent.inTransaction(
+        tx.tx,
+        cfa.contract,
+        "FlowOperatorUpdated",
+        {
+            token,
+            sender,
+            flowOperator,
+            permissions: expectedPermissions,
+            flowRateAllowance: expectedFlowRateAllowance,
+        }
+    );
+
+    // validate agreementData was properly updated
+    const data = await cfa.getFlowOperatorData(token, sender, flowOperator);
+    const expectedFlowOperatorId = getFlowOperatorId(sender, flowOperator);
+    assert.equal(data.flowOperatorId, expectedFlowOperatorId);
+    assert.equal(data.permissions.toString(), expectedPermissions);
+    assert.equal(data.flowRateAllowance.toString(), expectedFlowRateAllowance);
+}
+
+async function shouldRevertChangeFlowByOperator({
+    testenv,
+    methodSignature,
+    token,
+    sender,
+    receiver,
+    flowOperator,
+    flowRate,
+    ctx,
+    expectedErrorString,
+}) {
+    await expectRevert(
+        getChangeFlowByFlowOperatorPromise({
+            testenv,
+            methodSignature,
+            token,
+            sender,
+            receiver,
+            flowOperator,
+            flowRate,
+            ctx,
+        }),
+        expectedErrorString
+    );
+}
+
 module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
+    shouldRevertUpdateFlowOperatorPermissions,
+    shouldUpdateFlowOperatorPermissionsAndValidateEvent,
+    shouldRevertChangeFlowByOperator,
 };

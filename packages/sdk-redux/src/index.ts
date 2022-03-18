@@ -1,6 +1,7 @@
 export * as _sdkCore from '@superfluid-finance/sdk-core';
 
 export * from './sdkReduxInitialization';
+export * from './sdkReduxConfig';
 
 export * from './reduxSlices/argTypes';
 

@@ -14,7 +14,7 @@
     "copy-watch": "nodemon --watch \"../../packages\" --ext \"js,ts,tsx,sol\" --exec rsync --archive --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
   },
   "dependencies": {
-    "@chainlink/contracts": "^0.2.2",
+    "@chainlink/contracts": "^0.4.0",
     "@nomiclabs/hardhat-truffle5": "^2.0.2",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.5.0",

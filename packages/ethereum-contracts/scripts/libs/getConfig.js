@@ -113,10 +113,25 @@ module.exports = function getConfig(chainId) {
         // Optimistic Ethereum: https://community.optimism.io/docs/
         //
         10: {
-            // op mainnet
+            // optimism mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 4300000,
+                getLogsRange: 50000,
+            },
         },
         69: {
-            // op kovan
+            // optimism testnet (kovan)
+            data: {
+                initialBlockNumber: 300000,
+                getLogsRange: 50000,
+            },
         },
 
         //
@@ -124,9 +139,24 @@ module.exports = function getConfig(chainId) {
         //
         42161: {
             // arbitrum one mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 7600000,
+                getLogsRange: 50000,
+            },
         },
         421611: {
             // arbitrum testnet (rinkeby)
+            data: {
+                initialBlockNumber: 7300000,
+                getLogsRange: 50000,
+            },
         },
 
         //
@@ -141,9 +171,24 @@ module.exports = function getConfig(chainId) {
         //
         43114: {
             // avalanche mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["AVAXx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 11950000,
+                getLogsRange: 50000,
+            },
         },
         43113: {
             // avalanche fuji testnet
+            data: {
+                initialBlockNumber: 3220000,
+                getLogsRange: 50000,
+            },
         },
 
         //
@@ -151,6 +196,13 @@ module.exports = function getConfig(chainId) {
         //
         42220: {
             // celo mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["CELOx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
         },
     };
 

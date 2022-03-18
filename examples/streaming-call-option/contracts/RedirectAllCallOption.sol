@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
-import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -182,7 +181,7 @@ contract RedirectAllCallOption is SuperAppBase {
         //this is important for comparison between current price and strike price
 
         if (_priceFeedDecimals != _underlyingDecimals) {
-            int _adjustedDecimals = _underlyingDecimals - _priceFeedDecimals;
+            int256 _adjustedDecimals = int256(uint256(_underlyingDecimals - _priceFeedDecimals));
 
             if (_adjustedDecimals < 0) {
                 //if _adjusted decimals is negative, adjust so that it's positive

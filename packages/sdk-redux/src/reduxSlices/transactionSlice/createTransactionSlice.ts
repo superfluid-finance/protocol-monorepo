@@ -9,7 +9,8 @@ export const createTransactionSlice = () =>
         name: transactionSlicePrefix,
         initialState: transactionsAdapter.getInitialState(),
         reducers: {
-            upsertTransaction: transactionsAdapter.upsertOne,
+            addTransaction: transactionsAdapter.addOne,
+            updateTransaction: transactionsAdapter.updateOne,
         },
     });
 

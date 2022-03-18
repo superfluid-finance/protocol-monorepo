@@ -20,6 +20,7 @@ query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: 
         streamedUntilUpdatedAt
         token {
             id
+            symbol
         }
         updatedAtBlockNumber
         updatedAtTimestamp

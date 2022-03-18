@@ -16,6 +16,7 @@ query streamPeriods($first: Int = 10, $skip: Int = 0, $where: StreamPeriod_filte
         totalAmountStreamed
         token {
             id
+            symbol
         }
         stream {
             id

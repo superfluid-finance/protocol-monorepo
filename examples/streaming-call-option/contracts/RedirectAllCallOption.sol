@@ -181,7 +181,7 @@ contract RedirectAllCallOption is SuperAppBase {
         //this is important for comparison between current price and strike price
 
         if (_priceFeedDecimals != _underlyingDecimals) {
-            int _adjustedDecimals = _underlyingDecimals - _priceFeedDecimals;
+            int256 _adjustedDecimals = int256(uint256(_underlyingDecimals - _priceFeedDecimals));
 
             if (_adjustedDecimals < 0) {
                 //if _adjusted decimals is negative, adjust so that it's positive

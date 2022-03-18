@@ -5,9 +5,9 @@ set -xe
 
 # build contracts
 EXAMPLES=(
-    # budget-nft
-    # continuous-auction
-    # flowlottery
+    budget-nft
+    continuous-auction
+    flowlottery
     nftbillboard-userdata
     rewards-distribution-token
     sdk-redux-nextjs-typescript

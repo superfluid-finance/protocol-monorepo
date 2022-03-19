@@ -210,6 +210,21 @@ async function _shouldChangeFlow({
                 userData,
             });
             break;
+        case "createFlowByOperator":
+        case "updateFlowByOperator":
+            tx = await testenv.contracts.superfluid.callAgreement(
+                testenv.contracts.cfa.address,
+                testenv.contracts.cfa.contract.methods[fn](
+                    cfaDataModel.flows.main.flowId.superToken,
+                    cfaDataModel.flows.main.flowId.sender,
+                    cfaDataModel.flows.main.flowId.receiver,
+                    flowRate.toString(),
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {from: testenv.getAddress(by)}
+            );
+            break;
         default:
             assert(false);
     }
@@ -547,6 +562,48 @@ async function shouldDeleteFlow({
     });
 }
 
+async function shouldCreateFlowByOperator({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    flowRate,
+    mfa,
+    flowOperator,
+}) {
+    await _shouldChangeFlow({
+        fn: "createFlowByOperator",
+        testenv,
+        superToken,
+        sender,
+        receiver,
+        flowRate,
+        mfa,
+        by: flowOperator,
+    });
+}
+
+async function shouldUpdateFlowByOperator({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    flowRate,
+    mfa,
+    flowOperator,
+}) {
+    await _shouldChangeFlow({
+        fn: "updateFlowByOperator",
+        testenv,
+        superToken,
+        sender,
+        receiver,
+        flowRate,
+        mfa,
+        by: flowOperator,
+    });
+}
+
 const getFlowOperatorId = (sender, flowOperator) => {
     return web3.utils.keccak256(
         web3.eth.abi.encodeParameters(
@@ -776,6 +833,8 @@ module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
+    shouldCreateFlowByOperator,
+    shouldUpdateFlowByOperator,
     shouldRevertUpdateFlowOperatorPermissions,
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertChangeFlowByOperator,

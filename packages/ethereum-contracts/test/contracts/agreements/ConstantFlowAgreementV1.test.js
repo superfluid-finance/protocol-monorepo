@@ -9,6 +9,8 @@ const {
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertUpdateFlowOperatorPermissions,
     shouldRevertChangeFlowByOperator,
+    shouldCreateFlowByOperator,
+    shouldUpdateFlowByOperator,
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const traveler = require("ganache-time-traveler");
@@ -3627,6 +3629,12 @@ describe("Using ConstantFlowAgreement v1", function () {
     });
 
     context("#4 Access Control List", () => {
+        // beforeEach(async () => {
+        //     await web3tx(
+        //         governance.setRewardAddress,
+        //         "set reward address to admin"
+        //     )(superfluid.address, ZERO_ADDRESS, admin);
+        // });
         it("#4.1 should revert if attempting to encode unclean permissions", async () => {
             /// anything greater than 7 (1 1 1)
             await shouldRevertUpdateFlowOperatorPermissions({
@@ -4005,17 +4013,19 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#4.13 should revert if create/update with flow rate exceeding flowRateAllowance", async () => {
+            const flowRateAllowance = FLOW_RATE1.mul(toBN(3));
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
                 testenv: t,
                 token: superToken.address,
                 sender: alice,
                 flowOperator: admin,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
-                flowRateAllowance: "42069",
+                flowRateAllowance: flowRateAllowance,
                 ctx: "0x",
                 from: alice,
             });
 
+            // should revert when attempting to create one big flow
             await shouldRevertChangeFlowByOperator({
                 testenv: t,
                 methodSignature: "createFlowByOperator",
@@ -4023,26 +4033,196 @@ describe("Using ConstantFlowAgreement v1", function () {
                 sender: alice,
                 receiver: dan,
                 flowOperator: admin,
-                flowRate: "42070",
+                flowRate: flowRateAllowance.add(toBN(1)),
                 ctx: "0x",
                 expectedErrorString:
                     "CFA: flow rate exceeds the flowRateAllowance",
             });
-            // TODO: on a singular big flow (> flowRateAllowance)
-            // TODO: on multiple flow creations (sum of flowRates > flowRateAllowance)
-            // TODO: on flow updates over amount (sum of flowRates > flowRateAllowance)
+
+            // should revert when attempting to create flows where allowance is exceeded
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            await shouldRevertChangeFlowByOperator({
+                testenv: t,
+                methodSignature: "createFlowByOperator",
+                token: superToken.address,
+                sender: alice,
+                receiver: dan,
+                flowOperator: admin,
+                flowRate: flowRateAllowance,
+                ctx: "0x",
+                expectedErrorString:
+                    "CFA: flow rate exceeds the flowRateAllowance",
+            });
+
+            // should be able to update to max
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                testenv: t,
+                methodSignature: "updateFlowByOperator",
+                token: superToken.address,
+                sender: alice,
+                receiver: dan,
+                flowOperator: admin,
+                flowRate: flowRateAllowance,
+                ctx: "0x",
+                expectedErrorString:
+                    "CFA: flow rate exceeds the flowRateAllowance",
+            });
         });
 
-        it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
-            // TODO: approve to create at max flow rate and create a flow
-            // TODO: then revert attempt to update and revert attempt to delete (no permissions)
-            // TODO: approve to update at max flow rate and update the flow
-            // TODO: then revert attempt to delete
-            // TODO: approve to delete then delete the flow
-        });
+        // it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
+        //     await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+        //         testenv: t,
+        //         token: superToken.address,
+        //         sender: alice,
+        //         flowOperator: admin,
+        //         permissions: ALLOW_CREATE.toString(),
+        //         flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
+        //         ctx: "0x",
+        //         from: alice,
+        //     });
+        //     // should be able to create flow now
+        //     await shouldCreateFlowByOperator({
+        //         testenv: t,
+        //         superToken,
+        //         sender: "alice",
+        //         receiver: "bob",
+        //         flowRate: FLOW_RATE1,
+        //         flowOperator: "admin"
+        //     });
+        //     // attempts to update/delete should revert (only create allowed)
+        //     await shouldRevertChangeFlowByOperator({
+        //         testenv: t,
+        //         methodSignature: "updateFlowByOperator",
+        //         token: superToken.address,
+        //         sender: alice,
+        //         receiver: dan,
+        //         flowOperator: admin,
+        //         flowRate: FLOW_RATE1,
+        //         ctx: "0x",
+        //         expectedErrorString:
+        //             "CFA: You don't have permission to update a flow",
+        //     });
+        //     await shouldRevertChangeFlowByOperator({
+        //         testenv: t,
+        //         methodSignature: "deleteFlow",
+        //         token: superToken.address,
+        //         sender: alice,
+        //         receiver: dan,
+        //         flowOperator: admin,
+        //         flowRate: FLOW_RATE1,
+        //         ctx: "0x",
+        //         expectedErrorString:
+        //             "CFA: You don't have permission to update a flow",
+        //     });
+
+        //     await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+        //         testenv: t,
+        //         token: superToken.address,
+        //         sender: alice,
+        //         flowOperator: admin,
+        //         permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+        //         flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
+        //         ctx: "0x",
+        //         from: alice,
+        //     });
+        //     // should be able to update flow now
+        //     await shouldUpdateFlowByOperator({
+        //         testenv: t,
+        //         superToken,
+        //         sender: "alice",
+        //         receiver: "bob",
+        //         flowRate: FLOW_RATE1,
+        //         flowOperator: "admin"
+        //     });
+
+        //     await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+        //         testenv: t,
+        //         token: superToken.address,
+        //         sender: alice,
+        //         flowOperator: admin,
+        //         permissions: (ALLOW_CREATE | ALLOW_UPDATE | ALLOW_DELETE).toString(),
+        //         flowRateAllowance: FLOW_RATE1,
+        //         ctx: "0x",
+        //         from: alice,
+        //     });
+
+        //     const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+        //         superToken: superToken.address,
+        //         account: t.aliases["alice"],
+        //     });
+        //     // should be able to delete flow now
+        //     await shouldDeleteFlow({
+        //         testenv: t,
+        //         superToken,
+        //         sender: "alice",
+        //         receiver: "bob",
+        //         accountFlowInfo,
+        //         by: "admin"
+        //     });
+        // });
 
         it("#4.15 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
             // TODO: should just be able to create/update/delete flows as a full control flow operator
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                flowOperator: admin,
+                ctx: "0x",
+                from: alice,
+                isFullControl: true,
+            });
+
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+
+            // should be able to update flow now
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+
+            // const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+            //     superToken: superToken.address,
+            //     account: t.aliases["alice"],
+            // });
+
+            // should be able to update flow now
+            // await shouldDeleteFlow({
+            //     testenv: t,
+            //     superToken,
+            //     sender: "alice",
+            //     receiver: "bob",
+            //     accountFlowInfo,
+            //     by: "admin"
+            // });
         });
 
         it("#4.16 should revert if you try to call create/updateFlowByOperator if you are a sender", async () => {});

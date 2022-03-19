@@ -592,7 +592,7 @@ contract ConstantFlowAgreementV1 is
             int96 updatedFlowRateAllowance = maxFlowRate == type(int96).max || oldFlowData.flowRate >= flowRate
                 ? maxFlowRate
                 : maxFlowRate - (flowRate - oldFlowData.flowRate);
-            require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the maxFlowRate");
+            require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the flowRateAllowance");
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
         

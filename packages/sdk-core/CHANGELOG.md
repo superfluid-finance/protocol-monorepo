@@ -8,13 +8,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Added option to specify block details when querying through a `SubgraphQueryHandler`
 - Added Subgraph's `_meta` table query
-- Add `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
+- Added `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
 - Added `PageNumberPaging` for UI development friendly pagination API
 - Added `AllPaging` to recursively query all results from Subgraph
 
 ### Changed
-- Exported `Token`
-- Rename `PagedResult.data` to `PagedResult.items`
+- Renamed `Token` to `ERC20Token`
+- Exported `ERC20Token`
+- Renamed `PagedResult.data` to `PagedResult.items`
 - Moved `listAllResults` into separate function from `Query` object
 
 ## [0.3.2] - 2022-03-16

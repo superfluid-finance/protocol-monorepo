@@ -7,6 +7,7 @@ import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Query from "./Query";
 import SuperToken from "./SuperToken";
+import Token from "./Token";
 
 export * from "./interfaces";
 export * from "./utils";
@@ -16,6 +17,7 @@ export * from "./events";
 export * from "./types";
 
 export { Framework };
+export { Token };
 export { SuperToken };
 export { Query };
 export { ConstantFlowAgreementV1 };

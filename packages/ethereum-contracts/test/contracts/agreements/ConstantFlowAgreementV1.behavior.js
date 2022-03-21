@@ -5,8 +5,6 @@ const MFASupport = require("../utils/MFASupport");
 
 const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
 
-// TODO: we need to refactor this function to handle:
-// - createFlowByOperator and updateFlowByOperator
 //
 // test functions
 //
@@ -54,7 +52,7 @@ async function _shouldChangeFlow({
     // add all roles
     cfaDataModel.addRole("sender", sender);
     cfaDataModel.addRole("receiver", receiver);
-    if (fn === "deleteFlow") {
+    if (fn === "deleteFlow" || fn === "deleteFlowByOperator") {
         assert.isDefined(by);
         const agentAddress = testenv.getAddress(by);
         let rewardAddress = await governance.getRewardAddress(
@@ -103,7 +101,7 @@ async function _shouldChangeFlow({
     cfaDataModel.expectedNetFlowDeltas[cfaDataModel.roles.receiver] = toBN(
         flowRate
     ).sub(toBN(cfaDataModel.flows.main.flowInfoBefore.flowRate));
-    if (fn === "deleteFlow") {
+    if (fn === "deleteFlow" || fn === "deleteFlowByOperator") {
         if (!(cfaDataModel.roles.agent in cfaDataModel.expectedNetFlowDeltas)) {
             cfaDataModel.expectedNetFlowDeltas[cfaDataModel.roles.agent] =
                 toBN(0);
@@ -225,6 +223,19 @@ async function _shouldChangeFlow({
                 {from: testenv.getAddress(by)}
             );
             break;
+        case "deleteFlowByOperator":
+            tx = await testenv.contracts.superfluid.callAgreement(
+                testenv.contracts.cfa.address,
+                testenv.contracts.cfa.contract.methods[fn](
+                    cfaDataModel.flows.main.flowId.superToken,
+                    cfaDataModel.flows.main.flowId.sender,
+                    cfaDataModel.flows.main.flowId.receiver,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {from: cfaDataModel.roles.agent}
+            );
+            break;
         default:
             assert(false);
     }
@@ -241,7 +252,7 @@ async function _shouldChangeFlow({
     }
 
     // caculate additional expected balance changes per liquidation rules
-    if (fn === "deleteFlow") {
+    if (fn === "deleteFlow" || fn === "deleteFlowByOperator") {
         if (isSenderCritical) {
             console.log("validating liquidation rules...");
             // the tx itself may move the balance more
@@ -603,6 +614,27 @@ async function shouldUpdateFlowByOperator({
         by: flowOperator,
     });
 }
+async function shouldDeleteFlowByOperator({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    mfa,
+    flowOperator,
+    accountFlowInfo,
+}) {
+    await _shouldChangeFlow({
+        fn: "deleteFlowByOperator",
+        testenv,
+        superToken,
+        sender,
+        receiver,
+        flowRate: 0,
+        mfa,
+        by: flowOperator,
+        accountFlowInfo,
+    });
+}
 
 const getFlowOperatorId = (sender, flowOperator) => {
     return web3.utils.keccak256(
@@ -678,11 +710,11 @@ function getChangeFlowByFlowOperatorPromise({
     ctx,
 }) {
     const {cfa, superfluid} = testenv.contracts;
-    if (methodSignature === "deleteFlow") {
+    if (methodSignature === "deleteFlowByOperator") {
         return superfluid.callAgreement(
             cfa.address,
             cfa.contract.methods
-                .deleteFlow(token, sender, receiver, ctx)
+                .deleteFlowByOperator(token, sender, receiver, ctx)
                 .encodeABI(),
             "0x",
             {from: flowOperator}
@@ -835,6 +867,7 @@ module.exports = {
     shouldDeleteFlow,
     shouldCreateFlowByOperator,
     shouldUpdateFlowByOperator,
+    shouldDeleteFlowByOperator,
     shouldRevertUpdateFlowOperatorPermissions,
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertChangeFlowByOperator,

@@ -175,9 +175,6 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
 
-        bytes32 flowId = _generateFlowId(currentContext.msgSender, receiver);
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
-
         _StackVars_createOrUpdateFlow memory flowVars;
         flowVars.token = token;
         flowVars.sender = currentContext.msgSender;
@@ -186,12 +183,9 @@ contract ConstantFlowAgreementV1 is
 
         newCtx = _createOrUpdateFlow(
             flowVars,
-            flowId,
             FlowChangeType.CREATE_FLOW,
-            exist,
             ctx,
-            currentContext,
-            oldFlowData
+            currentContext
         );
     }
 
@@ -208,9 +202,6 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
 
-        bytes32 flowId = _generateFlowId(currentContext.msgSender, receiver);
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
-
         _StackVars_createOrUpdateFlow memory flowVars;
         flowVars.token = token;
         flowVars.sender = currentContext.msgSender;
@@ -219,12 +210,9 @@ contract ConstantFlowAgreementV1 is
 
         newCtx = _createOrUpdateFlow(
             flowVars,
-            flowId,
             FlowChangeType.UPDATE_FLOW,
-            exist,
             ctx,
-            currentContext,
-            oldFlowData
+            currentContext
         );
     }
 
@@ -239,108 +227,15 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        FlowParams memory flowParams;
-        require(sender != address(0), "CFA: sender is zero");
-        require(receiver != address(0), "CFA: receiver is zero");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        flowParams.flowId = _generateFlowId(sender, receiver);
-        flowParams.sender = sender;
-        flowParams.receiver = receiver;
-        flowParams.flowRate = 0;
-        flowParams.userData = currentContext.userData;
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
-        require(exist, "CFA: flow does not exist");
 
-        int256 availableBalance;
-        (availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
-        (, uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
-        bool deleteAllowed = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = sender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = 0;
 
-        // delete should only be called by sender or receiver
-        // unless it is a liquidation (availale balance < 0)
-        // flowOperators should be able to liquidate as well
-        // but we don't want the conditions here to stop them
-        if (currentContext.msgSender != sender &&
-            currentContext.msgSender != receiver ||
-            (deleteAllowed && availableBalance < 0))
-        {
-            // liquidation should only be for sender that is critical, unless sender or receiver is a jailed app
-            if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(sender)) &&
-                !ISuperfluid(msg.sender).isAppJailed(ISuperApp(receiver))) {
-                require(availableBalance < 0, "CFA: sender account is not critical");
-            }
-        }
-
-        if (availableBalance < 0) {
-            _makeLiquidationPayouts(
-                token,
-                availableBalance,
-                flowParams,
-                oldFlowData,
-                currentContext.msgSender);
-        }
-
-        newCtx = ctx;
-        // if the sender of the flow is deleting the flow
-        if (currentContext.msgSender == sender) {
-            // if the sender is deleting a flow to a super app receiver
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-                newCtx = _changeFlowToApp(
-                    receiver,
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            } else {
-                // if the receiver is not a super app (sender may be a super app or non super app)
-                newCtx = _changeFlowToNonApp(
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext);
-            }
-        // if the receiver of the flow is deleting the flow
-        } else if (currentContext.msgSender == receiver) {
-            // if the flow being deleted by the receiver has a super app sender
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
-                newCtx = _changeFlowToApp(
-                    sender,
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            // if the receiver of the flow deleting the flow is a super app
-            } else if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-                // TODO why don't we have callbacks if the super app receiver is deleting a flow to themselves
-                newCtx = _changeFlowToApp(
-                    address(0),
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            // if the sender is not a super app (the stream is not coming to or from a super app)
-            } else {
-                newCtx = _changeFlowToNonApp(
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext);
-            }
-        // flowOperator case OR liquidation case (when the msgSender isn't the sender or receiver)
-        } else /* liquidations or flowOperator deleting a flow */ {
-            // if the sender is an app and is critical
-            // we jail the app
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender)) && availableBalance < 0) {
-                newCtx = ISuperfluid(msg.sender).jailApp(
-                    newCtx,
-                    ISuperApp(sender),
-                    SuperAppDefinitions.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT);
-            }
-            // if the stream we're deleting (possibly liquidating) has a receiver that is a super app
-            // always attempt to call receiver callback
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-                newCtx = _changeFlowToApp(
-                    receiver,
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            // if the stream we're deleting (possibly liquidating) has a receiver that is not a super app
-            // or the sender is a super app or the sender is not a super app
-            } else {
-                newCtx = _changeFlowToNonApp(
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext);
-            }
-        }
+        newCtx = _deleteFlow(flowVars, ctx, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.getFlow implementation
@@ -448,26 +343,22 @@ contract ConstantFlowAgreementV1 is
     /**
      * @dev Abstracts logic utilized by both createFlow and updateFlow previously
      * @param flowVars see _StackVars_createOrUpdateFlow struct
-     * @param flowId flowId (agreementId) is the keccak256 hash of encoded sender and receiver
      * @param flowChangeType whether the flow is a create or update 
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param currentContext the Context struct
-     * @param oldFlowData the oldFlowData
      */
     function _createOrUpdateFlow(
         _StackVars_createOrUpdateFlow memory flowVars,
-        bytes32 flowId,
         FlowChangeType flowChangeType,
-        bool exist,
         bytes calldata ctx,
-        ISuperfluid.Context memory currentContext,
-        FlowData memory oldFlowData
+        ISuperfluid.Context memory currentContext
     ) 
         internal
         returns(bytes memory newCtx)
     {
         require(flowVars.receiver != address(0), "CFA: receiver is zero");
 
+        bytes32 flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
         FlowParams memory flowParams;
         flowParams.flowId = flowId;
         flowParams.sender = flowVars.sender;
@@ -476,6 +367,13 @@ contract ConstantFlowAgreementV1 is
         flowParams.userData = currentContext.userData;
         require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
         require(flowParams.flowRate > 0, "CFA: invalid flow rate");
+
+        // NOTE because we are calling this in here, when we update flow, we call this twice
+        // which means we're accessing storage twice. I previously optimized for gas savings
+        // but placing this function in here simplified this function and reduced the mental
+        // load of understanding the function. If this is unacceptable we can split this into 
+        // two functions _createFlow and _updateFlow
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
         require(
             !exist && flowChangeType == FlowChangeType.CREATE_FLOW ||
             flowChangeType == FlowChangeType.UPDATE_FLOW, "CFA: flow already exist"
@@ -499,6 +397,107 @@ contract ConstantFlowAgreementV1 is
         _requireAvailableBalance(flowVars.token, currentContext);
     }
 
+    function _deleteFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        FlowParams memory flowParams;
+        require(flowVars.sender != address(0), "CFA: sender is zero");
+        require(flowVars.receiver != address(0), "CFA: receiver is zero");
+        flowParams.flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
+        flowParams.sender = flowVars.sender;
+        flowParams.receiver = flowVars.receiver;
+        flowParams.flowRate = 0;
+        flowParams.userData = currentContext.userData;
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowParams.flowId);
+        require(exist, "CFA: flow does not exist");
+
+        (int256 availableBalance,,) = flowVars.token.realtimeBalanceOf(flowVars.sender, currentContext.timestamp);
+
+        if (currentContext.msgSender != flowVars.sender &&
+            currentContext.msgSender != flowVars.receiver)
+        {
+            if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.sender)) &&
+                !ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.receiver))) {
+                require(availableBalance < 0, "CFA: sender account is not critical");
+            }
+        }
+
+        if (availableBalance < 0) {
+            _makeLiquidationPayouts(
+                flowVars.token,
+                availableBalance,
+                flowParams,
+                oldFlowData,
+                currentContext.msgSender);
+        }
+
+        newCtx = ctx;
+        // if the sender of the flow is deleting the flow
+        if (currentContext.msgSender == flowVars.sender) {
+            // if the sender is deleting a flow to a super app receiver
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+                newCtx = _changeFlowToApp(
+                    flowVars.receiver,
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                // if the receiver is not a super app (sender may be a super app or non super app)
+                newCtx = _changeFlowToNonApp(
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        // if the receiver of the flow is deleting the flow
+        } else if (currentContext.msgSender == flowVars.receiver) {
+            // if the flow being deleted by the receiver has a super app sender
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.sender))) {
+                newCtx = _changeFlowToApp(
+                    flowVars.sender,
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            // if the receiver of the flow deleting the flow is a super app
+            } else if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+                newCtx = _changeFlowToApp(
+                    address(0),
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            // if the sender is not a super app (the stream is not coming to or from a super app)
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        // flowOperator case OR liquidation case (when the msgSender isn't the sender or receiver)
+        } else /* liquidations or flowOperator deleting a flow */ {
+            // if the sender is an app and is critical
+            // we jail the app
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.sender)) && availableBalance < 0) {
+                newCtx = ISuperfluid(msg.sender).jailApp(
+                    newCtx,
+                    ISuperApp(flowVars.sender),
+                    SuperAppDefinitions.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT);
+            }
+            // if the stream we're deleting (possibly liquidating) has a receiver that is a super app
+            // always attempt to call receiver callback
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+                newCtx = _changeFlowToApp(
+                    flowVars.receiver,
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            // if the stream we're deleting (possibly liquidating) has a receiver that is not a super app
+            // or the sender is a super app or the sender is not a super app
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        }
+    }
+
     /**************************************************************************
      * ACL Functions
      *************************************************************************/
@@ -515,6 +514,7 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        // NOTE this may not be necessary...
         require(currentContext.msgSender != sender, "CFA: You cannot createFlowByOperator as the sender");
 
         {
@@ -536,11 +536,6 @@ contract ConstantFlowAgreementV1 is
             require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the flowRateAllowance");
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
-
-        // check if flow exists
-        bytes32 flowId = _generateFlowId(sender, receiver);
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
-
         {
             _StackVars_createOrUpdateFlow memory flowVars;
             flowVars.token = token;
@@ -549,17 +544,14 @@ contract ConstantFlowAgreementV1 is
             flowVars.flowRate = flowRate;
             newCtx = _createOrUpdateFlow(
                 flowVars,
-                flowId,
                 FlowChangeType.CREATE_FLOW,
-                exist,
                 ctx,
-                currentContext,
-                oldFlowData
+                currentContext
             );
         }
     }
     
-    // /// @dev IConstantFlowAgreementV1.updateFlowByOperator implementation
+    /// @dev IConstantFlowAgreementV1.updateFlowByOperator implementation
     function updateFlowByOperator(
         ISuperfluidToken token,
         address sender,
@@ -571,10 +563,11 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        // NOTE this may not be necessary...
         require(currentContext.msgSender != sender, "CFA: You cannot updateFlowByOperator as the sender");
 
         // check if flow exists
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
+        (, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
 
         {
             // check if flow operator has create permissions
@@ -604,14 +597,37 @@ contract ConstantFlowAgreementV1 is
             flowVars.flowRate = flowRate;
             newCtx = _createOrUpdateFlow(
                 flowVars,
-                _generateFlowId(sender, receiver),
                 FlowChangeType.UPDATE_FLOW,
-                exist,
                 ctx,
-                currentContext,
-                oldFlowData
+                currentContext
             );
         }
+    }
+
+    /// @dev IConstantFlowAgreementV1.deleteFlowByOperator implementation
+    function deleteFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
+        require(
+            _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW),
+            "CFA: You don't have permission to delete a flow as an operator"
+        );
+
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = sender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = 0;
+
+        newCtx = _deleteFlow(flowVars, ctx, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
@@ -627,6 +643,7 @@ contract ConstantFlowAgreementV1 is
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         require(sender == currentContext.msgSender, "CFA: Unauthorized update of flow operator permissions");
+        // NOTE maybe don't let senders assign themselves as flowOperators - because why
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
         flowOperatorData.flowRateAllowance = flowRateAllowance;

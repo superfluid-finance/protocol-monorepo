@@ -362,6 +362,16 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
+    function deleteFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes calldata ctx
+    )
+        external virtual
+        returns(bytes memory newCtx);
+
+
      /**
       * @dev Flow updated event
       * @param token Super token address

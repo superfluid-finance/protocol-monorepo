@@ -28,11 +28,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 upgradeToSuperTokenTransactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                {
-                    endpoint: queryApi.endpoint,
-                    arg: arg,
-                }
+                queryApi.dispatch
             );
 
             return {
@@ -81,11 +77,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                {
-                    endpoint: queryApi.endpoint,
-                    arg: arg,
-                }
+                queryApi.dispatch
             );
 
             return {
@@ -113,11 +105,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                {
-                    endpoint: queryApi.endpoint,
-                    arg: arg,
-                }
+                queryApi.dispatch
             );
 
             return {

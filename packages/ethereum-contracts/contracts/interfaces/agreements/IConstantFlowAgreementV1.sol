@@ -381,6 +381,10 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
       * @param totalSenderFlowRate Total flow rate in amount per second for the sender
       * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
       * @param userData The user provided data
+      *
+      * NOTE:
+      *
+      * [DEPRECATED] Use FlowUpdatedV2 instead
       */
      event FlowUpdated(
          ISuperfluidToken indexed token,

@@ -4182,17 +4182,12 @@ describe("Using ConstantFlowAgreement v1", function () {
                 from: alice,
             });
 
-            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: t.aliases["alice"],
-            });
             // should be able to delete flow now
             await shouldDeleteFlowByOperator({
                 testenv: t,
                 superToken,
                 sender: "alice",
                 receiver: "bob",
-                accountFlowInfo,
                 flowOperator: "admin",
             });
         });
@@ -4229,18 +4224,12 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowOperator: "admin",
             });
 
-            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: t.aliases["alice"],
-            });
-
             // should be able to update flow now
             await shouldDeleteFlowByOperator({
                 testenv: t,
                 superToken,
                 sender: "alice",
                 receiver: "bob",
-                accountFlowInfo,
                 flowOperator: "admin",
             });
         });
@@ -4528,10 +4517,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowOperatorData.flowRateAllowance.toString(),
                 FLOW_RATE1.sub(FLOW_RATE1.div(toBN(10))).toString()
             );
-            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: t.aliases["alice"],
-            });
             // should be able to delete flow now
             await shouldDeleteFlowByOperator({
                 testenv: t,
@@ -4539,7 +4524,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                 sender: "alice",
                 receiver: "bob",
                 flowOperator: "admin",
-                accountFlowInfo,
             });
 
             // we check that flowRateAllowance is lower now
@@ -4660,7 +4644,110 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        // allow multiple flowOperators to create/update/delete
+        it("#4.25 Should allow multiple flowOperators to create/update/delete", async () => {
+            const ALL_PERMISSIONS = ALLOW_CREATE | ALLOW_UPDATE | ALLOW_DELETE;
+            const sharedData = {
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                permissions: ALL_PERMISSIONS.toString(),
+                ctx: "0x",
+                from: alice,
+            };
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                flowOperator: admin,
+                flowRateAllowance: FLOW_RATE1,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                flowOperator: bob,
+                flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                flowOperator: dan,
+                flowRateAllowance: FLOW_RATE1.div(toBN(2)),
+            });
+
+            // create alice -> bob by admin
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // update alice -> bob by dan
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(4)),
+                flowOperator: "dan",
+            });
+
+            // create alice -> dan by bob
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "dan",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "bob",
+            });
+
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "dan",
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.26 Should allow flowOperator to update/delete a flow they didn't create", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                flowOperator: admin,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+                ctx: "0x",
+                from: alice,
+            });
+
+            await shouldCreateFlow({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+            });
+
+            // update alice -> bob by admin
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(4)),
+                flowOperator: "admin",
+            });
+
+            // delete alice -> bob by admin
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+        });
     });
 
     context("#10 scenarios", () => {

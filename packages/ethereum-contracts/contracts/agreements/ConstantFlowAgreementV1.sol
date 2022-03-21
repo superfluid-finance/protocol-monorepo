@@ -53,6 +53,7 @@ contract ConstantFlowAgreementV1 is
         bytes32 flowId;
         address sender;
         address receiver;
+        address flowOperator;
         int96 flowRate;
         bytes userData;
     }
@@ -365,6 +366,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.flowId = flowId;
         flowParams.sender = flowVars.sender;
         flowParams.receiver = flowVars.receiver;
+        flowParams.flowOperator = currentContext.msgSender;
         flowParams.flowRate = flowVars.flowRate;
         flowParams.userData = currentContext.userData;
         require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
@@ -414,6 +416,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
         flowParams.sender = flowVars.sender;
         flowParams.receiver = flowVars.receiver;
+        flowParams.flowOperator = currentContext.msgSender;
         flowParams.flowRate = 0;
         flowParams.userData = currentContext.userData;
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowParams.flowId);
@@ -851,7 +854,7 @@ contract ConstantFlowAgreementV1 is
      * @dev change a flow to a app receiver
      */
 
-    // Stack variables for updateFlowApp function, to avoid stack too deep issue
+    // Stack variables for _changeFlowToApp function, to avoid stack too deep issue
     // solhint-disable-next-line contract-name-camelcase
     struct _StackVars_changeFlowToApp {
         bytes cbdata;
@@ -1007,12 +1010,20 @@ contract ConstantFlowAgreementV1 is
         }
     }
 
+    // Stack variables for _changeFlow function, to avoid stack too deep issue
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars_changeFlow {
+        int96 totalSenderFlowRate;
+        int96 totalReceiverFlowRate;
+    }
+
     /**
      * @dev change flow between sender and receiver with new flow rate
      *
      * NOTE:
      * - leaving owed deposit unchanged for later adjustment
      * - depositDelta output is always clipped (see _clipDepositNumber)
+     * - flowOperator is either the sender or a user with permissions to change flow
      */
     function _changeFlow(
         uint256 currentTimestamp,
@@ -1028,9 +1039,9 @@ contract ConstantFlowAgreementV1 is
             FlowData memory newFlowData
         )
     {
+        uint256 newDeposit;
         { // enclosed block to avoid stack too deep error
             uint256 minimumDeposit;
-            uint256 newDeposit;
             // STEP 1: calculate deposit required for the flow
             {
                 (uint256 liquidationPeriod, ) = _decode3PsData(token);
@@ -1086,45 +1097,48 @@ contract ConstantFlowAgreementV1 is
             );
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));
         }
+        {
+            _StackVars_changeFlow memory vars;
+            // STEP 4: update sender and receiver account flow state with the deltas
+            vars.totalSenderFlowRate = _updateAccountFlowState(
+                token,
+                flowParams.sender,
+                oldFlowData.flowRate.sub(flowParams.flowRate, "CFA: flowrate overflow"),
+                depositDelta,
+                0,
+                currentTimestamp
+            );
+            vars.totalReceiverFlowRate = _updateAccountFlowState(
+                token,
+                flowParams.receiver,
+                flowParams.flowRate.sub(oldFlowData.flowRate, "CFA: flowrate overflow"),
+                0,
+                0, // leaving owed deposit unchanged for later adjustment
+                currentTimestamp
+            );
 
-        // STEP 4: update sender and receiver account flow state with the deltas
-        int96 totalSenderFlowRate = _updateAccountFlowState(
-            token,
-            flowParams.sender,
-            oldFlowData.flowRate.sub(flowParams.flowRate, "CFA: flowrate overflow"),
-            depositDelta,
-            0,
-            currentTimestamp
-        );
-        int96 totalReceiverFlowRate = _updateAccountFlowState(
-            token,
-            flowParams.receiver,
-            flowParams.flowRate.sub(oldFlowData.flowRate, "CFA: flowrate overflow"),
-            0,
-            0, // leaving owed deposit unchanged for later adjustment
-            currentTimestamp
-        );
-
-        // STEP 5: emit the FlowUpdated Event
-        emit FlowUpdated(
-            token,
-            flowParams.sender,
-            flowParams.receiver,
-            flowParams.flowRate,
-            totalSenderFlowRate,
-            totalReceiverFlowRate,
-            flowParams.userData);
-        // TODO we need to figure out how to emit this without stack too deeeep
-        // emit FlowUpdatedV2(
-        //     token,
-        //     flowParams.sender,
-        //     flowParams.receiver,
-        //     flowParams.sender, // TODO FLOWOPERATOR
-        //     flowParams.flowRate,
-        //     totalSenderFlowRate,
-        //     totalReceiverFlowRate,
-        //     69,
-        //     flowParams.userData);
+            // STEP 5: emit the FlowUpdated Event
+            emit FlowUpdated(
+                token,
+                flowParams.sender,
+                flowParams.receiver,
+                flowParams.flowRate,
+                vars.totalSenderFlowRate,
+                vars.totalReceiverFlowRate,
+                flowParams.userData
+            );
+            emit FlowUpdatedV2(
+                token,
+                flowParams.sender,
+                flowParams.receiver,
+                flowParams.flowOperator,
+                flowParams.flowRate,
+                vars.totalSenderFlowRate,
+                vars.totalReceiverFlowRate,
+                newDeposit,
+                flowParams.userData
+            );
+        }
     }
     function _requireAvailableBalance(
         ISuperfluidToken token,

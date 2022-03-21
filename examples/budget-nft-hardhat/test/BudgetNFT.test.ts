@@ -201,22 +201,44 @@ describe("issue NFT", async function () {
       toWad(0.001).toString(),
     );
 
-    //key action #2 = NFT flowRate is edited. first param here is tokenId, which is now 1
+    //key action #2 = NFT flowRate is increased. first param here is tokenId, which is now 1
     await budgetNFT.editNFT(
       1,
       toWad(0.002).toString(),
     );
 
+    const aliceFlowAfterIncrease = await netFlowRate(alice);
+    const appFlowRateAfterIncrease = await netFlowRate(budgetNFT);
+    const adminFlowRateAfterIncrease = await netFlowRate(accounts[0]);
+
+    //make sure that alice receives correct flow rate
+    assert.equal(
+      aliceFlowAfterIncrease,
+      toWad(0.002).toString(),
+      "Alice flow rate is inaccurate"
+    );
+
+    //make sure app has right flow rate
+    assert.equal(
+      Number(appFlowRateAfterIncrease),
+      (Number(adminFlowRateAfterIncrease) * - 1) - Number(aliceFlowAfterIncrease),
+      "app net flow is incorrect"
+    );
+
+    //key action #2 = NFT flowRate is decreased. first param here is tokenId, which is now 1
+    await budgetNFT.editNFT(
+      1,
+      toWad(0.0005).toString(),
+    );
+
     const aliceFlow = await netFlowRate(alice);
-
     const appFlowRate = await netFlowRate(budgetNFT);
-
     const adminFlowRate = await netFlowRate(accounts[0]);
 
     //make sure that alice receives correct flow rate
     assert.equal(
       aliceFlow,
-      toWad(0.002).toString(),
+      toWad(0.0005).toString(),
       "Alice flow rate is inaccurate"
     );
 

@@ -228,6 +228,8 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
+        bool hasPermissions = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
 
         _StackVars_createOrUpdateFlow memory flowVars;
         flowVars.token = token;
@@ -235,7 +237,7 @@ contract ConstantFlowAgreementV1 is
         flowVars.receiver = receiver;
         flowVars.flowRate = 0;
 
-        newCtx = _deleteFlow(flowVars, ctx, currentContext);
+        newCtx = _deleteFlow(flowVars, hasPermissions, ctx, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.getFlow implementation
@@ -399,6 +401,7 @@ contract ConstantFlowAgreementV1 is
 
     function _deleteFlow(
         _StackVars_createOrUpdateFlow memory flowVars,
+        bool hasPermissions,
         bytes calldata ctx,
         ISuperfluid.Context memory currentContext
     )
@@ -418,8 +421,11 @@ contract ConstantFlowAgreementV1 is
 
         (int256 availableBalance,,) = flowVars.token.realtimeBalanceOf(flowVars.sender, currentContext.timestamp);
 
+        // delete should only be called by sender, receiver or flowOperator
+        // unless it is a liquidation (availale balance < 0)
         if (currentContext.msgSender != flowVars.sender &&
-            currentContext.msgSender != flowVars.receiver)
+            currentContext.msgSender != flowVars.receiver && 
+            !hasPermissions)
         {
             if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.sender)) &&
                 !ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.receiver))) {
@@ -529,7 +535,7 @@ contract ConstantFlowAgreementV1 is
                 "CFA: You don't have permission to create a flow"
             );
 
-            // check if desired flow rate is allowed
+            // check if desired flow rate is allowed and update flow rate allowance
             int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max
                 ? flowRateAllowance
                 : flowRateAllowance - flowRate;
@@ -581,7 +587,7 @@ contract ConstantFlowAgreementV1 is
                 "CFA: You don't have permission to update a flow"
             );
 
-            // check if desired flow rate is allowed
+            // check if desired flow rate is allowed and update flow rate allowance
             int96 updatedFlowRateAllowance = maxFlowRate == type(int96).max || oldFlowData.flowRate >= flowRate
                 ? maxFlowRate
                 : maxFlowRate - (flowRate - oldFlowData.flowRate);
@@ -616,8 +622,9 @@ contract ConstantFlowAgreementV1 is
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
+        bool hasPermissions = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
         require(
-            _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW),
+            hasPermissions,
             "CFA: You don't have permission to delete a flow as an operator"
         );
 
@@ -627,7 +634,7 @@ contract ConstantFlowAgreementV1 is
         flowVars.receiver = receiver;
         flowVars.flowRate = 0;
 
-        newCtx = _deleteFlow(flowVars, ctx, currentContext);
+        newCtx = _deleteFlow(flowVars, hasPermissions, ctx, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
@@ -643,7 +650,7 @@ contract ConstantFlowAgreementV1 is
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         require(sender == currentContext.msgSender, "CFA: Unauthorized update of flow operator permissions");
-        // NOTE maybe don't let senders assign themselves as flowOperators - because why
+        require(sender != flowOperator, "CFA: You cannot set yourself as the flowOperator");
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
         flowOperatorData.flowRateAllowance = flowRateAllowance;
@@ -1107,7 +1114,7 @@ contract ConstantFlowAgreementV1 is
             totalSenderFlowRate,
             totalReceiverFlowRate,
             flowParams.userData);
-
+        // TODO we need to figure out how to emit this without stack too deeeep
         // emit FlowUpdatedV2(
         //     token,
         //     flowParams.sender,

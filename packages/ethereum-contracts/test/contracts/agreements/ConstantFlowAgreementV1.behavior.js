@@ -760,6 +760,11 @@ async function shouldRevertUpdateFlowOperatorPermissions({
     );
 }
 
+/**
+ * @dev Updates the flow operator permissions and validates that the
+ * event emits the correct values (newly defined values) and that the
+ * agreementData was properly updated.
+ */
 async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     testenv,
     token,

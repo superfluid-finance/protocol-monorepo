@@ -8,6 +8,7 @@ import {
     createPagedResult,
     createSkipPaging,
     isAllPagesPaging,
+    isPageNumberPaging,
     PagedResult,
     Paging,
     takePlusOne,
@@ -250,7 +251,9 @@ export abstract class SubgraphQueryHandler<
                 orderBy: query.order?.orderBy,
                 orderDirection: query.order?.orderDirection,
                 first: takePlusOne(paging),
-                skip: paging.skip,
+                skip: isPageNumberPaging(paging)
+                    ? (paging.pageNumber - 1) * paging.take
+                    : paging.skip,
                 block: query.block,
             } as unknown as TSubgraphQueryVariables);
 

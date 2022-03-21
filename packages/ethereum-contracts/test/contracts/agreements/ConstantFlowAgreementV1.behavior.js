@@ -517,11 +517,11 @@ async function _shouldChangeFlow({
             receiver: cfaDataModel.roles.receiver,
             flowRate: flowRate.toString(),
             flowOperator: testenv.getAddress(by) || cfaDataModel.roles.sender,
-            deposit: cfaDataModel.expectedFlowInfo.main.deposit,
             // we don't test total flow rates when using mfa
             // since mfa mangles with flows in callbacks
             ...(!mfa
                 ? {
+                      deposit: cfaDataModel.expectedFlowInfo.main.deposit,
                       totalSenderFlowRate: cfaDataModel
                           .getAccountFlowInfo({
                               superToken: superToken.address,

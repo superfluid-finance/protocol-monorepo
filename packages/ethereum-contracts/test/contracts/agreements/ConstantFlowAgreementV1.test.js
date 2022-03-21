@@ -4715,7 +4715,11 @@ describe("Using ConstantFlowAgreement v1", function () {
                 token: superToken.address,
                 sender: alice,
                 flowOperator: admin,
-                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 ctx: "0x",
                 from: alice,

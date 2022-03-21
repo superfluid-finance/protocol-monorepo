@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 - Exported `Token`
+- Rename `PagedResult.data` to `PagedResult.items`
 - Moved `listAllResults` into separate function from `Query` object
 
 ## [0.3.2] - 2022-03-16

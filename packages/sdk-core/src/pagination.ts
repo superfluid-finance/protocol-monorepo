@@ -32,7 +32,7 @@ export type LastIdPaging = {
  * WARNING: Works only with the new QueryHandlers.
  * Recursively gets all the possible Subgraph results.
  */
-export type InfinityPaging = {
+export type AllPagesPaging = {
     readonly take: number;
 };
 
@@ -86,7 +86,7 @@ export function isSkipPaging(paging?: Paging): paging is SkipPaging {
     return paging?.skip !== undefined;
 }
 
-export function isInfinityPaging(paging?: Paging): paging is InfinityPaging {
+export function isAllPagesPaging(paging?: Paging): paging is AllPagesPaging {
     return (
         paging !== undefined &&
         paging.skip === undefined &&

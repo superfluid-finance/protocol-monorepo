@@ -17,6 +17,7 @@ query indexSubscriptions($first: Int = 10, $orderBy: IndexSubscription_orderBy =
             totalUnits
             token {
                 id
+                symbol
             }
             publisher {
                 id

@@ -17,21 +17,25 @@ export const ROPSTEN = "ropsten";
 export const RINKEBY = "rinkeby";
 export const GOERLI = "goerli";
 export const KOVAN = "kovan";
-export const GNOSIS = "gnosis";
-export const MATIC = "matic";
 export const MUMBAI = "mumbai";
 export const OPTIMISM_KOVAN = "optimism-kovan";
 export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
 export const AVALANCHE_FUJI = "avalanche-fuji";
+export const GNOSIS = "gnosis";
+export const MATIC = "matic";
+export const OPTIMISM_MAINNET = "optimism-mainnet";
+export const ARBITRUM_ONE = "arbitrum-one";
 
 export const chainIds = [
     3, // ROPSTEN
     4, // RINKEBY
     5, // GOERLI
+    10, // OPTIMISM MAINNET
     42, // KOVAN
     69, // OPTIMISM KOVAN
     100, // GNOSIS
     137, // MATIC
+    42161, // ARBITRUM ONE
     43113, // AVALANCHE FUJI
     80001, // MUMBAI
     421611, // ARBITRUM RINKEBY
@@ -42,12 +46,14 @@ export const networkNames: string[] = [
     RINKEBY,
     GOERLI,
     KOVAN,
-    GNOSIS,
-    MATIC,
     MUMBAI,
     OPTIMISM_KOVAN,
     ARBITRUM_RINKEBY,
     AVALANCHE_FUJI,
+    GNOSIS,
+    MATIC,
+    OPTIMISM_MAINNET,
+    ARBITRUM_ONE,
 ];
 
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([
@@ -76,6 +82,15 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli",
             networkName: GOERLI,
             resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E",
+        },
+    ],
+    [
+        10,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet",
+            networkName: OPTIMISM_MAINNET,
+            resolverAddress: "0x743B5f46BC86caF41bE4956d9275721E0531B186",
         },
     ],
     [
@@ -115,6 +130,15 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
+        42161,
+        {
+            subgraphAPIEndpoint:
+                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one",
+            networkName: ARBITRUM_ONE,
+            resolverAddress: "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F",
+        },
+    ],
+    [
         43113,
         {
             subgraphAPIEndpoint:
@@ -149,9 +173,11 @@ export const networkNameToChainIdMap = new Map<string, number>([
     [GOERLI, 5],
     [KOVAN, 42],
     [OPTIMISM_KOVAN, 69],
-    [GNOSIS, 100],
-    [MATIC, 137],
     [AVALANCHE_FUJI, 43113],
     [MUMBAI, 80001],
     [ARBITRUM_RINKEBY, 421611],
+    [GNOSIS, 100],
+    [MATIC, 137],
+    [OPTIMISM_MAINNET, 10],
+    [ARBITRUM_ONE, 42161],
 ]);

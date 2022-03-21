@@ -7,7 +7,7 @@ import { Ordering } from "../ordering";
 import {
     createPagedResult,
     createSkipPaging,
-    isAllPagesPaging,
+    isAllPaging,
     isPageNumberPaging,
     PagedResult,
     Paging,
@@ -267,7 +267,7 @@ export abstract class SubgraphQueryHandler<
             return createPagedResult<TResult>(mappedResult, paging);
         };
 
-        if (isAllPagesPaging(query.pagination)) {
+        if (isAllPaging(query.pagination)) {
             return createPagedResult(
                 await listAllResults(queryFunction),
                 query.pagination

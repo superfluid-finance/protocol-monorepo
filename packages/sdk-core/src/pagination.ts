@@ -49,7 +49,7 @@ export type PageNumberPaging = {
  * WARNING: Works only with the new QueryHandlers.
  * Recursively gets all the possible Subgraph results.
  */
-export type AllPagesPaging = {
+export type AllPaging = {
     readonly take: number;
 };
 
@@ -117,7 +117,7 @@ export function isLastIdPaging(paging?: Paging): paging is LastIdPaging {
     return paging?.lastId !== undefined;
 }
 
-export function isAllPagesPaging(paging?: Paging): paging is AllPagesPaging {
+export function isAllPaging(paging?: Paging): paging is AllPaging {
     return (
         paging !== undefined &&
         paging.skip === undefined &&

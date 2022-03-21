@@ -49,7 +49,12 @@ export interface PagedResult<T extends ILightEntity> {
      * `undefined` when there's no next page.
      */
     readonly nextPaging?: Paging;
+
+    /**
+     * @obsolete Use `items` instead.
+     */
     readonly data: T[];
+    readonly items: T[];
 }
 
 /**
@@ -73,6 +78,7 @@ export const createPagedResult = <T extends ILightEntity>(
                 : nextLastIdPaging(paging as LastIdPaging, lastId!)
             : undefined,
         data: data,
+        items: data,
     };
 };
 

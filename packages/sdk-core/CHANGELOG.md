@@ -5,11 +5,22 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Added option to specify block details when querying through a `SubgraphQueryHandler`
+- Added Subgraph's `_meta` table query
+- Add `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
+- Added `PageNumberPaging` for UI development friendly pagination API
+- Added `AllPaging` to recursively query all results from Subgraph
+
+### Changed
+- Exported `Token`
+- Moved `listAllResults` into separate function from `Query` object
+
 ## [0.3.2] - 2022-03-16
 
 ### Added
 
-- Added "optimism-mainnet" and "arbitrum-one" support.
+- Added "optimism-mainnet" and "arbitrum-one" support
 
 ## [0.3.1] - 2022-02-16
 

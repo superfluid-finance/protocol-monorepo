@@ -20,6 +20,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Moved `listAllResults` into separate function from `Query` object
 - Removed `SubgraphClient.batchRequests` because Subgraph Node didn't support it
 
+### Internal
+- Use `eslint-plugin-prettier` over separate `prettier` instance
+
 ## [0.3.2] - 2022-03-16
 
 ### Added

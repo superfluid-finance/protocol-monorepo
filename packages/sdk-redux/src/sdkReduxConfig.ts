@@ -138,6 +138,10 @@ export const getRpcSlice = () => getConfig().getRpcSlice();
 export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
 export const getTransactionSlice = () => getConfig().getTransactionSlice();
 export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
+export const getSubgraphClient = (chainId: number) =>
+    getConfig()
+        .getFramework(chainId)
+        .then((x) => x.query.subgraphClient);
 export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
 
 const isEthersSigner = (value: any): value is Signer => !!value.getAddress;

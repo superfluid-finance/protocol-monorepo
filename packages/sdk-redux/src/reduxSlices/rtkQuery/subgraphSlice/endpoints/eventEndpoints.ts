@@ -17,7 +17,7 @@ import {
     SubscriptionUnitsUpdatedEventQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import {getFramework} from '../../../../sdkReduxConfig';
+import {getSubgraphClient} from '../../../../sdkReduxConfig';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
 import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
@@ -57,9 +57,9 @@ function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & Su
 ) {
     return builder.query<TReturn | null, TQuery>({
         queryFn: async (arg) => {
-            const framework = await getFramework(arg.chainId);
+            const subgraphClient = await getSubgraphClient(arg.chainId);
             return {
-                data: await queryHandler.get(framework.query.subgraphClient, arg),
+                data: await queryHandler.get(subgraphClient, arg),
             };
         },
         keepUnusedDataFor: CacheTime.Forever, // Events don't change (unless re-org but that's handled by invalidating whole cache anyway).
@@ -80,9 +80,9 @@ function list<
 ) {
     return builder.query<PagedResult<TReturn>, TQuery>({
         queryFn: async (arg) => {
-            const framework = await getFramework(arg.chainId);
+            const subgraphClient = await getSubgraphClient(arg.chainId);
             return {
-                data: await queryHandler.list(framework.query.subgraphClient, arg),
+                data: await queryHandler.list(subgraphClient, arg),
             };
         },
         providesTags: (_result, _error, arg) =>

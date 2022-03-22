@@ -25,7 +25,7 @@ import {
     TokenStatisticQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
-import {getFramework} from '../../../../sdkReduxConfig';
+import {getSubgraphClient} from '../../../../sdkReduxConfig';
 import {CacheTagTypes} from '../../cacheTags/CacheTagTypes';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
@@ -84,9 +84,9 @@ function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & Su
 ) {
     return builder.query<TReturn | null, TQuery>({
         queryFn: async (arg) => {
-            const framework = await getFramework(arg.chainId);
+            const subgraphClient = await getSubgraphClient(arg.chainId);
             return {
-                data: await queryHandler.get(framework.query.subgraphClient, arg),
+                data: await queryHandler.get(subgraphClient, arg),
             };
         },
         providesTags: (result, _error, arg) =>
@@ -115,9 +115,9 @@ function list<
 ) {
     return builder.query<PagedResult<TReturn>, TQuery>({
         queryFn: async (arg) => {
-            const framework = await getFramework(arg.chainId);
+            const subgraphClient = await getSubgraphClient(arg.chainId);
             return {
-                data: await queryHandler.list(framework.query.subgraphClient, arg),
+                data: await queryHandler.list(subgraphClient, arg),
             };
         },
         providesTags: (_result, _error, arg) =>

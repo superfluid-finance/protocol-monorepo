@@ -1,4 +1,4 @@
-import {getFramework} from '../../../../sdkReduxConfig';
+import {getFramework, getSubgraphClient} from '../../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../../utils';
 import {invalidateCacheTagsForEvents} from '../../cacheTags/invalidateCacheTagsForEvents';
 import {CacheTime} from '../../cacheTime';
@@ -10,9 +10,9 @@ export const createBaseEndpoints = (builder: SubgraphEndpointBuilder) => ({
     custom: builder.query<unknown, CustomSubgraphQuery>({
         keepUnusedDataFor: CacheTime.None,
         queryFn: async (arg) => {
-            const framework = await getFramework(arg.chainId);
+            const subgraphClient = await getSubgraphClient(arg.chainId);
             return {
-                data: await framework.query.subgraphClient.request<unknown>(arg.document, arg.variables),
+                data: await subgraphClient.request<unknown>(arg.document, arg.variables),
             };
         },
     }),

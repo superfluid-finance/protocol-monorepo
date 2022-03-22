@@ -8,11 +8,18 @@ import {
     IAgreementV1Options,
     ICreateFlowParams,
     IDeleteFlowParams,
+    IFullControlParams,
     IGetAccountFlowInfoParams,
+    IGetFlowOperatorDataByIDParams,
+    IGetFlowOperatorDataParams,
     IGetFlowParams,
+    IUpdateFlowByOperatorParams,
+    IUpdateFlowOperatorPermissionsParams,
     IUpdateFlowParams,
     IWeb3FlowInfo,
     IWeb3FlowInfoParams,
+    IWeb3FlowOperatorData,
+    IWeb3FlowOperatorDataParams,
 } from "./interfaces";
 import { IConstantFlowAgreementV1 } from "./typechain";
 import { getSanitizedTimestamp, normalizeAddress } from "./utils";
@@ -64,7 +71,7 @@ export default class ConstantFlowAgreementV1 {
             const flowData = await this.cfaContract
                 .connect(providerOrSigner)
                 .getFlow(normalizedToken, normalizedSender, normalizedReceiver);
-            return this._sanitizeflowInfo(flowData);
+            return this._sanitizeFlowInfo(flowData);
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
@@ -92,7 +99,7 @@ export default class ConstantFlowAgreementV1 {
             const flowData = await this.cfaContract
                 .connect(providerOrSigner)
                 .getAccountFlowInfo(normalizedToken, normalizedAccount);
-            return this._sanitizeflowInfo(flowData);
+            return this._sanitizeFlowInfo(flowData);
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
@@ -127,6 +134,71 @@ export default class ConstantFlowAgreementV1 {
             throw new SFError({
                 type: "CFAV1_READ",
                 customMessage: "There was an error getting net flow",
+                errorObject: err,
+            });
+        }
+    };
+
+    /**
+     * @dev Get flow operator data.
+     * @param superToken the superToken of the agreement
+     * @param sender the sender
+     * @param flowOperator the flowOperator
+     * @param providerOrSigner a provider or signer object
+     * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
+     */
+    getFlowOperatorData = async ({
+        superToken,
+        sender,
+        flowOperator,
+        providerOrSigner,
+    }: IGetFlowOperatorDataParams): Promise<IWeb3FlowOperatorData> => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedFlowOperator = normalizeAddress(flowOperator);
+        try {
+            const flowOperatorData = await this.cfaContract
+                .connect(providerOrSigner)
+                .getFlowOperatorData(
+                    normalizedToken,
+                    normalizedSender,
+                    normalizedFlowOperator
+                );
+            return this._sanitizeFlowOperatorData(flowOperatorData);
+        } catch (err) {
+            throw new SFError({
+                type: "CFAV1_READ",
+                customMessage: "There was an error getting flow operator data",
+                errorObject: err,
+            });
+        }
+    };
+
+    /**
+     * @dev Get flow operator data using the flowOperatorId.
+     * @param superToken the superToken of the agreement
+     * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
+     * @param providerOrSigner a provider or signer object
+     * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
+     */
+    getFlowOperatorDataByID = async ({
+        superToken,
+        flowOperatorId,
+        providerOrSigner,
+    }: IGetFlowOperatorDataByIDParams): Promise<IWeb3FlowOperatorData> => {
+        const normalizedToken = normalizeAddress(superToken);
+        try {
+            const flowOperatorData = await this.cfaContract
+                .connect(providerOrSigner)
+                .getFlowOperatorDataByID(normalizedToken, flowOperatorId);
+            return this._sanitizeFlowOperatorData({
+                ...flowOperatorData,
+                flowOperatorId,
+            });
+        } catch (err) {
+            throw new SFError({
+                type: "CFAV1_READ",
+                customMessage: "There was an error getting flow operator data",
                 errorObject: err,
             });
         }
@@ -237,6 +309,233 @@ export default class ConstantFlowAgreementV1 {
         );
     };
 
+    // CFA ACL Write Functions (byOperator)
+
+    /**
+     * @dev Update permissions for a flow operator as a sender.
+     * @param superToken The token to be flowed.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param permission The pernissions to set.
+     * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    updateFlowOperatorPermissions({
+        superToken,
+        sender,
+        flowOperator,
+        permissions,
+        flowRateAllowance,
+        userData,
+        overrides,
+    }: IUpdateFlowOperatorPermissionsParams): Operation {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedFlowOperator = normalizeAddress(flowOperator);
+        // TODO: VALIDATE permissions
+        // TODO: VALIDATE flowRateAllowance
+
+        const callData = cfaInterface.encodeFunctionData(
+            "updateFlowOperatorPermissions",
+            [
+                normalizedToken,
+                normalizedSender,
+                normalizedFlowOperator,
+                permissions,
+                flowRateAllowance,
+                "0x",
+            ]
+        );
+
+        return this.host.populateCallAgreementTxnAndReturnOperation(
+            this.options.config.cfaV1Address,
+            callData,
+            userData,
+            overrides
+        );
+    }
+
+    /**
+     * @dev Give flow operator full control - max flow rate and create/update/delete permissions.
+     * @param superToken The token to be flowed.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     */
+    authorizeFlowOperatorWithFullControl({
+        superToken,
+        sender,
+        flowOperator,
+        userData,
+        overrides,
+    }: IFullControlParams): Operation {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedFlowOperator = normalizeAddress(flowOperator);
+
+        const callData = cfaInterface.encodeFunctionData(
+            "authorizeFlowOperatorWithFullControl",
+            [normalizedToken, normalizedSender, normalizedFlowOperator, "0x"]
+        );
+
+        return this.host.populateCallAgreementTxnAndReturnOperation(
+            this.options.config.cfaV1Address,
+            callData,
+            userData,
+            overrides
+        );
+    }
+
+    /**
+     * @dev Revoke flow operator control - set flow rate to 0 with no permissions.
+     * @param superToken The token to be flowed.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     */
+    revokeFlowOperatorWithFullControl({
+        superToken,
+        sender,
+        flowOperator,
+        userData,
+        overrides,
+    }: IFullControlParams): Operation {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedFlowOperator = normalizeAddress(flowOperator);
+
+        const callData = cfaInterface.encodeFunctionData(
+            "revokeFlowOperatorWithFullControl",
+            [normalizedToken, normalizedSender, normalizedFlowOperator, "0x"]
+        );
+
+        return this.host.populateCallAgreementTxnAndReturnOperation(
+            this.options.config.cfaV1Address,
+            callData,
+            userData,
+            overrides
+        );
+    }
+
+    /**
+     * @dev Create a flow as an operator
+     * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param superToken The token to be flowed.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    createFlowByOperator = ({
+        flowRate,
+        sender,
+        receiver,
+        superToken,
+        userData,
+        overrides,
+    }: ICreateFlowParams): Operation => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedReceiver = normalizeAddress(receiver);
+        const normalizedSender = normalizeAddress(sender);
+
+        const callData = cfaInterface.encodeFunctionData(
+            "createFlowByOperator",
+            [
+                normalizedToken,
+                normalizedSender,
+                normalizedReceiver,
+                flowRate,
+                "0x",
+            ]
+        );
+
+        return this.host.populateCallAgreementTxnAndReturnOperation(
+            this.options.config.cfaV1Address,
+            callData,
+            userData,
+            overrides
+        );
+    };
+
+    /**
+     * @dev Update a flow as an operator.
+     * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param superToken The token to be flowed.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    updateFlowByOperator = ({
+        flowRate,
+        sender,
+        receiver,
+        superToken,
+        userData,
+        overrides,
+    }: IUpdateFlowByOperatorParams): Operation => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedReceiver = normalizeAddress(receiver);
+
+        const callData = cfaInterface.encodeFunctionData(
+            "updateFlowByOperator",
+            [
+                normalizedToken,
+                normalizedSender,
+                normalizedReceiver,
+                flowRate,
+                "0x",
+            ]
+        );
+
+        return this.host.populateCallAgreementTxnAndReturnOperation(
+            this.options.config.cfaV1Address,
+            callData,
+            userData,
+            overrides
+        );
+    };
+
+    /**
+     * @dev Delete a flow as an operator.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param superToken The token to be flowed.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    deleteFlowByOperator = ({
+        sender,
+        receiver,
+        superToken,
+        userData,
+        overrides,
+    }: IUpdateFlowByOperatorParams): Operation => {
+        const normalizedToken = normalizeAddress(superToken);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedReceiver = normalizeAddress(receiver);
+
+        const callData = cfaInterface.encodeFunctionData(
+            "deleteFlowByOperator",
+            [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
+        );
+
+        return this.host.populateCallAgreementTxnAndReturnOperation(
+            this.options.config.cfaV1Address,
+            callData,
+            userData,
+            overrides
+        );
+    };
+
     /**
      * @dev Sanitizes flow info, converting BigNumber to string.
      * @param timestamp last updated timestamp of flow
@@ -245,7 +544,7 @@ export default class ConstantFlowAgreementV1 {
      * @param owedDeposit any owed depsit
      * @returns {IWeb3FlowInfo} sanitized web3 flow info
      */
-    _sanitizeflowInfo = ({
+    _sanitizeFlowInfo = ({
         timestamp,
         flowRate,
         deposit,
@@ -256,6 +555,25 @@ export default class ConstantFlowAgreementV1 {
             flowRate: flowRate.toString(),
             deposit: deposit.toString(),
             owedDeposit: owedDeposit.toString(),
+        };
+    };
+
+    /**
+     * @dev Sanitizes flow operator data, converting BigNumber to string.
+     * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
+     * @param permissions the permissions
+     * @param flowRateAllowance the flow rate allowance granted to the flow operator
+     * @returns {IWeb3FlowOperatorData} sanitized web3 flow info
+     */
+    _sanitizeFlowOperatorData = ({
+        flowOperatorId,
+        permissions,
+        flowRateAllowance,
+    }: IWeb3FlowOperatorDataParams): IWeb3FlowOperatorData => {
+        return {
+            flowOperatorId,
+            permissions: permissions.toString(),
+            flowRateAllowance: flowRateAllowance.toString(),
         };
     };
 }

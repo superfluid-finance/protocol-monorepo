@@ -78,6 +78,97 @@ type FlowUpdatedEvent implements Event @entity {
     stream: Stream!
 }
 
+"""
+FlowUpdatedV2: An update of the original `FlowUpdated`
+event.
+"""
+type FlowUpdatedV2Event implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, sender, receiver and flowOperator addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+
+    """
+    The address of the `token` being streamed.
+    """
+    token: Bytes!
+    sender: Bytes!
+    receiver: Bytes!
+
+    """
+    The address that is triggering the flow update.
+    """
+    flowOperator: Bytes!
+
+    """
+    The flow rate per second.
+    """
+    flowRate: BigInt!
+    totalSenderFlowRate: BigInt!
+    totalReceiverFlowRate: BigInt!
+    deposit: BigInt!
+    userData: Bytes!
+
+    # Custom Properties (not on event)
+
+    """
+    The previous flow rate.
+    """
+    oldFlowRate: BigInt!
+    """
+    The "type" of the `FlowUpdated` event.
+    0 = create
+    1 = update
+    2 = terminate
+    """
+    type: Int!
+
+    """
+    The total amount streamed until the timestamp
+    for the Stream entity linked to this event.
+    """
+    totalAmountStreamedUntilTimestamp: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    """
+    The stream entity which is being modified.
+    """
+    stream: Stream!
+}
+
+type FlowOperatorUpdatedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, sender, and flowOperator addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+
+    """
+    The address of the `token` being streamed.
+    """
+    token: Bytes!
+    sender: Bytes!
+    flowOperator: Bytes!
+
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
+    permissions: Int!
+    flowRateAllowance: BigInt!
+}
+
 #  InstantDistributionAgreementV1 #
 type IndexCreatedEvent implements Event @entity {
     id: ID!

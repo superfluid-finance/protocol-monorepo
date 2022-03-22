@@ -118,10 +118,33 @@ export interface IModifyFlowParams {
 export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
 }
+export interface ICreateFlowByOperatorParams extends ICreateFlowParams {
+    readonly sender: string;
+}
 
 export type IUpdateFlowParams = ICreateFlowParams;
+export type IUpdateFlowByOperatorParams = ICreateFlowByOperatorParams;
+
 export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
+}
+
+export interface IUpdateFlowOperatorPermissionsParams {
+    readonly superToken: string;
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly permissions: number;
+    readonly flowRateAllowance: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface IFullControlParams {
+    readonly superToken: string;
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface IRealtimeBalanceOfParams {
@@ -164,6 +187,19 @@ export interface IGetFlowParams {
 export interface IGetAccountFlowInfoParams {
     readonly superToken: string;
     readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetFlowOperatorDataParams {
+    readonly superToken: string;
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetFlowOperatorDataByIDParams {
+    readonly superToken: string;
+    readonly flowOperatorId: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
@@ -415,4 +451,15 @@ export interface IWeb3FlowInfo {
     readonly flowRate: string;
     readonly deposit: string;
     readonly owedDeposit: string;
+}
+
+export interface IWeb3FlowOperatorDataParams {
+    readonly flowOperatorId: string;
+    readonly permissions: number;
+    readonly flowRateAllowance: ethers.BigNumber;
+}
+export interface IWeb3FlowOperatorData {
+    readonly flowOperatorId: string;
+    readonly permissions: string;
+    readonly flowRateAllowance: string;
 }

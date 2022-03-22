@@ -251,3 +251,12 @@ export const isInjectedEthers = (
  * Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
  */
 export const typeGuard = <T>(obj: T) => obj;
+
+export const getFlowOperatorId = (sender: string, flowOperator: string) => {
+    const encoder = ethers.utils.defaultAbiCoder;
+    const encodedData = encoder.encode(
+        ["string", "address", "address"],
+        ["flowOperator", sender, flowOperator]
+    );
+    return ethers.utils.keccak256(encodedData);
+};

@@ -4,7 +4,7 @@ import {EventQueryHandler} from '@superfluid-finance/sdk-core';
 import {ethers} from 'ethers';
 import promiseRetry from 'promise-retry';
 
-import {getFramework, getRpcSlice, getSubgraphSlice, getTransactionSlice} from '../../sdkReduxConfig';
+import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionSlice} from '../../sdkReduxConfig';
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
@@ -59,7 +59,7 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
                     })
                 );
 
-                dispatch(getRpcSlice().util.resetApiState());
+                dispatch(getRpcApiSlice().util.resetApiState());
 
                 monitorForLateErrors(framework.settings.provider, arg, dispatch);
 
@@ -99,8 +99,8 @@ const monitorForLateErrors = (
         .catch((ethersError: EthersError) => {
             if (ethersError.code != ethers.errors.TIMEOUT) {
                 // Completely reset API cache.
-                dispatch(getRpcSlice().util.resetApiState());
-                dispatch(getSubgraphSlice().util.resetApiState());
+                dispatch(getRpcApiSlice().util.resetApiState());
+                dispatch(getSubgraphApiSlice().util.resetApiState());
                 notifyOfError(ethersError, {chainId, hash: hash}, dispatch);
             }
         });

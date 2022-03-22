@@ -4,8 +4,8 @@ import _ from 'lodash';
 
 // NOTE: This file is marked for side-effects inside the package.json for efficient tree-shaking.
 
-import {RpcSliceEmpty} from './reduxSlices/rtkQuery/rpcSlice/rpcSlice';
-import {SubgraphSliceEmpty} from './reduxSlices/rtkQuery/subgraphSlice/subgraphSlice';
+import {RpcApiSliceEmpty} from './reduxSlices/rtkQuery/rpcApiSlice/rpcApiSlice';
+import {SubgraphApiSliceEmpty} from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphApiSlice';
 import {TransactionSlice} from './reduxSlices/transactionSlice/createTransactionSlice';
 
 interface FrameworkLocator {
@@ -18,14 +18,14 @@ interface SignerLocator {
     setSigner: (chainId: number, signerOrFactory: Signer | (() => Promise<Signer>)) => void;
 }
 
-interface RpcSliceLocator {
-    getRpcSlice: () => RpcSliceEmpty;
-    setRpcSlice: (api: RpcSliceEmpty) => void;
+interface RpcApiSliceLocator {
+    getRpcApiSlice: () => RpcApiSliceEmpty;
+    setRpcApiSlice: (api: RpcApiSliceEmpty) => void;
 }
 
-interface SubgraphSliceLocator {
-    getSubgraphSlice: () => SubgraphSliceEmpty;
-    setSubgraphSlice: (api: SubgraphSliceEmpty) => void;
+interface SubgraphApiSliceLocator {
+    getSubgraphApiSlice: () => SubgraphApiSliceEmpty;
+    setSubgraphApiSlice: (api: SubgraphApiSliceEmpty) => void;
 }
 
 interface TransactionSliceLocator {
@@ -37,10 +37,10 @@ interface TransactionSliceLocator {
  * NOTE: The reason memoization is used is to avoid multiple instantiations by the factory functions.
  */
 export default class SdkReduxConfig
-    implements FrameworkLocator, SignerLocator, RpcSliceLocator, SubgraphSliceLocator, TransactionSliceLocator
+    implements FrameworkLocator, SignerLocator, RpcApiSliceLocator, SubgraphApiSliceLocator, TransactionSliceLocator
 {
-    rpcSlice: RpcSliceEmpty | undefined;
-    subgraphSlice: SubgraphSliceEmpty | undefined;
+    rpcApiSlice: RpcApiSliceEmpty | undefined;
+    subgraphApiSlice: SubgraphApiSliceEmpty | undefined;
     transactionSlice: TransactionSlice | undefined;
     memoizedFrameworkFactories = new Map<number, () => Promise<Framework>>();
     memoizedSignerFactories = new Map<number, () => Promise<Signer>>();
@@ -52,18 +52,18 @@ export default class SdkReduxConfig
         return globalThis.sdkReduxConfig;
     }
 
-    getRpcSlice(): RpcSliceEmpty {
-        if (!this.rpcSlice) {
-            throw Error('The ApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
+    getRpcApiSlice(): RpcApiSliceEmpty {
+        if (!this.rpcApiSlice) {
+            throw Error('The RpcApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-        return this.rpcSlice;
+        return this.rpcApiSlice;
     }
 
-    getSubgraphSlice(): SubgraphSliceEmpty {
-        if (!this.subgraphSlice) {
-            throw Error('The SubgraphSlice has not been set. Are you sure you initialized SDK-Redux properly?');
+    getSubgraphApiSlice(): SubgraphApiSliceEmpty {
+        if (!this.subgraphApiSlice) {
+            throw Error('The SubgraphApiSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
-        return this.subgraphSlice;
+        return this.subgraphApiSlice;
     }
 
     getFramework(chainId: number): Promise<Framework> {
@@ -84,27 +84,27 @@ export default class SdkReduxConfig
 
     getTransactionSlice(): TransactionSlice {
         if (!this.transactionSlice) {
-            throw Error('The RpcSlice has not been set. Are you sure you initialized SDK-Redux properly?');
+            throw Error('The TransactionSlice has not been set. Are you sure you initialized SDK-Redux properly?');
         }
         return this.transactionSlice;
     }
 
-    setRpcSlice(slice: RpcSliceEmpty): void {
-        if (this.rpcSlice) {
+    setRpcApiSlice(slice: RpcApiSliceEmpty): void {
+        if (this.rpcApiSlice) {
             console.log(
-                "Warning! RpcSlice was already set and will be overriden. This shouldn't be happening in production."
+                "Warning! RpcApiSlice was already set and will be overriden. This shouldn't be happening in production."
             );
         }
-        this.rpcSlice = slice;
+        this.rpcApiSlice = slice;
     }
 
-    setSubgraphSlice(slice: SubgraphSliceEmpty): void {
-        if (this.subgraphSlice) {
+    setSubgraphApiSlice(slice: SubgraphApiSliceEmpty): void {
+        if (this.subgraphApiSlice) {
             console.log(
-                "Warning! SubgraphSlice was already set and will be overriden. This shouldn't be happening in production."
+                "Warning! SubgraphApiSlice was already set and will be overriden. This shouldn't be happening in production."
             );
         }
-        this.subgraphSlice = slice;
+        this.subgraphApiSlice = slice;
     }
 
     setFramework(chainId: number, instanceOrFactory: Framework | (() => Promise<Framework>)) {
@@ -134,8 +134,8 @@ export default class SdkReduxConfig
 }
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
-export const getRpcSlice = () => getConfig().getRpcSlice();
-export const getSubgraphSlice = () => getConfig().getSubgraphSlice();
+export const getRpcApiSlice = () => getConfig().getRpcApiSlice();
+export const getSubgraphApiSlice = () => getConfig().getSubgraphApiSlice();
 export const getTransactionSlice = () => getConfig().getTransactionSlice();
 export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
 export const getSubgraphClient = (chainId: number) =>

@@ -478,6 +478,38 @@ async function _shouldChangeFlow({
     await expectEvent.inTransaction(
         tx.tx,
         testenv.sf.agreements.cfa.contract,
+        "FlowUpdated",
+        {
+            token: superToken.address,
+            sender: cfaDataModel.roles.sender,
+            receiver: cfaDataModel.roles.receiver,
+            flowRate: flowRate.toString(),
+            // we don't test total flow rates when using mfa
+            // since mfa mangles with flows in callbacks
+            ...(!mfa
+                ? {
+                      totalSenderFlowRate: cfaDataModel
+                          .getAccountFlowInfo({
+                              superToken: superToken.address,
+                              account: cfaDataModel.roles.sender,
+                          })
+                          .flowRate.toString(),
+                      totalReceiverFlowRate: cfaDataModel
+                          .getAccountFlowInfo({
+                              superToken: superToken.address,
+                              account: mfa
+                                  ? cfaDataModel.roles.mfa
+                                  : cfaDataModel.roles.receiver,
+                          })
+                          .flowRate.toString(),
+                  }
+                : {}),
+            userData: userData ? userData : null,
+        }
+    );
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.agreements.cfa.contract,
         "FlowUpdatedV2",
         {
             token: superToken.address,
@@ -509,39 +541,6 @@ async function _shouldChangeFlow({
             userData: userData ? userData : null,
         }
     );
-    // [DEPRECATED]
-    // await expectEvent.inTransaction(
-    //     tx.tx,
-    //     testenv.sf.agreements.cfa.contract,
-    //     "FlowUpdated",
-    //     {
-    //         token: superToken.address,
-    //         sender: cfaDataModel.roles.sender,
-    //         receiver: cfaDataModel.roles.receiver,
-    //         flowRate: flowRate.toString(),
-    //         // we don't test total flow rates when using mfa
-    //         // since mfa mangles with flows in callbacks
-    //         ...(!mfa
-    //             ? {
-    //                   totalSenderFlowRate: cfaDataModel
-    //                       .getAccountFlowInfo({
-    //                           superToken: superToken.address,
-    //                           account: cfaDataModel.roles.sender,
-    //                       })
-    //                       .flowRate.toString(),
-    //                   totalReceiverFlowRate: cfaDataModel
-    //                       .getAccountFlowInfo({
-    //                           superToken: superToken.address,
-    //                           account: mfa
-    //                               ? cfaDataModel.roles.mfa
-    //                               : cfaDataModel.roles.receiver,
-    //                       })
-    //                       .flowRate.toString(),
-    //               }
-    //             : {}),
-    //         userData: userData ? userData : null,
-    //     }
-    // );
     console.log("--------");
 
     //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));

@@ -1141,6 +1141,17 @@ contract ConstantFlowAgreementV1 is
             );
 
             // STEP 5: emit the FlowUpdated Event
+            // TODO do we remove this?
+            // if yes, remove from behavior.js as well
+            emit FlowUpdated(
+                token,
+                flowParams.sender,
+                flowParams.receiver,
+                flowParams.flowRate,
+                vars.totalSenderFlowRate,
+                vars.totalReceiverFlowRate,
+                flowParams.userData
+            );
             emit FlowUpdatedV2(
                 token,
                 flowParams.sender,
@@ -1152,16 +1163,6 @@ contract ConstantFlowAgreementV1 is
                 newDeposit,
                 flowParams.userData
             );
-            // [DEPRECATED]
-            // emit FlowUpdated(
-            //     token,
-            //     flowParams.sender,
-            //     flowParams.receiver,
-            //     flowParams.flowRate,
-            //     vars.totalSenderFlowRate,
-            //     vars.totalReceiverFlowRate,
-            //     flowParams.userData
-            // );
         }
     }
     function _requireAvailableBalance(

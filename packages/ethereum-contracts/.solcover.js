@@ -5,6 +5,7 @@ module.exports = {
     skipFiles: [
         "mocks/",
         "apps/SuperAppBase.sol",
+        "libs/Strings.sol",
     ],
     mocha: {
         grep: "@skip-on-coverage", // Find everything with this tag

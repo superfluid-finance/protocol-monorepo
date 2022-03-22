@@ -129,18 +129,18 @@ contract ConstantFlowAgreementV1 is
     }
 
     function isPatricianPeriodNow(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address account)
         public view override
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
     {
-        // solhint-disable-next-line not-rely-on-time
-        timestamp = block.timestamp;
+        ISuperfluid host = ISuperfluid(token.getHost());
+        timestamp = host.getNow();
         isCurrentlyPatricianPeriod = isPatricianPeriod(token, account, timestamp);
     }
 
     function isPatricianPeriod(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address account,
         uint256 timestamp)
         public view override
@@ -156,9 +156,9 @@ contract ConstantFlowAgreementV1 is
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
 
         return _isPatricianPeriod(
-            availableBalance, 
-            signedTotalCFADeposit, 
-            liquidationPeriod, 
+            availableBalance,
+            signedTotalCFADeposit,
+            liquidationPeriod,
             patricianPeriod
         );
     }
@@ -1203,7 +1203,7 @@ contract ConstantFlowAgreementV1 is
         //    -     Total Reward Left = RL = AB + TD
         // #1 Can the total account deposit still cover the available balance deficit?
         int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
-        
+
         // To retrieve patrician period
         // Note: curly brackets are to handle stack too deep overflow issue
         {
@@ -1227,7 +1227,7 @@ contract ConstantFlowAgreementV1 is
                 flowParams.flowId, // id
                 liquidationTypeData, // (1 means "v1" of this encoding schema) - 0 or 1 for patrician or pleb
                 liquidator, // liquidatorAddress
-                
+
                 // useDefaultRewardAccount: true in patrician period, else liquidator gets reward
                 isCurrentlyPatricianPeriod,
 
@@ -1280,7 +1280,7 @@ contract ConstantFlowAgreementV1 is
         returns(uint256 deposit)
     {
         if (flowRate == 0) return 0;
-        
+
         assert(liquidationPeriod <= uint256(int256(type(int96).max)));
         deposit = uint256(int256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow")));
         return _clipDepositNumber(deposit);
@@ -1371,9 +1371,9 @@ contract ConstantFlowAgreementV1 is
         int256 signedTotalCFADeposit,
         uint256 liquidationPeriod,
         uint256 patricianPeriod
-    ) 
-        internal pure 
-        returns (bool) 
+    )
+        internal pure
+        returns (bool)
     {
         int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
         int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);

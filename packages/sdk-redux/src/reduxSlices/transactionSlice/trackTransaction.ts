@@ -1,10 +1,11 @@
 // Having a single "track" action makes it easy to use transaction tracking logic.
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
-import {AllEvents, EventQueryHandler, PagedResult} from '@superfluid-finance/sdk-core';
+import {EventQueryHandler} from '@superfluid-finance/sdk-core';
 import {ethers} from 'ethers';
+import promiseRetry from 'promise-retry';
 
 import {getFramework, getRpcSlice, getSubgraphSlice, getTransactionSlice} from '../../sdkReduxConfig';
-import {MillisecondTimes, retry} from '../../utils';
+import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 
@@ -62,17 +63,23 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
 
                 monitorForLateErrors(framework.settings.provider, arg, dispatch);
 
-                retry<PagedResult<AllEvents>>(
-                    () =>
-                        new EventQueryHandler().list(framework.query.subgraphClient, {
-                            block: {number: transactionReceipt.blockNumber},
-                            pagination: {take: Infinity},
-                        }),
-                    10, // retry count
-                    250 // retry interval
-                ).then((subgraphEventsQueryResult) =>
-                    invalidateCacheTagsForEvents(arg.chainId, subgraphEventsQueryResult.data, dispatch)
-                );
+                // Poll Subgraph for all the events for this block and then invalidate Subgraph cache based on that.
+                promiseRetry(
+                    (retry, _number) =>
+                        new EventQueryHandler()
+                            .list(framework.query.subgraphClient, {
+                                block: {number: transactionReceipt.blockNumber},
+                                pagination: {take: Infinity},
+                            })
+                            .catch(retry),
+                    {
+                        minTimeout: 500,
+                        factor: 2,
+                        forever: true,
+                    }
+                ).then((subgraphEventsQueryResult) => {
+                    invalidateCacheTagsForEvents(arg.chainId, subgraphEventsQueryResult.data, dispatch);
+                });
             })
             .catch((ethersError: EthersError) => {
                 notifyOfError(ethersError, arg, dispatch);

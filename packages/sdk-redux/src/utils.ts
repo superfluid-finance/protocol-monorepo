@@ -27,18 +27,3 @@ export enum MillisecondTimes {
     ThreeMinutes = 180000,
     FiveMinutes = 300000,
 }
-
-const wait = (intervalMs: number) => new Promise((resolve) => setTimeout(resolve, intervalMs));
-
-// Inspired by: https://gist.github.com/briancavalier/842626?permalink_comment_id=3702076#gistcomment-3702076
-export async function retry<T>(fn: () => Promise<T>, retriesLeft = 3, intervalMs = 200): Promise<T> {
-    try {
-        return await fn();
-    } catch (error) {
-        await wait(intervalMs);
-        if (retriesLeft === 0) {
-            throw error;
-        }
-        return await retry(fn, --retriesLeft, intervalMs);
-    }
-}

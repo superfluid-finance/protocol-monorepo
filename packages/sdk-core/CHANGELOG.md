@@ -11,12 +11,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
 - Added `PageNumberPaging` for UI development friendly pagination API
 - Added `AllPaging` to recursively query all results from Subgraph
+- Added support for `TypedDocumentNode` for `SubgraphClient`
 
 ### Changed
 - Renamed `Token` to `ERC20Token`
 - Exported `ERC20Token`
 - Renamed `PagedResult.data` to `PagedResult.items`
 - Moved `listAllResults` into separate function from `Query` object
+- Removed `SubgraphClient.batchRequests` because Subgraph Node didn't support it
+
+### Internal
+- Use `eslint-plugin-prettier` over separate `prettier` instance
 
 ## [0.3.2] - 2022-03-16
 

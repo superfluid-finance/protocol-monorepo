@@ -13,6 +13,10 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {
+    CFAv1Library
+} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+
+import {
     SuperAppBase
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
@@ -35,6 +39,9 @@ contract LotterySuperApp is Ownable, SuperAppBase {
     IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
     ISuperToken private _acceptedToken; // accepted token
 
+    using CFAv1Library for CFAv1Library.InitData;
+    CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
+
     EnumerableSet.AddressSet private _playersSet;
     using EnumerableSet for EnumerableSet.AddressSet;
     address private _winner;
@@ -55,6 +62,18 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL;
 
         _host.registerApp(configWord);
+
+        //initialize InitData struct, and set equal to cfaV1
+        cfaV1 = CFAv1Library.InitData(
+        host,
+        //here, we are deriving the address of the CFA using the host contract
+        IConstantFlowAgreementV1(
+            address(host.getAgreementClass(
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                ))
+            )
+        );
+
     }
 
     /// @dev Tickets by users
@@ -173,34 +192,12 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
         // delete flow to old winner
         if (oldWinner != address(0)) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    _acceptedToken,
-                    address(this),
-                    oldWinner,
-                    new bytes(0)
-                ), // call data
-                new bytes(0), // user data
-                newCtx // ctx
-            );
+            newCtx = cfaV1.deleteFlowWithCtx(newCtx, address(this), oldWinner, _acceptedToken);
         }
 
         // create flow to new winner
         if (_winner != address(0)) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.createFlow.selector,
-                    _acceptedToken,
-                    _winner,
-                    _cfa.getNetFlow(_acceptedToken, address(this)),
-                    new bytes(0)
-                ), // call data
-                new bytes(0), // user data
-                newCtx // ctx
-            );
+            newCtx = cfaV1.createFlowWithCtx(newCtx, _winner, _acceptedToken, _cfa.getNetFlow(_acceptedToken, address(this)));
         }
 
         emit WinnerChanged(_winner);

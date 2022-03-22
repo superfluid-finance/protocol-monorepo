@@ -3918,7 +3918,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowOperator: alice,
                 flowRate: FLOW_RATE1,
                 expectedErrorString:
-                    "CFA: You cannot deleteFlowByOperator as the sender",
+                    "CFA: You don't have permission to delete a flow as an operator",
             });
         });
 

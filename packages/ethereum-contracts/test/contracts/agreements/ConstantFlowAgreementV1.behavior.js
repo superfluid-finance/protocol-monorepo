@@ -3,8 +3,6 @@ const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
 
-const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
-
 //
 // test functions
 //
@@ -52,7 +50,8 @@ async function _shouldChangeFlow({
     // add all roles
     cfaDataModel.addRole("sender", sender);
     cfaDataModel.addRole("receiver", receiver);
-    if (fn === "deleteFlow" || fn === "deleteFlowByOperator") {
+    const isDeleteFlow = ["deleteFlow", "deleteFlowByOperator"].includes(fn);
+    if (isDeleteFlow) {
         assert.isDefined(by);
         const agentAddress = testenv.getAddress(by);
         let rewardAddress = await governance.getRewardAddress(
@@ -101,7 +100,7 @@ async function _shouldChangeFlow({
     cfaDataModel.expectedNetFlowDeltas[cfaDataModel.roles.receiver] = toBN(
         flowRate
     ).sub(toBN(cfaDataModel.flows.main.flowInfoBefore.flowRate));
-    if (fn === "deleteFlow" || fn === "deleteFlowByOperator") {
+    if (isDeleteFlow) {
         if (!(cfaDataModel.roles.agent in cfaDataModel.expectedNetFlowDeltas)) {
             cfaDataModel.expectedNetFlowDeltas[cfaDataModel.roles.agent] =
                 toBN(0);
@@ -252,7 +251,7 @@ async function _shouldChangeFlow({
     }
 
     // caculate additional expected balance changes per liquidation rules
-    if (fn === "deleteFlow" || fn === "deleteFlowByOperator") {
+    if (isDeleteFlow) {
         if (isSenderCritical) {
             console.log("validating liquidation rules...");
             // the tx itself may move the balance more
@@ -670,15 +669,6 @@ async function shouldDeleteFlowByOperator({
     });
 }
 
-const getFlowOperatorId = (sender, flowOperator) => {
-    return web3.utils.keccak256(
-        web3.eth.abi.encodeParameters(
-            ["string", "address", "address"],
-            ["flowOperator", sender, flowOperator]
-        )
-    );
-};
-
 function getUpdateFlowOperatorPermissionsPromise({
     testenv,
     token,
@@ -812,6 +802,7 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     isFullControlRevoke,
 }) {
     const {cfa} = testenv.contracts;
+    const {MAXIMUM_FLOW_RATE} = testenv.constants;
     let tx;
     if (isFullControl && isFullControlRevoke) {
         throw new Error("You cannot grant full control and revoke it.");
@@ -868,7 +859,10 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
 
     // validate agreementData was properly updated
     const data = await cfa.getFlowOperatorData(token, sender, flowOperator);
-    const expectedFlowOperatorId = getFlowOperatorId(sender, flowOperator);
+    const expectedFlowOperatorId = testenv.getFlowOperatorId(
+        sender,
+        flowOperator
+    );
     assert.equal(data.flowOperatorId, expectedFlowOperatorId);
     assert.equal(data.permissions.toString(), expectedPermissions);
     assert.equal(data.flowRateAllowance.toString(), expectedFlowRateAllowance);

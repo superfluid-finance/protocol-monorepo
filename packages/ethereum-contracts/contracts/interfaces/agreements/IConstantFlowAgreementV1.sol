@@ -401,7 +401,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
       * @param token Super token address
       * @param sender Flow sender address
       * @param receiver Flow recipient address
-      * @param flowOperator Flow operator address
+      * @param flowOperator Flow operator address - the Context.msgSender
       * @param flowRate Flow rate in amount per second for this flow
       * @param totalSenderFlowRate Total flow rate in amount per second for the sender
       * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver

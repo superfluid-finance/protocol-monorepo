@@ -182,9 +182,8 @@ contract ConstantFlowAgreementV1 is
         flowVars.receiver = receiver;
         flowVars.flowRate = flowRate;
 
-        newCtx = _createOrUpdateFlow(
+        newCtx = _createFlow(
             flowVars,
-            FlowChangeType.CREATE_FLOW,
             ctx,
             currentContext
         );
@@ -209,9 +208,13 @@ contract ConstantFlowAgreementV1 is
         flowVars.receiver = receiver;
         flowVars.flowRate = flowRate;
 
-        newCtx = _createOrUpdateFlow(
+        bytes32 flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
+
+        newCtx = _updateFlow(
             flowVars,
-            FlowChangeType.UPDATE_FLOW,
+            oldFlowData,
+            exist,
             ctx,
             currentContext
         );
@@ -344,25 +347,19 @@ contract ConstantFlowAgreementV1 is
     }
 
     /**
-     * @dev Abstracts logic utilized by both createFlow and updateFlow previously
-     * @param flowVars see _StackVars_createOrUpdateFlow struct
-     * @param flowChangeType whether the flow is a create or update 
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     * @param currentContext the Context struct
+     * @dev Checks conditions for both create/update flow
+     * returns the flowId and flowParams
      */
-    function _createOrUpdateFlow(
+    function _createOrUpdateFlowCheck(
         _StackVars_createOrUpdateFlow memory flowVars,
-        FlowChangeType flowChangeType,
-        bytes calldata ctx,
         ISuperfluid.Context memory currentContext
     ) 
-        internal
-        returns(bytes memory newCtx)
+        internal pure
+        returns(bytes32 flowId, FlowParams memory flowParams)
     {
         require(flowVars.receiver != address(0), "CFA: receiver is zero");
 
-        bytes32 flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
-        FlowParams memory flowParams;
+        flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
         flowParams.flowId = flowId;
         flowParams.sender = flowVars.sender;
         flowParams.receiver = flowVars.receiver;
@@ -371,27 +368,54 @@ contract ConstantFlowAgreementV1 is
         flowParams.userData = currentContext.userData;
         require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
         require(flowParams.flowRate > 0, "CFA: invalid flow rate");
+    }
 
-        // NOTE because we are calling this in here, when we update flow, we call this twice
-        // which means we're accessing storage twice. I previously optimized for gas savings
-        // but placing this function in here simplified this function and reduced the mental
-        // load of understanding the function. If this is unacceptable we can split this into 
-        // two functions _createFlow and _updateFlow
+    function _createFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        (bytes32 flowId, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
+
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
-        require(
-            !exist && flowChangeType == FlowChangeType.CREATE_FLOW ||
-            flowChangeType == FlowChangeType.UPDATE_FLOW, "CFA: flow already exist"
-        );
-        require(
-            exist && flowChangeType == FlowChangeType.UPDATE_FLOW ||
-            flowChangeType == FlowChangeType.CREATE_FLOW, "CFA: flow does not exist"
-        );
+        require(!exist, "CFA: flow already exist");
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
             newCtx = _changeFlowToApp(
                 flowVars.receiver,
                 flowVars.token, flowParams, oldFlowData,
-                ctx, currentContext, flowChangeType);
+                ctx, currentContext, FlowChangeType.CREATE_FLOW);
+        } else {
+            newCtx = _changeFlowToNonApp(
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext);
+        }
+
+        _requireAvailableBalance(flowVars.token, currentContext);
+    }
+
+    function _updateFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        FlowData memory oldFlowData,
+        bool exist,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
+
+        require(exist, "CFA: flow does not exist");
+
+        if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+            newCtx = _changeFlowToApp(
+                flowVars.receiver,
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext, FlowChangeType.UPDATE_FLOW);
         } else {
             newCtx = _changeFlowToNonApp(
                 flowVars.token, flowParams, oldFlowData,
@@ -551,9 +575,8 @@ contract ConstantFlowAgreementV1 is
             flowVars.sender = sender;
             flowVars.receiver = receiver;
             flowVars.flowRate = flowRate;
-            newCtx = _createOrUpdateFlow(
+            newCtx = _createFlow(
                 flowVars,
-                FlowChangeType.CREATE_FLOW,
                 ctx,
                 currentContext
             );
@@ -576,7 +599,7 @@ contract ConstantFlowAgreementV1 is
         require(currentContext.msgSender != sender, "CFA: You cannot updateFlowByOperator as the sender");
 
         // check if flow exists
-        (, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
 
         {
             // check if flow operator has create permissions
@@ -604,9 +627,10 @@ contract ConstantFlowAgreementV1 is
             flowVars.sender = sender;
             flowVars.receiver = receiver;
             flowVars.flowRate = flowRate;
-            newCtx = _createOrUpdateFlow(
+            newCtx = _updateFlow(
                 flowVars,
-                FlowChangeType.UPDATE_FLOW,
+                oldFlowData,
+                exist,
                 ctx,
                 currentContext
             );
@@ -716,7 +740,7 @@ contract ConstantFlowAgreementV1 is
     function getFlowOperatorDataByID(
         ISuperfluidToken token, 
         bytes32 flowOperatorId
-    ) 
+    )
         external view override
         returns(uint8 permissions, int96 flowRateAllowance)
     {
@@ -1023,7 +1047,6 @@ contract ConstantFlowAgreementV1 is
      * NOTE:
      * - leaving owed deposit unchanged for later adjustment
      * - depositDelta output is always clipped (see _clipDepositNumber)
-     * - flowOperator is either the sender or a user with permissions to change flow
      */
     function _changeFlow(
         uint256 currentTimestamp,

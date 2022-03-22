@@ -1,5 +1,5 @@
 import { DocumentNode } from "graphql";
-import { batchRequests, request } from "graphql-request";
+import { request } from "graphql-request";
 
 import { SFError } from "../SFError";
 
@@ -31,20 +31,6 @@ export class SubgraphClient {
             throw new SFError({
                 type: "SUBGRAPH_ERROR",
                 customMessage: `Failed call to subgraph with query ${document}`,
-                errorObject: err,
-            });
-        }
-    }
-
-    async batchRequests<T = unknown, V = Variables>(
-        documents: BatchRequestDocument<V>[]
-    ): Promise<T> {
-        try {
-            return await batchRequests<T, V>(this.subgraphUrl, documents);
-        } catch (err) {
-            throw new SFError({
-                type: "SUBGRAPH_ERROR",
-                customMessage: "Failed call to subgraph with query...", // TODO(KK): Better error message
                 errorObject: err,
             });
         }

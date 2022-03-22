@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Exported `ERC20Token`
 - Renamed `PagedResult.data` to `PagedResult.items`
 - Moved `listAllResults` into separate function from `Query` object
+- Removed `SubgraphClient.batchRequests` because Subgraph Node didn't support it
 
 ## [0.3.2] - 2022-03-16
 

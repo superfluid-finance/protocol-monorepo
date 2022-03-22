@@ -75,7 +75,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param token Super token address
      * @param sender The permission granter address
      * @param flowOperator The permission grantee address
-     * @param permissions A bitmask representation of the desired permissions
+     * @param permissions A bitmask representation of the granted permissions
      * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      */
@@ -129,7 +129,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param sender The permission granter address
      * @param flowOperator The permission grantee address
      * @return flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
-     * @return permissions A bitmask representation of the desired permissions
+     * @return permissions A bitmask representation of the granted permissions
      * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
     function getFlowOperatorData(
@@ -148,7 +148,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @notice Get flow operator using flowOperatorId
      * @param token Super token address
      * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
-     * @return permissions A bitmask representation of the desired permissions
+     * @return permissions A bitmask representation of the granted permissions
      * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
     function getFlowOperatorDataByID(
@@ -362,6 +362,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
+    /**
+     * @notice Delete the flow between sender and receiver
+     * @dev A flow deleted by an approved flow operator (see above for details on callbacks)
+     * @param token Super token address
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver Flow receiver address
+     */
     function deleteFlowByOperator(
         ISuperfluidToken token,
         address sender,
@@ -370,31 +377,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     )
         external virtual
         returns(bytes memory newCtx);
-
-
-     /**
-      * @dev Flow updated event
-      * @param token Super token address
-      * @param sender Flow sender address
-      * @param receiver Flow recipient address
-      * @param flowRate Flow rate in amount per second for this flow
-      * @param totalSenderFlowRate Total flow rate in amount per second for the sender
-      * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
-      * @param userData The user provided data
-      *
-      * NOTE:
-      *
-      * [DEPRECATED] Use FlowUpdatedV2 instead
-      */
-     event FlowUpdated(
-         ISuperfluidToken indexed token,
-         address indexed sender,
-         address indexed receiver,
-         int96 flowRate,
-         int256 totalSenderFlowRate,
-         int256 totalReceiverFlowRate,
-         bytes userData
-     );
      
      /**
       * @dev Flow updated v2 event
@@ -433,6 +415,30 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
          address indexed flowOperator,
          uint8 permissions,
          int96 flowRateAllowance
+     );
+
+     /**
+      * @dev Flow updated event
+      * @param token Super token address
+      * @param sender Flow sender address
+      * @param receiver Flow recipient address
+      * @param flowRate Flow rate in amount per second for this flow
+      * @param totalSenderFlowRate Total flow rate in amount per second for the sender
+      * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
+      * @param userData The user provided data
+      *
+      * NOTE:
+      *
+      * [DEPRECATED] Use FlowUpdatedV2 instead
+      */
+     event FlowUpdated(
+         ISuperfluidToken indexed token,
+         address indexed sender,
+         address indexed receiver,
+         int96 flowRate,
+         int256 totalSenderFlowRate,
+         int256 totalReceiverFlowRate,
+         bytes userData
      );
 
 }

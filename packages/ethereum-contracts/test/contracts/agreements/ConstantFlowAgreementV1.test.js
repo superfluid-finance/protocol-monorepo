@@ -3631,7 +3631,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
     context("#4 Access Control List", () => {
         let aliceSenderBaseData;
-        let aliceAdminFlowOperator;
+        let aliceSenderAdminFlowOperator;
 
         beforeEach(async () => {
             await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
@@ -3645,7 +3645,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 sender: alice,
                 ctx: "0x",
             };
-            aliceAdminFlowOperator = {
+            aliceSenderAdminFlowOperator = {
                 ...aliceSenderBaseData,
                 flowOperator: admin,
                 from: alice,
@@ -3655,13 +3655,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.1 should revert if attempting to encode unclean permissions", async () => {
             /// anything greater than 7 (1 1 1)
             await shouldRevertUpdateFlowOperatorPermissions({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: "69",
                 flowRateAllowance: "42069",
                 expectedErrorString: "CFA: Unclean permissions",
             });
             await shouldRevertUpdateFlowOperatorPermissions({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: "8",
                 flowRateAllowance: "42069",
                 expectedErrorString: "CFA: Unclean permissions",
@@ -3685,7 +3685,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             let permissions = ALLOW_CREATE;
             // allow create
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
@@ -3693,7 +3693,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             // allow update
             permissions = ALLOW_UPDATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
@@ -3702,7 +3702,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             // can set flowRateAllowance with just delete as well
             permissions = ALLOW_DELETE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
@@ -3711,13 +3711,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.4 should properly update one flow operator permission with different flowRateAllowance", async () => {
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "3388",
             });
@@ -3727,21 +3727,21 @@ describe("Using ConstantFlowAgreement v1", function () {
             // stack the permissions
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
 
             permissions = permissions | ALLOW_UPDATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "3388",
             });
 
             permissions = permissions | ALLOW_DELETE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "123456",
             });
@@ -3750,12 +3750,12 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.6 should properly update one flow operator permission with same flowRateAllowance", async () => {
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
             });
@@ -3764,7 +3764,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.7 should be able to set permissions whilst setting flowRateAllowance as 0", async () => {
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions.toString(),
                 flowRateAllowance: "0",
             });
@@ -3772,7 +3772,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.8 should be able to set flowRateAllowance whilst not settings permissions", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: "0",
                 flowRateAllowance: "42069",
             });
@@ -3781,7 +3781,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.9 should be able to authorize flow operator with full control", async () => {
             // authorize a flow operator with full control from scratch
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: "0",
                 flowRateAllowance: "0",
                 isFullControl: true,
@@ -3803,8 +3803,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                 token: superToken.address,
                 sender: bob,
                 flowOperator: admin,
-                permissions: "0",
-                flowRateAllowance: "0",
                 ctx: "0x",
                 from: bob,
                 isFullControl: true,
@@ -3873,7 +3871,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "CFA: You don't have permission to update a flow",
             });
 
-            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
             await shouldCreateFlow({
                 testenv: t,
                 superToken,
@@ -3893,7 +3890,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.12 should revert if attempting to call create/update flowByOperator as the sender", async () => {
+        it("#4.12 should revert if attempting to call create/update/delete flowByOperator as the sender", async () => {
             await shouldRevertChangeFlowByOperator({
                 ...aliceSenderBaseData,
                 methodSignature: "createFlowByOperator",
@@ -3913,12 +3910,22 @@ describe("Using ConstantFlowAgreement v1", function () {
                 expectedErrorString:
                     "CFA: You cannot updateFlowByOperator as the sender",
             });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: FLOW_RATE1,
+                expectedErrorString:
+                    "CFA: You cannot deleteFlowByOperator as the sender",
+            });
         });
 
         it("#4.13 should revert if create/update with flow rate exceeding flowRateAllowance", async () => {
             const flowRateAllowance = FLOW_RATE1.mul(toBN(3));
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: flowRateAllowance,
             });
@@ -3935,6 +3942,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             // should revert when attempting to create flows where allowance is exceeded
+            // (SUM OF FLOWS > flowRateAllowance)
             await shouldCreateFlowByOperator({
                 testenv: t,
                 superToken,
@@ -3953,22 +3961,23 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "CFA: flow rate exceeds the flowRateAllowance",
             });
 
-            // should be able to update to max
+            // should be able to update to the max
             await shouldUpdateFlowByOperator({
                 testenv: t,
                 superToken,
                 sender: "alice",
                 receiver: "bob",
-                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowRate: flowRateAllowance,
                 flowOperator: "admin",
             });
 
+            // should revert when attempting to updating when allowance is out
             await shouldRevertChangeFlowByOperator({
                 ...aliceSenderBaseData,
                 methodSignature: "updateFlowByOperator",
-                receiver: dan,
+                receiver: bob,
                 flowOperator: admin,
-                flowRate: flowRateAllowance,
+                flowRate: flowRateAllowance.add(toBN(1)),
                 expectedErrorString:
                     "CFA: flow rate exceeds the flowRateAllowance",
             });
@@ -3976,7 +3985,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: ALLOW_CREATE.toString(),
                 flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
             });
@@ -4010,7 +4019,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
             });
@@ -4034,7 +4043,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (
                     ALLOW_CREATE |
                     ALLOW_UPDATE |
@@ -4055,7 +4064,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.15 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 isFullControl: true,
             });
 
@@ -4089,37 +4098,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.16 should revert if you try to call create/updateFlowByOperator if you are a sender", async () => {
-            await shouldRevertChangeFlowByOperator({
-                ...aliceSenderBaseData,
-                methodSignature: "createFlowByOperator",
-                receiver: bob,
-                flowOperator: alice,
-                flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You cannot createFlowByOperator as the sender",
-            });
-            await shouldRevertChangeFlowByOperator({
-                ...aliceSenderBaseData,
-                methodSignature: "updateFlowByOperator",
-                receiver: bob,
-                flowOperator: alice,
-                flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You cannot updateFlowByOperator as the sender",
-            });
-            await shouldRevertChangeFlowByOperator({
-                ...aliceSenderBaseData,
-                methodSignature: "deleteFlowByOperator",
-                receiver: bob,
-                flowOperator: alice,
-                flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You don't have permission to delete a flow as an operator",
-            });
-        });
-
-        it("#4.17 shouldn't decrease flowRateAllowance if it is type(int96).max", async () => {
+        it("#4.16 shouldn't decrease flowRateAllowance if it is type(int96).max", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
                 ...aliceSenderBaseData,
                 flowOperator: admin,
@@ -4148,9 +4127,9 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
         });
 
-        it("#4.18 shouldn't decrease flowRateAllowance if the user updates to an equal or lower flowRate", async () => {
+        it("#4.17 shouldn't decrease flowRateAllowance if the user updates to an equal or lower flowRate", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
@@ -4176,13 +4155,15 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
             let updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
 
+            let lowerSameFlowRate = FLOW_RATE1.div(toBN(10));
+
             // update flow to lower flow rate
             await shouldUpdateFlowByOperator({
                 testenv: t,
                 superToken,
                 sender: "alice",
                 receiver: "bob",
-                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowRate: lowerSameFlowRate,
                 flowOperator: "admin",
             });
 
@@ -4204,7 +4185,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 superToken,
                 sender: "alice",
                 receiver: "bob",
-                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowRate: lowerSameFlowRate,
                 flowOperator: "admin",
             });
 
@@ -4221,9 +4202,9 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
         });
 
-        it("#4.19 should reset flowRateAllowance properly if the user updates the flowOperatorData", async () => {
+        it("#4.18 should reset flowRateAllowance properly if the user updates the flowOperatorData", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
@@ -4236,6 +4217,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowRate: FLOW_RATE1.div(toBN(8)),
                 flowOperator: "admin",
             });
+
             // we check that flowRateAllowance is lower now
             // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(8)))
             let flowOperatorData = await cfa.getFlowOperatorData(
@@ -4250,15 +4232,67 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             // we validate that the flowRateAllowance is FLOW_RATE1 in this function
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
         });
 
+        it("#4.19 flowRateAllowance should remain unchanged if operator deletes a flow", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            const lowerSameFlowRateAllowance = FLOW_RATE1.sub(
+                FLOW_RATE1.div(toBN(10))
+            ).toString();
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                lowerSameFlowRateAllowance
+            );
+
+            // should be able to delete flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                lowerSameFlowRateAllowance
+            );
+        });
+
         it("#4.20 should decrease flowRateAllowance if operator updates to a higher flowRate", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
@@ -4273,7 +4307,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             // we check that flowRateAllowance is lower now
-            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(8)))
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
             let flowOperatorData = await cfa.getFlowOperatorData(
                 superToken.address,
                 alice,
@@ -4308,58 +4342,9 @@ describe("Using ConstantFlowAgreement v1", function () {
             updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
         });
 
-        it("#4.21 flowRateAllowance should remain unchanged if operator deletes a flow", async () => {
+        it("#4.21 flowRateAllowance should remain unchanged if sender creates/updates/deletes flow", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
-                permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
-                flowRateAllowance: FLOW_RATE1,
-            });
-            // should be able to create flow now
-            await shouldCreateFlowByOperator({
-                testenv: t,
-                superToken,
-                sender: "alice",
-                receiver: "bob",
-                flowRate: FLOW_RATE1.div(toBN(10)),
-                flowOperator: "admin",
-            });
-
-            // we check that flowRateAllowance is lower now
-            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
-            let flowOperatorData = await cfa.getFlowOperatorData(
-                superToken.address,
-                alice,
-                admin
-            );
-            assert.equal(
-                flowOperatorData.flowRateAllowance.toString(),
-                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(10))).toString()
-            );
-            // should be able to delete flow now
-            await shouldDeleteFlowByOperator({
-                testenv: t,
-                superToken,
-                sender: "alice",
-                receiver: "bob",
-                flowOperator: "admin",
-            });
-
-            // we check that flowRateAllowance is lower now
-            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
-            flowOperatorData = await cfa.getFlowOperatorData(
-                superToken.address,
-                alice,
-                admin
-            );
-            assert.equal(
-                flowOperatorData.flowRateAllowance.toString(),
-                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(10))).toString()
-            );
-        });
-
-        it("#4.22 flowRateAllowance should remain unchanged if sender creates/updates/deletes flow", async () => {
-            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
@@ -4407,9 +4392,9 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.23 should be able to set multiple flow operators", async () => {
+        it("#4.22 should be able to set multiple flow operators", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
@@ -4429,7 +4414,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.24 You should not be able to set yourself as a flowOperator", async () => {
+        it("#4.23 You should not be able to set yourself as a flowOperator", async () => {
             await shouldRevertUpdateFlowOperatorPermissions({
                 ...aliceSenderBaseData,
                 flowOperator: alice,
@@ -4441,7 +4426,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.25 Should allow multiple flowOperators to create/update/delete", async () => {
+        it("#4.24 Should allow multiple flowOperators to create/update/delete", async () => {
             const ALL_PERMISSIONS = ALLOW_CREATE | ALLOW_UPDATE | ALLOW_DELETE;
             const permissionsSharedData = {
                 ...aliceSenderBaseData,
@@ -4494,6 +4479,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowOperator: "bob",
             });
 
+            // delete alice -> dan by admin
             await shouldDeleteFlowByOperator({
                 ...changeFlowSharedData,
                 receiver: "dan",
@@ -4501,7 +4487,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.26 Should allow flowOperator to update/delete a flow they didn't create", async () => {
+        it("#4.25 Should allow flowOperator to update/delete a flow they didn't create", async () => {
             const sharedData = {
                 testenv: t,
                 superToken,
@@ -4510,7 +4496,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             };
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: (
                     ALLOW_CREATE |
                     ALLOW_UPDATE |
@@ -4519,6 +4505,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowRateAllowance: FLOW_RATE1,
             });
 
+            // alice -> bob by alice
             await shouldCreateFlow({
                 ...sharedData,
                 flowRate: FLOW_RATE1.mul(toBN(2)),
@@ -4538,14 +4525,14 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
         });
 
-        it("#4.27 Should getFlowOperatorDataByID", async () => {
+        it("#4.26 Should getFlowOperatorDataByID", async () => {
             const permissions = (
                 ALLOW_CREATE |
                 ALLOW_UPDATE |
                 ALLOW_DELETE
             ).toString();
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceAdminFlowOperator,
+                ...aliceSenderAdminFlowOperator,
                 permissions: permissions,
                 flowRateAllowance: FLOW_RATE1,
             });
@@ -4557,6 +4544,110 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
 
             assert.equal(data.permissions.toString(), permissions);
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+        });
+
+        it("#4.27 Should allow a flowOperator to create/update multiple flows", async () => {
+            const changeFlowSharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+            };
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
+            });
+
+            // create alice -> bob by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+
+            const flowOperatorId = t.getFlowOperatorId(alice, admin);
+
+            let data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(5)).sub(FLOW_RATE1).toString()
+            );
+
+            // create alice -> dan by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(4)).sub(FLOW_RATE1).toString()
+            );
+
+            // update alice -> bob by admin
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(3)).sub(FLOW_RATE1).toString()
+            );
+
+            // update alice -> dan by admin
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(2)).sub(FLOW_RATE1).toString()
+            );
+            // delete alice -> bob by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+            // delete alice -> dan by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowOperator: "admin",
+            });
             assert.equal(
                 data.flowRateAllowance.toString(),
                 FLOW_RATE1.toString()

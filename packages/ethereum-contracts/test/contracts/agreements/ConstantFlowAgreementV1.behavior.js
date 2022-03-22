@@ -62,6 +62,7 @@ async function _shouldChangeFlow({
             rewardAddress = agentAddress;
         }
         // agent is the liquidator (executor of deleteFlow)
+        // or agent is the flowOperator
         cfaDataModel.addRole("agent", by);
         cfaDataModel.addRole("reward", testenv.toAlias(rewardAddress));
     }
@@ -697,7 +698,7 @@ function getUpdateFlowOperatorPermissionsPromise({
     );
 }
 
-function getAuthorizeFlowOperatorWithFullControlPromise({
+function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
     testenv,
     token,
     sender,
@@ -769,6 +770,10 @@ async function shouldRevertUpdateFlowOperatorPermissions({
     from,
     expectedErrorString,
 }) {
+    console.log("\n[EXPECT UPDATE FLOW OPERATOR PERMISSIONS REVERT]");
+    console.log(
+        `${sender} granting ${permissions} to ${flowOperator} with ${flowRateAllowance} flow rate allowance`
+    );
     await expectRevert(
         getUpdateFlowOperatorPermissionsPromise({
             testenv,
@@ -822,7 +827,7 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     }
 
     if (isFullControl || isFullControlRevoke) {
-        tx = await getAuthorizeFlowOperatorWithFullControlPromise({
+        tx = await getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
             testenv,
             token,
             sender,
@@ -879,6 +884,11 @@ async function shouldRevertChangeFlowByOperator({
     ctx,
     expectedErrorString,
 }) {
+    console.log("\n[EXPECT CHANGE FLOW BY OPERATOR REVERT]");
+    console.log(
+        `${methodSignature}: ${sender} to ${receiver} at ${flowRate}/s by ${flowOperator}`
+    );
+
     await expectRevert(
         getChangeFlowByFlowOperatorPromise({
             testenv,

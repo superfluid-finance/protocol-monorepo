@@ -606,7 +606,7 @@ contract ConstantFlowAgreementV1 is
             (
                 bytes32 flowOperatorId, 
                 uint8 permissions, 
-                int96 maxFlowRate
+                int96 flowRateAllowance
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
             require(
                 _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.UPDATE_FLOW),
@@ -614,9 +614,9 @@ contract ConstantFlowAgreementV1 is
             );
 
             // check if desired flow rate is allowed and update flow rate allowance
-            int96 updatedFlowRateAllowance = maxFlowRate == type(int96).max || oldFlowData.flowRate >= flowRate
-                ? maxFlowRate
-                : maxFlowRate - (flowRate - oldFlowData.flowRate);
+            int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max || oldFlowData.flowRate >= flowRate
+                ? flowRateAllowance
+                : flowRateAllowance - (flowRate - oldFlowData.flowRate);
             require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the flowRateAllowance");
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
@@ -1141,6 +1141,8 @@ contract ConstantFlowAgreementV1 is
             );
 
             // STEP 5: emit the FlowUpdated Event
+            // TODO do we remove this?
+            // if yes, remove from behavior.js as well
             emit FlowUpdated(
                 token,
                 flowParams.sender,

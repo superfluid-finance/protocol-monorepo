@@ -1,3 +1,4 @@
+import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { DocumentNode } from "graphql";
 import { request } from "graphql-request";
 
@@ -18,7 +19,7 @@ export class SubgraphClient {
     constructor(readonly subgraphUrl: string) {}
 
     async request<T = unknown, V = Variables>(
-        document: RequestDocument,
+        document: RequestDocument | TypedDocumentNode<T, V>,
         variables?: V
     ): Promise<T> {
         try {

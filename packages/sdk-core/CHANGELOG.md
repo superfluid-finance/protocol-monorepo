@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
 - Added `PageNumberPaging` for UI development friendly pagination API
 - Added `AllPaging` to recursively query all results from Subgraph
+- Added support for `TypedDocumentNode` for `SubgraphClient`
 
 ### Changed
 - Renamed `Token` to `ERC20Token`

@@ -1,4 +1,4 @@
-import { RequestDocument } from "graphql-request";
+import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import _ from "lodash";
 
 import { listAllResults } from "../Query";
@@ -281,11 +281,11 @@ export abstract class SubgraphQueryHandler<
         subgraphClient: SubgraphClient,
         variables: TSubgraphQueryVariables
     ) {
-        return await subgraphClient.request<
-            TSubgraphQuery,
-            TSubgraphQueryVariables
-        >(this.requestDocument, variables);
+        return await subgraphClient.request(this.requestDocument, variables);
     }
 
-    abstract requestDocument: RequestDocument;
+    abstract requestDocument: TypedDocumentNode<
+        TSubgraphQuery,
+        TSubgraphQueryVariables
+    >;
 }

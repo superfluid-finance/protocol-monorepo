@@ -8,5 +8,7 @@
     "mumbai",
     "rinkeby",
     "ropsten",
-    "xdai"
+    "xdai",
+    "optimism-mainnet",
+    "aribtrum-one"
 ]

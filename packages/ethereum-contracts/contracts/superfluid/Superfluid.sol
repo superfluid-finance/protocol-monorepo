@@ -121,6 +121,15 @@ contract Superfluid is
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Time
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function getNow() public view  returns (uint256) {
+        // solhint-disable-next-line not-rely-on-time
+        return block.timestamp;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Governance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -584,8 +593,7 @@ contract Superfluid is
         bytes memory  ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: agreementSelector,
             userData: userData,
@@ -623,14 +631,14 @@ contract Superfluid is
         internal
         cleanCtx
         isAppActive(app)
+        isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
         //Build context data
         bytes memory ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: 0,
             userData: "",
@@ -710,6 +718,7 @@ contract Superfluid is
         external override
         validCtx(ctx)
         isAppActive(app)
+        isValidAppAction(callData)
         returns(bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -1054,6 +1063,19 @@ contract Superfluid is
         uint256 w = _appManifests[app].configWord;
         require(w > 0, "SF: not a super app");
         require(!SuperAppDefinitions.isAppJailed(w), "SF: app is jailed");
+        _;
+    }
+
+    modifier isValidAppAction(bytes memory callData) {
+        bytes4 actionSelector = CallUtils.parseSelector(callData);
+        if (actionSelector == ISuperApp.beforeAgreementCreated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.beforeAgreementUpdated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.beforeAgreementTerminated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector) {
+            revert("SF: agreement callback is not action");
+        }
         _;
     }
 }

@@ -510,12 +510,8 @@ async function _shouldChangeFlow({
     await expectEvent.inTransaction(
         tx.tx,
         testenv.sf.agreements.cfa.contract,
-        "FlowUpdatedV2",
+        "FlowUpdatedExt",
         {
-            token: superToken.address,
-            sender: cfaDataModel.roles.sender,
-            receiver: cfaDataModel.roles.receiver,
-            flowRate: flowRate.toString(),
             flowOperator: testenv.getAddress(by) || cfaDataModel.roles.sender,
             // we don't test total flow rates when using mfa
             // since mfa mangles with flows in callbacks
@@ -524,21 +520,8 @@ async function _shouldChangeFlow({
             ...(!mfa
                 ? {
                       deposit: cfaDataModel.expectedFlowInfo.main.deposit,
-                      totalSenderFlowRate: cfaDataModel
-                          .getAccountFlowInfo({
-                              superToken: superToken.address,
-                              account: cfaDataModel.roles.sender,
-                          })
-                          .flowRate.toString(),
-                      totalReceiverFlowRate: cfaDataModel
-                          .getAccountFlowInfo({
-                              superToken: superToken.address,
-                              account: cfaDataModel.roles.receiver,
-                          })
-                          .flowRate.toString(),
                   }
                 : {}),
-            userData: userData ? userData : null,
         }
     );
     console.log("--------");

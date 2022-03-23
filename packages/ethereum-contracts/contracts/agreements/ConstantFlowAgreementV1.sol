@@ -1141,8 +1141,9 @@ contract ConstantFlowAgreementV1 is
             );
 
             // STEP 5: emit the FlowUpdated Event
-            // TODO do we remove this?
-            // if yes, remove from behavior.js as well
+            // NOTE we emit these two events one after the other
+            // so the subgraph can properly handle this in the
+            // mapping function
             emit FlowUpdated(
                 token,
                 flowParams.sender,
@@ -1152,16 +1153,9 @@ contract ConstantFlowAgreementV1 is
                 vars.totalReceiverFlowRate,
                 flowParams.userData
             );
-            emit FlowUpdatedV2(
-                token,
-                flowParams.sender,
-                flowParams.receiver,
+            emit FlowUpdatedExt(
                 flowParams.flowOperator,
-                flowParams.flowRate,
-                vars.totalSenderFlowRate,
-                vars.totalReceiverFlowRate,
-                newDeposit,
-                flowParams.userData
+                newDeposit
             );
         }
     }

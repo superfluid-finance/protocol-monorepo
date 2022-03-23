@@ -518,7 +518,7 @@ export default class ConstantFlowAgreementV1 {
         superToken,
         userData,
         overrides,
-    }: IUpdateFlowByOperatorParams): Operation => {
+    }: IDeleteFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSender = normalizeAddress(sender);
         const normalizedReceiver = normalizeAddress(receiver);

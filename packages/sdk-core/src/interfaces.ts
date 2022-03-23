@@ -49,7 +49,15 @@ export interface ISuperTokenCreateFlowParams
     readonly flowRate: string;
     readonly sender: string;
 }
+
+export interface ISuperTokenCreateFlowByOperatorParams
+    extends ISuperTokenCreateFlowParams {
+    readonly sender: string;
+}
+
 export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
+export type ISuperTokenUpdateFlowByOperatorParams =
+    ISuperTokenCreateFlowByOperatorParams;
 export interface ISuperTokenDeleteFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly sender: string;
@@ -107,13 +115,9 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams {
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
-export interface IModifyFlowParams {
-    readonly receiver: string;
+
+export interface IModifyFlowParams extends ISuperTokenModifyFlowParams {
     readonly superToken: string;
-    readonly flowRate?: string;
-    readonly sender?: string;
-    readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
@@ -129,8 +133,7 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
 }
 
-export interface IUpdateFlowOperatorPermissionsParams {
-    readonly superToken: string;
+export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
     readonly sender: string;
     readonly flowOperator: string;
     readonly permissions: number;
@@ -139,12 +142,20 @@ export interface IUpdateFlowOperatorPermissionsParams {
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IFullControlParams {
-    readonly superToken: string;
+export interface ISuperTokenFullControlParams {
     readonly sender: string;
     readonly flowOperator: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface IUpdateFlowOperatorPermissionsParams
+    extends ISuperTokenUpdateFlowOperatorPermissionsParams {
+    readonly superToken: string;
+}
+
+export interface IFullControlParams extends ISuperTokenFullControlParams {
+    readonly superToken: string;
 }
 
 export interface IRealtimeBalanceOfParams {
@@ -199,6 +210,16 @@ export interface IGetFlowOperatorDataParams {
 
 export interface IGetFlowOperatorDataByIDParams {
     readonly superToken: string;
+    readonly flowOperatorId: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface ISuperTokenFlowOperatorDataParams {
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface ISuperTokenFlowOperatorDataByIDParams {
     readonly flowOperatorId: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }

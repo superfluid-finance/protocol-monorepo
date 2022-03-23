@@ -25,10 +25,7 @@ import { getHostAddress } from "../addresses";
 // - Figure out a good way of handling the massive amount of duplicate code which will occur in this file
 //   as we are going to have to have to have a set for FlowUpdated and FlowUpdatedV2 (backwards compatibility)
 // - We will also need to add tests to the
-// - SDK-core to implement create/update/delete flow by operator in our CFA class
-//   we also need to implement the functions to grant/revoke permissions as well
 //   also tests for createFlowByOperator!
-//   we need to add these to the token class as well
 // - Lastly, we need to modify the src/subgraph files in sdk-core to ensure that this will build properly
 //   this will require us to spin up a local instance of the subgraph and generate based off of that
 //   refer to wiki contributors instructions on how to do this.

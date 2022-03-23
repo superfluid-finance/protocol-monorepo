@@ -2,6 +2,7 @@ export * from "./subgraph/schema.generated";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import ERC20Token from "./ERC20Token";
 import Framework from "./Framework";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
@@ -16,6 +17,7 @@ export * from "./events";
 export * from "./types";
 
 export { Framework };
+export { ERC20Token };
 export { SuperToken };
 export { Query };
 export { ConstantFlowAgreementV1 };
@@ -36,6 +38,8 @@ export * from "./subgraph/events/events";
 export * from "./subgraph/events/flowUpdatedEvent";
 export * from "./subgraph/events/indexUpdatedEvent";
 export * from "./subgraph/events/subscriptionUnitsUpdatedEvents";
+
+export * from "./subgraph/meta/meta";
 
 export * from "./subgraph/mappedSubgraphTypes";
 export * from "./SFError";

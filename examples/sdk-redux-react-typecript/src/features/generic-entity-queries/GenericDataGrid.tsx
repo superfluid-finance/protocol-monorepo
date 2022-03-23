@@ -71,7 +71,7 @@ export const GenericDataGrid: FC<GenericDataGridProps> = ({
                     <DataGrid
                         disableColumnFilter={true}
                         pagination={true}
-                        rows={data.data}
+                        rows={data.items}
                         columns={columns}
                         sortingMode="server"
                         sortModel={sortModel}

@@ -510,7 +510,7 @@ async function _shouldChangeFlow({
     await expectEvent.inTransaction(
         tx.tx,
         testenv.sf.agreements.cfa.contract,
-        "FlowUpdatedExt",
+        "FlowUpdatedExtension",
         {
             flowOperator: testenv.getAddress(by) || cfaDataModel.roles.sender,
             // we don't test total flow rates when using mfa

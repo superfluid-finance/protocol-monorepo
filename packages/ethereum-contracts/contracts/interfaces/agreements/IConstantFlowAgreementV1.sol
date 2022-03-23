@@ -378,16 +378,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
      
-     /**
-      * @dev Flow updated ext event
-      * @param flowOperator Flow operator address - the Context.msgSender
-      * @param deposit The deposit amount for the stream
-      */
-     event FlowUpdatedExt(
-         address indexed flowOperator,
-         uint256 deposit
-     );
-
     /**
      * @dev Flow operator updated event
      * @param token Super token address
@@ -424,5 +414,16 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
          int256 totalReceiverFlowRate,
          bytes userData
      );
+
+     /**
+      * @dev Flow updated extension event
+      * @param flowOperator Flow operator address - the Context.msgSender
+      * @param deposit The deposit amount for the stream
+      */
+     event FlowUpdatedExtension(
+         address indexed flowOperator,
+         uint256 deposit
+     );
+
 
 }

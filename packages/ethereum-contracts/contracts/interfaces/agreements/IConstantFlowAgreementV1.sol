@@ -386,44 +386,42 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param permissions Octo bitmask representation of permissions
      * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
-     event FlowOperatorUpdated(
-         ISuperfluidToken indexed token,
-         address indexed sender,
-         address indexed flowOperator,
-         uint8 permissions,
-         int96 flowRateAllowance
-     );
+    event FlowOperatorUpdated(
+        ISuperfluidToken indexed token,
+        address indexed sender,
+        address indexed flowOperator,
+        uint8 permissions,
+        int96 flowRateAllowance
+    );
 
-     /**
-      * @dev Flow updated event
-      * @param token Super token address
-      * @param sender Flow sender address
-      * @param receiver Flow recipient address
-      * @param flowRate Flow rate in amount per second for this flow
-      * @param totalSenderFlowRate Total flow rate in amount per second for the sender
-      * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
-      * @param userData The user provided data
-      *
-      */
-     event FlowUpdated(
-         ISuperfluidToken indexed token,
-         address indexed sender,
-         address indexed receiver,
-         int96 flowRate,
-         int256 totalSenderFlowRate,
-         int256 totalReceiverFlowRate,
-         bytes userData
-     );
+    /**
+     * @dev Flow updated event
+     * @param token Super token address
+     * @param sender Flow sender address
+     * @param receiver Flow recipient address
+     * @param flowRate Flow rate in amount per second for this flow
+     * @param totalSenderFlowRate Total flow rate in amount per second for the sender
+     * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
+     * @param userData The user provided data
+     *
+     */
+    event FlowUpdated(
+        ISuperfluidToken indexed token,
+        address indexed sender,
+        address indexed receiver,
+        int96 flowRate,
+        int256 totalSenderFlowRate,
+        int256 totalReceiverFlowRate,
+        bytes userData
+    );
 
-     /**
-      * @dev Flow updated extension event
-      * @param flowOperator Flow operator address - the Context.msgSender
-      * @param deposit The deposit amount for the stream
-      */
-     event FlowUpdatedExtension(
-         address indexed flowOperator,
-         uint256 deposit
-     );
-
-
+    /**
+     * @dev Flow updated extension event
+     * @param flowOperator Flow operator address - the Context.msgSender
+     * @param deposit The deposit amount for the stream
+     */
+    event FlowUpdatedExtension(
+        address indexed flowOperator,
+        uint256 deposit
+    );
 }

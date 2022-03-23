@@ -25,7 +25,7 @@ module.exports = {
   // defaultNetwork,
 
   solidity: {
-    version: "0.7.0",
+    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true

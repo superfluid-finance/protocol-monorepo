@@ -33,7 +33,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @dev Calculates the deposit based on the liquidationPeriod and flowRate
      * @param flowRate Flow rate to be tested
      * @return deposit The deposit amount based on flowRate and liquidationPeriod
-     * NOTE: 
+     * NOTE:
      * - if calculated deposit (flowRate * liquidationPeriod) is less
      *   than the minimum deposit, we use the minimum deposit otherwise
      *   we use the calculated deposit
@@ -45,13 +45,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (uint256 deposit);
 
     /**
-     * @dev Returns whether it is the patrician period based on block.timestamp
+     * @dev Returns whether it is the patrician period based on host.getNow()
      * @param account The account we are interested in
      * @return isPatricianPeriod Whether it is currently the patrician period dictated by governance
-     * @return timestamp The value of block.timestamp
+     * @return timestamp The value of host.getNow()
      */
     function isPatricianPeriodNow(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address account)
         public view virtual
         returns (bool isPatricianPeriod, uint256 timestamp);
@@ -63,7 +63,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return isPatricianPeriod Whether it is currently the patrician period dictated by governance
      */
     function isPatricianPeriod(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address account,
         uint256 timestamp)
         public view virtual

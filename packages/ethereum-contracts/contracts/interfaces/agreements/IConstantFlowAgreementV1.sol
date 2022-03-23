@@ -379,26 +379,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns(bytes memory newCtx);
      
      /**
-      * @dev Flow updated v2 event
-      * @param token Super token address
-      * @param sender Flow sender address
-      * @param receiver Flow recipient address
+      * @dev Flow updated ext event
       * @param flowOperator Flow operator address - the Context.msgSender
-      * @param flowRate Flow rate in amount per second for this flow
-      * @param totalSenderFlowRate Total flow rate in amount per second for the sender
-      * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
-      * @param userData The user provided data
+      * @param deposit The deposit amount for the stream
       */
-     event FlowUpdatedV2(
-         ISuperfluidToken indexed token,
-         address indexed sender,
-         address indexed receiver,
-         address flowOperator,
-         int96 flowRate,
-         int256 totalSenderFlowRate,
-         int256 totalReceiverFlowRate,
-         uint256 deposit,
-         bytes userData
+     event FlowUpdatedExt(
+         address indexed flowOperator,
+         uint256 deposit
      );
 
     /**
@@ -427,9 +414,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
       * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
       * @param userData The user provided data
       *
-      * NOTE:
-      *
-      * [DEPRECATED] Use FlowUpdatedV2 instead
       */
      event FlowUpdated(
          ISuperfluidToken indexed token,

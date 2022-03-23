@@ -68,7 +68,8 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
                     (retry, _number) =>
                         new EventQueryHandler()
                             .list(framework.query.subgraphClient, {
-                                block: {number: transactionReceipt.blockNumber},
+                                block: {number: transactionReceipt.blockNumber}, // Subgraph returns error when not indexed this far.
+                                filter: {blockNumber: transactionReceipt.blockNumber.toString()}, // Only return events for this block.
                                 pagination: {take: Infinity},
                             })
                             .catch(retry),

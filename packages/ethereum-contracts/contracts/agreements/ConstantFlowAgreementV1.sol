@@ -1153,7 +1153,7 @@ contract ConstantFlowAgreementV1 is
                 vars.totalReceiverFlowRate,
                 flowParams.userData
             );
-            emit FlowUpdatedExt(
+            emit FlowUpdatedExtension(
                 flowParams.flowOperator,
                 newDeposit
             );

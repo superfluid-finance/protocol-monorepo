@@ -93,6 +93,7 @@ dataSources:
               - Account
               - AccountTokenSnapshot
               - FlowUpdatedEvent
+              - FlowOperatorUpdatedEvent
               - Stream
               - StreamPeriod
               - StreamRevision
@@ -109,8 +110,8 @@ dataSources:
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleStreamUpdated
-              - event: FlowUpdatedV2(indexed address,indexed address,indexed address,address,int96,int256,int256,uint256,bytes)
-                handler: handleStreamUpdatedV2
+              - event: FlowUpdatedExtension(indexed address,uint256)
+                handler: handleFlowUpdatedExtension
               - event: FlowOperatorUpdated(indexed address,indexed address,indexed address,uint8,int96)
                 handler: handleFlowOperatorUpdated
     - kind: ethereum/contract

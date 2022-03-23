@@ -424,6 +424,4 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
          address indexed flowOperator,
          uint256 deposit
      );
-
-
 }

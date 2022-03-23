@@ -1,17 +1,22 @@
-import { BigInt } from "@graphprotocol/graph-ts";
-import { FlowUpdated, FlowUpdatedV2 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {BigInt} from "@graphprotocol/graph-ts";
+import {
+    FlowOperatorUpdated,
+    FlowUpdated,
+    FlowUpdatedExtension,
+} from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import {
     FlowUpdatedEvent,
-    FlowUpdatedV2Event,
     StreamPeriod,
     Stream,
     StreamRevision,
+    FlowOperatorUpdatedEvent,
 } from "../../generated/schema";
 import {
     createEventID,
     BIG_INT_ZERO,
     tokenHasValidHost,
     getStreamPeriodID,
+    BIG_INT_ONE,
 } from "../utils";
 import {
     getOrInitStream,
@@ -19,16 +24,7 @@ import {
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
-
-// TODOS:
-// - Figure out a good way of handling the massive amount of duplicate code which will occur in this file
-//   as we are going to have to have to have a set for FlowUpdated and FlowUpdatedV2 (backwards compatibility)
-// - We will also need to add tests to the
-//   also tests for createFlowByOperator!
-// - Lastly, we need to modify the src/subgraph files in sdk-core to ensure that this will build properly
-//   this will require us to spin up a local instance of the subgraph and generate based off of that
-//   refer to wiki contributors instructions on how to do this.
+import {getHostAddress} from "../addresses";
 
 enum FlowActionType {
     create,
@@ -249,113 +245,43 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     );
 }
 
-function createFlowUpdatedV2Entity(
-    event: FlowUpdatedV2,
-    oldFlowRate: BigInt,
-    streamId: string,
-    totalAmountStreamedUntilTimestamp: BigInt
-): FlowUpdatedV2Event {
-    let ev = new FlowUpdatedV2Event(createEventID("FlowUpdatedV2", event));
+// NOTE: This handler is run right after handleStreamUpdated as the FlowUpdatedExtension
+// event is emitted right after the FlowUpdated event in the contract. We update the
+// FlowUpdated event to include the flowOperator and deposit properties.
+// Given that we know that the events occur right after each other in the same transaction
+// we have the neccesary information to load the FlowUpdated entity to update it.
+export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
+    let previousLogIndex = event.logIndex.minus(BIG_INT_ONE);
+    let ev = FlowUpdatedEvent.load(
+        "FlowUpdated-"
+            .concat(event.transaction.hash.toHexString())
+            .concat("-")
+            .concat(previousLogIndex.toString())
+    );
+    ev.flowOperator = event.params.flowOperator;
+    ev.deposit = event.params.deposit;
+    ev.addresses = ev.addresses.concat(event.params.flowOperator);
+    ev.save();
+}
+
+export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
+    let ev = new FlowOperatorUpdatedEvent(
+        createEventID("FlowOperatorUpdated", event)
+    );
     ev.transactionHash = event.transaction.hash;
-    ev.name = "FlowUpdatedV2";
+    ev.name = "FlowOperatorUpdated";
     ev.addresses = [
         event.params.token,
         event.params.sender,
-        event.params.receiver,
         event.params.flowOperator,
     ];
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.sender = event.params.sender;
-    ev.receiver = event.params.receiver;
     ev.flowOperator = event.params.flowOperator;
-    ev.flowRate = event.params.flowRate;
-    ev.totalSenderFlowRate = event.params.totalSenderFlowRate;
-    ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
-    ev.deposit = event.params.deposit;
-    ev.userData = event.params.userData;
-    ev.oldFlowRate = oldFlowRate;
-    ev.stream = streamId;
-    ev.totalAmountStreamedUntilTimestamp = totalAmountStreamedUntilTimestamp;
+    ev.permissions = event.params.permissions;
+    ev.flowRateAllowance = event.params.flowRateAllowance;
 
-    let type = getFlowActionType(oldFlowRate, event.params.flowRate);
-    ev.type = type;
     ev.save();
-    return ev;
-}
-
-export function handleStreamUpdatedV2(event: FlowUpdatedV2): void {
-    let senderAddress = event.params.sender;
-    let receiverAddress = event.params.receiver;
-    let tokenAddress = event.params.token;
-    let flowRate = event.params.flowRate;
-    let currentTimestamp = event.block.timestamp;
-    let hostAddress = getHostAddress();
-
-    let hasValidHost = tokenHasValidHost(hostAddress, tokenAddress);
-    if (!hasValidHost) {
-        return;
-    }
-
-    let stream = getOrInitStream(
-        senderAddress,
-        receiverAddress,
-        tokenAddress,
-        event.block
-    );
-    let oldFlowRate = stream.currentFlowRate;
-
-    let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAtTimestamp);
-    let userAmountStreamedSinceLastUpdate =
-        oldFlowRate.times(timeSinceLastUpdate);
-    let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
-        userAmountStreamedSinceLastUpdate
-    );
-    stream.currentFlowRate = flowRate;
-    stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
-    stream.updatedAtTimestamp = currentTimestamp;
-    stream.updatedAtBlockNumber = event.block.number;
-    stream.save();
-
-    let senderId = senderAddress.toHex();
-    let receiverId = receiverAddress.toHex();
-    let tokenId = tokenAddress.toHex();
-
-    let flowRateDelta = flowRate.minus(oldFlowRate);
-    let isCreate = oldFlowRate.equals(BIG_INT_ZERO);
-    let isDelete = flowRate.equals(BIG_INT_ZERO);
-    if (isDelete) {
-        let streamRevision = getOrInitStreamRevision(
-            senderId,
-            receiverId,
-            tokenId
-        );
-        streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
-        streamRevision.save();
-    }
-
-    // create event entity
-    let flowUpdateV2Event = createFlowUpdatedV2Entity(
-        event,
-        oldFlowRate,
-        stream.id,
-        newStreamedUntilLastUpdate
-    );
-    handleStreamPeriodUpdate(flowUpdateV2Event, oldFlowRate, stream);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
-    updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);
-
-    // update aggregate entities data
-    updateAggregateEntitiesStreamData(
-        senderId,
-        receiverId,
-        tokenId,
-        flowRate,
-        flowRateDelta,
-        isCreate,
-        isDelete,
-        event.block
-    );
 }

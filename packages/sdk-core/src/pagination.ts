@@ -7,6 +7,7 @@ export type Paging = {
     readonly take: number;
     readonly skip?: number;
     readonly lastId?: string;
+    readonly pageNumber?: number;
 };
 
 /**
@@ -35,13 +36,13 @@ export type LastIdPaging = {
  */
 export type PageNumberPaging = {
     /**
-     * Page number starts from 1.
-     */
-    readonly pageNumber: number;
-    /**
      * "Page size" in other words.
      */
     readonly take: number;
+    /**
+     * Page number starts from 1.
+     */
+    readonly pageNumber: number;
 };
 
 /**

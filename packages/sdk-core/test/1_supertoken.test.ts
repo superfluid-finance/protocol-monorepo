@@ -18,7 +18,7 @@ const toBN = (x: BigNumberish) => ethers.BigNumber.from(x);
 const MAX_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1)).toString();
 
 export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
-    // last 32 bites of the deposit (96 bites) is clipped off
+    // last 32 bits of the deposit (96 bits) is clipped off
     const rounding = roundingDown
         ? 0
         : deposit.and(toBN(0xffffffff)).isZero()

@@ -3676,8 +3676,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 permissions: "7",
                 flowRateAllowance: "99999999999999",
                 from: admin,
-                expectedErrorString:
-                    "CFA: Unauthorized update of flow operator permissions",
+                expectedErrorString: "CFA: E_NO_PERMISSIONS_UPDATE",
             });
         });
 
@@ -3857,8 +3856,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: "1738",
-                expectedErrorString:
-                    "CFA: You don't have permission to create a flow",
+                expectedErrorString: "CFA: E_NO_OPERATOR_CREATE_FLOW",
             });
 
             await shouldRevertChangeFlowByOperator({
@@ -3867,8 +3865,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: "1738",
-                expectedErrorString:
-                    "CFA: You don't have permission to update a flow",
+                expectedErrorString: "E_NO_OPERATOR_UPDATE_FLOW",
             });
 
             await shouldCreateFlow({
@@ -3885,8 +3882,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: "0",
-                expectedErrorString:
-                    "CFA: You don't have permission to delete a flow as an operator",
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
             });
         });
 
@@ -3897,8 +3893,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: alice,
                 flowRate: "1738",
-                expectedErrorString:
-                    "CFA: You cannot createFlowByOperator as the sender",
+                expectedErrorString: "CFA: E_NO_SENDER_CREATE",
             });
 
             await shouldRevertChangeFlowByOperator({
@@ -3907,8 +3902,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: alice,
                 flowRate: "1738",
-                expectedErrorString:
-                    "CFA: You cannot updateFlowByOperator as the sender",
+                expectedErrorString: "CFA: E_NO_SENDER_UPDATE",
             });
 
             await shouldRevertChangeFlowByOperator({
@@ -3917,8 +3911,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: alice,
                 flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You don't have permission to delete a flow as an operator",
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
             });
         });
 
@@ -3937,8 +3930,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: dan,
                 flowOperator: admin,
                 flowRate: flowRateAllowance.add(toBN(1)),
-                expectedErrorString:
-                    "CFA: flow rate exceeds the flowRateAllowance",
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
             });
 
             // should revert when attempting to create flows where allowance is exceeded
@@ -3957,8 +3949,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: dan,
                 flowOperator: admin,
                 flowRate: flowRateAllowance,
-                expectedErrorString:
-                    "CFA: flow rate exceeds the flowRateAllowance",
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
             });
 
             // should be able to update to the max
@@ -3978,8 +3969,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: flowRateAllowance.add(toBN(1)),
-                expectedErrorString:
-                    "CFA: flow rate exceeds the flowRateAllowance",
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
             });
         });
 
@@ -4005,8 +3995,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You don't have permission to update a flow",
+                expectedErrorString: "E_NO_OPERATOR_UPDATE_FLOW",
             });
             await shouldRevertChangeFlowByOperator({
                 ...aliceSenderBaseData,
@@ -4014,8 +4003,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You don't have permission to delete a flow as an operator",
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
@@ -4038,8 +4026,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: FLOW_RATE1,
-                expectedErrorString:
-                    "CFA: You don't have permission to delete a flow as an operator",
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
@@ -4421,8 +4408,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 permissions: "7",
                 flowRateAllowance: "42069",
                 from: alice,
-                expectedErrorString:
-                    "CFA: You cannot set yourself as the flowOperator",
+                expectedErrorString: "CFA: E_NO_SENDER_FLOW_OPERATOR",
             });
         });
 

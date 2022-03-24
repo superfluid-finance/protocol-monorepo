@@ -32,6 +32,18 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
+    /**
+     * E_NO_SENDER_CREATE - sender cannot create as flowOperator
+     * E_NO_SENDER_UPDATE - sender cannot update as flowOperator
+     * E_NO_SENDER_DELETE - sender cannot delete as flowOperator
+     * E_EXCEED_FLOW_RATE_ALLOWANCE - flowRateAllowance exceeeded
+     * E_NO_OPERATOR_CREATE_FLOW - operator does not have permissions to create flow
+     * E_NO_OPERATOR_UPDATE_FLOW - operator does not have permissions to update flow
+     * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
+     * E_NO_PERMISSIONS_UPDATE - unauthorized flow operator permissions update (not from sender)
+     * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
+     */
+
     bytes32 private constant CFAV1_PPP_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
 
@@ -547,8 +559,7 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        // NOTE this may not be necessary...
-        require(currentContext.msgSender != sender, "CFA: You cannot createFlowByOperator as the sender");
+        require(currentContext.msgSender != sender, "CFA: E_NO_SENDER_CREATE");
 
         {
             // check if flow operator has create permissions
@@ -559,14 +570,14 @@ contract ConstantFlowAgreementV1 is
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
             require(
                 _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.CREATE_FLOW),
-                "CFA: You don't have permission to create a flow"
+                "CFA: E_NO_OPERATOR_CREATE_FLOW"
             );
 
             // check if desired flow rate is allowed and update flow rate allowance
             int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max
                 ? flowRateAllowance
                 : flowRateAllowance - flowRate;
-            require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the flowRateAllowance");
+            require(updatedFlowRateAllowance >= 0, "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE");
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
         {
@@ -595,8 +606,7 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        // NOTE this may not be necessary...
-        require(currentContext.msgSender != sender, "CFA: You cannot updateFlowByOperator as the sender");
+        require(currentContext.msgSender != sender, "CFA: E_NO_SENDER_UPDATE");
 
         // check if flow exists
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
@@ -610,14 +620,14 @@ contract ConstantFlowAgreementV1 is
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
             require(
                 _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.UPDATE_FLOW),
-                "CFA: You don't have permission to update a flow"
+                "E_NO_OPERATOR_UPDATE_FLOW"
             );
 
             // check if desired flow rate is allowed and update flow rate allowance
             int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max || oldFlowData.flowRate >= flowRate
                 ? flowRateAllowance
                 : flowRateAllowance - (flowRate - oldFlowData.flowRate);
-            require(updatedFlowRateAllowance >= 0, "CFA: flow rate exceeds the flowRateAllowance");
+            require(updatedFlowRateAllowance >= 0, "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE");
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
         
@@ -650,10 +660,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
         bool hasPermissions = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
-        require(
-            hasPermissions,
-            "CFA: You don't have permission to delete a flow as an operator"
-        );
+        require(hasPermissions, "E_NO_OPERATOR_DELETE_FLOW");
 
         _StackVars_createOrUpdateFlow memory flowVars;
         flowVars.token = token;
@@ -676,8 +683,8 @@ contract ConstantFlowAgreementV1 is
         newCtx = ctx;
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        require(sender == currentContext.msgSender, "CFA: Unauthorized update of flow operator permissions");
-        require(sender != flowOperator, "CFA: You cannot set yourself as the flowOperator");
+        require(sender == currentContext.msgSender, "CFA: E_NO_PERMISSIONS_UPDATE");
+        require(sender != flowOperator, "CFA: E_NO_SENDER_FLOW_OPERATOR");
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
         flowOperatorData.flowRateAllowance = flowRateAllowance;

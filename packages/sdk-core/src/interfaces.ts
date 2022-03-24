@@ -47,7 +47,6 @@ export interface ISuperTokenModifyFlowParams {
 export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
-    readonly sender: string;
 }
 
 export interface ISuperTokenCreateFlowByOperatorParams

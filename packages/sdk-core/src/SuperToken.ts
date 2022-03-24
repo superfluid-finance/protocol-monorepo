@@ -302,7 +302,6 @@ export default class SuperToken extends ERC20Token {
 
     /**
      * @dev Create a flow of the token of this class.
-     * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
@@ -310,7 +309,6 @@ export default class SuperToken extends ERC20Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = ({
-        sender,
         receiver,
         flowRate,
         userData,
@@ -319,7 +317,6 @@ export default class SuperToken extends ERC20Token {
         return this.cfaV1.createFlow({
             flowRate,
             receiver,
-            sender,
             superToken: this.settings.address,
             userData,
             overrides,
@@ -328,7 +325,6 @@ export default class SuperToken extends ERC20Token {
 
     /**
      * @dev Update a flow of the token of this class.
-     * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
@@ -336,7 +332,6 @@ export default class SuperToken extends ERC20Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlow = ({
-        sender,
         receiver,
         flowRate,
         userData,
@@ -345,7 +340,6 @@ export default class SuperToken extends ERC20Token {
         return this.cfaV1.updateFlow({
             flowRate,
             receiver,
-            sender,
             superToken: this.settings.address,
             userData,
             overrides,

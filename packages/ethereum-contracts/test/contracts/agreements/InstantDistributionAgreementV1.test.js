@@ -26,8 +26,8 @@ describe("Using InstantDistributionAgreement v1", function () {
     let alice, bob, carol, dan;
     let superToken;
 
-    const {FLOW_RATE1} = t.configs
-    const TEST_TRAVEL_TIME = 3600 * 24 //24 hours
+    const {FLOW_RATE1} = t.configs;
+    const TEST_TRAVEL_TIME = 3600 * 24; //24 hours
 
     before(async function () {
         await t.beforeTestSuite({
@@ -1282,13 +1282,16 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
         });
 
-        describe("#1.5 complex sequences" , () =>{
+        describe("#1.5 complex sequences", () => {
             it("#1.5.1 distributions using the correct token", async () => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
-                const {superToken: superToken2} = await t.deployNewToken("TEST2", {
-                    doUpgrade: true,
-                    isTruffle: true,
-                });
+                const {superToken: superToken2} = await t.deployNewToken(
+                    "TEST2",
+                    {
+                        doUpgrade: true,
+                        isTruffle: true,
+                    }
+                );
 
                 await shouldCreateIndex({
                     testenv: t,
@@ -1314,12 +1317,22 @@ describe("Using InstantDistributionAgreement v1", function () {
                     amount: toWad(50).toString(),
                 });
 
-                assert.equal(await superToken.balanceOf(t.getAddress("alice").toString()),toWad("50").toString())
-                assert.equal(await superToken2.balanceOf(t.getAddress("alice").toString()),INIT_BALANCE.toString())
-            })
+                assert.equal(
+                    await superToken.balanceOf(
+                        t.getAddress("alice").toString()
+                    ),
+                    toWad("50").toString()
+                );
+                assert.equal(
+                    await superToken2.balanceOf(
+                        t.getAddress("alice").toString()
+                    ),
+                    INIT_BALANCE.toString()
+                );
+            });
 
-            it("#1.5.2 context should not be exploited" , async () => {
-                const {superfluid,ida} = t.contracts
+            it("#1.5.2 context should not be exploited", async () => {
+                const {superfluid, ida} = t.contracts;
 
                 await expectRevert(
                     superfluid.callAgreement(
@@ -1341,9 +1354,9 @@ describe("Using InstantDistributionAgreement v1", function () {
                     ),
                     "invalid ctx"
                 );
-            })
+            });
 
-            it("#1.5.3 publisher subscribing to their own index and receiving a distribution" , async () => {
+            it("#1.5.3 publisher subscribing to their own index and receiving a distribution", async () => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
                 await shouldCreateIndex({
@@ -1370,20 +1383,17 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "alice",
                 });
 
-                await t.sf.ida.distribute(
-                {
+                await t.sf.ida.distribute({
                     superToken: superToken.address,
                     publisher: alice,
                     indexId: DEFAULT_INDEX_ID,
                     amount: toWad(30).toString(),
-                })
+                });
 
-                await testExpectedBalances([
-                    [alice, INIT_BALANCE]
-                ]);
+                await testExpectedBalances([[alice, INIT_BALANCE]]);
             });
 
-            it("#1.5.4 subscribed -> distribution -> unsubscribing -> distribution -> subscribed -> distribution" , async () => {
+            it("#1.5.4 subscribed -> distribution -> unsubscribing -> distribution -> subscribed -> distribution", async () => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
                 await shouldCreateIndex({
@@ -1418,9 +1428,9 @@ describe("Using InstantDistributionAgreement v1", function () {
                     amount: toWad(50).toString(),
                 });
 
-
                 await testExpectedBalances([
-                    [alice, toWad("50.00")] , [ bob , toWad("50.00")]
+                    [alice, toWad("50.00")],
+                    [bob, toWad("50.00")],
                 ]);
                 await shouldRevokeSubscription({
                     testenv: t,
@@ -1431,7 +1441,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
                 let subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
-                    subscriber: bob
+                    subscriber: bob,
                 });
                 assert.equal(subs.length, 0);
 
@@ -1444,7 +1454,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("25.00")] , [ bob , toWad("50.00")]
+                    [alice, toWad("25.00")],
+                    [bob, toWad("50.00")],
                 ]);
 
                 await shouldClaimPendingDistribution({
@@ -1457,7 +1468,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("25.00")] , [ bob , toWad("75.00")]
+                    [alice, toWad("25.00")],
+                    [bob, toWad("75.00")],
                 ]);
 
                 await shouldDistribute({
@@ -1478,10 +1490,11 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("0")] , [ bob , toWad("100.00")]
+                    [alice, toWad("0")],
+                    [bob, toWad("100.00")],
                 ]);
-            })
-        })
+            });
+        });
     });
 
     context("#2 callbacks", () => {
@@ -2215,7 +2228,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             await verifyAll();
         });
 
-        it("#10.3 distributions don't dip into the deposit" , async () => {
+        it("#10.3 distributions don't dip into the deposit", async () => {
             await t.upgradeBalance("alice", INIT_BALANCE);
             await shouldCreateIndex({
                 testenv: t,
@@ -2237,10 +2250,10 @@ describe("Using InstantDistributionAgreement v1", function () {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: FLOW_RATE1.toString()
-            })
+                flowRate: FLOW_RATE1.toString(),
+            });
 
-            await timeTravelOnce()
+            await timeTravelOnce();
 
             await expectRevert(
                 shouldDistribute({
@@ -2252,9 +2265,9 @@ describe("Using InstantDistributionAgreement v1", function () {
                 }),
                 "IDA: E_LOW_BALANCE"
             );
-        })
+        });
 
-        it("#10.4 receiving a distribution with an incoming stream" , async () => {
+        it("#10.4 receiving a distribution with an incoming stream", async () => {
             await t.upgradeBalance("alice", INIT_BALANCE);
             await t.upgradeBalance("bob", INIT_BALANCE);
 
@@ -2286,21 +2299,21 @@ describe("Using InstantDistributionAgreement v1", function () {
                 superToken: superToken.address,
                 sender: bob,
                 receiver: alice,
-                flowRate: FLOW_RATE1.toString()
-            })
-            await timeTravelOnceAndVerifyAll()
+                flowRate: FLOW_RATE1.toString(),
+            });
+            await timeTravelOnceAndVerifyAll();
 
             await t.sf.ida.distribute({
                 superToken: superToken.address,
                 publisher: alice,
                 indexId: DEFAULT_INDEX_ID,
                 amount: toWad(20).toString(),
-            })
+            });
 
-            await verifyAll()
-        })
+            await verifyAll();
+        });
 
-        it("#10.5 critical user receiver receiving distribution and not being critical anymore" , async  () => {
+        it("#10.5 critical user receiver receiving distribution and not being critical anymore", async () => {
             await t.upgradeBalance("bob", toWad(23));
 
             await shouldCreateIndex({
@@ -2331,28 +2344,24 @@ describe("Using InstantDistributionAgreement v1", function () {
                 superToken: superToken.address,
                 sender: bob,
                 receiver: alice,
-                flowRate: FLOW_RATE1.toString()
-            })
+                flowRate: FLOW_RATE1.toString(),
+            });
 
             await timeTravelOnce();
 
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(bob)
-            );
+            assert.isTrue(await superToken.isAccountCriticalNow(bob));
 
             await t.sf.ida.distribute({
                 superToken: superToken.address,
                 publisher: alice,
                 indexId: DEFAULT_INDEX_ID,
                 amount: toWad(20).toString(),
-            })
+            });
 
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(bob)
-            );
-        })
+            assert.isFalse(await superToken.isAccountCriticalNow(bob));
+        });
 
-        it("#10.6 not enough balance for distribution -> receive stream -> enough balance for distribution" , async () => {
+        it("#10.6 not enough balance for distribution -> receive stream -> enough balance for distribution", async () => {
             await t.upgradeBalance("bob", INIT_BALANCE);
             await shouldCreateIndex({
                 testenv: t,
@@ -2385,21 +2394,20 @@ describe("Using InstantDistributionAgreement v1", function () {
                 superToken: superToken.address,
                 sender: bob,
                 receiver: alice,
-                flowRate: FLOW_RATE1.toString()
-            })
+                flowRate: FLOW_RATE1.toString(),
+            });
 
-            await timeTravelOnce()
+            await timeTravelOnce();
 
             await t.sf.ida.distribute({
                 superToken: superToken.address,
                 publisher: alice,
                 indexId: DEFAULT_INDEX_ID,
                 amount: toWad(20).toString(),
-            })
+            });
+        });
 
-        })
-
-        it("#10.8 distributing with an outgoing stream" , async () => {
+        it("#10.7 distributing with an outgoing stream", async () => {
             await t.upgradeBalance("alice", INIT_BALANCE);
             await shouldCreateIndex({
                 testenv: t,
@@ -2429,18 +2437,18 @@ describe("Using InstantDistributionAgreement v1", function () {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: FLOW_RATE1.toString()
-            })
-            await timeTravelOnceAndVerifyAll()
+                flowRate: FLOW_RATE1.toString(),
+            });
+            await timeTravelOnceAndVerifyAll();
 
             await t.sf.ida.distribute({
                 superToken: superToken.address,
                 publisher: alice,
                 indexId: DEFAULT_INDEX_ID,
                 amount: toWad(20).toString(),
-            })
+            });
 
-            await verifyAll()
-        })
+            await verifyAll();
+        });
     });
 });

@@ -1393,7 +1393,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await testExpectedBalances([[alice, INIT_BALANCE]]);
             });
 
-            it("#1.5.4 subscribed -> distribution -> unsubscribing -> distribution -> subscribed -> distribution", async () => {
+            it("#1.5.4 subscribed -> distribution -> unsubscribing -> distribution -> subscribed -> distribution",
+                async () => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
                 await shouldCreateIndex({
@@ -2361,7 +2362,8 @@ describe("Using InstantDistributionAgreement v1", function () {
             assert.isFalse(await superToken.isAccountCriticalNow(bob));
         });
 
-        it("#10.6 not enough balance for distribution -> receive stream -> enough balance for distribution", async () => {
+        it("#10.6 not enough balance for distribution -> receive stream -> enough balance for distribution",
+            async () => {
             await t.upgradeBalance("bob", INIT_BALANCE);
             await shouldCreateIndex({
                 testenv: t,

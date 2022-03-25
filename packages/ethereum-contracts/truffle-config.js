@@ -325,12 +325,12 @@ const E = (module.exports = {
     },
 
     mocha: {
-       // timeout: 100000
-       reporter: "mochawesome",
-       reporterOptions: {
-           json: false,
-           reportDir: "test/output/mochareport"
-       }
+        // timeout: 100000
+        reporter: "mochawesome",
+        reporterOptions: {
+            json: false,
+            reportDir: "test/output/mochareport",
+        },
     },
 
     // Configure your compilers

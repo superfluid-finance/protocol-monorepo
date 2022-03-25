@@ -24,7 +24,7 @@ import { FlowActionType, IDAEventType } from "../helpers/constants";
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
     streamedAmountUntilTimestamp: BigNumber,
-    flowRate: BigNumber,
+    newFlowRate: BigNumber,
     tokenId: string,
     updatedSenderATS: IAccountTokenSnapshot,
     updatedReceiverATS: IAccountTokenSnapshot,
@@ -36,14 +36,14 @@ export async function validateFlowUpdated(
     await fetchStreamAndValidate(
         pastStreamData,
         streamedAmountUntilTimestamp,
-        flowRate.toString(),
+        newFlowRate.toString(),
         event,
         actionType === FlowActionType.Create
     );
     // validate StreamPeriod HOL
     await fetchStreamPeriodAndValidate(
         pastStreamData,
-        flowRate.toString(),
+        newFlowRate.toString(),
         event,
         actionType
     );

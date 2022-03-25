@@ -22,17 +22,23 @@ import {
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
     ITestModifyIDAData,
+    ITestUpdateFlowOperatorData,
 } from "../interfaces";
-import {getFlowUpdatedEvents} from "../queries/eventQueries";
-import {fetchEventAndValidate} from "../validation/eventValidators";
-import {validateFlowUpdated, validateModifyIDA} from "../validation/validators";
+import { getFlowUpdatedEvents } from "../queries/eventQueries";
+import { fetchEventAndValidate } from "../validation/eventValidators";
 import {
+    validateFlowUpdated,
+    validateModifyIDA,
+} from "../validation/validators";
+import {
+    clipDepositNumber,
     fetchEntityAndEnsureExistence,
     getIndexId,
     getSubscriptionId,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
     toBN,
+    updateFlowOperatorPermissions,
     waitUntilBlockIndexed,
 } from "./helpers";
 import {
@@ -54,13 +60,17 @@ import {
     idaEventTypeToEventQueryDataMap,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
-import {Framework} from "@superfluid-finance/sdk-core";
-import {BigNumber} from "@ethersproject/bignumber";
-import {BaseProvider, TransactionResponse} from "@ethersproject/providers";
-import {getSubscription} from "../queries/holQueries";
-import {ethers} from "hardhat";
-import {expect} from "chai";
+import { Framework } from "@superfluid-finance/sdk-core";
+import { BigNumber } from "@ethersproject/bignumber";
+import { BaseProvider, TransactionResponse } from "@ethersproject/providers";
+import { getSubscription } from "../queries/holQueries";
+import { ethers } from "hardhat";
+import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
+// TODO
+// Validate stream deposits on flowUpdated => BASE IT OFF DELTA!
+// Validate ATS and TS.totalDeposit => BASE IT OFF DELTA
 
 /**
  * A "God" function used to test modify flow events.
@@ -75,7 +85,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
  */
 export async function testFlowUpdated(data: ITestModifyFlowData) {
     // create/update/delete a flow
-    const {txnResponse, timestamp, flowRate} =
+    const { txnResponse, timestamp, flowRate: newFlowRate } =
         await modifyFlowAndReturnCreatedFlowData(
             data.provider,
             data.framework,
@@ -104,20 +114,24 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         streamData: data.localData.streamData,
         tokenStatistics: data.localData.tokenStatistics,
     });
-
+    const newDeposit = newFlowRate.gt(toBN(0))
+        ? clipDepositNumber(newFlowRate.mul(toBN(3600)))
+        : toBN(0);
+    const depositDelta = newDeposit.sub(toBN(initData.pastStreamData.deposit));
     // update and return updated (expected) data
     const expectedData = await getExpectedDataForFlowUpdated({
         actionType: data.actionType,
         lastUpdatedBlockNumber,
         lastUpdatedAtTimestamp,
         accountTokenSnapshots: data.atsArray,
-        flowRate,
+        flowRate: newFlowRate,
         superToken: data.superToken,
         pastStreamData: initData.pastStreamData,
         currentSenderATS: initData.currentSenderATS,
         currentReceiverATS: initData.currentReceiverATS,
         currentTokenStats: initData.currentTokenStats,
         provider: data.provider,
+        depositDelta: depositDelta,
     });
 
     const streamedAmountSinceUpdatedAt = toBN(
@@ -138,26 +152,30 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         account: data.receiver,
         providerOrSigner: data.provider,
     });
+
     // validate FlowUpdatedEvent
     const streamedAmountUntilTimestamp = toBN(
         initData.pastStreamData.streamedUntilUpdatedAt
     ).add(streamedAmountSinceUpdatedAt);
-    const event = await fetchEventAndValidate<
+    const flowUpdatedEvent = await fetchEventAndValidate<
         IFlowUpdatedEvent,
         IExpectedFlowUpdateEvent
     >(
         txnResponse,
         {
-            flowRate: flowRate.toString(),
+            flowRate: newFlowRate.toString(),
             oldFlowRate: initData.pastStreamData.oldFlowRate,
             addresses: [
                 data.tokenAddress.toLowerCase(),
                 data.sender.toLowerCase(),
                 data.receiver.toLowerCase(),
+                data.flowOperator.toLowerCase(),
             ],
             sender: data.sender.toLowerCase(),
             receiver: data.receiver.toLowerCase(),
+            flowOperator: data.flowOperator.toLowerCase(),
             token: data.tokenAddress.toLowerCase(),
+            deposit: newDeposit.toString(),
             totalAmountStreamedUntilTimestamp:
                 streamedAmountUntilTimestamp.toString(),
             totalReceiverFlowRate: receiverNetFlow,
@@ -171,19 +189,20 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     await validateFlowUpdated(
         initData.pastStreamData,
         streamedAmountUntilTimestamp,
-        flowRate,
+        newFlowRate,
         tokenId,
         expectedData.updatedSenderATS,
         expectedData.updatedReceiverATS,
         expectedData.updatedTokenStats,
-        event,
+        flowUpdatedEvent,
         data.actionType
     );
 
     let updatedStreamData = getExpectedStreamData(
         initData.pastStreamData,
         data.actionType,
-        flowRate.toString(),
+        newFlowRate.toString(),
+        newDeposit.toString(),
         lastUpdatedAtTimestamp,
         streamedAmountSinceUpdatedAt
     );
@@ -195,6 +214,23 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         updatedSenderATS: expectedData.updatedSenderATS,
         updatedTokenStats: expectedData.updatedTokenStats,
     };
+}
+
+export async function testUpdateFlowOperatorPermissions(
+    data: ITestUpdateFlowOperatorData
+) {
+    let { timestamp, txnResponse } = await updateFlowOperatorPermissions(data);
+    // TODO
+    // validate FlowOperator Updated event
+    // validate flow operator entity
+    // need a getInitData which gets FlowOperator and SenderATS
+    // need a getExpectedFlowOperatorData and getExpectedSenderATS
+    // expectedFlowOperatorData should check if the new FlowOperatorUpdatedEvent exists
+    // in flowOperatorUpdatedEvents field on FlowOperator entity
+    // getExpectedSenderATS is fairly simple, we just need to modify the flowOperators
+    // array
+    // validate ATS.flowOperators (when new flowOperator added)
+    // validate FlowOperator entity
 }
 
 /**
@@ -227,10 +263,10 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     let newIndexValue = toBN(0);
     let totalUnits = toBN(0);
 
-    const {accountTokenSnapshots, indexes, subscriptions, tokenStatistics} =
+    const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
         localData;
-    const {token, publisher, indexId, subscriber} = baseParams;
-    const {txnResponse, timestamp, updatedAtBlockNumber} =
+    const { token, publisher, indexId, subscriber } = baseParams;
+    const { txnResponse, timestamp, updatedAtBlockNumber } =
         await executeIDATransactionByTypeAndWaitForIndexer(
             framework,
             provider,
@@ -256,7 +292,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         tokenStatistics,
     });
 
-    const hasExistingSubscription = subscriptions[initData.subscriptionId] != null;
+    const hasExistingSubscription =
+        subscriptions[initData.subscriptionId] != null;
 
     if (eventType === IDAEventType.IndexUpdated) {
         if (amountOrIndexValue == null) {
@@ -436,14 +473,14 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     let txnResponse: TransactionResponse;
     const ida = sf.idaV1;
 
-    const {token, publisher, indexId, userData, subscriber} = baseParams;
+    const { token, publisher, indexId, userData, subscriber } = baseParams;
     const baseData = {
         superToken: token,
         publisher,
         indexId: indexId.toString(),
         userData,
     };
-    const baseSubscriberData = {...baseData, subscriber};
+    const baseSubscriberData = { ...baseData, subscriber };
     let signer: SignerWithAddress;
 
     if (type === IDAEventType.IndexCreated) {
@@ -540,7 +577,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     timestamp = block.timestamp.toString();
     updatedAtBlockNumber = txnResponse.blockNumber.toString();
 
-    return {txnResponse, timestamp, updatedAtBlockNumber};
+    return { txnResponse, timestamp, updatedAtBlockNumber };
 }
 
 function getIDAEventDataForValidation(
@@ -548,7 +585,7 @@ function getIDAEventDataForValidation(
     baseParams: ISubscriberDistributionTesterParams,
     extraEventData: IExtraEventData
 ) {
-    const {token, publisher, indexId, userData, subscriber} = baseParams;
+    const { token, publisher, indexId, userData, subscriber } = baseParams;
 
     const subscriptionId = getSubscriptionId(
         subscriber,
@@ -567,19 +604,19 @@ function getIDAEventDataForValidation(
     };
     const baseSubscriptionEventData = {
         ...baseEventData,
-        subscription: {id: subscriptionId},
+        subscription: { id: subscriptionId },
         subscriber: subscriber.toLowerCase(),
         addresses: [...baseAddresses, subscriber.toLowerCase()],
     };
     const baseIndexEventData = {
         ...baseEventData,
-        index: {id: indexEntityId},
+        index: { id: indexEntityId },
         subscriber: subscriber.toLowerCase(),
         addresses: [...baseAddresses, subscriber.toLowerCase()],
     };
 
     if (type === IDAEventType.IndexCreated) {
-        return {...baseEventData, index: {id: indexEntityId}};
+        return { ...baseEventData, index: { id: indexEntityId } };
     } else if (type === IDAEventType.IndexUpdated) {
         if (
             extraEventData.newIndexValue == null ||
@@ -592,7 +629,7 @@ function getIDAEventDataForValidation(
         }
         return {
             ...baseEventData,
-            index: {id: indexEntityId},
+            index: { id: indexEntityId },
             oldIndexValue: extraEventData.oldIndexValue,
             newIndexValue: extraEventData.newIndexValue.toString(),
             totalUnitsApproved: extraEventData.totalUnitsApproved.toString(),
@@ -608,7 +645,10 @@ function getIDAEventDataForValidation(
         if (extraEventData.units == null) {
             throw new Error("You must pass units for IndexUnitsUpdated");
         }
-        return {...baseIndexEventData, units: extraEventData.units.toString()};
+        return {
+            ...baseIndexEventData,
+            units: extraEventData.units.toString(),
+        };
     } else if (
         [
             IDAEventType.SubscriptionApproved,
@@ -622,7 +662,7 @@ function getIDAEventDataForValidation(
                 "distributionDelta is required for IndexDistributionClaimed"
             );
         }
-        const {userData, ...claimEventIndexData} = baseIndexEventData;
+        const { userData, ...claimEventIndexData } = baseIndexEventData;
         return {
             ...claimEventIndexData,
             distributionDelta: extraEventData.distributionDelta.toString(),
@@ -633,7 +673,7 @@ function getIDAEventDataForValidation(
                 "distributionDelta is required for SubscriptionDistributionClaimed"
             );
         }
-        const {userData, ...claimEventSubscriptionData} =
+        const { userData, ...claimEventSubscriptionData } =
             baseSubscriptionEventData;
         return {
             ...claimEventSubscriptionData,

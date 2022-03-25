@@ -50,6 +50,7 @@ export const getOrInitStreamData = (
             revisionIndex,
             periodRevisionIndex,
             oldFlowRate: "0",
+            deposit: "0",
             streamedUntilUpdatedAt: "0",
             updatedAtTimestamp,
         };
@@ -140,13 +141,15 @@ export const getOrInitAccountTokenSnapshot = (
             totalSubscriptionsWithUnits: 0,
             totalApprovedSubscriptions: 0,
             balanceUntilUpdatedAt: "0",
+            totalAmountStreamedUntilUpdatedAt: "0",
+            totalAmountTransferredUntilUpdatedAt: "0",
+            totalDeposit: "0",
             totalNetFlowRate: "0",
             totalInflowRate: "0",
             totalOutflowRate: "0",
-            totalAmountStreamedUntilUpdatedAt: "0",
-            totalAmountTransferredUntilUpdatedAt: "0",
             account: { id: accountId },
             token: { id: tokenId },
+            flowOperators: [],
         };
     }
     return existingATS;
@@ -175,6 +178,7 @@ export const getOrInitTokenStatistics = (
             totalAmountStreamedUntilUpdatedAt: "0",
             totalAmountTransferredUntilUpdatedAt: "0",
             totalAmountDistributedUntilUpdatedAt: "0",
+            totalDeposit: "0",
             totalSupply: totalSupply || "0",
             token: { id: tokenId },
         };
@@ -248,7 +252,7 @@ export function getOrInitializeDataForFlowUpdated(
         updatedAtTimestamp,
         totalSupply
     );
-    
+
     return {
         currentSenderATS,
         currentReceiverATS,

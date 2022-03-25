@@ -13,7 +13,7 @@ import { validateReverseLookup } from "../validators";
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
     expectedStreamedUntilUpdatedAt: BigNumber,
-    flowRate: string,
+    newFlowRate: string,
     event: IEvent,
     isCreate: boolean
 ) => {
@@ -28,7 +28,7 @@ export const fetchStreamAndValidate = async (
         stream,
         expectedStreamedUntilUpdatedAt.toString(),
         streamId,
-        flowRate
+        newFlowRate
     );
 
     // validate flowUpdated reverse lookup on Stream entity
@@ -60,13 +60,13 @@ export const validateStreamEntity = (
     subgraphStream: IStream,
     expectedStreamedUntilUpdatedAt: string,
     streamId: string,
-    currentFlowRate: string
+    newFlowRate: string
 ) => {
     expect(subgraphStream.id, "Stream: id error").to.be.equal(streamId);
     expect(
         subgraphStream.currentFlowRate,
         "Stream: currentFlowRate error"
-    ).to.equal(currentFlowRate);
+    ).to.equal(newFlowRate);
     expect(
         subgraphStream.streamedUntilUpdatedAt,
         "Stream: streamedUntilUpdatedAt error"

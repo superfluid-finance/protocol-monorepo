@@ -1,13 +1,18 @@
 import { ethers } from "hardhat";
-import { BaseProvider } from "@ethersproject/providers";
+import { BaseProvider, TransactionResponse } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
 import { Framework } from "@superfluid-finance/sdk-core";
-import { IMeta, IIndexSubscription } from "../interfaces";
+import {
+    IMeta,
+    IIndexSubscription,
+    ITestUpdateFlowOperatorData,
+} from "../interfaces";
 import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
 import { Resolver, TestToken } from "../../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -26,8 +31,8 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 export const beforeSetup = async (tokenAmount: number) => {
     const [Deployer, Alpha, Bravo, Charlie] = await ethers.getSigners();
     const signers = [Deployer, Alpha, Bravo, Charlie];
-    const signerDict: {[address: string]: SignerWithAddress} = signers.reduce(
-        (x, y) => ({...x, [y.address]: y}),
+    const signerDict: { [address: string]: SignerWithAddress } = signers.reduce(
+        (x, y) => ({ ...x, [y.address]: y }),
         {}
     );
     const users = signers.map((x) => x.address);
@@ -294,35 +299,32 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     );
 
     const signer = await ethers.getSigner(sender);
+    const baseData = {
+        superToken,
+        receiver,
+        userData: "0x",
+    };
     // any because it the txn.receipt doesn't exist on
     // Transaction
     const txnResponse =
         actionType === FlowActionType.Create
             ? await sf.cfaV1
                   .createFlow({
-                      superToken,
-                      sender,
-                      receiver,
+                      ...baseData,
                       flowRate: newFlowRate.toString(),
-                      userData: "0x",
                   })
                   .exec(signer)
             : actionType === FlowActionType.Update
             ? await sf.cfaV1
                   .updateFlow({
-                      superToken,
-                      sender,
-                      receiver,
+                      ...baseData,
                       flowRate: newFlowRate.toString(),
-                      userData: "0x",
                   })
                   .exec(signer)
             : await sf.cfaV1
                   .deleteFlow({
-                      superToken,
+                      ...baseData,
                       sender,
-                      receiver,
-                      userData: "0x",
                   })
                   .exec(signer);
 
@@ -334,7 +336,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
 
-    const {flowRate} = await sf.cfaV1.getFlow({
+    const { flowRate } = await sf.cfaV1.getFlow({
         superToken,
         sender,
         receiver,
@@ -348,10 +350,62 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     };
 };
 
+export const updateFlowOperatorPermissions = async (
+    data: ITestUpdateFlowOperatorData
+) => {
+    const signer = await ethers.getSigner(data.sender);
+    let txnResponse: TransactionResponse;
+
+    const baseData = {
+        superToken: data.superToken.address,
+        sender: data.sender,
+        flowOperator: data.flowOperator,
+        userData: "0x",
+    };
+
+    // update flowOperator data
+    if (data.isFullControl) {
+        txnResponse = await data.framework.cfaV1
+            .authorizeFlowOperatorWithFullControl(baseData)
+            .exec(signer);
+    } else if (data.isFullControlRevoke) {
+        txnResponse = await data.framework.cfaV1
+            .revokeFlowOperatorWithFullControl(baseData)
+            .exec(signer);
+    } else {
+        txnResponse = await data.framework.cfaV1
+            .updateFlowOperatorPermissions({
+                ...baseData,
+                permissions: data.permissions,
+                flowRateAllowance: data.flowRateAllowance,
+            })
+            .exec(signer);
+    }
+
+    if (!txnResponse.blockNumber) {
+        throw new Error("No block number");
+    }
+
+    const block = await data.provider.getBlock(txnResponse.blockNumber);
+    const timestamp = block.timestamp;
+    await waitUntilBlockIndexed(txnResponse.blockNumber);
+    return { timestamp, txnResponse };
+};
+
 export const hasSubscriptionWithUnits = (
     subscriptions: { [id: string]: IIndexSubscription | undefined },
     id: string
 ) => {
     const subscription = subscriptions[id];
     return subscription != null && toBN(subscription.units).gt(toBN(0));
+};
+
+export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
+    // last 32 bits of the deposit (96 bits) is clipped off
+    const rounding = roundingDown
+        ? 0
+        : deposit.and(toBN(0xffffffff)).isZero()
+        ? 0
+        : 1;
+    return deposit.shr(32).add(toBN(rounding)).shl(32);
 };

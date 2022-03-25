@@ -1,7 +1,13 @@
 import { ethers } from "hardhat";
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
-import { asleep, beforeSetup, getRandomFlowRate, monthlyToSecondRate, toBN } from "./helpers/helpers";
+import {
+    asleep,
+    beforeSetup,
+    getRandomFlowRate,
+    monthlyToSecondRate,
+    toBN,
+} from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IDistributionLocalData,
@@ -203,7 +209,7 @@ describe("Subgraph Tests", () => {
 
     before(async () => {
         // NOTE: make the token symbol more customizable in the future
-        let {users, sf, fDAI, fDAIx, totalSupply} = await beforeSetup(
+        let { users, sf, fDAI, fDAIx, totalSupply } = await beforeSetup(
             10000000
         );
         initialTotalSupply = totalSupply;
@@ -251,6 +257,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                     totalSupply: initialTotalSupply,
                 });
@@ -268,6 +275,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -278,6 +286,7 @@ describe("Subgraph Tests", () => {
         //  * Flow Update Tests
         //  */
         it("Should return correct data after updating multiple flows from one person to many.", async () => {
+            // Deployer to All
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
@@ -286,6 +295,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -299,6 +309,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -306,6 +317,7 @@ describe("Subgraph Tests", () => {
         });
 
         it("Should return correct data after updating multiple flows from many to one person.", async () => {
+            // All to Deployer
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
@@ -314,6 +326,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -328,6 +341,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -346,6 +360,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Delete,
                     newFlowRate: 0,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -361,6 +376,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Delete,
                     newFlowRate: 0,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -377,6 +393,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -393,6 +410,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -409,6 +427,7 @@ describe("Subgraph Tests", () => {
                         actionType: FlowActionType.Update,
                         newFlowRate: flowRate,
                         sender: userAddresses[0],
+                        flowOperator: userAddresses[0],
                         receiver: userAddresses[1],
                     })
                 );
@@ -449,6 +468,7 @@ describe("Subgraph Tests", () => {
                         actionType: FlowActionType.Delete,
                         newFlowRate: 0,
                         sender: userAddresses[0],
+                        flowOperator: userAddresses[0],
                         receiver: userAddresses[1],
                     })
                 );
@@ -463,6 +483,10 @@ describe("Subgraph Tests", () => {
                 console.error(err);
             }
         });
+
+        it("Should allow authorizing flow operator permissions", async () => {});
+
+        it("Should allow flowOperator to create/update/delete a flow on behalf of sender", async () => {});
     });
 
     /**
@@ -541,7 +565,7 @@ describe("Subgraph Tests", () => {
 
                 data = await testModifyIDA({
                     ...getBaseIDAData(
-                        {...baseParams, subscriber: ""},
+                        { ...baseParams, subscriber: "" },
                         provider
                     ),
                     eventType: IDAEventType.IndexUpdated,
@@ -779,7 +803,7 @@ describe("Subgraph Tests", () => {
                 const amountOrIndexValue = toBN(to18DecimalNumString(100));
                 data = await testModifyIDA({
                     ...getBaseIDAData(
-                        {...baseParams, subscriber: ""},
+                        { ...baseParams, subscriber: "" },
                         provider
                     ),
                     eventType: IDAEventType.IndexUpdated,
@@ -915,7 +939,7 @@ describe("Subgraph Tests", () => {
             const amountOrIndexValue = toBN(to18DecimalNumString(200));
             let data = await testModifyIDA({
                 ...getBaseIDAData(
-                    {...multiBaseParams, subscriber: ""},
+                    { ...multiBaseParams, subscriber: "" },
                     provider
                 ),
                 eventType: IDAEventType.IndexUpdated,

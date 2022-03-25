@@ -1,10 +1,10 @@
 import { ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import ERC20Token from "./ERC20Token";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import Token from "./Token";
 import SuperTokenABI from "./abi/SuperToken.json";
 import { networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
@@ -56,12 +56,12 @@ export interface ITokenOptions {
  * @dev SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
  */
-export default class SuperToken extends Token {
+export default class SuperToken extends ERC20Token {
     readonly options: ITokenOptions;
     readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
-    readonly underlyingToken: Token;
+    readonly underlyingToken: ERC20Token;
 
     private constructor(options: ITokenOptions, settings: ITokenSettings) {
         // initialize ERC20 token functions here
@@ -75,7 +75,7 @@ export default class SuperToken extends Token {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
-        this.underlyingToken = new Token(settings.underlyingTokenAddress);
+        this.underlyingToken = new ERC20Token(settings.underlyingTokenAddress);
     }
 
     static create = async (options: ITokenOptions) => {

@@ -1,8 +1,9 @@
-import {BigInt} from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     FlowOperatorUpdated,
     FlowUpdated,
     FlowUpdatedExtension,
+    IConstantFlowAgreementV1,
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import {
     FlowUpdatedEvent,
@@ -17,14 +18,18 @@ import {
     tokenHasValidHost,
     getStreamPeriodID,
     BIG_INT_ONE,
+    getFlowOperatorID,
+    MAX_FLOW_RATE,
+    ZERO_ADDRESS,
 } from "../utils";
 import {
+    getOrInitFlowOperator,
     getOrInitStream,
     getOrInitStreamRevision,
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
+import { getHostAddress } from "../addresses";
 
 enum FlowActionType {
     create,
@@ -36,7 +41,8 @@ function createFlowUpdatedEntity(
     event: FlowUpdated,
     oldFlowRate: BigInt,
     streamId: string,
-    totalAmountStreamedUntilTimestamp: BigInt
+    totalAmountStreamedUntilTimestamp: BigInt,
+    deposit: BigInt
 ): FlowUpdatedEvent {
     let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
     ev.transactionHash = event.transaction.hash;
@@ -58,9 +64,40 @@ function createFlowUpdatedEntity(
     ev.oldFlowRate = oldFlowRate;
     ev.stream = streamId;
     ev.totalAmountStreamedUntilTimestamp = totalAmountStreamedUntilTimestamp;
+    ev.flowOperator = ZERO_ADDRESS;
+    ev.deposit = deposit;
 
     let type = getFlowActionType(oldFlowRate, event.params.flowRate);
     ev.type = type;
+    ev.save();
+    return ev;
+}
+
+function createFlowOperatorUpdatedEventEntity(
+    event: FlowOperatorUpdated
+): FlowOperatorUpdatedEvent {
+    let ev = new FlowOperatorUpdatedEvent(
+        createEventID("FlowOperatorUpdated", event)
+    );
+    ev.transactionHash = event.transaction.hash;
+    ev.name = "FlowOperatorUpdated";
+    ev.addresses = [
+        event.params.token,
+        event.params.sender,
+        event.params.flowOperator,
+    ];
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.sender = event.params.sender;
+    ev.permissions = event.params.permissions;
+    ev.flowRateAllowance = event.params.flowRateAllowance;
+    ev.flowOperator = getFlowOperatorID(
+        event.params.flowOperator,
+        event.params.token,
+        event.params.sender
+    );
+
     ev.save();
     return ev;
 }
@@ -183,12 +220,19 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         return;
     }
 
-    let stream = getOrInitStream(
-        senderAddress,
-        receiverAddress,
-        tokenAddress,
-        event.block
+    // create or update stream entity
+    let cfaContract = IConstantFlowAgreementV1.bind(event.address);
+    let depositResult = cfaContract.try_getFlow(
+        event.params.token,
+        event.params.sender,
+        event.params.receiver
     );
+    let newDeposit = depositResult.reverted
+        ? BigInt.fromI32(0)
+        : depositResult.value.value2;
+
+    let stream = getOrInitStream(event);
+    let oldDeposit = stream.deposit;
     let oldFlowRate = stream.currentFlowRate;
 
     let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAtTimestamp);
@@ -197,12 +241,15 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
         userAmountStreamedSinceLastUpdate
     );
+    let depositDelta = newDeposit.minus(oldDeposit);
     stream.currentFlowRate = flowRate;
     stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
     stream.updatedAtTimestamp = currentTimestamp;
     stream.updatedAtBlockNumber = event.block.number;
+    stream.deposit = newDeposit;
     stream.save();
 
+    // create or update streamPeriod entity
     let senderId = senderAddress.toHex();
     let receiverId = receiverAddress.toHex();
     let tokenId = tokenAddress.toHex();
@@ -225,20 +272,22 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         event,
         oldFlowRate,
         stream.id,
-        newStreamedUntilLastUpdate
+        newStreamedUntilLastUpdate,
+        newDeposit
     );
     handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream);
 
+    // update aggregate entities data
     updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
     updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);
 
-    // update aggregate entities data
     updateAggregateEntitiesStreamData(
         senderId,
         receiverId,
         tokenId,
         flowRate,
         flowRateDelta,
+        depositDelta,
         isCreate,
         isDelete,
         event.block
@@ -252,36 +301,82 @@ export function handleStreamUpdated(event: FlowUpdated): void {
 // we have the neccesary information to load the FlowUpdated entity to update it.
 export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
     let previousLogIndex = event.logIndex.minus(BIG_INT_ONE);
-    let ev = FlowUpdatedEvent.load(
+    let flowUpdatedEvent = FlowUpdatedEvent.load(
         "FlowUpdated-"
             .concat(event.transaction.hash.toHexString())
             .concat("-")
             .concat(previousLogIndex.toString())
     );
-    ev.flowOperator = event.params.flowOperator;
-    ev.deposit = event.params.deposit;
-    ev.addresses = ev.addresses.concat(event.params.flowOperator);
-    ev.save();
+    if (flowUpdatedEvent != null) {
+        flowUpdatedEvent.flowOperator = event.params.flowOperator;
+        flowUpdatedEvent.deposit = event.params.deposit;
+        flowUpdatedEvent.addresses = flowUpdatedEvent.addresses.concat([
+            event.params.flowOperator,
+        ]);
+        flowUpdatedEvent.save();
+
+        // we know that the flowOperator should be updated if the flowOperator is
+        // not the sender - it doesn't matter when they delete as we don't need to
+        // update anything in that scenario
+        if (flowUpdatedEvent.flowOperator.notEqual(flowUpdatedEvent.sender)) {
+            updateFlowOperatorForFlowUpdated(event, flowUpdatedEvent);
+        }
+    }
 }
 
 export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
-    let ev = new FlowOperatorUpdatedEvent(
-        createEventID("FlowOperatorUpdated", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.name = "FlowOperatorUpdated";
-    ev.addresses = [
-        event.params.token,
-        event.params.sender,
-        event.params.flowOperator,
-    ];
-    ev.timestamp = event.block.timestamp;
-    ev.blockNumber = event.block.number;
-    ev.token = event.params.token;
-    ev.sender = event.params.sender;
-    ev.flowOperator = event.params.flowOperator;
-    ev.permissions = event.params.permissions;
-    ev.flowRateAllowance = event.params.flowRateAllowance;
+    createFlowOperatorUpdatedEventEntity(event);
 
-    ev.save();
+    let flowOperator = getOrInitFlowOperator(
+        event.block,
+        event.params.flowOperator,
+        event.params.token,
+        event.params.sender
+    );
+
+    flowOperator.permissions = event.params.permissions;
+    flowOperator.flowRateAllowanceGranted = event.params.flowRateAllowance;
+    flowOperator.flowRateAllowanceRemaining = event.params.flowRateAllowance;
+    flowOperator.save();
+}
+
+export function updateFlowOperatorForFlowUpdated(
+    event: FlowUpdatedExtension,
+    flowUpdatedEvent: FlowUpdatedEvent
+): void {
+    if (
+        flowUpdatedEvent.type != FlowActionType.create &&
+        flowUpdatedEvent.type != FlowActionType.update
+    ) {
+        return;
+    }
+    let flowOperator = getOrInitFlowOperator(
+        event.block,
+        event.params.flowOperator,
+        flowUpdatedEvent.token,
+        flowUpdatedEvent.sender
+    );
+
+    if (flowUpdatedEvent.type == FlowActionType.create) {
+        flowOperator.flowRateAllowanceRemaining =
+            flowOperator.flowRateAllowanceGranted.equals(MAX_FLOW_RATE)
+                ? flowOperator.flowRateAllowanceGranted
+                : flowOperator.flowRateAllowanceRemaining.minus(
+                      flowUpdatedEvent.flowRate
+                  );
+    }
+
+    if (flowUpdatedEvent.type == FlowActionType.update) {
+        let flowRateAllowanceDelta = flowUpdatedEvent.flowRate.minus(
+            flowUpdatedEvent.oldFlowRate
+        );
+        flowOperator.flowRateAllowanceRemaining =
+            flowOperator.flowRateAllowanceGranted.equals(MAX_FLOW_RATE) ||
+            flowRateAllowanceDelta.lt(BIG_INT_ZERO)
+                ? flowOperator.flowRateAllowanceGranted
+                : flowOperator.flowRateAllowanceRemaining.minus(
+                      flowRateAllowanceDelta
+                  );
+    }
+    flowOperator.save();
 }

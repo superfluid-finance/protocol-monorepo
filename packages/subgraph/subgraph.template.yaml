@@ -92,8 +92,9 @@ dataSources:
           entities:
               - Account
               - AccountTokenSnapshot
-              - FlowUpdatedEvent
+              - FlowOperator
               - FlowOperatorUpdatedEvent
+              - FlowUpdatedEvent
               - Stream
               - StreamPeriod
               - StreamRevision

@@ -10,6 +10,7 @@ import {TransactionInfo} from '../argTypes';
 import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 
 import {transactionSlicePrefix} from './createTransactionSlice';
+import {ExecutedMutation} from './trackedTransaction';
 
 /**
  *
@@ -34,14 +35,15 @@ export const waitForOneConfirmation = (
 /**
  *
  */
-export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
+export const trackTransaction = createAsyncThunk<void, TransactionInfo & {executedMutation?: ExecutedMutation}>(
     `${transactionSlicePrefix}/trackTransaction`,
     async (arg, {dispatch}) => {
         dispatch(
-            getTransactionSlice().actions.upsertTransaction({
+            getTransactionSlice().actions.addTransaction({
                 chainId: arg.chainId,
                 hash: arg.hash,
                 status: 'Pending',
+                ...(arg.executedMutation ? {executedMutation: arg.executedMutation} : {}),
             })
         );
 
@@ -52,10 +54,11 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo>(
                 // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
                 dispatch(
-                    getTransactionSlice().actions.upsertTransaction({
-                        chainId: arg.chainId,
-                        hash: arg.hash,
-                        status: 'Succeeded',
+                    getTransactionSlice().actions.updateTransaction({
+                        id: arg.hash,
+                        changes: {
+                            status: 'Succeeded',
+                        },
                     })
                 );
 
@@ -107,14 +110,15 @@ const monitorForLateErrors = (
         });
 };
 
-const notifyOfError = (ethersError: EthersError, {chainId, hash}: TransactionInfo, dispatch: Dispatch) => {
+const notifyOfError = (ethersError: EthersError, {hash}: TransactionInfo, dispatch: Dispatch) => {
     dispatch(
-        getTransactionSlice().actions.upsertTransaction({
-            chainId: chainId,
-            hash: hash,
-            status: ethersError.code === ethers.errors.TIMEOUT ? 'Unknown' : 'Failed',
-            ethersErrorCode: ethersError.code,
-            ethersErrorMessage: ethersError.message,
+        getTransactionSlice().actions.updateTransaction({
+            id: hash,
+            changes: {
+                status: ethersError.code === ethers.errors.TIMEOUT ? 'Unknown' : 'Failed',
+                ethersErrorCode: ethersError.code,
+                ethersErrorMessage: ethersError.message,
+            },
         })
     );
 };

@@ -10,7 +10,6 @@ import {TransactionInfo} from '../argTypes';
 import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 
 import {transactionSlicePrefix} from './createTransactionSlice';
-import {ExecutedMutation} from './trackedTransaction';
 
 /**
  *
@@ -35,7 +34,7 @@ export const waitForOneConfirmation = (
 /**
  *
  */
-export const trackTransaction = createAsyncThunk<void, TransactionInfo & {executedMutation?: ExecutedMutation}>(
+export const trackTransaction = createAsyncThunk<void, TransactionInfo & {key: string; extra?: unknown}>(
     `${transactionSlicePrefix}/trackTransaction`,
     async (arg, {dispatch}) => {
         dispatch(
@@ -43,7 +42,8 @@ export const trackTransaction = createAsyncThunk<void, TransactionInfo & {execut
                 chainId: arg.chainId,
                 hash: arg.hash,
                 status: 'Pending',
-                ...(arg.executedMutation ? {executedMutation: arg.executedMutation} : {}),
+                key: arg.key,
+                ...(arg.extra ? {extra: arg.extra} : {}),
             })
         );
 

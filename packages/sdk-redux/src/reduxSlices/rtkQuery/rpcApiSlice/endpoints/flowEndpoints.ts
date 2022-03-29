@@ -27,7 +27,8 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'FLOW_CREATE'
             );
 
             return {
@@ -58,7 +59,8 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'FLOW_UPDATE'
             );
 
             return {
@@ -89,7 +91,8 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'FLOW_DELETE'
             );
 
             return {

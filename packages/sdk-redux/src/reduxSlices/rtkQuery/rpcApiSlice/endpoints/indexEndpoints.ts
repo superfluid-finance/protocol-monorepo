@@ -31,7 +31,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_CREATE'
             );
 
             return {
@@ -60,7 +61,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_DISTRIBUTE'
             );
 
             return {
@@ -90,7 +92,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_UPDATE_SUBSCRIPTION_UNITS'
             );
 
             return {
@@ -119,7 +122,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_SUBSCRIPTION_APPROVE'
             );
 
             return {
@@ -149,7 +153,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_SUBSCRIPTION_CLAIM'
             );
 
             return {
@@ -179,7 +184,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_DELETE_SUBSCRIPTION'
             );
 
             return {
@@ -208,7 +214,8 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 arg.chainId,
                 transactionResponse.hash,
                 !!arg.waitForConfirmation,
-                queryApi.dispatch
+                queryApi.dispatch,
+                'INDEX_SUBSCRIPTION_REVOKE'
             );
 
             return {

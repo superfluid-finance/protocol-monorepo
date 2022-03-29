@@ -3,7 +3,6 @@ import {ThunkDispatch} from '@reduxjs/toolkit';
 import {getFramework} from '../../sdkReduxConfig';
 
 import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
-import {ExecutedMutation} from './trackedTransaction';
 
 /**
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
@@ -23,7 +22,14 @@ export const registerNewTransaction = async (
      * For dispatching redux thunks.
      */
     dispatch: ThunkDispatch<any, any, any>,
-    executedMutation?: ExecutedMutation
+    /**
+     * Any key you want to give the transaction to identify it later.
+     */
+    key: string,
+    /**
+     * Any extra data you want to attach to the transaction. Make sure it's serializable!
+     */
+    extra?: unknown
 ) => {
     const framework = await getFramework(chainId);
 
@@ -31,7 +37,8 @@ export const registerNewTransaction = async (
         trackTransaction({
             chainId,
             hash: transactionHash,
-            executedMutation,
+            key,
+            ...(extra ? {extra: extra} : {}),
         })
     );
 

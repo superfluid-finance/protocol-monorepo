@@ -1,48 +1,62 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
+import {ethers} from 'ethers';
 
 import {getFramework} from '../../sdkReduxConfig';
 
 import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
 
-/**
- * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
- */
-export const registerNewTransaction = async (
+export interface RegisterNewTransactionArg {
     /**
      * The chain ID transaction is on.
      * WARNING: Don't pass `chainId` off of ether's `TransactionResponse` because it's not set correctly on timely manner.
      */
-    chainId: number,
-    transactionHash: string,
+    chainId: number;
+    transactionResponse: ethers.providers.TransactionResponse;
     /**
      * Whether to wait for one transaction confirmation.
      */
-    waitForConfirmation: boolean,
+    waitForConfirmation: boolean;
     /**
      * For dispatching redux thunks.
      */
-    dispatch: ThunkDispatch<any, any, any>,
+    dispatch: ThunkDispatch<any, any, any>;
     /**
      * Any key you want to give the transaction to identify it later.
      */
-    key: string,
+    key: string;
     /**
      * Any extra data you want to attach to the transaction. Make sure it's serializable!
      */
-    extra?: unknown
-) => {
+    extra?: unknown;
+}
+
+/**
+ * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
+ */
+export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
+    const {chainId, transactionResponse, waitForConfirmation, dispatch, key, extra} = arg;
     const framework = await getFramework(chainId);
 
     dispatch(
         trackTransaction({
+            transactionResponse,
             chainId,
-            hash: transactionHash,
             key,
             ...(extra ? {extra: extra} : {}),
         })
     );
 
     if (waitForConfirmation) {
-        await waitForOneConfirmation(framework.settings.provider, transactionHash);
+        await waitForOneConfirmation(framework.settings.provider, transactionResponse.hash);
     }
+};
+
+export const registerNewTransactionAndReturnQueryFnResult = async (arg: RegisterNewTransactionArg) => {
+    registerNewTransaction(arg);
+    return {
+        data: {
+            hash: arg.transactionResponse.hash,
+            chainId: arg.chainId,
+        },
+    };
 };

@@ -8,6 +8,8 @@ export interface TrackedTransaction {
     chainId: number;
     hash: string;
     status: TransactionStatus;
+    transactionResponse: string;
+    transactionReceipt?: string;
     ethersErrorCode?: ethers.errors;
     ethersErrorMessage?: string;
     key: string;

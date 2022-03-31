@@ -1,6 +1,6 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionSlice/registerNewTransaction';
 import {getMostSpecificTokenTag} from '../../cacheTags/tokenTags';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
@@ -18,26 +18,19 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
-            const upgradeToSuperTokenTransactionResponse = await superToken
+            const transactionResponse = await superToken
                 .upgrade({
                     amount: arg.amountWei,
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                upgradeToSuperTokenTransactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'SUPER_TOKEN_UPGRADE'
-            );
-
-            return {
-                data: {
-                    hash: upgradeToSuperTokenTransactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'SUPER_TOKEN_UPGRADE',
+            });
         },
     }),
     superTokenUpgradeAllowance: builder.query<string, SuperTokenUpgradeAllowanceQuery>({
@@ -74,20 +67,13 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'SUPER_TOKEN_DOWNGRADE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'SUPER_TOKEN_DOWNGRADE',
+            });
         },
     }),
     superTokenTransfer: builder.mutation<TransactionInfo, SuperTokenTransferMutation>({
@@ -103,20 +89,13 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'SUPER_TOKEN_TRANSFER'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'SUPER_TOKEN_TRANSFER',
+            });
         },
     }),
 });

@@ -1,6 +1,6 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionSlice/registerNewTransaction';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {FlowCreateMutation, FlowDeleteMutation, FlowUpdateMutation} from './flowArgs';
@@ -23,20 +23,13 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'FLOW_CREATE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'FLOW_CREATE',
+            });
         },
     }),
     flowUpdate: builder.mutation<TransactionInfo, FlowUpdateMutation>({
@@ -55,20 +48,13 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'FLOW_UPDATE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'FLOW_UPDATE',
+            });
         },
     }),
     flowDelete: builder.mutation<TransactionInfo, FlowDeleteMutation>({
@@ -87,20 +73,13 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'FLOW_DELETE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'FLOW_DELETE',
+            });
         },
     }),
 });

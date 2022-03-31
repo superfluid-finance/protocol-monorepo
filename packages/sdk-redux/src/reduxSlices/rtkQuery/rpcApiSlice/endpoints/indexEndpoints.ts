@@ -1,6 +1,6 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransaction} from '../../../transactionSlice/registerNewTransaction';
+import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionSlice/registerNewTransaction';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {
@@ -27,20 +27,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_CREATE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_CREATE',
+            });
         },
     }),
     indexDistribute: builder.mutation<TransactionInfo, IndexDistributeMutation>({
@@ -57,20 +50,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_DISTRIBUTE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_DISTRIBUTE',
+            });
         },
     }),
     indexUpdateSubscriptionUnits: builder.mutation<TransactionInfo, IndexUpdateSubscriptionUnitsMutation>({
@@ -88,20 +74,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_UPDATE_SUBSCRIPTION_UNITS'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_UPDATE_SUBSCRIPTION_UNITS',
+            });
         },
     }),
     indexSubscriptionApprove: builder.mutation<TransactionInfo, IndexSubscriptionApproveMutation>({
@@ -118,20 +97,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_SUBSCRIPTION_APPROVE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_SUBSCRIPTION_APPROVE',
+            });
         },
     }),
     indexSubscriptionClaim: builder.mutation<TransactionInfo, IndexSubscriptionClaimMutation>({
@@ -149,20 +121,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_SUBSCRIPTION_CLAIM'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_SUBSCRIPTION_CLAIM',
+            });
         },
     }),
     indexDeleteSubscription: builder.mutation<TransactionInfo, IndexDeleteSubscriptionMutation>({
@@ -180,20 +145,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_DELETE_SUBSCRIPTION'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_DELETE_SUBSCRIPTION',
+            });
         },
     }),
     indexSubscriptionRevoke: builder.mutation<TransactionInfo, IndexSubscriptionRevokeMutation>({
@@ -210,20 +168,13 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 })
                 .exec(signer);
 
-            await registerNewTransaction(
-                arg.chainId,
-                transactionResponse.hash,
-                !!arg.waitForConfirmation,
-                queryApi.dispatch,
-                'INDEX_SUBSCRIPTION_REVOKE'
-            );
-
-            return {
-                data: {
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId,
-                },
-            };
+            return await registerNewTransactionAndReturnQueryFnResult({
+                transactionResponse,
+                chainId: arg.chainId,
+                waitForConfirmation: !!arg.waitForConfirmation,
+                dispatch: queryApi.dispatch,
+                key: 'INDEX_SUBSCRIPTION_REVOKE',
+            });
         },
     }),
 });

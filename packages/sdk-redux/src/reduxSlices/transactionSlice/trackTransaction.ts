@@ -34,62 +34,68 @@ export const waitForOneConfirmation = (
 /**
  *
  */
-export const trackTransaction = createAsyncThunk<void, TransactionInfo & {key: string; extra?: unknown}>(
-    `${transactionSlicePrefix}/trackTransaction`,
-    async (arg, {dispatch}) => {
-        dispatch(
-            getTransactionSlice().actions.addTransaction({
-                chainId: arg.chainId,
-                hash: arg.hash,
-                status: 'Pending',
-                key: arg.key,
-                ...(arg.extra ? {extra: arg.extra} : {}),
-            })
-        );
+export const trackTransaction = createAsyncThunk<
+    void,
+    {chainId: number; transactionResponse: ethers.providers.TransactionResponse; key: string; extra?: unknown}
+>(`${transactionSlicePrefix}/trackTransaction`, async (arg, {dispatch}) => {
+    arg.transactionResponse.chainId = arg.chainId; // Recommended by Ethers to specify Chain ID when doing serialization.
 
-        const framework = await getFramework(arg.chainId);
+    const transactionHash = arg.transactionResponse.hash;
 
-        waitForOneConfirmation(framework.settings.provider, arg.hash)
-            .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
-                // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
+    dispatch(
+        getTransactionSlice().actions.addTransaction({
+            chainId: arg.chainId,
+            hash: transactionHash,
+            status: 'Pending',
+            transactionResponse: ethers.utils.serializeTransaction(arg.transactionResponse),
+            key: arg.key,
+            ...(arg.extra ? {extra: arg.extra} : {}),
+        })
+    );
 
-                dispatch(
-                    getTransactionSlice().actions.updateTransaction({
-                        id: arg.hash,
-                        changes: {
-                            status: 'Succeeded',
-                        },
-                    })
-                );
+    const framework = await getFramework(arg.chainId);
 
-                dispatch(getRpcApiSlice().util.resetApiState());
+    waitForOneConfirmation(framework.settings.provider, transactionHash)
+        .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
+            // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
-                monitorForLateErrors(framework.settings.provider, arg, dispatch);
+            dispatch(
+                getTransactionSlice().actions.updateTransaction({
+                    id: transactionHash,
+                    changes: {
+                        status: 'Succeeded',
+                        transactionReceipt: ethers.utils.serializeTransaction(transactionReceipt),
+                    },
+                })
+            );
 
-                // Poll Subgraph for all the events for this block and then invalidate Subgraph cache based on that.
-                promiseRetry(
-                    (retry, _number) =>
-                        new EventQueryHandler()
-                            .list(framework.query.subgraphClient, {
-                                block: {number: transactionReceipt.blockNumber}, // Subgraph returns error when not indexed this far.
-                                filter: {blockNumber: transactionReceipt.blockNumber.toString()}, // Only return events for this block.
-                                pagination: {take: Infinity},
-                            })
-                            .catch(retry),
-                    {
-                        minTimeout: 500,
-                        factor: 2,
-                        forever: true,
-                    }
-                ).then((subgraphEventsQueryResult) => {
-                    invalidateCacheTagsForEvents(arg.chainId, subgraphEventsQueryResult.data, dispatch);
-                });
-            })
-            .catch((ethersError: EthersError) => {
-                notifyOfError(ethersError, arg, dispatch);
+            dispatch(getRpcApiSlice().util.resetApiState());
+
+            monitorForLateErrors(framework.settings.provider, {chainId: arg.chainId, hash: transactionHash}, dispatch);
+
+            // Poll Subgraph for all the events for this block and then invalidate Subgraph cache based on that.
+            promiseRetry(
+                (retry, _number) =>
+                    new EventQueryHandler()
+                        .list(framework.query.subgraphClient, {
+                            block: {number: transactionReceipt.blockNumber}, // Subgraph returns error when not indexed this far.
+                            filter: {blockNumber: transactionReceipt.blockNumber.toString()}, // Only return events for this block.
+                            pagination: {take: Infinity},
+                        })
+                        .catch(retry),
+                {
+                    minTimeout: 500,
+                    factor: 2,
+                    forever: true,
+                }
+            ).then((subgraphEventsQueryResult) => {
+                invalidateCacheTagsForEvents(arg.chainId, subgraphEventsQueryResult.data, dispatch);
             });
-    }
-);
+        })
+        .catch((ethersError: EthersError) => {
+            notifyOfError(ethersError, {chainId: arg.chainId, hash: transactionHash}, dispatch);
+        });
+});
 
 // i.e. monitor for re-orgs...
 const monitorForLateErrors = (

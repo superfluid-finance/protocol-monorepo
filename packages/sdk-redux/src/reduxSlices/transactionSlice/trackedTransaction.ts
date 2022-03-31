@@ -7,6 +7,10 @@ export type TransactionStatus = 'Pending' | 'Succeeded' | 'Failed' | 'Unknown';
 export interface TrackedTransaction {
     chainId: number;
     hash: string;
+    /**
+     * Milliseconds since epoch when started tracking the transaction.
+     */
+    timestampMs: number;
     status: TransactionStatus;
     transactionResponse: string;
     transactionReceipt?: string;
@@ -18,7 +22,7 @@ export interface TrackedTransaction {
 
 export const transactionsAdapter = createEntityAdapter<TrackedTransaction>({
     selectId: (transaction) => transaction.hash,
-    sortComparer: (a, b) => a.hash.localeCompare(b.hash),
+    sortComparer: (a) => a.timestampMs,
 });
 
 export const transactionSelectors = transactionsAdapter.getSelectors();

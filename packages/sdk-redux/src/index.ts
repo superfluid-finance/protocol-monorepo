@@ -5,8 +5,8 @@ export * from './sdkReduxConfig';
 
 export * from './reduxSlices/argTypes';
 
-export * from './reduxSlices/transactionSlice/trackedTransaction';
-export * from './reduxSlices/transactionSlice/registerNewTransaction';
+export * from './reduxSlices/transactionTrackerSlice/trackedTransaction';
+export * from './reduxSlices/transactionTrackerSlice/registerNewTransaction';
 
 export * from './reduxSlices/rtkQuery/createApiWithReactHooks';
 export * from './reduxSlices/rtkQuery/createApiWithoutReactHooks';

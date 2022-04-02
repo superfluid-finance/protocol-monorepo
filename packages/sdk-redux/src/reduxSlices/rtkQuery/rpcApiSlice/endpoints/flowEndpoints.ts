@@ -1,6 +1,6 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionSlice/registerNewTransaction';
+import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionTrackerSlice/registerNewTransaction';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {FlowCreateMutation, FlowDeleteMutation, FlowUpdateMutation} from './flowArgs';

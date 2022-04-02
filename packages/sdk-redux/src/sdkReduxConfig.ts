@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import {RpcApiSliceEmpty} from './reduxSlices/rtkQuery/rpcApiSlice/rpcApiSlice';
 import {SubgraphApiSliceEmpty} from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphApiSlice';
-import {TransactionSlice} from './reduxSlices/transactionSlice/createTransactionSlice';
+import {TransactionTrackerSlice} from './reduxSlices/transactionTrackerSlice/transactionTrackerSlice';
 
 interface FrameworkLocator {
     getFramework: (chainId: number) => Promise<Framework>;
@@ -28,20 +28,25 @@ interface SubgraphApiSliceLocator {
     setSubgraphApiSlice: (api: SubgraphApiSliceEmpty) => void;
 }
 
-interface TransactionSliceLocator {
-    getTransactionSlice: () => TransactionSlice;
-    setTransactionSlice: (slice: TransactionSlice) => void;
+interface TransactionTrackerSliceLocator {
+    getTransactionTrackerSlice: () => TransactionTrackerSlice;
+    setTransactionTrackerSlice: (slice: TransactionTrackerSlice) => void;
 }
 
 /**
  * NOTE: The reason memoization is used is to avoid multiple instantiations by the factory functions.
  */
 export default class SdkReduxConfig
-    implements FrameworkLocator, SignerLocator, RpcApiSliceLocator, SubgraphApiSliceLocator, TransactionSliceLocator
+    implements
+        FrameworkLocator,
+        SignerLocator,
+        RpcApiSliceLocator,
+        SubgraphApiSliceLocator,
+        TransactionTrackerSliceLocator
 {
     rpcApiSlice: RpcApiSliceEmpty | undefined;
     subgraphApiSlice: SubgraphApiSliceEmpty | undefined;
-    transactionSlice: TransactionSlice | undefined;
+    transactionTrackerSlice: TransactionTrackerSlice | undefined;
     memoizedFrameworkFactories = new Map<number, () => Promise<Framework>>();
     memoizedSignerFactories = new Map<number, () => Promise<Signer>>();
 
@@ -82,11 +87,13 @@ export default class SdkReduxConfig
         return signerFactory();
     }
 
-    getTransactionSlice(): TransactionSlice {
-        if (!this.transactionSlice) {
-            throw Error('The TransactionSlice has not been set. Are you sure you initialized SDK-Redux properly?');
+    getTransactionTrackerSlice(): TransactionTrackerSlice {
+        if (!this.transactionTrackerSlice) {
+            throw Error(
+                'The TransactionTrackerSlice has not been set. Are you sure you initialized SDK-Redux properly?'
+            );
         }
-        return this.transactionSlice;
+        return this.transactionTrackerSlice;
     }
 
     setRpcApiSlice(slice: RpcApiSliceEmpty): void {
@@ -123,20 +130,20 @@ export default class SdkReduxConfig
         this.memoizedSignerFactories.set(chainId, _.memoize(signerFactory));
     }
 
-    setTransactionSlice(slice: TransactionSlice): void {
-        if (this.transactionSlice) {
+    setTransactionTrackerSlice(slice: TransactionTrackerSlice): void {
+        if (this.transactionTrackerSlice) {
             console.log(
-                "Warning! TransactionSlice was already set and will be overriden. This shouldn't be happening in production."
+                "Warning! TransactionTrackerSlice was already set and will be overriden. This shouldn't be happening in production."
             );
         }
-        this.transactionSlice = slice;
+        this.transactionTrackerSlice = slice;
     }
 }
 
 export const getConfig = SdkReduxConfig.getOrCreateSingleton;
 export const getRpcApiSlice = () => getConfig().getRpcApiSlice();
 export const getSubgraphApiSlice = () => getConfig().getSubgraphApiSlice();
-export const getTransactionSlice = () => getConfig().getTransactionSlice();
+export const getTransactionTrackerSlice = () => getConfig().getTransactionTrackerSlice();
 export const getFramework = (chainId: number) => getConfig().getFramework(chainId);
 export const getSubgraphClient = (chainId: number) =>
     getConfig()

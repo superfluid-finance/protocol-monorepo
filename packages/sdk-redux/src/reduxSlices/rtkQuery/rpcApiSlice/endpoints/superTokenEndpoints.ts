@@ -1,6 +1,6 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
-import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionSlice/registerNewTransaction';
+import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionTrackerSlice/registerNewTransaction';
 import {getMostSpecificTokenTag} from '../../cacheTags/tokenTags';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 

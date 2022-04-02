@@ -5,7 +5,7 @@ import {Signer} from 'ethers';
 
 import {createRpcApiSlice} from './reduxSlices/rtkQuery/rpcApiSlice/rpcApiSlice';
 import {createSubgraphApiSlice} from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphApiSlice';
-import {createTransactionSlice} from './reduxSlices/transactionSlice/createTransactionSlice';
+import {createTransactionTrackerSlice} from './reduxSlices/transactionTrackerSlice/transactionTrackerSlice';
 import {getConfig} from './sdkReduxConfig';
 
 /**
@@ -35,10 +35,10 @@ export const initializeSubgraphApiSlice = <T extends ModuleName>(createApi: Crea
 /**
  * For initializing "sfTransaction" Redux slice.
  */
-export const initializeTransactionSlice = () => {
-    const transactionSlice = createTransactionSlice();
-    getConfig().setTransactionSlice(transactionSlice);
-    return transactionSlice;
+export const initializeTransactionTrackerSlice = () => {
+    const transactiontTrackerSlice = createTransactionTrackerSlice();
+    getConfig().setTransactionTrackerSlice(transactiontTrackerSlice);
+    return transactiontTrackerSlice;
 };
 
 /**

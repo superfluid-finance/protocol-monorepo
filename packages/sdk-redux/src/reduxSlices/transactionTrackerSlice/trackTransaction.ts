@@ -4,17 +4,18 @@ import {EventQueryHandler} from '@superfluid-finance/sdk-core';
 import {ethers} from 'ethers';
 import promiseRetry from 'promise-retry';
 
-import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionSlice} from '../../sdkReduxConfig';
+import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTrackerSlice} from '../../sdkReduxConfig';
 import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 
-import {transactionSlicePrefix} from './createTransactionSlice';
+import {transactionTrackerSlicePrefix} from './transactionTrackerSlice';
 
+// TODO(KK): Export?
 /**
  *
  */
-type EthersError = Error & {
+export type EthersError = Error & {
     code: ethers.errors;
     reason?: 'replaced' | 'repriced' | 'cancelled';
     cancelled?: boolean;
@@ -37,13 +38,13 @@ export const waitForOneConfirmation = (
 export const trackTransaction = createAsyncThunk<
     void,
     {chainId: number; transactionResponse: ethers.providers.TransactionResponse; key: string; extra?: unknown}
->(`${transactionSlicePrefix}/trackTransaction`, async (arg, {dispatch}) => {
+>(`${transactionTrackerSlicePrefix}/trackTransaction`, async (arg, {dispatch}) => {
     arg.transactionResponse.chainId = arg.chainId; // Recommended by Ethers to specify Chain ID when doing serialization.
 
     const transactionHash = arg.transactionResponse.hash;
 
     dispatch(
-        getTransactionSlice().actions.addTransaction({
+        getTransactionTrackerSlice().actions.addTransaction({
             chainId: arg.chainId,
             hash: transactionHash,
             timestampMs: new Date().getTime(),
@@ -61,7 +62,7 @@ export const trackTransaction = createAsyncThunk<
             // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
             dispatch(
-                getTransactionSlice().actions.updateTransaction({
+                getTransactionTrackerSlice().actions.updateTransaction({
                     id: transactionHash,
                     changes: {
                         status: 'Succeeded',
@@ -119,7 +120,7 @@ const monitorForLateErrors = (
 
 const notifyOfError = (ethersError: EthersError, {hash}: TransactionInfo, dispatch: Dispatch) => {
     dispatch(
-        getTransactionSlice().actions.updateTransaction({
+        getTransactionTrackerSlice().actions.updateTransaction({
             id: hash,
             changes: {
                 status: ethersError.code === ethers.errors.TIMEOUT ? 'Unknown' : 'Failed',

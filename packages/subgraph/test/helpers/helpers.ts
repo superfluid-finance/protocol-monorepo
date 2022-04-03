@@ -6,6 +6,7 @@ import {
     IMeta,
     IIndexSubscription,
     ITestUpdateFlowOperatorData,
+    ITestModifyFlowData,
 } from "../interfaces";
 import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
@@ -227,26 +228,28 @@ export const getStreamId = (
     token: string,
     revisionIndex: string
 ) =>
-    [
-        sender.toLowerCase(),
-        receiver.toLowerCase(),
-        token.toLowerCase(),
-        revisionIndex + ".0",
-    ].join("-");
+    [sender, receiver, token, revisionIndex + ".0"]
+        .map((x) => x.toLowerCase())
+        .join("-");
+
+export const getFlowOperatorId = ({
+    flowOperator,
+    token,
+    sender,
+}: {
+    flowOperator: string;
+    token: string;
+    sender: string;
+}) => [flowOperator, token, sender].map((x) => x.toLowerCase()).join("-");
 
 export const getRevisionIndexId = (
     sender: string,
     receiver: string,
     token: string
-) =>
-    [sender.toLowerCase(), receiver.toLowerCase(), token.toLowerCase()].join(
-        "-"
-    );
+) => [sender, receiver, token].map((x) => x.toLowerCase()).join("-");
 
 export const getIndexId = (publisher: string, token: string, indexId: string) =>
-    [publisher.toLowerCase(), token.toLowerCase(), indexId.toLowerCase()].join(
-        "-"
-    );
+    [publisher, token, indexId].map((x) => x.toLowerCase()).join("-");
 
 export const getSubscriptionId = (
     subscriber: string,
@@ -254,12 +257,9 @@ export const getSubscriptionId = (
     token: string,
     indexId: string
 ) =>
-    [
-        subscriber.toLowerCase(),
-        publisher.toLowerCase(),
-        token.toLowerCase(),
-        indexId.toLowerCase(),
-    ].join("-");
+    [subscriber, publisher, token, indexId]
+        .map((x) => x.toLowerCase())
+        .join("-");
 
 /**************************************************************************
  * Modifier Functions
@@ -279,13 +279,7 @@ export const getSubscriptionId = (
  * @returns txnReceipt, flow updatedAt (on-chain), flowRate (current on-chain)
  */
 export const modifyFlowAndReturnCreatedFlowData = async (
-    provider: BaseProvider,
-    sf: Framework,
-    actionType: FlowActionType,
-    superToken: string,
-    sender: string,
-    receiver: string,
-    newFlowRate: number
+    data: ITestModifyFlowData
 ) => {
     const actionToTypeStringMap = new Map([
         [FlowActionType.Create, "Create"],
@@ -294,53 +288,78 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     ]);
     console.log(
         `********************** ${actionToTypeStringMap.get(
-            actionType
+            data.actionType
         )} a flow **********************`
     );
 
-    const signer = await ethers.getSigner(sender);
+    const signer = await ethers.getSigner(data.sender);
     const baseData = {
-        superToken,
-        receiver,
+        superToken: data.superToken.address,
+        receiver: data.receiver,
         userData: "0x",
     };
-    // any because it the txn.receipt doesn't exist on
-    // Transaction
-    const txnResponse =
-        actionType === FlowActionType.Create
-            ? await sf.cfaV1
-                  .createFlow({
-                      ...baseData,
-                      flowRate: newFlowRate.toString(),
-                  })
-                  .exec(signer)
-            : actionType === FlowActionType.Update
-            ? await sf.cfaV1
-                  .updateFlow({
-                      ...baseData,
-                      flowRate: newFlowRate.toString(),
-                  })
-                  .exec(signer)
-            : await sf.cfaV1
-                  .deleteFlow({
-                      ...baseData,
-                      sender,
-                  })
-                  .exec(signer);
+    let txnResponse: TransactionResponse;
+    if (data.sender === data.flowOperator || data.isLiquidation) {
+        txnResponse =
+            data.actionType === FlowActionType.Create
+                ? await data.framework.cfaV1
+                      .createFlow({
+                          ...baseData,
+                          flowRate: data.newFlowRate.toString(),
+                      })
+                      .exec(signer)
+                : data.actionType === FlowActionType.Update
+                ? await data.framework.cfaV1
+                      .updateFlow({
+                          ...baseData,
+                          flowRate: data.newFlowRate.toString(),
+                      })
+                      .exec(signer)
+                : await data.framework.cfaV1
+                      .deleteFlow({
+                          ...baseData,
+                          sender: data.sender,
+                      })
+                      .exec(signer);
+    } else {
+        txnResponse =
+            data.actionType === FlowActionType.Create
+                ? await data.framework.cfaV1
+                      .createFlowByOperator({
+                          ...baseData,
+                          flowRate: data.newFlowRate.toString(),
+                          sender: data.sender,
+                      })
+                      .exec(signer)
+                : data.actionType === FlowActionType.Update
+                ? await data.framework.cfaV1
+                      .updateFlowByOperator({
+                          ...baseData,
+                          flowRate: data.newFlowRate.toString(),
+                          sender: data.sender,
+                      })
+                      .exec(signer)
+                : await data.framework.cfaV1
+                      .deleteFlowByOperator({
+                          ...baseData,
+                          sender: data.sender,
+                      })
+                      .exec(signer);
+    }
 
     if (!txnResponse.blockNumber) {
         throw new Error("No block number");
     }
 
-    const block = await provider.getBlock(txnResponse.blockNumber);
+    const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
 
-    const { flowRate } = await sf.cfaV1.getFlow({
-        superToken,
-        sender,
-        receiver,
-        providerOrSigner: provider,
+    const { flowRate } = await data.framework.cfaV1.getFlow({
+        superToken: data.superToken.address,
+        sender: data.sender,
+        receiver: data.receiver,
+        providerOrSigner: data.provider,
     });
 
     return {

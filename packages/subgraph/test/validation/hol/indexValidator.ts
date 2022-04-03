@@ -18,7 +18,7 @@ import {
 } from "../../queries/holQueries";
 import { validateReverseLookup } from "../validators";
 
-export const validateAccountReverseLookups = async (index: IIndex) => {
+const validateAccountReverseLookupsForIndex = async (index: IIndex) => {
     const indexLightEntity = { id: index.id };
     const publisherAccount = await fetchEntityAndEnsureExistence<IAccount>(
         getAccount,
@@ -94,7 +94,7 @@ export const fetchIndexAndValidate = async (
         ]);
 
         // validate newly published index is added
-        validateAccountReverseLookups(index);
+        validateAccountReverseLookupsForIndex(index);
     }
 
     if (Array.from(eventTypeToDataMap.keys()).includes(eventType)) {

@@ -1,12 +1,7 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { fetchEntityAndEnsureExistence } from "../../helpers/helpers";
-import {
-    IStream,
-    IStreamData,
-    IEvent,
-    IAccount,
-} from "../../interfaces";
+import { IStream, IStreamData, IEvent, IAccount } from "../../interfaces";
 import { getAccount, getStream } from "../../queries/holQueries";
 import { validateReverseLookup } from "../validators";
 
@@ -36,11 +31,11 @@ export const fetchStreamAndValidate = async (
 
     if (isCreate) {
         // validate accounts reverse lookup on Stream entity creation
-        validateAccountReverseLookups(stream);
+        await validateAccountReverseLookupsForStream(stream);
     }
 };
 
-export const validateAccountReverseLookups = async (stream: IStream) => {
+const validateAccountReverseLookupsForStream = async (stream: IStream) => {
     const senderAccount = await fetchEntityAndEnsureExistence<IAccount>(
         getAccount,
         stream.sender.id,
@@ -56,13 +51,13 @@ export const validateAccountReverseLookups = async (stream: IStream) => {
     validateReverseLookup(streamLightEntity, receiverAccount.inflows);
 };
 
-export const validateStreamEntity = (
+const validateStreamEntity = (
     subgraphStream: IStream,
     expectedStreamedUntilUpdatedAt: string,
     streamId: string,
     newFlowRate: string
 ) => {
-    expect(subgraphStream.id, "Stream: id error").to.be.equal(streamId);
+    expect(subgraphStream.id, "Stream: id error").to.equal(streamId);
     expect(
         subgraphStream.currentFlowRate,
         "Stream: currentFlowRate error"
@@ -70,5 +65,5 @@ export const validateStreamEntity = (
     expect(
         subgraphStream.streamedUntilUpdatedAt,
         "Stream: streamedUntilUpdatedAt error"
-    ).to.be.equal(expectedStreamedUntilUpdatedAt);
+    ).to.equal(expectedStreamedUntilUpdatedAt);
 };

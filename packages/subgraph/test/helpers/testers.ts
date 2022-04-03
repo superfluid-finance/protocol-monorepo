@@ -12,9 +12,11 @@
  * - valiate HOL/aggregate entities based on the expected data
  *************************************************************************/
 import {
+    IExpectedFlowOperatorUpdatedEvent,
     IExpectedFlowUpdateEvent,
     IExtraEventData,
     IExtraExpectedData,
+    IFlowOperatorUpdatedEvent,
     IFlowUpdatedEvent,
     IGetExpectedIDADataParams as IGetExpectedIDADataParams,
     IIDAEvents,
@@ -24,15 +26,20 @@ import {
     ITestModifyIDAData,
     ITestUpdateFlowOperatorData,
 } from "../interfaces";
-import { getFlowUpdatedEvents } from "../queries/eventQueries";
+import {
+    getFlowOperatorUpdatedEvents,
+    getFlowUpdatedEvents,
+} from "../queries/eventQueries";
 import { fetchEventAndValidate } from "../validation/eventValidators";
 import {
     validateFlowUpdated,
     validateModifyIDA,
+    validateUpdateFlowOperatorPermissions,
 } from "../validation/validators";
 import {
     clipDepositNumber,
     fetchEntityAndEnsureExistence,
+    getFlowOperatorId,
     getIndexId,
     getSubscriptionId,
     modifyFlowAndReturnCreatedFlowData,
@@ -42,6 +49,8 @@ import {
     waitUntilBlockIndexed,
 } from "./helpers";
 import {
+    getOrInitAccountTokenSnapshot,
+    getOrInitializeDataForFlowOperatorUpdated,
     getOrInitializeDataForFlowUpdated,
     getOrInitializeDataForIDA,
 } from "./initializers";
@@ -53,6 +62,7 @@ import {
     getExpectedDataForSubscriptionApproved,
     getExpectedDataForSubscriptionDistributionClaimed,
     getExpectedDataForSubscriptionUnitsUpdated,
+    getExpectedFlowOperatorForFlowOperatorUpdated,
     getExpectedStreamData,
 } from "./updaters";
 import {
@@ -68,10 +78,6 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-// TODO
-// Validate stream deposits on flowUpdated => BASE IT OFF DELTA!
-// Validate ATS and TS.totalDeposit => BASE IT OFF DELTA
-
 /**
  * A "God" function used to test modify flow events.
  * It modifies a flow (create, update, delete) and returns
@@ -85,34 +91,21 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
  */
 export async function testFlowUpdated(data: ITestModifyFlowData) {
     // create/update/delete a flow
-    const { txnResponse, timestamp, flowRate: newFlowRate } =
-        await modifyFlowAndReturnCreatedFlowData(
-            data.provider,
-            data.framework,
-            data.actionType,
-            data.superToken.address,
-            data.sender,
-            data.receiver,
-            monthlyToSecondRate(data.newFlowRate)
-        );
+    const {
+        txnResponse,
+        timestamp,
+        flowRate: newFlowRate,
+    } = await modifyFlowAndReturnCreatedFlowData(data);
     const lastUpdatedAtTimestamp = timestamp.toString();
 
     // we know blockNumber is not null as we throw an error if it is
     const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
-    const tokenId = data.tokenAddress.toLowerCase();
 
     // get or initialize the data
     const initData = getOrInitializeDataForFlowUpdated({
         updatedAtTimestamp: lastUpdatedAtTimestamp,
         updatedAtBlockNumber: lastUpdatedBlockNumber,
-        sender: data.sender,
-        receiver: data.receiver,
-        token: data.superToken.address,
-        accountTokenSnapshots: data.localData.accountTokenSnapshots,
-        revisionIndexes: data.localData.revisionIndexes,
-        periodRevisionIndexes: data.localData.periodRevisionIndexes,
-        streamData: data.localData.streamData,
-        tokenStatistics: data.localData.tokenStatistics,
+        data,
     });
     const newDeposit = newFlowRate.gt(toBN(0))
         ? clipDepositNumber(newFlowRate.mul(toBN(3600)))
@@ -120,18 +113,12 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     const depositDelta = newDeposit.sub(toBN(initData.pastStreamData.deposit));
     // update and return updated (expected) data
     const expectedData = await getExpectedDataForFlowUpdated({
-        actionType: data.actionType,
         lastUpdatedBlockNumber,
         lastUpdatedAtTimestamp,
-        accountTokenSnapshots: data.atsArray,
         flowRate: newFlowRate,
-        superToken: data.superToken,
-        pastStreamData: initData.pastStreamData,
-        currentSenderATS: initData.currentSenderATS,
-        currentReceiverATS: initData.currentReceiverATS,
-        currentTokenStats: initData.currentTokenStats,
-        provider: data.provider,
-        depositDelta: depositDelta,
+        data,
+        existingData: initData,
+        depositDelta,
     });
 
     const streamedAmountSinceUpdatedAt = toBN(
@@ -190,7 +177,6 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         initData.pastStreamData,
         streamedAmountUntilTimestamp,
         newFlowRate,
-        tokenId,
         expectedData.updatedSenderATS,
         expectedData.updatedReceiverATS,
         expectedData.updatedTokenStats,
@@ -210,6 +196,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     return {
         revisionIndexId: initData.revisionIndexId,
         updatedStreamData,
+        updatedFlowOperator: expectedData.updatedFlowOperator,
         updatedReceiverATS: expectedData.updatedReceiverATS,
         updatedSenderATS: expectedData.updatedSenderATS,
         updatedTokenStats: expectedData.updatedTokenStats,
@@ -220,17 +207,79 @@ export async function testUpdateFlowOperatorPermissions(
     data: ITestUpdateFlowOperatorData
 ) {
     let { timestamp, txnResponse } = await updateFlowOperatorPermissions(data);
-    // TODO
-    // validate FlowOperator Updated event
-    // validate flow operator entity
-    // need a getInitData which gets FlowOperator and SenderATS
-    // need a getExpectedFlowOperatorData and getExpectedSenderATS
-    // expectedFlowOperatorData should check if the new FlowOperatorUpdatedEvent exists
-    // in flowOperatorUpdatedEvents field on FlowOperator entity
-    // getExpectedSenderATS is fairly simple, we just need to modify the flowOperators
-    // array
-    // validate ATS.flowOperators (when new flowOperator added)
-    // validate FlowOperator entity
+
+    const lastUpdatedAtTimestamp = timestamp.toString();
+    const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
+    const tokenId = data.superToken.address.toLowerCase();
+    const senderId = data.sender.toLowerCase();
+    const flowOperatorId = getFlowOperatorId({
+        flowOperator: data.flowOperator,
+        token: data.superToken.address,
+        sender: senderId,
+    });
+    const initData = getOrInitializeDataForFlowOperatorUpdated({
+        flowOperatorId,
+        flowOperators: data.flowOperators,
+        updatedAtBlockNumber: lastUpdatedBlockNumber,
+        updatedAtTimestamp: lastUpdatedAtTimestamp,
+        token: tokenId,
+        accountTokenSnapshots: data.accountTokenSnapshots,
+        senderId: senderId,
+    });
+
+    const expectedFlowOperatorData =
+        getExpectedFlowOperatorForFlowOperatorUpdated({
+            currentFlowOperatorData: initData.flowOperator,
+            permissions: data.permissions,
+            sender: data.sender,
+            flowOperator: data.flowOperator,
+            flowRateAllowance: data.flowRateAllowance,
+        });
+
+    const senderATS = getOrInitAccountTokenSnapshot(
+        data.accountTokenSnapshots,
+        data.sender,
+        data.superToken.address,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+    const senderATSFlowOperators = senderATS.flowOperators
+        .map((x) => x.id)
+        .includes(flowOperatorId)
+        ? senderATS.flowOperators
+        : [...senderATS.flowOperators, { id: flowOperatorId }];
+    const updatedSenderATS = {
+        ...senderATS,
+        flowOperators: senderATSFlowOperators,
+    };
+
+    const flowOperatorUpdatedEvent = await fetchEventAndValidate<
+        IFlowOperatorUpdatedEvent,
+        IExpectedFlowOperatorUpdatedEvent
+    >(
+        txnResponse,
+        {
+            addresses: [tokenId, senderId, flowOperatorId],
+            token: tokenId,
+            sender: senderId,
+            flowOperator: flowOperatorId,
+            permissions: data.permissions,
+            flowRateAllowance: data.flowRateAllowance,
+        },
+        getFlowOperatorUpdatedEvents,
+        "FlowOperatorUpdatedEvents"
+    );
+
+    await validateUpdateFlowOperatorPermissions({
+        event: flowOperatorUpdatedEvent,
+        expectedFlowOperator: expectedFlowOperatorData,
+        isCreate: data.isCreate,
+    });
+
+    return {
+        updatedFlowOperatorData: expectedFlowOperatorData,
+        updatedSenderATS,
+    };
 }
 
 /**
@@ -440,8 +489,6 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         updatedPublisherATS,
         updatedSubscriberATS,
         updatedTokenStats,
-        token,
-        publisher,
         subscriber,
         eventType,
         events,

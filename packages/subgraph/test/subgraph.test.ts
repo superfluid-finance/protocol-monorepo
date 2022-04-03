@@ -18,6 +18,7 @@ import {
     ITokenStatistic,
     ISubscriberDistributionTesterParams,
     IUpdateGlobalObjects,
+    IFlowOperator,
 } from "./interfaces";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
@@ -48,6 +49,7 @@ describe("Subgraph Tests", () => {
         [id: string]: IAccountTokenSnapshot | undefined;
     } = {}; // id is ats id
     let tokenStatistics: { [id: string]: ITokenStatistic | undefined } = {}; // id is tokenStats id
+    let flowOperators: { [id: string]: IFlowOperator | undefined } = {}; // id is flowOperator-token-sender
 
     function updateGlobalObjects(data: IUpdateGlobalObjects) {
         if (data.revisionIndexId && data.updatedStreamData) {
@@ -83,6 +85,10 @@ describe("Subgraph Tests", () => {
         if (data.updatedSubscriberATS) {
             accountTokenSnapshots[data.updatedSubscriberATS.id] =
                 data.updatedSubscriberATS;
+        }
+        if (data.updatedFlowOperator) {
+            flowOperators[data.updatedFlowOperator.id] =
+                data.updatedFlowOperator;
         }
         tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
     }
@@ -152,6 +158,7 @@ describe("Subgraph Tests", () => {
     function getStreamLocalData(): IStreamLocalData {
         return {
             accountTokenSnapshots,
+            flowOperators,
             revisionIndexes,
             periodRevisionIndexes,
             streamData,
@@ -470,6 +477,7 @@ describe("Subgraph Tests", () => {
                         sender: userAddresses[0],
                         flowOperator: userAddresses[0],
                         receiver: userAddresses[1],
+                        isLiquidation: true
                     })
                 );
 

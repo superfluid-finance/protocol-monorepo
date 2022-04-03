@@ -116,7 +116,7 @@ function getFlowActionType(
 function handleStreamPeriodUpdate(
     eventEntity: FlowUpdatedEvent,
     previousFlowRate: BigInt,
-    stream: Stream
+    streamId: string
 ): void {
     let streamRevision = getOrInitStreamRevision(
         eventEntity.sender.toHex(),
@@ -128,11 +128,11 @@ function handleStreamPeriodUpdate(
         eventEntity.flowRate
     );
     let previousStreamPeriod = StreamPeriod.load(
-        getStreamPeriodID(stream.id, streamRevision.periodRevisionIndex)
+        getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
     );
     switch (flowActionType) {
         case FlowActionType.create:
-            startStreamPeriod(eventEntity, streamRevision, stream.id);
+            startStreamPeriod(eventEntity, streamRevision, streamId);
             break;
         case FlowActionType.update:
             if (!previousStreamPeriod) {
@@ -146,7 +146,7 @@ function handleStreamPeriodUpdate(
                 streamRevision,
                 previousFlowRate
             );
-            startStreamPeriod(eventEntity, streamRevision, stream.id);
+            startStreamPeriod(eventEntity, streamRevision, streamId);
             break;
         case FlowActionType.terminate:
             if (!previousStreamPeriod) {
@@ -275,7 +275,7 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         newStreamedUntilLastUpdate,
         newDeposit
     );
-    handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream);
+    handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream.id);
 
     // update aggregate entities data
     updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
@@ -337,6 +337,7 @@ export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
     flowOperator.permissions = event.params.permissions;
     flowOperator.flowRateAllowanceGranted = event.params.flowRateAllowance;
     flowOperator.flowRateAllowanceRemaining = event.params.flowRateAllowance;
+    flowOperator.flowOperator = event.params.flowOperator;
     flowOperator.save();
 }
 
@@ -344,10 +345,7 @@ export function updateFlowOperatorForFlowUpdated(
     event: FlowUpdatedExtension,
     flowUpdatedEvent: FlowUpdatedEvent
 ): void {
-    if (
-        flowUpdatedEvent.type != FlowActionType.create &&
-        flowUpdatedEvent.type != FlowActionType.update
-    ) {
+    if (flowUpdatedEvent.type == FlowActionType.terminate) {
         return;
     }
     let flowOperator = getOrInitFlowOperator(

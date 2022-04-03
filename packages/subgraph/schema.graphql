@@ -1016,6 +1016,7 @@ type FlowOperator @entity {
     flowRateAllowanceRemaining: BigInt!
 
     # ---------------------------------- links ----------------------------------
+    flowOperator: Bytes!
     sender: Account!
     token: Token!
     accountTokenSnapshot: AccountTokenSnapshot!

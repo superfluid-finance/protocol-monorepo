@@ -16,6 +16,7 @@ import {
     IStreamData,
     IIndexSubscription,
     ITokenStatistic,
+    IFlowOperator,
 } from "../interfaces";
 import {
     actionTypeToActiveStreamsDeltaMap,
@@ -63,6 +64,58 @@ export const getExpectedStreamData = (
         streamedUntilUpdatedAt: updatedStreamedUntilUpdatedAt.toString(),
         updatedAtTimestamp: lastUpdatedAtTimestamp,
     } as IStreamData;
+};
+
+export const getExpectedFlowOperatorForFlowUpdated = ({
+    currentFlowOperatorData,
+    actionType,
+    oldFlowRate,
+    newFlowRate,
+}: {
+    currentFlowOperatorData: IFlowOperator;
+    actionType: FlowActionType;
+    oldFlowRate: string;
+    newFlowRate: string;
+}): IFlowOperator => {
+    if (actionType === FlowActionType.Delete) {
+        return currentFlowOperatorData;
+    }
+    const flowRateDiff = toBN(newFlowRate).sub(toBN(oldFlowRate));
+    const flowRateAllowanceRemaining =
+        toBN(currentFlowOperatorData.flowRateAllowanceGranted).eq(
+            toBN(2).pow(toBN(95)).sub(toBN(1))
+        ) || toBN(newFlowRate).lte(toBN(oldFlowRate))
+            ? currentFlowOperatorData.flowRateAllowanceGranted
+            : actionType === FlowActionType.Create
+            ? toBN(currentFlowOperatorData.flowRateAllowanceRemaining)
+                  .sub(toBN(newFlowRate))
+                  .toString()
+            : toBN(currentFlowOperatorData.flowRateAllowanceRemaining)
+                  .sub(flowRateDiff)
+                  .toString();
+    return {
+        ...currentFlowOperatorData,
+        flowRateAllowanceRemaining,
+    };
+};
+
+export const getExpectedFlowOperatorForFlowOperatorUpdated = ({
+    currentFlowOperatorData,
+    permissions,
+    flowRateAllowance,
+}: {
+    currentFlowOperatorData: IFlowOperator;
+    permissions: number;
+    sender: string;
+    flowOperator: string;
+    flowRateAllowance: string;
+}): IFlowOperator => {
+    return {
+        ...currentFlowOperatorData,
+        permissions,
+        flowRateAllowanceGranted: flowRateAllowance,
+        flowRateAllowanceRemaining: flowRateAllowance,
+    };
 };
 
 const getUpdatedIndex = (
@@ -223,60 +276,66 @@ export const getExpectedTokenStatsForCFAEvent = (
 export const getExpectedDataForFlowUpdated = async (
     testData: IFlowUpdatedUpdateTestData
 ) => {
-    const {
-        actionType,
-        accountTokenSnapshots,
-        flowRate,
-        depositDelta,
-        lastUpdatedAtTimestamp,
-        lastUpdatedBlockNumber,
-        superToken,
-        pastStreamData,
-        currentSenderATS,
-        currentReceiverATS,
-        currentTokenStats,
-        provider,
-    } = testData;
+    const existingData = testData.existingData;
+    const data = testData.data;
     // newFlowRate - previousFlowRate
-    const flowRateDelta = flowRate.sub(toBN(pastStreamData.oldFlowRate));
+    const flowRateDelta = testData.flowRate.sub(
+        toBN(existingData.pastStreamData.oldFlowRate)
+    );
 
     // Update the data - we use this for comparison
     const updatedSenderATS = await getExpectedATSForCFAEvent(
-        superToken,
-        currentSenderATS,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
-        actionType,
+        data.superToken,
+        existingData.currentSenderATS,
+        testData.lastUpdatedBlockNumber,
+        testData.lastUpdatedAtTimestamp,
+        data.actionType,
         true,
-        flowRate,
+        testData.flowRate,
         flowRateDelta,
-        depositDelta,
-        provider
+        testData.depositDelta,
+        data.provider
     );
     const updatedReceiverATS = await getExpectedATSForCFAEvent(
-        superToken,
-        currentReceiverATS,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
-        actionType,
+        data.superToken,
+        existingData.currentReceiverATS,
+        testData.lastUpdatedBlockNumber,
+        testData.lastUpdatedAtTimestamp,
+        data.actionType,
         false,
-        flowRate,
+        testData.flowRate,
         flowRateDelta,
         toBN(0),
-        provider
+        data.provider
     );
     const updatedTokenStats = getExpectedTokenStatsForCFAEvent(
-        currentTokenStats,
-        accountTokenSnapshots,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
-        actionType,
-        flowRate,
+        existingData.currentTokenStats,
+        data.atsArray,
+        testData.lastUpdatedBlockNumber,
+        testData.lastUpdatedAtTimestamp,
+        data.actionType,
+        testData.flowRate,
         flowRateDelta,
-        depositDelta
+        testData.depositDelta
     );
 
-    return { updatedSenderATS, updatedReceiverATS, updatedTokenStats };
+    let updatedFlowOperator = existingData.currentFlowOperator;
+
+    if (existingData.currentSenderATS.account.id !== data.flowOperator) {
+        updatedFlowOperator = getExpectedFlowOperatorForFlowUpdated({
+            currentFlowOperatorData: existingData.currentFlowOperator,
+            actionType: data.actionType,
+            oldFlowRate: existingData.pastStreamData.oldFlowRate,
+            newFlowRate: testData.flowRate.toString(),
+        });
+    }
+
+    return {
+        updatedFlowOperator,
+        updatedSenderATS,
+        updatedReceiverATS,
+        updatedTokenStats,
+    };
 };
 
 export const getExpectedDataForIndexCreated = async (

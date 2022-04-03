@@ -212,6 +212,7 @@ export interface IFlowOperator extends IBaseEntity {
     readonly permissions: number;
     readonly flowRateAllowanceGranted: string;
     readonly flowRateAllowanceRemaining: string;
+    readonly flowOperator: string;
     readonly sender: ILightEntity;
     readonly token: ILightEntity;
     readonly accountTokenSnapshot: ILightEntity;
@@ -326,6 +327,13 @@ export interface IStreamTestParams {
     readonly streamHistory: IStreamData;
 }
 
+export interface IExpectedFlowOperatorData {
+    readonly id: string;
+    readonly permissions: number;
+    readonly flowRateAllowanceGranted: string;
+    readonly flowRateAllowanceRemaining: string;
+}
+
 export interface IExpectedATSData {
     readonly totalNumberOfActiveStreams: number;
     readonly totalNumberOfClosedStreams: number;
@@ -346,6 +354,7 @@ export interface IExpectedTokenStats {
 export interface IUpdateGlobalObjects {
     readonly revisionIndexId?: string;
     readonly updatedStreamData?: IStreamData;
+    readonly updatedFlowOperator?: IFlowOperator;
     readonly updatedSenderATS?: IAccountTokenSnapshot;
     readonly updatedReceiverATS?: IAccountTokenSnapshot;
     readonly updatedPublisherATS?: IAccountTokenSnapshot;
@@ -369,6 +378,7 @@ export interface IBaseTestData {
 }
 
 export interface IStreamLocalData extends IAggregateLocalData {
+    readonly flowOperators: { [id: string]: IFlowOperator | undefined };
     readonly revisionIndexes: { [id: string]: number | undefined };
     readonly periodRevisionIndexes: { [id: string]: number | undefined };
     readonly streamData: { [id: string]: IStreamData | undefined };
@@ -378,12 +388,19 @@ export interface IDistributionLocalData extends IAggregateLocalData {
     readonly subscriptions: { [id: string]: IIndexSubscription | undefined };
 }
 
-export interface IFlowUpdatedInitTestData
-    extends IStreamLocalData,
-        IBaseTestData {
-    readonly sender: string;
-    readonly receiver: string;
-    readonly totalSupply?: string;
+export interface IFlowUpdatedInitTestData {
+    readonly updatedAtTimestamp: string;
+    readonly updatedAtBlockNumber: string;
+    readonly data: ITestModifyFlowData;
+}
+
+export interface IFlowOperatorUpdatedInitTestData extends IBaseTestData {
+    readonly flowOperators: { [id: string]: IFlowOperator | undefined };
+    readonly accountTokenSnapshots: {
+        [id: string]: IAccountTokenSnapshot | undefined;
+    };
+    readonly flowOperatorId: string;
+    readonly senderId: string;
 }
 
 export interface IBaseDistributionTesterParams {
@@ -398,21 +415,25 @@ export interface ISubscriberDistributionTesterParams
     readonly subscriber: string;
 }
 
-export interface IFlowUpdatedUpdateTestData {
-    readonly actionType: FlowActionType;
-    readonly lastUpdatedBlockNumber: string;
-    readonly lastUpdatedAtTimestamp: string;
-    readonly accountTokenSnapshots: IAccountTokenSnapshot[];
-    readonly flowRate: BigNumber;
-    readonly depositDelta: BigNumber;
-    readonly superToken: SuperToken;
-    readonly pastStreamData: IStreamData;
-    readonly currentSenderATS: IAccountTokenSnapshot;
-    readonly currentReceiverATS: IAccountTokenSnapshot;
-    readonly currentTokenStats: ITokenStatistic;
-    readonly provider: BaseProvider;
+export interface IExistingFlowUpdatedData {
+    currentFlowOperator: IFlowOperator;
+    currentReceiverATS: IAccountTokenSnapshot;
+    currentSenderATS: IAccountTokenSnapshot;
+    currentTokenStats: ITokenStatistic;
+    pastStreamData: IStreamData;
+    revisionIndexId: string;
 }
 
+export interface IFlowUpdatedUpdateTestData {
+    readonly existingData: IExistingFlowUpdatedData;
+    readonly data: ITestModifyFlowData;
+    readonly lastUpdatedBlockNumber: string;
+    readonly lastUpdatedAtTimestamp: string;
+    readonly flowRate: BigNumber;
+    readonly depositDelta: BigNumber;
+}
+
+// TODO: there needs to be a better name for this
 export interface ITestModifyFlowData {
     readonly framework: Framework;
     readonly superToken: SuperToken;
@@ -426,19 +447,24 @@ export interface ITestModifyFlowData {
     readonly flowOperator: string;
     readonly tokenAddress: string;
     readonly totalSupply?: string;
+    readonly isLiquidation?: boolean;
 }
 
 export interface ITestUpdateFlowOperatorData {
+    readonly isCreate: boolean;
     readonly framework: Framework;
     readonly provider: BaseProvider;
     readonly superToken: SuperToken;
     readonly isFullControlRevoke: boolean;
     readonly isFullControl: boolean;
     readonly sender: string;
-    readonly receiver: string;
     readonly permissions: number;
     readonly flowOperator: string;
     readonly flowRateAllowance: string;
+    readonly accountTokenSnapshots: {
+        [id: string]: IAccountTokenSnapshot | undefined;
+    };
+    readonly flowOperators: { [id: string]: IFlowOperator | undefined };
 }
 
 export interface ITestModifyIDAData {
@@ -539,7 +565,7 @@ export interface IExpectedFlowUpdateEvent {
     readonly type: FlowActionType;
 }
 
-export interface IExpectedFlowOperatorUpdatedEvent extends IEvent {
+export interface IExpectedFlowOperatorUpdatedEvent {
     readonly addresses: string[];
     readonly token: string;
     readonly sender: string;

@@ -1,7 +1,7 @@
 import { configureStore, Dispatch } from "@reduxjs/toolkit";
 import {
     initializeRpcApiSlice,
-    initializeTransactionSlice,
+    initializeTransactionTrackerSlice,
     initializeSubgraphApiSlice,
     createApiWithReactHooks,
     allSubgraphEndpoints,
@@ -15,7 +15,7 @@ export const sfSubgraph = initializeSubgraphApiSlice(createApiWithReactHooks).in
     allSubgraphEndpoints
 );
 
-export const sfTransactions = initializeTransactionSlice();
+export const sfTransactions = initializeTransactionTrackerSlice();
 
 export const store = configureStore({
     reducer: {

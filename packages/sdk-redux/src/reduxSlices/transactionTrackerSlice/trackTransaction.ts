@@ -37,7 +37,13 @@ export const waitForOneConfirmation = (
  */
 export const trackTransaction = createAsyncThunk<
     void,
-    {chainId: number; transactionResponse: ethers.providers.TransactionResponse; key: string; extra?: unknown}
+    {
+        chainId: number;
+        transactionResponse: ethers.providers.TransactionResponse;
+        from: string;
+        key: string;
+        extra?: unknown;
+    }
 >(`${transactionTrackerSlicePrefix}/trackTransaction`, async (arg, {dispatch}) => {
     arg.transactionResponse.chainId = arg.chainId; // Recommended by Ethers to specify Chain ID when doing serialization.
 
@@ -47,6 +53,7 @@ export const trackTransaction = createAsyncThunk<
         getTransactionTrackerSlice().actions.addTransaction({
             chainId: arg.chainId,
             hash: transactionHash,
+            from: arg.from,
             timestampMs: new Date().getTime(),
             status: 'Pending',
             transactionResponse: ethers.utils.serializeTransaction(arg.transactionResponse),

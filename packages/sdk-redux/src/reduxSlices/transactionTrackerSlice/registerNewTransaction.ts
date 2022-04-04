@@ -11,6 +11,7 @@ export interface RegisterNewTransactionArg {
      * WARNING: Don't pass `chainId` off of ether's `TransactionResponse` because it's not set correctly on timely manner.
      */
     chainId: number;
+    from: string;
     transactionResponse: ethers.providers.TransactionResponse;
     /**
      * Whether to wait for one transaction confirmation.
@@ -34,13 +35,14 @@ export interface RegisterNewTransactionArg {
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
  */
 export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
-    const {chainId, transactionResponse, waitForConfirmation, dispatch, key, extra} = arg;
+    const {chainId, from, transactionResponse, waitForConfirmation, dispatch, key, extra} = arg;
     const framework = await getFramework(chainId);
 
     dispatch(
         trackTransaction({
-            transactionResponse,
             chainId,
+            from,
+            transactionResponse,
             key,
             ...(extra ? {extra: extra} : {}),
         })

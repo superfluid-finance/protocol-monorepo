@@ -8,6 +8,10 @@ export interface TrackedTransaction {
     chainId: number;
     hash: string;
     /**
+     * The address this transaction is from.
+     */
+    from: string;
+    /**
      * Milliseconds since epoch when started tracking the transaction.
      */
     timestampMs: number;

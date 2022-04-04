@@ -361,7 +361,7 @@ export interface IUpdateGlobalObjects {
     readonly updatedSubscriberATS?: IAccountTokenSnapshot;
     readonly updatedIndex?: IIndex;
     readonly updatedSubscription?: IIndexSubscription;
-    readonly updatedTokenStats: ITokenStatistic;
+    readonly updatedTokenStats?: ITokenStatistic;
 }
 
 export interface IAggregateLocalData {

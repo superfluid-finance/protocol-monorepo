@@ -136,3 +136,7 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         },
     ],
 ]);
+
+export const ALLOW_CREATE = 1 << 0;
+export const ALLOW_UPDATE = 1 << 1;
+export const ALLOW_DELETE = 1 << 2;

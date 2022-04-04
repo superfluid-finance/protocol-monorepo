@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, SFError, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
 import {
     asleep,
@@ -20,8 +20,16 @@ import {
     IUpdateGlobalObjects,
     IFlowOperator,
 } from "./interfaces";
-import { FlowActionType, IDAEventType } from "./helpers/constants";
-import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
+import {
+    ALLOW_CREATE,
+    FlowActionType,
+    IDAEventType,
+} from "./helpers/constants";
+import {
+    testFlowUpdated,
+    testModifyIDA,
+    testUpdateFlowOperatorPermissions,
+} from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
 import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -90,7 +98,9 @@ describe("Subgraph Tests", () => {
             flowOperators[data.updatedFlowOperator.id] =
                 data.updatedFlowOperator;
         }
-        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+        if (data.updatedTokenStats) {
+            tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+        }
     }
 
     async function transferAndUpdate(
@@ -477,7 +487,7 @@ describe("Subgraph Tests", () => {
                         sender: userAddresses[0],
                         flowOperator: userAddresses[0],
                         receiver: userAddresses[1],
-                        isLiquidation: true
+                        isLiquidation: true,
                     })
                 );
 
@@ -492,9 +502,101 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it("Should allow authorizing flow operator permissions", async () => {});
+        it("Should be able to update flow operator permissions", async () => {
+            const flowRateAllowance = monthlyToSecondRate(5000).toString();
 
-        it("Should allow flowOperator to create/update/delete a flow on behalf of sender", async () => {});
+            // give create permissions
+            updateGlobalObjects(
+                await testUpdateFlowOperatorPermissions({
+                    isCreate: true,
+                    framework,
+                    provider,
+                    superToken: daix,
+                    isFullControl: false,
+                    isFullControlRevoke: false,
+                    sender: userAddresses[0],
+                    permissions: ALLOW_CREATE,
+                    flowOperator: userAddresses[1],
+                    flowOperators,
+                    flowRateAllowance,
+                    accountTokenSnapshots,
+                })
+            );
+
+            // revoke all permissions
+            updateGlobalObjects(
+                await testUpdateFlowOperatorPermissions({
+                    isCreate: false,
+                    framework,
+                    provider,
+                    superToken: daix,
+                    isFullControl: false,
+                    isFullControlRevoke: true,
+                    sender: userAddresses[0],
+                    permissions: 0,
+                    flowOperator: userAddresses[1],
+                    flowOperators,
+                    flowRateAllowance: "0",
+                    accountTokenSnapshots,
+                })
+            );
+
+            // grant full control
+            updateGlobalObjects(
+                await testUpdateFlowOperatorPermissions({
+                    isCreate: false,
+                    framework,
+                    provider,
+                    superToken: daix,
+                    isFullControl: true,
+                    isFullControlRevoke: false,
+                    sender: userAddresses[0],
+                    permissions: 0,
+                    flowOperator: userAddresses[1],
+                    flowOperators,
+                    flowRateAllowance: "0",
+                    accountTokenSnapshots,
+                })
+            );
+        });
+
+        it("Should allow flowOperator to create/update/delete a flow on behalf of sender", async () => {
+            // create flow by operator
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Create,
+                    newFlowRate: monthlyToSecondRate(1000),
+                    sender: userAddresses[0],
+                    flowOperator: userAddresses[1],
+                    receiver: userAddresses[2],
+                })
+            );
+
+            // update flow by operator
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: monthlyToSecondRate(2000),
+                    sender: userAddresses[0],
+                    flowOperator: userAddresses[1],
+                    receiver: userAddresses[2],
+                })
+            );
+
+            // delete flow by operator
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Delete,
+                    newFlowRate: 0,
+                    sender: userAddresses[0],
+                    flowOperator: userAddresses[1],
+                    receiver: userAddresses[2],
+                })
+            );
+        });
     });
 
     /**

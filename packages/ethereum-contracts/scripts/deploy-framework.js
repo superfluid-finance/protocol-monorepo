@@ -341,14 +341,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             "Governance registers CFA"
         )(superfluid.address, cfa.address);
     }
-
+    let linked = false;
+    let lib;
     // list IDA v1
     const deploySlotsBitmapLibrary = async () => {
-        const lib = await web3tx(
-            SlotsBitmapLibrary.new,
-            "SlotsBitmapLibrary.new"
-        )();
-        InstantDistributionAgreementV1.link("SlotsBitmapLibrary", lib.address);
+        if (linked) return;
+        lib = await web3tx(SlotsBitmapLibrary.new, "SlotsBitmapLibrary.new")();
+        InstantDistributionAgreementV1.link(lib);
+        linked = true;
         return lib.address;
     };
     const deployIDAv1 = async () => {
@@ -390,10 +390,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             )) == ZERO_ADDRESS
         ) {
             // code not changed, link with existing library
-            InstantDistributionAgreementV1.link(
-                "SlotsBitmapLibrary",
-                slotsBitmapLibraryAddress
-            );
+            InstantDistributionAgreementV1.link(lib);
         }
     }
 

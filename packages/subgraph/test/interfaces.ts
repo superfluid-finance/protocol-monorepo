@@ -569,7 +569,6 @@ export interface IExpectedFlowOperatorUpdatedEvent {
     readonly addresses: string[];
     readonly token: string;
     readonly sender: string;
-    readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
 }

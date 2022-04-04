@@ -29,10 +29,7 @@ import {
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { getHostAddress, getResolverAddress } from "./addresses";
-import {
-    FlowOperatorUpdated,
-    FlowUpdated,
-} from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 /**************************************************************************
  * HOL initializer functions

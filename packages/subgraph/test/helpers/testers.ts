@@ -65,8 +65,11 @@ import {
     getExpectedStreamData,
 } from "./updaters";
 import {
+    ALLOW_CREATE,
+    FULL_CONTROL,
     IDAEventType,
     idaEventTypeToEventQueryDataMap,
+    MAX_FLOW_RATE,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
 import { Framework } from "@superfluid-finance/sdk-core";
@@ -262,8 +265,16 @@ export async function testUpdateFlowOperatorPermissions(
             addresses: [tokenId, senderId, flowOperatorAddress.toLowerCase()],
             token: tokenId,
             sender: senderId,
-            permissions: data.permissions,
-            flowRateAllowance: data.flowRateAllowance,
+            permissions: data.isFullControl
+                ? FULL_CONTROL
+                : data.isFullControlRevoke
+                ? 0
+                : data.permissions,
+            flowRateAllowance: data.isFullControl
+                ? MAX_FLOW_RATE.toString()
+                : data.isFullControlRevoke
+                ? "0"
+                : data.flowRateAllowance,
         },
         getFlowOperatorUpdatedEvents,
         "FlowOperatorUpdatedEvents"

@@ -23,6 +23,7 @@ import {
     actionTypeToClosedStreamsDeltaMap,
     actionTypeToPeriodRevisionIndexDeltaMap,
     FlowActionType,
+    MAX_FLOW_RATE,
 } from "./constants";
 import { getCurrentTotalAmountStreamed, toBN } from "./helpers";
 import { BaseProvider } from "@ethersproject/providers";
@@ -83,7 +84,7 @@ export const getExpectedFlowOperatorForFlowUpdated = ({
     const flowRateDiff = toBN(newFlowRate).sub(toBN(oldFlowRate));
     const flowRateAllowanceRemaining =
         toBN(currentFlowOperatorData.flowRateAllowanceGranted).eq(
-            toBN(2).pow(toBN(95)).sub(toBN(1))
+            MAX_FLOW_RATE
         ) || toBN(newFlowRate).lte(toBN(oldFlowRate))
             ? currentFlowOperatorData.flowRateAllowanceGranted
             : actionType === FlowActionType.Create

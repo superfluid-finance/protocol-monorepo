@@ -1,4 +1,5 @@
-const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 const {toBN, toWad} = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");

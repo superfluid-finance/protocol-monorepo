@@ -1,4 +1,5 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 
 const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
@@ -751,8 +752,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    // FIXME: this should be expecting a panic error
-                    "CallUtils: target revert()"
+                    "CallUtils: target panicked: 0x01"
                 );
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -837,7 +837,7 @@ describe("Superfluid Host Contract", function () {
                         "0x"
                     ),
                     // FIXME: this should be expecting a panic error
-                    "CallUtils: target revert()"
+                    "CallUtils: target panicked: 0x01"
                 );
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -998,7 +998,7 @@ describe("Superfluid Host Contract", function () {
                                 .encodeABI(),
                             "0x"
                         ),
-                        "CallUtils: target revert()"
+                        "CallUtils: target panicked: 0x01"
                     );
                 });
 
@@ -1544,7 +1544,7 @@ describe("Superfluid Host Contract", function () {
                         app.address,
                         app.contract.methods.actionRevert("0x").encodeABI()
                     ),
-                    "CallUtils: target revert()"
+                    "CallUtils: target panicked: 0x01"
                 );
                 await expectRevert(
                     superfluid.callAppAction(

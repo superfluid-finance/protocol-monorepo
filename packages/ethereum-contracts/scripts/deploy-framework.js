@@ -345,11 +345,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     let lib;
     // list IDA v1
     const deploySlotsBitmapLibrary = async () => {
-        if (linked) return;
-        lib = await web3tx(SlotsBitmapLibrary.new, "SlotsBitmapLibrary.new")();
-        InstantDistributionAgreementV1.link(lib);
-        linked = true;
-        return lib.address;
+        // we have to change this slightly when using hardhat vs. truffle
+        if (process.env.hre) {
+            if (linked || lib != null) return;
+            lib = await web3tx(
+                SlotsBitmapLibrary.new,
+                "SlotsBitmapLibrary.new"
+            )();
+            InstantDistributionAgreementV1.link(lib);
+            linked = true;
+            return lib.address;
+        } else {
+            const lib = await web3tx(
+                SlotsBitmapLibrary.new,
+                "SlotsBitmapLibrary.new"
+            )();
+            InstantDistributionAgreementV1.link(
+                "SlotsBitmapLibrary",
+                lib.address
+            );
+        }
     };
     const deployIDAv1 = async () => {
         await deploySlotsBitmapLibrary();
@@ -390,7 +405,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             )) == ZERO_ADDRESS
         ) {
             // code not changed, link with existing library
-            InstantDistributionAgreementV1.link(lib);
+            if (process.env.hre) {
+                if (lib) {
+                    InstantDistributionAgreementV1.link(lib);
+                }
+            } else {
+                InstantDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBitmapLibraryAddress
+                );
+            }
         }
     }
 

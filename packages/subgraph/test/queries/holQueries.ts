@@ -99,7 +99,7 @@ export const getStreamPeriod = gql`
 `;
 
 export const getFlowOperator = gql`
-    query getFlowOperator($id ID!) {
+    query getFlowOperator($id: ID!) {
         response: flowOperator(id: $id) {
             id
             permissions

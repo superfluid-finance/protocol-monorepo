@@ -212,8 +212,9 @@ export async function testUpdateFlowOperatorPermissions(
     const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
     const tokenId = data.superToken.address.toLowerCase();
     const senderId = data.sender.toLowerCase();
+    const flowOperatorAddress = data.flowOperator.toLowerCase();
     const flowOperatorId = getFlowOperatorId({
-        flowOperator: data.flowOperator,
+        flowOperator: flowOperatorAddress,
         token: data.superToken.address,
         sender: senderId,
     });
@@ -232,7 +233,7 @@ export async function testUpdateFlowOperatorPermissions(
             currentFlowOperatorData: initData.flowOperator,
             permissions: data.permissions,
             sender: data.sender,
-            flowOperator: data.flowOperator,
+            flowOperator: flowOperatorAddress,
             flowRateAllowance: data.flowRateAllowance,
         });
 
@@ -259,7 +260,7 @@ export async function testUpdateFlowOperatorPermissions(
     >(
         txnResponse,
         {
-            addresses: [tokenId, senderId, flowOperatorId],
+            addresses: [tokenId, senderId, flowOperatorAddress.toLowerCase()],
             token: tokenId,
             sender: senderId,
             flowOperator: flowOperatorId,

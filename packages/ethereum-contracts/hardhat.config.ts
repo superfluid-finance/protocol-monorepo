@@ -2,6 +2,7 @@ import {HardhatUserConfig} from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
+import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 
 try {

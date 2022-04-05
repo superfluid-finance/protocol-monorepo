@@ -56,6 +56,11 @@ const config: HardhatUserConfig = {
             url: process.env.ARBRINKEBY_PROVIDER_URL || "",
             chainId: 69,
         },
+        coverage: {
+            url: "http://127.0.0.1:8555",
+            gas: 1,
+            gasPrice: 1,
+        },
     },
     mocha: {
         timeout: 250000,

@@ -97,7 +97,7 @@ jobs:
 
       - name: Run coverage test
         run: |
-          yarn install --save-dev ganache-cli
+          yarn add --save-dev ganache-cli
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
   test-js-sdk:

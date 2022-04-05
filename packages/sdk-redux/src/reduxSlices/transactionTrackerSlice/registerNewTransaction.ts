@@ -3,7 +3,7 @@ import {ethers} from 'ethers';
 
 import {getFramework} from '../../sdkReduxConfig';
 
-import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
+import {trackTransactionThunk, waitForOneConfirmation} from './trackTransactionThunk';
 import {TransactionKey} from './transactionKey';
 
 export interface RegisterNewTransactionArg {
@@ -40,7 +40,7 @@ export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => 
     const framework = await getFramework(chainId);
 
     dispatch(
-        trackTransaction({
+        trackTransactionThunk({
             chainId,
             from,
             transactionResponse,

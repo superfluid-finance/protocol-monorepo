@@ -27,7 +27,7 @@ export const waitForOneConfirmation = (
 /**
  *
  */
-export const trackTransaction = createAsyncThunk<
+export const trackTransactionThunk = createAsyncThunk<
     void,
     {
         chainId: number;

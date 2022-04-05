@@ -4,6 +4,7 @@ import {ethers} from 'ethers';
 import {getFramework} from '../../sdkReduxConfig';
 
 import {trackTransaction, waitForOneConfirmation} from './trackTransaction';
+import {TransactionKey} from './transactionKey';
 
 export interface RegisterNewTransactionArg {
     /**
@@ -24,7 +25,7 @@ export interface RegisterNewTransactionArg {
     /**
      * Any key you want to give the transaction to identify it later.
      */
-    key: string;
+    key: TransactionKey;
     /**
      * Any extra data you want to attach to the transaction. Make sure it's serializable!
      */

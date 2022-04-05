@@ -5,6 +5,8 @@ export * from './sdkReduxConfig';
 
 export * from './reduxSlices/argTypes';
 
+export * from './reduxSlices/transactionTrackerSlice/ethersError';
+export * from './reduxSlices/transactionTrackerSlice/transactionKey';
 export * from './reduxSlices/transactionTrackerSlice/trackedTransaction';
 export * from './reduxSlices/transactionTrackerSlice/registerNewTransaction';
 

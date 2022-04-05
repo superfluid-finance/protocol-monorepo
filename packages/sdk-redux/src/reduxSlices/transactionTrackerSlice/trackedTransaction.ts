@@ -1,6 +1,8 @@
 import {createEntityAdapter} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
+import {TransactionKey} from './transactionKey';
+
 export type TransactionStatus = 'Pending' | 'Succeeded' | 'Failed' | 'Unknown';
 
 // "Redux" stuff needs to be serializable. Blockchain transaction object is unserializable.
@@ -20,7 +22,7 @@ export interface TrackedTransaction {
     transactionReceipt?: string;
     ethersErrorCode?: ethers.errors;
     ethersErrorMessage?: string;
-    key: string;
+    key: TransactionKey;
     extra?: unknown;
 }
 

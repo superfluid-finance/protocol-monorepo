@@ -9,17 +9,9 @@ import {MillisecondTimes} from '../../utils';
 import {TransactionInfo} from '../argTypes';
 import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 
+import {EthersError} from './ethersError';
+import {TransactionKey} from './transactionKey';
 import {transactionTrackerSlicePrefix} from './transactionTrackerSlice';
-
-// TODO(KK): Export?
-/**
- *
- */
-export type EthersError = Error & {
-    code: ethers.errors;
-    reason?: 'replaced' | 'repriced' | 'cancelled';
-    cancelled?: boolean;
-};
 
 /**
  *
@@ -41,7 +33,7 @@ export const trackTransaction = createAsyncThunk<
         chainId: number;
         transactionResponse: ethers.providers.TransactionResponse;
         from: string;
-        key: string;
+        key: TransactionKey;
         extra?: unknown;
     }
 >(`${transactionTrackerSlicePrefix}/trackTransaction`, async (arg, {dispatch}) => {

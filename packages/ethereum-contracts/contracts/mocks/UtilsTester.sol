@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";

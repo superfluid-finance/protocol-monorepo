@@ -292,7 +292,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         )} a flow **********************`
     );
 
-    const signer = await ethers.getSigner(data.sender);
+    let signer = await ethers.getSigner(data.sender);
     const baseData = {
         superToken: data.superToken.address,
         receiver: data.receiver,
@@ -322,6 +322,8 @@ export const modifyFlowAndReturnCreatedFlowData = async (
                       })
                       .exec(signer);
     } else {
+        // flowOperator is the signer here
+        signer = await ethers.getSigner(data.flowOperator);
         txnResponse =
             data.actionType === FlowActionType.Create
                 ? await data.framework.cfaV1

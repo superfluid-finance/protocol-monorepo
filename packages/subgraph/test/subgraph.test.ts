@@ -518,7 +518,7 @@ describe("Subgraph Tests", () => {
                     isFullControlRevoke: false,
                     sender: userAddresses[0],
                     permissions: ALLOW_CREATE,
-                    flowOperator: userAddresses[1],
+                    flowOperator: userAddresses[2],
                     flowOperators,
                     flowRateAllowance,
                     accountTokenSnapshots,
@@ -536,7 +536,7 @@ describe("Subgraph Tests", () => {
                     isFullControlRevoke: true,
                     sender: userAddresses[0],
                     permissions: 0,
-                    flowOperator: userAddresses[1],
+                    flowOperator: userAddresses[2],
                     flowOperators,
                     flowRateAllowance: "0",
                     accountTokenSnapshots,
@@ -554,7 +554,7 @@ describe("Subgraph Tests", () => {
                     isFullControlRevoke: false,
                     sender: userAddresses[0],
                     permissions: 0,
-                    flowOperator: userAddresses[1],
+                    flowOperator: userAddresses[2],
                     flowOperators,
                     flowRateAllowance: "0",
                     accountTokenSnapshots,
@@ -570,8 +570,8 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: monthlyToSecondRate(1000),
                     sender: userAddresses[0],
-                    flowOperator: userAddresses[1],
-                    receiver: userAddresses[2],
+                    flowOperator: userAddresses[2],
+                    receiver: userAddresses[1],
                 })
             );
 
@@ -582,8 +582,8 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: monthlyToSecondRate(2000),
                     sender: userAddresses[0],
-                    flowOperator: userAddresses[1],
-                    receiver: userAddresses[2],
+                    flowOperator: userAddresses[2],
+                    receiver: userAddresses[1],
                 })
             );
 
@@ -594,8 +594,8 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Delete,
                     newFlowRate: 0,
                     sender: userAddresses[0],
-                    flowOperator: userAddresses[1],
-                    receiver: userAddresses[2],
+                    flowOperator: userAddresses[2],
+                    receiver: userAddresses[1],
                 })
             );
         });

@@ -61,11 +61,9 @@ import {
     getExpectedDataForSubscriptionApproved,
     getExpectedDataForSubscriptionDistributionClaimed,
     getExpectedDataForSubscriptionUnitsUpdated,
-    getExpectedFlowOperatorForFlowOperatorUpdated,
     getExpectedStreamData,
 } from "./updaters";
 import {
-    ALLOW_CREATE,
     FULL_CONTROL,
     IDAEventType,
     idaEventTypeToEventQueryDataMap,
@@ -230,14 +228,23 @@ export async function testUpdateFlowOperatorPermissions(
         senderId: senderId,
     });
 
-    const expectedFlowOperatorData =
-        getExpectedFlowOperatorForFlowOperatorUpdated({
-            currentFlowOperatorData: initData.flowOperator,
-            permissions: data.permissions,
-            sender: data.sender,
-            flowOperator: flowOperatorAddress,
-            flowRateAllowance: data.flowRateAllowance,
-        });
+    const expectedPermissions = data.isFullControl
+        ? FULL_CONTROL
+        : data.isFullControlRevoke
+        ? 0
+        : data.permissions;
+    const expectedFlowRateAllowance = data.isFullControl
+        ? MAX_FLOW_RATE.toString()
+        : data.isFullControlRevoke
+        ? "0"
+        : data.flowRateAllowance;
+
+    const expectedFlowOperatorData = {
+            ...initData.flowOperator,
+            permissions: expectedPermissions,
+            flowRateAllowanceGranted: expectedFlowRateAllowance,
+            flowRateAllowanceRemaining: expectedFlowRateAllowance,
+        };
 
     const senderATS = getOrInitAccountTokenSnapshot(
         data.accountTokenSnapshots,
@@ -265,16 +272,8 @@ export async function testUpdateFlowOperatorPermissions(
             addresses: [tokenId, senderId, flowOperatorAddress.toLowerCase()],
             token: tokenId,
             sender: senderId,
-            permissions: data.isFullControl
-                ? FULL_CONTROL
-                : data.isFullControlRevoke
-                ? 0
-                : data.permissions,
-            flowRateAllowance: data.isFullControl
-                ? MAX_FLOW_RATE.toString()
-                : data.isFullControlRevoke
-                ? "0"
-                : data.flowRateAllowance,
+            permissions: expectedPermissions,
+            flowRateAllowance: expectedFlowRateAllowance,
         },
         getFlowOperatorUpdatedEvents,
         "FlowOperatorUpdatedEvents"

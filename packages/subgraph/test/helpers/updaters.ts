@@ -100,25 +100,6 @@ export const getExpectedFlowOperatorForFlowUpdated = ({
     };
 };
 
-export const getExpectedFlowOperatorForFlowOperatorUpdated = ({
-    currentFlowOperatorData,
-    permissions,
-    flowRateAllowance,
-}: {
-    currentFlowOperatorData: IFlowOperator;
-    permissions: number;
-    sender: string;
-    flowOperator: string;
-    flowRateAllowance: string;
-}): IFlowOperator => {
-    return {
-        ...currentFlowOperatorData,
-        permissions,
-        flowRateAllowanceGranted: flowRateAllowance,
-        flowRateAllowanceRemaining: flowRateAllowance,
-    };
-};
-
 const getUpdatedIndex = (
     currentIndex: string,
     actionToIndexDeltaMap: Map<FlowActionType, number>,

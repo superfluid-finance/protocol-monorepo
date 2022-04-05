@@ -346,7 +346,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // list IDA v1
     const deploySlotsBitmapLibrary = async () => {
         // we have to change this slightly when using hardhat vs. truffle
-        if (process.env.hre) {
+        if (process.env.IS_HARDHAT) {
             if (linked || lib != null) return;
             lib = await web3tx(
                 SlotsBitmapLibrary.new,
@@ -405,7 +405,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             )) == ZERO_ADDRESS
         ) {
             // code not changed, link with existing library
-            if (process.env.hre) {
+            if (process.env.IS_HARDHAT) {
                 if (lib) {
                     InstantDistributionAgreementV1.link(lib);
                 }

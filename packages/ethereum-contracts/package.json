@@ -57,6 +57,7 @@
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
+        "mochawesome": "^7.1.2",
         "@openzeppelin/test-helpers": "0.5.15",
         "@truffle/hdwallet-provider": "^1.7.0",
         "async": "^3.2.3",

@@ -487,7 +487,7 @@ describe("Subgraph Tests", () => {
                         actionType: FlowActionType.Delete,
                         newFlowRate: 0,
                         sender,
-                        flowOperator: sender,
+                        flowOperator: liquidator,
                         receiver,
                         liquidator,
                     })

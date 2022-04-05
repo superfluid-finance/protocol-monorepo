@@ -447,7 +447,7 @@ export interface ITestModifyFlowData {
     readonly flowOperator: string;
     readonly tokenAddress: string;
     readonly totalSupply?: string;
-    readonly isLiquidation?: boolean;
+    readonly liquidator?: string;
 }
 
 export interface ITestUpdateFlowOperatorData {

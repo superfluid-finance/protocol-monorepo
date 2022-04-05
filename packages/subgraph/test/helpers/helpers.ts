@@ -292,14 +292,16 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         )} a flow **********************`
     );
 
-    let signer = await ethers.getSigner(data.sender);
+    let signer = data.liquidator
+        ? await ethers.getSigner(data.liquidator)
+        : await ethers.getSigner(data.sender);
     const baseData = {
         superToken: data.superToken.address,
         receiver: data.receiver,
         userData: "0x",
     };
     let txnResponse: TransactionResponse;
-    if (data.sender === data.flowOperator || data.isLiquidation) {
+    if (data.sender === data.flowOperator || data.liquidator) {
         txnResponse =
             data.actionType === FlowActionType.Create
                 ? await data.framework.cfaV1

@@ -81,9 +81,9 @@ export const validateATSEntity = (
     expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
         expectedTotalInflowRate
     );
-    // expect(graphATSData.totalDeposit, "ATS: totalDeposit error").to.equal(
-    //     expectedTotalDeposit
-    // );
+    expect(graphATSData.totalDeposit, "ATS: totalDeposit error").to.equal(
+        expectedTotalDeposit
+    );
     expect(
         graphATSData.totalOutflowRate,
         "ATS: totalOutflowRate error"
@@ -160,7 +160,7 @@ export const validateTokenStatsEntity = (
         graphTokenStats.totalAmountDistributedUntilUpdatedAt,
         "totalAmountDistributedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountDistributedUntilUpdatedAt);
-    // expect(graphTokenStats.totalDeposit, "totalDeposit error").to.equal(
-    //     expectedTotalDeposit
-    // );
+    expect(graphTokenStats.totalDeposit, "totalDeposit error").to.equal(
+        expectedTotalDeposit
+    );
 };

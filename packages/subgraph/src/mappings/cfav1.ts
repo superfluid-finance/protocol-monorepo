@@ -229,7 +229,7 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     );
     let newDeposit = depositResult.reverted
         ? BigInt.fromI32(0)
-        : depositResult.value.value2;
+        : depositResult.value.value2; // deposit
 
     let stream = getOrInitStream(event);
     let oldDeposit = stream.deposit;

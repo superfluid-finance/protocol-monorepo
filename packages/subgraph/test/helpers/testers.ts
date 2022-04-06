@@ -107,9 +107,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         updatedAtBlockNumber: lastUpdatedBlockNumber,
         data,
     });
-    const newDeposit = newFlowRate.gt(toBN(0))
-        ? clipDepositNumber(newFlowRate.mul(toBN(3600)))
-        : toBN(0);
+    const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(3600)));
     const depositDelta = newDeposit.sub(toBN(initData.pastStreamData.deposit));
     // update and return updated (expected) data
     const expectedData = await getExpectedDataForFlowUpdated({
@@ -240,11 +238,11 @@ export async function testUpdateFlowOperatorPermissions(
         : data.flowRateAllowance;
 
     const expectedFlowOperatorData = {
-            ...initData.flowOperator,
-            permissions: expectedPermissions,
-            flowRateAllowanceGranted: expectedFlowRateAllowance,
-            flowRateAllowanceRemaining: expectedFlowRateAllowance,
-        };
+        ...initData.flowOperator,
+        permissions: expectedPermissions,
+        flowRateAllowanceGranted: expectedFlowRateAllowance,
+        flowRateAllowanceRemaining: expectedFlowRateAllowance,
+    };
 
     const senderATS = getOrInitAccountTokenSnapshot(
         data.accountTokenSnapshots,

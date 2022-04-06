@@ -1,1 +1,1 @@
-export type RpcReducerPath = 'superfluid/rpc';
+export type RpcReducerPath = 'superfluid_rpc';

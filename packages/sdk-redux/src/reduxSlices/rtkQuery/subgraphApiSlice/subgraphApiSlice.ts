@@ -13,7 +13,7 @@ import {SubgraphReducerPath} from './subgraphReducerPath';
 export const createSubgraphApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
         keepUnusedDataFor: CacheTime.OneMinute,
-        reducerPath: typeGuard<SubgraphReducerPath>('superfluid/subgraph'),
+        reducerPath: typeGuard<SubgraphReducerPath>('superfluid_subgraph'),
         baseQuery: subgraphBaseQuery(),
         tagTypes: cacheTagTypes,
         endpoints: (_builder: SubgraphEndpointBuilder) => ({}),

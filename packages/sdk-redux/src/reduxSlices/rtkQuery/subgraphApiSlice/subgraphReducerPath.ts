@@ -1,1 +1,1 @@
-export type SubgraphReducerPath = 'superfluid/subgraph';
+export type SubgraphReducerPath = 'superfluid_subgraph';

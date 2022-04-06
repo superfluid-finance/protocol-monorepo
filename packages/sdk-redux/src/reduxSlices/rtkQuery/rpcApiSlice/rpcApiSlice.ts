@@ -11,7 +11,7 @@ import {RpcReducerPath} from './rpcReducerPath';
 
 export const createRpcApiSlice = <T extends ModuleName>(createRtkQueryApi: CreateApi<T>) =>
     createRtkQueryApi({
-        reducerPath: typeGuard<RpcReducerPath>('superfluid/rpc'),
+        reducerPath: typeGuard<RpcReducerPath>('superfluid_rpc'),
         baseQuery: rpcBaseQuery(),
         tagTypes: cacheTagTypes,
         endpoints: (_builder: RpcEndpointBuilder) => ({}),

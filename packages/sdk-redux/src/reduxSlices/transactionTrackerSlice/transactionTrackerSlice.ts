@@ -2,7 +2,7 @@ import {createSlice} from '@reduxjs/toolkit';
 
 import {transactionsAdapter} from './trackedTransaction';
 
-export const transactionTrackerSlicePrefix = 'superfluid/transactions' as const;
+export const transactionTrackerSlicePrefix = 'superfluid_transactions' as const;
 
 export const createTransactionTrackerSlice = () => ({
     reducerPath: transactionTrackerSlicePrefix,

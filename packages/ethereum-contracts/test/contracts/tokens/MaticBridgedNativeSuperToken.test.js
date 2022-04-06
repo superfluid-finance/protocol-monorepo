@@ -16,7 +16,7 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    let admin, bob, eve, chainMgr;
+    let admin, bob, chainMgr;
     let superTokenFactory;
     let tokenProxy, token;
 
@@ -30,7 +30,7 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             tokens: [],
         });
 
-        ({admin, alice: chainMgr, bob, eve} = t.aliases);
+        ({admin, alice: chainMgr, bob} = t.aliases);
         console.log(`aliases: ${JSON.stringify(t.aliases, null, 2)}`);
         console.log(`chainMgr: ${chainMgr}`);
         superTokenFactory = await ISuperTokenFactory.at(

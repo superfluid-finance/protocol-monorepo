@@ -4,11 +4,11 @@
 
 
 """
-This module defines the symbolic equations for the Decaying Flow Agreement (DFA), including:
+This module defines and solves the symbolic equations for the Decaying Flow Agreement (DFA), including:
 
-- rtb equation,
-- aad_mempty_update_with_acd equation,
-- aad_mappend equation.
+- defining rtb equation,
+- solving aad_mempty_update_with_acd equation,
+- solving aad_mappend equation.
 """
 
 from sage.all import e, var, assume, solve, oo
@@ -40,12 +40,12 @@ def rtb(aad: AAD, t: var):
     return alpha * e ** (- lambda_0 * (t - settledAt)) + epsilon
 
 def solve_aad_mempty_update_with_acd(newACD: ACD) -> AAD:
-    print("# Solve aad_mempty_update_with_acd equition\n")
+    print("# Solve aad_mempty_update_with_acd equation\n")
     print("Given:")
     aad = AAD()
     t = var("t")
     print("\tvariables: ", t)
-    print("\tdata: newACD ( θ = {}, t_u = {})".format(newACD.distributionLimit, newACD.updatedAt))
+    print("\tdata: newACD (θ = {}, t_u = {})".format(newACD.distributionLimit, newACD.updatedAt))
     # Initial account state
     print("\trtb(aad, t) = ", rtb(aad, t))
     print("\n")

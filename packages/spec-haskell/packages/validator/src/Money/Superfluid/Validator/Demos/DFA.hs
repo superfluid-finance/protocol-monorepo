@@ -38,8 +38,8 @@ travelDaysAndPrintBalances t0 days = do
         bobBalance <- runToken token $ SF.balanceOfAccount bob
         carolBalance <- runToken token $ SF.balanceOfAccount carol
         danBalance <- runToken token $ SF.balanceOfAccount dan
-        liftIO $ putStrLn $ printf "%d %s %s %s %s"
-            ((coerce t_offset + i * 3600) `quot` 3600)
+        liftIO $ putStrLn $ printf "%f %s %s %s %s"
+            ((fromIntegral (coerce t_offset + i * 3600) :: Double) / (3600.0 * 24))
             (show . SF.untappedLiquidityFromRTB $ aliceBalance)
             (show . SF.untappedLiquidityFromRTB $ bobBalance)
             (show . SF.untappedLiquidityFromRTB $ carolBalance)
@@ -52,9 +52,10 @@ demo = do
     timeTravel t0
     createToken token [alice, bob, carol, dan] initBalance
     runToken token $ SF.updateDecayingFlow alice bob (distributionLimitN 1)
+    travelDaysAndPrintBalances t0 7
 
-    travelDaysAndPrintBalances t0 10
-    runToken token $ SF.updateDecayingFlow alice carol (distributionLimitN 2)
-    travelDaysAndPrintBalances t0 10
-    runToken token $ SF.updateDecayingFlow dan alice (distributionLimitN 3)
-    travelDaysAndPrintBalances t0 20
+    runToken token $ SF.updateDecayingFlow alice carol (distributionLimitN 1)
+    travelDaysAndPrintBalances t0 7
+
+    runToken token $ SF.updateDecayingFlow dan alice (distributionLimitN 2)
+    travelDaysAndPrintBalances t0 60

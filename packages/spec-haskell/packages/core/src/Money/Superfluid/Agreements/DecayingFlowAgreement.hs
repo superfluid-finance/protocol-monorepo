@@ -16,8 +16,8 @@
 --
 --   Half-life of distriibution :
 --
---   t_h == -log(2) / λ
---   λ = -log(2) /  t_h
+--   t_h == log(2) / λ
+--   λ = log(2) /  t_h
 module Money.Superfluid.Agreements.DecayingFlowAgreement
     ( DFAContractData (..)
     , DFAAccountData (..)

@@ -359,7 +359,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
 
-    const { flowRate } = await data.framework.cfaV1.getFlow({
+    const { flowRate, deposit } = await data.framework.cfaV1.getFlow({
         superToken: data.superToken.address,
         sender: data.sender,
         receiver: data.receiver,
@@ -370,6 +370,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),
+        deposit
     };
 };
 

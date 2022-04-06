@@ -14,6 +14,7 @@ export const fetchATSAndValidate = async (
         expectedATSData.id,
         "AccountTokenSnapshot"
     );
+    console.log("graphATS.totalDeposit", graphATS.totalDeposit);
     validateATSEntity(graphATS, expectedATSData);
 };
 

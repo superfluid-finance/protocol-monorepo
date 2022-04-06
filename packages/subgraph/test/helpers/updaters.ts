@@ -38,7 +38,7 @@ export const getExpectedStreamData = (
     newDeposit: string,
     lastUpdatedAtTimestamp: string,
     streamedAmountSinceUpdatedAt: BigNumber
-) => {
+): IStreamData => {
     const {
         revisionIndex: currentRevisionIndex,
         periodRevisionIndex: currentPeriodRevisionIndex,
@@ -61,10 +61,10 @@ export const getExpectedStreamData = (
         revisionIndex,
         periodRevisionIndex,
         oldFlowRate,
-        newDeposit,
+        deposit: newDeposit,
         streamedUntilUpdatedAt: updatedStreamedUntilUpdatedAt.toString(),
         updatedAtTimestamp: lastUpdatedAtTimestamp,
-    } as IStreamData;
+    };
 };
 
 export const getExpectedFlowOperatorForFlowUpdated = ({
@@ -200,7 +200,7 @@ export const getExpectedTokenStatsForCFAEvent = (
     flowRate: BigNumber,
     flowRateDelta: BigNumber,
     depositDelta: BigNumber
-) => {
+): ITokenStatistic => {
     const activeStreamsDelta =
         actionTypeToActiveStreamsDeltaMap.get(actionType)!;
     const closedStreamsDelta =
@@ -248,7 +248,7 @@ export const getExpectedTokenStatsForCFAEvent = (
         totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt,
         totalDeposit,
-    } as ITokenStatistic;
+    };
 };
 
 /**

@@ -109,6 +109,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         data,
     });
     const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(3600)));
+    console.log(data.sender +  "-> " + data.receiver);
     console.log("newDeposit", newDeposit.toString());
     console.log("deposit", deposit.toString());
     console.log("initData.pastStreamData.deposit", initData.pastStreamData.deposit.toString());

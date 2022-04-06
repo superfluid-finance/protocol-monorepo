@@ -96,14 +96,14 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
         );
 
         await expectRevert(
-            token.withdraw(AMOUNT_1, {from: eve}),
+            token.withdraw(AMOUNT_1),
             "SuperfluidToken: burn amount exceeds balance"
         );
 
         await token.withdraw(AMOUNT_1, {from: bob});
 
         await expectRevert(
-            token.updateChildChainManager(bob, {from: eve}),
+            token.updateChildChainManager(bob),
             "MBNSuperToken: only governance allowed"
         );
     });

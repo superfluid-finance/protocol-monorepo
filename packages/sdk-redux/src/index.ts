@@ -9,6 +9,9 @@ export * from './reduxSlices/transactionTrackerSlice/ethersError';
 export * from './reduxSlices/transactionTrackerSlice/transactionKey';
 export * from './reduxSlices/transactionTrackerSlice/trackedTransaction';
 export * from './reduxSlices/transactionTrackerSlice/registerNewTransaction';
+export * from './reduxSlices/transactionTrackerSlice/thunks/initiateNewTransactionTrackingThunk';
+export * from './reduxSlices/transactionTrackerSlice/thunks/initiateOldPendingTransactionsTrackingThunk';
+export * from './reduxSlices/transactionTrackerSlice/thunks/trackPendingTransactionThunk';
 
 export * from './reduxSlices/rtkQuery/createApiWithReactHooks';
 export * from './reduxSlices/rtkQuery/createApiWithoutReactHooks';

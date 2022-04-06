@@ -4,14 +4,17 @@ import {transactionsAdapter} from './trackedTransaction';
 
 export const transactionTrackerSlicePrefix = 'superfluid/transactions' as const;
 
-export const createTransactionTrackerSlice = () =>
-    createSlice({
+export const createTransactionTrackerSlice = () => ({
+    reducerPath: transactionTrackerSlicePrefix,
+    ...createSlice({
         name: transactionTrackerSlicePrefix,
         initialState: transactionsAdapter.getInitialState(),
         reducers: {
             addTransaction: transactionsAdapter.addOne,
             updateTransaction: transactionsAdapter.updateOne,
         },
-    });
+    }),
+});
 
 export type TransactionTrackerSlice = ReturnType<typeof createTransactionTrackerSlice>;
+export type TransactionTrackerReducer = ReturnType<TransactionTrackerSlice['getInitialState']>;

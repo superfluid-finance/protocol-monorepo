@@ -4,59 +4,28 @@ import {EventQueryHandler} from '@superfluid-finance/sdk-core';
 import {ethers} from 'ethers';
 import promiseRetry from 'promise-retry';
 
-import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTrackerSlice} from '../../sdkReduxConfig';
-import {MillisecondTimes} from '../../utils';
-import {TransactionInfo} from '../argTypes';
-import {invalidateCacheTagsForEvents} from '../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
-
-import {EthersError} from './ethersError';
-import {TransactionKey} from './transactionKey';
-import {transactionTrackerSlicePrefix} from './transactionTrackerSlice';
-
-/**
- *
- * @param provider
- * @param transactionHash
- */
-export const waitForOneConfirmation = (
-    provider: ethers.providers.Provider,
-    transactionHash: string
-): Promise<ethers.providers.TransactionReceipt> =>
-    provider.waitForTransaction(transactionHash, 1, MillisecondTimes.TenMinutes);
+import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTrackerSlice} from '../../../sdkReduxConfig';
+import {MillisecondTimes} from '../../../utils';
+import {TransactionInfo} from '../../argTypes';
+import {invalidateCacheTagsForEvents} from '../../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
+import {EthersError} from '../ethersError';
+import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
+import {waitForOneConfirmation} from '../waitForOneConfirmation';
 
 /**
  *
  */
-export const trackTransactionThunk = createAsyncThunk<
+export const trackPendingTransactionThunk = createAsyncThunk<
     void,
     {
         chainId: number;
-        transactionResponse: ethers.providers.TransactionResponse;
-        from: string;
-        key: TransactionKey;
-        extra?: unknown;
+        transactionHash: string;
     }
->(`${transactionTrackerSlicePrefix}/trackTransaction`, async (arg, {dispatch}) => {
-    arg.transactionResponse.chainId = arg.chainId; // Recommended by Ethers to specify Chain ID when doing serialization.
-
-    const transactionHash = arg.transactionResponse.hash;
-
-    dispatch(
-        getTransactionTrackerSlice().actions.addTransaction({
-            chainId: arg.chainId,
-            hash: transactionHash,
-            from: ethers.utils.getAddress(arg.from),
-            timestampMs: new Date().getTime(),
-            status: 'Pending',
-            transactionResponse: ethers.utils.serializeTransaction(arg.transactionResponse),
-            key: arg.key,
-            ...(arg.extra ? {extra: arg.extra} : {}),
-        })
-    );
-
+>(`${transactionTrackerSlicePrefix}/trackPendingTransaction`, async (arg, {dispatch}) => {
+    const transactionHash = arg.transactionHash;
     const framework = await getFramework(arg.chainId);
 
-    waitForOneConfirmation(framework.settings.provider, transactionHash)
+    await waitForOneConfirmation(framework.settings.provider, transactionHash)
         .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
             // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 

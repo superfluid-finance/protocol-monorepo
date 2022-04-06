@@ -20,7 +20,7 @@ export const sfTransactions = initializeTransactionTrackerSlice();
 export const store = configureStore({
     reducer: {
         [sfApi.reducerPath]: sfApi.reducer,
-        sfTransactions: sfTransactions.reducer,
+        [sfTransactions.reducerPath]: sfTransactions.reducer,
         [sfSubgraph.reducerPath]: sfSubgraph.reducer,
     },
     middleware: (getDefaultMiddleware) =>

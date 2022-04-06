@@ -18,7 +18,7 @@ export const TransactionTable: FC = (): ReactElement => {
     const [networkName, signerAddress] = useContext(SignerContext);
 
     const transactions = useAppSelector((state) =>
-        transactionSelectors.selectAll(state.sfTransactions)
+        transactionSelectors.selectAll(state["superfluid/transactions"])
     );
 
     return (

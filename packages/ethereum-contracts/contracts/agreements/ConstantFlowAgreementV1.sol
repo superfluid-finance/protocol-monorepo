@@ -680,6 +680,8 @@ contract ConstantFlowAgreementV1 is
         int96 flowRateAllowance, // flowRateBudget
         bytes calldata ctx
     ) public override returns(bytes memory newCtx) {
+        assert(flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
+
         newCtx = ctx;
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);

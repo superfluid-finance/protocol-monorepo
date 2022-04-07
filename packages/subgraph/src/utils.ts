@@ -1,6 +1,6 @@
-import {BigInt, Bytes, ethereum, Address, log} from "@graphprotocol/graph-ts";
-import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
-import {Resolver} from "../generated/ResolverV1/Resolver";
+import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
+import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
     StreamRevision,
     IndexSubscription,
@@ -12,7 +12,6 @@ import {
  * Constants
  *************************************************************************/
 
-export const BYTES_DASH = Bytes.fromUTF8("-");
 export let BIG_INT_ZERO = BigInt.fromI32(0);
 export let BIG_INT_ONE = BigInt.fromI32(1);
 export let ZERO_ADDRESS = Address.fromString(
@@ -23,12 +22,15 @@ export let ZERO_ADDRESS = Address.fromString(
  * Event entities util functions
  *************************************************************************/
 
-export function createEventID(eventName: string, event: ethereum.Event): Bytes {
-    return Bytes.fromUTF8(eventName)
-        .concat(BYTES_DASH)
-        .concat(event.transaction.hash)
-        .concat(BYTES_DASH)
-        .concatI32(event.logIndex.toI32());
+export function createEventID(
+    eventName: string,
+    event: ethereum.Event
+): string {
+    return eventName
+        .concat("-")
+        .concat(event.transaction.hash.toHexString())
+        .concat("-")
+        .concat(event.logIndex.toString());
 }
 
 /**************************************************************************
@@ -76,9 +78,7 @@ export function updateTotalSupplyForNativeSuperToken(
     tokenStatistic: TokenStatistic,
     tokenAddress: Address
 ): TokenStatistic {
-    if (
-        token.underlyingAddress.toHex() ==
-            "0x0000000000000000000000000000000000000000" &&
+    if (token.underlyingAddress.toHex() == "0x0000000000000000000000000000000000000000" &&
         tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
     ) {
         let tokenContract = SuperToken.bind(tokenAddress);
@@ -102,7 +102,8 @@ export function tokenHasValidHost(
     hostAddress: Address,
     tokenAddress: Address
 ): boolean {
-    let token = Token.load(tokenAddress);
+    let tokenId = tokenAddress.toHex();
+    let token = Token.load(tokenId);
     if (token == null) {
         let tokenContract = SuperToken.bind(tokenAddress);
         let tokenHostAddressResult = tokenContract.try_getHost();
@@ -120,35 +121,29 @@ export function tokenHasValidHost(
 
 // Get HOL ID functions
 export function getStreamRevisionPrefix(
-    senderId: Bytes,
-    receiverId: Bytes,
-    tokenId: Bytes
-): Bytes {
-    return senderId
-        .concat(BYTES_DASH)
-        .concat(receiverId)
-        .concat(BYTES_DASH)
-        .concat(tokenId);
+    senderId: string,
+    receiverId: string,
+    tokenId: string
+): string {
+    return senderId.concat("-").concat(receiverId).concat("-").concat(tokenId);
 }
 
 export function getStreamID(
-    senderId: Bytes,
-    receiverId: Bytes,
-    tokenId: Bytes,
+    senderId: string,
+    receiverId: string,
+    tokenId: string,
     revisionIndex: number
-): Bytes {
+): string {
     return getStreamRevisionPrefix(senderId, receiverId, tokenId)
-        .concat(BYTES_DASH)
-        .concatI32(BigInt.fromString(revisionIndex.toString()).toI32());
+        .concat("-")
+        .concat(revisionIndex.toString());
 }
 
 export function getStreamPeriodID(
-    streamId: Bytes,
+    streamId: string,
     periodRevisionIndex: number
-): Bytes {
-    return streamId
-        .concat(BYTES_DASH)
-        .concatI32(BigInt.fromString(periodRevisionIndex.toString()).toI32());
+): string {
+    return streamId.concat("-").concat(periodRevisionIndex.toString());
 }
 
 export function getSubscriptionID(
@@ -156,31 +151,35 @@ export function getSubscriptionID(
     publisherAddress: Bytes,
     tokenAddress: Bytes,
     indexId: BigInt
-): Bytes {
-    return subscriberAddress
-        .concat(BYTES_DASH)
-        .concat(publisherAddress)
-        .concat(BYTES_DASH)
-        .concat(tokenAddress)
-        .concat(BYTES_DASH)
-        .concatI32(indexId.toI32());
+): string {
+    return (
+        subscriberAddress.toHex() +
+        "-" +
+        publisherAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        indexId.toString()
+    );
 }
 
 export function getIndexID(
     publisherAddress: Bytes,
     tokenAddress: Bytes,
     indexId: BigInt
-): Bytes {
-    return publisherAddress
-        .concat(BYTES_DASH)
-        .concat(tokenAddress)
-        .concat(BYTES_DASH)
-        .concatI32(indexId.toI32());
+): string {
+    return (
+        publisherAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        indexId.toString()
+    );
 }
 
 // Get HOL Exists Functions
 
-export function streamRevisionExists(id: Bytes): boolean {
+export function streamRevisionExists(id: string): boolean {
     return StreamRevision.load(id) != null;
 }
 
@@ -192,7 +191,7 @@ export function streamRevisionExists(id: Bytes): boolean {
  * @param id
  * @returns
  */
-export function subscriptionExists(id: Bytes): boolean {
+export function subscriptionExists(id: string): boolean {
     let subscription = IndexSubscription.load(id);
     return subscription != null && subscription.units.gt(BIG_INT_ZERO);
 }
@@ -208,8 +207,8 @@ export function getAmountStreamedSinceLastUpdatedAt(
 
 // Get Aggregate ID functions
 export function getAccountTokenSnapshotID(
-    accountId: Bytes,
-    tokenId: Bytes
-): Bytes {
-    return accountId.concat(BYTES_DASH).concat(tokenId);
+    accountId: string,
+    tokenId: string
+): string {
+    return accountId.concat("-").concat(tokenId);
 }

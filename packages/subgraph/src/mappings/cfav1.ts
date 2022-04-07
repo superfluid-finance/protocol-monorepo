@@ -1,5 +1,5 @@
-import {BigInt, Bytes} from "@graphprotocol/graph-ts";
-import {FlowUpdated} from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { BigInt } from "@graphprotocol/graph-ts";
+import { FlowUpdated } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import {
     FlowUpdatedEvent,
     StreamPeriod,
@@ -18,7 +18,7 @@ import {
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
+import { getHostAddress } from "../addresses";
 
 enum FlowActionType {
     create,
@@ -29,7 +29,7 @@ enum FlowActionType {
 function createFlowUpdatedEntity(
     event: FlowUpdated,
     oldFlowRate: BigInt,
-    streamId: Bytes,
+    streamId: string,
     totalAmountStreamedUntilTimestamp: BigInt
 ): FlowUpdatedEvent {
     let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
@@ -76,9 +76,9 @@ function handleStreamPeriodUpdate(
     stream: Stream
 ): void {
     let streamRevision = getOrInitStreamRevision(
-        eventEntity.sender,
-        eventEntity.receiver,
-        eventEntity.token
+        eventEntity.sender.toHex(),
+        eventEntity.receiver.toHex(),
+        eventEntity.token.toHex()
     );
     let flowActionType = getFlowActionType(
         previousFlowRate,
@@ -131,14 +131,14 @@ function incrementPeriodRevisionIndex(streamRevision: StreamRevision): void {
 function startStreamPeriod(
     event: FlowUpdatedEvent,
     streamRevision: StreamRevision,
-    streamId: Bytes
+    streamId: string
 ): void {
     let streamPeriod = new StreamPeriod(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
     );
-    streamPeriod.sender = event.sender;
-    streamPeriod.receiver = event.receiver;
-    streamPeriod.token = event.token;
+    streamPeriod.sender = event.sender.toHex();
+    streamPeriod.receiver = event.receiver.toHex();
+    streamPeriod.token = event.token.toHex();
     streamPeriod.flowRate = event.flowRate;
     streamPeriod.startedAtTimestamp = event.timestamp;
     streamPeriod.startedAtBlockNumber = event.blockNumber;
@@ -197,14 +197,18 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     stream.updatedAtBlockNumber = event.block.number;
     stream.save();
 
+    let senderId = senderAddress.toHex();
+    let receiverId = receiverAddress.toHex();
+    let tokenId = tokenAddress.toHex();
+
     let flowRateDelta = flowRate.minus(oldFlowRate);
     let isCreate = oldFlowRate.equals(BIG_INT_ZERO);
     let isDelete = flowRate.equals(BIG_INT_ZERO);
     if (isDelete) {
         let streamRevision = getOrInitStreamRevision(
-            senderAddress,
-            receiverAddress,
-            tokenAddress
+            senderId,
+            receiverId,
+            tokenId
         );
         streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
         streamRevision.save();
@@ -219,14 +223,14 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     );
     handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream);
 
-    updateATSStreamedAndBalanceUntilUpdatedAt(senderAddress, tokenAddress, event.block);
-    updateATSStreamedAndBalanceUntilUpdatedAt(receiverAddress, tokenAddress, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);
 
     // update aggregate entities data
     updateAggregateEntitiesStreamData(
-        senderAddress,
-        receiverAddress,
-        tokenAddress,
+        senderId,
+        receiverId,
+        tokenId,
         flowRate,
         flowRateDelta,
         isCreate,

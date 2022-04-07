@@ -15,7 +15,6 @@ export const fetchATSAndValidate = async (
         atsId,
         "AccountTokenSnapshot"
     );
-    console.log("ATS ID:", graphATS.id);
     validateATSEntity(graphATS, expectedATSData);
 };
 

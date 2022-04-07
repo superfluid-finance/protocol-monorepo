@@ -23,7 +23,6 @@ export const fetchStreamAndValidate = async (
         streamId,
         "Stream"
     );
-    console.log("Stream ID:", stream.id);
 
     validateStreamEntity(
         stream,

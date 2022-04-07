@@ -1,7 +1,4 @@
-const {
-    expectRevert,
-    // expectEvent
-} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 
 const {
     web3tx,

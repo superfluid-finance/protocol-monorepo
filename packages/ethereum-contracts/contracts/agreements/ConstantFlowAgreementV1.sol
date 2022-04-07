@@ -1410,12 +1410,12 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bytes32[] memory data)
     {
+        assert(flowOperatorData.flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
         data = new bytes32[](1);
         data[0] = bytes32(
             uint256(flowOperatorData.permissions) << 128 |
             uint256(int256(flowOperatorData.flowRateAllowance))
         );
-        assert(flowOperatorData.flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
     }
 
     function _decodeFlowOperatorData

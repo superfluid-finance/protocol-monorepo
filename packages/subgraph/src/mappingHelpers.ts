@@ -1,5 +1,5 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
+import {Address, BigInt, Bytes, ethereum} from "@graphprotocol/graph-ts";
+import {ISuperfluid as Superfluid} from "../generated/Host/ISuperfluid";
 import {
     Account,
     AccountTokenSnapshot,
@@ -24,9 +24,9 @@ import {
     streamRevisionExists,
     ZERO_ADDRESS,
 } from "./utils";
-import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { getHostAddress, getResolverAddress } from "./addresses";
+import {SuperToken as SuperTokenTemplate} from "../generated/templates";
+import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
+import {getHostAddress, getResolverAddress} from "./addresses";
 
 /**************************************************************************
  * HOL initializer functions
@@ -39,10 +39,10 @@ import { getHostAddress, getResolverAddress } from "./addresses";
  * @returns Account
  */
 export function getOrInitAccount(
-    accountAddress: Address,
+    accountAddress: Bytes,
     block: ethereum.Block
 ): Account {
-    let account = Account.load(accountAddress.toHex());
+    let account = Account.load(accountAddress);
     let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
@@ -53,8 +53,10 @@ export function getOrInitAccount(
     let currentTimestamp = block.timestamp;
     if (account == null) {
         let hostContract = Superfluid.bind(hostAddress);
-        let appManifestResult = hostContract.try_getAppManifest(accountAddress);
-        account = new Account(accountAddress.toHex());
+        let appManifestResult = hostContract.try_getAppManifest(
+            Address.fromBytes(accountAddress)
+        );
+        account = new Account(accountAddress);
         account.createdAtTimestamp = currentTimestamp;
         account.createdAtBlockNumber = block.number;
         account.updatedAtTimestamp = currentTimestamp;
@@ -72,20 +74,20 @@ export function getOrInitAccount(
 /**
  * Creates a HOL Token (SuperToken) entity if non exists.
  * We also create token stats in here if it doesn't exist yet.
- * @param tokenAddress
+ * @param tokenId
  * @param block
  * @returns
  */
 export function getOrInitSuperToken(
-    tokenAddress: Address,
+    tokenId: Bytes,
     block: ethereum.Block
 ): Token {
-    let tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId);
+    let tokenAddress = Address.fromBytes(tokenId);
+    let token = Token.load(tokenAddress);
     let currentTimestamp = block.timestamp;
     let resolverAddress = getResolverAddress();
 
-    if (tokenId == ZERO_ADDRESS.toHex()) {
+    if (tokenAddress.equals(ZERO_ADDRESS)) {
         return token as Token;
     }
 
@@ -94,20 +96,20 @@ export function getOrInitSuperToken(
         // template data source events.
         SuperTokenTemplate.create(tokenAddress);
 
-        token = new Token(tokenId);
+        token = new Token(tokenAddress);
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
         token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         let underlyingAddress = token.underlyingAddress;
-        token.underlyingToken = underlyingAddress.toHexString();
+        token.underlyingToken = underlyingAddress;
 
         token.save();
 
         // Note: we initalize and create tokenStatistic whenever we create a
         // token as well.
-        let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
+        let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
         tokenStatistic = updateTotalSupplyForNativeSuperToken(
             token,
             tokenStatistic,
@@ -116,7 +118,7 @@ export function getOrInitSuperToken(
         tokenStatistic.save();
 
         // If the token has an underlying ERC20, we create a token entity for it.
-        let underlyingToken = Token.load(token.underlyingAddress.toHex());
+        let underlyingToken = Token.load(token.underlyingAddress);
         if (
             underlyingAddress.notEqual(new Address(0)) &&
             underlyingToken == null
@@ -153,10 +155,9 @@ export function getOrInitToken(
     tokenAddress: Address,
     block: ethereum.Block
 ): void {
-    let tokenId = tokenAddress.toHex();
-    let token = new Token(tokenId);
+    let token = new Token(tokenAddress);
 
-    if (tokenId == ZERO_ADDRESS.toHex()) {
+    if (tokenAddress.equals(ZERO_ADDRESS)) {
         return;
     }
 
@@ -176,9 +177,9 @@ export function getOrInitToken(
  * @returns [StreamRevision, boolean: whether the streamRevision existed]
  */
 export function getOrInitStreamRevision(
-    senderId: string,
-    recipientId: string,
-    tokenId: string
+    senderId: Bytes,
+    recipientId: Bytes,
+    tokenId: Bytes
 ): StreamRevision {
     let streamRevisionId = getStreamRevisionPrefix(
         senderId,
@@ -214,26 +215,26 @@ export function getOrInitStream(
 
     // Create a streamRevision entity for this stream if one doesn't exist.
     let streamRevision = getOrInitStreamRevision(
-        senderAddress.toHex(),
-        receiverAddress.toHex(),
-        tokenAddress.toHex()
+        senderAddress,
+        receiverAddress,
+        tokenAddress
     );
     let currentTimestamp = block.timestamp;
     if (
         !streamRevisionExists(
             getStreamRevisionPrefix(
-                senderAddress.toHex(),
-                receiverAddress.toHex(),
-                tokenAddress.toHex()
+                senderAddress,
+                receiverAddress,
+                tokenAddress
             )
         )
     ) {
         streamRevision.save();
     }
     let id = getStreamID(
-        senderAddress.toHex(),
-        receiverAddress.toHex(),
-        tokenAddress.toHex(),
+        senderAddress,
+        receiverAddress,
+        tokenAddress,
         streamRevision.revisionIndex
     );
     let stream = Stream.load(id);
@@ -241,9 +242,9 @@ export function getOrInitStream(
         stream = new Stream(id);
         stream.createdAtTimestamp = currentTimestamp;
         stream.createdAtBlockNumber = block.number;
-        stream.token = tokenAddress.toHex();
-        stream.sender = senderAddress.toHex();
-        stream.receiver = receiverAddress.toHex();
+        stream.token = tokenAddress;
+        stream.sender = senderAddress;
+        stream.receiver = receiverAddress;
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
@@ -268,18 +269,16 @@ export function getOrInitStream(
  * @returns
  */
 export function getOrInitIndex(
-    publisherAddress: Address,
-    tokenAddress: Address,
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
     indexId: BigInt,
     block: ethereum.Block,
-    indexCreatedId: string
+    indexCreatedId: Bytes
 ): Index {
     let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
     let index = Index.load(indexEntityId);
     let currentTimestamp = block.timestamp;
     if (index == null) {
-        let publisherId = publisherAddress.toHex();
-        let tokenId = tokenAddress.toHex();
         index = new Index(indexEntityId);
         index.createdAtTimestamp = currentTimestamp;
         index.createdAtBlockNumber = block.number;
@@ -290,8 +289,8 @@ export function getOrInitIndex(
         index.totalUnitsApproved = BIG_INT_ZERO;
         index.totalUnits = BIG_INT_ZERO;
         index.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
-        index.token = tokenId;
-        index.publisher = publisherId;
+        index.token = tokenAddress;
+        index.publisher = publisherAddress;
         index.indexCreatedEvent = indexCreatedId;
 
         getOrInitAccount(publisherAddress, block);
@@ -338,10 +337,10 @@ export function getOrInitSubscription(
             tokenAddress,
             indexId,
             block,
-            ""
+            Bytes.fromUTF8("")
         );
 
-        let subscriberId = subscriberAddress.toHex();
+        let subscriberId = subscriberAddress;
         subscription = new IndexSubscription(subscriptionId);
         subscription.createdAtTimestamp = currentTimestamp;
         subscription.createdAtBlockNumber = block.number;
@@ -363,8 +362,8 @@ export function getOrInitSubscription(
  * Aggregate initializer functions
  *************************************************************************/
 export function getOrInitAccountTokenSnapshot(
-    accountId: string,
-    tokenId: string,
+    accountId: Bytes,
+    tokenId: Bytes,
     block: ethereum.Block
 ): AccountTokenSnapshot {
     let atsId = getAccountTokenSnapshotID(accountId, tokenId);
@@ -391,7 +390,7 @@ export function getOrInitAccountTokenSnapshot(
 }
 
 export function getOrInitTokenStatistic(
-    tokenId: string,
+    tokenId: Bytes,
     block: ethereum.Block
 ): TokenStatistic {
     let tokenStatistic = TokenStatistic.load(tokenId);
@@ -426,7 +425,7 @@ export function getOrInitTokenStatistic(
  * @param block
  */
 export function updateAccountUpdatedAt(
-    accountAddress: Address,
+    accountAddress: Bytes,
     block: ethereum.Block
 ): void {
     // filter out 0 address accounts
@@ -456,8 +455,8 @@ export function updateAccountUpdatedAt(
  * @param block
  */
 export function updateAggregateIDASubscriptionsData(
-    accountId: string,
-    tokenId: string,
+    accountId: Bytes,
+    tokenId: Bytes,
     subscriptionWithUnitsExists: boolean,
     subscriptionApproved: boolean,
     isIncrementingSubWithUnits: boolean,
@@ -521,10 +520,10 @@ function updateATSBalanceAndUpdatedAt(
     block: ethereum.Block
 ): AccountTokenSnapshot {
     let superTokenContract = SuperToken.bind(
-        Address.fromString(accountTokenSnapshot.token)
+        Address.fromBytes(accountTokenSnapshot.token)
     );
     let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
-        Address.fromString(accountTokenSnapshot.account),
+        Address.fromBytes(accountTokenSnapshot.account),
         block.timestamp
     );
     if (!newBalanceResult.reverted) {
@@ -545,8 +544,8 @@ function updateATSBalanceAndUpdatedAt(
  * @param block
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
-    accountId: string,
-    tokenId: string,
+    accountId: Bytes,
+    tokenId: Bytes,
     block: ethereum.Block
 ): void {
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
@@ -575,11 +574,11 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountTokenSnapshot.save();
 
     // update the updatedAt property of the account that just made an update
-    updateAccountUpdatedAt(Address.fromString(accountId), block);
+    updateAccountUpdatedAt(accountId, block);
 }
 
 export function updateTokenStatsStreamedUntilUpdatedAt(
-    tokenId: string,
+    tokenId: Bytes,
     block: ethereum.Block
 ): void {
     let tokenStats = getOrInitTokenStatistic(tokenId, block);
@@ -609,9 +608,9 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
  * @param block
  */
 export function updateAggregateEntitiesStreamData(
-    senderId: string,
-    receiverId: string,
-    tokenId: string,
+    senderId: Bytes,
+    receiverId: Bytes,
+    tokenId: Bytes,
     newFlowRate: BigInt,
     flowRateDelta: BigInt,
     isCreate: boolean,
@@ -683,8 +682,8 @@ export function updateAggregateEntitiesStreamData(
 }
 
 export function updateAggregateEntitiesTransferData(
-    transferAccountId: string,
-    tokenId: string,
+    transferAccountId: Bytes,
+    tokenId: Bytes,
     value: BigInt,
     block: ethereum.Block
 ): void {

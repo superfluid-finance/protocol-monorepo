@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import {BigInt, Bytes, log} from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexDistributionClaimed,
@@ -38,7 +38,7 @@ import {
     updateTokenStatsStreamedUntilUpdatedAt,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
+import {getHostAddress} from "../addresses";
 
 export function handleIndexCreated(event: IndexCreated): void {
     let hostAddress = getHostAddress();
@@ -59,13 +59,10 @@ export function handleIndexCreated(event: IndexCreated): void {
     index.save();
 
     // update streamed until updated at field
-    updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token.toHex(),
-        event.block
-    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
     tokenStatistic.totalNumberOfIndexes =
@@ -75,8 +72,8 @@ export function handleIndexCreated(event: IndexCreated): void {
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
+        event.params.publisher,
+        event.params.token,
         event.block
     );
 
@@ -114,7 +111,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.params.token,
         event.params.indexId,
         event.block,
-        ""
+        Bytes.fromUTF8("")
     );
     let previousTotalAmountDistributed =
         index.totalAmountDistributedUntilUpdatedAt;
@@ -126,13 +123,10 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         previousTotalAmountDistributed.plus(distributionDelta);
     index.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token.toHex(),
-        event.block
-    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
 
@@ -151,8 +145,8 @@ export function handleIndexUpdated(event: IndexUpdated): void {
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
+        event.params.publisher,
+        event.params.token,
         event.block
     );
 
@@ -205,7 +199,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
         event.params.token,
         event.params.indexId,
         event.block,
-        ""
+        Bytes.fromUTF8("")
     );
 
     let subscription = getOrInitSubscription(
@@ -223,13 +217,13 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     subscription.approved = true;
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
-    let tokenId = event.params.token.toHex();
+    let tokenId = event.params.token;
 
     let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // this must be done whether subscription exists or not
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber.toHex(),
+        event.params.subscriber,
         tokenId,
         event.block
     );
@@ -246,7 +240,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
         updateATSStreamedAndBalanceUntilUpdatedAt(
-            event.params.publisher.toHex(),
+            event.params.publisher,
             tokenId,
             event.block
         );
@@ -258,8 +252,8 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
 
     // we only want to increment approved here ALWAYS
     updateAggregateIDASubscriptionsData(
-        event.params.subscriber.toHex(),
-        event.params.token.toHex(),
+        event.params.subscriber,
+        event.params.token,
         hasSubscriptionWithUnits || subscription.approved,
         subscription.approved,
         false, // don't increment subWithUnits
@@ -281,7 +275,7 @@ export function handleSubscriptionDistributionClaimed(
         event.params.token,
         event.params.indexId,
         event.block,
-        ""
+        Bytes.fromUTF8("")
     );
 
     let subscription = getOrInitSubscription(
@@ -306,13 +300,13 @@ export function handleSubscriptionDistributionClaimed(
     createSubscriptionDistributionClaimedEntity(event, subscription.id);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
+        event.params.publisher,
+        event.params.token,
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber.toHex(),
-        event.params.token.toHex(),
+        event.params.subscriber,
+        event.params.token,
         event.block
     );
 }
@@ -333,15 +327,15 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
         return;
     }
 
-    let tokenId = event.params.token.toHex();
-    let subscriberAddress = event.params.subscriber.toHex();
+    let tokenId = event.params.token;
+    let subscriberAddress = event.params.subscriber;
 
     let index = getOrInitIndex(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
         event.block,
-        ""
+        Bytes.fromUTF8("")
     );
 
     // This will always execute on an existing subscription
@@ -393,7 +387,7 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     );
     // mimic ida logic more closely
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
+        event.params.publisher,
         tokenId,
         event.block
     );
@@ -423,7 +417,7 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
-    let tokenId = event.params.token.toHex();
+    let tokenId = event.params.token;
 
     let subscription = getOrInitSubscription(
         event.params.subscriber,
@@ -438,7 +432,7 @@ export function handleSubscriptionUnitsUpdated(
         event.params.token,
         event.params.indexId,
         event.block,
-        ""
+        Bytes.fromUTF8("")
     );
     let units = event.params.units;
     let oldUnits = subscription.units;
@@ -471,12 +465,12 @@ export function handleSubscriptionUnitsUpdated(
     // We move both of these in here as we handle this in revoke or delete
     // as well, so if we put it outside it will be a duplicate call
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
+        event.params.publisher,
         tokenId,
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber.toHex(),
+        event.params.subscriber,
         tokenId,
         event.block
     );
@@ -516,7 +510,7 @@ export function handleSubscriptionUnitsUpdated(
         updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
         updateAggregateIDASubscriptionsData(
-            event.params.subscriber.toHex(),
+            event.params.subscriber,
             tokenId,
             hasSubscriptionWithUnits,
             subscription.approved,
@@ -537,7 +531,7 @@ export function handleSubscriptionUnitsUpdated(
 /**************************************************************************
  * Create Event Entity Helper Functions
  *************************************************************************/
-function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
+function createIndexCreatedEntity(event: IndexCreated, indexId: Bytes): void {
     let ev = new IndexCreatedEvent(createEventID("IndexCreated", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -554,7 +548,7 @@ function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
 
 function createIndexDistributionClaimedEntity(
     event: IndexDistributionClaimed,
-    indexId: string
+    indexId: Bytes
 ): void {
     let ev = new IndexDistributionClaimedEvent(
         createEventID("IndexDistributionClaimed", event)
@@ -577,7 +571,7 @@ function createIndexDistributionClaimedEntity(
     ev.save();
 }
 
-function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
+function createIndexUpdatedEntity(event: IndexUpdated, indexId: Bytes): void {
     let ev = new IndexUpdatedEvent(createEventID("IndexUpdated", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -597,7 +591,7 @@ function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
 }
 function createIndexSubscribedEntity(
     event: IndexSubscribed,
-    indexId: string
+    indexId: Bytes
 ): void {
     let ev = new IndexSubscribedEvent(createEventID("IndexSubscribed", event));
     ev.transactionHash = event.transaction.hash;
@@ -620,7 +614,7 @@ function createIndexSubscribedEntity(
 
 function createIndexUnitsUpdatedEntity(
     event: IndexUnitsUpdated,
-    indexId: string,
+    indexId: Bytes,
     oldUnits: BigInt
 ): void {
     let ev = new IndexUnitsUpdatedEvent(
@@ -648,7 +642,7 @@ function createIndexUnitsUpdatedEntity(
 
 function createIndexUnsubscribedEntity(
     event: IndexUnsubscribed,
-    indexId: string
+    indexId: Bytes
 ): void {
     let ev = new IndexUnsubscribedEvent(
         createEventID("IndexUnsubscribed", event)
@@ -673,7 +667,7 @@ function createIndexUnsubscribedEntity(
 
 function createSubscriptionApprovedEntity(
     event: SubscriptionApproved,
-    subscriptionId: string
+    subscriptionId: Bytes
 ): void {
     let ev = new SubscriptionApprovedEvent(
         createEventID("SubscriptionApproved", event)
@@ -698,7 +692,7 @@ function createSubscriptionApprovedEntity(
 
 function createSubscriptionDistributionClaimedEntity(
     event: SubscriptionDistributionClaimed,
-    subscriptionId: string
+    subscriptionId: Bytes
 ): void {
     let ev = new SubscriptionDistributionClaimedEvent(
         createEventID("SubscriptionDistributionClaimed", event)
@@ -723,7 +717,7 @@ function createSubscriptionDistributionClaimedEntity(
 
 function createSubscriptionRevokedEntity(
     event: SubscriptionRevoked,
-    subscriptionId: string
+    subscriptionId: Bytes
 ): void {
     let ev = new SubscriptionRevokedEvent(
         createEventID("SubscriptionRevoked", event)
@@ -748,7 +742,7 @@ function createSubscriptionRevokedEntity(
 
 function createSubscriptionUnitsUpdatedEntity(
     event: SubscriptionUnitsUpdated,
-    subscriptionId: string,
+    subscriptionId: Bytes,
     oldUnits: BigInt
 ): void {
     let ev = new SubscriptionUnitsUpdatedEvent(

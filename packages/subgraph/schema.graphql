@@ -7,7 +7,7 @@ event entities and contains basic transaction
 data.
 """
 interface Event {
-    id: ID!
+    id: Bytes!
     blockNumber: BigInt!
     name: String!
 
@@ -25,7 +25,7 @@ FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
 type FlowUpdatedEvent implements Event @entity {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -80,7 +80,7 @@ type FlowUpdatedEvent implements Event @entity {
 
 #  InstantDistributionAgreementV1 #
 type IndexCreatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -100,7 +100,7 @@ type IndexCreatedEvent implements Event @entity(immutable: true) {
 }
 
 type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -121,7 +121,7 @@ type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
 }
 
 type IndexUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -145,7 +145,7 @@ type IndexUpdatedEvent implements Event @entity(immutable: true) {
 }
 
 type IndexSubscribedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -166,7 +166,7 @@ type IndexSubscribedEvent implements Event @entity(immutable: true) {
 }
 
 type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -191,7 +191,7 @@ type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
 }
 
 type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -212,7 +212,7 @@ type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
 }
 
 type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -234,7 +234,7 @@ type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
 
 type SubscriptionDistributionClaimedEvent implements Event
     @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -255,7 +255,7 @@ type SubscriptionDistributionClaimedEvent implements Event
 }
 
 type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -276,7 +276,7 @@ type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
 }
 
 type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -303,7 +303,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
 #     Host    #
 
 type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -318,7 +318,7 @@ type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
 }
 
 type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -333,7 +333,7 @@ type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
 }
 
 type AppRegisteredEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -347,7 +347,7 @@ type AppRegisteredEvent implements Event @entity(immutable: true) {
 }
 
 type GovernanceReplacedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -362,7 +362,7 @@ type GovernanceReplacedEvent implements Event @entity(immutable: true) {
 }
 
 type JailEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -377,7 +377,7 @@ type JailEvent implements Event @entity(immutable: true) {
 }
 
 type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -391,7 +391,7 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
 }
 
 type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -407,7 +407,7 @@ type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
 
 #     Resolver    #
 type RoleAdminChangedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -423,7 +423,7 @@ type RoleAdminChangedEvent implements Event @entity(immutable: true) {
 }
 
 type RoleGrantedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -439,7 +439,7 @@ type RoleGrantedEvent implements Event @entity(immutable: true) {
 }
 
 type RoleRevokedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -457,7 +457,7 @@ type RoleRevokedEvent implements Event @entity(immutable: true) {
 #     SuperfluidGovernance    #
 type CFAv1LiquidationPeriodChangedEvent implements Event
     @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -474,7 +474,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event
 }
 
 type ConfigChangedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -492,7 +492,7 @@ type ConfigChangedEvent implements Event @entity(immutable: true) {
 }
 
 type RewardAddressChangedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -509,7 +509,7 @@ type RewardAddressChangedEvent implements Event @entity(immutable: true) {
 }
 
 type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -527,7 +527,7 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
 }
 
 type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -546,7 +546,7 @@ type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
 
 #     SuperToken    #
 type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -567,7 +567,7 @@ type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
 }
 
 type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -590,7 +590,7 @@ type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
 }
 
 type BurnedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -608,7 +608,7 @@ type BurnedEvent implements Event @entity(immutable: true) {
 }
 
 type MintedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -626,7 +626,7 @@ type MintedEvent implements Event @entity(immutable: true) {
 }
 
 type SentEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -645,7 +645,7 @@ type SentEvent implements Event @entity(immutable: true) {
 }
 
 type TransferEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -662,7 +662,7 @@ type TransferEvent implements Event @entity(immutable: true) {
 }
 
 type TokenDowngradedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     account: Account!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -678,7 +678,7 @@ type TokenDowngradedEvent implements Event @entity(immutable: true) {
 }
 
 type TokenUpgradedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     account: Account!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -696,7 +696,7 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
 #     SuperTokenFactory    #
 
 type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -710,7 +710,7 @@ type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
 }
 
 type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -724,7 +724,7 @@ type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
 }
 
 type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
-    id: ID!
+    id: Bytes!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
@@ -750,7 +750,7 @@ Account: A HOL entity created for any addresses which interact with
 Superfluid contracts.
 """
 type Account @entity {
-    id: ID!
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
@@ -786,7 +786,7 @@ type Index @entity {
     """
     ID composed of: publisherAddress-tokenAddress-indexId
     """
-    id: ID!
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
@@ -863,7 +863,7 @@ type IndexSubscription @entity {
     """
     ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
     """
-    id: ID!
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
@@ -925,7 +925,7 @@ type Stream @entity {
     """
     ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
     """
-    id: ID!
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
@@ -953,9 +953,9 @@ StreamPeriod: A HOL entity that represents a period of time in a Stream with a c
 """
 type StreamPeriod @entity {
     """
-    ID composed of: streamId - periodRevisionIndex
+    ID composed of: streamId-periodRevisionIndex
     """
-    id: ID!
+    id: Bytes!
 
     stream: Stream!
 
@@ -983,7 +983,7 @@ type StreamPeriod @entity {
 #  Helper Entities #
 ####################
 type StreamRevision @entity {
-    id: ID!
+    id: Bytes!
     revisionIndex: Int!
     periodRevisionIndex: Int!
 }
@@ -997,7 +997,7 @@ type Token @entity {
     """
     ID: the token address
     """
-    id: ID!
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     decimals: Int!
@@ -1032,7 +1032,7 @@ type AccountTokenSnapshot @entity {
     """
     ID composed of: accountID-tokenID
     """
-    id: ID!
+    id: Bytes!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
@@ -1098,7 +1098,7 @@ type TokenStatistic @entity {
     """
     ID: tokenID
     """
-    id: ID!
+    id: Bytes!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
@@ -1172,7 +1172,7 @@ type SFMeta @entity {
     """
     The id is the commit hash.
     """
-    id: ID!
+    id: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
     """

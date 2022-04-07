@@ -19,6 +19,9 @@ export const fetchEventAndValidate = async <
         txnResponse.hash,
         queryName
     );
+    
+    console.log("Event Name:", event.name);
+    console.log("Event id:", event.id);
 
     // Note: we parse the name of the query (e.g. FlowUpdatedEvent)
     // and use this to validate that the name property has been set properly.

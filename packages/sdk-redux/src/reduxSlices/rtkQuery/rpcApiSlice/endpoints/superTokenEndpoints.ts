@@ -31,6 +31,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'SUPER_TOKEN_UPGRADE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -75,6 +76,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'SUPER_TOKEN_DOWNGRADE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -98,6 +100,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'SUPER_TOKEN_TRANSFER',
+                extraData: arg.transactionExtraData,
             });
         },
     }),

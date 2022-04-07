@@ -34,6 +34,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_CREATE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -58,6 +59,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_DISTRIBUTE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -83,6 +85,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_UPDATE_SUBSCRIPTION_UNITS',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -107,6 +110,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_SUBSCRIPTION_APPROVE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -132,6 +136,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_SUBSCRIPTION_CLAIM',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -157,6 +162,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_DELETE_SUBSCRIPTION',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -181,6 +187,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'INDEX_SUBSCRIPTION_REVOKE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),

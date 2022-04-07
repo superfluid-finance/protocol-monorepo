@@ -30,6 +30,7 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'FLOW_CREATE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -56,6 +57,7 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'FLOW_UPDATE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),
@@ -82,6 +84,7 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'FLOW_DELETE',
+                extraData: arg.transactionExtraData,
             });
         },
     }),

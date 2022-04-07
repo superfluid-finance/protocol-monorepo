@@ -38,6 +38,11 @@ export interface BaseSuperTokenMutation {
      * If set to `false` then the mutation will not be blocking, i.e. the react hook / redux thunk will not return.
      */
     waitForConfirmation: boolean | NothingBoolean;
+
+    /**
+     * Custom data to included in transaction tracking. Has to be serializable for redux!
+     */
+    transactionExtraData?: unknown;
 }
 
 /**

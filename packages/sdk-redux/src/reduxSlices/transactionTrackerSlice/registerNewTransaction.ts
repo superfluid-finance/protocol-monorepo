@@ -30,14 +30,14 @@ export interface RegisterNewTransactionArg {
     /**
      * Any extra data you want to attach to the transaction. Make sure it's serializable!
      */
-    extra?: unknown;
+    extraData: unknown;
 }
 
 /**
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
  */
 export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
-    const {chainId, from, transactionResponse, waitForConfirmation, dispatch, key, extra} = arg;
+    const {chainId, from, transactionResponse, waitForConfirmation, dispatch, key, extraData} = arg;
     const framework = await getFramework(chainId);
 
     dispatch(
@@ -46,7 +46,7 @@ export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => 
             from,
             transactionResponse,
             key,
-            ...(extra ? {extra: extra} : {}),
+            ...(extraData ? {extraData} : {}),
         })
     );
 

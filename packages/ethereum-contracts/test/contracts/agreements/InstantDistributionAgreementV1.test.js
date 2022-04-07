@@ -1,4 +1,4 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
 const {web3tx, wad4human, toWad} = require("@decentral.ee/web3-helpers");
 const traveler = require("ganache-time-traveler");
 
@@ -11,6 +11,8 @@ const {
     shouldDeleteSubscription,
     shouldClaimPendingDistribution,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
+
+const {expectRevert} = require("../../utils/expectRevert");
 
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");

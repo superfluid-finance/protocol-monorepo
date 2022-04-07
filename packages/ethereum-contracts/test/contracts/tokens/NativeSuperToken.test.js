@@ -1,4 +1,4 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");

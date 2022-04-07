@@ -1,6 +1,7 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {BN, expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {BN, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateFlow,

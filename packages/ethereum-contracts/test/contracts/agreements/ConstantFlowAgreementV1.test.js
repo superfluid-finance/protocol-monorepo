@@ -4646,7 +4646,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ...aliceSenderAdminFlowOperator,
                 permissions: ALLOW_CREATE.toString(),
                 flowRateAllowance: "-1",
-                expectedErrorString: "CFA:E_NO_NEGATIVE_ALLOWANCE",
+                expectedErrorString: "CFA: E_NO_NEGATIVE_ALLOWANCE",
             });
         });
     });

@@ -15,7 +15,7 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
     {
         chainId: number;
         transactionResponse: ethers.providers.TransactionResponse;
-        from: string;
+        signer: string;
         key: TransactionKey;
         extra?: unknown;
     }
@@ -28,7 +28,7 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
         getTransactionTrackerSlice().actions.addTransaction({
             chainId: arg.chainId,
             hash: transactionHash,
-            from: ethers.utils.getAddress(arg.from),
+            signer: ethers.utils.getAddress(arg.signer),
             timestampMs: new Date().getTime(),
             status: 'Pending',
             transactionResponse: ethers.utils.serializeTransaction(arg.transactionResponse),

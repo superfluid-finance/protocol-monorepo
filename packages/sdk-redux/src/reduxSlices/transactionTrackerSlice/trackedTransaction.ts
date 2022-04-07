@@ -12,7 +12,7 @@ export interface TrackedTransaction {
     /**
      * The address this transaction is from.
      */
-    from: string;
+    signer: string;
     /**
      * Milliseconds since epoch when started tracking the transaction.
      */

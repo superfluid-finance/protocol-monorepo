@@ -26,7 +26,7 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                from: senderAddress,
+                signer: senderAddress,
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'FLOW_CREATE',
@@ -53,7 +53,7 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                from: senderAddress,
+                signer: senderAddress,
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'FLOW_UPDATE',
@@ -80,7 +80,7 @@ export const createFlowEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                from: senderAddress,
+                signer: senderAddress,
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 key: 'FLOW_DELETE',

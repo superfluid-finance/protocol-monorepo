@@ -33,7 +33,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Create Index',
+                title: 'Create Index',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -58,7 +58,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Distribute Index',
+                title: 'Distribute Index',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -84,7 +84,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Update Index Subscription Units',
+                title: 'Update Index Subscription Units',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -109,7 +109,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Approve Index Subscription',
+                title: 'Approve Index Subscription',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -135,7 +135,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Claim from Index Subscription',
+                title: 'Claim from Index Subscription',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -161,7 +161,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Delete Index Subscription',
+                title: 'Delete Index Subscription',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -186,7 +186,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Revoke Index Subscription',
+                title: 'Revoke Index Subscription',
                 extraData: arg.transactionExtraData,
             });
         },

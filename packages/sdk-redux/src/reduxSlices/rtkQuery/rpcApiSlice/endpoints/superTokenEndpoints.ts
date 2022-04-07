@@ -30,7 +30,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Upgrade to Super Token',
+                title: 'Upgrade to Super Token',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -75,7 +75,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Downgrade from Super Token',
+                title: 'Downgrade from Super Token',
                 extraData: arg.transactionExtraData,
             });
         },
@@ -99,7 +99,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 signer: await signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
-                key: 'Transfer Super Token',
+                title: 'Transfer Super Token',
                 extraData: arg.transactionExtraData,
             });
         },

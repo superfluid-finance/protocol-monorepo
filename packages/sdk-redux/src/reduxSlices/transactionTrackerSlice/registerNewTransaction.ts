@@ -4,7 +4,7 @@ import {ethers} from 'ethers';
 import {getFramework} from '../../sdkReduxConfig';
 
 import {initiateNewTransactionTrackingThunk} from './thunks/initiateNewTransactionTrackingThunk';
-import {TransactionKey} from './transactionKey';
+import {TransactionTitle} from './transactionTitle';
 import {waitForOneConfirmation} from './waitForOneConfirmation';
 
 export interface RegisterNewTransactionArg {
@@ -26,7 +26,7 @@ export interface RegisterNewTransactionArg {
     /**
      * Any key you want to give the transaction to identify it later.
      */
-    key: TransactionKey;
+    title: TransactionTitle;
     /**
      * Any extra data you want to attach to the transaction. Make sure it's serializable!
      */
@@ -37,7 +37,7 @@ export interface RegisterNewTransactionArg {
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
  */
 export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
-    const {chainId, signer, transactionResponse, waitForConfirmation, dispatch, key, extraData} = arg;
+    const {chainId, signer, transactionResponse, waitForConfirmation, dispatch, title, extraData} = arg;
     const framework = await getFramework(chainId);
 
     dispatch(
@@ -45,7 +45,7 @@ export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => 
             chainId,
             signer,
             transactionResponse,
-            key,
+            title,
             ...(extraData ? {extraData} : {}),
         })
     );

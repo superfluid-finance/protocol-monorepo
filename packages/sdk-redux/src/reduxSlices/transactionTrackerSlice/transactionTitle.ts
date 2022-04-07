@@ -1,12 +1,12 @@
 /**
- * Declaration merge more keys to this type to extend @see TransactionKey
+ * Declaration merge more keys to this type to extend @see TransactionTitle
  */
-export interface TransactionKeyOverrides {}
+export interface TransactionTitleOverrides {}
 
 /**
  * For easily recognizing what was the intent of the transaction.
  */
-export type TransactionKey =
+export type TransactionTitle =
     | 'Create Stream'
     | 'Update Stream'
     | 'Close Stream'
@@ -20,4 +20,4 @@ export type TransactionKey =
     | 'Upgrade to Super Token'
     | 'Downgrade from Super Token'
     | 'Transfer Super Token'
-    | keyof TransactionKeyOverrides;
+    | keyof TransactionTitleOverrides;

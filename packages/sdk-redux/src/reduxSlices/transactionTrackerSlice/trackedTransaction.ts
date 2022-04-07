@@ -1,7 +1,7 @@
 import {createEntityAdapter} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {TransactionKey} from './transactionKey';
+import {TransactionTitle} from './transactionTitle';
 
 export type TransactionStatus = 'Pending' | 'Succeeded' | 'Failed' | 'Unknown';
 
@@ -22,7 +22,7 @@ export interface TrackedTransaction {
     transactionReceipt?: string;
     ethersErrorCode?: ethers.errors;
     ethersErrorMessage?: string;
-    key: TransactionKey;
+    title: TransactionTitle;
     extraData?: unknown;
 }
 

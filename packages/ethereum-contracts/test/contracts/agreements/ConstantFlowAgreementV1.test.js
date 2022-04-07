@@ -4639,6 +4639,15 @@ describe("Using ConstantFlowAgreement v1", function () {
                 FLOW_RATE1.toString()
             );
         });
+
+        it("#4.28 Should revert when trying to upate flow operator permissions with negative allowance", async () => {
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "8",
+                flowRateAllowance: "-1",
+                expectedErrorString: "CFA:E_NO_NEGATIVE_ALLOWANCE",
+            });
+        });
     });
 
     context("#10 scenarios", () => {

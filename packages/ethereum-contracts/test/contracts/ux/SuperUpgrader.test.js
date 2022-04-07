@@ -1,4 +1,4 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 
 const TestEnvironment = require("../../TestEnvironment");
 const SuperUpgrader = artifacts.require("SuperUpgrader");

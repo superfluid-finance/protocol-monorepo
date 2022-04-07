@@ -1,4 +1,5 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");

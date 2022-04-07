@@ -559,7 +559,7 @@ type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
-    agreementid: ID!
+    agreementId: Bytes!
     penaltyAccount: Bytes!
     bondAccount: Bytes!
     rewardAmount: BigInt!
@@ -580,7 +580,7 @@ type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
-    agreementid: ID!
+    agreementId: Bytes!
     targetAccount: Bytes!
     rewardAccount: Bytes!
     rewardAmount: BigInt!

@@ -207,8 +207,9 @@ export function getAmountStreamedSinceLastUpdatedAt(
 
 // Get Aggregate ID functions
 export function getAccountTokenSnapshotID(
-    accountId: string,
-    tokenId: string
-): string {
-    return accountId.concat("-").concat(tokenId);
+    accountId: Bytes,
+    tokenId: Bytes
+): Bytes {
+    let BYTES_DASH = Bytes.fromUTF8("-");
+    return accountId.concat(BYTES_DASH).concat(tokenId);
 }

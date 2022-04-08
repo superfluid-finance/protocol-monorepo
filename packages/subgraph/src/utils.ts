@@ -212,5 +212,5 @@ export function getAccountTokenSnapshotID(
 ): Bytes {
     let BYTES_DASH = Bytes.fromUTF8("-");
     let KECCAK_DASH = crypto.keccak256(BYTES_DASH);
-    return accountId.concat(KECCAK_DASH).concat(tokenId);
+    return accountId.concat(Bytes.fromByteArray(KECCAK_DASH)).concat(tokenId);
 }

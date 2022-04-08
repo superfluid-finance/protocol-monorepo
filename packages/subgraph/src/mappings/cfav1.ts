@@ -8,7 +8,6 @@ import {
 import {
     FlowUpdatedEvent,
     StreamPeriod,
-    Stream,
     StreamRevision,
     FlowOperatorUpdatedEvent,
 } from "../../generated/schema";
@@ -239,11 +238,6 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     let newDeposit = depositResult.reverted
         ? BigInt.fromI32(0)
         : depositResult.value.value2; // deposit
-    let calculatedDeposit = clipDepositNumber(flowRate.times(BigInt.fromI32(3600)), false);
-
-    if (newDeposit.notEqual(calculatedDeposit)) {
-        newDeposit = calculatedDeposit;
-    }
 
     let stream = getOrInitStream(event);
     let oldDeposit = stream.deposit;

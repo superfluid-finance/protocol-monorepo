@@ -17,6 +17,7 @@ import {
     ITokenStatistic,
 } from "../interfaces";
 import {
+    getATSId,
     getIndexId,
     getRevisionIndexId,
     getStreamId,
@@ -128,11 +129,11 @@ export const getOrInitAccountTokenSnapshot = (
     updatedAtBlockNumber: string,
     updatedAtTimestamp: string
 ): IAccountTokenSnapshot => {
-    const atsId = accountId + "-" + tokenId;
+    const atsId = getATSId(accountId, tokenId);
     const existingATS = accountTokenSnapshots[atsId];
     if (existingATS == null) {
         return {
-            id: accountId + "-" + tokenId,
+            id: atsId,
             updatedAtBlockNumber,
             updatedAtTimestamp,
             totalNumberOfActiveStreams: 0,

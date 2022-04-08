@@ -1,4 +1,11 @@
-import { BigInt, Bytes, ethereum, Address, log, crypto } from "@graphprotocol/graph-ts";
+import {
+    BigInt,
+    Bytes,
+    ethereum,
+    Address,
+    log,
+    crypto,
+} from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
@@ -12,11 +19,15 @@ import {
  * Constants
  *************************************************************************/
 
-export let BIG_INT_ZERO = BigInt.fromI32(0);
-export let BIG_INT_ONE = BigInt.fromI32(1);
-export let ZERO_ADDRESS = Address.fromString(
+export const BIG_INT_ZERO = BigInt.fromI32(0);
+export const BIG_INT_ONE = BigInt.fromI32(1);
+export const ZERO_ADDRESS = Address.fromString(
     "0x0000000000000000000000000000000000000000"
 );
+export const BYTES_KECCAK_DASH = Bytes.fromByteArray(
+    crypto.keccak256(Bytes.fromUTF8("-"))
+);
+// d3b8281179950f98149eefdb158d0e1acb56f56e8e343aa9fefafa7e36959561
 
 /**************************************************************************
  * Event entities util functions
@@ -78,7 +89,9 @@ export function updateTotalSupplyForNativeSuperToken(
     tokenStatistic: TokenStatistic,
     tokenAddress: Address
 ): TokenStatistic {
-    if (token.underlyingAddress.toHex() == "0x0000000000000000000000000000000000000000" &&
+    if (
+        token.underlyingAddress.toHex() ==
+            "0x0000000000000000000000000000000000000000" &&
         tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
     ) {
         let tokenContract = SuperToken.bind(tokenAddress);
@@ -210,7 +223,7 @@ export function getAccountTokenSnapshotID(
     accountId: Bytes,
     tokenId: Bytes
 ): Bytes {
-    let BYTES_DASH = Bytes.fromUTF8("-");
-    let KECCAK_DASH = crypto.keccak256(BYTES_DASH);
-    return accountId.concat(Bytes.fromByteArray(KECCAK_DASH)).concat(tokenId);
+    return accountId
+        .concat(Bytes.fromByteArray(BYTES_KECCAK_DASH))
+        .concat(tokenId);
 }

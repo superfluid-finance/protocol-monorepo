@@ -3,7 +3,7 @@ import { BaseProvider } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
 import { Framework } from "@superfluid-finance/sdk-core";
 import { IMeta, IIndexSubscription } from "../interfaces";
-import { FlowActionType } from "./constants";
+import { FlowActionType, KECCAK_256_DASH } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
 import { Resolver, TestToken } from "../../typechain";
@@ -256,6 +256,10 @@ export const getSubscriptionId = (
         indexId.toLowerCase(),
     ].join("-");
 
+export const getATSId = (accountId: string, tokenId: string) => {
+    return accountId + KECCAK_256_DASH + getFormattedBytesAddress(tokenId);
+};
+
 /**************************************************************************
  * Modifier Functions
  *************************************************************************/
@@ -355,3 +359,8 @@ export const hasSubscriptionWithUnits = (
     const subscription = subscriptions[id];
     return subscription != null && toBN(subscription.units).gt(toBN(0));
 };
+
+/** Takes 0x1234 and returns 1234 */
+export const getFormattedBytesAddress = (address: string) => {
+    return address.split("0x")[1];
+}

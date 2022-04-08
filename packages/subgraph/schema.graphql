@@ -1030,7 +1030,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID-tokenID
+    ID composed of: accountID + keccak256("-") + tokenID (without the 0x)
     """
     id: Bytes!
     updatedAtTimestamp: BigInt!

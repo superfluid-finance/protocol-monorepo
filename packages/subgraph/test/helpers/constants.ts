@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { IEventQueryData } from "../interfaces";
 import {
     getIndexCreatedEvents,
@@ -136,3 +137,7 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         },
     ],
 ]);
+
+export const KECCAK_256_DASH = ethers.utils
+    .keccak256(ethers.utils.toUtf8Bytes("-"))
+    .split("0x")[1];

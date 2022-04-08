@@ -223,14 +223,14 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     );
     handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream);
 
-    updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
-    updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(senderAddress, tokenAddress, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(receiverAddress, tokenAddress, event.block);
 
     // update aggregate entities data
     updateAggregateEntitiesStreamData(
-        senderId,
-        receiverId,
-        tokenId,
+        senderAddress,
+        receiverAddress,
+        tokenAddress,
         flowRate,
         flowRateDelta,
         isCreate,

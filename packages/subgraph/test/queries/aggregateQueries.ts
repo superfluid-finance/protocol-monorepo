@@ -1,8 +1,9 @@
 import { gql } from "graphql-request";
 
 export const getAccountTokenSnapshot = gql`
-    query getAccountTokenSnapshot($id: ID!) {
-        response: accountTokenSnapshot(id: $id) {
+    query getAccountTokenSnapshot {
+        response: accountTokenSnapshots {
+            id
             updatedAtTimestamp
             updatedAtBlockNumber
             totalNumberOfActiveStreams

@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -363,8 +363,8 @@ export function getOrInitSubscription(
  * Aggregate initializer functions
  *************************************************************************/
 export function getOrInitAccountTokenSnapshot(
-    accountId: string,
-    tokenId: string,
+    accountId: Bytes,
+    tokenId: Bytes,
     block: ethereum.Block
 ): AccountTokenSnapshot {
     let atsId = getAccountTokenSnapshotID(accountId, tokenId);
@@ -384,8 +384,8 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
-        accountTokenSnapshot.account = accountId;
-        accountTokenSnapshot.token = tokenId;
+        accountTokenSnapshot.account = accountId.toHex();
+        accountTokenSnapshot.token = tokenId.toHex();
     }
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
@@ -456,8 +456,8 @@ export function updateAccountUpdatedAt(
  * @param block
  */
 export function updateAggregateIDASubscriptionsData(
-    accountId: string,
-    tokenId: string,
+    accountId: Bytes,
+    tokenId: Bytes,
     subscriptionWithUnitsExists: boolean,
     subscriptionApproved: boolean,
     isIncrementingSubWithUnits: boolean,
@@ -471,7 +471,7 @@ export function updateAggregateIDASubscriptionsData(
         tokenId,
         block
     );
-    let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId.toHex(), block);
     let totalSubscriptionWithUnitsDelta =
         isDeletingSubscription && subscriptionWithUnitsExists
             ? -1
@@ -545,8 +545,8 @@ function updateATSBalanceAndUpdatedAt(
  * @param block
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
-    accountId: string,
-    tokenId: string,
+    accountId: Bytes,
+    tokenId: Bytes,
     block: ethereum.Block
 ): void {
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
@@ -575,7 +575,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountTokenSnapshot.save();
 
     // update the updatedAt property of the account that just made an update
-    updateAccountUpdatedAt(Address.fromString(accountId), block);
+    updateAccountUpdatedAt(Address.fromBytes(accountId), block);
 }
 
 export function updateTokenStatsStreamedUntilUpdatedAt(
@@ -609,16 +609,16 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
  * @param block
  */
 export function updateAggregateEntitiesStreamData(
-    senderId: string,
-    receiverId: string,
-    tokenId: string,
+    senderId: Bytes,
+    receiverId: Bytes,
+    tokenId: Bytes,
     newFlowRate: BigInt,
     flowRateDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
     block: ethereum.Block
 ): void {
-    let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId.toHex(), block);
     let totalNumberOfActiveStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
     let totalNumberOfClosedStreamsDelta = isDelete ? 1 : 0;
     let tokenStatsAmountStreamedSinceLastUpdate =
@@ -683,8 +683,8 @@ export function updateAggregateEntitiesStreamData(
 }
 
 export function updateAggregateEntitiesTransferData(
-    transferAccountId: string,
-    tokenId: string,
+    transferAccountId: Bytes,
+    tokenId: Bytes,
     value: BigInt,
     block: ethereum.Block
 ): void {
@@ -701,7 +701,7 @@ export function updateAggregateEntitiesTransferData(
     fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
     fromAccountTokenSnapshot.save();
 
-    let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId.toHex(), block);
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();

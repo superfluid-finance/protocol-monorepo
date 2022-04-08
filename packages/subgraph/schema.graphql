@@ -1032,7 +1032,7 @@ type AccountTokenSnapshot @entity {
     """
     ID composed of: accountID-tokenID
     """
-    id: ID!
+    id: Bytes!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------

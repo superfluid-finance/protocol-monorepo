@@ -1,10 +1,9 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
 const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
-
+const {expectRevert} = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
 
 describe("Superfluid Ownable Governance Contract", function () {

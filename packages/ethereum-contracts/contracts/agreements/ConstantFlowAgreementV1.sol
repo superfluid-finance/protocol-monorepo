@@ -42,6 +42,7 @@ contract ConstantFlowAgreementV1 is
      * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
      * E_NO_PERMISSIONS_UPDATE - unauthorized flow operator permissions update (not from sender)
      * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
+     * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
      */
 
     bytes32 private constant CFAV1_PPP_CONFIG_KEY =
@@ -680,13 +681,12 @@ contract ConstantFlowAgreementV1 is
         int96 flowRateAllowance, // flowRateBudget
         bytes calldata ctx
     ) public override returns(bytes memory newCtx) {
-        assert(flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
-
         newCtx = ctx;
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         require(sender == currentContext.msgSender, "CFA: E_NO_PERMISSIONS_UPDATE");
         require(sender != flowOperator, "CFA: E_NO_SENDER_FLOW_OPERATOR");
+        require(flowRateAllowance >= 0, "CFA: E_NO_NEGATIVE_ALLOWANCE");
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
         flowOperatorData.flowRateAllowance = flowRateAllowance;
@@ -1410,6 +1410,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bytes32[] memory data)
     {
+        assert(flowOperatorData.flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
         data = new bytes32[](1);
         data[0] = bytes32(
             uint256(flowOperatorData.permissions) << 128 |

@@ -1,6 +1,7 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {BN, expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {BN, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateFlow,
@@ -4638,6 +4639,15 @@ describe("Using ConstantFlowAgreement v1", function () {
                 data.flowRateAllowance.toString(),
                 FLOW_RATE1.toString()
             );
+        });
+
+        it("#4.28 Should revert when trying to upate flow operator permissions with negative allowance", async () => {
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: "-1",
+                expectedErrorString: "CFA: E_NO_NEGATIVE_ALLOWANCE",
+            });
         });
     });
 

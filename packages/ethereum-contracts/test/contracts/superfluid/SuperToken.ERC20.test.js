@@ -1,6 +1,7 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 const {expect} = require("chai");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 

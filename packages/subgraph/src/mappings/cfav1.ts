@@ -235,6 +235,13 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         event.params.sender,
         event.params.receiver
     );
+
+    // NOTE: if we want to optimize this in the future,
+    // we have to create a new global entity which is
+    // updated once we first see the FlowUpdatedExtension event
+    // and once we see it, we rely on the handleFlowUpdatedExtension
+    // handler to get us the deposit instead of doing a web3 query
+    // every time
     let newDeposit = depositResult.reverted
         ? BigInt.fromI32(0)
         : depositResult.value.value2; // deposit

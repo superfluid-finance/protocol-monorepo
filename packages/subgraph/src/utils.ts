@@ -1,4 +1,4 @@
-import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, ethereum, Address, log, crypto } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
@@ -211,5 +211,6 @@ export function getAccountTokenSnapshotID(
     tokenId: Bytes
 ): Bytes {
     let BYTES_DASH = Bytes.fromUTF8("-");
-    return accountId.concat(BYTES_DASH).concat(tokenId);
+    let KECCAK_DASH = crypto.keccak256(BYTES_DASH);
+    return accountId.concat(KECCAK_DASH).concat(tokenId);
 }

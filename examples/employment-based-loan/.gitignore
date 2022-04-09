@@ -1,0 +1,14 @@
+/node_modules
+package-lock.json
+.env
+coverage
+coverage.json
+typechain
+/build
+/artifacts
+/cache
+/deployments
+
+#Hardhat files
+cache
+artifacts

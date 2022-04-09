@@ -1,14 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
-pragma abicoder v2;
+pragma solidity 0.8.13;
 
 import {ISuperfluid, ISuperToken, ISuperApp, ISuperAgreement, SuperAppDefinitions} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol"; //"@superfluid-finance/ethereum-monorepo/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+
+import {CFAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 
 import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {SuperAppBase} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
 contract RedirectAll is SuperAppBase {
+
+    using CFAv1Library for CFAv1Library.InitData;
+
+    //initialize cfaV1 variable
+    CFAv1Library.InitData public cfaV1;
+
     ISuperfluid private _host; // host
     IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
     ISuperToken private _acceptedToken; // accepted token
@@ -30,9 +37,19 @@ contract RedirectAll is SuperAppBase {
         require(!host.isApp(ISuperApp(receiver)), "receiver is an app");
 
         _host = host;
-        _cfa = cfa;
+        _cfa = IConstantFlowAgreementV1(
+            address(
+                host.getAgreementClass(
+                    keccak256(
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                    )
+                )
+            )
+        );
         _acceptedToken = acceptedToken;
         _receiver = receiver;
+
+        cfaV1 = CFAv1Library.InitData(_host, _cfa);
 
         uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
@@ -85,44 +102,26 @@ contract RedirectAll is SuperAppBase {
         // @dev If inFlowRate === 0, then delete existing flow.
         if (inFlowRate == int96(0)) {
             // @dev if inFlowRate is zero, delete outflow.
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    _acceptedToken,
-                    address(this),
-                    _receiver,
-                    new bytes(0) // placeholder
-                ),
-                "0x",
-                newCtx
+            newCtx = cfaV1.deleteFlowWithCtx(
+                newCtx,
+                address(this),
+                _receiver,
+                _acceptedToken
             );
         } else if (outFlowRate != int96(0)) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.updateFlow.selector,
-                    _acceptedToken,
-                    _receiver,
-                    inFlowRate,
-                    new bytes(0) // placeholder
-                ),
-                "0x",
-                newCtx
+            newCtx = cfaV1.updateFlowWithCtx(
+                newCtx,
+                _receiver,
+                _acceptedToken,
+                inFlowRate
             );
         } else {
             // @dev If there is no existing outflow, then create new flow to equal inflow
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.createFlow.selector,
-                    _acceptedToken,
-                    _receiver,
-                    inFlowRate,
-                    new bytes(0) // placeholder
-                ),
-                "0x",
-                newCtx
+            newCtx = cfaV1.createFlowWithCtx(
+                newCtx,
+                _receiver,
+                _acceptedToken,
+                inFlowRate
             );
         }
     }
@@ -143,28 +142,12 @@ contract RedirectAll is SuperAppBase {
             _receiver
         ); //CHECK: unclear what happens if flow doesn't exist.
         if (outFlowRate > 0) {
-            _host.callAgreement(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    _acceptedToken,
-                    address(this),
-                    _receiver,
-                    new bytes(0)
-                ),
-                "0x"
-            );
+            cfaV1.deleteFlow(address(this), _receiver, _acceptedToken);
             // @dev create flow to new receiver
-            _host.callAgreement(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.createFlow.selector,
-                    _acceptedToken,
-                    newReceiver,
-                    _cfa.getNetFlow(_acceptedToken, address(this)),
-                    new bytes(0)
-                ),
-                "0x"
+            cfaV1.createFlow(
+                newReceiver,
+                _acceptedToken,
+                _cfa.getNetFlow(_acceptedToken, address(this))
             );
         }
         // @dev set global receiver to new receiver
@@ -198,7 +181,7 @@ contract RedirectAll is SuperAppBase {
         ISuperToken _superToken,
         address _agreementClass,
         bytes32, //_agreementId,
-        bytes calldata agreementData,
+        bytes calldata, //agreementData,
         bytes calldata, //_cbdata,
         bytes calldata _ctx
     )

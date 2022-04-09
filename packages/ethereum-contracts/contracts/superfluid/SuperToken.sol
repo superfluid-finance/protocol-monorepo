@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
@@ -135,6 +135,14 @@ contract SuperToken is
      * (private) Token Logics
      *************************************************************************/
 
+    /**
+     * @notice in the original openzeppelin implementation, transfer() and transferFrom()
+     * did invoke the send and receive hooks, as required by ERC777.
+     * This hooks were removed from super tokens for ERC20 transfers in order to protect
+     * interfacing contracts which don't expect invocations of ERC20 transfers to potentially reenter.
+     * Interactions relying on ERC777 hooks need to use the ERC777 interface.
+     * For more context, see https://github.com/superfluid-finance/protocol-monorepo/wiki/About-ERC-777
+     */
     function _transferFrom(address spender, address holder, address recipient, uint amount)
         internal returns (bool)
     {
@@ -142,8 +150,6 @@ contract SuperToken is
         require(recipient != address(0), "SuperToken: transfer to zero address");
 
         address operator = msg.sender;
-
-        _callTokensToSend(operator, holder, recipient, amount, "", "");
 
         _move(operator, holder, recipient, amount, "", "");
 
@@ -153,8 +159,6 @@ contract SuperToken is
                 spender,
                 _allowances[holder][spender].sub(amount, "SuperToken: transfer amount exceeds allowance"));
         }
-
-        _callTokensReceived(operator, holder, recipient, amount, "", "", false);
 
         return true;
     }
@@ -370,7 +374,7 @@ contract SuperToken is
         returns(uint256 balance)
     {
         // solhint-disable-next-line not-rely-on-time
-        (int256 availableBalance, , ) = super.realtimeBalanceOf(account, block.timestamp);
+        (int256 availableBalance, , ,) = super.realtimeBalanceOfNow(account);
         return availableBalance < 0 ? 0 : uint256(availableBalance);
     }
 

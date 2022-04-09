@@ -324,20 +324,19 @@ const E = (module.exports = {
         // }
     },
 
-    // Set default mocha options here, use special reporters etc.
-    //mocha: {
-    //    // timeout: 100000
-    //    reporter: "eth-gas-reporter",
-    //    reporterOptions: {
-    //        noColors: true,
-    //        outputFile: "build/eth-gas-report.txt"
-    //    }
-    //},
+    mocha: {
+        // timeout: 100000
+        reporter: "mochawesome",
+        reporterOptions: {
+            json: false,
+            reportDir: "test/output/mochareport",
+        },
+    },
 
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.12", // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.13", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {

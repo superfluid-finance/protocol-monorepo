@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import { IResolver } from "../interfaces/ux/IResolver.sol";
 import {
@@ -8,7 +8,7 @@ import {
     ISuperAgreement
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import { strings } from "@arachnid/solidity-string-utils/strings.sol";
+import { Strings } from "../libs/Strings.sol";
 
 /**
  * @title Superfluid loader contract
@@ -44,7 +44,7 @@ contract SuperfluidLoader {
     {
         // load superfluid host contract
         result.superfluid = ISuperfluid(_resolver.get(
-            strings.concat(strings.toSlice("Superfluid."), strings.toSlice(releaseVersion))
+            Strings.concat(Strings.toSlice("Superfluid."), Strings.toSlice(releaseVersion))
         ));
         result.superTokenFactory = result.superfluid.getSuperTokenFactory();
         result.agreementCFAv1 = result.superfluid.getAgreementClass(

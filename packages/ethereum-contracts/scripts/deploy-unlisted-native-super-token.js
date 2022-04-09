@@ -52,15 +52,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const token = await INativeSuperToken.at(proxy.address);
 
-    console.log("Invoking initializeCustomSuperToken...");
-    await superTokenFactory.initializeCustomSuperToken(token.address);
-
     console.log("Invoking initialize...");
     await token.initialize(
         superTokenName,
         superTokenSymbol,
         web3.utils.toWei(String(initialSupply))
     );
+
+    console.log("Invoking initializeCustomSuperToken...");
+    await superTokenFactory.initializeCustomSuperToken(token.address);
 
     console.log(`Native SuperToken deployed at ${token.address}`);
 });

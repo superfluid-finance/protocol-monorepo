@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../utils/expectRevert");
 const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
@@ -158,13 +158,18 @@ contract("Embeded deployment scripts", (accounts) => {
                 assert.isFalse(
                     await codeChanged(web3, Superfluid, s.superfluidCode)
                 );
-                assert.isFalse(
-                    await codeChanged(
-                        web3,
-                        SuperTokenFactory,
-                        s.superTokenFactoryLogic
-                    )
-                );
+
+                // .detectNetwork().then() was added due to hardhat truffle complaining
+                // that no network was set
+                SuperTokenFactory.detectNetwork().then(async () => {
+                    assert.isFalse(
+                        await codeChanged(
+                            web3,
+                            SuperTokenFactory,
+                            s.superTokenFactoryLogic
+                        )
+                    );
+                });
             });
 
             it("fresh deployment (useMocks=true)", async () => {
@@ -174,16 +179,24 @@ contract("Embeded deployment scripts", (accounts) => {
                 });
                 const s = await getSuperfluidAddresses();
                 // check if it useMocks=true
-                assert.isFalse(
-                    await codeChanged(web3, SuperfluidMock, s.superfluidCode)
-                );
-                assert.isFalse(
-                    await codeChanged(
-                        web3,
-                        SuperTokenFactoryMock,
-                        s.superTokenFactoryLogic
-                    )
-                );
+                SuperfluidMock.detectNetwork().then(async () => {
+                    assert.isFalse(
+                        await codeChanged(
+                            web3,
+                            SuperfluidMock,
+                            s.superfluidCode
+                        )
+                    );
+                });
+                SuperTokenFactoryMock.detectNetwork().then(async () => {
+                    assert.isFalse(
+                        await codeChanged(
+                            web3,
+                            SuperTokenFactoryMock,
+                            s.superTokenFactoryLogic
+                        )
+                    );
+                });
             });
 
             it("nonUpgradable deployment", async () => {

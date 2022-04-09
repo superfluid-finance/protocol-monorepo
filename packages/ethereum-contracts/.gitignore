@@ -3,3 +3,5 @@
 /.coverage_*
 /reports
 /test/output/*
+/artifacts
+/cache

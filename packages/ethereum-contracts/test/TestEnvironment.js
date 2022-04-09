@@ -76,10 +76,13 @@ module.exports = class TestEnvironment {
             MINIMUM_DEPOSIT: CFADataModel.clipDepositNumber(toWad(0.25), false),
         };
 
-        this.constants = Object.assign(
-            {},
-            require("@openzeppelin/test-helpers").constants
-        );
+        this.constants = {
+            ...Object.assign(
+                {},
+                require("@openzeppelin/test-helpers").constants
+            ),
+            MAXIMUM_FLOW_RATE: toBN(2).pow(toBN(95)).sub(toBN(1)),
+        };
 
         this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
     }
@@ -477,6 +480,19 @@ module.exports = class TestEnvironment {
     getAddress(alias) {
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return this.aliases[alias] || this.data.moreAliases[alias];
+    }
+
+    /**************************************************************************
+     * Agreement Util functions
+     *************************************************************************/
+
+    getFlowOperatorId(sender, flowOperator) {
+        return web3.utils.keccak256(
+            web3.eth.abi.encodeParameters(
+                ["string", "address", "address"],
+                ["flowOperator", sender, flowOperator]
+            )
+        );
     }
 
     /**************************************************************************

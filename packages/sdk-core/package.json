@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -33,10 +33,8 @@
         "check-updates": "ncu --target minor --dep prod,dev",
         "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts && copyfiles -f ./sf-logo.png ./dist/docs/",
         "lint": "run-s lint:*",
-        "lint:prettier": "prettier \"src/**/*.ts\" --list-different",
         "lint:eslint": "eslint src --ext .ts",
         "fix": "run-s fix:*",
-        "fix:prettier": "yarn lint:prettier --write",
         "fix:eslint": "yarn lint:eslint --fix",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "generate": "run-s generate:*",
@@ -85,6 +83,7 @@
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-eslint-comments": "^3.2.0",
         "eslint-plugin-import": "^2.25.4",
+        "eslint-plugin-prettier": "^3.3.1",
         "ethereum-waffle": "^3.4.0",
         "get-graphql-schema": "^2.1.2",
         "hardhat": "^2.8.3",

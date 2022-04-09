@@ -7,7 +7,7 @@ import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
 import { ERC20WithTokenInfo } from "./typechain/ERC20WithTokenInfo";
 import { normalizeAddress } from "./utils";
 
-export default class Token {
+export default class ERC20Token {
     readonly address: string;
 
     constructor(address: string) {

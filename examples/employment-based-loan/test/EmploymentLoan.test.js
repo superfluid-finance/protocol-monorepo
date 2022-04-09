@@ -176,7 +176,7 @@ beforeEach(async function () {
 });
 
 describe("employment loan deployment", async function () {
-    it("deploys correctly", async () => {        
+    it("0 deploys correctly", async () => {        
 
         let borrowAmount = ethers.utils.parseEther("1000");
         let interest = 10;
@@ -273,7 +273,7 @@ describe("employment loan deployment", async function () {
         //     )
         // });
 
-        it("2.1 First flow into contract works correctly", async () => {
+        it("2 First flow into contract works correctly", async () => {
             
             let loanContractBalance = await colx.balanceOf({account: employmentLoan.address, providerOrSigner: borrower});
 
@@ -327,7 +327,7 @@ describe("employment loan deployment", async function () {
 
         })
 
-        it("2.2 - Flow Reduction works correctly", async () => {
+        it("3 - Flow Reduction works correctly", async () => {
             //testing reduction in flow
 
             const getEmployerContractFlow = await sf.cfaV1.getFlow({
@@ -390,7 +390,7 @@ describe("employment loan deployment", async function () {
 
         })
 
-        it("2.3 Lend Function works correctly", async () => {
+        it("4 Lend Function works correctly", async () => {
 
             //should reduce flow rate, test to ensure failure, then test update flow rate
             //try calling lend - should revert
@@ -462,21 +462,6 @@ describe("employment loan deployment", async function () {
 
             let expectedLender = await employmentLoan.lender();
             let loanStartedTime = await employmentLoan.loanStartTime();
-
-            console.log("borrower balance before lend", borrowerBalBefore);
-            console.log("borrower balance after", borrowerBalAfter);
-            console.log("borrower bal increase", borrowerBalAfter - borrowerBalBefore);
-
-            console.log("lender:", expectedLender);
-            console.log("lender balance before lend", lenderBalBefore);
-            console.log("lender balance after", lenderBalAfter);
-            console.log("lender bal increase", lenderBalAfter - lenderBalBefore);
-
-            console.log("borrower flow rate before", borrowerFlowRateBefore);
-            console.log("lender flow rate before", lenderFlowRateBefore);
-            console.log("borrower flow rate after", borrowerFlowRateAfter);
-            console.log("lender flow rate after", lenderFlowRateAfter);
-            console.log("loan start time", loanStartedTime.timestamp);
             
             let expectedFlowRate = await employmentLoan.getPaymentFlowRate();
             console.log("expected lender flow rate", expectedFlowRate.flowRate);
@@ -510,7 +495,7 @@ describe("employment loan deployment", async function () {
             
         });
 
-        it("2.4 - flow is reduced", async () => {
+        it("5 - flow is reduced", async () => {
             const lenderInitialFlowRate = await sf.cfaV1.getFlow({
                 superToken: daix.address,
                 sender: employmentLoan.address,
@@ -588,14 +573,13 @@ describe("employment loan deployment", async function () {
         
         });
 
-        it("2.5 - should allow a loan to become solvent again after a flow is reduced", async () => {
+        it("6 - should allow a loan to become solvent again after a flow is reduced", async () => {
             const collateralFlowToLenderBefore = await sf.cfaV1.getFlow({
                 superToken: colx.address,
                 sender: employmentLoan.address,
                 receiver: lender.address,
                 providerOrSigner: lender
             });
-            console.log("2.5 case collateral token flowRate to lender before: ", collateralFlowToLenderBefore.flowRate);
 
             const borrowTokenFlowToLenderBefore = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -604,7 +588,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be 0
-            console.log("2.5 case borrow token flowRate to lender before: ", borrowTokenFlowToLenderBefore.flowRate);
 
             const borrowTokenFlowToBorrowerBefore = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -613,7 +596,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be ~100000
-            console.log("2.5 case borrow token flowRate to borrower before: ", borrowTokenFlowToBorrowerBefore.flowRate);
 
             let employerFlowOperation = sf.cfaV1.updateFlow({
                 superToken: daix.address,
@@ -637,7 +619,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be 0
-            console.log("2.5 case collateral token flowRate after: ", collateralFlowToLenderAfter.flowRate);
 
             const borrowTokenFlowToLenderAfter = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -646,7 +627,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be total inflow to contract from employer - flow to lender
-            console.log("2.5 case borrow token flowRate to lender after: ", borrowTokenFlowToLenderAfter.flowRate);
 
             const borrowTokenFlowToBorrowerAfter = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -656,7 +636,6 @@ describe("employment loan deployment", async function () {
             });
 
             //should be total inflow to contract from employer - flow to lender
-            console.log("2.5 case borrow token flowRate to borrower after: ", borrowTokenFlowToBorrowerAfter.flowRate);
 
             assert.equal(collateralFlowToLenderAfter.flowRate, 0, "collateral flow rate after should be 0");
 
@@ -671,7 +650,7 @@ describe("employment loan deployment", async function () {
             );
         });
 
-        it("2.7 - flow is deleted", async() => {
+        it("7 - flow is deleted", async() => {
             //delete flow 
             const lenderInitialFlowRate = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -746,7 +725,7 @@ describe("employment loan deployment", async function () {
 
         });
 
-        it("2.8- should allow loan to become solvent again after deletion ", async() => {
+        it("8 - should allow loan to become solvent again after deletion ", async() => {
             //re start flow
             const collateralFlowToLenderBefore = await sf.cfaV1.getFlow({
                 superToken: colx.address,
@@ -754,7 +733,6 @@ describe("employment loan deployment", async function () {
                 receiver: lender.address,
                 providerOrSigner: lender
             });
-            console.log("2.8 case collateral token flowRate to lender before: ", collateralFlowToLenderBefore.flowRate);
 
             const borrowTokenFlowToLenderBefore = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -763,8 +741,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be 0
-            console.log("2.8 case borrow token flowRate to lender before: ", borrowTokenFlowToLenderBefore.flowRate);
-
             const borrowTokenFlowToBorrowerBefore = await sf.cfaV1.getFlow({
                 superToken: daix.address,
                 sender: employmentLoan.address,
@@ -772,7 +748,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be ~100000
-            console.log("2.8 case borrow token flowRate to borrower before: ", borrowTokenFlowToBorrowerBefore.flowRate);
 
             let employerFlowOperation = sf.cfaV1.createFlow({
                 superToken: daix.address,
@@ -796,7 +771,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be 0
-            console.log("2.8 case collateral token flowRate after: ", collateralFlowToLenderAfter.flowRate);
 
             const borrowTokenFlowToLenderAfter = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -805,7 +779,6 @@ describe("employment loan deployment", async function () {
                 providerOrSigner: lender
             });
             //should be total inflow to contract from employer - flow to lender
-            console.log("2.8 case borrow token flowRate to lender after: ", borrowTokenFlowToLenderAfter.flowRate);
 
             const borrowTokenFlowToBorrowerAfter = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -815,7 +788,6 @@ describe("employment loan deployment", async function () {
             });
 
             //should be total inflow to contract from employer - flow to lender
-            console.log("2.8 case borrow token flowRate to borrower after: ", borrowTokenFlowToBorrowerAfter.flowRate);
 
             assert.equal(collateralFlowToLenderAfter.flowRate, 0, "collateral flow rate after should be 0");
 
@@ -832,7 +804,7 @@ describe("employment loan deployment", async function () {
         });
 
         //todo fix - looks like transfer and approve opp don't work here
-        it("2.10 closing the loan early with payment from borrower", async () => {
+        it("9 closing the loan early with payment from borrower", async () => {
             //borrower sends payment to pay off loan
             const amountLeft = await employmentLoan.connect(borrower).getTotalAmountRemaining();
             const lenderBalBefore = await daix.balanceOf({account: lender.address, providerOrSigner: lender});
@@ -844,8 +816,6 @@ describe("employment loan deployment", async function () {
             });
 
             await transferTokenOperation.exec(lender);
-
-            console.log(lenderBalBefore);
 
             const borrowerApprovalOperation = await daix.approve({
                 receiver: employmentLoan.address,
@@ -862,7 +832,6 @@ describe("employment loan deployment", async function () {
                 receiver: lender.address,
                 providerOrSigner: lender
             });
-            console.log("lender flow rate after completion, ", lenderFlowRateAfterCompletion);
 
             const borrowerFlowRateAfterCompletion = await sf.cfaV1.getFlow({
                 superToken: daix.address,
@@ -883,7 +852,7 @@ describe("employment loan deployment", async function () {
             assert.isAtLeast(Number(Number(lenderBalBefore) + Number(amountLeft)), Number(lenderBalBefore), "lender should see increase in borrow token balance");
         });
 
-        it("2.11 closing the loan early from lender", async () => {
+        it("10 closing the loan early from lender", async () => {
 
             //other party sends payment to pay off loan
             let borrowAmount = ethers.utils.parseEther("1000");
@@ -907,8 +876,6 @@ describe("employment loan deployment", async function () {
             
             let loanAddress = await loanFactory.idToLoan(1);
             let loan2Address = await loanFactory.idToLoan(2);
-            console.log("first loan address", loanAddress);
-            console.log("second loan address", loan2Address);
             let employmentLoan2 = new ethers.Contract(loan2Address, LoanABI, accounts[0]); 
 
             //send collateral
@@ -1008,7 +975,7 @@ describe("employment loan deployment", async function () {
         });
 
 
-        it("2.12 borrower closing the loan once completed", async () => {
+        it("11 borrower closing the loan once completed", async () => {
             //borrower closes loan once complete
             let borrowAmount = ethers.utils.parseEther("1000");
             let interest = 10;

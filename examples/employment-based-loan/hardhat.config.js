@@ -29,17 +29,17 @@ module.exports = {
     }
   },
 
-  networks: {
-    polygon: {
-      url: `${process.env.POLYGON_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY}`],
-    },
-    kovan: {
-      url: `${process.env.KOVAN_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY}`],
-    }
-  },
-  namedAccounts: {
-    deployer: 0
-  }
+  // networks: {
+  //   polygon: {
+  //     url: `${process.env.POLYGON_URL}`,
+  //     accounts: [`0x${process.env.PRIVATE_KEY}`],
+  //   },
+  //   kovan: {
+  //     url: `${process.env.KOVAN_URL}`,
+  //     accounts: [`0x${process.env.PRIVATE_KEY}`],
+  //   }
+  // },
+  // namedAccounts: {
+  //   deployer: 0
+  // }
 };

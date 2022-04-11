@@ -34,7 +34,7 @@ export default class ConstantFlowAgreementV1 {
         this.host = new Host(options.config.hostAddress);
     }
 
-    private get cfaContract() {
+    get contract() {
         return new ethers.Contract(
             this.options.config.cfaV1Address,
             IConstantFlowAgreementV1ABI.abi
@@ -61,7 +61,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedSender = normalizeAddress(sender);
         const normalizedReceiver = normalizeAddress(receiver);
         try {
-            const flowData = await this.cfaContract
+            const flowData = await this.contract
                 .connect(providerOrSigner)
                 .getFlow(normalizedToken, normalizedSender, normalizedReceiver);
             return this._sanitizeflowInfo(flowData);
@@ -89,7 +89,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedAccount = normalizeAddress(account);
         try {
-            const flowData = await this.cfaContract
+            const flowData = await this.contract
                 .connect(providerOrSigner)
                 .getAccountFlowInfo(normalizedToken, normalizedAccount);
             return this._sanitizeflowInfo(flowData);
@@ -119,7 +119,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedAccount = normalizeAddress(account);
         try {
             return (
-                await this.cfaContract
+                await this.contract
                     .connect(providerOrSigner)
                     .getNetFlow(normalizedToken, normalizedAccount)
             ).toString();

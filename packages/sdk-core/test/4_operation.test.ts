@@ -42,7 +42,7 @@ describe("Operation Tests", () => {
             "0x",
         ]);
         const txn =
-            framework.host.hostContract.populateTransaction.callAgreement(
+            framework.host.contract.populateTransaction.callAgreement(
                 cfaV1.address,
                 callData,
                 "0x"

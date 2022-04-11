@@ -14,7 +14,7 @@ export default class ERC20Token {
         this.address = address;
     }
 
-    private get tokenContract() {
+    get contract() {
         return new ethers.Contract(
             this.address,
             ERC20WithTokenInfoABI.abi
@@ -42,7 +42,7 @@ export default class ERC20Token {
         const normalizedOwner = normalizeAddress(owner);
         const normalizedSpender = normalizeAddress(spender);
         try {
-            const allowance = await this.tokenContract
+            const allowance = await this.contract
                 .connect(providerOrSigner)
                 .allowance(normalizedOwner, normalizedSpender);
             return allowance.toString();
@@ -70,7 +70,7 @@ export default class ERC20Token {
     }): Promise<string> => {
         try {
             const normalizedAccount = normalizeAddress(account);
-            const balanceOf = await this.tokenContract
+            const balanceOf = await this.contract
                 .connect(providerOrSigner)
                 .balanceOf(normalizedAccount);
             return balanceOf.toString();
@@ -94,9 +94,7 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const name = await this.tokenContract
-                .connect(providerOrSigner)
-                .name();
+            const name = await this.contract.connect(providerOrSigner).name();
             return name;
         } catch (err) {
             throw new SFError({
@@ -118,7 +116,7 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const symbol = await this.tokenContract
+            const symbol = await this.contract
                 .connect(providerOrSigner)
                 .symbol();
             return symbol;
@@ -142,7 +140,7 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const totalSupply = await this.tokenContract
+            const totalSupply = await this.contract
                 .connect(providerOrSigner)
                 .totalSupply();
             return totalSupply.toString();
@@ -170,7 +168,7 @@ export default class ERC20Token {
         overrides,
     }: IBaseSuperTokenParams): Operation => {
         const normalizedReceiver = normalizeAddress(receiver);
-        const txn = this.tokenContract.populateTransaction.approve(
+        const txn = this.contract.populateTransaction.approve(
             normalizedReceiver,
             amount,
             overrides || {}
@@ -191,7 +189,7 @@ export default class ERC20Token {
         overrides,
     }: IBaseSuperTokenParams): Operation => {
         const normalizedReceiver = normalizeAddress(receiver);
-        const txn = this.tokenContract.populateTransaction.transfer(
+        const txn = this.contract.populateTransaction.transfer(
             normalizedReceiver,
             amount,
             overrides || {}
@@ -215,7 +213,7 @@ export default class ERC20Token {
     }: ITransferFromParams): Operation => {
         const normalizedSender = normalizeAddress(sender);
         const normalizedReceiver = normalizeAddress(receiver);
-        const txn = this.tokenContract.populateTransaction.transferFrom(
+        const txn = this.contract.populateTransaction.transferFrom(
             normalizedSender,
             normalizedReceiver,
             amount,

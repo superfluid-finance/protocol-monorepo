@@ -39,7 +39,7 @@ export default class InstantDistributionAgreementV1 {
         this.host = new Host(options.config.hostAddress);
     }
 
-    private get idaContract() {
+    get contract() {
         return new ethers.Contract(
             this.options.config.idaV1Address,
             IInstantDistributionAgreementV1ABI.abi
@@ -68,7 +68,7 @@ export default class InstantDistributionAgreementV1 {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedSubscriber = normalizeAddress(subscriber);
         try {
-            const subscription = await this.idaContract
+            const subscription = await this.contract
                 .connect(providerOrSigner)
                 .getSubscription(
                     normalizedToken,
@@ -110,7 +110,7 @@ export default class InstantDistributionAgreementV1 {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedPublisher = normalizeAddress(publisher);
         try {
-            const index = await this.idaContract
+            const index = await this.contract
                 .connect(providerOrSigner)
                 .getIndex(normalizedToken, normalizedPublisher, indexId);
             return {

@@ -19,7 +19,7 @@ import {
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import { IConfig, IContracts, ISignerConstructorOptions } from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { DataMode } from "./types";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
@@ -58,6 +58,7 @@ export interface IFrameworkSettings {
 export default class Framework {
     readonly userInputOptions: IFrameworkOptions;
     settings: IFrameworkSettings;
+    contracts: IContracts;
 
     cfaV1: ConstantFlowAgreementV1;
     host: Host;
@@ -79,6 +80,12 @@ export default class Framework {
             config: this.settings.config,
         });
         this.query = new Query(this.settings);
+
+        this.contracts = {
+            cfaV1: this.cfaV1.contract,
+            idaV1: this.idaV1.contract,
+            host: this.host.contract,
+        };
     }
 
     /**

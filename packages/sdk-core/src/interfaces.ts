@@ -1,4 +1,10 @@
 import { ethers, Overrides } from "ethers";
+
+import {
+    IConstantFlowAgreementV1,
+    IInstantDistributionAgreementV1,
+    Superfluid,
+} from "./typechain";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -374,6 +380,12 @@ export interface IConfig {
     readonly hostAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
+}
+
+export interface IContracts {
+    readonly cfaV1: IConstantFlowAgreementV1;
+    readonly host: Superfluid;
+    readonly idaV1: IInstantDistributionAgreementV1;
 }
 
 export interface IAgreementV1Options {

@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added `PageNumberPaging` for UI development friendly pagination API
 - Added `AllPaging` to recursively query all results from Subgraph
 - Added support for `TypedDocumentNode` for `SubgraphClient`
+- Expose underlying ethers.js contracts for each class: CFAv1, Host, IDAv1 and `contracts` property in `Framework` class
 
 ### Changed
 - Renamed `Token` to `ERC20Token`

@@ -138,7 +138,7 @@ function startStreamPeriod(
     );
     streamPeriod.sender = event.sender;
     streamPeriod.receiver = event.receiver;
-    streamPeriod.token = event.token;
+    streamPeriod.token = event.token.toHex();
     streamPeriod.flowRate = event.flowRate;
     streamPeriod.startedAtTimestamp = event.timestamp;
     streamPeriod.startedAtBlockNumber = event.blockNumber;

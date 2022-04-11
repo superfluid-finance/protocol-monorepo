@@ -1000,7 +1000,7 @@ type Token @entity {
     """
     id: the token address
     """
-    id: Bytes!
+    id: ID!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     decimals: Int!

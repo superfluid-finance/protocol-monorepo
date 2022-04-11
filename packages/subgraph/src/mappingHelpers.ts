@@ -82,12 +82,12 @@ export function getOrInitSuperToken(
     tokenAddress: Address,
     block: ethereum.Block
 ): Token {
-    let tokenId = tokenAddress;
+    let tokenId = tokenAddress.toHex();
     let token = Token.load(tokenId);
     let currentTimestamp = block.timestamp;
     let resolverAddress = getResolverAddress();
 
-    if (tokenId.equals(ZERO_ADDRESS)) {
+    if (tokenId == ZERO_ADDRESS.toHex()) {
         return token as Token;
     }
 
@@ -103,7 +103,7 @@ export function getOrInitSuperToken(
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
         token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         let underlyingAddress = token.underlyingAddress;
-        token.underlyingToken = underlyingAddress;
+        token.underlyingToken = underlyingAddress.toHexString();
 
         token.save();
 
@@ -118,12 +118,12 @@ export function getOrInitSuperToken(
         tokenStatistic.save();
 
         // If the token has an underlying ERC20, we create a token entity for it.
-        let underlyingToken = Token.load(token.underlyingAddress);
+        let underlyingToken = Token.load(token.underlyingAddress.toHex());
         if (
             underlyingAddress.notEqual(new Address(0)) &&
             underlyingToken == null
         ) {
-            let address = Address.fromBytes(underlyingAddress);
+            let address = Address.fromString(underlyingAddress.toHexString());
             getOrInitToken(address, block);
         }
 
@@ -155,10 +155,10 @@ export function getOrInitToken(
     tokenAddress: Address,
     block: ethereum.Block
 ): void {
-    let tokenId = tokenAddress;
+    let tokenId = tokenAddress.toHex();
     let token = new Token(tokenId);
 
-    if (tokenId.equals(ZERO_ADDRESS)) {
+    if (tokenId == ZERO_ADDRESS.toHex()) {
         return;
     }
 
@@ -166,7 +166,7 @@ export function getOrInitToken(
     token.createdAtBlockNumber = block.number;
     token.isSuperToken = false;
     token.isListed = false;
-    token = getTokenInfoAndReturn(token as Token, tokenId);
+    token = getTokenInfoAndReturn(token as Token, tokenAddress);
     token.save();
 }
 
@@ -243,7 +243,7 @@ export function getOrInitStream(
         stream = new Stream(id);
         stream.createdAtTimestamp = currentTimestamp;
         stream.createdAtBlockNumber = block.number;
-        stream.token = tokenAddress;
+        stream.token = tokenAddress.toHex();
         stream.sender = senderAddress;
         stream.receiver = receiverAddress;
         stream.currentFlowRate = BigInt.fromI32(0);
@@ -280,6 +280,7 @@ export function getOrInitIndex(
     let index = Index.load(indexEntityId);
     let currentTimestamp = block.timestamp;
     if (index == null) {
+        let tokenId = tokenAddress.toHex();
         index = new Index(indexEntityId);
         index.createdAtTimestamp = currentTimestamp;
         index.createdAtBlockNumber = block.number;
@@ -290,7 +291,7 @@ export function getOrInitIndex(
         index.totalUnitsApproved = BIG_INT_ZERO;
         index.totalUnits = BIG_INT_ZERO;
         index.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
-        index.token = tokenAddress;
+        index.token = tokenId;
         index.publisher = publisherAddress;
         index.indexCreatedEvent = indexCreatedId;
 
@@ -384,7 +385,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.account = accountId;
-        accountTokenSnapshot.token = tokenId;
+        accountTokenSnapshot.token = tokenId.toHex();
     }
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
@@ -409,7 +410,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
-        tokenStatistic.token = tokenId;
+        tokenStatistic.token = tokenId.toHex();
     }
     return tokenStatistic as TokenStatistic;
 }
@@ -520,7 +521,7 @@ function updateATSBalanceAndUpdatedAt(
     block: ethereum.Block
 ): AccountTokenSnapshot {
     let superTokenContract = SuperToken.bind(
-        Address.fromBytes(accountTokenSnapshot.token)
+        Address.fromString(accountTokenSnapshot.token)
     );
     let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
         Address.fromBytes(accountTokenSnapshot.account),

@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
-import { asleep, beforeSetup, getRandomFlowRate, monthlyToSecondRate, toBN } from "./helpers/helpers";
+import { asleep, beforeSetup, getATSId, getRandomFlowRate, monthlyToSecondRate, toBN } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IDistributionLocalData,
@@ -100,18 +100,17 @@ describe("Subgraph Tests", () => {
 
         let block = await provider.getBlock(response.blockNumber);
         // update transfer amount
-        const senderATS =
-            accountTokenSnapshots[
-                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
-            ];
+        const senderATSId = getATSId(
+            sender.address.toLowerCase(),
+            daix.address.toLowerCase()
+        );
+        const senderATS = accountTokenSnapshots[senderATSId];
 
         if (senderATS) {
             const updatedTransferAmount = toBN(
                 senderATS.totalAmountTransferredUntilUpdatedAt
             ).add(toBN(amount));
-            accountTokenSnapshots[
-                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
-            ] = {
+            accountTokenSnapshots[senderATSId] = {
                 ...senderATS,
                 totalAmountTransferredUntilUpdatedAt:
                     updatedTransferAmount.toString(),

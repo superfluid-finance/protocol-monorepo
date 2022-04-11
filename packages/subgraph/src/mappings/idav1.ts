@@ -60,12 +60,12 @@ export function handleIndexCreated(event: IndexCreated): void {
 
     // update streamed until updated at field
     updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
     tokenStatistic.totalNumberOfIndexes =
@@ -127,12 +127,12 @@ export function handleIndexUpdated(event: IndexUpdated): void {
     index.save();
 
     updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
 
@@ -223,8 +223,6 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     subscription.approved = true;
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
-    let tokenId = event.params.token.toHex();
-
     let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // this must be done whether subscription exists or not
@@ -254,7 +252,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
 
     subscription.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     // we only want to increment approved here ALWAYS
     updateAggregateIDASubscriptionsData(
@@ -333,8 +331,6 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
         return;
     }
 
-    let tokenId = event.params.token.toHex();
-
     let index = getOrInitIndex(
         event.params.publisher,
         event.params.token,
@@ -377,7 +373,7 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
         event.block
     );
 
-    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     updateAggregateIDASubscriptionsData(
         event.params.subscriber,
@@ -422,7 +418,7 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
-    let tokenId = event.params.token.toHex();
+    let tokenId = event.params.token;
 
     let subscription = getOrInitSubscription(
         event.params.subscriber,

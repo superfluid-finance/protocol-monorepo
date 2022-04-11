@@ -18,7 +18,7 @@ import {
     SentEvent,
     AgreementLiquidatedV2Event,
 } from "../../generated/schema";
-import {createEventID, tokenHasValidHost} from "../utils";
+import { createEventID, tokenHasValidHost } from "../utils";
 import {
     getOrInitAccount,
     getOrInitSuperToken,
@@ -27,8 +27,8 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
-import {BigInt, Bytes, ethereum, log} from "@graphprotocol/graph-ts";
+import { getHostAddress } from "../addresses";
+import { BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
@@ -142,7 +142,7 @@ export function handleTransfer(event: Transfer): void {
 
     createTransferEntity(event);
 
-    let tokenId = event.address.toHex();
+    let tokenId = event.address;
 
     getOrInitSuperToken(event.address, event.block);
 
@@ -184,10 +184,7 @@ export function handleSent(event: Sent): void {
  */
 export function handleBurned(event: Burned): void {
     createBurnedEntity(event);
-    let tokenStats = getOrInitTokenStatistic(
-        event.address.toHex(),
-        event.block
-    );
+    let tokenStats = getOrInitTokenStatistic(event.address, event.block);
 
     tokenStats.totalSupply = tokenStats.totalSupply.minus(event.params.amount);
     tokenStats.save();
@@ -201,10 +198,7 @@ export function handleBurned(event: Burned): void {
  */
 export function handleMinted(event: Minted): void {
     createMintedEntity(event);
-    let tokenStats = getOrInitTokenStatistic(
-        event.address.toHex(),
-        event.block
-    );
+    let tokenStats = getOrInitTokenStatistic(event.address, event.block);
 
     tokenStats.totalSupply = tokenStats.totalSupply.plus(event.params.amount);
     tokenStats.save();
@@ -238,9 +232,7 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     ev.save();
 }
 
-function createAgreementLiquidatedV2Entity(
-    event: AgreementLiquidatedV2
-): void {
+function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
     let ev = new AgreementLiquidatedV2Event(
         createEventID("AgreementLiquidatedV2", event)
     );

@@ -107,7 +107,7 @@ export function getOrInitSuperToken(
 
         // Note: we initalize and create tokenStatistic whenever we create a
         // token as well.
-        let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
+        let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
         tokenStatistic = updateTotalSupplyForNativeSuperToken(
             token,
             tokenStatistic,
@@ -391,7 +391,7 @@ export function getOrInitAccountTokenSnapshot(
 }
 
 export function getOrInitTokenStatistic(
-    tokenId: string,
+    tokenId: Bytes,
     block: ethereum.Block
 ): TokenStatistic {
     let tokenStatistic = TokenStatistic.load(tokenId);
@@ -410,7 +410,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
-        tokenStatistic.token = tokenId;
+        tokenStatistic.token = tokenId.toHex();
     }
     return tokenStatistic as TokenStatistic;
 }
@@ -471,7 +471,7 @@ export function updateAggregateIDASubscriptionsData(
         tokenId,
         block
     );
-    let tokenStatistic = getOrInitTokenStatistic(tokenId.toHex(), block);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
     let totalSubscriptionWithUnitsDelta =
         isDeletingSubscription && subscriptionWithUnitsExists
             ? -1
@@ -579,7 +579,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
 }
 
 export function updateTokenStatsStreamedUntilUpdatedAt(
-    tokenId: string,
+    tokenId: Bytes,
     block: ethereum.Block
 ): void {
     let tokenStats = getOrInitTokenStatistic(tokenId, block);
@@ -618,7 +618,7 @@ export function updateAggregateEntitiesStreamData(
     isDelete: boolean,
     block: ethereum.Block
 ): void {
-    let tokenStatistic = getOrInitTokenStatistic(tokenId.toHex(), block);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
     let totalNumberOfActiveStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
     let totalNumberOfClosedStreamsDelta = isDelete ? 1 : 0;
     let tokenStatsAmountStreamedSinceLastUpdate =
@@ -701,7 +701,7 @@ export function updateAggregateEntitiesTransferData(
     fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
     fromAccountTokenSnapshot.save();
 
-    let tokenStatistic = getOrInitTokenStatistic(tokenId.toHex(), block);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();

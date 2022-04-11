@@ -42,7 +42,7 @@ export interface BaseSuperTokenMutation {
     /**
      * Custom data to included in transaction tracking. Has to be serializable for redux!
      */
-    transactionExtraData?: unknown;
+    transactionExtraData?: Record<string, unknown>;
 }
 
 /**

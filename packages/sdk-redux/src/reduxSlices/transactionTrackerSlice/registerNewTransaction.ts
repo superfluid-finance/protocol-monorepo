@@ -30,7 +30,7 @@ export interface RegisterNewTransactionArg {
     /**
      * Any extra data you want to attach to the transaction. Make sure it's serializable!
      */
-    extraData: unknown;
+    extraData: Record<string, unknown> | undefined;
 }
 
 /**
@@ -46,7 +46,7 @@ export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => 
             signer,
             transactionResponse,
             title,
-            ...(extraData ? {extraData} : {}),
+            extraData: extraData ?? {},
         })
     );
 

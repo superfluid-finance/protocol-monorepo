@@ -17,7 +17,7 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
         transactionResponse: ethers.providers.TransactionResponse;
         signer: string;
         title: TransactionTitle;
-        extra?: unknown;
+        extraData: Record<string, unknown>;
     }
 >(`${transactionTrackerSlicePrefix}/initiateNewTransactionTracking`, async (arg, {dispatch}) => {
     arg.transactionResponse.chainId = arg.chainId; // Recommended by Ethers to specify Chain ID when doing serialization.
@@ -33,7 +33,7 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
             status: 'Pending',
             transactionResponse: ethers.utils.serializeTransaction(arg.transactionResponse),
             title: arg.title,
-            ...(arg.extra ? {extra: arg.extra} : {}),
+            extraData: arg.extraData,
         })
     );
 

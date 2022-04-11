@@ -23,7 +23,7 @@ export interface TrackedTransaction {
     ethersErrorCode?: ethers.errors;
     ethersErrorMessage?: string;
     title: TransactionTitle;
-    extraData?: unknown;
+    extraData: Record<string, unknown>;
 }
 
 export const transactionsAdapter = createEntityAdapter<TrackedTransaction>({

@@ -25,7 +25,6 @@ export async function validateFlowUpdated(
     pastStreamData: IStreamData,
     streamedAmountUntilTimestamp: BigNumber,
     flowRate: BigNumber,
-    tokenId: string,
     updatedSenderATS: IAccountTokenSnapshot,
     updatedReceiverATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
@@ -49,13 +48,13 @@ export async function validateFlowUpdated(
     );
 
     // validate sender ATS
-    await fetchATSAndValidate(updatedSenderATS.id, updatedSenderATS);
+    await fetchATSAndValidate(updatedSenderATS);
 
     // validate receiver ATS
-    await fetchATSAndValidate(updatedReceiverATS.id, updatedReceiverATS);
+    await fetchATSAndValidate(updatedReceiverATS);
 
     // validate token stats
-    await fetchTokenStatsAndValidate(tokenId, updatedTokenStats);
+    await fetchTokenStatsAndValidate(updatedTokenStats);
 }
 
 export async function validateModifyIDA(
@@ -65,8 +64,6 @@ export async function validateModifyIDA(
     updatedPublisherATS: IAccountTokenSnapshot,
     updatedSubscriberATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
-    token: string,
-    publisher: string,
     subscriberAddress: string,
     eventType: IDAEventType,
     events: IIDAEvents,
@@ -83,9 +80,7 @@ export async function validateModifyIDA(
             events,
             subscriptionExists
         );
-        const subscriberATSId =
-            subscriberAddress.toLowerCase() + "-" + token.toLowerCase();
-        await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
+        await fetchATSAndValidate(updatedSubscriberATS);
     }
     await fetchIndexAndValidate(
         framework,
@@ -95,9 +90,8 @@ export async function validateModifyIDA(
         updatedSubscription.id,
         subscriptionExists
     );
-    const publisherATSId = publisher.toLowerCase() + "-" + token.toLowerCase();
-    await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
-    await fetchTokenStatsAndValidate(token.toLowerCase(), updatedTokenStats);
+    await fetchATSAndValidate(updatedPublisherATS);
+    await fetchTokenStatsAndValidate(updatedTokenStats);
 }
 
 export function validateReverseLookup(

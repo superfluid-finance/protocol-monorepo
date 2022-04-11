@@ -7,25 +7,23 @@ import {
 } from "../queries/aggregateQueries";
 
 export const fetchATSAndValidate = async (
-    atsId: string,
     expectedATSData: IAccountTokenSnapshot
 ) => {
     const graphATS = await fetchEntityAndEnsureExistence<IAccountTokenSnapshot>(
         getAccountTokenSnapshot,
-        atsId,
+        expectedATSData.id,
         "AccountTokenSnapshot"
     );
     validateATSEntity(graphATS, expectedATSData);
 };
 
 export const fetchTokenStatsAndValidate = async (
-    tokenId: string,
     expectedTokenStatsData: ITokenStatistic
 ) => {
     const graphTokenStats =
         await fetchEntityAndEnsureExistence<ITokenStatistic>(
             getTokenStatistic,
-            tokenId,
+            expectedTokenStatsData.id,
             "TokenStats"
         );
     validateTokenStatsEntity(graphTokenStats, expectedTokenStatsData);

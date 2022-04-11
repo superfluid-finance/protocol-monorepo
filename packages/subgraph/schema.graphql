@@ -750,7 +750,10 @@ Account: A HOL entity created for any addresses which interact with
 Superfluid contracts.
 """
 type Account @entity {
-    id: ID!
+    """
+    id: the account address
+    """
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
@@ -995,9 +998,9 @@ Superfluid's host contract address set as the host).
 type Token @entity {
     # Note: All Tokens are Super Tokens for this subgraph
     """
-    ID: the token address
+    id: the token address
     """
-    id: ID!
+    id: Bytes!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     decimals: Int!
@@ -1030,7 +1033,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID + keccak256("-") + tokenID (without the 0x)
+    id composed of: accountID + keccak256("-") + tokenID (without the 0x)
     """
     id: Bytes!
     updatedAtTimestamp: BigInt!

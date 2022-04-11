@@ -115,8 +115,7 @@ export function tokenHasValidHost(
     hostAddress: Address,
     tokenAddress: Address
 ): boolean {
-    let tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId);
+    let token = Token.load(tokenAddress);
     if (token == null) {
         let tokenContract = SuperToken.bind(tokenAddress);
         let tokenHostAddressResult = tokenContract.try_getHost();

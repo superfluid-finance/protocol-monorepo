@@ -321,7 +321,7 @@ function createSentEntity(event: Sent): void {
 
 function createTokenUpgradedEntity(event: TokenUpgraded): void {
     let ev = new TokenUpgradedEvent(createEventID("TokenUpgraded", event));
-    ev.account = event.params.account.toHex();
+    ev.account = event.params.account;
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.name = "TokenUpgraded";
@@ -334,7 +334,7 @@ function createTokenUpgradedEntity(event: TokenUpgraded): void {
 
 function createTokenDowngradedEntity(event: TokenDowngraded): void {
     let ev = new TokenDowngradedEvent(createEventID("TokenDowngraded", event));
-    ev.account = event.params.account.toHex();
+    ev.account = event.params.account;
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.name = "TokenDowngraded";
@@ -353,8 +353,8 @@ function createTransferEntity(event: Transfer): void {
     ev.name = "Transfer";
     ev.addresses = [event.address, event.params.from, event.params.to];
     ev.blockNumber = event.block.number;
-    ev.from = event.params.from.toHex();
-    ev.to = event.params.to.toHex();
+    ev.from = event.params.from;
+    ev.to = event.params.to;
     ev.value = value;
     ev.token = event.address;
     ev.save();

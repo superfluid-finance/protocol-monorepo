@@ -28,6 +28,8 @@ import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { getHostAddress, getResolverAddress } from "./addresses";
 
+// TODO: use ----Id or ----Address - stop mixing and matching between the two
+
 /**************************************************************************
  * HOL initializer functions
  *************************************************************************/
@@ -42,11 +44,11 @@ export function getOrInitAccount(
     accountAddress: Address,
     block: ethereum.Block
 ): Account {
-    let account = Account.load(accountAddress.toHex());
+    let account = Account.load(accountAddress);
     let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
-    if (accountAddress.equals(new Address(0))) {
+    if (accountAddress.equals(ZERO_ADDRESS)) {
         return account as Account;
     }
 
@@ -54,7 +56,7 @@ export function getOrInitAccount(
     if (account == null) {
         let hostContract = Superfluid.bind(hostAddress);
         let appManifestResult = hostContract.try_getAppManifest(accountAddress);
-        account = new Account(accountAddress.toHex());
+        account = new Account(accountAddress);
         account.createdAtTimestamp = currentTimestamp;
         account.createdAtBlockNumber = block.number;
         account.updatedAtTimestamp = currentTimestamp;
@@ -242,8 +244,8 @@ export function getOrInitStream(
         stream.createdAtTimestamp = currentTimestamp;
         stream.createdAtBlockNumber = block.number;
         stream.token = tokenAddress.toHex();
-        stream.sender = senderAddress.toHex();
-        stream.receiver = receiverAddress.toHex();
+        stream.sender = senderAddress;
+        stream.receiver = receiverAddress;
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
@@ -278,7 +280,6 @@ export function getOrInitIndex(
     let index = Index.load(indexEntityId);
     let currentTimestamp = block.timestamp;
     if (index == null) {
-        let publisherId = publisherAddress.toHex();
         let tokenId = tokenAddress.toHex();
         index = new Index(indexEntityId);
         index.createdAtTimestamp = currentTimestamp;
@@ -291,7 +292,7 @@ export function getOrInitIndex(
         index.totalUnits = BIG_INT_ZERO;
         index.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         index.token = tokenId;
-        index.publisher = publisherId;
+        index.publisher = publisherAddress;
         index.indexCreatedEvent = indexCreatedId;
 
         getOrInitAccount(publisherAddress, block);
@@ -341,11 +342,10 @@ export function getOrInitSubscription(
             ""
         );
 
-        let subscriberId = subscriberAddress.toHex();
         subscription = new IndexSubscription(subscriptionId);
         subscription.createdAtTimestamp = currentTimestamp;
         subscription.createdAtBlockNumber = block.number;
-        subscription.subscriber = subscriberId;
+        subscription.subscriber = subscriberAddress;
         subscription.approved = false;
         subscription.units = BIG_INT_ZERO;
         subscription.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
@@ -384,7 +384,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
-        accountTokenSnapshot.account = accountId.toHex();
+        accountTokenSnapshot.account = accountId;
         accountTokenSnapshot.token = tokenId.toHex();
     }
     return accountTokenSnapshot as AccountTokenSnapshot;
@@ -434,9 +434,11 @@ export function updateAccountUpdatedAt(
         return;
     }
     let account = getOrInitAccount(accountAddress, block);
-    account.updatedAtTimestamp = block.timestamp;
-    account.updatedAtBlockNumber = block.number;
-    account.save();
+    if (account) {
+        account.updatedAtTimestamp = block.timestamp;
+        account.updatedAtBlockNumber = block.number;
+        account.save();
+    }
 }
 
 /**************************************************************************
@@ -524,7 +526,7 @@ function updateATSBalanceAndUpdatedAt(
         Address.fromString(accountTokenSnapshot.token)
     );
     let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
-        Address.fromString(accountTokenSnapshot.account),
+        Address.fromBytes(accountTokenSnapshot.account),
         block.timestamp
     );
     if (!newBalanceResult.reverted) {

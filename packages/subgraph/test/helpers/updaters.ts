@@ -16,23 +16,29 @@ import {
     IStreamData,
     IIndexSubscription,
     ITokenStatistic,
+    IFlowOperator,
 } from "../interfaces";
 import {
     actionTypeToActiveStreamsDeltaMap,
     actionTypeToClosedStreamsDeltaMap,
     actionTypeToPeriodRevisionIndexDeltaMap,
     FlowActionType,
+    MAX_FLOW_RATE,
 } from "./constants";
 import { getCurrentTotalAmountStreamed, toBN } from "./helpers";
 import { BaseProvider } from "@ethersproject/providers";
+
+// TODO: When refactoring, have all updaters/helpers, etc.
+// take an object instead of parameters so ordering is not important
 
 export const getExpectedStreamData = (
     currentStreamData: IStreamData,
     actionType: FlowActionType,
     oldFlowRate: string,
+    newDeposit: string,
     lastUpdatedAtTimestamp: string,
     streamedAmountSinceUpdatedAt: BigNumber
-) => {
+): IStreamData => {
     const {
         revisionIndex: currentRevisionIndex,
         periodRevisionIndex: currentPeriodRevisionIndex,
@@ -55,9 +61,43 @@ export const getExpectedStreamData = (
         revisionIndex,
         periodRevisionIndex,
         oldFlowRate,
+        deposit: newDeposit,
         streamedUntilUpdatedAt: updatedStreamedUntilUpdatedAt.toString(),
         updatedAtTimestamp: lastUpdatedAtTimestamp,
-    } as IStreamData;
+    };
+};
+
+export const getExpectedFlowOperatorForFlowUpdated = ({
+    currentFlowOperatorData,
+    actionType,
+    oldFlowRate,
+    newFlowRate,
+}: {
+    currentFlowOperatorData: IFlowOperator;
+    actionType: FlowActionType;
+    oldFlowRate: string;
+    newFlowRate: string;
+}): IFlowOperator => {
+    if (actionType === FlowActionType.Delete) {
+        return currentFlowOperatorData;
+    }
+    const flowRateDiff = toBN(newFlowRate).sub(toBN(oldFlowRate));
+    const flowRateAllowanceRemaining =
+        toBN(currentFlowOperatorData.flowRateAllowanceGranted).eq(
+            MAX_FLOW_RATE
+        ) || toBN(newFlowRate).lte(toBN(oldFlowRate))
+            ? currentFlowOperatorData.flowRateAllowanceGranted
+            : actionType === FlowActionType.Create
+            ? toBN(currentFlowOperatorData.flowRateAllowanceRemaining)
+                  .sub(toBN(newFlowRate))
+                  .toString()
+            : toBN(currentFlowOperatorData.flowRateAllowanceRemaining)
+                  .sub(flowRateDiff)
+                  .toString();
+    return {
+        ...currentFlowOperatorData,
+        flowRateAllowanceRemaining,
+    };
 };
 
 const getUpdatedIndex = (
@@ -82,6 +122,7 @@ export const getExpectedATSForCFAEvent = async (
     isSender: boolean,
     flowRate: BigNumber,
     flowRateDelta: BigNumber,
+    depositDelta: BigNumber,
     provider: BaseProvider
 ): Promise<IAccountTokenSnapshot> => {
     const balanceUntilUpdatedAt = (
@@ -104,6 +145,9 @@ export const getExpectedATSForCFAEvent = async (
         .lt(toBN(0))
         ? flowRate
         : toBN(currentATS.totalInflowRate).add(flowRateDelta);
+    const totalDeposit = toBN(currentATS.totalDeposit)
+        .add(depositDelta)
+        .toString();
     const outflowRate = toBN(currentATS.totalOutflowRate)
         .add(flowRateDelta)
         .lt(toBN(0))
@@ -139,6 +183,7 @@ export const getExpectedATSForCFAEvent = async (
         totalInflowRate,
         totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt,
+        totalDeposit,
     };
 };
 
@@ -153,8 +198,9 @@ export const getExpectedTokenStatsForCFAEvent = (
     lastUpdatedAtTimestamp: string,
     actionType: FlowActionType,
     flowRate: BigNumber,
-    flowRateDelta: BigNumber
-) => {
+    flowRateDelta: BigNumber,
+    depositDelta: BigNumber
+): ITokenStatistic => {
     const activeStreamsDelta =
         actionTypeToActiveStreamsDeltaMap.get(actionType)!;
     const closedStreamsDelta =
@@ -165,6 +211,9 @@ export const getExpectedTokenStatsForCFAEvent = (
         ? flowRate
         : toBN(currentTokenStats.totalOutflowRate).add(flowRateDelta);
     const totalOutflowRate = outflowRate.toString();
+    const totalDeposit = toBN(currentTokenStats.totalDeposit)
+        .add(depositDelta)
+        .toString();
 
     const totalAmountStreamedUntilUpdatedAt = toBN(
         currentTokenStats.totalAmountStreamedUntilUpdatedAt
@@ -198,7 +247,8 @@ export const getExpectedTokenStatsForCFAEvent = (
             currentTokenStats.totalNumberOfClosedStreams + closedStreamsDelta,
         totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt,
-    } as ITokenStatistic;
+        totalDeposit,
+    };
 };
 
 /**
@@ -208,56 +258,66 @@ export const getExpectedTokenStatsForCFAEvent = (
 export const getExpectedDataForFlowUpdated = async (
     testData: IFlowUpdatedUpdateTestData
 ) => {
-    const {
-        actionType,
-        accountTokenSnapshots,
-        flowRate,
-        lastUpdatedAtTimestamp,
-        lastUpdatedBlockNumber,
-        superToken,
-        pastStreamData,
-        currentSenderATS,
-        currentReceiverATS,
-        currentTokenStats,
-        provider
-    } = testData;
+    const existingData = testData.existingData;
+    const data = testData.data;
     // newFlowRate - previousFlowRate
-    const flowRateDelta = flowRate.sub(toBN(pastStreamData.oldFlowRate));
+    const flowRateDelta = testData.flowRate.sub(
+        toBN(existingData.pastStreamData.oldFlowRate)
+    );
 
     // Update the data - we use this for comparison
     const updatedSenderATS = await getExpectedATSForCFAEvent(
-        superToken,
-        currentSenderATS,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
-        actionType,
+        data.superToken,
+        existingData.currentSenderATS,
+        testData.lastUpdatedBlockNumber,
+        testData.lastUpdatedAtTimestamp,
+        data.actionType,
         true,
-        flowRate,
+        testData.flowRate,
         flowRateDelta,
-        provider
+        testData.depositDelta,
+        data.provider
     );
     const updatedReceiverATS = await getExpectedATSForCFAEvent(
-        superToken,
-        currentReceiverATS,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
-        actionType,
+        data.superToken,
+        existingData.currentReceiverATS,
+        testData.lastUpdatedBlockNumber,
+        testData.lastUpdatedAtTimestamp,
+        data.actionType,
         false,
-        flowRate,
+        testData.flowRate,
         flowRateDelta,
-        provider
+        toBN(0),
+        data.provider
     );
     const updatedTokenStats = getExpectedTokenStatsForCFAEvent(
-        currentTokenStats,
-        accountTokenSnapshots,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
-        actionType,
-        flowRate,
-        flowRateDelta
+        existingData.currentTokenStats,
+        data.atsArray,
+        testData.lastUpdatedBlockNumber,
+        testData.lastUpdatedAtTimestamp,
+        data.actionType,
+        testData.flowRate,
+        flowRateDelta,
+        testData.depositDelta
     );
 
-    return { updatedSenderATS, updatedReceiverATS, updatedTokenStats };
+    let updatedFlowOperator = existingData.currentFlowOperator;
+
+    if (existingData.currentSenderATS.account.id !== data.flowOperator) {
+        updatedFlowOperator = getExpectedFlowOperatorForFlowUpdated({
+            currentFlowOperatorData: existingData.currentFlowOperator,
+            actionType: data.actionType,
+            oldFlowRate: existingData.pastStreamData.oldFlowRate,
+            newFlowRate: testData.flowRate.toString(),
+        });
+    }
+
+    return {
+        updatedFlowOperator,
+        updatedSenderATS,
+        updatedReceiverATS,
+        updatedTokenStats,
+    };
 };
 
 export const getExpectedDataForIndexCreated = async (
@@ -273,7 +333,7 @@ export const getExpectedDataForIndexCreated = async (
         updatedAtBlockNumber,
         timestamp,
         token,
-        provider
+        provider,
     } = data;
 
     const updatedPublisherATS: IAccountTokenSnapshot = {
@@ -284,6 +344,7 @@ export const getExpectedDataForIndexCreated = async (
             timestamp,
             FlowActionType.Update,
             true,
+            toBN(0),
             toBN(0),
             toBN(0),
             provider
@@ -297,6 +358,7 @@ export const getExpectedDataForIndexCreated = async (
             updatedAtBlockNumber,
             timestamp,
             FlowActionType.Update,
+            toBN(0),
             toBN(0),
             toBN(0)
         ),
@@ -329,7 +391,7 @@ export const getExpectedDataForIndexUpdated = async (
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
-        provider
+        provider,
     } = data;
 
     const amountDistributedDelta = totalUnits.mul(
@@ -356,6 +418,7 @@ export const getExpectedDataForIndexUpdated = async (
             timestamp,
             FlowActionType.Update,
             toBN(0),
+            toBN(0),
             toBN(0)
         ),
         totalAmountDistributedUntilUpdatedAt: toBN(
@@ -375,6 +438,7 @@ export const getExpectedDataForIndexUpdated = async (
         timestamp,
         FlowActionType.Update,
         true,
+        toBN(0),
         toBN(0),
         toBN(0),
         provider
@@ -407,7 +471,7 @@ export const getExpectedDataForSubscriptionApproved = async (
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
-        provider
+        provider,
     } = data;
 
     const subscriptionWithUnitsExists = currentSubscription.units !== "0";
@@ -435,6 +499,7 @@ export const getExpectedDataForSubscriptionApproved = async (
             timestamp,
             FlowActionType.Update,
             toBN(0),
+            toBN(0),
             toBN(0)
         ),
         totalApprovedSubscriptions:
@@ -450,6 +515,7 @@ export const getExpectedDataForSubscriptionApproved = async (
             timestamp,
             FlowActionType.Update,
             true,
+            toBN(0),
             toBN(0),
             toBN(0),
             provider
@@ -490,6 +556,7 @@ export const getExpectedDataForSubscriptionApproved = async (
             true,
             toBN(0),
             toBN(0),
+            toBN(0),
             provider
         );
     }
@@ -505,8 +572,8 @@ export const getExpectedDataForSubscriptionApproved = async (
 
 /**
  * Same expected data for IndexDistributionClaimed
- * @param data 
- * @returns 
+ * @param data
+ * @returns
  */
 export const getExpectedDataForSubscriptionDistributionClaimed = async (
     data: IGetExpectedIDADataParams
@@ -520,7 +587,7 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
-        provider
+        provider,
     } = data;
     const distributionDelta = toBN(currentSubscription.units).mul(
         toBN(currentIndex.indexValue).sub(
@@ -556,6 +623,7 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
             true,
             toBN(0),
             toBN(0),
+            toBN(0),
             provider
         )),
     };
@@ -568,6 +636,7 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
             timestamp,
             FlowActionType.Update,
             true,
+            toBN(0),
             toBN(0),
             toBN(0),
             provider
@@ -603,7 +672,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
-        provider
+        provider,
     } = data;
     const balanceDelta = toBN(currentSubscription.units).mul(
         toBN(currentIndex.indexValue).sub(
@@ -636,6 +705,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
             timestamp,
             FlowActionType.Update,
             toBN(0),
+            toBN(0),
             toBN(0)
         ),
     };
@@ -649,6 +719,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
             timestamp,
             FlowActionType.Update,
             true,
+            toBN(0),
             toBN(0),
             toBN(0),
             provider
@@ -741,6 +812,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
             true,
             toBN(0),
             toBN(0),
+            toBN(0),
             provider
         )),
     };
@@ -768,7 +840,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
-        provider
+        provider,
     } = data;
     let updatedIndex = { ...currentIndex };
     let updatedSubscription = { ...currentSubscription };
@@ -782,6 +854,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
             timestamp,
             FlowActionType.Update,
             true,
+            toBN(0),
             toBN(0),
             toBN(0),
             provider
@@ -826,6 +899,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
                 timestamp,
                 FlowActionType.Update,
                 toBN(0),
+                toBN(0),
                 toBN(0)
             ),
             totalSubscriptionsWithUnits:
@@ -848,10 +922,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         };
     }
 
-    if (
-        units.gt(toBN(0)) &&
-        toBN(currentSubscription.units).eq(toBN(0))
-    ) {
+    if (units.gt(toBN(0)) && toBN(currentSubscription.units).eq(toBN(0))) {
         updatedIndex = {
             ...updatedIndex,
             totalSubscriptionsWithUnits:
@@ -871,6 +942,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
                 updatedAtBlockNumber,
                 timestamp,
                 FlowActionType.Update,
+                toBN(0),
                 toBN(0),
                 toBN(0)
             ),
@@ -903,6 +975,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         timestamp,
         FlowActionType.Update,
         true,
+        toBN(0),
         toBN(0),
         toBN(0),
         provider

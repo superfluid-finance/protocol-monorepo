@@ -8,6 +8,15 @@ import {
     TokenStatistic,
 } from "../generated/schema";
 
+// TODO when refactoring subgraph to use Bytes id's and immmutable entities
+// for consistency, only pass Bytes/Address to helper functions
+// instead of doing string/Bytes randomly.
+// Also use concat instead of + - will likely have to do this anyway when
+// dealing with Bytes
+// Pass event into the helpers instead of taking so many params when possible (if it always)
+// will take that one event
+// this will clean up both files (look at getOrInitFlowOperator and getFlowOperatorID)
+
 /**************************************************************************
  * Constants
  *************************************************************************/
@@ -17,6 +26,9 @@ export let BIG_INT_ONE = BigInt.fromI32(1);
 export let ZERO_ADDRESS = Address.fromString(
     "0x0000000000000000000000000000000000000000"
 );
+export let MAX_FLOW_RATE = BigInt.fromI32(2)
+    .pow(95)
+    .minus(BigInt.fromI32(1));
 
 /**************************************************************************
  * Event entities util functions
@@ -78,7 +90,9 @@ export function updateTotalSupplyForNativeSuperToken(
     tokenStatistic: TokenStatistic,
     tokenAddress: Address
 ): TokenStatistic {
-    if (token.underlyingAddress.toHex() == "0x0000000000000000000000000000000000000000" &&
+    if (
+        token.underlyingAddress.toHex() ==
+            "0x0000000000000000000000000000000000000000" &&
         tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
     ) {
         let tokenContract = SuperToken.bind(tokenAddress);
@@ -119,7 +133,8 @@ export function tokenHasValidHost(
     return true;
 }
 
-// Get HOL ID functions
+// Get Higher Order Entity ID functions
+// CFA Higher Order Entity
 export function getStreamRevisionPrefix(
     senderId: string,
     receiverId: string,
@@ -146,6 +161,15 @@ export function getStreamPeriodID(
     return streamId.concat("-").concat(periodRevisionIndex.toString());
 }
 
+export function getFlowOperatorID(
+    flowOperator: Bytes,
+    token: Bytes,
+    sender: Bytes
+): string {
+    return flowOperator.toHex() + "-" + token.toHex() + "-" + sender.toHex();
+}
+
+// IDA Higher Order Entity
 export function getSubscriptionID(
     subscriberAddress: Bytes,
     publisherAddress: Bytes,

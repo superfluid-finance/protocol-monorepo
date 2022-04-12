@@ -12,19 +12,26 @@ import {
     IConfig,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
+    ISuperTokenCreateFlowByOperatorParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
+    ISuperTokenFlowOperatorDataByIDParams,
+    ISuperTokenFlowOperatorDataParams,
+    ISuperTokenFullControlParams,
     ISuperTokenGetFlowInfoParams,
     ISuperTokenGetFlowParams,
     ISuperTokenGetIndexParams,
     ISuperTokenGetSubscriptionParams,
     ISuperTokenPublisherOperationParams,
     ISuperTokenPubSubParams,
+    ISuperTokenUpdateFlowByOperatorParams,
+    ISuperTokenUpdateFlowOperatorPermissionsParams,
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
     IWeb3FlowInfo,
+    IWeb3FlowOperatorData,
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
@@ -252,11 +259,49 @@ export default class SuperToken extends ERC20Token {
         });
     };
 
+    /**
+     * @dev Get flow operator data.
+     * @param sender the sender
+     * @param flowOperator the flowOperator
+     * @param providerOrSigner a provider or signer object
+     * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
+     */
+    getFlowOperatorData = async ({
+        sender,
+        flowOperator,
+        providerOrSigner,
+    }: ISuperTokenFlowOperatorDataParams): Promise<IWeb3FlowOperatorData> => {
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedFlowOperator = normalizeAddress(flowOperator);
+        return await this.cfaV1.getFlowOperatorData({
+            superToken: this.settings.address,
+            sender: normalizedSender,
+            flowOperator: normalizedFlowOperator,
+            providerOrSigner,
+        });
+    };
+
+    /**
+     * @dev Get flow operator data using the flowOperatorId.
+     * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
+     * @param providerOrSigner a provider or signer object
+     * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
+     */
+    getFlowOperatorDataByID = async ({
+        flowOperatorId,
+        providerOrSigner,
+    }: ISuperTokenFlowOperatorDataByIDParams): Promise<IWeb3FlowOperatorData> => {
+        return await this.cfaV1.getFlowOperatorDataByID({
+            superToken: this.settings.address,
+            flowOperatorId,
+            providerOrSigner,
+        });
+    };
+
     // CFA Write Functions
 
     /**
      * @dev Create a flow of the token of this class.
-     * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
@@ -264,7 +309,6 @@ export default class SuperToken extends ERC20Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = ({
-        sender,
         receiver,
         flowRate,
         userData,
@@ -273,7 +317,6 @@ export default class SuperToken extends ERC20Token {
         return this.cfaV1.createFlow({
             flowRate,
             receiver,
-            sender,
             superToken: this.settings.address,
             userData,
             overrides,
@@ -282,7 +325,6 @@ export default class SuperToken extends ERC20Token {
 
     /**
      * @dev Update a flow of the token of this class.
-     * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
@@ -290,7 +332,6 @@ export default class SuperToken extends ERC20Token {
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlow = ({
-        sender,
         receiver,
         flowRate,
         userData,
@@ -299,7 +340,6 @@ export default class SuperToken extends ERC20Token {
         return this.cfaV1.updateFlow({
             flowRate,
             receiver,
-            sender,
             superToken: this.settings.address,
             userData,
             overrides,
@@ -321,6 +361,156 @@ export default class SuperToken extends ERC20Token {
         overrides,
     }: ISuperTokenDeleteFlowParams): Operation => {
         return this.cfaV1.deleteFlow({
+            superToken: this.settings.address,
+            sender,
+            receiver,
+            userData,
+            overrides,
+        });
+    };
+
+    // CFA Write Functions (byOperator)
+
+    /**
+     * @dev Update permissions for a flow operator as a sender.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param permission The pernissions to set.
+     * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    updateFlowOperatorPermissions({
+        sender,
+        flowOperator,
+        permissions,
+        flowRateAllowance,
+        userData,
+        overrides,
+    }: ISuperTokenUpdateFlowOperatorPermissionsParams): Operation {
+        return this.cfaV1.updateFlowOperatorPermissions({
+            superToken: this.settings.address,
+            sender,
+            flowOperator,
+            permissions,
+            flowRateAllowance,
+            userData,
+            overrides,
+        });
+    }
+
+    /**
+     * @dev Give flow operator full control - max flow rate and create/update/delete permissions.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     */
+    authorizeFlowOperatorWithFullControl({
+        sender,
+        flowOperator,
+        userData,
+        overrides,
+    }: ISuperTokenFullControlParams): Operation {
+        return this.cfaV1.authorizeFlowOperatorWithFullControl({
+            superToken: this.settings.address,
+            sender,
+            flowOperator,
+            userData,
+            overrides,
+        });
+    }
+
+    /**
+     * @dev Revoke flow operator control - set flow rate to 0 with no permissions.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     */
+    revokeFlowOperatorWithFullControl({
+        sender,
+        flowOperator,
+        userData,
+        overrides,
+    }: ISuperTokenFullControlParams): Operation {
+        return this.cfaV1.revokeFlowOperatorWithFullControl({
+            superToken: this.settings.address,
+            sender,
+            flowOperator,
+            userData,
+            overrides,
+        });
+    }
+
+    /**
+     * @dev Create a flow as an operator
+     * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    createFlowByOperator = ({
+        flowRate,
+        sender,
+        receiver,
+        userData,
+        overrides,
+    }: ISuperTokenCreateFlowByOperatorParams): Operation => {
+        return this.cfaV1.createFlowByOperator({
+            superToken: this.settings.address,
+            flowRate,
+            sender,
+            receiver,
+            userData,
+            overrides,
+        });
+    };
+
+    /**
+     * @dev Update a flow as an operator.
+     * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    updateFlowByOperator = ({
+        flowRate,
+        sender,
+        receiver,
+        userData,
+        overrides,
+    }: ISuperTokenUpdateFlowByOperatorParams): Operation => {
+        return this.cfaV1.updateFlowByOperator({
+            superToken: this.settings.address,
+            flowRate,
+            sender,
+            receiver,
+            userData,
+            overrides,
+        });
+    };
+
+    /**
+     * @dev Delete a flow as an operator.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    deleteFlowByOperator = ({
+        sender,
+        receiver,
+        userData,
+        overrides,
+    }: ISuperTokenDeleteFlowParams): Operation => {
+        return this.cfaV1.deleteFlowByOperator({
             superToken: this.settings.address,
             sender,
             receiver,

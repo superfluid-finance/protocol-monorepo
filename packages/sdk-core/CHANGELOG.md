@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added `PageNumberPaging` for UI development friendly pagination API
 - Added `AllPaging` to recursively query all results from Subgraph
 - Added support for `TypedDocumentNode` for `SubgraphClient`
+- Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
 
 ### Changed
 - Renamed `Token` to `ERC20Token`

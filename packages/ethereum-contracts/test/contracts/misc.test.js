@@ -1,7 +1,7 @@
 const TestEnvironment = require("../TestEnvironment");
 
 const {toBN} = require("@decentral.ee/web3-helpers");
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../utils/expectRevert");
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";

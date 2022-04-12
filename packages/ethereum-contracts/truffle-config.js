@@ -324,15 +324,14 @@ const E = (module.exports = {
         // }
     },
 
-    // Set default mocha options here, use special reporters etc.
-    //mocha: {
-    //    // timeout: 100000
-    //    reporter: "eth-gas-reporter",
-    //    reporterOptions: {
-    //        noColors: true,
-    //        outputFile: "build/eth-gas-report.txt"
-    //    }
-    //},
+    mocha: {
+        // timeout: 100000
+        reporter: "mochawesome",
+        reporterOptions: {
+            json: false,
+            reportDir: "test/output/mochareport",
+        },
+    },
 
     // Configure your compilers
     compilers: {

@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": {
@@ -19,11 +19,10 @@
         "/build/abi.js",
         "artifacts/**/*",
         "scripts/**/*",
-        "test/TestEnvironment.js",
-        "test/CFADataModel.js"
+        "utils/**/*"
     ],
     "scripts": {
-        "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",
+        "dev": "nodemon -e sol,js -i build -x 'yarn test-contracts:js 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
         "build:contracts-size": "bash tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
@@ -31,13 +30,14 @@
         "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
-        "test": "mkdir test/output && run-s test:*:*",
-        "test:contracts:js": "truffle test testsuites/all-contracts.js",
+        "test": "mkdir -p test/output && run-s test:*:*",
+        "test:contracts:js": "yarn test-contracts:js --parallel",
+        "test-contracts:js": "export IS_HARDHAT=true && npx hardhat test testsuites/all-contracts.js",
         "test-contracts:sol": "truffle test test/contracts/*/*.sol",
         "test-contracts:0.8.0-compatibility": "./test/test-0.8.0.sh",
         "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
-        "test-coverage": "mkdir test/output && truffle run coverage --network coverage --file testsuites/all-contracts.js",
+        "test-coverage": "mkdir -p test/output && truffle run coverage --network coverage --file testsuites/all-contracts.js",
         "posttest": "yarn testenv:stop",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
@@ -51,21 +51,26 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.5.0",
-        "@arachnid/solidity-string-utils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
-        "@superfluid-finance/js-sdk": "0.5.11",
-        "@truffle/contract": "4.4.6",
+        "@superfluid-finance/js-sdk": "0.5.12",
+        "@truffle/contract": "4.5.5",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.1.3",
+        "ethereumjs-util": "7.1.4",
+        "hardhat": "^2.9.3",
+        "solidity-stringutils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
+        "@nomiclabs/hardhat-truffle5": "^2.0.5",
         "async": "^3.2.3",
+        "chai": "^4.3.6",
+        "chai-ethers": "^0.0.1",
         "csv-writer": "^1.6.0",
         "ganache-time-traveler": "1.0.16",
+        "mochawesome": "^7.1.3",
         "readline": "1.3.0",
-        "solhint": "3.3.6",
+        "solhint": "3.3.7",
         "solidity-coverage": "0.7.20",
-        "truffle-flattener": "^1.5.0",
-        "truffle-plugin-verify": "^0.5.21"
+        "truffle-flattener": "^1.6.0",
+        "truffle-plugin-verify": "^0.5.25"
     }
 }

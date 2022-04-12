@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
-import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import { IResolver } from "../interfaces/ux/IResolver.sol";
 
 /**
@@ -14,7 +14,7 @@ import { IResolver } from "../interfaces/ux/IResolver.sol";
  * - OZ Access Control events `RoleGranted`/`RoleRevoked`: admin add/remove
  * - IResolver event `Set`: resolver name updates
  */
-contract Resolver is IResolver, AccessControl {
+contract Resolver is IResolver, AccessControlEnumerable {
 
     mapping(string => address) private _registry;
 

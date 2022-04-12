@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.3;
-pragma experimental ABIEncoderV2;
-
+pragma solidity 0.8.13;
 
 import {
     ISuperfluid,
@@ -16,7 +14,6 @@ import {
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-
 /**
  * The dividends rights token show cases two use cases
  * 1. Use Instant distribution agreement to distribute tokens to token holders.
@@ -29,6 +26,7 @@ contract DividendRightsToken is
 {
 
     uint32 public constant INDEX_ID = 0;
+    uint8 private _decimals;
 
     ISuperToken private _cashToken;
     ISuperfluid private _host;
@@ -68,7 +66,11 @@ contract DividendRightsToken is
         );
 
         transferOwnership(msg.sender);
-        _setupDecimals(0); // no decimals
+        _decimals = 0;
+    }
+
+    function decimals() public view override returns (uint8) {
+        return _decimals;
     }
 
     function beforeAgreementCreated(

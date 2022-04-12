@@ -125,6 +125,13 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         10: {
             // op mainnet
             nativeTokenSymbol: "ETH",
+            resolverAddress: "0x743B5f46BC86caF41bE4956d9275721E0531B186",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet",
+                },
+            },
         },
         69: {
             // op kovan testnet
@@ -144,6 +151,13 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         42161: {
             // arbitrum one mainnet
             nativeTokenSymbol: "ETH",
+            resolverAddress: "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one",
+                },
+            },
         },
         421611: {
             // arbitrum rinkeby testnet

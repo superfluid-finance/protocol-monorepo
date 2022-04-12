@@ -1,4 +1,5 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("../../utils/expectRevert");
 
 const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
@@ -622,36 +623,41 @@ describe("Superfluid Host Contract", function () {
                 const reason = "SF: sender is not listed agreeement";
 
                 // call from an EOA
-                await expectRevert.unspecified(
+                await expectRevert(
                     superfluid.callAppBeforeCallback(
                         ZERO_ADDRESS,
                         "0x",
                         false,
                         "0x"
-                    )
+                    ),
+                    "revert"
                 );
-                await expectRevert.unspecified(
+                await expectRevert(
                     superfluid.callAppAfterCallback(
                         ZERO_ADDRESS,
                         "0x",
                         false,
                         "0x"
-                    )
+                    ),
+                    "revert"
                 );
-                await expectRevert.unspecified(
+                await expectRevert(
                     superfluid.appCallbackPush(
                         "0x",
                         ZERO_ADDRESS,
                         0,
                         0,
                         ZERO_ADDRESS
-                    )
+                    ),
+                    "revert"
                 );
-                await expectRevert.unspecified(
-                    superfluid.appCallbackPop("0x", 0)
+                await expectRevert(
+                    superfluid.appCallbackPop("0x", 0),
+                    "revert"
                 );
-                await expectRevert.unspecified(
-                    superfluid.ctxUseAllowance("0x", 0, 0)
+                await expectRevert(
+                    superfluid.ctxUseAllowance("0x", 0, 0),
+                    "revert"
                 );
 
                 // call from an unregisterred mock agreement
@@ -751,8 +757,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    // FIXME: this should be expecting a panic error
-                    "CallUtils: target revert()"
+                    "CallUtils: target panicked: 0x01"
                 );
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -836,8 +841,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0x"
                     ),
-                    // FIXME: this should be expecting a panic error
-                    "CallUtils: target revert()"
+                    "CallUtils: target panicked: 0x01"
                 );
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -1432,8 +1436,9 @@ describe("Superfluid Host Contract", function () {
             it("#7.1 only listed agreement allowed", async () => {
                 const reason = "SF: only listed agreeement allowed";
                 // call to an non agreement
-                await expectRevert.unspecified(
-                    superfluid.callAgreement(alice, "0x", "0x")
+                await expectRevert(
+                    superfluid.callAgreement(alice, "0x", "0x"),
+                    "revert"
                 );
                 // call to an unregisterred mock agreement
                 let mock = await createAgreementMock(
@@ -1504,8 +1509,9 @@ describe("Superfluid Host Contract", function () {
             it("#8.1 only super app can be called", async () => {
                 const reason = "SF: not a super app";
                 // call to an non agreement
-                await expectRevert.unspecified(
-                    superfluid.callAppAction(alice, "0x")
+                await expectRevert(
+                    superfluid.callAppAction(alice, "0x"),
+                    "revert"
                 );
                 // call to an unregisterred mock agreement
                 await expectRevert(

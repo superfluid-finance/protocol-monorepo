@@ -6,7 +6,10 @@ maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
 tested-with:   ghc ==9.2.2 ghc ==8.10.7
 homepage:      https://www.superfluid.finance/
-synopsis:      Superfluid protocol core specifications in Haskell
+synopsis:      Superfluid protocol core specifications in Haskell.
+description:
+    Part of the monorepo of https://github.com/superfluid-finance/protocol-monorepo/.
+
 category:      Money
 build-type:    Simple
 
@@ -29,7 +32,7 @@ library
     default-language: Haskell2010
     ghc-options:      -Wall
     build-depends:
-        base >=4.12,
+        base >=4.12 && <5,
         data-default,
         containers,
         transformers

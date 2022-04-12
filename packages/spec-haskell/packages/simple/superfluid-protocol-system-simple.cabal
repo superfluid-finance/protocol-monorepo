@@ -6,7 +6,10 @@ maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
 tested-with:   ghc ==9.2.2 ghc ==8.10.7
 homepage:      https://www.superfluid.finance/
-synopsis:      Superfluid protocol simple system instances
+synopsis:      Superfluid protocol simple system instances.
+description:
+    Part of the monorepo of https://github.com/superfluid-finance/protocol-monorepo/.
+
 category:      Money
 build-type:    Simple
 
@@ -20,7 +23,7 @@ library
     default-language: Haskell2010
     ghc-options:      -Wall
     build-depends:
-        base >=4.12,
+        base >=4.12 && <5,
         data-default,
         containers,
         transformers,
@@ -40,7 +43,7 @@ test-suite tests
     default-language: Haskell2010
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
     build-depends:
-        base >=4.12,
+        base >=4.12 && <5,
         test-framework >=0.8,
         HUnit >=1.6.0.0,
         test-framework-hunit >=0.3.0,

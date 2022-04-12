@@ -4,6 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
+tested-with:   ghc ==9.2.2 ghc ==8.10.7
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol core specifications in Haskell
 category:      Money

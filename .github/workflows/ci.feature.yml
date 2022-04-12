@@ -187,7 +187,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
   test-sdk-core:
-    name: Test sdk-core (feature branch)
+    name: Build and test sdk-core (feature branch)
 
     runs-on: ubuntu-latest
 
@@ -255,6 +255,7 @@ jobs:
             allow-failure: false
       fail-fast: false
     steps:
+      - uses: actions/checkout@v2
       - name: apt
         run: |
           apt-get update
@@ -354,16 +355,12 @@ jobs:
           rm -f cabal-plan.xz
           chmod a+x $HOME/.cabal/bin/cabal-plan
           cabal-plan --version
-      - name: checkout
-        uses: actions/checkout@v2
-        with:
-          path: source
       - name: initial cabal.project for sdist
         run: |
           touch cabal.project
-          echo "packages: $GITHUB_WORKSPACE/source/packages/core" >> cabal.project
-          echo "packages: $GITHUB_WORKSPACE/source/packages/simple" >> cabal.project
-          echo "packages: $GITHUB_WORKSPACE/source/packages/validator" >> cabal.project
+          echo "packages: packages/core" >> cabal.project
+          echo "packages: packages/simple" >> cabal.project
+          echo "packages: packages/validator" >> cabal.project
           cat cabal.project
       - name: sdist
         run: |

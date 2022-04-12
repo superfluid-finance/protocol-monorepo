@@ -12,20 +12,20 @@ export const provideCacheTagsFromRelevantAddresses = (
             .map((tokenAddress: string) =>
                 relevantAddresses.accounts.map((accountAddress: string) => ({
                     type: tag,
-                    id: `${chainId}_${tokenAddress}_${accountAddress}`,
+                    id: `${chainId}_${tokenAddress}_${accountAddress}`.toLowerCase(),
                 }))
             )
             .flat();
     } else if (relevantAddresses.accounts.length) {
         return relevantAddresses.accounts.map((accountAddress: string) => ({
             type: tag,
-            id: `${chainId}_${accountAddress}`,
+            id: `${chainId}_${accountAddress}`.toLowerCase(),
         }));
     } else {
         return [
             {
                 type: tag,
-                id: `${chainId}`,
+                id: `${chainId}`.toLowerCase(),
             },
         ];
     }

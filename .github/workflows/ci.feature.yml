@@ -232,10 +232,10 @@ jobs:
     name: Build and test spec-haskell (Feature Branch) - Linux - ${{ matrix.compiler }}
     needs: [check]
     if: needs.check.outputs.build_spec_haskell
-    working-directory: ./packages/spec-haskell
     runs-on: ubuntu-18.04
-    timeout-minutes:
-      60
+    defaults:
+      working-directory: ./packages/spec-haskell
+    timeout-minutes: 60
     container:
       image: buildpack-deps:bionic
     continue-on-error: ${{ matrix.allow-failure }}

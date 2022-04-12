@@ -12,6 +12,10 @@ import { getPerSecondFlowRateByMonth } from "../src/utils";
 import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
+import {
+    NativeAssetSuperToken,
+    SuperTokenWithUnderlying,
+} from "../src/SuperToken";
 
 const INITIAL_AMOUNT_PER_USER = "10000000000";
 
@@ -23,7 +27,7 @@ describe("SuperToken Tests", () => {
     let alpha: SignerWithAddress;
     let superToken: SuperTokenType;
     let token: TestToken;
-    let daix: SuperToken;
+    let daix: SuperTokenWithUnderlying;
     let bravo: SignerWithAddress;
     let charlie: SignerWithAddress;
     let signerCount: number;
@@ -50,7 +54,9 @@ describe("SuperToken Tests", () => {
         alpha = Alpha;
         bravo = Bravo;
         superToken = SuperToken;
-        daix = await framework.loadSuperToken(superToken.address);
+        daix = await framework.loadSuperToken(
+            superToken.address
+        );
         token = Token;
         charlie = Charlie;
         signerCount = SignerCount;
@@ -240,7 +246,7 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to approve + downgrade", async () => {
-            const amount = ethers.utils.parseUnits("1000").toString();
+            const amount = ethers.utils.parseUnits("2000").toString();
             await expect(
                 daix
                     .approve({ receiver: daix.settings.address, amount })
@@ -251,6 +257,17 @@ describe("SuperToken Tests", () => {
             await expect(daix.downgrade({ amount }).exec(deployer))
                 .to.emit(superToken, "TokenDowngraded")
                 .withArgs(deployer.address, amount);
+        });
+
+        it("Should be able to transfer downgraded tokens", async () => {
+            const amount = ethers.utils.parseUnits("1000").toString();
+            await expect(
+                daix.underlyingToken
+                    .transfer({ receiver: alpha.address, amount })
+                    .exec(deployer)
+            )
+                .to.emit(token, "Transfer")
+                .withArgs(deployer.address, alpha.address, amount);
         });
 
         it("Should be able to approve + upgrade", async () => {
@@ -299,6 +316,68 @@ describe("SuperToken Tests", () => {
             )
                 .to.emit(superToken, "Transfer")
                 .withArgs(deployer.address, alpha.address, amount);
+        });
+    });
+
+    describe("NativeSuperToken Tests", () => {
+        let nativeAssetSuperToken: NativeAssetSuperToken;
+        it("Should be able to create a NativeSuperToken (SuperTokenWithoutUnderlying)", async () => {
+            // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
+            // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
+            await framework.loadSuperToken(
+                "0x67d269191c92Caf3cD7723F116c85e6E9bf55933"
+            );
+        });
+
+        it("Should be able to create a NativeAssetSuperToken", async () => {
+            nativeAssetSuperToken =
+                await framework.loadSuperToken<NativeAssetSuperToken>("ETHx");
+        });
+
+        it("Should throw when attempting to upgrade", async () => {
+            try {
+                nativeAssetSuperToken.upgrade();
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    `Unsupported Functionality Error - upgrade is not supported for 
+                    native assets, use upgradeByNativeAsset or upgradeByNativeAssetTo.`
+                );
+            }
+        });
+
+        it("Should throw when attempting to downgrade", async () => {
+            try {
+                nativeAssetSuperToken.downgrade();
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    `Unsupported Functionality Error - downgrade is not supported for
+                     native asset super tokens, use downgradeToNativeAsset.`
+                );
+            }
+        });
+
+        it("Should be able to upgrade native asset", async () => {
+            const upgradeOperation = nativeAssetSuperToken.upgradeByNativeAsset(
+                { amount: ethers.utils.parseUnits("1").toString() }
+            );
+            await upgradeOperation.exec(deployer);
+        });
+
+        it("Should be able to upgrade native asset to", async () => {
+            const upgradeOperation =
+                nativeAssetSuperToken.upgradeByNativeAssetTo({
+                    amount: ethers.utils.parseUnits("1").toString(),
+                    to: alpha.address,
+                });
+            await upgradeOperation.exec(deployer);
+        });
+
+        it("Should be able to downgrade native asset", async () => {
+            const downgradeOperation =
+                nativeAssetSuperToken.downgradeToNativeAsset({
+                    amount: ethers.utils.parseUnits("1").toString(),
+                });
+            await downgradeOperation.exec(deployer);
         });
     });
 

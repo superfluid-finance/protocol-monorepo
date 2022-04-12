@@ -6,7 +6,9 @@ import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import SuperTokenABI from "./abi/SuperToken.json";
-import { networkNameToChainIdMap } from "./constants";
+import ISETHABI from "./abi/ISETH.json";
+import { ISETH } from "./typechain/ISETH";
+import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
     IConfig,
@@ -41,7 +43,6 @@ export interface ITokenSettings {
     readonly config: IConfig;
     readonly chainId: number;
     readonly networkName: string;
-    readonly underlyingTokenAddress: string;
 }
 
 export interface ITokenOptions {
@@ -56,14 +57,14 @@ export interface ITokenOptions {
  * @dev SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
  */
-export default class SuperToken extends ERC20Token {
+export default abstract class SuperToken extends ERC20Token {
     readonly options: ITokenOptions;
     readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
-    readonly underlyingToken: ERC20Token;
+    readonly underlyingToken?: ERC20Token;
 
-    private constructor(options: ITokenOptions, settings: ITokenSettings) {
+    protected constructor(options: ITokenOptions, settings: ITokenSettings) {
         // initialize ERC20 token functions here
         super(settings.address);
 
@@ -75,10 +76,15 @@ export default class SuperToken extends ERC20Token {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
-        this.underlyingToken = new ERC20Token(settings.underlyingTokenAddress);
     }
 
-    static create = async (options: ITokenOptions) => {
+    static create = async (
+        options: ITokenOptions
+    ): Promise<
+        | NativeAssetSuperToken
+        | SuperTokenWithUnderlying
+        | SuperTokenWithoutUnderlying
+    > => {
         if (!options.chainId && !options.networkName) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -101,9 +107,35 @@ export default class SuperToken extends ERC20Token {
                 config: options.config,
                 chainId,
                 networkName,
-                underlyingTokenAddress,
             };
-            return new SuperToken(options, settings);
+
+            const tokenSymbol = await superToken
+                .connect(options.provider)
+                .symbol();
+            const resolverData = chainIdToResolverDataMap.get(chainId) || {
+                subgraphAPIEndpoint: "",
+                resolverAddress: "",
+                networkName: "",
+                nativeTokenSymbol: "",
+            };
+            const nativeTokenSymbol = resolverData.nativeTokenSymbol || "ETH";
+            const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
+
+            if (nativeSuperTokenSymbol === tokenSymbol) {
+                return new NativeAssetSuperToken(
+                    options,
+                    settings,
+                    nativeTokenSymbol
+                );
+            }
+
+            if (underlyingTokenAddress !== ethers.constants.AddressZero) {
+                return new SuperTokenWithUnderlying(options, {
+                    ...settings,
+                    underlyingTokenAddress,
+                });
+            }
+            return new SuperTokenWithoutUnderlying(options, settings);
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -113,7 +145,7 @@ export default class SuperToken extends ERC20Token {
         }
     };
 
-    private get superTokenContract() {
+    override get contract() {
         return new ethers.Contract(
             this.settings.address,
             SuperTokenABI.abi
@@ -136,7 +168,7 @@ export default class SuperToken extends ERC20Token {
     }: IRealtimeBalanceOfParams): Promise<IWeb3RealTimeBalanceOf> => {
         const normalizedAccount = normalizeAddress(account);
         try {
-            const realtimeBalanceOf = await this.superTokenContract
+            const realtimeBalanceOf = await this.contract
                 .connect(providerOrSigner)
                 .realtimeBalanceOf(normalizedAccount, timestamp);
             return {
@@ -169,7 +201,7 @@ export default class SuperToken extends ERC20Token {
         amount: string;
         overrides?: Overrides & { from?: string | Promise<string> };
     }): Operation => {
-        const txn = this.superTokenContract.populateTransaction.downgrade(
+        const txn = this.contract.populateTransaction.downgrade(
             amount,
             overrides || {}
         );
@@ -189,7 +221,7 @@ export default class SuperToken extends ERC20Token {
         amount: string;
         overrides?: Overrides & { from?: string | Promise<string> };
     }): Operation => {
-        const txn = this.superTokenContract.populateTransaction.upgrade(
+        const txn = this.contract.populateTransaction.upgrade(
             amount,
             overrides || {}
         );
@@ -566,5 +598,138 @@ export default class SuperToken extends ERC20Token {
             userData,
             overrides,
         });
+    };
+}
+
+export class SuperTokenWithUnderlying extends SuperToken {
+    override readonly underlyingToken: ERC20Token;
+    constructor(
+        options: ITokenOptions,
+        settings: ITokenSettings & { underlyingTokenAddress: string }
+    ) {
+        super(options, settings);
+        this.underlyingToken = new ERC20Token(settings.underlyingTokenAddress);
+    }
+}
+
+export class SuperTokenWithoutUnderlying extends SuperToken {
+    constructor(options: ITokenOptions, settings: ITokenSettings) {
+        super(options, settings);
+    }
+}
+
+// NOTE: we keep this class in here instead of a separate file due to circular
+// file import error which breaks the build:
+// TypeError: Class extends value undefined is not a constructor or null
+export class NativeAssetSuperToken extends SuperTokenWithoutUnderlying {
+    readonly nativeTokenSymbol: string;
+    constructor(
+        options: ITokenOptions,
+        settings: ITokenSettings,
+        nativeTokenSymbol: string
+    ) {
+        super(options, settings);
+        this.nativeTokenSymbol = nativeTokenSymbol;
+    }
+
+    get nativeAssetContract() {
+        return new ethers.Contract(
+            this.settings.address,
+            ISETHABI.abi
+        ) as ISETH;
+    }
+
+    /**
+     * upgrade is not supported for Native Asset SuperTokens.
+     * Use upgradeByNativeAsset or upgradeByNativeAssetTo instead.
+     */
+    override upgrade = () => {
+        throw new SFError({
+            type: "UNSUPPORTED_FUNCTIONALITY",
+            customMessage:
+                "upgrade is not supported for native assets, use upgradeByNativeAsset or upgradeByNativeAssetTo.",
+            errorObject: {},
+        });
+    };
+
+    /**
+     * downgrade is not supported for Native Asset SuperTokens.
+     * Use upgradeByNativeAsset or upgradeByNativeAssetTo instead.
+     */
+    override downgrade = () => {
+        throw new SFError({
+            type: "UNSUPPORTED_FUNCTIONALITY",
+            customMessage:
+                "downgrade is not supported for native asset super tokens, use downgradeToNativeAsset.",
+            errorObject: {},
+        });
+    };
+
+    /**
+     * Upgrade `amount` of a network's native asset to its SuperToken.
+     * @param amount The amount to be upgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    upgradeByNativeAsset = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }): Operation => {
+        const txn = this.nativeAssetContract.populateTransaction.upgradeByETH({
+            ...overrides,
+            value: amount,
+        });
+        return new Operation(txn, "UNSUPPORTED");
+    };
+
+    /**
+     * Upgrade `amount` of a network's native asset to its SuperToken to `to` address.
+     * @param amount The amount to be upgraded.
+     * @param to The destination of the upgraded native asset super tokens.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    upgradeByNativeAssetTo = ({
+        amount,
+        to,
+        overrides,
+    }: {
+        amount: string;
+        to: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }) => {
+        const txn = this.nativeAssetContract.populateTransaction.upgradeByETHTo(
+            to,
+            {
+                ...overrides,
+                value: amount,
+            }
+        );
+        return new Operation(txn, "UNSUPPORTED");
+    };
+
+    /**
+     * Downgrade `amount` of a native asset super token to the underlying native asset.
+     * @param amount The amount to be upgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    downgradeToNativeAsset = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }) => {
+        const txn = this.nativeAssetContract.populateTransaction.downgradeToETH(
+            amount,
+            {
+                ...overrides,
+            }
+        );
+        return new Operation(txn, "UNSUPPORTED");
     };
 }

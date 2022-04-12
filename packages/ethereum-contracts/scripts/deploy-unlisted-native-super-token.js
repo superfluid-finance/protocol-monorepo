@@ -63,4 +63,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     await superTokenFactory.initializeCustomSuperToken(token.address);
 
     console.log(`Native SuperToken deployed at ${token.address}`);
+
+    return token.address;
 });

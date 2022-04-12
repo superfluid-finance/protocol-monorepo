@@ -19,7 +19,12 @@ import {
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import { IConfig, IContracts, ISignerConstructorOptions } from "./interfaces";
+import {
+    IConfig,
+    IContracts,
+    IResolverData,
+    ISignerConstructorOptions,
+} from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { DataMode } from "./types";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
@@ -144,10 +149,13 @@ export default class Framework {
         }
 
         try {
-            const resolverData = chainIdToResolverDataMap.get(chainId) || {
+            const resolverData: IResolverData = chainIdToResolverDataMap.get(
+                chainId
+            ) || {
                 subgraphAPIEndpoint: "",
                 resolverAddress: "",
                 networkName: "",
+                nativeTokenSymbol: "",
             };
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
@@ -256,18 +264,33 @@ export default class Framework {
     };
 
     /**
-     * @dev Load a `SuperToken` class from the `Framework`.
+     * @dev Loads `SuperTokenWithUnderlying`, `SuperTokenWithoutUnderlying` or `NativeAssetSuperToken` class from the `Framework`.
      * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */
-    loadSuperToken = async (
+    loadSuperToken = async <T extends SuperToken>(
         tokenAddressOrSymbol: string
-    ): Promise<SuperToken> => {
-        let address;
-        const isValidAddress = ethers.utils.isAddress(tokenAddressOrSymbol);
+    ) => {
+        const address = await this._tryGetTokenAddress(tokenAddressOrSymbol);
+        return (await SuperToken.create({
+            ...this.settings,
+            address,
+        })) as T;
+    };
 
-        if (isValidAddress) {
-            address = tokenAddressOrSymbol;
+    /**
+     * Try to get the token address given an address (returns if valid) or the token symbol via the resolver.
+     * @param tokenAddressOrSymbol
+     * @returns token address
+     */
+    private _tryGetTokenAddress = async (
+        tokenAddressOrSymbol: string
+    ): Promise<string> => {
+        const isInputValidAddress =
+            ethers.utils.isAddress(tokenAddressOrSymbol);
+
+        if (isInputValidAddress) {
+            return tokenAddressOrSymbol;
         } else {
             try {
                 const superTokenKey =
@@ -281,8 +304,7 @@ export default class Framework {
                     IResolverABI.abi,
                     this.settings.provider
                 ) as IResolver;
-                const tokenAddress = await resolver.get(superTokenKey);
-                address = tokenAddress;
+                return await resolver.get(superTokenKey);
             } catch (err) {
                 throw new SFError({
                     type: "SUPERTOKEN_INITIALIZATION",
@@ -294,10 +316,5 @@ export default class Framework {
                 });
             }
         }
-
-        return await SuperToken.create({
-            ...this.settings,
-            address,
-        });
     };
 }

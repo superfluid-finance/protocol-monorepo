@@ -75,4 +75,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log(`Token ${tokenSymbol} address`, testTokenAddress);
 
     console.log("======== Test token deployed ========");
+
+    return testTokenAddress;
 });

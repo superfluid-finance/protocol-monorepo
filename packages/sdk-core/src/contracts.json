@@ -3,6 +3,7 @@
     "ERC20WithTokenInfo",
     "IInstantDistributionAgreementV1",
     "IResolver",
+    "ISETH",
     "Superfluid",
     "SuperfluidLoader",
     "SuperToken",

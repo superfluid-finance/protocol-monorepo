@@ -94,7 +94,9 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const name = await this.contract.connect(providerOrSigner).name();
+            const name = await this.contract
+                .connect(providerOrSigner)
+                .name();
             return name;
         } catch (err) {
             throw new SFError({

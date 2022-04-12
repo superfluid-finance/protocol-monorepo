@@ -366,6 +366,7 @@ export interface IResolverData {
     readonly subgraphAPIEndpoint: string;
     readonly networkName: string;
     readonly resolverAddress: string;
+    readonly nativeTokenSymbol: string;
 }
 
 export interface ISignerConstructorOptions {

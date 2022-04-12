@@ -234,7 +234,8 @@ jobs:
     if: needs.check.outputs.build_spec_haskell
     runs-on: ubuntu-18.04
     defaults:
-      working-directory: ./packages/spec-haskell
+      run:
+        working-directory: ./packages/spec-haskell
     timeout-minutes: 60
     container:
       image: buildpack-deps:bionic

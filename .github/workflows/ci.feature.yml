@@ -233,9 +233,9 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_spec_haskell
     runs-on: ubuntu-18.04
-    defaults:
-      run:
-        working-directory: ./packages/spec-haskell
+    # defaults:
+    #   run:
+    #     working-directory: ./packages/spec-haskell
     timeout-minutes: 60
     container:
       image: buildpack-deps:bionic
@@ -255,7 +255,10 @@ jobs:
             allow-failure: false
       fail-fast: false
     steps:
-      - uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          path: source
       - name: apt
         run: |
           apt-get update
@@ -358,9 +361,10 @@ jobs:
       - name: initial cabal.project for sdist
         run: |
           touch cabal.project
-          echo "packages: packages/core" >> cabal.project
-          echo "packages: packages/simple" >> cabal.project
-          echo "packages: packages/validator" >> cabal.project
+          D=$GITHUB_WORKSPACE/source/packages/spec-haskell/packages
+          echo "packages: $D/core" >> cabal.project
+          echo "packages: $D/simple" >> cabal.project
+          echo "packages: $D/validator" >> cabal.project
           cat cabal.project
       - name: sdist
         run: |

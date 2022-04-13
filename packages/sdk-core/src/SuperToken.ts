@@ -212,16 +212,14 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
-    getFlow = async ({
-        sender,
-        receiver,
-        providerOrSigner,
-    }: ISuperTokenGetFlowParams): Promise<IWeb3FlowInfo> => {
+    getFlow = async (
+        params: ISuperTokenGetFlowParams
+    ): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getFlow({
             superToken: this.settings.address,
-            sender,
-            receiver,
-            providerOrSigner,
+            sender: params.sender,
+            receiver: params.receiver,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
@@ -231,14 +229,13 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
-    getAccountFlowInfo = async ({
-        account,
-        providerOrSigner,
-    }: ISuperTokenGetFlowInfoParams): Promise<IWeb3FlowInfo> => {
+    getAccountFlowInfo = async (
+        params: ISuperTokenGetFlowInfoParams
+    ): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getAccountFlowInfo({
             superToken: this.settings.address,
-            account,
-            providerOrSigner,
+            account: params.account,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
@@ -248,14 +245,13 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<string>} Web3 Flow info object
      */
-    getNetFlow = async ({
-        account,
-        providerOrSigner,
-    }: ISuperTokenGetFlowInfoParams): Promise<string> => {
+    getNetFlow = async (
+        params: ISuperTokenGetFlowInfoParams
+    ): Promise<string> => {
         return await this.cfaV1.getNetFlow({
             superToken: this.settings.address,
-            account,
-            providerOrSigner,
+            account: params.account,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
@@ -266,18 +262,16 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
      */
-    getFlowOperatorData = async ({
-        sender,
-        flowOperator,
-        providerOrSigner,
-    }: ISuperTokenFlowOperatorDataParams): Promise<IWeb3FlowOperatorData> => {
-        const normalizedSender = normalizeAddress(sender);
-        const normalizedFlowOperator = normalizeAddress(flowOperator);
+    getFlowOperatorData = async (
+        params: ISuperTokenFlowOperatorDataParams
+    ): Promise<IWeb3FlowOperatorData> => {
+        const normalizedSender = normalizeAddress(params.sender);
+        const normalizedFlowOperator = normalizeAddress(params.flowOperator);
         return await this.cfaV1.getFlowOperatorData({
             superToken: this.settings.address,
             sender: normalizedSender,
             flowOperator: normalizedFlowOperator,
-            providerOrSigner,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
@@ -287,14 +281,13 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
      */
-    getFlowOperatorDataByID = async ({
-        flowOperatorId,
-        providerOrSigner,
-    }: ISuperTokenFlowOperatorDataByIDParams): Promise<IWeb3FlowOperatorData> => {
+    getFlowOperatorDataByID = async (
+        params: ISuperTokenFlowOperatorDataByIDParams
+    ): Promise<IWeb3FlowOperatorData> => {
         return await this.cfaV1.getFlowOperatorDataByID({
             superToken: this.settings.address,
-            flowOperatorId,
-            providerOrSigner,
+            flowOperatorId: params.flowOperatorId,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
@@ -308,18 +301,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlow = ({
-        receiver,
-        flowRate,
-        userData,
-        overrides,
-    }: ISuperTokenCreateFlowParams): Operation => {
+    createFlow = (params: ISuperTokenCreateFlowParams): Operation => {
         return this.cfaV1.createFlow({
-            flowRate,
-            receiver,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -331,18 +316,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateFlow = ({
-        receiver,
-        flowRate,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateFlowParams): Operation => {
+    updateFlow = (params: ISuperTokenUpdateFlowParams): Operation => {
         return this.cfaV1.updateFlow({
-            flowRate,
-            receiver,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -354,18 +331,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteFlow = ({
-        sender,
-        receiver,
-        userData,
-        overrides,
-    }: ISuperTokenDeleteFlowParams): Operation => {
+    deleteFlow = (params: ISuperTokenDeleteFlowParams): Operation => {
         return this.cfaV1.deleteFlow({
             superToken: this.settings.address,
-            sender,
-            receiver,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -381,22 +350,12 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateFlowOperatorPermissions({
-        sender,
-        flowOperator,
-        permissions,
-        flowRateAllowance,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateFlowOperatorPermissionsParams): Operation {
+    updateFlowOperatorPermissions(
+        params: ISuperTokenUpdateFlowOperatorPermissionsParams
+    ): Operation {
         return this.cfaV1.updateFlowOperatorPermissions({
             superToken: this.settings.address,
-            sender,
-            flowOperator,
-            permissions,
-            flowRateAllowance,
-            userData,
-            overrides,
+            ...params,
         });
     }
 
@@ -407,18 +366,12 @@ export default class SuperToken extends ERC20Token {
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      */
-    authorizeFlowOperatorWithFullControl({
-        sender,
-        flowOperator,
-        userData,
-        overrides,
-    }: ISuperTokenFullControlParams): Operation {
+    authorizeFlowOperatorWithFullControl(
+        params: ISuperTokenFullControlParams
+    ): Operation {
         return this.cfaV1.authorizeFlowOperatorWithFullControl({
             superToken: this.settings.address,
-            sender,
-            flowOperator,
-            userData,
-            overrides,
+            ...params,
         });
     }
 
@@ -429,18 +382,12 @@ export default class SuperToken extends ERC20Token {
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      */
-    revokeFlowOperatorWithFullControl({
-        sender,
-        flowOperator,
-        userData,
-        overrides,
-    }: ISuperTokenFullControlParams): Operation {
+    revokeFlowOperatorWithFullControl(
+        params: ISuperTokenFullControlParams
+    ): Operation {
         return this.cfaV1.revokeFlowOperatorWithFullControl({
             superToken: this.settings.address,
-            sender,
-            flowOperator,
-            userData,
-            overrides,
+            ...params,
         });
     }
 
@@ -453,20 +400,12 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlowByOperator = ({
-        flowRate,
-        sender,
-        receiver,
-        userData,
-        overrides,
-    }: ISuperTokenCreateFlowByOperatorParams): Operation => {
+    createFlowByOperator = (
+        params: ISuperTokenCreateFlowByOperatorParams
+    ): Operation => {
         return this.cfaV1.createFlowByOperator({
             superToken: this.settings.address,
-            flowRate,
-            sender,
-            receiver,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -479,20 +418,12 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateFlowByOperator = ({
-        flowRate,
-        sender,
-        receiver,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateFlowByOperatorParams): Operation => {
+    updateFlowByOperator = (
+        params: ISuperTokenUpdateFlowByOperatorParams
+    ): Operation => {
         return this.cfaV1.updateFlowByOperator({
             superToken: this.settings.address,
-            flowRate,
-            sender,
-            receiver,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -504,18 +435,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteFlowByOperator = ({
-        sender,
-        receiver,
-        userData,
-        overrides,
-    }: ISuperTokenDeleteFlowParams): Operation => {
+    deleteFlowByOperator = (params: ISuperTokenDeleteFlowParams): Operation => {
         return this.cfaV1.deleteFlowByOperator({
             superToken: this.settings.address,
-            sender,
-            receiver,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -529,18 +452,12 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3Subscription>} Web3 Subscription object
      */
-    getSubscription = async ({
-        publisher,
-        indexId,
-        subscriber,
-        providerOrSigner,
-    }: ISuperTokenGetSubscriptionParams): Promise<IWeb3Subscription> => {
+    getSubscription = async (
+        params: ISuperTokenGetSubscriptionParams
+    ): Promise<IWeb3Subscription> => {
         return await this.idaV1.getSubscription({
             superToken: this.settings.address,
-            publisher,
-            indexId,
-            subscriber,
-            providerOrSigner,
+            ...params,
         });
     };
 
@@ -551,16 +468,12 @@ export default class SuperToken extends ERC20Token {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3Index>} Web3 Index object
      */
-    getIndex = async ({
-        publisher,
-        indexId,
-        providerOrSigner,
-    }: ISuperTokenGetIndexParams): Promise<IWeb3Index> => {
+    getIndex = async (
+        params: ISuperTokenGetIndexParams
+    ): Promise<IWeb3Index> => {
         return await this.idaV1.getIndex({
             superToken: this.settings.address,
-            publisher,
-            indexId,
-            providerOrSigner,
+            ...params,
         });
     };
 
@@ -573,16 +486,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createIndex = ({
-        indexId,
-        userData,
-        overrides,
-    }: ISuperTokenBaseIDAParams): Operation => {
+    createIndex = (params: ISuperTokenBaseIDAParams): Operation => {
         return this.idaV1.createIndex({
-            indexId,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -594,18 +501,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    distribute = ({
-        indexId,
-        amount,
-        userData,
-        overrides,
-    }: ISuperTokenDistributeParams): Operation => {
+    distribute = (params: ISuperTokenDistributeParams): Operation => {
         return this.idaV1.distribute({
-            indexId,
-            amount,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -619,18 +518,12 @@ export default class SuperToken extends ERC20Token {
      *
      * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
      */
-    updateIndexValue = ({
-        indexId,
-        indexValue,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateIndexValueParams): Operation => {
+    updateIndexValue = (
+        params: ISuperTokenUpdateIndexValueParams
+    ): Operation => {
         return this.idaV1.updateIndexValue({
-            indexId,
-            indexValue,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -643,20 +536,12 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateSubscriptionUnits = ({
-        indexId,
-        subscriber,
-        units,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateSubscriptionUnitsParams): Operation => {
+    updateSubscriptionUnits = (
+        params: ISuperTokenUpdateSubscriptionUnitsParams
+    ): Operation => {
         return this.idaV1.updateSubscriptionUnits({
-            indexId,
             superToken: this.settings.address,
-            subscriber,
-            units,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -668,18 +553,12 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approveSubscription = ({
-        indexId,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPublisherOperationParams): Operation => {
+    approveSubscription = (
+        params: ISuperTokenPublisherOperationParams
+    ): Operation => {
         return this.idaV1.approveSubscription({
-            indexId,
             superToken: this.settings.address,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -691,18 +570,12 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    revokeSubscription = ({
-        indexId,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPublisherOperationParams): Operation => {
+    revokeSubscription = (
+        params: ISuperTokenPublisherOperationParams
+    ): Operation => {
         return this.idaV1.revokeSubscription({
-            indexId,
             superToken: this.settings.address,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -715,20 +588,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteSubscription = ({
-        indexId,
-        subscriber,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPubSubParams): Operation => {
+    deleteSubscription = (params: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.deleteSubscription({
-            indexId,
             superToken: this.settings.address,
-            subscriber,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
@@ -741,20 +604,10 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    claim = ({
-        indexId,
-        subscriber,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPubSubParams): Operation => {
+    claim = (params: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.claim({
-            indexId,
             superToken: this.settings.address,
-            subscriber,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 }

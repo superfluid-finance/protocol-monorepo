@@ -164,16 +164,12 @@ export default class ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approve = ({
-        receiver,
-        amount,
-        overrides,
-    }: IBaseSuperTokenParams): Operation => {
-        const normalizedReceiver = normalizeAddress(receiver);
+    approve = (params: IBaseSuperTokenParams): Operation => {
+        const normalizedReceiver = normalizeAddress(params.receiver);
         const txn = this.tokenContract.populateTransaction.approve(
             normalizedReceiver,
-            amount,
-            overrides || {}
+            params.amount,
+            params.overrides || {}
         );
         return new Operation(txn, "ERC20_APPROVE");
     };
@@ -185,16 +181,12 @@ export default class ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    transfer = ({
-        receiver,
-        amount,
-        overrides,
-    }: IBaseSuperTokenParams): Operation => {
-        const normalizedReceiver = normalizeAddress(receiver);
+    transfer = (params: IBaseSuperTokenParams): Operation => {
+        const normalizedReceiver = normalizeAddress(params.receiver);
         const txn = this.tokenContract.populateTransaction.transfer(
             normalizedReceiver,
-            amount,
-            overrides || {}
+            params.amount,
+            params.overrides || {}
         );
         return new Operation(txn, "UNSUPPORTED");
     };
@@ -207,19 +199,14 @@ export default class ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    transferFrom = ({
-        sender,
-        receiver,
-        amount,
-        overrides,
-    }: ITransferFromParams): Operation => {
-        const normalizedSender = normalizeAddress(sender);
-        const normalizedReceiver = normalizeAddress(receiver);
+    transferFrom = (params: ITransferFromParams): Operation => {
+        const normalizedSender = normalizeAddress(params.sender);
+        const normalizedReceiver = normalizeAddress(params.receiver);
         const txn = this.tokenContract.populateTransaction.transferFrom(
             normalizedSender,
             normalizedReceiver,
-            amount,
-            overrides || {}
+            params.amount,
+            params.overrides || {}
         );
         return new Operation(txn, "ERC20_TRANSFER_FROM");
     };

@@ -375,7 +375,7 @@ export default class SuperToken extends ERC20Token {
      * Update permissions for a flow operator as a sender.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
-     * @param permission The pernissions to set.
+     * @param permission The permissions to set.
      * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.

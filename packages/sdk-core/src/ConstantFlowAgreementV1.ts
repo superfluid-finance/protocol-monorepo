@@ -320,7 +320,7 @@ export default class ConstantFlowAgreementV1 {
      * @param superToken The token to be flowed.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
-     * @param permission The pernissions to set.
+     * @param permission The permissions to set.
      * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.

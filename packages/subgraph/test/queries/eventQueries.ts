@@ -7,20 +7,46 @@ export const getFlowUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
-            timestamp
             transactionHash
+            timestamp
             name
             blockNumber
             addresses
             token
             sender
             receiver
+            flowOperator
             flowRate
             totalAmountStreamedUntilTimestamp
             totalSenderFlowRate
             totalReceiverFlowRate
+            deposit
             oldFlowRate
             type
+        }
+    }
+`;
+
+export const getFlowOperatorUpdatedEvents = gql`
+    query getFlowOperatorUpdatedEvents($transactionHash: Bytes!) {
+        response: flowOperatorUpdatedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            transactionHash
+            timestamp
+            name
+            blockNumber
+            addresses
+            token
+            sender
+            flowOperator
+            permissions
+            flowRateAllowance
+
+            flowOperator {
+                id
+            }
         }
     }
 `;

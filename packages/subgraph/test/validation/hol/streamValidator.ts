@@ -1,21 +1,17 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { fetchEntityAndEnsureExistence } from "../../helpers/helpers";
-import {
-    IStream,
-    IStreamData,
-    IEvent,
-    IAccount,
-} from "../../interfaces";
+import { IStream, IStreamData, IEvent, IAccount } from "../../interfaces";
 import { getAccount, getStream } from "../../queries/holQueries";
 import { validateReverseLookup } from "../validators";
 
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
     expectedStreamedUntilUpdatedAt: BigNumber,
-    flowRate: string,
+    newFlowRate: string,
     event: IEvent,
-    isCreate: boolean
+    isCreate: boolean,
+    newDeposit: string
 ) => {
     const streamId = streamData.id;
     const stream = await fetchEntityAndEnsureExistence<IStream>(
@@ -28,7 +24,8 @@ export const fetchStreamAndValidate = async (
         stream,
         expectedStreamedUntilUpdatedAt.toString(),
         streamId,
-        flowRate
+        newFlowRate,
+        newDeposit
     );
 
     // validate flowUpdated reverse lookup on Stream entity
@@ -36,11 +33,11 @@ export const fetchStreamAndValidate = async (
 
     if (isCreate) {
         // validate accounts reverse lookup on Stream entity creation
-        validateAccountReverseLookups(stream);
+        await validateAccountReverseLookupsForStream(stream);
     }
 };
 
-export const validateAccountReverseLookups = async (stream: IStream) => {
+const validateAccountReverseLookupsForStream = async (stream: IStream) => {
     const senderAccount = await fetchEntityAndEnsureExistence<IAccount>(
         getAccount,
         stream.sender.id,
@@ -56,19 +53,24 @@ export const validateAccountReverseLookups = async (stream: IStream) => {
     validateReverseLookup(streamLightEntity, receiverAccount.inflows);
 };
 
-export const validateStreamEntity = (
+const validateStreamEntity = (
     subgraphStream: IStream,
     expectedStreamedUntilUpdatedAt: string,
     streamId: string,
-    currentFlowRate: string
+    newFlowRate: string,
+    newDeposit: string
 ) => {
-    expect(subgraphStream.id, "Stream: id error").to.be.equal(streamId);
+    expect(subgraphStream.id, "Stream: id error").to.equal(streamId);
     expect(
         subgraphStream.currentFlowRate,
         "Stream: currentFlowRate error"
-    ).to.equal(currentFlowRate);
+    ).to.equal(newFlowRate);
+    expect(
+        subgraphStream.deposit,
+        "Stream: deposit error"
+    ).to.equal(newDeposit);
     expect(
         subgraphStream.streamedUntilUpdatedAt,
         "Stream: streamedUntilUpdatedAt error"
-    ).to.be.equal(expectedStreamedUntilUpdatedAt);
+    ).to.equal(expectedStreamedUntilUpdatedAt);
 };

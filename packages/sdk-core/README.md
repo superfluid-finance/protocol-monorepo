@@ -55,6 +55,8 @@ To get the package up and running you'll need to install the necessary dependenc
 yarn install && yarn build
 ```
 
+> NOTE: `yarn build` has a prerequisite that the contracts in `ethereum-contracts` have been built.
+
 # Tutorial
 
 For the best and most immersive experience of learning how to use the main sdk-core features, I would highly recommend heading over to our [interactive tutorials](https://docs.superfluid.finance/superfluid/protocol-tutorials/interactive-tutorials).

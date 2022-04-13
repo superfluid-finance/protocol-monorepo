@@ -470,10 +470,15 @@ export const mapGetAllEventsQueryEvents = (
                     enabled: x.enabled,
                 });
             default:
+                console.warn(
+                    "An unknown event was detected which couldn't be mapped. Please update to the latest version of @superfluid-finance/sdk-core."
+                );
                 return typeGuard<events.UnknownEvent>({
-                    name: "Unknown",
-                    id: "",
-                    timestamp: 0,
+                    name: "_Unknown",
+                    id: (x as events.EventBase).id,
+                    blockNumber: (x as events.EventBase).blockNumber,
+                    transactionHash: (x as events.EventBase).transactionHash,
+                    timestamp: (x as events.EventBase).timestamp,
                 });
         }
     });

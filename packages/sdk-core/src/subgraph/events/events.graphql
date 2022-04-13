@@ -734,6 +734,10 @@ query events(
         orderBy: $orderBy
         orderDirection: $orderDirection
     ) {
+        id
+        blockNumber
+        transactionHash
+        timestamp
         ... on FlowUpdatedEvent {
             ...flowUpdatedEvent
         }

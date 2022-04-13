@@ -365,8 +365,6 @@ export interface TrustedForwarderChangedEvent extends EventBase {
     enabled: boolean;
 }
 
-export interface UnknownEvent {
-    name: "Unknown";
-    id: string;
-    timestamp: number;
+export interface UnknownEvent extends EventBase {
+    name: "_Unknown";
 }

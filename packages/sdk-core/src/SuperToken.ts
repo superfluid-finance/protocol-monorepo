@@ -127,7 +127,7 @@ export default class SuperToken extends ERC20Token {
         ) as ISuperToken;
     }
 
-    // SuperToken Contract Read Functions
+    /** ### SuperToken Contract Read Functions ### */
 
     /**
      * Returns the real time balance of `address`.
@@ -161,7 +161,7 @@ export default class SuperToken extends ERC20Token {
         }
     };
 
-    // SuperToken Contract Write Functions
+    /** ### SuperToken Contract Write Functions ### */
 
     /**
      * Downgrade `amount` SuperToken's.
@@ -203,7 +203,7 @@ export default class SuperToken extends ERC20Token {
         return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
-    // CFA Read Functions
+    /** ### CFA Read Functions ### */
 
     /**
      * Get the details of a flow.
@@ -298,7 +298,7 @@ export default class SuperToken extends ERC20Token {
         });
     };
 
-    // CFA Write Functions
+    /** ### CFA Write Functions ### */
 
     /**
      * Create a flow of the token of this class.
@@ -369,7 +369,7 @@ export default class SuperToken extends ERC20Token {
         });
     };
 
-    // CFA Write Functions (byOperator)
+    /** ### CFA ACL Write Functions (byOperator) ### */
 
     /**
      * Update permissions for a flow operator as a sender.
@@ -519,7 +519,7 @@ export default class SuperToken extends ERC20Token {
         });
     };
 
-    // IDA Read Functions
+    /** ### IDA Read Functions ### */
 
     /**
      * Get the details of a `Subscription`.
@@ -564,7 +564,7 @@ export default class SuperToken extends ERC20Token {
         });
     };
 
-    // IDA Write Functions
+    /** ### IDA Write Functions ### */
 
     /**
      * Creates an IDA Index.

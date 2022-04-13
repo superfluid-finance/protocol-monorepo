@@ -21,7 +21,7 @@ export default class ERC20Token {
         ) as ERC20WithTokenInfo;
     }
 
-    // ERC20 Token Contract Read Functions
+    /** ### ERC20 Token Contract Read Functions ### */
 
     /**
      * Returns the allowance the `owner` has granted the `spender`.
@@ -155,7 +155,7 @@ export default class ERC20Token {
         }
     };
 
-    // ERC20 Token Contract Write Functions
+    /** ### ERC20 Token Contract Write Functions ### */
 
     /**
      * Approve `receiver` to spend `amount` tokens.

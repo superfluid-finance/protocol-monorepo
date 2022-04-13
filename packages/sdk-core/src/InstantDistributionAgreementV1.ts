@@ -46,7 +46,7 @@ export default class InstantDistributionAgreementV1 {
         ) as IInstantDistributionAgreementV1;
     }
 
-    // IDA Read Functions
+    /** ### IDA Read Functions ### */
 
     /**
      * Get the details of a `Subscription`.
@@ -128,7 +128,7 @@ export default class InstantDistributionAgreementV1 {
         }
     };
 
-    // IDA Write Functions
+    /** ### IDA Write Functions ### */
 
     /**
      * Creates an IDA Index.

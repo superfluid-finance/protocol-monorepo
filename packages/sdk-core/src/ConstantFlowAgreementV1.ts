@@ -52,7 +52,7 @@ export default class ConstantFlowAgreementV1 {
         ) as IConstantFlowAgreementV1;
     }
 
-    // CFA Read Functions
+    /** ### CFA Read Functions ### */
 
     /**
      * Get the details of a flow.
@@ -208,7 +208,7 @@ export default class ConstantFlowAgreementV1 {
         }
     };
 
-    // CFA Write Functions
+    /** ### CFA Write Functions ### */
 
     /**
      * Create a flow.
@@ -313,7 +313,7 @@ export default class ConstantFlowAgreementV1 {
         );
     };
 
-    // CFA ACL Write Functions (byOperator)
+    /** ### CFA ACL Write Functions (byOperator) ### */
 
     /**
      * Update permissions for a flow operator as a sender.
@@ -550,6 +550,8 @@ export default class ConstantFlowAgreementV1 {
             overrides
         );
     };
+
+    /** ### Private Functions ### */
 
     /**
      * Sanitizes flow info, converting BigNumber to string.

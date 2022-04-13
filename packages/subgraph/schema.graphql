@@ -997,6 +997,10 @@ type FlowOperator @entity {
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
 
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
     permissions: Int!
 
     """

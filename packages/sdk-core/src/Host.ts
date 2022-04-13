@@ -5,7 +5,7 @@ import SuperfluidABI from "./abi/Superfluid.json";
 import { Superfluid } from "./typechain";
 
 /**
- * @dev Host Helper Class
+ * Host Helper Class
  * @description A helper class which can be used as a standalone class to populate call agreement transactions.
  */
 export default class Host {
@@ -19,7 +19,7 @@ export default class Host {
     }
 
     /**
-     * @dev Creates an Operation of the `callAgreement` function on the host contract.
+     * Creates an Operation of the `callAgreement` function on the host contract.
      * @param agreementAddress the agreement address (cfa or ida address)
      * @param callData the encoded callData for the function
      * @param userData any additional user data

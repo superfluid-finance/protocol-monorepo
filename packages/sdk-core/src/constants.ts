@@ -26,6 +26,14 @@ export const MATIC = "matic";
 export const OPTIMISM_MAINNET = "optimism-mainnet";
 export const ARBITRUM_ONE = "arbitrum-one";
 
+export const AUTHORIZE_FLOW_OPERATOR_CREATE = 1 << 0;
+export const AUTHORIZE_FLOW_OPERATOR_UPDATE = 1 << 1;
+export const AUTHORIZE_FLOW_OPERATOR_DELETE = 1 << 2;
+export const AUTHORIZE_FULL_CONTROL =
+    AUTHORIZE_FLOW_OPERATOR_CREATE |
+    AUTHORIZE_FLOW_OPERATOR_UPDATE |
+    AUTHORIZE_FLOW_OPERATOR_DELETE;
+
 export const chainIds = [
     3, // ROPSTEN
     4, // RINKEBY

@@ -18,6 +18,26 @@ query flowUpdatedEvents(
     }
 }
 
+query flowOperatorUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: FlowOperatorUpdatedEvent_filter
+    $orderBy: FlowOperatorUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    flowOperatorUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...flowOperatorUpdatedEvent
+    }
+}
+
 query indexCreatedEvents(
     $first: Int
     $skip: Int
@@ -714,8 +734,15 @@ query events(
         orderBy: $orderBy
         orderDirection: $orderDirection
     ) {
+        id
+        blockNumber
+        transactionHash
+        timestamp
         ... on FlowUpdatedEvent {
             ...flowUpdatedEvent
+        }
+        ... on FlowOperatorUpdatedEvent {
+            ...flowOperatorUpdatedEvent
         }
         ... on IndexCreatedEvent {
             ...indexCreatedEvent
@@ -844,6 +871,16 @@ fragment flowUpdatedEvent on FlowUpdatedEvent {
     sender
     receiver
     flowRate
+    flowOperator
+    deposit
+}
+
+fragment flowOperatorUpdatedEvent on FlowOperatorUpdatedEvent {
+    ...eventFields
+    token
+    sender
+    permissions
+    flowRateAllowance
 }
 
 fragment indexCreatedEvent on IndexCreatedEvent {

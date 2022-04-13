@@ -57,7 +57,7 @@ export interface IFrameworkSettings {
 }
 
 /**
- * @dev Superfluid Framework Class
+ * Superfluid Framework Class
  * @description The entrypoint for the SDK-core, `create` an instance of this for full functionality.
  */
 export default class Framework {
@@ -94,7 +94,7 @@ export default class Framework {
     }
 
     /**
-     * @dev Creates the Framework object based on user provided `options`.
+     * Creates the Framework object based on user provided `options`.
      * @param options.chainId the chainId of your desired network (e.g. 137 = matic)
      * @param options.customSubgraphQueriesEndpoint your custom subgraph endpoint
      * @param options.dataMode the data mode you'd like the framework to use (SUBGRAPH_ONLY, SUBGRAPH_WEB3, WEB3_ONLY)
@@ -205,7 +205,7 @@ export default class Framework {
     };
 
     /**
-     * @dev Create a signer which can be used to sign transactions.
+     * Create a signer which can be used to sign transactions.
      * @param options.web3Provider a Web3Provider object (e.g. client side - metamask, web3modal)
      * @param options.provider an ethers Provider object (e.g. via Hardhat ethers)
      * @param options.privateKey a test account private key
@@ -252,7 +252,7 @@ export default class Framework {
     };
 
     /**
-     * @dev Create a `BatchCall` class from the `Framework`.
+     * Create a `BatchCall` class from the `Framework`.
      * @param operations the list of operations to execute
      * @returns `BatchCall` class
      */
@@ -264,7 +264,7 @@ export default class Framework {
     };
 
     /**
-     * @dev Loads `SuperTokenWithUnderlying`, `SuperTokenWithoutUnderlying` or `NativeAssetSuperToken` class from the `Framework`.
+     * Loads `SuperTokenWithUnderlying`, `SuperTokenWithoutUnderlying` or `NativeAssetSuperToken` class from the `Framework`.
      * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */

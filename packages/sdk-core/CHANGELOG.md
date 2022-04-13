@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added `AllPaging` to recursively query all results from Subgraph
 - Added support for `TypedDocumentNode` for `SubgraphClient`
 - Expose underlying ethers.js contracts for each class: CFAv1, Host, IDAv1 and `contracts` property in `Framework` class
+- Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
 - Added `nativeTokenSymbol` property to `constants.ts`
 - Split `SuperToken` class into: `SuperTokenWithUnderlying`, `SuperTokenWithoutUnderlying` and `NativeAssetSuperToken` classes
 - Support `upgradeByETH`, `upgradeByETHTo` and `downgradeToETH` functions via `NativeAssetSuperToken`

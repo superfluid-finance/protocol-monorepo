@@ -56,7 +56,7 @@ type FlowUpdatedEvent implements Event @entity {
     flowRate: BigInt!
     totalSenderFlowRate: BigInt!
     totalReceiverFlowRate: BigInt!
-    deposit: BigInt
+    deposit: BigInt!
     userData: Bytes!
 
     # Custom Properties (not on event)

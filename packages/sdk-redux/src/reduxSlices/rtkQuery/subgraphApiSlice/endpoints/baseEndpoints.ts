@@ -24,8 +24,6 @@ export const createBaseEndpoints = (builder: SubgraphEndpointBuilder) => ({
             };
         },
         onCacheEntryAdded: async (arg, {dispatch, cacheDataLoaded, cacheEntryRemoved}) => {
-            // TODO(KK): Consider how changing of networks inside the application can affect this.
-
             const framework = await getFramework(arg.chainId);
 
             await cacheDataLoaded;

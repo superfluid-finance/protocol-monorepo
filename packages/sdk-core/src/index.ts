@@ -3,14 +3,14 @@ export * from "./subgraph/schema.generated";
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import ERC20Token from "./ERC20Token";
-import SuperToken from "./SuperToken";
-import SuperTokenWithUnderlying from "./SuperToken";
-import SuperTokenWithoutUnderlying from "./SuperToken";
-import NativeAssetSuperToken from "./SuperToken";
 import Framework from "./Framework";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Query from "./Query";
+import SuperToken from "./SuperToken";
+import SuperTokenWithUnderlying from "./SuperToken";
+import SuperTokenWithoutUnderlying from "./SuperToken";
+import NativeAssetSuperToken from "./SuperToken";
 
 export * from "./interfaces";
 export * from "./utils";

@@ -5,9 +5,8 @@ import ERC20Token from "./ERC20Token";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import SuperTokenABI from "./abi/SuperToken.json";
 import ISETHABI from "./abi/ISETH.json";
-import { ISETH } from "./typechain/ISETH";
+import SuperTokenABI from "./abi/SuperToken.json";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
@@ -39,6 +38,7 @@ import {
     IWeb3Subscription,
 } from "./interfaces";
 import { SuperToken as ISuperToken } from "./typechain";
+import { ISETH } from "./typechain/ISETH";
 import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,

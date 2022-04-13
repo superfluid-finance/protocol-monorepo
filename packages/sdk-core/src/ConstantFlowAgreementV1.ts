@@ -22,7 +22,11 @@ import {
     IWeb3FlowOperatorDataParams,
 } from "./interfaces";
 import { IConstantFlowAgreementV1 } from "./typechain";
-import { getSanitizedTimestamp, normalizeAddress } from "./utils";
+import {
+    getSanitizedTimestamp,
+    isPermissionsClean,
+    normalizeAddress,
+} from "./utils";
 
 const cfaInterface = new ethers.utils.Interface(
     IConstantFlowAgreementV1ABI.abi
@@ -334,8 +338,19 @@ export default class ConstantFlowAgreementV1 {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSender = normalizeAddress(sender);
         const normalizedFlowOperator = normalizeAddress(flowOperator);
-        // TODO: VALIDATE permissions
-        // TODO: VALIDATE flowRateAllowance
+        if (!isPermissionsClean(permissions)) {
+            throw new SFError({
+                type: "UNCLEAN_PERMISSIONS",
+                customMessage: "The desired permissions are unclean",
+            });
+        }
+
+        if (Number(flowRateAllowance) < 0) {
+            throw new SFError({
+                type: "NEGATIVE_FLOW_ALLOWANCE",
+                customMessage: "No negative flow allowance allowed",
+            });
+        }
 
         const callData = cfaInterface.encodeFunctionData(
             "updateFlowOperatorPermissions",

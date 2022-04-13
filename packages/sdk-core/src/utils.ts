@@ -5,6 +5,9 @@ import Web3 from "web3";
 
 import { SFError } from "./SFError";
 import {
+    AUTHORIZE_FLOW_OPERATOR_CREATE,
+    AUTHORIZE_FLOW_OPERATOR_DELETE,
+    AUTHORIZE_FLOW_OPERATOR_UPDATE,
     BASE_18,
     DAY_IN_SECONDS,
     MONTH_IN_SECONDS,
@@ -26,11 +29,23 @@ export const normalizeAddress = (address?: string): string => {
         throw new SFError({
             type: "INVALID_ADDRESS",
             customMessage:
-                "The address you have entered is not a valid ethereum address.",
+                "The address you have entered is not a valid ethereum address",
         });
     }
 
     return address.toLowerCase();
+};
+
+export const isPermissionsClean = (permissions: number): boolean => {
+    return (
+        (permissions &
+            ~(
+                AUTHORIZE_FLOW_OPERATOR_CREATE |
+                AUTHORIZE_FLOW_OPERATOR_UPDATE |
+                AUTHORIZE_FLOW_OPERATOR_DELETE
+            )) ===
+        0
+    );
 };
 
 export const isNullOrEmpty = (str: string | null | undefined) => {

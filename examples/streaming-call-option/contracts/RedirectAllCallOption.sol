@@ -48,7 +48,7 @@ contract RedirectAllCallOption is SuperAppBase {
     //address of the price feed used for the _underlyingAsset
     AggregatorV3Interface public _priceFeed;
 
-    //decimals of value returned by the priceFeed
+    //decimals returned by the priceFeed
     uint8 public _priceFeedDecimals;
     //strike price of the option. The option may be exercised if the current price is > that _strikePrice prior to the expirationDate & flowRate into the app is > required rate
     int256 public _strikePrice;

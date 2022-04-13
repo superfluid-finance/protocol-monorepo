@@ -129,7 +129,7 @@ export const mapGetAllEventsQueryEvents = (
                     receiver: x.receiver,
                     sender: x.sender,
                     flowOperator: x.flowOperator,
-                    deposit: x.deposit,
+                    deposit: x.deposit as string,
                 });
             case "FlowOperatorUpdatedEvent":
                 return typeGuard<events.FlowOperatorUpdatedEvent>({
@@ -472,6 +472,8 @@ export const mapGetAllEventsQueryEvents = (
             default:
                 return typeGuard<events.UnknownEvent>({
                     name: "Unknown",
+                    id: "",
+                    timestamp: 0,
                 });
         }
     });

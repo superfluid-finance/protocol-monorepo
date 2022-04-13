@@ -21,6 +21,8 @@ query getAllEvents(
             sender
             receiver
             flowRate
+            flowOperator
+            deposit
         }
         ... on FlowOperatorUpdatedEvent {
             ...eventFields

@@ -1956,7 +1956,7 @@ type FlowUpdatedEvent implements Event {
   flowRate: BigInt!
   totalSenderFlowRate: BigInt!
   totalReceiverFlowRate: BigInt!
-  deposit: BigInt
+  deposit: BigInt!
   userData: Bytes!
 
   """

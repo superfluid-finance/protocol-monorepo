@@ -24,7 +24,7 @@ export default class ERC20Token {
     // ERC20 Token Contract Read Functions
 
     /**
-     * @dev Returns the allowance the `owner` has granted the `spender`.
+     * Returns the allowance the `owner` has granted the `spender`.
      * @param owner the owner who has allotted the allowance
      * @param spender the spender who has received the allowance
      * @param providerOrSigner a provider or signer for executing a web3 call
@@ -56,7 +56,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the ERC20 balanceOf the `account`, this can't be negative and will just display 0.
+     * Returns the ERC20 balanceOf the `account`, this can't be negative and will just display 0.
      * @param account the account you would like to query
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {Promise<string>} the token balance of `account`
@@ -84,7 +84,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the token name
+     * Returns the token name
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {string} the token name
      */
@@ -108,7 +108,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the token symbol
+     * Returns the token symbol
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {string} the token symbol
      */
@@ -132,7 +132,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the total supply of the token.
+     * Returns the total supply of the token.
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {Promise<string>} the total supply of the token
      */
@@ -158,7 +158,7 @@ export default class ERC20Token {
     // ERC20 Token Contract Write Functions
 
     /**
-     * @dev Approve `receiver` to spend `amount` tokens.
+     * Approve `receiver` to spend `amount` tokens.
      * @param receiver The receiver approved.
      * @param amount The amount approved.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -179,7 +179,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Transfer `receiver` `amount` tokens.
+     * Transfer `receiver` `amount` tokens.
      * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -200,7 +200,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Transfer from `sender` to `receiver` `amount` tokens.
+     * Transfer from `sender` to `receiver` `amount` tokens.
      * @param sender The sender of the transfer.
      * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.

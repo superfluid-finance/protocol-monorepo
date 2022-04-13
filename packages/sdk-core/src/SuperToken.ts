@@ -60,7 +60,7 @@ export interface ITokenOptions {
 }
 
 /**
- * @dev SuperToken Helper Class
+ * SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
  */
 export default class SuperToken extends ERC20Token {
@@ -130,7 +130,7 @@ export default class SuperToken extends ERC20Token {
     // SuperToken Contract Read Functions
 
     /**
-     * @dev Returns the real time balance of `address`.
+     * Returns the real time balance of `address`.
      * @param account the target address
      * @param timestamp the timestamp you'd like to see the data
      * @param providerOrSigner a provider or signer for executing a web3 call
@@ -164,7 +164,7 @@ export default class SuperToken extends ERC20Token {
     // SuperToken Contract Write Functions
 
     /**
-     * @dev Downgrade `amount` SuperToken's.
+     * Downgrade `amount` SuperToken's.
      * @param amount The amount to be downgraded.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
@@ -184,7 +184,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Upgrade `amount` SuperToken's.
+     * Upgrade `amount` SuperToken's.
      * @param amount The amount to be upgraded.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
@@ -206,7 +206,7 @@ export default class SuperToken extends ERC20Token {
     // CFA Read Functions
 
     /**
-     * @dev Get the details of a flow.
+     * Get the details of a flow.
      * @param sender the sender of the flow
      * @param receiver the receiver of the flow
      * @param providerOrSigner a provider or signer object
@@ -226,7 +226,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Get the flow info of an account (net flow).
+     * Get the flow info of an account (net flow).
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
@@ -243,7 +243,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Get the net flow of an account.
+     * Get the net flow of an account.
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<string>} Web3 Flow info object
@@ -260,7 +260,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Get flow operator data.
+     * Get flow operator data.
      * @param sender the sender
      * @param flowOperator the flowOperator
      * @param providerOrSigner a provider or signer object
@@ -282,7 +282,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Get flow operator data using the flowOperatorId.
+     * Get flow operator data using the flowOperatorId.
      * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
@@ -301,7 +301,7 @@ export default class SuperToken extends ERC20Token {
     // CFA Write Functions
 
     /**
-     * @dev Create a flow of the token of this class.
+     * Create a flow of the token of this class.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
@@ -324,7 +324,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Update a flow of the token of this class.
+     * Update a flow of the token of this class.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
@@ -347,7 +347,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Delete a flow of the token of this class.
+     * Delete a flow of the token of this class.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
@@ -372,7 +372,7 @@ export default class SuperToken extends ERC20Token {
     // CFA Write Functions (byOperator)
 
     /**
-     * @dev Update permissions for a flow operator as a sender.
+     * Update permissions for a flow operator as a sender.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param permission The pernissions to set.
@@ -401,7 +401,7 @@ export default class SuperToken extends ERC20Token {
     }
 
     /**
-     * @dev Give flow operator full control - max flow rate and create/update/delete permissions.
+     * Give flow operator full control - max flow rate and create/update/delete permissions.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
@@ -423,7 +423,7 @@ export default class SuperToken extends ERC20Token {
     }
 
     /**
-     * @dev Revoke flow operator control - set flow rate to 0 with no permissions.
+     * Revoke flow operator control - set flow rate to 0 with no permissions.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
@@ -445,7 +445,7 @@ export default class SuperToken extends ERC20Token {
     }
 
     /**
-     * @dev Create a flow as an operator
+     * Create a flow as an operator
      * @param flowRate The specified flow rate.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
@@ -471,7 +471,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Update a flow as an operator.
+     * Update a flow as an operator.
      * @param flowRate The specified flow rate.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
@@ -497,7 +497,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Delete a flow as an operator.
+     * Delete a flow as an operator.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
@@ -522,7 +522,7 @@ export default class SuperToken extends ERC20Token {
     // IDA Read Functions
 
     /**
-     * @dev Get the details of a `Subscription`.
+     * Get the details of a `Subscription`.
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param subscriber the subscriber's address
@@ -545,7 +545,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Get the details of an `Index`.
+     * Get the details of an `Index`.
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param providerOrSigner a provider or signer object
@@ -567,7 +567,7 @@ export default class SuperToken extends ERC20Token {
     // IDA Write Functions
 
     /**
-     * @dev Creates an IDA Index.
+     * Creates an IDA Index.
      * @param indexId The id of the index.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -587,7 +587,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Distributes `amount` of token to an index
+     * Distributes `amount` of token to an index
      * @param indexId The id of the index.
      * @param amount The amount of tokens to be distributed.
      * @param userData Extra user data provided.
@@ -610,7 +610,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Updates the `IndexValue` field of an index.
+     * Updates the `IndexValue` field of an index.
      * @param indexId The id of the index.
      * @param indexValue The new indexValue.
      * @param userData Extra user data provided.
@@ -635,7 +635,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Updates the `units` allocated to a Subscription.
+     * Updates the `units` allocated to a Subscription.
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose units you want to update.
      * @param units The amount of units you want to update to.
@@ -661,7 +661,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
+     * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
      * @param publisher The publisher address whose subscription you want to approve.
      * @param userData Extra user data provided.
@@ -684,7 +684,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
+     * Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
      * @param publisher The index publisher address you want to revoke for the subscriber.
      * @param userData Extra user data provided.
@@ -707,7 +707,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
+     * Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targeting.
@@ -733,7 +733,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Claims any pending tokens allocated to the Subscription (unapproved).
+     * Claims any pending tokens allocated to the Subscription (unapproved).
      * @param indexId The id of the index.
      * @param subscriber The subscriber address who you are claiming for.
      * @param publisher The publisher address of the index you are targeting.

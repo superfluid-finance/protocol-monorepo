@@ -29,7 +29,7 @@ const cfaInterface = new ethers.utils.Interface(
 );
 
 /**
- * @dev Constant Flow Agreement V1 Helper Class
+ * Constant Flow Agreement V1 Helper Class
  * @description A helper class to interact with the CFAV1 contract.
  */
 export default class ConstantFlowAgreementV1 {
@@ -51,7 +51,7 @@ export default class ConstantFlowAgreementV1 {
     // CFA Read Functions
 
     /**
-     * @dev Get the details of a flow.
+     * Get the details of a flow.
      * @param superToken the superToken of the agreement
      * @param sender the sender of the flow
      * @param receiver the receiver of the flow
@@ -82,7 +82,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Get the flow info of an account (net flow).
+     * Get the flow info of an account (net flow).
      * @param superToken the superToken of the agreement
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
@@ -111,7 +111,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Get the net flow of an account.
+     * Get the net flow of an account.
      * @param superToken the superToken of the agreement
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
@@ -140,7 +140,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Get flow operator data.
+     * Get flow operator data.
      * @param superToken the superToken of the agreement
      * @param sender the sender
      * @param flowOperator the flowOperator
@@ -175,7 +175,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Get flow operator data using the flowOperatorId.
+     * Get flow operator data using the flowOperatorId.
      * @param superToken the superToken of the agreement
      * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
      * @param providerOrSigner a provider or signer object
@@ -207,7 +207,7 @@ export default class ConstantFlowAgreementV1 {
     // CFA Write Functions
 
     /**
-     * @dev Create a flow.
+     * Create a flow.
      * @param flowRate The specified flow rate.
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
@@ -241,7 +241,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Update a flow.
+     * Update a flow.
      * @param flowRate The specified flow rate.
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
@@ -275,7 +275,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Delete a flow.
+     * Delete a flow.
      * @param superToken The token to be flowed.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
@@ -312,7 +312,7 @@ export default class ConstantFlowAgreementV1 {
     // CFA ACL Write Functions (byOperator)
 
     /**
-     * @dev Update permissions for a flow operator as a sender.
+     * Update permissions for a flow operator as a sender.
      * @param superToken The token to be flowed.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
@@ -358,7 +358,7 @@ export default class ConstantFlowAgreementV1 {
     }
 
     /**
-     * @dev Give flow operator full control - max flow rate and create/update/delete permissions.
+     * Give flow operator full control - max flow rate and create/update/delete permissions.
      * @param superToken The token to be flowed.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
@@ -390,7 +390,7 @@ export default class ConstantFlowAgreementV1 {
     }
 
     /**
-     * @dev Revoke flow operator control - set flow rate to 0 with no permissions.
+     * Revoke flow operator control - set flow rate to 0 with no permissions.
      * @param superToken The token to be flowed.
      * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
@@ -422,7 +422,7 @@ export default class ConstantFlowAgreementV1 {
     }
 
     /**
-     * @dev Create a flow as an operator
+     * Create a flow as an operator
      * @param flowRate The specified flow rate.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
@@ -463,7 +463,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Update a flow as an operator.
+     * Update a flow as an operator.
      * @param flowRate The specified flow rate.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
@@ -504,7 +504,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Delete a flow as an operator.
+     * Delete a flow as an operator.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
@@ -537,7 +537,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Sanitizes flow info, converting BigNumber to string.
+     * Sanitizes flow info, converting BigNumber to string.
      * @param timestamp last updated timestamp of flow
      * @param flowRate the current flow rate
      * @param deposit the deposit amount
@@ -559,7 +559,7 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /**
-     * @dev Sanitizes flow operator data, converting BigNumber to string.
+     * Sanitizes flow operator data, converting BigNumber to string.
      * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
      * @param permissions the permissions
      * @param flowRateAllowance the flow rate allowance granted to the flow operator

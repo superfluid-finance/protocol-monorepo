@@ -1046,6 +1046,7 @@ type StreamPeriod @entity {
     token: Token!
 
     flowRate: BigInt!
+    deposit: BigInt!
 
     startedAtTimestamp: BigInt!
     startedAtBlockNumber: BigInt!

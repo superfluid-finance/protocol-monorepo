@@ -95,7 +95,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         txnResponse,
         timestamp,
         flowRate: newFlowRate,
-        deposit
+        deposit,
     } = await modifyFlowAndReturnCreatedFlowData(data);
     const lastUpdatedAtTimestamp = timestamp.toString();
 
@@ -109,10 +109,13 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         data,
     });
     const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(3600)));
-    console.log(data.sender +  "-> " + data.receiver);
+    console.log(data.sender + "-> " + data.receiver);
     console.log("newDeposit", newDeposit.toString());
     console.log("deposit", deposit.toString());
-    console.log("initData.pastStreamData.deposit", initData.pastStreamData.deposit.toString());
+    console.log(
+        "initData.pastStreamData.deposit",
+        initData.pastStreamData.deposit.toString()
+    );
     if (!newDeposit.eq(toBN(deposit))) {
         throw new Error("DEPOSITS ARE NOT EQUAL");
     }
@@ -127,8 +130,14 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         existingData: initData,
         depositDelta,
     });
-    console.log("initData.currentSenderATS.totalDeposit", initData.currentSenderATS.totalDeposit.toString());
-    console.log("expectedData.updatedSenderATS.totalDeposit", expectedData.updatedSenderATS.totalDeposit.toString());
+    console.log(
+        "initData.currentSenderATS.totalDeposit",
+        initData.currentSenderATS.totalDeposit.toString()
+    );
+    console.log(
+        "expectedData.updatedSenderATS.totalDeposit",
+        expectedData.updatedSenderATS.totalDeposit.toString()
+    );
 
     const streamedAmountSinceUpdatedAt = toBN(
         initData.pastStreamData.oldFlowRate
@@ -190,7 +199,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         expectedData.updatedReceiverATS,
         expectedData.updatedTokenStats,
         flowUpdatedEvent,
-        data.actionType
+        data.actionType,
+        newDeposit.toString()
     );
 
     let updatedStreamData = getExpectedStreamData(

@@ -194,6 +194,7 @@ export interface IStream extends IBaseEntity {
 
 export interface IStreamPeriod extends IBaseEntity {
     readonly id: string;
+    readonly deposit: string;
     readonly stream: ILightEntity;
     readonly sender: ILightEntity;
     readonly receiver: ILightEntity;

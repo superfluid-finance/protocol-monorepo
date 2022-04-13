@@ -115,7 +115,8 @@ function getFlowActionType(
 function handleStreamPeriodUpdate(
     eventEntity: FlowUpdatedEvent,
     previousFlowRate: BigInt,
-    streamId: string
+    streamId: string,
+    newDeposit: BigInt
 ): void {
     let streamRevision = getOrInitStreamRevision(
         eventEntity.sender.toHex(),
@@ -131,7 +132,12 @@ function handleStreamPeriodUpdate(
     );
     switch (flowActionType) {
         case FlowActionType.create:
-            startStreamPeriod(eventEntity, streamRevision, streamId);
+            startStreamPeriod(
+                eventEntity,
+                streamRevision,
+                streamId,
+                newDeposit
+            );
             break;
         case FlowActionType.update:
             if (!previousStreamPeriod) {
@@ -145,7 +151,12 @@ function handleStreamPeriodUpdate(
                 streamRevision,
                 previousFlowRate
             );
-            startStreamPeriod(eventEntity, streamRevision, streamId);
+            startStreamPeriod(
+                eventEntity,
+                streamRevision,
+                streamId,
+                newDeposit
+            );
             break;
         case FlowActionType.terminate:
             if (!previousStreamPeriod) {
@@ -173,7 +184,8 @@ function incrementPeriodRevisionIndex(streamRevision: StreamRevision): void {
 function startStreamPeriod(
     event: FlowUpdatedEvent,
     streamRevision: StreamRevision,
-    streamId: string
+    streamId: string,
+    newDeposit: BigInt
 ): void {
     let streamPeriod = new StreamPeriod(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
@@ -186,6 +198,7 @@ function startStreamPeriod(
     streamPeriod.startedAtBlockNumber = event.blockNumber;
     streamPeriod.startedAtEvent = event.id;
     streamPeriod.stream = streamId;
+    streamPeriod.deposit = newDeposit;
     streamPeriod.save();
 }
 
@@ -281,7 +294,12 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         newStreamedUntilLastUpdate,
         newDeposit
     );
-    handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream.id);
+    handleStreamPeriodUpdate(
+        flowUpdateEvent,
+        oldFlowRate,
+        stream.id,
+        newDeposit
+    );
 
     // update aggregate entities data
     updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);

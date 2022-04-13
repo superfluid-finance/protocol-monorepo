@@ -128,6 +128,20 @@ export const mapGetAllEventsQueryEvents = (
                     flowRate: x.flowRate,
                     receiver: x.receiver,
                     sender: x.sender,
+                    flowOperator: x.flowOperator,
+                    deposit: x.deposit,
+                });
+            case "FlowOperatorUpdatedEvent":
+                return typeGuard<events.FlowOperatorUpdatedEvent>({
+                    name: "FlowOperatorUpdated",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    timestamp: Number(x.timestamp),
+                    token: x.token,
+                    sender: x.sender,
+                    permissions: x.permissions,
+                    flowRateAllowance: x.flowRateAllowance,
                 });
             case "GovernanceReplacedEvent":
                 return typeGuard<events.GovernanceReplacedEvent>({
@@ -456,7 +470,9 @@ export const mapGetAllEventsQueryEvents = (
                     enabled: x.enabled,
                 });
             default:
-                throw Error("Unknown error.");
+                return typeGuard<events.UnknownEvent>({
+                    name: "Unknown",
+                });
         }
     });
 };

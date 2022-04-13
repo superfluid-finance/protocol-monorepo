@@ -21,7 +21,7 @@ export interface SuperTokenUpgradeMutation extends BaseSuperTokenMutation {
  */
 export interface SuperTokenUpgradeAllowanceQuery extends BaseQuery<string> {
     /**
-     * Account who's allowance to check.
+     * Account whose allowance to check.
      */
     accountAddress: string;
     superTokenAddress: string;

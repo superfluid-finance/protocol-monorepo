@@ -1,32 +1,25 @@
 import {RelevantAddresses} from '@superfluid-finance/sdk-core';
 
-import {CacheTagTypes} from '../cacheTags/CacheTagTypes';
+import {CacheTagType, createTag} from '../cacheTags/CacheTagTypes';
 
 export const provideCacheTagsFromRelevantAddresses = (
     chainId: number,
     relevantAddresses: RelevantAddresses,
-    tag: CacheTagTypes
+    tag: CacheTagType
 ) => {
     if (relevantAddresses.tokens.length) {
         return relevantAddresses.tokens
             .map((tokenAddress: string) =>
-                relevantAddresses.accounts.map((accountAddress: string) => ({
-                    type: tag,
-                    id: `${chainId}_${tokenAddress}_${accountAddress}`.toLowerCase(),
-                }))
+                [createTag(tag, tokenAddress)].concat(
+                    relevantAddresses.accounts.map((accountAddress: string) =>
+                        createTag(tag, tokenAddress, accountAddress)
+                    )
+                )
             )
             .flat();
     } else if (relevantAddresses.accounts.length) {
-        return relevantAddresses.accounts.map((accountAddress: string) => ({
-            type: tag,
-            id: `${chainId}_${accountAddress}`.toLowerCase(),
-        }));
+        return relevantAddresses.accounts.map((accountAddress: string) => createTag(tag, accountAddress));
     } else {
-        return [
-            {
-                type: tag,
-                id: `${chainId}`.toLowerCase(),
-            },
-        ];
+        return [createTag(tag, chainId)];
     }
 };

@@ -26,7 +26,7 @@ import {
 } from '@superfluid-finance/sdk-core';
 
 import {getSubgraphClient} from '../../../../sdkReduxConfig';
-import {CacheTagTypes} from '../../cacheTags/CacheTagTypes';
+import {CacheTagType} from '../../cacheTags/CacheTagTypes';
 import {CacheTime} from '../../cacheTime';
 import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
 import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
@@ -56,8 +56,8 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
     return {
         account: get<Account, AccountQuery>(builder, new AccountQueryHandler(), "Event"),
         accounts: list<Account, AccountsQuery>(builder, new AccountQueryHandler(), "Event"),
-        accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(builder, new AccountTokenSnapshotQueryHandler(), "Token"),
-        accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(builder, new AccountTokenSnapshotQueryHandler(), "Token"),
+        accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(builder, new AccountTokenSnapshotQueryHandler(), "Event"),
+        accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(builder, new AccountTokenSnapshotQueryHandler(), "Event"),
         index: get<Index, IndexQuery>(builder, new IndexQueryHandler(), "Index"),
         indexes: list<Index, IndexesQuery>(builder, new IndexQueryHandler(), "Index"),
         indexSubscription: get<IndexSubscription, IndexSubscriptionQuery>(builder, new IndexSubscriptionQueryHandler(), "Index"),
@@ -66,10 +66,10 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
         streams: list<Stream, StreamsQuery>(builder, new StreamQueryHandler(), "Stream"),
         streamPeriod: get<StreamPeriod, StreamPeriodQuery>(builder, new StreamPeriodQueryHandler(), "Stream"),
         streamPeriods: list<StreamPeriod, StreamPeriodsQuery>(builder, new StreamPeriodQueryHandler(), "Stream"),
-        token: get<Token, TokenQuery>(builder, new TokenQueryHandler(), "Token", CacheTime.ThreeMinutes),
-        tokens: list<Token, TokensQuery>(builder, new TokenQueryHandler(), "Token"),
-        tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(builder, new TokenStatisticQueryHandler(), "Token"),
-        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler(), "Token")
+        token: get<Token, TokenQuery>(builder, new TokenQueryHandler(), "TokenList", CacheTime.ThreeMinutes),
+        tokens: list<Token, TokensQuery>(builder, new TokenQueryHandler(), "TokenList"),
+        tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(builder, new TokenStatisticQueryHandler(), "Event"),
+        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler(), "Event")
     };
 };
 
@@ -79,7 +79,7 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
 function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
     builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
-    tag: CacheTagTypes,
+    tag: CacheTagType,
     cacheTime?: CacheTime
 ) {
     return builder.query<TReturn | null, TQuery>({
@@ -110,7 +110,7 @@ function list<
 >(
     builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>,
-    tag: CacheTagTypes,
+    tag: CacheTagType,
     cacheTime?: CacheTime
 ) {
     return builder.query<PagedResult<TReturn>, TQuery>({

@@ -7,7 +7,8 @@ import promiseRetry from 'promise-retry';
 import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTrackerSlice} from '../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
-import {invalidateCacheTagsForEvents} from '../../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
+import {createTag} from '../../rtkQuery/cacheTags/CacheTagTypes';
+import {getCacheTagsToInvalidateForEvents} from '../../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 import {EthersError} from '../ethersError';
 import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
@@ -39,7 +40,7 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                 })
             );
 
-            dispatch(getRpcApiSlice().util.resetApiState());
+            dispatch(getRpcApiSlice().util.invalidateTags([createTag('Event', '')]));
 
             monitorForLateErrors(framework.settings.provider, {chainId: arg.chainId, hash: transactionHash}, dispatch);
 
@@ -58,9 +59,13 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                     factor: 2,
                     forever: true,
                 }
-            ).then((subgraphEventsQueryResult) => {
-                invalidateCacheTagsForEvents(arg.chainId, subgraphEventsQueryResult.data, dispatch);
-            });
+            ).then((subgraphEventsQueryResult) =>
+                dispatch(
+                    getSubgraphApiSlice().util.invalidateTags(
+                        getCacheTagsToInvalidateForEvents(arg.chainId, subgraphEventsQueryResult.data)
+                    )
+                )
+            );
         })
         .catch((ethersError: EthersError) => {
             notifyOfError(ethersError, {chainId: arg.chainId, hash: transactionHash}, dispatch);

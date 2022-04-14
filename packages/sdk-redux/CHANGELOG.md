@@ -18,6 +18,7 @@ All notable changes to the SDK-redux will be documented in this file.
   - RPC is invalidated in its entirety for now
   - Subgraph is polled for the block events of the successful transaction to invalidate the slice normally (based on the event type and its data)
 - Save timestamp on the tracked transaction of when tracking started
+- Simplify caching logic (needs more work regarding which events invalidate what exactly)
 
 ## [0.2.2] - 2022-03-16
 

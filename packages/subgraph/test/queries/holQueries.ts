@@ -78,6 +78,7 @@ export const getStreamPeriod = gql`
             receiver {
                 id
             }
+            deposit
             startedAtTimestamp
             startedAtBlockNumber
             startedAtEvent {

@@ -56,7 +56,7 @@ type FlowUpdatedEvent implements Event @entity {
     flowRate: BigInt!
     totalSenderFlowRate: BigInt!
     totalReceiverFlowRate: BigInt!
-    deposit: BigInt
+    deposit: BigInt!
     userData: Bytes!
 
     # Custom Properties (not on event)
@@ -997,6 +997,10 @@ type FlowOperator @entity {
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
 
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
     permissions: Int!
 
     """
@@ -1042,6 +1046,7 @@ type StreamPeriod @entity {
     token: Token!
 
     flowRate: BigInt!
+    deposit: BigInt!
 
     startedAtTimestamp: BigInt!
     startedAtBlockNumber: BigInt!

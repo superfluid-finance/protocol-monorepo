@@ -424,6 +424,12 @@ export const hasSubscriptionWithUnits = (
     return subscription != null && toBN(subscription.units).gt(toBN(0));
 };
 
+/**
+ * See ConstantFlowAgreementV1.sol for more details about deposit clipping.
+ * @param deposit 
+ * @param roundingDown 
+ * @returns 
+ */
 export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     // last 32 bits of the deposit (96 bits) is clipped off
     const rounding = roundingDown

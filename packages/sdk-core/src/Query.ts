@@ -81,7 +81,7 @@ export interface IQueryOptions {
 }
 
 /**
- * @dev Query Helper Class
+ * Query Helper Class
  * @description A helper class to create `Query` objects which can be used to query different data.
  */
 export default class Query {

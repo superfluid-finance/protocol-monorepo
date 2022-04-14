@@ -32,7 +32,8 @@ export async function validateFlowUpdated(
     updatedReceiverATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
     event: IEvent,
-    actionType: FlowActionType
+    actionType: FlowActionType,
+    newDeposit: string
 ) {
     // validate Stream HOL
     await fetchStreamAndValidate(
@@ -40,14 +41,16 @@ export async function validateFlowUpdated(
         streamedAmountUntilTimestamp,
         newFlowRate.toString(),
         event,
-        actionType === FlowActionType.Create
+        actionType === FlowActionType.Create,
+        newDeposit
     );
     // validate StreamPeriod HOL
     await fetchStreamPeriodAndValidate(
         pastStreamData,
         newFlowRate.toString(),
         event,
-        actionType
+        actionType,
+        newDeposit
     );
 
     // validate sender ATS

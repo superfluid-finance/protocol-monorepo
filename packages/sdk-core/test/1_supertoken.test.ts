@@ -12,6 +12,10 @@ import { getFlowOperatorId, getPerSecondFlowRateByMonth } from "../src/utils";
 import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { BigNumber, BigNumberish, ethers } from "ethers";
+import {
+    AUTHORIZE_FLOW_OPERATOR_CREATE,
+    AUTHORIZE_FULL_CONTROL,
+} from "../src/constants";
 
 const INITIAL_AMOUNT_PER_USER = "10000000000";
 const toBN = (x: BigNumberish) => ethers.BigNumber.from(x);
@@ -325,7 +329,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.eql(
-                        "Invalid Address Error - The address you have entered is not a valid ethereum address."
+                        "Invalid Address Error - The address you have entered is not a valid ethereum address"
                     );
                 }
             });
@@ -513,10 +517,46 @@ describe("SuperToken Tests", () => {
             receiver = charlie;
         });
 
+        it("Should throw when passing in unclean permissions", async () => {
+            const flowRateAllowance = getPerSecondFlowRateByMonth("100");
+            try {
+                const permissions = AUTHORIZE_FULL_CONTROL + 1;
+                const operation = daix.updateFlowOperatorPermissions({
+                    flowRateAllowance,
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    permissions,
+                });
+                await operation.exec(sender);
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "Unclean Permissions Error - The desired permissions are unclean"
+                );
+            }
+        });
+
+        it("Should throw when attempting to update flow operator permissions with negative flow rate", async () => {
+            const flowRateAllowance = "-1000";
+            try {
+                const permissions = AUTHORIZE_FULL_CONTROL;
+                const operation = daix.updateFlowOperatorPermissions({
+                    flowRateAllowance,
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    permissions,
+                });
+                await operation.exec(sender);
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "Negative Flow Rate Allowance Error - No negative flow allowance allowed"
+                );
+            }
+        });
+
         // CFA Functions
         it("Should be able to update flow operator permissions", async () => {
             const flowRateAllowance = getPerSecondFlowRateByMonth("100");
-            let permissions = 1; // ALLOW_CREATE
+            let permissions = AUTHORIZE_FLOW_OPERATOR_CREATE; // ALLOW_CREATE
 
             const flowOperatorId = getFlowOperatorId(
                 sender.address,
@@ -581,7 +621,7 @@ describe("SuperToken Tests", () => {
             expect(flowOperatorData.permissions).equals(permissions.toString());
 
             // Authorize Flow Operator With Full Control
-            permissions = 7; // all permissions
+            permissions = AUTHORIZE_FULL_CONTROL; // all permissions
             const authorizeFlowOperatorWithFullControlOperation =
                 daix.authorizeFlowOperatorWithFullControl({
                     sender: sender.address,
@@ -657,7 +697,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.eql(
-                        "Invalid Address Error - The address you have entered is not a valid ethereum address."
+                        "Invalid Address Error - The address you have entered is not a valid ethereum address"
                     );
                 }
             });

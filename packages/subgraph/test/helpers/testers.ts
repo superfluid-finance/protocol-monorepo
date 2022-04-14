@@ -95,7 +95,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         txnResponse,
         timestamp,
         flowRate: newFlowRate,
-        deposit
+        deposit,
     } = await modifyFlowAndReturnCreatedFlowData(data);
     const lastUpdatedAtTimestamp = timestamp.toString();
 
@@ -109,15 +109,10 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         data,
     });
     const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(3600)));
-    console.log(data.sender +  "-> " + data.receiver);
-    console.log("newDeposit", newDeposit.toString());
-    console.log("deposit", deposit.toString());
-    console.log("initData.pastStreamData.deposit", initData.pastStreamData.deposit.toString());
     if (!newDeposit.eq(toBN(deposit))) {
         throw new Error("DEPOSITS ARE NOT EQUAL");
     }
     const depositDelta = newDeposit.sub(toBN(initData.pastStreamData.deposit));
-    console.log("depositDelta", depositDelta.toString());
     // update and return updated (expected) data
     const expectedData = await getExpectedDataForFlowUpdated({
         lastUpdatedBlockNumber,
@@ -190,7 +185,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         expectedData.updatedReceiverATS,
         expectedData.updatedTokenStats,
         flowUpdatedEvent,
-        data.actionType
+        data.actionType,
+        newDeposit.toString()
     );
 
     let updatedStreamData = getExpectedStreamData(

@@ -1,7 +1,7 @@
 import { ILightEntity } from "./interfaces";
 
 /**
- * @dev Paging Helper Class
+ * Paging Helper Class
  */
 export type Paging = {
     readonly take: number;
@@ -54,7 +54,7 @@ export type AllPaging = {
 };
 
 /**
- * @dev PagedResult Interface
+ * PagedResult Interface
  */
 export interface PagedResult<T extends ILightEntity> {
     /**
@@ -151,7 +151,7 @@ export const createLastIdPaging = ({
 });
 
 /**
- * @dev Gets the next page given the skip/take used to initialize the `PagedResult` interface.
+ * Gets the next page given the skip/take used to initialize the `PagedResult` interface.
  * @returns the `Paging` class with the next page
  */
 export const nextSkipPaging = (paging: SkipPaging): SkipPaging => ({
@@ -175,7 +175,7 @@ export const nextLastIdPaging = (
 });
 
 /**
- * @dev Used to determine whether there is another page for pagination.
+ * Used to determine whether there is another page for pagination.
  * @returns the user's specified `take` plus one
  */
 export const takePlusOne = (paging: Paging) => {

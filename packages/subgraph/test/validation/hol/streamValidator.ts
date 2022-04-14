@@ -10,7 +10,8 @@ export const fetchStreamAndValidate = async (
     expectedStreamedUntilUpdatedAt: BigNumber,
     newFlowRate: string,
     event: IEvent,
-    isCreate: boolean
+    isCreate: boolean,
+    newDeposit: string
 ) => {
     const streamId = streamData.id;
     const stream = await fetchEntityAndEnsureExistence<IStream>(
@@ -23,7 +24,8 @@ export const fetchStreamAndValidate = async (
         stream,
         expectedStreamedUntilUpdatedAt.toString(),
         streamId,
-        newFlowRate
+        newFlowRate,
+        newDeposit
     );
 
     // validate flowUpdated reverse lookup on Stream entity
@@ -55,13 +57,18 @@ const validateStreamEntity = (
     subgraphStream: IStream,
     expectedStreamedUntilUpdatedAt: string,
     streamId: string,
-    newFlowRate: string
+    newFlowRate: string,
+    newDeposit: string
 ) => {
     expect(subgraphStream.id, "Stream: id error").to.equal(streamId);
     expect(
         subgraphStream.currentFlowRate,
         "Stream: currentFlowRate error"
     ).to.equal(newFlowRate);
+    expect(
+        subgraphStream.deposit,
+        "Stream: deposit error"
+    ).to.equal(newDeposit);
     expect(
         subgraphStream.streamedUntilUpdatedAt,
         "Stream: streamedUntilUpdatedAt error"

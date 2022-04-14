@@ -268,7 +268,7 @@ export default class Framework {
      * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */
-    loadSuperToken = async <T extends SuperToken>(
+    loadSuperToken = async <T extends SuperToken = SuperToken>(
         tokenAddressOrSymbol: string
     ) => {
         const address = await this._tryGetTokenAddress(tokenAddressOrSymbol);

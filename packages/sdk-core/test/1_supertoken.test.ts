@@ -13,8 +13,8 @@ import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import {
-    NativeAssetSuperToken,
-    SuperTokenWithUnderlying,
+    CustomWrappedSuperToken,
+    ERC20WrappedSuperToken,
 } from "../src/SuperToken";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
@@ -43,7 +43,7 @@ describe("SuperToken Tests", () => {
     let alpha: SignerWithAddress;
     let superToken: SuperTokenType;
     let token: TestToken;
-    let daix: SuperTokenWithUnderlying;
+    let daix: ERC20WrappedSuperToken;
     let bravo: SignerWithAddress;
     let charlie: SignerWithAddress;
     let signerCount: number;
@@ -70,9 +70,7 @@ describe("SuperToken Tests", () => {
         alpha = Alpha;
         bravo = Bravo;
         superToken = SuperToken;
-        daix = await framework.loadSuperToken(
-            superToken.address
-        );
+        daix = await framework.loadSuperToken(superToken.address);
         token = Token;
         charlie = Charlie;
         signerCount = SignerCount;
@@ -336,7 +334,7 @@ describe("SuperToken Tests", () => {
     });
 
     describe("NativeSuperToken Tests", () => {
-        let nativeAssetSuperToken: NativeAssetSuperToken;
+        let nativeAssetSuperToken: CustomWrappedSuperToken;
         it("Should be able to create a NativeSuperToken (SuperTokenWithoutUnderlying)", async () => {
             // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
             // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
@@ -347,7 +345,7 @@ describe("SuperToken Tests", () => {
 
         it("Should be able to create a NativeAssetSuperToken", async () => {
             nativeAssetSuperToken =
-                await framework.loadSuperToken<NativeAssetSuperToken>("ETHx");
+                await framework.loadSuperToken<CustomWrappedSuperToken>("ETHx");
         });
 
         it("Should throw when attempting to upgrade", async () => {
@@ -355,8 +353,7 @@ describe("SuperToken Tests", () => {
                 nativeAssetSuperToken.upgrade();
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    `Unsupported Functionality Error - upgrade is not supported for 
-                    native assets, use upgradeByNativeAsset or upgradeByNativeAssetTo.`
+                    `Unsupported Functionality Error - upgrade is not supported for native assets, use upgradeNativeAsset or upgradeNativeAssetTo.`
                 );
             }
         });
@@ -366,25 +363,25 @@ describe("SuperToken Tests", () => {
                 nativeAssetSuperToken.downgrade();
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    `Unsupported Functionality Error - downgrade is not supported for
-                     native asset super tokens, use downgradeToNativeAsset.`
+                    `Unsupported Functionality Error - downgrade is not supported for native asset super tokens, use downgradeToNativeAsset.`
                 );
             }
         });
 
         it("Should be able to upgrade native asset", async () => {
-            const upgradeOperation = nativeAssetSuperToken.upgradeByNativeAsset(
-                { amount: ethers.utils.parseUnits("1").toString() }
-            );
+            const upgradeOperation = nativeAssetSuperToken.upgradeNativeAsset({
+                amount: ethers.utils.parseUnits("1").toString(),
+            });
             await upgradeOperation.exec(deployer);
         });
 
         it("Should be able to upgrade native asset to", async () => {
-            const upgradeOperation =
-                nativeAssetSuperToken.upgradeByNativeAssetTo({
+            const upgradeOperation = nativeAssetSuperToken.upgradeNativeAssetTo(
+                {
                     amount: ethers.utils.parseUnits("1").toString(),
                     to: alpha.address,
-                });
+                }
+            );
             await upgradeOperation.exec(deployer);
         });
 

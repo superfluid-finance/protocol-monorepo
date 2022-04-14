@@ -60,9 +60,15 @@ export interface ITokenOptions {
     readonly networkName?: string;
 }
 
+type SuperTokenType =
+    | CustomWrappedSuperToken
+    | ERC20WrappedSuperToken
+    | CustomSuperToken;
+
 /**
  * SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
+ * @see https://www.notion.so/superfluidhq/Classification-of-Super-Tokens-5beace780b5c4d09a5752a3677da3dc0 for further details on naming classification and underlying implementation.
  */
 export default abstract class SuperToken extends ERC20Token {
     readonly options: ITokenOptions;
@@ -85,13 +91,7 @@ export default abstract class SuperToken extends ERC20Token {
         });
     }
 
-    static create = async (
-        options: ITokenOptions
-    ): Promise<
-        | NativeAssetSuperToken
-        | SuperTokenWithUnderlying
-        | SuperTokenWithoutUnderlying
-    > => {
+    static create = async (options: ITokenOptions): Promise<SuperTokenType> => {
         if (!options.chainId && !options.networkName) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -129,7 +129,7 @@ export default abstract class SuperToken extends ERC20Token {
             const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
 
             if (nativeSuperTokenSymbol === tokenSymbol) {
-                return new NativeAssetSuperToken(
+                return new CustomWrappedSuperToken(
                     options,
                     settings,
                     nativeTokenSymbol
@@ -137,12 +137,12 @@ export default abstract class SuperToken extends ERC20Token {
             }
 
             if (underlyingTokenAddress !== ethers.constants.AddressZero) {
-                return new SuperTokenWithUnderlying(options, {
+                return new ERC20WrappedSuperToken(options, {
                     ...settings,
                     underlyingTokenAddress,
                 });
             }
-            return new SuperTokenWithoutUnderlying(options, settings);
+            return new CustomSuperToken(options, settings);
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -644,7 +644,10 @@ export default abstract class SuperToken extends ERC20Token {
     };
 }
 
-export class SuperTokenWithUnderlying extends SuperToken {
+/**
+ * ERC20WrapperSuperToken has an underlying ERC20 token.
+ */
+export class ERC20WrappedSuperToken extends SuperToken {
     override readonly underlyingToken: ERC20Token;
     constructor(
         options: ITokenOptions,
@@ -655,16 +658,19 @@ export class SuperTokenWithUnderlying extends SuperToken {
     }
 }
 
-export class SuperTokenWithoutUnderlying extends SuperToken {
+/**
+ * CustomSuperToken doesn't have any underlying ERC20 token.
+ */
+export class CustomSuperToken extends SuperToken {
     constructor(options: ITokenOptions, settings: ITokenSettings) {
         super(options, settings);
     }
 }
 
-// NOTE: we keep this class in here instead of a separate file due to circular
-// file import error which breaks the build:
-// TypeError: Class extends value undefined is not a constructor or null
-export class NativeAssetSuperToken extends SuperTokenWithoutUnderlying {
+/**
+ * CustomWrappedSuperToken wraps the native asset of the network.
+ */
+export class CustomWrappedSuperToken extends CustomSuperToken {
     readonly nativeTokenSymbol: string;
     constructor(
         options: ITokenOptions,
@@ -684,20 +690,20 @@ export class NativeAssetSuperToken extends SuperTokenWithoutUnderlying {
 
     /**
      * upgrade is not supported for Native Asset SuperTokens.
-     * Use upgradeByNativeAsset or upgradeByNativeAssetTo instead.
+     * Use upgradeNativeAsset or upgradeNativeAssetTo instead.
      */
     override upgrade = () => {
         throw new SFError({
             type: "UNSUPPORTED_FUNCTIONALITY",
             customMessage:
-                "upgrade is not supported for native assets, use upgradeByNativeAsset or upgradeByNativeAssetTo.",
+                "upgrade is not supported for native assets, use upgradeNativeAsset or upgradeNativeAssetTo.",
             errorObject: {},
         });
     };
 
     /**
      * downgrade is not supported for Native Asset SuperTokens.
-     * Use upgradeByNativeAsset or upgradeByNativeAssetTo instead.
+     * Use upgradeNativeAsset or upgradeNativeAssetTo instead.
      */
     override downgrade = () => {
         throw new SFError({
@@ -714,7 +720,7 @@ export class NativeAssetSuperToken extends SuperTokenWithoutUnderlying {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    upgradeByNativeAsset = ({
+    upgradeNativeAsset = ({
         amount,
         overrides,
     }: {
@@ -735,7 +741,7 @@ export class NativeAssetSuperToken extends SuperTokenWithoutUnderlying {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    upgradeByNativeAssetTo = ({
+    upgradeNativeAssetTo = ({
         amount,
         to,
         overrides,

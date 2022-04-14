@@ -174,7 +174,7 @@ const tx = await rpcApi.createFlow({
 ```
 
 ### Transaction Tracking
-All mutations trigger tracking for transaction progress (stored in `transactionSlice`) and transaction monitoring for re-orgs (all cached data is re-fetched in case of a re-org).
+All mutations trigger tracking for transaction progress (stored in `transactionTrackerSlice`) and transaction monitoring for re-orgs (all cached data is re-fetched in case of a re-org).
 
 # Examples
 Check out the extensive demo here: `examples/sdk-redux-react-typescript`.

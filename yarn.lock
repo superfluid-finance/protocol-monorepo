@@ -20553,7 +20553,7 @@ truffle-plugin-verify@^0.5.25:
     querystring "^0.2.1"
     tunnel "0.0.6"
 
-truffle@^5.4.31:
+truffle@^5.5.10:
   version "5.5.10"
   resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.5.10.tgz#620d02f710b994beec07e598981852adb78df825"
   integrity sha512-/DQmu77+7/ZPuajomA0rmWXo6I4dsW/YfkAqlD8Yke3H4Shx6nN5SD6FSv1uxcdyFXWdep2HeorC1rcdu0zBqg==

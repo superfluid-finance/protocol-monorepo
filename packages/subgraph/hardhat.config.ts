@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
+import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 
 /**
@@ -28,7 +29,7 @@ const config: HardhatUserConfig = {
         },
     },
     mocha: {
-        timeout: 250000,
+        timeout: 500000,
     },
 };
 

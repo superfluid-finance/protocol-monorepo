@@ -128,6 +128,20 @@ export const mapGetAllEventsQueryEvents = (
                     flowRate: x.flowRate,
                     receiver: x.receiver,
                     sender: x.sender,
+                    flowOperator: x.flowOperator,
+                    deposit: x.deposit,
+                });
+            case "FlowOperatorUpdatedEvent":
+                return typeGuard<events.FlowOperatorUpdatedEvent>({
+                    name: "FlowOperatorUpdated",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    timestamp: Number(x.timestamp),
+                    token: x.token,
+                    sender: x.sender,
+                    permissions: x.permissions,
+                    flowRateAllowance: x.flowRateAllowance,
                 });
             case "GovernanceReplacedEvent":
                 return typeGuard<events.GovernanceReplacedEvent>({
@@ -456,7 +470,16 @@ export const mapGetAllEventsQueryEvents = (
                     enabled: x.enabled,
                 });
             default:
-                throw Error("Unknown error.");
+                console.warn(
+                    "An unknown event was detected which couldn't be mapped. Please update to the latest version of @superfluid-finance/sdk-core."
+                );
+                return typeGuard<events.UnknownEvent>({
+                    name: "_Unknown",
+                    id: (x as events.EventBase).id,
+                    blockNumber: (x as events.EventBase).blockNumber,
+                    transactionHash: (x as events.EventBase).transactionHash,
+                    timestamp: (x as events.EventBase).timestamp,
+                });
         }
     });
 };

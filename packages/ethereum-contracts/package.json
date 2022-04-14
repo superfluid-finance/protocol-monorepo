@@ -46,35 +46,29 @@
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
         "pre-commit:lint": "yarn lint",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "cloc": "sh tasks/cloc.sh"
+        "cloc": "bash tasks/cloc.sh"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.5.0",
         "@superfluid-finance/js-sdk": "0.5.12",
-        "@truffle/contract": "4.4.6",
+        "@truffle/contract": "4.5.5",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.1.3",
-        "hardhat": "^2.9.2",
+        "ethereumjs-util": "7.1.4",
+        "hardhat": "^2.9.3",
         "solidity-stringutils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.5",
-        "@openzeppelin/test-helpers": "0.5.15",
-        "@truffle/hdwallet-provider": "^1.7.0",
         "async": "^3.2.3",
-        "chai": "^4.3.6",
-        "chai-ethers": "^0.0.1",
         "csv-writer": "^1.6.0",
-        "dotenv": "10.0.0",
-        "ganache-cli": "^6.12.2",
         "ganache-time-traveler": "1.0.16",
-        "mochawesome": "^7.1.2",
+        "mochawesome": "^7.1.3",
         "readline": "1.3.0",
-        "solhint": "3.3.6",
+        "solhint": "3.3.7",
         "solidity-coverage": "0.7.20",
-        "truffle-flattener": "^1.5.0",
-        "truffle-plugin-verify": "^0.5.21"
+        "truffle-flattener": "^1.6.0",
+        "truffle-plugin-verify": "^0.5.25"
     }
 }

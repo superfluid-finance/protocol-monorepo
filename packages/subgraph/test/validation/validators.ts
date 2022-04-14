@@ -7,6 +7,8 @@ import {
     IEvent,
     ILightEntity,
     IIDAEvents,
+    IFlowOperator,
+    IExpectedFlowOperatorData,
 } from "../interfaces";
 import { fetchStreamPeriodAndValidate } from "./hol/streamPeriodValidator";
 import { fetchIndexAndValidate } from "./hol/indexValidator";
@@ -16,35 +18,39 @@ import {
     fetchATSAndValidate,
     fetchTokenStatsAndValidate,
 } from "./aggregateValidators";
-import {Framework} from "@superfluid-finance/sdk-core";
+import { Framework } from "@superfluid-finance/sdk-core";
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { FlowActionType, IDAEventType } from "../helpers/constants";
+import { fetchFlowOperatorAndValidate } from "./hol/flowOperatorValidator";
 
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
     streamedAmountUntilTimestamp: BigNumber,
-    flowRate: BigNumber,
+    newFlowRate: BigNumber,
     updatedSenderATS: IAccountTokenSnapshot,
     updatedReceiverATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
     event: IEvent,
-    actionType: FlowActionType
+    actionType: FlowActionType,
+    newDeposit: string
 ) {
     // validate Stream HOL
     await fetchStreamAndValidate(
         pastStreamData,
         streamedAmountUntilTimestamp,
-        flowRate.toString(),
+        newFlowRate.toString(),
         event,
-        actionType === FlowActionType.Create
+        actionType === FlowActionType.Create,
+        newDeposit
     );
     // validate StreamPeriod HOL
     await fetchStreamPeriodAndValidate(
         pastStreamData,
-        flowRate.toString(),
+        newFlowRate.toString(),
         event,
-        actionType
+        actionType,
+        newDeposit
     );
 
     // validate sender ATS
@@ -55,6 +61,23 @@ export async function validateFlowUpdated(
 
     // validate token stats
     await fetchTokenStatsAndValidate(updatedTokenStats);
+}
+
+export async function validateUpdateFlowOperatorPermissions({
+    event,
+    expectedFlowOperator,
+    isCreate,
+}: {
+    event: IEvent;
+    expectedFlowOperator: IExpectedFlowOperatorData;
+    isCreate: boolean;
+}) {
+    // fetch flow operator entity and validte it
+    await fetchFlowOperatorAndValidate({
+        event,
+        expectedFlowOperator,
+        isCreate,
+    });
 }
 
 export async function validateModifyIDA(

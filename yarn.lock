@@ -7854,17 +7854,6 @@ cosmiconfig@^5.0.7, cosmiconfig@^5.1.0:
     js-yaml "^3.13.1"
     parse-json "^4.0.0"
 
-coveralls@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/coveralls/-/coveralls-3.1.1.tgz#f5d4431d8b5ae69c5079c8f8ca00d64ac77cf081"
-  integrity sha512-+dxnG2NHncSD1NrqbSM3dn/lE57O6Qf/koe9+I7c+wzkqRmEvcp0kgJdxKInzYzkICKkFMZsX3Vct3++tsF9ww==
-  dependencies:
-    js-yaml "^3.13.1"
-    lcov-parse "^1.0.0"
-    log-driver "^1.2.7"
-    minimist "^1.2.5"
-    request "^2.88.2"
-
 crc-32@^1.2.0:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/crc-32/-/crc-32-1.2.2.tgz#3cad35a934b8bf71f25ca524b6da51fb7eace2ff"
@@ -13851,11 +13840,6 @@ lcid@^1.0.0:
   dependencies:
     invert-kv "^1.0.0"
 
-lcov-parse@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/lcov-parse/-/lcov-parse-1.0.0.tgz#eb0d46b54111ebc561acb4c408ef9363bdc8f7e0"
-  integrity sha1-6w1GtUER68VhrLTECO+TY73I9+A=
-
 leb128@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/leb128/-/leb128-0.0.5.tgz#84524a86ef7799fb3933ce41345f6490e27ac948"
@@ -14593,11 +14577,6 @@ lodash@^4.1.0, lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
-
-log-driver@^1.2.7:
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/log-driver/-/log-driver-1.2.7.tgz#63b95021f0702fedfa2c9bb0a24e7797d71871d8"
-  integrity sha512-U7KCmLdqsGHBLeWqYlFA0V0Sl6P08EE1ZrmA9cxjUE0WVqT9qnyVDPz1kzpFEP0jdJuFnasWIfSd7fsaNXkpbg==
 
 log-symbols@4.1.0, log-symbols@^4.0.0, log-symbols@^4.1.0:
   version "4.1.0"
@@ -18404,7 +18383,7 @@ replaceall@^0.1.6:
   resolved "https://registry.yarnpkg.com/replaceall/-/replaceall-0.1.6.tgz#81d81ac7aeb72d7f5c4942adf2697a3220688d8e"
   integrity sha1-gdgax663LX9cSUKt8ml6MiBojY4=
 
-request@2.88.2, request@^2.55.0, request@^2.79.0, request@^2.85.0, request@^2.88.0, request@^2.88.2:
+request@2.88.2, request@^2.55.0, request@^2.79.0, request@^2.85.0, request@^2.88.0:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==

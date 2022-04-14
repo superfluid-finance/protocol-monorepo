@@ -75,19 +75,20 @@ We need to plug in the Superfluid SDK-Redux parts.
 Import the following function:
 ```ts
 import {
-    allSubgraphSliceEndpoints,
+    allRpcEndpoints,
+    allSubgraphEndpoints,
     createApiWithReactHooks,
-    initializeSfApiSlice,
-    initializeSfSubgraphSlice,
-    initializeSfTransactionSlice
+    initializeRpcApiSlice,
+    initializeSubgraphApiSlice,
+    initializeTransactionTrackerSlice
 } from "@superfluid-finance/sdk-redux";
 ```
 
 Create the Redux slices:
 ```ts
-export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
-export const { sfTransactions } = initializeSfTransactionSlice();
-export const sfSubgraph = initializeSfSubgraphSlice(createApiWithReactHooks).injectEndpoints(allSubgraphSliceEndpoints);
+export const rpcApi = initializeRpcApiSlice(createApiWithReactHooks).injectEndpoints(allRpcEndpoints);
+export const subgraphApi = initializeSubgraphApiSlice(createApiWithReactHooks).injectEndpoints(allSubgraphEndpoints);
+export const transactionTracker = initializeTransactionTrackerSlice();
 
 ```
 
@@ -95,26 +96,27 @@ Plug in the slices to the Redux store:
 ```ts
 export const store = configureStore({
     reducer: {
-        "sfApi": sfApi.reducer,
-        "sfTransactions": sfTransactions.reducer,
-        "sfSubgraph": sfSubgraph.reducer
+        [rpcApi.reducerPath]: rpcApi.reducer,
+        [subgraphApi.reducerPath]: subgraphApi.reducer
+        [transactionTracker.reducerPath]: transactionTracker.reducer,
     }
 });
 ```
 
-Add the middleware:
+Add the middlewares (important to add for both `rpcApi` & `subgraphApi`):
 ```ts
 export const store = configureStore({
     reducer: {
-        "sfApi": sfApi.reducer,
-        "sfTransactions": sfTransactions.reducer,
+        [rpcApi.reducerPath]: rpcApi.reducer,
+        [subgraphApi.reducerPath]: subgraphApi.reducer
+        [transactionTracker.reducerPath]: transactionTracker.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(sfApi.middleware).concat(sfSubgraph.middleware),
+        getDefaultMiddleware().concat(rpcApi.middleware).concat(subgraphApi.middleware),
 });
 ```
 
-Somewhere in your code, give instructions to the `superfluidContext` to locate `Framework` and `Signer`:
+Somewhere in your code, give instructions to the `sdkReduxConfig` to locate `Framework` and `Signer`:
 ```ts
 import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 
@@ -161,7 +163,7 @@ Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/
 
 Example using React Hook:
 ```ts
-const tx = await sfApi.createFlow({
+const tx = await rpcApi.createFlow({
     senderAddress: signerAddress,
     receiverAddress: receiver,
     flowRateWei: flowRate,

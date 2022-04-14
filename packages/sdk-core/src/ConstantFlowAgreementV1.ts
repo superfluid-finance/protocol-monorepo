@@ -45,7 +45,7 @@ export default class ConstantFlowAgreementV1 {
         this.host = new Host(options.config.hostAddress);
     }
 
-    private get cfaContract() {
+    get contract() {
         return new ethers.Contract(
             this.options.config.cfaV1Address,
             IConstantFlowAgreementV1ABI.abi
@@ -67,7 +67,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedSender = normalizeAddress(params.sender);
         const normalizedReceiver = normalizeAddress(params.receiver);
         try {
-            const flowData = await this.cfaContract
+            const flowData = await this.contract
                 .connect(params.providerOrSigner)
                 .getFlow(normalizedToken, normalizedSender, normalizedReceiver);
             return this._sanitizeFlowInfo(flowData);
@@ -93,7 +93,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedAccount = normalizeAddress(params.account);
         try {
-            const flowData = await this.cfaContract
+            const flowData = await this.contract
                 .connect(params.providerOrSigner)
                 .getAccountFlowInfo(normalizedToken, normalizedAccount);
             return this._sanitizeFlowInfo(flowData);
@@ -119,7 +119,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedAccount = normalizeAddress(params.account);
         try {
             return (
-                await this.cfaContract
+                await this.contract
                     .connect(params.providerOrSigner)
                     .getNetFlow(normalizedToken, normalizedAccount)
             ).toString();
@@ -147,7 +147,7 @@ export default class ConstantFlowAgreementV1 {
         const normalizedSender = normalizeAddress(params.sender);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
         try {
-            const flowOperatorData = await this.cfaContract
+            const flowOperatorData = await this.contract
                 .connect(params.providerOrSigner)
                 .getFlowOperatorData(
                     normalizedToken,
@@ -176,7 +176,7 @@ export default class ConstantFlowAgreementV1 {
     ): Promise<IWeb3FlowOperatorData> => {
         const normalizedToken = normalizeAddress(params.superToken);
         try {
-            const flowOperatorData = await this.cfaContract
+            const flowOperatorData = await this.contract
                 .connect(params.providerOrSigner)
                 .getFlowOperatorDataByID(
                     normalizedToken,

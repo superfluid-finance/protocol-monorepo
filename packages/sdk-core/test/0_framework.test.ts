@@ -11,6 +11,7 @@ export const ROPSTEN_SUBGRAPH_ENDPOINT =
 
 describe("Framework Tests", () => {
     let deployer: SignerWithAddress;
+    let alpha: SignerWithAddress;
     let superToken: SuperToken;
     let framework: Framework;
     let INFURA_API_URL = "https://polygon-rpc.com/";
@@ -20,12 +21,13 @@ describe("Framework Tests", () => {
     );
 
     before(async () => {
-        const { frameworkClass, Deployer, SuperToken } = await setup({
+        const { frameworkClass, Deployer, SuperToken, Alpha } = await setup({
             amount: "10000000000",
             subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
         });
         framework = frameworkClass;
         deployer = Deployer;
+        alpha = Alpha;
         superToken = SuperToken;
     });
 
@@ -254,6 +256,16 @@ describe("Framework Tests", () => {
             const tokenName = await superToken.symbol();
             const daix = await framework.loadSuperToken(tokenName);
             expect(daix.settings.address).to.equal(superToken.address);
+        });
+
+        it("Should be able to use contract object", async () => {
+            const flowData = await framework.contracts.cfaV1
+                .connect(deployer)
+                .getFlow(superToken.address, deployer.address, alpha.address);
+            expect(flowData.timestamp).to.eq("0");
+            expect(flowData.flowRate).to.eq("0");
+            expect(flowData.deposit).to.eq("0");
+            expect(flowData.owedDeposit).to.eq("0");
         });
     });
 });

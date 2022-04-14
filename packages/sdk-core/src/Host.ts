@@ -9,10 +9,10 @@ import { Superfluid } from "./typechain";
  * @description A helper class which can be used as a standalone class to populate call agreement transactions.
  */
 export default class Host {
-    hostContract: Superfluid;
+    contract: Superfluid;
 
     constructor(hostAddress: string) {
-        this.hostContract = new ethers.Contract(
+        this.contract = new ethers.Contract(
             hostAddress,
             SuperfluidABI.abi
         ) as Superfluid;
@@ -32,7 +32,7 @@ export default class Host {
         userData: string | undefined,
         overrides?: Overrides & { from?: string | Promise<string> }
     ): Operation => {
-        const txn = this.hostContract.populateTransaction.callAgreement(
+        const txn = this.contract.populateTransaction.callAgreement(
             agreementAddress,
             callData,
             userData || "0x",

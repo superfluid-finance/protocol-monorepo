@@ -645,7 +645,7 @@ export default abstract class SuperToken extends ERC20Token {
 }
 
 /**
- * WrappedSuperToken has an underlying ERC20 token.
+ * WrapperSuperToken has an underlying ERC20 token.
  */
 export class WrapperSuperToken extends SuperToken {
     override readonly underlyingToken: ERC20Token;

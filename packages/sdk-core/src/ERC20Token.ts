@@ -14,17 +14,17 @@ export default class ERC20Token {
         this.address = address;
     }
 
-    private get tokenContract() {
+    get contract() {
         return new ethers.Contract(
             this.address,
             ERC20WithTokenInfoABI.abi
         ) as ERC20WithTokenInfo;
     }
 
-    // ERC20 Token Contract Read Functions
+    /** ### ERC20 Token Contract Read Functions ### */
 
     /**
-     * @dev Returns the allowance the `owner` has granted the `spender`.
+     * Returns the allowance the `owner` has granted the `spender`.
      * @param owner the owner who has allotted the allowance
      * @param spender the spender who has received the allowance
      * @param providerOrSigner a provider or signer for executing a web3 call
@@ -42,7 +42,7 @@ export default class ERC20Token {
         const normalizedOwner = normalizeAddress(owner);
         const normalizedSpender = normalizeAddress(spender);
         try {
-            const allowance = await this.tokenContract
+            const allowance = await this.contract
                 .connect(providerOrSigner)
                 .allowance(normalizedOwner, normalizedSpender);
             return allowance.toString();
@@ -56,7 +56,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the ERC20 balanceOf the `account`, this can't be negative and will just display 0.
+     * Returns the ERC20 balanceOf the `account`, this can't be negative and will just display 0.
      * @param account the account you would like to query
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {Promise<string>} the token balance of `account`
@@ -70,7 +70,7 @@ export default class ERC20Token {
     }): Promise<string> => {
         try {
             const normalizedAccount = normalizeAddress(account);
-            const balanceOf = await this.tokenContract
+            const balanceOf = await this.contract
                 .connect(providerOrSigner)
                 .balanceOf(normalizedAccount);
             return balanceOf.toString();
@@ -84,7 +84,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the token name
+     * Returns the token name
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {string} the token name
      */
@@ -94,9 +94,7 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const name = await this.tokenContract
-                .connect(providerOrSigner)
-                .name();
+            const name = await this.contract.connect(providerOrSigner).name();
             return name;
         } catch (err) {
             throw new SFError({
@@ -108,7 +106,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the token symbol
+     * Returns the token symbol
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {string} the token symbol
      */
@@ -118,7 +116,7 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const symbol = await this.tokenContract
+            const symbol = await this.contract
                 .connect(providerOrSigner)
                 .symbol();
             return symbol;
@@ -132,7 +130,7 @@ export default class ERC20Token {
     };
 
     /**
-     * @dev Returns the total supply of the token.
+     * Returns the total supply of the token.
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {Promise<string>} the total supply of the token
      */
@@ -142,7 +140,7 @@ export default class ERC20Token {
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<string> => {
         try {
-            const totalSupply = await this.tokenContract
+            const totalSupply = await this.contract
                 .connect(providerOrSigner)
                 .totalSupply();
             return totalSupply.toString();
@@ -155,71 +153,58 @@ export default class ERC20Token {
         }
     };
 
-    // ERC20 Token Contract Write Functions
+    /** ### ERC20 Token Contract Write Functions ### */
 
     /**
-     * @dev Approve `receiver` to spend `amount` tokens.
+     * Approve `receiver` to spend `amount` tokens.
      * @param receiver The receiver approved.
      * @param amount The amount approved.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approve = ({
-        receiver,
-        amount,
-        overrides,
-    }: IBaseSuperTokenParams): Operation => {
-        const normalizedReceiver = normalizeAddress(receiver);
-        const txn = this.tokenContract.populateTransaction.approve(
+    approve = (params: IBaseSuperTokenParams): Operation => {
+        const normalizedReceiver = normalizeAddress(params.receiver);
+        const txn = this.contract.populateTransaction.approve(
             normalizedReceiver,
-            amount,
-            overrides || {}
+            params.amount,
+            params.overrides || {}
         );
         return new Operation(txn, "ERC20_APPROVE");
     };
 
     /**
-     * @dev Transfer `receiver` `amount` tokens.
+     * Transfer `receiver` `amount` tokens.
      * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    transfer = ({
-        receiver,
-        amount,
-        overrides,
-    }: IBaseSuperTokenParams): Operation => {
-        const normalizedReceiver = normalizeAddress(receiver);
-        const txn = this.tokenContract.populateTransaction.transfer(
+    transfer = (params: IBaseSuperTokenParams): Operation => {
+        const normalizedReceiver = normalizeAddress(params.receiver);
+        const txn = this.contract.populateTransaction.transfer(
             normalizedReceiver,
-            amount,
-            overrides || {}
+            params.amount,
+            params.overrides || {}
         );
         return new Operation(txn, "UNSUPPORTED");
     };
 
     /**
-     * @dev Transfer from `sender` to `receiver` `amount` tokens.
+     * Transfer from `sender` to `receiver` `amount` tokens.
      * @param sender The sender of the transfer.
      * @param receiver The receiver of the transfer.
      * @param amount The amount to be transferred.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    transferFrom = ({
-        sender,
-        receiver,
-        amount,
-        overrides,
-    }: ITransferFromParams): Operation => {
-        const normalizedSender = normalizeAddress(sender);
-        const normalizedReceiver = normalizeAddress(receiver);
-        const txn = this.tokenContract.populateTransaction.transferFrom(
+    transferFrom = (params: ITransferFromParams): Operation => {
+        const normalizedSender = normalizeAddress(params.sender);
+        const normalizedReceiver = normalizeAddress(params.receiver);
+        const txn = this.contract.populateTransaction.transferFrom(
             normalizedSender,
             normalizedReceiver,
-            amount,
-            overrides || {}
+            params.amount,
+            params.overrides || {}
         );
         return new Operation(txn, "ERC20_TRANSFER_FROM");
     };

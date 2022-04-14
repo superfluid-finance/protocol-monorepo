@@ -34,6 +34,22 @@ describe("Operation Tests", () => {
         cfaV1 = CFAV1;
     });
 
+    it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
+        const revokeControlOp = framework.cfaV1.revokeFlowOperatorWithFullControl({
+            superToken: superToken.address,
+            sender: deployer.address,
+            flowOperator: alpha.address,
+        });
+        const signer = framework.createSigner({
+            privateKey: HARDHAT_PRIVATE_KEY,
+            provider: deployer.provider,
+        });
+        const opTxnHash = await revokeControlOp.getTransactionHash(signer);
+        const executedTxn = await revokeControlOp.exec(signer);
+        const receipt = await executedTxn.wait();
+        expect(opTxnHash).to.equal(receipt.transactionHash);
+    });
+
     it("Should throw an error when trying to execute a transaction with faulty callData", async () => {
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             superToken.address,
@@ -42,7 +58,7 @@ describe("Operation Tests", () => {
             "0x",
         ]);
         const txn =
-            framework.host.hostContract.populateTransaction.callAgreement(
+            framework.host.contract.populateTransaction.callAgreement(
                 cfaV1.address,
                 callData,
                 "0x"
@@ -99,21 +115,4 @@ describe("Operation Tests", () => {
                 "0x"
             );
     });
-
-    // TODO: figure out why this is not consistently passing
-    // it.skip("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
-    //     const deleteFlowOp = framework.cfaV1.deleteFlow({
-    //         superToken: superToken.address,
-    //         sender: deployer.address,
-    //         receiver: alpha.address,
-    //     });
-    //     const signer = framework.createSigner({
-    //         privateKey: HARDHAT_PRIVATE_KEY,
-    //         provider: deployer.provider,
-    //     });
-    //     const opTxnHash = await deleteFlowOp.getTransactionHash(signer);
-    //     const executedTxn = await deleteFlowOp.exec(signer);
-    //     const receipt = await executedTxn.wait();
-    //     expect(opTxnHash).to.equal(receipt.transactionHash);
-    // });
 });

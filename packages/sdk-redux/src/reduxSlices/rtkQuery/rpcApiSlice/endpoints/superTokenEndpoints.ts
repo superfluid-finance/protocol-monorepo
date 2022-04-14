@@ -40,8 +40,9 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
+            // TODO(KK): "!"
             return {
-                data: await superToken.underlyingToken.allowance({
+                data: await superToken.underlyingToken!.allowance({
                     providerOrSigner: framework.settings.provider,
                     owner: arg.accountAddress,
                     spender: superToken.address,

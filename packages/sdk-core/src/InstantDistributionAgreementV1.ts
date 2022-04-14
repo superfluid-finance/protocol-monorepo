@@ -27,7 +27,7 @@ const idaInterface = new ethers.utils.Interface(
 );
 
 /**
- * @dev Instant Distribution Agreement V1 Helper Class
+ * Instant Distribution Agreement V1 Helper Class
  * @description A helper class to interact with the IDAV1 contract.
  */
 export default class InstantDistributionAgreementV1 {
@@ -39,17 +39,17 @@ export default class InstantDistributionAgreementV1 {
         this.host = new Host(options.config.hostAddress);
     }
 
-    private get idaContract() {
+    get contract() {
         return new ethers.Contract(
             this.options.config.idaV1Address,
             IInstantDistributionAgreementV1ABI.abi
         ) as IInstantDistributionAgreementV1;
     }
 
-    // IDA Read Functions
+    /** ### IDA Read Functions ### */
 
     /**
-     * @dev Get the details of a `Subscription`.
+     * Get the details of a `Subscription`.
      * @param superToken the superToken of the agreement
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
@@ -57,23 +57,19 @@ export default class InstantDistributionAgreementV1 {
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3Subscription>} Web3 Subscription object
      */
-    getSubscription = async ({
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-        providerOrSigner,
-    }: IGetSubscriptionParams): Promise<IWeb3Subscription> => {
-        const normalizedToken = normalizeAddress(superToken);
-        const normalizedPublisher = normalizeAddress(publisher);
-        const normalizedSubscriber = normalizeAddress(subscriber);
+    getSubscription = async (
+        params: IGetSubscriptionParams
+    ): Promise<IWeb3Subscription> => {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedPublisher = normalizeAddress(params.publisher);
+        const normalizedSubscriber = normalizeAddress(params.subscriber);
         try {
-            const subscription = await this.idaContract
-                .connect(providerOrSigner)
+            const subscription = await this.contract
+                .connect(params.providerOrSigner)
                 .getSubscription(
                     normalizedToken,
                     normalizedPublisher,
-                    indexId,
+                    params.indexId,
                     normalizedSubscriber
                 );
 
@@ -94,25 +90,20 @@ export default class InstantDistributionAgreementV1 {
     };
 
     /**
-     * @dev Get the details of an `Index`.
+     * Get the details of an `Index`.
      * @param superToken the superToken of the agreement
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3Index>} Web3 Index object
      */
-    getIndex = async ({
-        superToken,
-        publisher,
-        indexId,
-        providerOrSigner,
-    }: IGetIndexParams): Promise<IWeb3Index> => {
-        const normalizedToken = normalizeAddress(superToken);
-        const normalizedPublisher = normalizeAddress(publisher);
+    getIndex = async (params: IGetIndexParams): Promise<IWeb3Index> => {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedPublisher = normalizeAddress(params.publisher);
         try {
-            const index = await this.idaContract
-                .connect(providerOrSigner)
-                .getIndex(normalizedToken, normalizedPublisher, indexId);
+            const index = await this.contract
+                .connect(params.providerOrSigner)
+                .getIndex(normalizedToken, normalizedPublisher, params.indexId);
             return {
                 exist: index.exist,
                 indexValue: index.indexValue.toString(),
@@ -128,39 +119,34 @@ export default class InstantDistributionAgreementV1 {
         }
     };
 
-    // IDA Write Functions
+    /** ### IDA Write Functions ### */
 
     /**
-     * @dev Creates an IDA Index.
+     * Creates an IDA Index.
      * @param indexId The id of the index.
      * @param superToken The address of the `index` superToken.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createIndex = ({
-        indexId,
-        superToken,
-        userData,
-        overrides,
-    }: ICreateIndexParams): Operation => {
-        const normalizedToken = normalizeAddress(superToken);
+    createIndex = (params: ICreateIndexParams): Operation => {
+        const normalizedToken = normalizeAddress(params.superToken);
         const callData = idaInterface.encodeFunctionData("createIndex", [
             normalizedToken,
-            indexId,
+            params.indexId,
             "0x",
         ]);
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Distributes `amount` of `superToken` to an index
+     * Distributes `amount` of `superToken` to an index
      * @param indexId The id of the index.
      * @param amount The amount of `superToken` to be distributed.
      * @param superToken The superToken to be distributed.
@@ -168,31 +154,25 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    distribute = ({
-        indexId,
-        amount,
-        superToken,
-        userData,
-        overrides,
-    }: IDistributeParams): Operation => {
-        const normalizedToken = normalizeAddress(superToken);
+    distribute = (params: IDistributeParams): Operation => {
+        const normalizedToken = normalizeAddress(params.superToken);
         const callData = idaInterface.encodeFunctionData("distribute", [
             normalizedToken,
-            indexId,
-            amount,
+            params.indexId,
+            params.amount,
             "0x",
         ]);
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Updates the `indexValue` of an index.
+     * Updates the `indexValue` of an index.
      * @description NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
      * @param indexId The id of the index.
      * @param indexValue The new indexValue.
@@ -201,31 +181,25 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateIndexValue = ({
-        indexId,
-        indexValue,
-        superToken,
-        userData,
-        overrides,
-    }: IUpdateIndexValueParams): Operation => {
-        const normalizedToken = normalizeAddress(superToken);
+    updateIndexValue = (params: IUpdateIndexValueParams): Operation => {
+        const normalizedToken = normalizeAddress(params.superToken);
         const callData = idaInterface.encodeFunctionData("updateIndex", [
             normalizedToken,
-            indexId,
-            indexValue,
+            params.indexId,
+            params.indexValue,
             "0x",
         ]);
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Updates the `units` allocated to a Subscription.
+     * Updates the `units` allocated to a Subscription.
      * @param indexId The id of the index.
      * @param superToken The superToken of the index.
      * @param subscriber The subscriber address whose units you want to update.
@@ -234,34 +208,29 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateSubscriptionUnits = ({
-        indexId,
-        superToken,
-        subscriber,
-        units,
-        userData,
-        overrides,
-    }: IUpdateSubscriptionUnitsParams): Operation => {
-        const normalizedToken = normalizeAddress(superToken);
-        const normalizedSubscriber = normalizeAddress(subscriber);
+    updateSubscriptionUnits = (
+        params: IUpdateSubscriptionUnitsParams
+    ): Operation => {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedSubscriber = normalizeAddress(params.subscriber);
         const callData = idaInterface.encodeFunctionData("updateSubscription", [
             normalizedToken,
-            indexId,
+            params.indexId,
             normalizedSubscriber,
-            units,
+            params.units,
             "0x",
         ]);
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
+     * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
      * @param superToken The superToken of the index.
      * @param publisher The publisher of the index you want to approve.
@@ -269,30 +238,24 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approveSubscription = ({
-        indexId,
-        superToken,
-        publisher,
-        userData,
-        overrides,
-    }: IApproveSubscriptionParams): Operation => {
-        const normalizedPublisher = normalizeAddress(publisher);
-        const normalizedToken = normalizeAddress(superToken);
+    approveSubscription = (params: IApproveSubscriptionParams): Operation => {
+        const normalizedPublisher = normalizeAddress(params.publisher);
+        const normalizedToken = normalizeAddress(params.superToken);
         const callData = idaInterface.encodeFunctionData(
             "approveSubscription",
-            [normalizedToken, normalizedPublisher, indexId, "0x"]
+            [normalizedToken, normalizedPublisher, params.indexId, "0x"]
         );
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributres.
+     * Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributres.
      * @param indexId The id of the index.
      * @param superToken The superToken of the index.
      * @param subscriber The subscriber address whose subscription you want to revoke.
@@ -300,32 +263,26 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    revokeSubscription = ({
-        indexId,
-        superToken,
-        publisher,
-        userData,
-        overrides,
-    }: IRevokeSubscriptionParams): Operation => {
-        const normalizedPublisher = normalizeAddress(publisher);
-        const normalizedToken = normalizeAddress(superToken);
+    revokeSubscription = (params: IRevokeSubscriptionParams): Operation => {
+        const normalizedPublisher = normalizeAddress(params.publisher);
+        const normalizedToken = normalizeAddress(params.superToken);
         const callData = idaInterface.encodeFunctionData("revokeSubscription", [
             normalizedToken,
             normalizedPublisher,
-            indexId,
+            params.indexId,
             "0x",
         ]);
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
+     * Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
      * @param indexId The id of the index.
      * @param superToken The superToken of the index.
      * @param subscriber The subscriber address whose subscription you want to delete.
@@ -334,21 +291,14 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteSubscription = ({
-        indexId,
-        superToken,
-        subscriber,
-        publisher,
-        userData,
-        overrides,
-    }: IDeleteSubscriptionParams): Operation => {
-        const normalizedPublisher = normalizeAddress(publisher);
-        const normalizedToken = normalizeAddress(superToken);
-        const normalizedSubscriber = normalizeAddress(subscriber);
+    deleteSubscription = (params: IDeleteSubscriptionParams): Operation => {
+        const normalizedPublisher = normalizeAddress(params.publisher);
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedSubscriber = normalizeAddress(params.subscriber);
         const callData = idaInterface.encodeFunctionData("deleteSubscription", [
             normalizedToken,
             normalizedPublisher,
-            indexId,
+            params.indexId,
             normalizedSubscriber,
             "0x",
         ]);
@@ -356,13 +306,13 @@ export default class InstantDistributionAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 
     /**
-     * @dev Claims any pending tokens allocated to the Subscription (unapproved).
+     * Claims any pending tokens allocated to the Subscription (unapproved).
      * @param indexId The id of the index.
      * @param superToken The superToken of the index.
      * @param subscriber The subscriber address whose subscription you want to delete.
@@ -371,21 +321,14 @@ export default class InstantDistributionAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    claim = ({
-        indexId,
-        superToken,
-        subscriber,
-        publisher,
-        userData,
-        overrides,
-    }: IClaimParams): Operation => {
-        const normalizedPublisher = normalizeAddress(publisher);
-        const normalizedToken = normalizeAddress(superToken);
-        const normalizedSubscriber = normalizeAddress(subscriber);
+    claim = (params: IClaimParams): Operation => {
+        const normalizedPublisher = normalizeAddress(params.publisher);
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedSubscriber = normalizeAddress(params.subscriber);
         const callData = idaInterface.encodeFunctionData("claim", [
             normalizedToken,
             normalizedPublisher,
-            indexId,
+            params.indexId,
             normalizedSubscriber,
             "0x",
         ]);
@@ -393,8 +336,8 @@ export default class InstantDistributionAgreementV1 {
         return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
-            userData,
-            overrides
+            params.userData,
+            params.overrides
         );
     };
 }

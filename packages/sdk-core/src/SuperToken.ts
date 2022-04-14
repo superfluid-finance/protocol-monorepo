@@ -5,31 +5,40 @@ import ERC20Token from "./ERC20Token";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
+import ISETHABI from "./abi/ISETH.json";
 import SuperTokenABI from "./abi/SuperToken.json";
-import { networkNameToChainIdMap } from "./constants";
+import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
     IConfig,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
+    ISuperTokenCreateFlowByOperatorParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
     ISuperTokenDistributeParams,
+    ISuperTokenFlowOperatorDataByIDParams,
+    ISuperTokenFlowOperatorDataParams,
+    ISuperTokenFullControlParams,
     ISuperTokenGetFlowInfoParams,
     ISuperTokenGetFlowParams,
     ISuperTokenGetIndexParams,
     ISuperTokenGetSubscriptionParams,
     ISuperTokenPublisherOperationParams,
     ISuperTokenPubSubParams,
+    ISuperTokenUpdateFlowByOperatorParams,
+    ISuperTokenUpdateFlowOperatorPermissionsParams,
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
     IWeb3FlowInfo,
+    IWeb3FlowOperatorData,
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
 } from "./interfaces";
 import { SuperToken as ISuperToken } from "./typechain";
+import { ISETH } from "./typechain/ISETH";
 import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,
@@ -41,7 +50,6 @@ export interface ITokenSettings {
     readonly config: IConfig;
     readonly chainId: number;
     readonly networkName: string;
-    readonly underlyingTokenAddress: string;
 }
 
 export interface ITokenOptions {
@@ -52,18 +60,24 @@ export interface ITokenOptions {
     readonly networkName?: string;
 }
 
+type SuperTokenType =
+    | NativeAssetSuperToken
+    | WrapperSuperToken
+    | PureSuperToken;
+
 /**
- * @dev SuperToken Helper Class
+ * SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
+ * @see https://www.notion.so/superfluidhq/Classification-of-Super-Tokens-5beace780b5c4d09a5752a3677da3dc0 for further details on naming classification and underlying implementation.
  */
-export default class SuperToken extends ERC20Token {
+export default abstract class SuperToken extends ERC20Token {
     readonly options: ITokenOptions;
     readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
-    readonly underlyingToken: ERC20Token;
+    readonly underlyingToken?: ERC20Token;
 
-    private constructor(options: ITokenOptions, settings: ITokenSettings) {
+    protected constructor(options: ITokenOptions, settings: ITokenSettings) {
         // initialize ERC20 token functions here
         super(settings.address);
 
@@ -75,10 +89,9 @@ export default class SuperToken extends ERC20Token {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
-        this.underlyingToken = new ERC20Token(settings.underlyingTokenAddress);
     }
 
-    static create = async (options: ITokenOptions) => {
+    static create = async (options: ITokenOptions): Promise<SuperTokenType> => {
         if (!options.chainId && !options.networkName) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -101,9 +114,35 @@ export default class SuperToken extends ERC20Token {
                 config: options.config,
                 chainId,
                 networkName,
-                underlyingTokenAddress,
             };
-            return new SuperToken(options, settings);
+
+            const tokenSymbol = await superToken
+                .connect(options.provider)
+                .symbol();
+            const resolverData = chainIdToResolverDataMap.get(chainId) || {
+                subgraphAPIEndpoint: "",
+                resolverAddress: "",
+                networkName: "",
+                nativeTokenSymbol: "",
+            };
+            const nativeTokenSymbol = resolverData.nativeTokenSymbol || "ETH";
+            const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
+
+            if (nativeSuperTokenSymbol === tokenSymbol) {
+                return new NativeAssetSuperToken(
+                    options,
+                    settings,
+                    nativeTokenSymbol
+                );
+            }
+
+            if (underlyingTokenAddress !== ethers.constants.AddressZero) {
+                return new WrapperSuperToken(options, {
+                    ...settings,
+                    underlyingTokenAddress,
+                });
+            }
+            return new PureSuperToken(options, settings);
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -113,17 +152,17 @@ export default class SuperToken extends ERC20Token {
         }
     };
 
-    private get superTokenContract() {
+    override get contract() {
         return new ethers.Contract(
             this.settings.address,
             SuperTokenABI.abi
         ) as ISuperToken;
     }
 
-    // SuperToken Contract Read Functions
+    /** ### SuperToken Contract Read Functions ### */
 
     /**
-     * @dev Returns the real time balance of `address`.
+     * Returns the real time balance of `address`.
      * @param account the target address
      * @param timestamp the timestamp you'd like to see the data
      * @param providerOrSigner a provider or signer for executing a web3 call
@@ -136,7 +175,7 @@ export default class SuperToken extends ERC20Token {
     }: IRealtimeBalanceOfParams): Promise<IWeb3RealTimeBalanceOf> => {
         const normalizedAccount = normalizeAddress(account);
         try {
-            const realtimeBalanceOf = await this.superTokenContract
+            const realtimeBalanceOf = await this.contract
                 .connect(providerOrSigner)
                 .realtimeBalanceOf(normalizedAccount, timestamp);
             return {
@@ -154,10 +193,10 @@ export default class SuperToken extends ERC20Token {
         }
     };
 
-    // SuperToken Contract Write Functions
+    /** ### SuperToken Contract Write Functions ### */
 
     /**
-     * @dev Downgrade `amount` SuperToken's.
+     * Downgrade `amount` SuperToken's.
      * @param amount The amount to be downgraded.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
@@ -169,7 +208,7 @@ export default class SuperToken extends ERC20Token {
         amount: string;
         overrides?: Overrides & { from?: string | Promise<string> };
     }): Operation => {
-        const txn = this.superTokenContract.populateTransaction.downgrade(
+        const txn = this.contract.populateTransaction.downgrade(
             amount,
             overrides || {}
         );
@@ -177,7 +216,7 @@ export default class SuperToken extends ERC20Token {
     };
 
     /**
-     * @dev Upgrade `amount` SuperToken's.
+     * Upgrade `amount` SuperToken's.
      * @param amount The amount to be upgraded.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
@@ -189,238 +228,320 @@ export default class SuperToken extends ERC20Token {
         amount: string;
         overrides?: Overrides & { from?: string | Promise<string> };
     }): Operation => {
-        const txn = this.superTokenContract.populateTransaction.upgrade(
+        const txn = this.contract.populateTransaction.upgrade(
             amount,
             overrides || {}
         );
         return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
-    // CFA Read Functions
+    /** ### CFA Read Functions ### */
 
     /**
-     * @dev Get the details of a flow.
+     * Get the details of a flow.
      * @param sender the sender of the flow
      * @param receiver the receiver of the flow
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
-    getFlow = async ({
-        sender,
-        receiver,
-        providerOrSigner,
-    }: ISuperTokenGetFlowParams): Promise<IWeb3FlowInfo> => {
+    getFlow = async (
+        params: ISuperTokenGetFlowParams
+    ): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getFlow({
             superToken: this.settings.address,
-            sender,
-            receiver,
-            providerOrSigner,
+            sender: params.sender,
+            receiver: params.receiver,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
     /**
-     * @dev Get the flow info of an account (net flow).
+     * Get the flow info of an account (net flow).
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3FlowInfo>} Web3 Flow info object
      */
-    getAccountFlowInfo = async ({
-        account,
-        providerOrSigner,
-    }: ISuperTokenGetFlowInfoParams): Promise<IWeb3FlowInfo> => {
+    getAccountFlowInfo = async (
+        params: ISuperTokenGetFlowInfoParams
+    ): Promise<IWeb3FlowInfo> => {
         return await this.cfaV1.getAccountFlowInfo({
             superToken: this.settings.address,
-            account,
-            providerOrSigner,
+            account: params.account,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
     /**
-     * @dev Get the net flow of an account.
+     * Get the net flow of an account.
      * @param account the account we're querying
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<string>} Web3 Flow info object
      */
-    getNetFlow = async ({
-        account,
-        providerOrSigner,
-    }: ISuperTokenGetFlowInfoParams): Promise<string> => {
+    getNetFlow = async (
+        params: ISuperTokenGetFlowInfoParams
+    ): Promise<string> => {
         return await this.cfaV1.getNetFlow({
             superToken: this.settings.address,
-            account,
-            providerOrSigner,
+            account: params.account,
+            providerOrSigner: params.providerOrSigner,
         });
     };
 
-    // CFA Write Functions
+    /**
+     * Get flow operator data.
+     * @param sender the sender
+     * @param flowOperator the flowOperator
+     * @param providerOrSigner a provider or signer object
+     * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
+     */
+    getFlowOperatorData = async (
+        params: ISuperTokenFlowOperatorDataParams
+    ): Promise<IWeb3FlowOperatorData> => {
+        const normalizedSender = normalizeAddress(params.sender);
+        const normalizedFlowOperator = normalizeAddress(params.flowOperator);
+        return await this.cfaV1.getFlowOperatorData({
+            superToken: this.settings.address,
+            sender: normalizedSender,
+            flowOperator: normalizedFlowOperator,
+            providerOrSigner: params.providerOrSigner,
+        });
+    };
 
     /**
-     * @dev Create a flow of the token of this class.
-     * @param sender The sender of the flow.
+     * Get flow operator data using the flowOperatorId.
+     * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
+     * @param providerOrSigner a provider or signer object
+     * @returns {Promise<IWeb3FlowOperatorData>} Web3 Flow info object
+     */
+    getFlowOperatorDataByID = async (
+        params: ISuperTokenFlowOperatorDataByIDParams
+    ): Promise<IWeb3FlowOperatorData> => {
+        return await this.cfaV1.getFlowOperatorDataByID({
+            superToken: this.settings.address,
+            flowOperatorId: params.flowOperatorId,
+            providerOrSigner: params.providerOrSigner,
+        });
+    };
+
+    /** ### CFA Write Functions ### */
+
+    /**
+     * Create a flow of the token of this class.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlow = ({
-        sender,
-        receiver,
-        flowRate,
-        userData,
-        overrides,
-    }: ISuperTokenCreateFlowParams): Operation => {
+    createFlow = (params: ISuperTokenCreateFlowParams): Operation => {
         return this.cfaV1.createFlow({
-            flowRate,
-            receiver,
-            sender,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Update a flow of the token of this class.
-     * @param sender The sender of the flow.
+     * Update a flow of the token of this class.
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateFlow = ({
-        sender,
-        receiver,
-        flowRate,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateFlowParams): Operation => {
+    updateFlow = (params: ISuperTokenUpdateFlowParams): Operation => {
         return this.cfaV1.updateFlow({
-            flowRate,
-            receiver,
-            sender,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Delete a flow of the token of this class.
+     * Delete a flow of the token of this class.
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteFlow = ({
-        sender,
-        receiver,
-        userData,
-        overrides,
-    }: ISuperTokenDeleteFlowParams): Operation => {
+    deleteFlow = (params: ISuperTokenDeleteFlowParams): Operation => {
         return this.cfaV1.deleteFlow({
             superToken: this.settings.address,
-            sender,
-            receiver,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
-    // IDA Read Functions
+    /** ### CFA ACL Write Functions (byOperator) ### */
 
     /**
-     * @dev Get the details of a `Subscription`.
+     * Update permissions for a flow operator as a sender.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param permission The permissions to set.
+     * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    updateFlowOperatorPermissions(
+        params: ISuperTokenUpdateFlowOperatorPermissionsParams
+    ): Operation {
+        return this.cfaV1.updateFlowOperatorPermissions({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Give flow operator full control - max flow rate and create/update/delete permissions.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     */
+    authorizeFlowOperatorWithFullControl(
+        params: ISuperTokenFullControlParams
+    ): Operation {
+        return this.cfaV1.authorizeFlowOperatorWithFullControl({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Revoke flow operator control - set flow rate to 0 with no permissions.
+     * @param sender The sender of the flow.
+     * @param flowOperator The permission grantee address
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     */
+    revokeFlowOperatorWithFullControl(
+        params: ISuperTokenFullControlParams
+    ): Operation {
+        return this.cfaV1.revokeFlowOperatorWithFullControl({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Create a flow as an operator
+     * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    createFlowByOperator = (
+        params: ISuperTokenCreateFlowByOperatorParams
+    ): Operation => {
+        return this.cfaV1.createFlowByOperator({
+            superToken: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Update a flow as an operator.
+     * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    updateFlowByOperator = (
+        params: ISuperTokenUpdateFlowByOperatorParams
+    ): Operation => {
+        return this.cfaV1.updateFlowByOperator({
+            superToken: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Delete a flow as an operator.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    deleteFlowByOperator = (params: ISuperTokenDeleteFlowParams): Operation => {
+        return this.cfaV1.deleteFlowByOperator({
+            superToken: this.settings.address,
+            ...params,
+        });
+    };
+
+    /** ### IDA Read Functions ### */
+
+    /**
+     * Get the details of a `Subscription`.
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param subscriber the subscriber's address
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3Subscription>} Web3 Subscription object
      */
-    getSubscription = async ({
-        publisher,
-        indexId,
-        subscriber,
-        providerOrSigner,
-    }: ISuperTokenGetSubscriptionParams): Promise<IWeb3Subscription> => {
+    getSubscription = async (
+        params: ISuperTokenGetSubscriptionParams
+    ): Promise<IWeb3Subscription> => {
         return await this.idaV1.getSubscription({
             superToken: this.settings.address,
-            publisher,
-            indexId,
-            subscriber,
-            providerOrSigner,
+            ...params,
         });
     };
 
     /**
-     * @dev Get the details of an `Index`.
+     * Get the details of an `Index`.
      * @param publisher the address of the publisher of the index
      * @param indexId the index id
      * @param providerOrSigner a provider or signer object
      * @returns {Promise<IWeb3Index>} Web3 Index object
      */
-    getIndex = async ({
-        publisher,
-        indexId,
-        providerOrSigner,
-    }: ISuperTokenGetIndexParams): Promise<IWeb3Index> => {
+    getIndex = async (
+        params: ISuperTokenGetIndexParams
+    ): Promise<IWeb3Index> => {
         return await this.idaV1.getIndex({
             superToken: this.settings.address,
-            publisher,
-            indexId,
-            providerOrSigner,
+            ...params,
         });
     };
 
-    // IDA Write Functions
+    /** ### IDA Write Functions ### */
 
     /**
-     * @dev Creates an IDA Index.
+     * Creates an IDA Index.
      * @param indexId The id of the index.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createIndex = ({
-        indexId,
-        userData,
-        overrides,
-    }: ISuperTokenBaseIDAParams): Operation => {
+    createIndex = (params: ISuperTokenBaseIDAParams): Operation => {
         return this.idaV1.createIndex({
-            indexId,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Distributes `amount` of token to an index
+     * Distributes `amount` of token to an index
      * @param indexId The id of the index.
      * @param amount The amount of tokens to be distributed.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    distribute = ({
-        indexId,
-        amount,
-        userData,
-        overrides,
-    }: ISuperTokenDistributeParams): Operation => {
+    distribute = (params: ISuperTokenDistributeParams): Operation => {
         return this.idaV1.distribute({
-            indexId,
-            amount,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Updates the `IndexValue` field of an index.
+     * Updates the `IndexValue` field of an index.
      * @param indexId The id of the index.
      * @param indexValue The new indexValue.
      * @param userData Extra user data provided.
@@ -429,23 +550,17 @@ export default class SuperToken extends ERC20Token {
      *
      * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
      */
-    updateIndexValue = ({
-        indexId,
-        indexValue,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateIndexValueParams): Operation => {
+    updateIndexValue = (
+        params: ISuperTokenUpdateIndexValueParams
+    ): Operation => {
         return this.idaV1.updateIndexValue({
-            indexId,
-            indexValue,
             superToken: this.settings.address,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Updates the `units` allocated to a Subscription.
+     * Updates the `units` allocated to a Subscription.
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose units you want to update.
      * @param units The amount of units you want to update to.
@@ -453,71 +568,51 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateSubscriptionUnits = ({
-        indexId,
-        subscriber,
-        units,
-        userData,
-        overrides,
-    }: ISuperTokenUpdateSubscriptionUnitsParams): Operation => {
+    updateSubscriptionUnits = (
+        params: ISuperTokenUpdateSubscriptionUnitsParams
+    ): Operation => {
         return this.idaV1.updateSubscriptionUnits({
-            indexId,
             superToken: this.settings.address,
-            subscriber,
-            units,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
+     * Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
      * @param publisher The publisher address whose subscription you want to approve.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approveSubscription = ({
-        indexId,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPublisherOperationParams): Operation => {
+    approveSubscription = (
+        params: ISuperTokenPublisherOperationParams
+    ): Operation => {
         return this.idaV1.approveSubscription({
-            indexId,
             superToken: this.settings.address,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
+     * Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
      * @param publisher The index publisher address you want to revoke for the subscriber.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    revokeSubscription = ({
-        indexId,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPublisherOperationParams): Operation => {
+    revokeSubscription = (
+        params: ISuperTokenPublisherOperationParams
+    ): Operation => {
         return this.idaV1.revokeSubscription({
-            indexId,
             superToken: this.settings.address,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
+     * Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targeting.
@@ -525,25 +620,15 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteSubscription = ({
-        indexId,
-        subscriber,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPubSubParams): Operation => {
+    deleteSubscription = (params: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.deleteSubscription({
-            indexId,
             superToken: this.settings.address,
-            subscriber,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
     };
 
     /**
-     * @dev Claims any pending tokens allocated to the Subscription (unapproved).
+     * Claims any pending tokens allocated to the Subscription (unapproved).
      * @param indexId The id of the index.
      * @param subscriber The subscriber address who you are claiming for.
      * @param publisher The publisher address of the index you are targeting.
@@ -551,20 +636,149 @@ export default class SuperToken extends ERC20Token {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    claim = ({
-        indexId,
-        subscriber,
-        publisher,
-        userData,
-        overrides,
-    }: ISuperTokenPubSubParams): Operation => {
+    claim = (params: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.claim({
-            indexId,
             superToken: this.settings.address,
-            subscriber,
-            publisher,
-            userData,
-            overrides,
+            ...params,
         });
+    };
+}
+
+/**
+ * WrapperSuperToken has an underlying ERC20 token.
+ */
+export class WrapperSuperToken extends SuperToken {
+    override readonly underlyingToken: ERC20Token;
+    constructor(
+        options: ITokenOptions,
+        settings: ITokenSettings & { underlyingTokenAddress: string }
+    ) {
+        super(options, settings);
+        this.underlyingToken = new ERC20Token(settings.underlyingTokenAddress);
+    }
+}
+
+/**
+ * PureSuperToken doesn't have any underlying ERC20 token.
+ */
+export class PureSuperToken extends SuperToken {
+    constructor(options: ITokenOptions, settings: ITokenSettings) {
+        super(options, settings);
+    }
+}
+
+/**
+ * NativeAssetSuperToken wraps the native asset of the network.
+ */
+export class NativeAssetSuperToken extends PureSuperToken {
+    readonly nativeTokenSymbol: string;
+    constructor(
+        options: ITokenOptions,
+        settings: ITokenSettings,
+        nativeTokenSymbol: string
+    ) {
+        super(options, settings);
+        this.nativeTokenSymbol = nativeTokenSymbol;
+    }
+
+    get nativeAssetContract() {
+        return new ethers.Contract(
+            this.settings.address,
+            ISETHABI.abi
+        ) as ISETH;
+    }
+
+    /**
+     * upgrade is not supported for Native Asset SuperTokens.
+     * Use upgradeNativeAsset or upgradeNativeAssetTo instead.
+     */
+    override upgrade = () => {
+        throw new SFError({
+            type: "UNSUPPORTED_FUNCTIONALITY",
+            customMessage:
+                "upgrade is not supported for native assets, use upgradeNativeAsset or upgradeNativeAssetTo.",
+            errorObject: {},
+        });
+    };
+
+    /**
+     * downgrade is not supported for Native Asset SuperTokens.
+     * Use upgradeNativeAsset or upgradeNativeAssetTo instead.
+     */
+    override downgrade = () => {
+        throw new SFError({
+            type: "UNSUPPORTED_FUNCTIONALITY",
+            customMessage:
+                "downgrade is not supported for native asset super tokens, use downgradeToNativeAsset.",
+            errorObject: {},
+        });
+    };
+
+    /**
+     * Upgrade `amount` of a network's native asset to its SuperToken.
+     * @param amount The amount to be upgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    upgradeNativeAsset = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }): Operation => {
+        const txn = this.nativeAssetContract.populateTransaction.upgradeByETH({
+            ...overrides,
+            value: amount,
+        });
+        return new Operation(txn, "UNSUPPORTED");
+    };
+
+    /**
+     * Upgrade `amount` of a network's native asset to its SuperToken to `to` address.
+     * @param amount The amount to be upgraded.
+     * @param to The destination of the upgraded native asset super tokens.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    upgradeNativeAssetTo = ({
+        amount,
+        to,
+        overrides,
+    }: {
+        amount: string;
+        to: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }) => {
+        const txn = this.nativeAssetContract.populateTransaction.upgradeByETHTo(
+            to,
+            {
+                ...overrides,
+                value: amount,
+            }
+        );
+        return new Operation(txn, "UNSUPPORTED");
+    };
+
+    /**
+     * Downgrade `amount` of a native asset super token to the underlying native asset.
+     * @param amount The amount to be upgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    downgradeToNativeAsset = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }) => {
+        const txn = this.nativeAssetContract.populateTransaction.downgradeToETH(
+            amount,
+            {
+                ...overrides,
+            }
+        );
+        return new Operation(txn, "UNSUPPORTED");
     };
 }

@@ -8,12 +8,29 @@ import {
     TestToken,
 } from "../src/typechain";
 import { SuperToken } from "../src";
-import { getPerSecondFlowRateByMonth } from "../src/utils";
+import { getFlowOperatorId, getPerSecondFlowRateByMonth } from "../src/utils";
 import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
-import { ethers } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
+import { NativeAssetSuperToken, WrapperSuperToken } from "../src/SuperToken";
+import {
+    AUTHORIZE_FLOW_OPERATOR_CREATE,
+    AUTHORIZE_FULL_CONTROL,
+} from "../src/constants";
 
 const INITIAL_AMOUNT_PER_USER = "10000000000";
+const toBN = (x: BigNumberish) => ethers.BigNumber.from(x);
+const MAX_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1)).toString();
+
+export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
+    // last 32 bits of the deposit (96 bits) is clipped off
+    const rounding = roundingDown
+        ? 0
+        : deposit.and(toBN(0xffffffff)).isZero()
+        ? 0
+        : 1;
+    return deposit.shr(32).add(toBN(rounding)).shl(32);
+};
 
 describe("SuperToken Tests", () => {
     let framework: Framework;
@@ -23,7 +40,7 @@ describe("SuperToken Tests", () => {
     let alpha: SignerWithAddress;
     let superToken: SuperTokenType;
     let token: TestToken;
-    let daix: SuperToken;
+    let daix: WrapperSuperToken;
     let bravo: SignerWithAddress;
     let charlie: SignerWithAddress;
     let signerCount: number;
@@ -240,7 +257,7 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to approve + downgrade", async () => {
-            const amount = ethers.utils.parseUnits("1000").toString();
+            const amount = ethers.utils.parseUnits("2000").toString();
             await expect(
                 daix
                     .approve({ receiver: daix.settings.address, amount })
@@ -251,6 +268,17 @@ describe("SuperToken Tests", () => {
             await expect(daix.downgrade({ amount }).exec(deployer))
                 .to.emit(superToken, "TokenDowngraded")
                 .withArgs(deployer.address, amount);
+        });
+
+        it("Should be able to transfer downgraded tokens", async () => {
+            const amount = ethers.utils.parseUnits("1000").toString();
+            await expect(
+                daix.underlyingToken
+                    .transfer({ receiver: alpha.address, amount })
+                    .exec(deployer)
+            )
+                .to.emit(token, "Transfer")
+                .withArgs(deployer.address, alpha.address, amount);
         });
 
         it("Should be able to approve + upgrade", async () => {
@@ -302,7 +330,151 @@ describe("SuperToken Tests", () => {
         });
     });
 
+    describe("NativeSuperToken Tests", () => {
+        let nativeAssetSuperToken: NativeAssetSuperToken;
+        it("Should be able to create a NativeSuperToken (SuperTokenWithoutUnderlying)", async () => {
+            // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
+            // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
+            await framework.loadSuperToken(
+                "0x67d269191c92Caf3cD7723F116c85e6E9bf55933"
+            );
+        });
+
+        it("Should be able to create a NativeAssetSuperToken", async () => {
+            nativeAssetSuperToken = (await framework.loadSuperToken(
+                "ETHx"
+            )) as NativeAssetSuperToken;
+        });
+
+        it("Should throw when attempting to upgrade", async () => {
+            try {
+                nativeAssetSuperToken.upgrade();
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    `Unsupported Functionality Error - upgrade is not supported for native assets, use upgradeNativeAsset or upgradeNativeAssetTo.`
+                );
+            }
+        });
+
+        it("Should throw when attempting to downgrade", async () => {
+            try {
+                nativeAssetSuperToken.downgrade();
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    `Unsupported Functionality Error - downgrade is not supported for native asset super tokens, use downgradeToNativeAsset.`
+                );
+            }
+        });
+
+        it("Should be able to upgrade native asset", async () => {
+            const upgradeOperation = nativeAssetSuperToken.upgradeNativeAsset({
+                amount: ethers.utils.parseUnits("1").toString(),
+            });
+            await upgradeOperation.exec(deployer);
+        });
+
+        it("Should be able to upgrade native asset to", async () => {
+            const upgradeOperation = nativeAssetSuperToken.upgradeNativeAssetTo(
+                {
+                    amount: ethers.utils.parseUnits("1").toString(),
+                    to: alpha.address,
+                }
+            );
+            await upgradeOperation.exec(deployer);
+        });
+
+        it("Should be able to downgrade native asset", async () => {
+            const downgradeOperation =
+                nativeAssetSuperToken.downgradeToNativeAsset({
+                    amount: ethers.utils.parseUnits("1").toString(),
+                });
+            await downgradeOperation.exec(deployer);
+        });
+    });
+
     describe("Token-CFA Tests", () => {
+        describe("Revert cases", () => {
+            it("Should throw an error if one of the input addresses is invalid", async () => {
+                const flowRate = getPerSecondFlowRateByMonth("100");
+                try {
+                    daix.createFlow({
+                        flowRate,
+                        receiver: alpha.address + "0",
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.eql(
+                        "Invalid Address Error - The address you have entered is not a valid ethereum address"
+                    );
+                }
+            });
+
+            it("Should throw an error on getFlow functions as expected", async () => {
+                // NOTE: using casting to pass in wrong input to force error
+                // get flow throw
+                try {
+                    await daix.getFlow({
+                        sender: deployer.address,
+                        receiver: alpha.address,
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "ConstantFlowAgreementV1 Read Error - There was an error getting the flow"
+                    );
+                }
+
+                // get account flow info throw
+                try {
+                    await daix.getAccountFlowInfo({
+                        account: deployer.address,
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "ConstantFlowAgreementV1 Read Error - There was an error getting the account flow information"
+                    );
+                }
+
+                // get net flow throw
+                try {
+                    await daix.getNetFlow({
+                        account: deployer.address,
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "ConstantFlowAgreementV1 Read Error - There was an error getting net flow"
+                    );
+                }
+            });
+
+            it("Should throw an error on getFlowOperatorData functions as expected", async () => {
+                // NOTE: using casting to pass in wrong input to force error
+                // get flowOperatorData throw
+                try {
+                    await daix.getFlowOperatorData({
+                        sender: deployer.address,
+                        flowOperator: alpha.address,
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "ConstantFlowAgreementV1 Read Error - There was an error getting flow operator data"
+                    );
+                }
+                try {
+                    await daix.getFlowOperatorDataByID({
+                        flowOperatorId: "",
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "ConstantFlowAgreementV1 Read Error - There was an error getting flow operator data"
+                    );
+                }
+            });
+        });
+
         // CFA Functions
         it("Should be able to create flow", async () => {
             const flowRate = getPerSecondFlowRateByMonth("1000");
@@ -408,8 +580,232 @@ describe("SuperToken Tests", () => {
         });
     });
 
+    describe("Token-CFA-Operator Tests", () => {
+        let sender: SignerWithAddress;
+        let flowOperator: SignerWithAddress;
+        let receiver: SignerWithAddress;
+
+        before(() => {
+            sender = alpha;
+            flowOperator = bravo;
+            receiver = charlie;
+        });
+
+        it("Should throw when passing in unclean permissions", async () => {
+            const flowRateAllowance = getPerSecondFlowRateByMonth("100");
+            try {
+                const permissions = AUTHORIZE_FULL_CONTROL + 1;
+                const operation = daix.updateFlowOperatorPermissions({
+                    flowRateAllowance,
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    permissions,
+                });
+                await operation.exec(sender);
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "Unclean Permissions Error - The desired permissions are unclean"
+                );
+            }
+        });
+
+        it("Should throw when attempting to update flow operator permissions with negative flow rate", async () => {
+            const flowRateAllowance = "-1000";
+            try {
+                const permissions = AUTHORIZE_FULL_CONTROL;
+                const operation = daix.updateFlowOperatorPermissions({
+                    flowRateAllowance,
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    permissions,
+                });
+                await operation.exec(sender);
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "Negative Flow Rate Allowance Error - No negative flow allowance allowed"
+                );
+            }
+        });
+
+        // CFA Functions
+        it("Should be able to update flow operator permissions", async () => {
+            const flowRateAllowance = getPerSecondFlowRateByMonth("100");
+            let permissions = AUTHORIZE_FLOW_OPERATOR_CREATE; // ALLOW_CREATE
+
+            const flowOperatorId = getFlowOperatorId(
+                sender.address,
+                flowOperator.address
+            );
+
+            // Update Flow Operator Permissions
+            const updateFlowOperatorPermissionsOperation =
+                daix.updateFlowOperatorPermissions({
+                    flowRateAllowance,
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    permissions,
+                });
+            await expect(updateFlowOperatorPermissionsOperation.exec(sender))
+                .to.emit(cfaV1, "FlowOperatorUpdated")
+                .withArgs(
+                    superToken.address,
+                    sender.address,
+                    flowOperator.address,
+                    permissions,
+                    Number(flowRateAllowance)
+                );
+
+            // getFlowOperatorData test
+            let flowOperatorData = await daix.getFlowOperatorData({
+                sender: sender.address,
+                flowOperator: flowOperator.address,
+                providerOrSigner: sender,
+            });
+            expect(flowOperatorData.flowOperatorId).equals(flowOperatorId);
+            expect(flowOperatorData.flowRateAllowance).equals(
+                flowRateAllowance
+            );
+            expect(flowOperatorData.permissions).equals(permissions.toString());
+
+            // Revoke Flow Operator With Full Control Permissions
+            permissions = 0; // no permissions
+            const revokeFlowOperatorWithFullControlOperation =
+                daix.revokeFlowOperatorWithFullControl({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                });
+            await expect(
+                revokeFlowOperatorWithFullControlOperation.exec(sender)
+            )
+                .to.emit(cfaV1, "FlowOperatorUpdated")
+                .withArgs(
+                    superToken.address,
+                    sender.address,
+                    flowOperator.address,
+                    permissions,
+                    0
+                );
+            // getFlowOperatorDataByID test
+            flowOperatorData = await daix.getFlowOperatorDataByID({
+                flowOperatorId,
+                providerOrSigner: sender,
+            });
+            expect(flowOperatorData.flowOperatorId).equals(flowOperatorId);
+            expect(flowOperatorData.flowRateAllowance).equals("0");
+            expect(flowOperatorData.permissions).equals(permissions.toString());
+
+            // Authorize Flow Operator With Full Control
+            permissions = AUTHORIZE_FULL_CONTROL; // all permissions
+            const authorizeFlowOperatorWithFullControlOperation =
+                daix.authorizeFlowOperatorWithFullControl({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                });
+            await expect(
+                authorizeFlowOperatorWithFullControlOperation.exec(sender)
+            )
+                .to.emit(cfaV1, "FlowOperatorUpdated")
+                .withArgs(
+                    superToken.address,
+                    sender.address,
+                    flowOperator.address,
+                    permissions,
+                    MAX_FLOW_RATE // max flow rate ((2 ** 95) - 1)
+                );
+
+            // getFlowOperatorDataByID test
+            flowOperatorData = await daix.getFlowOperatorDataByID({
+                flowOperatorId,
+                providerOrSigner: sender,
+            });
+            expect(flowOperatorData.flowOperatorId).equals(flowOperatorId);
+            expect(flowOperatorData.flowRateAllowance).equals(MAX_FLOW_RATE);
+            expect(flowOperatorData.permissions).equals(permissions.toString());
+        });
+
+        it("Should be able to create flow by operator", async () => {
+            const flowRate = getPerSecondFlowRateByMonth("100");
+            const operation = daix.createFlowByOperator({
+                flowRate,
+                sender: sender.address,
+                receiver: receiver.address,
+            });
+            const deposit = clipDepositNumber(toBN(flowRate).mul(toBN(3600)));
+            await expect(operation.exec(flowOperator))
+                .to.emit(cfaV1, "FlowUpdatedExtension")
+                .withArgs(flowOperator.address, deposit.toString());
+        });
+
+        it("Should be able to update flow by operator", async () => {
+            const flowRate = getPerSecondFlowRateByMonth("70");
+            const operation = daix.updateFlowByOperator({
+                flowRate,
+                sender: sender.address,
+                receiver: receiver.address,
+            });
+            const deposit = clipDepositNumber(toBN(flowRate).mul(toBN(3600)));
+            await expect(operation.exec(flowOperator))
+                .to.emit(cfaV1, "FlowUpdatedExtension")
+                .withArgs(flowOperator.address, deposit.toString());
+        });
+
+        it("Should be able to delete flow by operator", async () => {
+            const operation = daix.deleteFlowByOperator({
+                sender: sender.address,
+                receiver: receiver.address,
+            });
+            await expect(operation.exec(flowOperator))
+                .to.emit(cfaV1, "FlowUpdatedExtension")
+                .withArgs(flowOperator.address, "0");
+        });
+    });
+
     // Note: Alpha will create the Index which Deployer and Bravo
     describe("Token-IDA Tests", () => {
+        describe("Revert cases", () => {
+            it("Should throw an error if one of the input addresses is invalid", async () => {
+                try {
+                    framework.idaV1.createIndex({
+                        indexId: "0",
+                        superToken: superToken.address + "z",
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.eql(
+                        "Invalid Address Error - The address you have entered is not a valid ethereum address"
+                    );
+                }
+            });
+
+            it("Should throw an error on the reads as expected", async () => {
+                // NOTE: using casting to pass in wrong input to force error
+                try {
+                    await framework.idaV1.getIndex({
+                        superToken: superToken.address,
+                        publisher: deployer.address,
+                        indexId: "0",
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "InstantDistributionAgreementV1 Read Error - There was an error getting the index"
+                    );
+                }
+
+                try {
+                    await framework.idaV1.getSubscription({
+                        superToken: superToken.address,
+                        publisher: deployer.address,
+                        indexId: "0",
+                        subscriber: alpha.address,
+                        providerOrSigner: "" as any,
+                    });
+                } catch (err: any) {
+                    expect(err.message).to.contain(
+                        "InstantDistributionAgreementV1 Read Error - There was an error getting the subscription"
+                    );
+                }
+            });
+        });
         // IDA Functions
         it("Should be able to create an index and get the newly created index", async () => {
             await expect(

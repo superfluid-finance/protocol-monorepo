@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { TransactionResponse } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
-import { Framework, ERC20WrappedSuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, WrappedSuperToken } from "@superfluid-finance/sdk-core";
 import {
     IMeta,
     IIndexSubscription,
@@ -54,7 +54,7 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     console.log("\n");
     const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
-    const fDAIx = await sf.loadSuperToken(fDAIxAddress) as ERC20WrappedSuperToken;
+    const fDAIx = await sf.loadSuperToken(fDAIxAddress) as WrappedSuperToken;
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(

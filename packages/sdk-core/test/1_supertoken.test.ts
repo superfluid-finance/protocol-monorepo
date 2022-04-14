@@ -12,10 +12,7 @@ import { getFlowOperatorId, getPerSecondFlowRateByMonth } from "../src/utils";
 import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import {
-    CustomWrappedSuperToken,
-    ERC20WrappedSuperToken,
-} from "../src/SuperToken";
+import { NativeAssetSuperToken, WrapperSuperToken } from "../src/SuperToken";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
     AUTHORIZE_FULL_CONTROL,
@@ -43,7 +40,7 @@ describe("SuperToken Tests", () => {
     let alpha: SignerWithAddress;
     let superToken: SuperTokenType;
     let token: TestToken;
-    let daix: ERC20WrappedSuperToken;
+    let daix: WrapperSuperToken;
     let bravo: SignerWithAddress;
     let charlie: SignerWithAddress;
     let signerCount: number;
@@ -334,7 +331,7 @@ describe("SuperToken Tests", () => {
     });
 
     describe("NativeSuperToken Tests", () => {
-        let nativeAssetSuperToken: CustomWrappedSuperToken;
+        let nativeAssetSuperToken: NativeAssetSuperToken;
         it("Should be able to create a NativeSuperToken (SuperTokenWithoutUnderlying)", async () => {
             // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
             // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
@@ -344,8 +341,9 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to create a NativeAssetSuperToken", async () => {
-            nativeAssetSuperToken =
-                await framework.loadSuperToken<CustomWrappedSuperToken>("ETHx");
+            nativeAssetSuperToken = (await framework.loadSuperToken(
+                "ETHx"
+            )) as NativeAssetSuperToken;
         });
 
         it("Should throw when attempting to upgrade", async () => {

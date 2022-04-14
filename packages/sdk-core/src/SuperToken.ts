@@ -61,9 +61,9 @@ export interface ITokenOptions {
 }
 
 type SuperTokenType =
-    | CustomWrappedSuperToken
-    | ERC20WrappedSuperToken
-    | CustomSuperToken;
+    | NativeAssetSuperToken
+    | WrapperSuperToken
+    | PureSuperToken;
 
 /**
  * SuperToken Helper Class
@@ -129,7 +129,7 @@ export default abstract class SuperToken extends ERC20Token {
             const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
 
             if (nativeSuperTokenSymbol === tokenSymbol) {
-                return new CustomWrappedSuperToken(
+                return new NativeAssetSuperToken(
                     options,
                     settings,
                     nativeTokenSymbol
@@ -137,12 +137,12 @@ export default abstract class SuperToken extends ERC20Token {
             }
 
             if (underlyingTokenAddress !== ethers.constants.AddressZero) {
-                return new ERC20WrappedSuperToken(options, {
+                return new WrapperSuperToken(options, {
                     ...settings,
                     underlyingTokenAddress,
                 });
             }
-            return new CustomSuperToken(options, settings);
+            return new PureSuperToken(options, settings);
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
@@ -645,9 +645,9 @@ export default abstract class SuperToken extends ERC20Token {
 }
 
 /**
- * ERC20WrapperSuperToken has an underlying ERC20 token.
+ * WrappedSuperToken has an underlying ERC20 token.
  */
-export class ERC20WrappedSuperToken extends SuperToken {
+export class WrapperSuperToken extends SuperToken {
     override readonly underlyingToken: ERC20Token;
     constructor(
         options: ITokenOptions,
@@ -659,18 +659,18 @@ export class ERC20WrappedSuperToken extends SuperToken {
 }
 
 /**
- * CustomSuperToken doesn't have any underlying ERC20 token.
+ * PureSuperToken doesn't have any underlying ERC20 token.
  */
-export class CustomSuperToken extends SuperToken {
+export class PureSuperToken extends SuperToken {
     constructor(options: ITokenOptions, settings: ITokenSettings) {
         super(options, settings);
     }
 }
 
 /**
- * CustomWrappedSuperToken wraps the native asset of the network.
+ * NativeAssetSuperToken wraps the native asset of the network.
  */
-export class CustomWrappedSuperToken extends CustomSuperToken {
+export class NativeAssetSuperToken extends PureSuperToken {
     readonly nativeTokenSymbol: string;
     constructor(
         options: ITokenOptions,

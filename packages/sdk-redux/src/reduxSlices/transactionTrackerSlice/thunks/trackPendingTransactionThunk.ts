@@ -8,7 +8,6 @@ import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTracker
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {createTag} from '../../rtkQuery/cacheTags/CacheTagTypes';
-import {getCacheTagsToInvalidateForEvents} from '../../rtkQuery/cacheTags/invalidateCacheTagsForEvents';
 import {EthersError} from '../ethersError';
 import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
@@ -59,11 +58,13 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                     factor: 2,
                     forever: true,
                 }
-            ).then((subgraphEventsQueryResult) =>
+            ).then((_subgraphEventsQueryResult) =>
                 dispatch(
-                    getSubgraphApiSlice().util.invalidateTags(
-                        getCacheTagsToInvalidateForEvents(arg.chainId, subgraphEventsQueryResult.data)
-                    )
+                    // TODO(KK): Temporary fool-proof simple solution for cache invalidation because of not perfect system of cache tags.
+                    getSubgraphApiSlice().util.resetApiState()
+                    // getSubgraphApiSlice().util.invalidateTags(
+                    //     getCacheTagsToInvalidateForEvents(arg.chainId, subgraphEventsQueryResult.data)
+                    // )
                 )
             );
         })

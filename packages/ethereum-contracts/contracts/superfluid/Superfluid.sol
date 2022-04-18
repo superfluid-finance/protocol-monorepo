@@ -450,6 +450,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns(bytes memory cbdata)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
@@ -474,6 +475,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns(bytes memory newCtx)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
@@ -499,6 +501,7 @@ contract Superfluid is
             }
         } else {
             newCtx = ctx;
+            // no change to the stamped ctx, no stampin gneeded
         }
     }
 
@@ -511,6 +514,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        //assertValidCtx(ctx)
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -548,6 +552,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -565,6 +570,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         _jailApp(app, reason);
@@ -664,9 +670,7 @@ contract Superfluid is
         ISuperApp app,
         bytes memory callData
     )
-        external override
-        cleanCtx
-        isAppActive(app)
+        external override // NOTE: modifiers are called in _callAppAction
         returns(bytes memory returnedData)
     {
         return _callAppAction(msg.sender, app, callData);
@@ -683,7 +687,7 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        validCtx(ctx)
+        requireValidCtx(ctx)
         isAgreement(agreementClass)
         returns (bytes memory newCtx, bytes memory returnedData)
     {
@@ -716,7 +720,7 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        validCtx(ctx)
+        requireValidCtx(ctx)
         isAppActive(app)
         isValidAppAction(callData)
         returns(bytes memory newCtx)
@@ -1034,8 +1038,13 @@ contract Superfluid is
         // outside
     }
 
-    modifier validCtx(bytes memory ctx) {
+    modifier requireValidCtx(bytes memory ctx) {
         require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_NOT_VALID");
+        _;
+    }
+
+    modifier assertValidCtx(bytes memory ctx) {
+        assert(_isCtxValid(ctx));
         _;
     }
 

@@ -169,7 +169,7 @@ contract AgreementMock is AgreementBase {
         host.jailApp("", ISuperApp(address(0)), 0);
     }
 
-    function doRevert(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
+    function doRevert(string calldata reason, bytes calldata ctx) external view requireValidCtx(ctx) {
         revert(reason);
     }
 
@@ -177,7 +177,7 @@ contract AgreementMock is AgreementBase {
 
     function pingMe(address expectedMsgSender, uint256 ping, bytes calldata ctx)
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
@@ -254,7 +254,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP, ctx);
@@ -266,7 +266,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP, ctx);
@@ -277,7 +277,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP, ctx);
@@ -289,7 +289,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP, ctx);
@@ -300,7 +300,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP, ctx);
@@ -312,13 +312,13 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP, ctx);
     }
 
-    modifier validCtx(bytes memory ctx) {
+    modifier requireValidCtx(bytes memory ctx) {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
         _;
     }

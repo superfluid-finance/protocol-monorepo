@@ -71,4 +71,5 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     await token.initialize(ZERO_ADDRESS, 18, superTokenName, superTokenSymbol);
 
     console.log(`Matic Bridged Native SuperToken deployed at ${token.address}`);
+    return token.address;
 });

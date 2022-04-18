@@ -126,7 +126,7 @@ export default class BatchCall {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
             );
-            return await this.host.hostContract
+            return await this.host.contract
                 .connect(signer)
                 .batchCall(operationStructArray);
         } catch (err) {
@@ -153,7 +153,7 @@ export default class BatchCall {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
             );
-            return await this.host.hostContract
+            return await this.host.contract
                 .connect(signer)
                 .forwardBatchCall(operationStructArray);
         } catch (err) {

@@ -86,12 +86,6 @@ jobs:
           name: ethereum-contracts-coverage
           flags: ethereum-contracts
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          path-to-lcov: packages/ethereum-contracts/coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
 

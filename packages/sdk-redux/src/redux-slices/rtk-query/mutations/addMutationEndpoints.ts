@@ -572,8 +572,8 @@ export const addMutationEndpoints = (builder: ApiSliceEndpointBuilder) => ({
                 signer.getAddress(),
             ]);
 
-            const underlyingTokenAllowance = await superToken.underlyingToken
-                .allowance({
+            const underlyingTokenAllowance = await superToken
+                .underlyingToken!.allowance({
                     providerOrSigner: framework.settings.provider,
                     owner: signerAddress,
                     spender: superToken.address,
@@ -582,8 +582,8 @@ export const addMutationEndpoints = (builder: ApiSliceEndpointBuilder) => ({
 
             const isAllowanceEnough = underlyingTokenAllowance.gte(ethers.BigNumber.from(arg.amountWei));
             if (!isAllowanceEnough) {
-                const approveAllowanceTransactionResponse = await superToken.underlyingToken
-                    .approve({
+                const approveAllowanceTransactionResponse = await superToken
+                    .underlyingToken!.approve({
                         amount: arg.amountWei, // TODO(KK): Should we account for existing allowance amount here?
                         receiver: superToken.address,
                     })

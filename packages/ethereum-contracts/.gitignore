@@ -5,3 +5,5 @@
 /test/output/*
 /crytic-export
 /corpus
+/artifacts
+/cache

@@ -27,7 +27,7 @@ const operationTypeStringToTypeMap = new Map<OperationType, number>([
 ]);
 
 /**
- * @dev BatchCall Helper Class
+ * BatchCall Helper Class
  * @description A helper class to create `BatchCall` objects which can be executed.
  */
 export default class BatchCall {
@@ -40,7 +40,7 @@ export default class BatchCall {
     }
 
     /**
-     * @dev Gets the call agreement function arguments.
+     * Gets the call agreement function arguments.
      * @param callData callData of the function
      * @returns {ethers.utils.Result} call agreement function arguments
      */
@@ -48,7 +48,7 @@ export default class BatchCall {
         getTransactionDescription(SuperfluidABI.abi, callData).args;
 
     /**
-     * @dev Given an `Operation` object, gets the `OperationStruct` object.
+     * Given an `Operation` object, gets the `OperationStruct` object.
      * @param operation an `Operation` object
      * @param index the index of the `Operation` in the batchCall
      * @returns {Promise<OperationStruct>} OperationStruct object for batchCall
@@ -105,7 +105,7 @@ export default class BatchCall {
     };
 
     /**
-     * @dev Gets an array of `OperationStruct` objects to be passed to batchCall.
+     * Gets an array of `OperationStruct` objects to be passed to batchCall.
      * @returns {Promise<OperationStruct>[]} array of operation struct promises
      */
     get getOperationStructArrayPromises(): Promise<OperationStruct>[] {
@@ -115,7 +115,7 @@ export default class BatchCall {
     }
 
     /**
-     * @dev Executes a batch call given the operations on this class.
+     * Executes a batch call given the operations on this class.
      * @param signer the signer of the transaction
      * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
@@ -126,7 +126,7 @@ export default class BatchCall {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
             );
-            return await this.host.hostContract
+            return await this.host.contract
                 .connect(signer)
                 .batchCall(operationStructArray);
         } catch (err) {
@@ -142,7 +142,7 @@ export default class BatchCall {
     // TODO: user signs the transaction they'd like to execute and gives
     // this data to the trusted forwarder to sign
     /**
-     * @dev Executes a forward batch call given the operations on this class.
+     * Executes a forward batch call given the operations on this class.
      * @param signer the signer of the transaction
      * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
@@ -153,7 +153,7 @@ export default class BatchCall {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
             );
-            return await this.host.hostContract
+            return await this.host.contract
                 .connect(signer)
                 .forwardBatchCall(operationStructArray);
         } catch (err) {

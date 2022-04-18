@@ -1,8 +1,9 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
     AccountTokenSnapshot,
+    FlowOperator,
     Index,
     IndexSubscription,
     Stream,
@@ -23,10 +24,12 @@ import {
     updateTotalSupplyForNativeSuperToken,
     streamRevisionExists,
     ZERO_ADDRESS,
+    getFlowOperatorID,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { getHostAddress, getResolverAddress } from "./addresses";
+import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 /**************************************************************************
  * HOL initializer functions
@@ -34,9 +37,6 @@ import { getHostAddress, getResolverAddress } from "./addresses";
 /**
  * Gets the Account entity with id or creates one with it. updatedAt is
  * updated each time any data associated with the user is updated.
- * @param accountAddress
- * @param block
- * @returns Account
  */
 export function getOrInitAccount(
     accountAddress: Address,
@@ -72,9 +72,6 @@ export function getOrInitAccount(
 /**
  * Creates a HOL Token (SuperToken) entity if non exists.
  * We also create token stats in here if it doesn't exist yet.
- * @param tokenAddress
- * @param block
- * @returns
  */
 export function getOrInitSuperToken(
     tokenAddress: Address,
@@ -146,8 +143,6 @@ export function getOrInitSuperToken(
 /**
  * Create a token entity for regular ERC20 tokens.
  * These are the underlying tokens for
- * @param tokenAddress
- * @param currentTimestamp
  */
 export function getOrInitToken(
     tokenAddress: Address,
@@ -170,10 +165,6 @@ export function getOrInitToken(
 
 /**
  * Gets or initializes the Stream Revision helper entity.
- * @param senderId
- * @param recipientId
- * @param tokenId
- * @returns [StreamRevision, boolean: whether the streamRevision existed]
  */
 export function getOrInitStreamRevision(
     senderId: string,
@@ -196,76 +187,89 @@ export function getOrInitStreamRevision(
 
 /**
  * Gets or initializes a Stream, always sets the updatedAt.
- * @param senderAddress
- * @param receiverAddress
- * @param tokenAddress
- * @param block
- * @returns
  */
-export function getOrInitStream(
-    senderAddress: Address,
-    receiverAddress: Address,
-    tokenAddress: Address,
-    block: ethereum.Block
-): Stream {
+export function getOrInitStream(event: FlowUpdated): Stream {
     // Create accounts if they do not exist
-    getOrInitAccount(senderAddress, block);
-    getOrInitAccount(receiverAddress, block);
+    getOrInitAccount(event.params.sender, event.block);
+    getOrInitAccount(event.params.receiver, event.block);
 
     // Create a streamRevision entity for this stream if one doesn't exist.
     let streamRevision = getOrInitStreamRevision(
-        senderAddress.toHex(),
-        receiverAddress.toHex(),
-        tokenAddress.toHex()
+        event.params.sender.toHex(),
+        event.params.receiver.toHex(),
+        event.params.token.toHex()
     );
-    let currentTimestamp = block.timestamp;
+    let currentTimestamp = event.block.timestamp;
     if (
         !streamRevisionExists(
             getStreamRevisionPrefix(
-                senderAddress.toHex(),
-                receiverAddress.toHex(),
-                tokenAddress.toHex()
+                event.params.sender.toHex(),
+                event.params.receiver.toHex(),
+                event.params.token.toHex()
             )
         )
     ) {
         streamRevision.save();
     }
     let id = getStreamID(
-        senderAddress.toHex(),
-        receiverAddress.toHex(),
-        tokenAddress.toHex(),
+        event.params.sender.toHex(),
+        event.params.receiver.toHex(),
+        event.params.token.toHex(),
         streamRevision.revisionIndex
     );
     let stream = Stream.load(id);
     if (stream == null) {
         stream = new Stream(id);
         stream.createdAtTimestamp = currentTimestamp;
-        stream.createdAtBlockNumber = block.number;
-        stream.token = tokenAddress.toHex();
-        stream.sender = senderAddress.toHex();
-        stream.receiver = receiverAddress.toHex();
+        stream.createdAtBlockNumber = event.block.number;
+        stream.token = event.params.token.toHex();
+        stream.sender = event.params.sender.toHex();
+        stream.receiver = event.params.receiver.toHex();
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
-        stream.updatedAtBlockNumber = block.number;
+        stream.updatedAtBlockNumber = event.block.number;
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         // also handles the fact that custom super tokens are
         // initialized after event is first initialized
-        getOrInitSuperToken(tokenAddress, block);
+        getOrInitSuperToken(event.params.token, event.block);
     }
     return stream as Stream;
 }
 
+export function getOrInitFlowOperator(
+    block: ethereum.Block,
+    flowOperatorAddress: Bytes,
+    token: Bytes,
+    sender: Bytes
+): FlowOperator {
+    let flowOperatorId = getFlowOperatorID(flowOperatorAddress, token, sender);
+    let flowOperatorEntity = FlowOperator.load(flowOperatorId);
+    let currentTimestamp = block.timestamp;
+    if (flowOperatorEntity == null) {
+        flowOperatorEntity = new FlowOperator(flowOperatorId);
+        flowOperatorEntity.createdAtBlockNumber = block.number;
+        flowOperatorEntity.createdAtTimestamp = currentTimestamp;
+        flowOperatorEntity.permissions = 0;
+        flowOperatorEntity.flowRateAllowanceGranted = BigInt.fromI32(0);
+        flowOperatorEntity.flowRateAllowanceRemaining = BigInt.fromI32(0);
+        flowOperatorEntity.sender = sender.toHex();
+        flowOperatorEntity.token = token.toHex();
+        flowOperatorEntity.accountTokenSnapshot = getAccountTokenSnapshotID(
+            sender.toHex(),
+            token.toHex()
+        );
+    }
+    flowOperatorEntity.updatedAtBlockNumber = block.number;
+    flowOperatorEntity.updatedAtTimestamp = currentTimestamp;
+
+    return flowOperatorEntity;
+}
+
 /**
  * Gets or initializes an Index, always sets the updatedAt.
- * @param publisherAddress
- * @param tokenAddress
- * @param indexId
- * @param block
- * @param indexCreatedId
- * @returns
  */
 export function getOrInitIndex(
     publisherAddress: Address,
@@ -307,13 +311,6 @@ export function getOrInitIndex(
 
 /**
  * Gets or initializes a Subscription, always sets the updatedAt.
- * @param hostAddress
- * @param subscriberAddress
- * @param publisherAddress
- * @param tokenAddress
- * @param indexId
- * @param block
- * @returns subscription
  */
 export function getOrInitSubscription(
     subscriberAddress: Address,
@@ -384,6 +381,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
+        accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
         accountTokenSnapshot.account = accountId;
         accountTokenSnapshot.token = tokenId;
     }
@@ -410,6 +408,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
+        tokenStatistic.totalDeposit = BIG_INT_ZERO;
         tokenStatistic.token = tokenId;
     }
     return tokenStatistic as TokenStatistic;
@@ -421,9 +420,6 @@ export function getOrInitTokenStatistic(
 
 /**
  * Updates the Account entities updatedAt property.
- * @param hostAddress
- * @param accountAddress
- * @param block
  */
 export function updateAccountUpdatedAt(
     accountAddress: Address,
@@ -445,15 +441,6 @@ export function updateAccountUpdatedAt(
 
 /**
  * Updates ATS and TokenStats IDA Subscriptions data.
- * @param accountId
- * @param tokenId
- * @param subscriptionWithUnitsExists
- * @param subscriptionApproved
- * @param isIncrementingSubWithUnits
- * @param isRevokingSubscription
- * @param isDeletingSubscription
- * @param isApproving
- * @param block
  */
 export function updateAggregateIDASubscriptionsData(
     accountId: string,
@@ -512,9 +499,6 @@ export function updateAggregateIDASubscriptionsData(
  * Updates the balance property on the ATS entity.
  * Also updates the updatedAt time.
  * Note: ATS = AccountTokenSnapshot
- * @param accountId
- * @param tokenId
- * @param block
  */
 function updateATSBalanceAndUpdatedAt(
     accountTokenSnapshot: AccountTokenSnapshot,
@@ -540,9 +524,6 @@ function updateATSBalanceAndUpdatedAt(
  * Updates the amount streamed, balance until updated at for the AccountTokenSnapshot
  * entity and also updates the updatedAt property on the account entity.
  * @dev Must call before updatedAt is updated.
- * @param accountId
- * @param tokenId
- * @param block
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountId: string,
@@ -599,14 +580,6 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
  * Updates TokenStatistic and AccountTokenSnapshot countable stream
  * data. Must be called after updating streamed amount data for the
  * AccountTokenSnapshot entities.
- * @param senderId
- * @param receiverId
- * @param tokenId
- * @param newFlowRate
- * @param flowRateDelta
- * @param isCreate
- * @param isDelete
- * @param block
  */
 export function updateAggregateEntitiesStreamData(
     senderId: string,
@@ -614,6 +587,7 @@ export function updateAggregateEntitiesStreamData(
     tokenId: string,
     newFlowRate: BigInt,
     flowRateDelta: BigInt,
+    depositDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
     block: ethereum.Block
@@ -646,6 +620,8 @@ export function updateAggregateEntitiesStreamData(
         );
     tokenStatistic.updatedAtTimestamp = block.timestamp;
     tokenStatistic.updatedAtBlockNumber = block.number;
+    tokenStatistic.totalDeposit =
+        tokenStatistic.totalDeposit.plus(depositDelta);
 
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
     senderATS.totalNetFlowRate =
@@ -660,6 +636,7 @@ export function updateAggregateEntitiesStreamData(
         senderATS.totalNumberOfActiveStreams + totalNumberOfActiveStreamsDelta;
     senderATS.totalNumberOfClosedStreams =
         senderATS.totalNumberOfClosedStreams + totalNumberOfClosedStreamsDelta;
+    senderATS.totalDeposit = senderATS.totalDeposit.plus(depositDelta);
 
     let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
     receiverATS.totalNetFlowRate =

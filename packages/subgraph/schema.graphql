@@ -44,11 +44,19 @@ type FlowUpdatedEvent implements Event @entity {
     receiver: Bytes!
 
     """
+    The address that is triggering the flow update.
+    This will be the zero address until the flowOperator
+    feature is live.
+    """
+    flowOperator: Bytes!
+
+    """
     The flow rate per second.
     """
     flowRate: BigInt!
     totalSenderFlowRate: BigInt!
     totalReceiverFlowRate: BigInt!
+    deposit: BigInt!
     userData: Bytes!
 
     # Custom Properties (not on event)
@@ -76,6 +84,35 @@ type FlowUpdatedEvent implements Event @entity {
     The stream entity which is being modified.
     """
     stream: Stream!
+}
+
+type FlowOperatorUpdatedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, sender, and flowOperator addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+
+    """
+    The address of the `token` being streamed.
+    """
+    token: Bytes!
+    sender: Bytes!
+
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
+    permissions: Int!
+    flowRateAllowance: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    flowOperator: FlowOperator!
 }
 
 #  InstantDistributionAgreementV1 #
@@ -735,16 +772,16 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     tokenLogic: Bytes!
 }
 
-####################
-#   HOL Entities   #
-####################
+#########################
+# Higher Order Entities #
+#########################
 # State is defined as properties that will change outside
 # of the BaseEntity properties.
 # Links is defined as a property which links the current
-# entity to another HOL entity.
+# entity to another higher order entity.
 
 """
-Account: A HOL entity created for any addresses which interact with
+Account: A higher order entity created for any addresses which interact with
 Superfluid contracts.
 """
 type Account @entity {
@@ -778,7 +815,7 @@ type Account @entity {
 }
 
 """
-Index: A Index HOL entity.
+Index: An Index higher order entity.
 """
 type Index @entity {
     """
@@ -854,7 +891,7 @@ type Index @entity {
 }
 
 """
-IndexSubscription: A HOL entity that contains subscription data for a `subscriber` account of a particular
+IndexSubscription: A higher order entity that contains subscription data for a `subscriber` account of a particular
 `Index`.
 """
 type IndexSubscription @entity {
@@ -913,7 +950,7 @@ type IndexSubscription @entity {
 }
 
 """
-Stream: A HOL entity that represents the lifetime of a stream between a `sender` and a `receiver`.
+Stream: A higher order entity that represents the lifetime of a stream between a `sender` and a `receiver`.
 A account can start a stream, update the flow rate, but when they close it, it is
 considered "dead". The next stream you create with the same `sender` and `receiver`
 will create a new stream entity. Therefore, multiple stream entities can be created
@@ -930,6 +967,7 @@ type Stream @entity {
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
     currentFlowRate: BigInt!
+    deposit: BigInt!
 
     """
     The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
@@ -947,7 +985,52 @@ type Stream @entity {
 }
 
 """
-StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
+FlowOperator: A higher order entity that of a flow operator for an `AccountTokenSnapshot`.
+"""
+type FlowOperator @entity {
+    """
+    ID composed of: flowOperator - token - sender
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlockNumber: BigInt!
+
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
+    permissions: Int!
+
+    """
+    The flow rate allowance granted to the `flowOperator`
+    by the `sender`. This can be reset if the `sender`
+    updates the `flowOperator` flow rate allowance.
+    """
+    flowRateAllowanceGranted: BigInt!
+
+    """
+    The remaining flow rate allowance the `flowOperator` has,
+    this will go down every time when `flowOperator` uses it
+    (if they increase flowRate or create a new flow)
+    and can only be reset if the `sender` updates the flow
+    rate allowance.
+    """
+    flowRateAllowanceRemaining: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    flowOperator: Bytes!
+    sender: Account!
+    token: Token!
+    accountTokenSnapshot: AccountTokenSnapshot!
+
+    flowOperatorUpdatedEvents: [FlowOperatorUpdatedEvent!]!
+        @derivedFrom(field: "flowOperator")
+}
+
+"""
+StreamPeriod: A higher order entity that represents a period of time in a Stream with a constant flowRate.
 """
 type StreamPeriod @entity {
     """
@@ -963,6 +1046,7 @@ type StreamPeriod @entity {
     token: Token!
 
     flowRate: BigInt!
+    deposit: BigInt!
 
     startedAtTimestamp: BigInt!
     startedAtBlockNumber: BigInt!
@@ -987,7 +1071,7 @@ type StreamRevision @entity {
 }
 
 """
-Token: A HOL entity created for super tokens that are "valid" (tokens that have
+Token: A higher order entity created for super tokens that are "valid" (tokens that have
 Superfluid's host contract address set as the host).
 """
 type Token @entity {
@@ -1060,6 +1144,11 @@ type AccountTokenSnapshot @entity {
     balanceUntilUpdatedAt: BigInt!
 
     """
+    The total deposit this account has held by the CFA agreement for `account` active streams.
+    """
+    totalDeposit: BigInt!
+
+    """
     The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalNetFlowRate: BigInt!
@@ -1087,6 +1176,7 @@ type AccountTokenSnapshot @entity {
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
+    flowOperators: [FlowOperator!]! @derivedFrom(field: "accountTokenSnapshot")
 }
 
 """
@@ -1131,6 +1221,11 @@ type TokenStatistic @entity {
     Counts all approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
+
+    """
+    The total deposit held by the CFA agreement for this particular `token`.
+    """
+    totalDeposit: BigInt!
 
     """
     The total outflow rate of the `token` (how much value is being moved).

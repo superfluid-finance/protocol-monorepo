@@ -43,6 +43,7 @@ export const getStream = gql`
             id
             currentFlowRate
             streamedUntilUpdatedAt
+            deposit
             token {
                 id
             }
@@ -77,6 +78,7 @@ export const getStreamPeriod = gql`
             receiver {
                 id
             }
+            deposit
             startedAtTimestamp
             startedAtBlockNumber
             startedAtEvent {
@@ -93,6 +95,29 @@ export const getStreamPeriod = gql`
             }
 
             totalAmountStreamed
+        }
+    }
+`;
+
+export const getFlowOperator = gql`
+    query getFlowOperator($id: ID!) {
+        response: flowOperator(id: $id) {
+            id
+            permissions
+            flowRateAllowanceGranted
+            flowRateAllowanceRemaining
+            sender {
+                id
+            }
+            token {
+                id
+            }
+            accountTokenSnapshot {
+                id
+            }
+            flowOperatorUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
         }
     }
 `;

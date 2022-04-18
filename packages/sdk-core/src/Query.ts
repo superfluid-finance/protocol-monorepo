@@ -81,7 +81,7 @@ export interface IQueryOptions {
 }
 
 /**
- * @dev Query Helper Class
+ * Query Helper Class
  * @description A helper class to create `Query` objects which can be used to query different data.
  */
 export default class Query {
@@ -94,24 +94,6 @@ export default class Query {
             this.options.customSubgraphQueriesEndpoint
         );
     }
-
-    /**
-     * A recursive function to fetch all possible results of a paged query.
-     * @param pagedQuery A paginated query that takes {@link Paging} as input.
-     */
-    listAllResults = async <T extends ILightEntity>(
-        pagedQuery: (paging: Paging) => Promise<PagedResult<T>>
-    ): Promise<T[]> => {
-        const listAllRecursively = async (paging: Paging): Promise<T[]> => {
-            const pagedResult = await pagedQuery(paging);
-            if (!pagedResult.nextPaging) return pagedResult.data;
-            const nextResults = await listAllRecursively(
-                pagedResult.nextPaging
-            );
-            return pagedResult.data.concat(nextResults);
-        };
-        return listAllRecursively(createLastIdPaging({ take: 999 }));
-    };
 
     listAllSuperTokens = async (
         filter: ISuperTokenRequestFilter,
@@ -445,7 +427,7 @@ export default class Query {
                 return;
             }
 
-            const allEvents = await this.listAllResults((paging) =>
+            const allEvents = await listAllResults((paging) =>
                 this.listEvents(
                     {
                         account: account,
@@ -488,3 +470,19 @@ export default class Query {
         return unsubscribe;
     }
 }
+
+/**
+ * A recursive function to fetch all possible results of a paged query.
+ * @param pagedQuery A paginated query that takes {@link Paging} as input.
+ */
+export const listAllResults = async <T extends ILightEntity>(
+    pagedQuery: (paging: Paging) => Promise<PagedResult<T>>
+): Promise<T[]> => {
+    const listAllRecursively = async (paging: Paging): Promise<T[]> => {
+        const pagedResult = await pagedQuery(paging);
+        if (!pagedResult.nextPaging) return pagedResult.data;
+        const nextResults = await listAllRecursively(pagedResult.nextPaging);
+        return pagedResult.data.concat(nextResults);
+    };
+    return listAllRecursively(createLastIdPaging({ take: 999 }));
+};

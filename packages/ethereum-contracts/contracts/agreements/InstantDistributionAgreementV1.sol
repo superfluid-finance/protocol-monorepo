@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import {
     IInstantDistributionAgreementV1,
@@ -783,6 +783,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        AgreementLibrary.authorizeTokenAccess(token, ctx);
+
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
 

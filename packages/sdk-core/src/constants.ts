@@ -26,6 +26,14 @@ export const MATIC = "matic";
 export const OPTIMISM_MAINNET = "optimism-mainnet";
 export const ARBITRUM_ONE = "arbitrum-one";
 
+export const AUTHORIZE_FLOW_OPERATOR_CREATE = 1 << 0;
+export const AUTHORIZE_FLOW_OPERATOR_UPDATE = 1 << 1;
+export const AUTHORIZE_FLOW_OPERATOR_DELETE = 1 << 2;
+export const AUTHORIZE_FULL_CONTROL =
+    AUTHORIZE_FLOW_OPERATOR_CREATE |
+    AUTHORIZE_FLOW_OPERATOR_UPDATE |
+    AUTHORIZE_FLOW_OPERATOR_DELETE;
+
 export const chainIds = [
     3, // ROPSTEN
     4, // RINKEBY
@@ -64,6 +72,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-ropsten",
             networkName: ROPSTEN,
             resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -73,6 +82,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-rinkeby",
             networkName: RINKEBY,
             resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -82,6 +92,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli",
             networkName: GOERLI,
             resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -91,6 +102,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet",
             networkName: OPTIMISM_MAINNET,
             resolverAddress: "0x743B5f46BC86caF41bE4956d9275721E0531B186",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -100,6 +112,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-kovan",
             networkName: KOVAN,
             resolverAddress: "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -109,6 +122,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-kovan",
             networkName: OPTIMISM_KOVAN,
             resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -118,6 +132,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
             networkName: GNOSIS,
             resolverAddress: "0xD2009765189164b495c110D61e4D301729079911",
+            nativeTokenSymbol: "xDAI",
         },
     ],
     [
@@ -127,6 +142,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
             networkName: MATIC,
             resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
+            nativeTokenSymbol: "MATIC",
         },
     ],
     [
@@ -136,6 +152,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one",
             networkName: ARBITRUM_ONE,
             resolverAddress: "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F",
+            nativeTokenSymbol: "ETH",
         },
     ],
     [
@@ -145,6 +162,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji",
             networkName: AVALANCHE_FUJI,
             resolverAddress: "0x141920741bC45b962B59c833cd849bA617F7ef38",
+            nativeTokenSymbol: "AVAX",
         },
     ],
     [
@@ -154,6 +172,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai",
             networkName: MUMBAI,
             resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
+            nativeTokenSymbol: "MATIC",
         },
     ],
     [
@@ -163,6 +182,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-rinkeby",
             networkName: ARBITRUM_RINKEBY,
             resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
+            nativeTokenSymbol: "ETH",
         },
     ],
 ]);

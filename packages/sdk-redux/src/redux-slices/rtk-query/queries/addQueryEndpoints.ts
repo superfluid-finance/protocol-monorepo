@@ -49,7 +49,7 @@ export const addQueryEndpoints = (builder: ApiSliceEndpointBuilder) => ({
 
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
-            const underlyingTokenAllowance = await superToken.underlyingToken.allowance({
+            const underlyingTokenAllowance = await superToken.underlyingToken!.allowance({
                 providerOrSigner: framework.settings.provider,
                 owner: arg.accountAddress,
                 spender: superToken.address,

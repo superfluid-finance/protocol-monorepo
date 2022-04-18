@@ -2,8 +2,5 @@
 /coverage
 /.coverage_*
 /reports
-/test/output/*
-/crytic-export
-/corpus
 /artifacts
 /cache

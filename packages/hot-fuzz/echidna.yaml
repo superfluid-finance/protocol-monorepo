@@ -1,0 +1,2 @@
+cryticArgs: ["--solc", "solc-0.8.12"] # "--truffle-ignore-compile"]
+corpusDir: "corpus"

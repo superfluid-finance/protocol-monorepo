@@ -4,13 +4,14 @@ pragma solidity >= 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
-import "../../superfluid/Superfluid.sol";
-import "../../superfluid/SuperToken.sol";
-import "../../test/TestGovernance.sol";
-import "../../agreements/ConstantFlowAgreementV1.sol";
-import "../../agreements/InstantDistributionAgreementV1.sol";
-import "../../apps/CFAv1Library.sol";
-import "../../apps/IDAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/test/TestGovernance.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+
 import "./SuperfluidTester.sol";
 
 abstract contract AbstractBaseFuzzer {

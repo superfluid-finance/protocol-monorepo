@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >= 0.8.0;
 
-import "../../superfluid/Superfluid.sol";
-import "../../superfluid/SuperToken.sol";
-import "../../agreements/ConstantFlowAgreementV1.sol";
-import "../../agreements/InstantDistributionAgreementV1.sol";
-import "../../apps/CFAv1Library.sol";
-import "../../apps/IDAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 contract SuperfluidTester {
 

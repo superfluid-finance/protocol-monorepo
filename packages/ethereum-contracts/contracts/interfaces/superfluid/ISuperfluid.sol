@@ -336,8 +336,7 @@ interface ISuperfluid {
      *
      * [SECURITY] NOTE:
      * - Here we cannot do assertValidCtx(ctx), since we do not really save the stack in memory.
-     * - Hence there is still implicit trust that the agreement library needs to pattern of doing the push/pop pair
-     *   correctly.
+     * - Hence there is still implicit trust that the agreement library doing the callback push/pop pair correctly.
      */
     function appCallbackPop(
         bytes calldata ctx,

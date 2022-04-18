@@ -501,7 +501,6 @@ contract Superfluid is
             }
         } else {
             newCtx = ctx;
-            // no change to the stamped ctx, no stampin gneeded
         }
     }
 

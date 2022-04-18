@@ -236,10 +236,11 @@ contract AgreementMock is AgreementBase {
             "" /* agreementData */
         );
         cbStates.noopBit = noopBit;
-        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
+        ISuperfluid.Context memory appContext;
+        (appContext, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         if (isJailed) {
-            require(newCtx.length == 0, "AgreementMock: callback should not reach jailed app");
-            newCtx = ctx;
+            // appContext.callType is a sufficient check that the callback was not called at all
+            require(appContext.callType == 0, "AgreementMock: callback should not reach jailed app");
         } else {
             require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after callback");
         }

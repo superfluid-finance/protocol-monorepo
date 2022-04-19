@@ -46,7 +46,7 @@ export function getOrInitAccount(
     let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
-    if (accountAddress.equals(ZERO_ADDRESS)) {
+    if (accountAddress.equals(new Address(0))) {
         return account as Account;
     }
 

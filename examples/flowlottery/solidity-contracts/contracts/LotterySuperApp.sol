@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable not-rely-on-time
 pragma solidity 0.8.13;
 
 import {
@@ -192,12 +193,20 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
         // delete flow to old winner
         if (oldWinner != address(0)) {
-            newCtx = cfaV1.deleteFlowWithCtx(newCtx, address(this), oldWinner, _acceptedToken);
+            newCtx = cfaV1.deleteFlowWithCtx(
+                newCtx,
+                address(this),
+                oldWinner,
+                _acceptedToken);
         }
 
         // create flow to new winner
         if (_winner != address(0)) {
-            newCtx = cfaV1.createFlowWithCtx(newCtx, _winner, _acceptedToken, _cfa.getNetFlow(_acceptedToken, address(this)));
+            newCtx = cfaV1.createFlowWithCtx(newCtx,
+                _winner,
+                _acceptedToken,
+                _cfa.getNetFlow(_acceptedToken, address(this))
+                );
         }
 
         emit WinnerChanged(_winner);

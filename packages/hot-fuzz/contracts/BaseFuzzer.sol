@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable reason-string
+// solhint-disable func-name-mixedcase
 pragma solidity >= 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
@@ -48,8 +49,10 @@ contract BaseFuzzer is AbstractBaseFuzzer {
     uint256 private _expectedTotalSupply = INIT_SUPER_TOKEN_BALANCE * N_TEST_ACCOUNTS;
 
     constructor() {
-
-        _host = new Superfluid(true /* nonUpgradable */, false /* appWhiteListingEnabled */);
+        _host = new Superfluid(
+            true, // nonUpgradable,
+            false // appWhiteListingEnabled
+            );
 
         _gov = new TestGovernance();
         _host.initialize(_gov);
@@ -64,6 +67,7 @@ contract BaseFuzzer is AbstractBaseFuzzer {
         _token = new ERC20PresetMinterPauser("FTT", "FTT");
 
         _superToken = new SuperToken(_host);
+
         _superToken.initialize(
             _token,
             18,
@@ -92,6 +96,7 @@ contract BaseFuzzer is AbstractBaseFuzzer {
         override internal view
         returns (SuperfluidTester testerA, SuperfluidTester testerB) {
         testerA = _testers[a % N_TEST_ACCOUNTS];
+        // avoid tester B to be the same as tester A
         testerB = _testers[((a % N_TEST_ACCOUNTS) + (b % (N_TEST_ACCOUNTS - 1))) % N_TEST_ACCOUNTS];
     }
 
@@ -127,25 +132,25 @@ contract BaseFuzzer is AbstractBaseFuzzer {
         _expectedTotalSupply -= amount;
     }
 
-    function totalSupplyInvariant() public view {
-        assert(_superToken.totalSupply() == _expectedTotalSupply);
+    function echidna_check_total_supply() public view returns (bool) {
+        return _superToken.totalSupply() == _expectedTotalSupply;
     }
 
-    function liquiditySumInvanriant() public view {
+    function echidna_check_liquiditySumInvariance() public view returns (bool) {
         int256 liquiditySum;
         for (uint i = 0; i < N_TEST_ACCOUNTS; ++i) {
             (int256 avb, uint256 d, uint256 od, ) = _superToken.realtimeBalanceOfNow(address(_testers[i]));
             liquiditySum += avb + int256(d) - int256(od);
         }
-        assert(int256(_expectedTotalSupply) == liquiditySum);
+        return int256(_expectedTotalSupply) == liquiditySum;
     }
 
-    function netFlowRateSumInvanriant() public view {
+    function echidna_check_netFlowRateSumInvariant() public view returns (bool) {
         int96 netFlowRateSum;
         for (uint i = 0; i < N_TEST_ACCOUNTS; ++i) {
             netFlowRateSum += _cfa.getNetFlow(_superToken, address(_testers[i]));
         }
-        assert(netFlowRateSum == 0);
+        return netFlowRateSum == 0;
     }
 
 }

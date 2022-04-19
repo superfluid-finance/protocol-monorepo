@@ -21,4 +21,5 @@ abstract contract AbstractCFAFuzzer is AbstractBaseFuzzer {
 
 }
 
+// solhint-disable-next-line no-empty-blocks
 contract CFAFuzzer is AbstractCFAFuzzer, BaseFuzzer { }

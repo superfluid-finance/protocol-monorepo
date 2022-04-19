@@ -64,4 +64,5 @@ abstract contract AbstractIDAFuzzer is AbstractBaseFuzzer {
 
 }
 
+// solhint-disable-next-line no-empty-blocks
 contract IDAFuzzer is AbstractIDAFuzzer, BaseFuzzer { }

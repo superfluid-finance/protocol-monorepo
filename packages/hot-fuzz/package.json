@@ -1,11 +1,13 @@
 {
     "name": "@superfluid-finance/hot-fuzz",
     "version": "0.1.0",
-    "description": "A hot fuzz for testing Superfluid protocol and Super Apps.",
+    "description": "A hot fuzz for testing Superfluid protocol and Super Apps",
     "main": "index.js",
     "scripts": {
-        "test": "make test",
-        "pre-commit": "true"
+        "lint": "run-s lint:*",
+        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
+        "pre-commit:lint": "yarn lint"
     },
     "repository": {
         "type": "git",

@@ -46,7 +46,7 @@ export function getOrInitAccount(
     let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
-    if (accountAddress.equals(new Address(0))) {
+    if (accountAddress.equals(ZERO_ADDRESS)) {
         return account as Account;
     }
 
@@ -381,6 +381,11 @@ export function getOrInitAccountTokenSnapshot(
 ): AccountTokenSnapshot {
     let atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
+
+    // filter out 0 address ATS
+    if (accountAddress.equals(ZERO_ADDRESS)) {
+        return accountTokenSnapshot as AccountTokenSnapshot;
+    }
 
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);

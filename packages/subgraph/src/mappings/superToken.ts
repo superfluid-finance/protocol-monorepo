@@ -20,6 +20,7 @@ import {
 } from "../../generated/schema";
 import { createEventID, tokenHasValidHost } from "../utils";
 import {
+    getOrInitAccount,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
     updateAggregateEntitiesTransferData,
@@ -101,6 +102,8 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
 
     createTokenUpgradedEntity(event);
 
+    getOrInitAccount(event.params.account, event.block);
+
     getOrInitSuperToken(event.address, event.block);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
@@ -118,6 +121,8 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
     }
 
     createTokenDowngradedEntity(event);
+
+    getOrInitAccount(event.params.account, event.block);
 
     getOrInitSuperToken(event.address, event.block);
 

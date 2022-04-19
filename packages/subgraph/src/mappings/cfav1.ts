@@ -227,15 +227,6 @@ function endStreamPeriod(
     incrementPeriodRevisionIndex(streamRevision);
 }
 
-function clipDepositNumber(deposit: BigInt, roundingDown: boolean): BigInt {
-    const rounding = roundingDown
-        ? 0
-        : deposit.bitAnd(BigInt.fromI32(0xffffffff)).isZero()
-        ? 0
-        : 1;
-    return deposit.rightShift(32).plus(BigInt.fromI32(rounding)).leftShift(32);
-}
-
 export function handleStreamUpdated(event: FlowUpdated): void {
     let senderAddress = event.params.sender;
     let receiverAddress = event.params.receiver;

@@ -46,7 +46,7 @@ export function getOrInitAccount(
     let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
-    if (accountAddress.equals(new Address(0))) {
+    if (accountAddress.equals(ZERO_ADDRESS)) {
         return account as Account;
     }
 
@@ -115,7 +115,7 @@ export function getOrInitSuperToken(
         // If the token has an underlying ERC20, we create a token entity for it.
         let underlyingToken = Token.load(token.underlyingAddress.toHex());
         if (
-            underlyingAddress.notEqual(new Address(0)) &&
+            underlyingAddress.notEqual(ZERO_ADDRESS) &&
             underlyingToken == null
         ) {
             let address = Address.fromString(underlyingAddress.toHexString());
@@ -443,14 +443,12 @@ export function updateAccountUpdatedAt(
     accountAddress: Address,
     block: ethereum.Block
 ): void {
-    // filter out 0 address accounts
-    if (accountAddress.equals(new Address(0))) {
-        return;
-    }
     let account = getOrInitAccount(accountAddress, block);
-    account.updatedAtTimestamp = block.timestamp;
-    account.updatedAtBlockNumber = block.number;
-    account.save();
+    if (account) {
+        account.updatedAtTimestamp = block.timestamp;
+        account.updatedAtBlockNumber = block.number;
+        account.save();
+    }
 }
 
 /**************************************************************************

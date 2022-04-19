@@ -4,7 +4,6 @@ import {
     ethereum,
     Address,
     log,
-    crypto,
 } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
@@ -62,7 +61,7 @@ export function getTokenInfoAndReturn(
     let symbolResult = tokenContract.try_symbol();
     let decimalsResult = tokenContract.try_decimals();
     token.underlyingAddress = underlyingAddressResult.reverted
-        ? new Address(0)
+        ? ZERO_ADDRESS
         : underlyingAddressResult.value;
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
@@ -83,7 +82,7 @@ export function getIsListedToken(
     let result = resolverContract.try_get(
         "supertokens." + version + "." + token.symbol
     );
-    let superTokenAddress = result.reverted ? new Address(0) : result.value;
+    let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;
 }

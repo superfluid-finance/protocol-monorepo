@@ -381,6 +381,12 @@ export function getOrInitAccountTokenSnapshot(
 ): AccountTokenSnapshot {
     let atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
+
+    // filter out 0 address ATS
+    if (accountAddress.equals(ZERO_ADDRESS)) {
+        return accountTokenSnapshot as AccountTokenSnapshot;
+    }
+
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;

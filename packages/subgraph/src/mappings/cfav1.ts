@@ -119,9 +119,9 @@ function handleStreamPeriodUpdate(
     newDeposit: BigInt
 ): void {
     let streamRevision = getOrInitStreamRevision(
-        eventEntity.sender.toHex(),
-        eventEntity.receiver.toHex(),
-        eventEntity.token.toHex()
+        eventEntity.sender,
+        eventEntity.receiver,
+        eventEntity.token
     );
     let flowActionType = getFlowActionType(
         previousFlowRate,
@@ -277,19 +277,14 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     stream.deposit = newDeposit;
     stream.save();
 
-    // create or update streamPeriod entity
-    let senderId = senderAddress.toHex();
-    let receiverId = receiverAddress.toHex();
-    let tokenId = tokenAddress.toHex();
-
     let flowRateDelta = flowRate.minus(oldFlowRate);
     let isCreate = oldFlowRate.equals(BIG_INT_ZERO);
     let isDelete = flowRate.equals(BIG_INT_ZERO);
     if (isDelete) {
         let streamRevision = getOrInitStreamRevision(
-            senderId,
-            receiverId,
-            tokenId
+            senderAddress,
+            receiverAddress,
+            tokenAddress
         );
         streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
         streamRevision.save();

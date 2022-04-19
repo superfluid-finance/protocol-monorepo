@@ -131,22 +131,28 @@ export function tokenHasValidHost(
 
 // Get Higher Order Entity ID functions
 // CFA Higher Order Entity
-export function getStreamRevisionPrefix(
-    senderId: string,
-    receiverId: string,
-    tokenId: string
+export function getStreamRevisionID(
+    senderAddress: Address,
+    receiverAddress: Address,
+    tokenAddress: Address
 ): string {
-    return senderId + "-" + receiverId + "-" + tokenId;
+    return (
+        senderAddress.toHex() +
+        "-" +
+        receiverAddress.toHex() +
+        "-" +
+        tokenAddress.toHex()
+    );
 }
 
 export function getStreamID(
-    senderId: string,
-    receiverId: string,
-    tokenId: string,
+    senderAddress: Address,
+    receiverAddress: Address,
+    tokenAddress: Address,
     revisionIndex: number
 ): string {
     return (
-        getStreamRevisionPrefix(senderId, receiverId, tokenId) +
+        getStreamRevisionID(senderAddress, receiverAddress, tokenAddress) +
         "-" +
         revisionIndex.toString()
     );
@@ -160,18 +166,24 @@ export function getStreamPeriodID(
 }
 
 export function getFlowOperatorID(
-    flowOperator: Bytes,
-    token: Bytes,
-    sender: Bytes
+    flowOperatorAddress: Address,
+    tokenAddress: Address,
+    senderAddress: Address
 ): string {
-    return flowOperator.toHex() + "-" + token.toHex() + "-" + sender.toHex();
+    return (
+        flowOperatorAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        senderAddress.toHex()
+    );
 }
 
 // IDA Higher Order Entity
 export function getSubscriptionID(
-    subscriberAddress: Bytes,
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
+    subscriberAddress: Address,
+    publisherAddress: Address,
+    tokenAddress: Address,
     indexId: BigInt
 ): string {
     return (
@@ -186,8 +198,8 @@ export function getSubscriptionID(
 }
 
 export function getIndexID(
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
+    publisherAddress: Address,
+    tokenAddress: Address,
     indexId: BigInt
 ): string {
     return (
@@ -197,6 +209,14 @@ export function getIndexID(
         "-" +
         indexId.toString()
     );
+}
+
+// Get Aggregate ID functions
+export function getAccountTokenSnapshotID(
+    accountAddress: Address,
+    tokenAddress: Address
+): string {
+    return accountAddress.toHex() + "-" + tokenAddress.toHex();
 }
 
 // Get HOL Exists Functions
@@ -225,12 +245,4 @@ export function getAmountStreamedSinceLastUpdatedAt(
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(previousTotalOutflowRate);
-}
-
-// Get Aggregate ID functions
-export function getAccountTokenSnapshotID(
-    accountId: Bytes,
-    tokenId: Bytes
-): string {
-    return accountId.toHex() + "-" + tokenId.toHex();
 }

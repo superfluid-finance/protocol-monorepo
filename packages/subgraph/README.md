@@ -140,6 +140,8 @@ Open another terminal window and run `./setup_graph.sh` and your local graph wil
 
 > Note: You can check out this [blog post](https://medium.com/blockrocket/dapp-development-with-a-local-subgraph-ganache-setup-566a4d4cbb) for more details if you run into any issues.
 
+> Another note: If you are using an M1 mac, follow the instructions [here](https://github.com/graphprotocol/graph-node/tree/master/docker#running-graph-node-on-an-macbook-m1) otherwise you will probably run into issues.
+
 You should see ganache logs start coming in:
 
 ```

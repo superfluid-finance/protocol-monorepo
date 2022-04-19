@@ -5,7 +5,7 @@ import {getFramework} from '../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 
-import {invalidateCacheTagsForEvents} from './invalidateCacheTagsForEvents';
+import {invalidateSpecificCacheTagsForEvents} from './invalidateSpecificCacheTagsForEvents';
 
 /**
  * Monitors given address for next event to invalidate cache and then stops.
@@ -21,7 +21,7 @@ export const monitorAddressForNextEventToInvalidateCache = async (
     const framework = await getFramework(transactionInfo.chainId);
     framework.query.on(
         (events, unsubscribe) => {
-            invalidateCacheTagsForEvents(transactionInfo.chainId, events, dispatch);
+            invalidateSpecificCacheTagsForEvents(transactionInfo.chainId, events, dispatch);
             unsubscribe();
         },
         MillisecondTimes.OneSecond,

@@ -26,9 +26,9 @@ import {
 } from '@superfluid-finance/sdk-core';
 
 import {getSubgraphClient} from '../../../../sdkReduxConfig';
-import {CacheTagType} from '../../cacheTags/CacheTagTypes';
+import {createGeneralTags} from '../../cacheTags/CacheTagTypes';
 import {CacheTime} from '../../cacheTime';
-import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
+import {provideSpecificCacheTagsFromRelevantAddresses} from '../provideSpecificCacheTagsFromRelevantAddresses';
 import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
 import {
@@ -54,22 +54,22 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
     // NOTE: Ignoring prettier because longer lines are more readable here.
     // prettier-ignore
     return {
-        account: get<Account, AccountQuery>(builder, new AccountQueryHandler(), "Event"),
-        accounts: list<Account, AccountsQuery>(builder, new AccountQueryHandler(), "Event"),
-        accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(builder, new AccountTokenSnapshotQueryHandler(), "Event"),
-        accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(builder, new AccountTokenSnapshotQueryHandler(), "Event"),
-        index: get<Index, IndexQuery>(builder, new IndexQueryHandler(), "Index"),
-        indexes: list<Index, IndexesQuery>(builder, new IndexQueryHandler(), "Index"),
-        indexSubscription: get<IndexSubscription, IndexSubscriptionQuery>(builder, new IndexSubscriptionQueryHandler(), "Index"),
-        indexSubscriptions: list<IndexSubscription, IndexSubscriptionsQuery>(builder, new IndexSubscriptionQueryHandler(), "Index"),
-        stream: get<Stream, StreamQuery>(builder, new StreamQueryHandler(), "Stream"),
-        streams: list<Stream, StreamsQuery>(builder, new StreamQueryHandler(), "Stream"),
-        streamPeriod: get<StreamPeriod, StreamPeriodQuery>(builder, new StreamPeriodQueryHandler(), "Stream"),
-        streamPeriods: list<StreamPeriod, StreamPeriodsQuery>(builder, new StreamPeriodQueryHandler(), "Stream"),
-        token: get<Token, TokenQuery>(builder, new TokenQueryHandler(), "TokenList", CacheTime.ThreeMinutes),
-        tokens: list<Token, TokensQuery>(builder, new TokenQueryHandler(), "TokenList"),
-        tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(builder, new TokenStatisticQueryHandler(), "Event"),
-        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler(), "Event")
+        account: get<Account, AccountQuery>(builder, new AccountQueryHandler()),
+        accounts: list<Account, AccountsQuery>(builder, new AccountQueryHandler()),
+        accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(builder, new AccountTokenSnapshotQueryHandler()),
+        accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(builder, new AccountTokenSnapshotQueryHandler()),
+        index: get<Index, IndexQuery>(builder, new IndexQueryHandler()),
+        indexes: list<Index, IndexesQuery>(builder, new IndexQueryHandler()),
+        indexSubscription: get<IndexSubscription, IndexSubscriptionQuery>(builder, new IndexSubscriptionQueryHandler()),
+        indexSubscriptions: list<IndexSubscription, IndexSubscriptionsQuery>(builder, new IndexSubscriptionQueryHandler()),
+        stream: get<Stream, StreamQuery>(builder, new StreamQueryHandler()),
+        streams: list<Stream, StreamsQuery>(builder, new StreamQueryHandler()),
+        streamPeriod: get<StreamPeriod, StreamPeriodQuery>(builder, new StreamPeriodQueryHandler()),
+        streamPeriods: list<StreamPeriod, StreamPeriodsQuery>(builder, new StreamPeriodQueryHandler()),
+        token: get<Token, TokenQuery>(builder, new TokenQueryHandler(), CacheTime.ThreeMinutes),
+        tokens: list<Token, TokensQuery>(builder, new TokenQueryHandler()),
+        tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(builder, new TokenStatisticQueryHandler()),
+        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler())
     };
 };
 
@@ -79,7 +79,6 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
 function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & SubgraphGetQuery>(
     builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphGetQueryHandler<TReturn> & RelevantAddressProviderFromResult<TReturn>,
-    tag: CacheTagType,
     cacheTime?: CacheTime
 ) {
     return builder.query<TReturn | null, TQuery>({
@@ -89,12 +88,13 @@ function get<TReturn extends ILightEntity, TQuery extends {chainId: number} & Su
                 data: await queryHandler.get(subgraphClient, arg),
             };
         },
-        providesTags: (result, _error, arg) =>
-            provideCacheTagsFromRelevantAddresses(
+        providesTags: (result, _error, arg) => [
+            ...createGeneralTags({chainId: arg.chainId}),
+            ...provideSpecificCacheTagsFromRelevantAddresses(
                 arg.chainId,
-                queryHandler.getRelevantAddressesFromResult(result),
-                tag
+                queryHandler.getRelevantAddressesFromResult(result)
             ),
+        ],
         keepUnusedDataFor: cacheTime ?? CacheTime.OneMinute,
     });
 }
@@ -110,7 +110,6 @@ function list<
 >(
     builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>,
-    tag: CacheTagType,
     cacheTime?: CacheTime
 ) {
     return builder.query<PagedResult<TReturn>, TQuery>({
@@ -120,12 +119,13 @@ function list<
                 data: await queryHandler.list(subgraphClient, arg),
             };
         },
-        providesTags: (_result, _error, arg) =>
-            provideCacheTagsFromRelevantAddresses(
+        providesTags: (_result, _error, arg) => [
+            ...createGeneralTags({chainId: arg.chainId}),
+            ...provideSpecificCacheTagsFromRelevantAddresses(
                 arg.chainId,
-                queryHandler.getRelevantAddressesFromFilter(arg.filter),
-                tag
+                queryHandler.getRelevantAddressesFromFilter(arg.filter)
             ),
+        ],
         keepUnusedDataFor: cacheTime ?? CacheTime.OneMinute,
     });
 }

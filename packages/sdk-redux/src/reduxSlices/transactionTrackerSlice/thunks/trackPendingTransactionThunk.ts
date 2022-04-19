@@ -7,7 +7,7 @@ import promiseRetry from 'promise-retry';
 import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTrackerSlice} from '../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
-import {createTag} from '../../rtkQuery/cacheTags/CacheTagTypes';
+import {createGeneralTags} from '../../rtkQuery/cacheTags/CacheTagTypes';
 import {EthersError} from '../ethersError';
 import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
@@ -39,7 +39,7 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                 })
             );
 
-            dispatch(getRpcApiSlice().util.invalidateTags([createTag('Event', '')]));
+            dispatch(getRpcApiSlice().util.invalidateTags(createGeneralTags({chainId: arg.chainId})));
 
             monitorForLateErrors(framework.settings.provider, {chainId: arg.chainId, hash: transactionHash}, dispatch);
 
@@ -59,13 +59,7 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                     forever: true,
                 }
             ).then((_subgraphEventsQueryResult) =>
-                dispatch(
-                    // TODO(KK): Temporary fool-proof simple solution for cache invalidation because of not perfect system of cache tags.
-                    getSubgraphApiSlice().util.resetApiState()
-                    // getSubgraphApiSlice().util.invalidateTags(
-                    //     getCacheTagsToInvalidateForEvents(arg.chainId, subgraphEventsQueryResult.data)
-                    // )
-                )
+                dispatch(getSubgraphApiSlice().util.invalidateTags(createGeneralTags({chainId: arg.chainId})))
             );
         })
         .catch((ethersError: EthersError) => {
@@ -84,9 +78,8 @@ const monitorForLateErrors = (
         // When there's no error then that means a re-org didn't happen.
         .catch((ethersError: EthersError) => {
             if (ethersError.code != ethers.errors.TIMEOUT) {
-                // Completely reset API cache.
-                dispatch(getRpcApiSlice().util.resetApiState());
-                dispatch(getSubgraphApiSlice().util.resetApiState());
+                dispatch(getRpcApiSlice().util.invalidateTags(createGeneralTags({chainId})));
+                dispatch(getSubgraphApiSlice().util.invalidateTags(createGeneralTags({chainId})));
                 notifyOfError(ethersError, {chainId, hash: hash}, dispatch);
             }
         });

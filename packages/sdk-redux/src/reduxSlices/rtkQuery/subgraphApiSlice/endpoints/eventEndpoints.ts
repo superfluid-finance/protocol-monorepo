@@ -18,8 +18,9 @@ import {
 } from '@superfluid-finance/sdk-core';
 
 import {getSubgraphClient} from '../../../../sdkReduxConfig';
+import {createGeneralTags} from '../../cacheTags/CacheTagTypes';
 import {CacheTime} from '../../cacheTime';
-import {provideCacheTagsFromRelevantAddresses} from '../provideCacheTagsFromRelevantAddresses';
+import {provideSpecificCacheTagsFromRelevantAddresses} from '../provideSpecificCacheTagsFromRelevantAddresses';
 import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
 import {
@@ -85,11 +86,12 @@ function list<
                 data: await queryHandler.list(subgraphClient, arg),
             };
         },
-        providesTags: (_result, _error, arg) =>
-            provideCacheTagsFromRelevantAddresses(
+        providesTags: (_result, _error, arg) => [
+            ...createGeneralTags({chainId: arg.chainId}),
+            ...provideSpecificCacheTagsFromRelevantAddresses(
                 arg.chainId,
-                queryHandler.getRelevantAddressesFromFilter(arg.filter),
-                'Event'
+                queryHandler.getRelevantAddressesFromFilter(arg.filter)
             ),
+        ],
     });
 }

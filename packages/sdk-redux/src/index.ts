@@ -28,7 +28,7 @@ export * from './reduxSlices/rtkQuery/rpcApiSlice/endpoints/indexArgs';
 export * from './reduxSlices/rtkQuery/rpcApiSlice/endpoints/superTokenArgs';
 export * from './reduxSlices/rtkQuery/rpcApiSlice/endpoints/superTokenEndpoints';
 
-export * from './reduxSlices/rtkQuery/subgraphApiSlice/provideCacheTagsFromRelevantAddresses';
+export * from './reduxSlices/rtkQuery/subgraphApiSlice/provideSpecificCacheTagsFromRelevantAddresses';
 export * from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphApiSlice';
 export * from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphBaseQuery';
 export * from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphEndpointBuilder';

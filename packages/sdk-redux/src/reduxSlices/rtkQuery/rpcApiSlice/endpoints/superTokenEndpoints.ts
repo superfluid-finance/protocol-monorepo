@@ -1,7 +1,7 @@
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionTrackerSlice/registerNewTransaction';
-import {createTag} from '../../cacheTags/CacheTagTypes';
+import {createGeneralTags, createSpecificTags} from '../../cacheTags/CacheTagTypes';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
 
 import {
@@ -50,7 +50,12 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             };
         },
         providesTags: (_result, _error, arg) => [
-            createTag('Balance', arg.chainId, arg.superTokenAddress, arg.accountAddress),
+            ...createGeneralTags({chainId: arg.chainId}),
+            ...createSpecificTags({
+                chainId: arg.chainId,
+                address1: arg.superTokenAddress,
+                address2: arg.accountAddress,
+            }),
         ],
     }),
     superTokenDowngrade: builder.mutation<TransactionInfo, SuperTokenDowngradeMutation>({

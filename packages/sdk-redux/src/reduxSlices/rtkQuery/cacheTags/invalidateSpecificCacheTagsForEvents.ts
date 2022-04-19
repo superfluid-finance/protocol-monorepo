@@ -4,12 +4,12 @@ import {uniqBy} from 'lodash';
 
 import {getRpcApiSlice, getSubgraphApiSlice} from '../../../sdkReduxConfig';
 
-import {createTags} from './CacheTagTypes';
+import {createSpecificTags} from './CacheTagTypes';
 
 /**
  * Get all the possible event tags. Run a deduplication to avoid unnecessary work in the redux store.
  */
-export const getCacheTagsToInvalidateForEvents = (chainId: number, events: AllEvents[]) =>
+export const getSpecificCacheTagsToInvalidateForEvents = (chainId: number, events: AllEvents[]) =>
     uniqBy(events.map((event) => [...getEventSpecificTags(event, chainId)]).flat(), (tag) => tag.type + tag.id);
 
 /**
@@ -18,12 +18,12 @@ export const getCacheTagsToInvalidateForEvents = (chainId: number, events: AllEv
  * @private
  * @category Cache Tags
  */
-export const invalidateCacheTagsForEvents = (
+export const invalidateSpecificCacheTagsForEvents = (
     chainId: number,
     events: AllEvents[],
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
-    const tagsToInvalidate = getCacheTagsToInvalidateForEvents(chainId, events);
+    const tagsToInvalidate = getSpecificCacheTagsToInvalidateForEvents(chainId, events);
 
     dispatch(getRpcApiSlice().util.invalidateTags(tagsToInvalidate));
     dispatch(getSubgraphApiSlice().util.invalidateTags(tagsToInvalidate));
@@ -39,7 +39,7 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
         case 'SubscriptionDistributionClaimed':
         case 'SubscriptionRevoked':
         case 'SubscriptionUnitsUpdated':
-            return createTags(['Index'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
                 address2: event.publisher,
@@ -47,13 +47,13 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
             });
         case 'IndexCreated':
         case 'IndexUpdated':
-            return createTags(['Index', 'Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
                 address2: event.publisher,
             });
         case 'FlowUpdated':
-            return createTags(['Stream', 'Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
                 address2: event.sender,
@@ -61,13 +61,13 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
             });
         case 'TokenUpgraded':
         case 'TokenDowngraded':
-            return createTags(['Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
                 address2: event.account,
             });
         case 'Transfer':
-            return createTags(['Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
                 address2: event.from,
@@ -75,17 +75,17 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
             });
         case 'AgreementLiquidatedV2':
             return [
-                createTags(['Balance'], {
+                createSpecificTags({
                     chainId,
                     address1: event.token,
                     address2: event.liquidatorAccount,
                 }),
-                createTags(['Balance'], {
+                createSpecificTags({
                     chainId,
                     address1: event.token,
                     address2: event.rewardAccount,
                 }),
-                createTags(['Balance'], {
+                createSpecificTags({
                     chainId,
                     address1: event.token,
                     address2: event.targetAccount,
@@ -93,45 +93,45 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
             ].flat();
         case 'AgreementLiquidatedBy':
             return [
-                createTags(['Balance'], {
+                createSpecificTags({
                     chainId,
                     address1: event.token,
                     address2: event.penaltyAccount,
                 }),
-                createTags(['Balance'], {
+                createSpecificTags({
                     chainId,
                     address1: event.token,
                     address2: event.bondAccount,
                 }),
-                createTags(['Balance'], {
+                createSpecificTags({
                     chainId,
                     address1: event.token,
                     address2: event.rewardAmount,
                 }),
             ].flat();
         case 'CustomSuperTokenCreated':
-            return createTags(['TokenList', 'Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
             });
         case 'Minted':
-            return createTags(['TokenList', 'Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.to,
             });
         case 'Sent':
-            return createTags(['Balance'], {
+            return createSpecificTags({
                 chainId,
                 address1: event.to,
             });
         case 'SuperTokenLogicUpdated':
         case 'SuperTokenCreated':
-            return createTags([], {
+            return createSpecificTags({
                 chainId,
                 address1: event.token,
             });
         case 'TrustedForwarderChanged':
-            return createTags([], {
+            return createSpecificTags({
                 chainId,
                 address1: event.superToken,
             });

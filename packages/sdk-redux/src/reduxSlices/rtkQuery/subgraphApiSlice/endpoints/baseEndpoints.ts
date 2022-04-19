@@ -1,6 +1,6 @@
 import {getFramework, getSubgraphClient} from '../../../../sdkReduxConfig';
 import {MillisecondTimes} from '../../../../utils';
-import {invalidateCacheTagsForEvents} from '../../cacheTags/invalidateCacheTagsForEvents';
+import {invalidateSpecificCacheTagsForEvents} from '../../cacheTags/invalidateSpecificCacheTagsForEvents';
 import {CacheTime} from '../../cacheTime';
 import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
@@ -30,7 +30,7 @@ export const createBaseEndpoints = (builder: SubgraphEndpointBuilder) => ({
 
             const unsubscribe = framework.query.on(
                 (events) => {
-                    invalidateCacheTagsForEvents(arg.chainId, events, dispatch);
+                    invalidateSpecificCacheTagsForEvents(arg.chainId, events, dispatch);
                 },
                 MillisecondTimes.TwentySeconds,
                 arg.address

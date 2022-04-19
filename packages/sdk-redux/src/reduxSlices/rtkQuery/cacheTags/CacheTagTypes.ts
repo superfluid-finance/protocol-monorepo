@@ -2,21 +2,19 @@ import {insertIf, typeGuard} from '../../../utils';
 import {NothingString} from '../../argTypes';
 
 /**
- * All possible cache tag types.
- *
- * @private
- * @category Cache Tags
+ * Cache tag types for queries. Read more about caching from RTK-Query documentation: https://redux-toolkit.js.org/rtk-query/usage/automated-refetching#cache-tags
+ * Types of our cache tags:
+ * - GENERAL: Very general tagging of the query, e.g. only to the specificity of the chain. These tags are rarely invalidated.
+ * - SPECIFIC: As specific tagging of the query as possible, e.g. chain + token + address. These tags are often invalidated when listening to blockchain events.
  */
-export type CacheTagType = 'Event' | 'TokenList' | 'Index' | 'Stream' | 'Balance'; // NOTE: If you add a type here then you have to also add it to tag types on the RTK Query slices.
+export type CacheTagType = 'GENERAL' | 'SPECIFIC';
 
-export const cacheTagTypes = typeGuard<CacheTagType[]>(['Event', 'TokenList', 'Index', 'Stream', 'Balance']);
+export const cacheTagTypes = typeGuard<CacheTagType[]>(['GENERAL', 'SPECIFIC']);
 
 /**
  * Create a cache tag for RTK-Query.
- * @private
- * @category Cache Tags
  */
-export const createTag = (type: CacheTagType, ...keys: (string | number | undefined)[]) => ({
+const createTag = (type: CacheTagType, ...keys: (string | number | undefined)[]) => ({
     type: type,
     id: keys
         .filter((x) => x !== undefined)
@@ -41,29 +39,29 @@ type CacheTagPayload = {
     address3?: string | NothingString;
 };
 
-export const createTags = (
-    specificTagTypes: Exclude<CacheTagType, 'Event'>[],
+const createTags = (
+    tagType: CacheTagType,
     {chainId, address1, address2, address3}: CacheTagPayload
 ): ReturnType<typeof createTag>[] =>
     [
-        createTag('Event', chainId),
-        ...insertIf(address1, () => [createTag('Event', chainId, address1!)]),
-        ...insertIf(address2, () => [createTag('Event', chainId, address2!)]),
-        ...insertIf(address3, () => [createTag('Event', chainId, address3!)]),
-    ].concat(
-        specificTagTypes
-            .map((tagType) => [
-                createTag(tagType, chainId),
-                ...insertIf(address1, () => [createTag(tagType, chainId, address1!)]),
-                ...insertIf(address2, () => [
-                    createTag(tagType, chainId, address2!),
-                    createTag(tagType, chainId, address1!, address2!),
-                ]),
-                ...insertIf(address3, () => [
-                    createTag(tagType, chainId, address3!),
-                    createTag(tagType, chainId, address1!, address3!),
-                    createTag(tagType, chainId, address1!, address2!, address3!),
-                ]),
-            ])
-            .flat()
-    );
+        createTag(tagType, chainId),
+        ...insertIf(address1, () => [createTag(tagType, chainId, address1!)]),
+        ...insertIf(address2, () => [
+            createTag(tagType, chainId, address2!),
+            createTag(tagType, chainId, address1!, address2!),
+        ]),
+        ...insertIf(address3, () => [
+            createTag(tagType, chainId, address3!),
+            createTag(tagType, chainId, address1!, address3!),
+            createTag(tagType, chainId, address1!, address2!, address3!),
+        ]),
+    ].flat();
+
+export const createSpecificTags = (payload: CacheTagPayload) => createTags('SPECIFIC', payload);
+
+export const createMostSpecificTag = (payload: CacheTagPayload) => createTags('SPECIFIC', payload).reverse()[0];
+
+/**
+ * Not going more general than the chain for now.
+ */
+export const createGeneralTags = ({chainId}: {chainId: number}) => createTags('GENERAL', {chainId});

@@ -18,7 +18,8 @@ All notable changes to the SDK-redux will be documented in this file.
   - RPC is invalidated in its entirety for now
   - Subgraph is polled for the block events of the successful transaction to invalidate the slice normally (based on the event type and its data)
 - Save timestamp on the tracked transaction of when tracking started
-- Simplify caching logic (needs more work regarding which events invalidate what exactly)
+- Simplify caching logic to just "GENERAL" & "SPECIFIC" tags (NOTE: cache tagging mechanism and the invalidation mechanism need more work)
+  - The idea behind the simplified chaching logic is that sometimes we need to _force_ invalidate the whole chain or the whole token cache. That's then we use the _general_ tag for invalidation. As a rule of thumb, all queries _should_ provide general cache tags. Other times, when we're listening to the blockchain and only want to invalidate specific parts and not _over_ invalidate the cache, then we use the _specific_ cache tags.
 
 ## [0.2.2] - 2022-03-16
 

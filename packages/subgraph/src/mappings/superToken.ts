@@ -28,13 +28,13 @@ import {
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
-import { BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
-    liquidatorAccount: Bytes,
-    targetAccount: Bytes,
-    bondAccount: Bytes
+    liquidatorAccount: Address,
+    targetAccount: Address,
+    bondAccount: Address
 ): void {
     getOrInitSuperToken(event.address, event.block);
 

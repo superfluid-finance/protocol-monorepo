@@ -25,6 +25,13 @@ export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 
 /**************************************************************************
+ * Convenience Conversions
+ *************************************************************************/
+export function bytesToAddress(bytes: Bytes): Address {
+    return Address.fromBytes(bytes);
+}
+
+/**************************************************************************
  * Event entities util functions
  *************************************************************************/
 

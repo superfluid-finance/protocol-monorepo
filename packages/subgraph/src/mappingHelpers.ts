@@ -546,7 +546,7 @@ function updateATSBalanceAndUpdatedAt(
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountAddress: Address,
-    tokenAddress: Bytes,
+    tokenAddress: Address,
     block: ethereum.Block
 ): void {
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(

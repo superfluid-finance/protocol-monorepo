@@ -20,6 +20,7 @@ import {
     getFlowOperatorID,
     MAX_FLOW_RATE,
     ZERO_ADDRESS,
+    bytesToAddress,
 } from "../utils";
 import {
     getOrInitFlowOperator,
@@ -113,19 +114,20 @@ function getFlowActionType(
 }
 
 function handleStreamPeriodUpdate(
+    event: FlowUpdated,
     eventEntity: FlowUpdatedEvent,
     previousFlowRate: BigInt,
     streamId: string,
     newDeposit: BigInt
 ): void {
     let streamRevision = getOrInitStreamRevision(
-        eventEntity.sender,
-        eventEntity.receiver,
-        eventEntity.token
+        event.params.sender,
+        event.params.receiver,
+        event.params.token
     );
     let flowActionType = getFlowActionType(
         previousFlowRate,
-        eventEntity.flowRate
+        event.params.flowRate
     );
     let previousStreamPeriod = StreamPeriod.load(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
@@ -133,7 +135,8 @@ function handleStreamPeriodUpdate(
     switch (flowActionType) {
         case FlowActionType.create:
             startStreamPeriod(
-                eventEntity,
+                eventEntity.id,
+                event,
                 streamRevision,
                 streamId,
                 newDeposit
@@ -146,13 +149,15 @@ function handleStreamPeriodUpdate(
                 );
             }
             endStreamPeriod(
+                eventEntity.id,
                 previousStreamPeriod as StreamPeriod,
-                eventEntity,
+                event,
                 streamRevision,
                 previousFlowRate
             );
             startStreamPeriod(
-                eventEntity,
+                eventEntity.id,
+                event,
                 streamRevision,
                 streamId,
                 newDeposit
@@ -165,8 +170,9 @@ function handleStreamPeriodUpdate(
                 );
             }
             endStreamPeriod(
+                eventEntity.id,
                 previousStreamPeriod as StreamPeriod,
-                eventEntity,
+                event,
                 streamRevision,
                 previousFlowRate
             );
@@ -182,7 +188,8 @@ function incrementPeriodRevisionIndex(streamRevision: StreamRevision): void {
 }
 
 function startStreamPeriod(
-    event: FlowUpdatedEvent,
+    flowUpdatedEventId: string,
+    event: FlowUpdated,
     streamRevision: StreamRevision,
     streamId: string,
     newDeposit: BigInt
@@ -190,28 +197,29 @@ function startStreamPeriod(
     let streamPeriod = new StreamPeriod(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
     );
-    streamPeriod.sender = event.sender.toHex();
-    streamPeriod.receiver = event.receiver.toHex();
-    streamPeriod.token = event.token.toHex();
-    streamPeriod.flowRate = event.flowRate;
-    streamPeriod.startedAtTimestamp = event.timestamp;
-    streamPeriod.startedAtBlockNumber = event.blockNumber;
-    streamPeriod.startedAtEvent = event.id;
+    streamPeriod.sender = event.params.sender.toHex();
+    streamPeriod.receiver = event.params.receiver.toHex();
+    streamPeriod.token = event.params.token.toHex();
+    streamPeriod.flowRate = event.params.flowRate;
+    streamPeriod.startedAtTimestamp = event.block.timestamp;
+    streamPeriod.startedAtBlockNumber = event.block.number;
+    streamPeriod.startedAtEvent = flowUpdatedEventId;
     streamPeriod.stream = streamId;
     streamPeriod.deposit = newDeposit;
     streamPeriod.save();
 }
 
 function endStreamPeriod(
+    flowUpdatedEventId: string,
     existingStreamPeriod: StreamPeriod,
-    event: FlowUpdatedEvent,
+    event: FlowUpdated,
     streamRevision: StreamRevision,
     flowRateBeforeUpdate: BigInt
 ): void {
-    let streamStopTime = event.timestamp;
+    let streamStopTime = event.block.timestamp;
     existingStreamPeriod.stoppedAtTimestamp = streamStopTime;
-    existingStreamPeriod.stoppedAtBlockNumber = event.blockNumber;
-    existingStreamPeriod.stoppedAtEvent = event.id;
+    existingStreamPeriod.stoppedAtBlockNumber = event.block.number;
+    existingStreamPeriod.stoppedAtEvent = flowUpdatedEventId;
     existingStreamPeriod.totalAmountStreamed = flowRateBeforeUpdate.times(
         streamStopTime.minus(existingStreamPeriod.startedAtTimestamp)
     );
@@ -299,6 +307,7 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         newDeposit
     );
     handleStreamPeriodUpdate(
+        event,
         flowUpdateEvent,
         oldFlowRate,
         stream.id,
@@ -386,8 +395,8 @@ export function updateFlowOperatorForFlowUpdated(
     let flowOperator = getOrInitFlowOperator(
         event.block,
         event.params.flowOperator,
-        flowUpdatedEvent.token,
-        flowUpdatedEvent.sender
+        bytesToAddress(flowUpdatedEvent.token),
+        bytesToAddress(flowUpdatedEvent.sender)
     );
 
     if (flowUpdatedEvent.type == FlowActionType.create) {

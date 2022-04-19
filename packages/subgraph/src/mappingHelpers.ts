@@ -721,7 +721,7 @@ export function updateAggregateEntitiesTransferData(
     );
 
     // NOTE: this won't exist if address is ZERO_ADDRESS
-    if (fromAccountTokenSnapshot) {
+    if (fromAddress.equals(ZERO_ADDRESS)) {
         fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
                 value

@@ -46,9 +46,9 @@ export function getOrInitAccount(
     let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
-    if (accountAddress.equals(ZERO_ADDRESS)) {
-        return account as Account;
-    }
+    // if (accountAddress.equals(ZERO_ADDRESS)) {
+    //     return account as Account;
+    // }
 
     let currentTimestamp = block.timestamp;
     if (account == null) {
@@ -383,9 +383,9 @@ export function getOrInitAccountTokenSnapshot(
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
 
     // filter out 0 address ATS
-    if (accountAddress.equals(ZERO_ADDRESS)) {
-        return accountTokenSnapshot as AccountTokenSnapshot;
-    }
+    // if (accountAddress.equals(ZERO_ADDRESS)) {
+    //     return accountTokenSnapshot as AccountTokenSnapshot;
+    // }
 
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
@@ -476,7 +476,7 @@ export function updateAggregateIDASubscriptionsData(
     block: ethereum.Block
 ): void {
     // NOTE: we ignore if address is ZERO_ADDRESS
-    if (accountAddress.equals(ZERO_ADDRESS)) return;
+    // if (accountAddress.equals(ZERO_ADDRESS)) return;
 
     let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     let totalSubscriptionWithUnitsDelta =
@@ -559,7 +559,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     block: ethereum.Block
 ): void {
     // NOTE: we ignore if address is ZERO_ADDRESS
-    if (accountAddress.equals(ZERO_ADDRESS)) return;
+    // if (accountAddress.equals(ZERO_ADDRESS)) return;
 
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
         accountAddress,
@@ -721,15 +721,13 @@ export function updateAggregateEntitiesTransferData(
     );
 
     // NOTE: this won't exist if address is ZERO_ADDRESS
-    if (fromAddress.equals(ZERO_ADDRESS)) {
-        fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
-            fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
-                value
-            );
-        fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-        fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
-        fromAccountTokenSnapshot.save();
-    }
+    fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
+        fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
+            value
+        );
+    fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
+    fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
+    fromAccountTokenSnapshot.save();
 
     let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =

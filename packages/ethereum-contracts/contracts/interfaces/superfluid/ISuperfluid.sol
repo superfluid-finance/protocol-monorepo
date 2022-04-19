@@ -364,7 +364,7 @@ interface ISuperfluid {
         returns (bytes memory newCtx);
 
     /**
-     * @dev (For agreements) Use app allowance.
+     * @dev (For agreements) Jail the app.
      * @param  app                     The super app.
      * @param  reason                  Jail reason code.
      * @return newCtx

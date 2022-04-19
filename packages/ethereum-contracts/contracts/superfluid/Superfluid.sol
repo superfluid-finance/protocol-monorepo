@@ -513,7 +513,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
-        //assertValidCtx(ctx)
+        assertValidCtx(ctx)
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);

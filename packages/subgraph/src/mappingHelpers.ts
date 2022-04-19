@@ -475,11 +475,9 @@ export function updateAggregateIDASubscriptionsData(
     isApproving: boolean,
     block: ethereum.Block
 ): void {
-    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
-        accountAddress,
-        tokenAddress,
-        block
-    );
+    // NOTE: we ignore if address is ZERO_ADDRESS
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
+
     let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     let totalSubscriptionWithUnitsDelta =
         isDeletingSubscription && subscriptionWithUnitsExists
@@ -494,6 +492,12 @@ export function updateAggregateIDASubscriptionsData(
         : 0;
 
     // update ATS Subscription data
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+        accountAddress,
+        tokenAddress,
+        block
+    );
+
     accountTokenSnapshot.totalSubscriptionsWithUnits =
         accountTokenSnapshot.totalSubscriptionsWithUnits +
         totalSubscriptionWithUnitsDelta;
@@ -502,6 +506,8 @@ export function updateAggregateIDASubscriptionsData(
         totalApprovedSubscriptionsDelta;
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
+
+    accountTokenSnapshot.save();
 
     // update tokenStatistic Subscription data
     tokenStatistic.totalSubscriptionsWithUnits =
@@ -513,7 +519,6 @@ export function updateAggregateIDASubscriptionsData(
     tokenStatistic.updatedAtTimestamp = block.timestamp;
     tokenStatistic.updatedAtBlockNumber = block.number;
 
-    accountTokenSnapshot.save();
     tokenStatistic.save();
 }
 
@@ -553,6 +558,9 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     tokenAddress: Address,
     block: ethereum.Block
 ): void {
+    // NOTE: we ignore if address is ZERO_ADDRESS
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
+
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
         accountAddress,
         tokenAddress,
@@ -694,10 +702,10 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.totalNumberOfClosedStreams =
         receiverATS.totalNumberOfClosedStreams +
         totalNumberOfClosedStreamsDelta;
+    receiverATS.save();
 
     tokenStatistic.save();
     senderATS.save();
-    receiverATS.save();
 }
 
 export function updateAggregateEntitiesTransferData(
@@ -711,13 +719,17 @@ export function updateAggregateEntitiesTransferData(
         tokenAddress,
         block
     );
-    fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
-        fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
-            value
-        );
-    fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-    fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
-    fromAccountTokenSnapshot.save();
+
+    // NOTE: this won't exist if address is ZERO_ADDRESS
+    if (fromAccountTokenSnapshot) {
+        fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
+            fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
+                value
+            );
+        fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
+        fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
+        fromAccountTokenSnapshot.save();
+    }
 
     let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =

@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const fs = require("fs");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const traveler = require("ganache-time-traveler");
@@ -759,10 +760,12 @@ module.exports = class TestEnvironment {
      * @param superToken
      */
     writePlotDataIntoCSVFile(path, superToken) {
+        const outputDir = "./output/test_output";
+        fs.mkdirSync(outputDir, {recursive: true});
         const csvFormatPlotData =
             this.formatPlotDataIntoProcessableFormat(superToken);
         const csvWriter = createCsvWriter({
-            path: "test/output/" + path + ".csv",
+            path: outputDir + "/" + path + ".csv",
             header: [
                 {id: "alias", title: "alias"},
                 {id: "timestamp", title: "timestamp"},

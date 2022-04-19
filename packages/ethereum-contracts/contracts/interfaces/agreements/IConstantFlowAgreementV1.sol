@@ -47,20 +47,20 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     /**
      * @dev Returns whether it is the patrician period based on host.getNow()
      * @param account The account we are interested in
-     * @return isPatricianPeriod Whether it is currently the patrician period dictated by governance
+     * @return isCurrentlyPatricianPeriod Whether it is currently the patrician period dictated by governance
      * @return timestamp The value of host.getNow()
      */
     function isPatricianPeriodNow(
         ISuperfluidToken token,
         address account)
         public view virtual
-        returns (bool isPatricianPeriod, uint256 timestamp);
+        returns (bool isCurrentlyPatricianPeriod, uint256 timestamp);
 
     /**
      * @dev Returns whether it is the patrician period based on timestamp
      * @param account The account we are interested in
      * @param timestamp The timestamp we are interested in observing the result of isPatricianPeriod
-     * @return isPatricianPeriod Whether it is currently the patrician period dictated by governance
+     * @return bool Whether it is currently the patrician period dictated by governance
      */
     function isPatricianPeriod(
         ISuperfluidToken token,
@@ -68,7 +68,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         uint256 timestamp
     )
         public view virtual
-        returns (bool isPatricianPeriod);
+        returns (bool);
 
     /**
      * @dev `sender` updates permissions for the `flowOperator` with `flowRateAllowance`

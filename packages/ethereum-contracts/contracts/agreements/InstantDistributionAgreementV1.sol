@@ -783,6 +783,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        AgreementLibrary.authorizeTokenAccess(token, ctx);
+
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
 

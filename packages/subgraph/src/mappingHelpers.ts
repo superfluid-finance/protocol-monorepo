@@ -389,9 +389,10 @@ export function getOrInitAccountTokenSnapshot(
 }
 
 export function getOrInitTokenStatistic(
-    tokenId: Bytes,
+    tokenAddress: Bytes,
     block: ethereum.Block
 ): TokenStatistic {
+    const tokenId = tokenAddress.toHex();
     let tokenStatistic = TokenStatistic.load(tokenId);
     if (tokenStatistic == null) {
         tokenStatistic = new TokenStatistic(tokenId);
@@ -409,7 +410,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
         tokenStatistic.totalDeposit = BIG_INT_ZERO;
-        tokenStatistic.token = tokenId.toHex();
+        tokenStatistic.token = tokenId;
     }
     return tokenStatistic as TokenStatistic;
 }

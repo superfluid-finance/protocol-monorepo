@@ -1116,7 +1116,7 @@ type AccountTokenSnapshot @entity {
     """
     ID composed of: accountID + keccak256("-") + tokenID (without the 0x)
     """
-    id: Bytes!
+    id: ID!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
@@ -1188,7 +1188,7 @@ type TokenStatistic @entity {
     """
     id: token address
     """
-    id: Bytes!
+    id: ID!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------

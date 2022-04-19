@@ -1,7 +1,7 @@
 import { gql } from "graphql-request";
 
 export const getAccountTokenSnapshot = gql`
-    query getAccountTokenSnapshot($id: Bytes!) {
+    query getAccountTokenSnapshot($id: ID!) {
         response: accountTokenSnapshot(id: $id) {
             updatedAtTimestamp
             updatedAtBlockNumber

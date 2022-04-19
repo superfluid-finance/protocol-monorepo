@@ -342,10 +342,10 @@ export function handleStreamUpdated(event: FlowUpdated): void {
 export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
     let previousLogIndex = event.logIndex.minus(BIG_INT_ONE);
     let flowUpdatedEvent = FlowUpdatedEvent.load(
-        "FlowUpdated-"
-            .concat(event.transaction.hash.toHexString())
-            .concat("-")
-            .concat(previousLogIndex.toString())
+        "FlowUpdated-" +
+            event.transaction.hash.toHexString() +
+            "-" +
+            previousLogIndex.toString()
     );
     if (flowUpdatedEvent != null) {
         flowUpdatedEvent.flowOperator = event.params.flowOperator;

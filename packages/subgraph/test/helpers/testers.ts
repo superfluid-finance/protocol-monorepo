@@ -122,14 +122,6 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         existingData: initData,
         depositDelta,
     });
-    console.log(
-        "initData.currentSenderATS.totalDeposit",
-        initData.currentSenderATS.totalDeposit.toString()
-    );
-    console.log(
-        "expectedData.updatedSenderATS.totalDeposit",
-        expectedData.updatedSenderATS.totalDeposit.toString()
-    );
 
     const streamedAmountSinceUpdatedAt = toBN(
         initData.pastStreamData.oldFlowRate

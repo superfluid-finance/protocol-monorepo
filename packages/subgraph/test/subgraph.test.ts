@@ -682,7 +682,7 @@ describe("Subgraph Tests", () => {
                     ),
                     eventType: IDAEventType.IndexUpdated,
                     amountOrIndexValue,
-                    isDistribute: false,
+                    isDistribute: true,
                 });
                 updateGlobalObjects(data);
 

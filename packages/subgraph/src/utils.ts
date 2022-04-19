@@ -15,28 +15,13 @@ import {
     TokenStatistic,
 } from "../generated/schema";
 
-// TODO when refactoring subgraph to use Bytes id's and immmutable entities
-// for consistency, only pass Bytes/Address to helper functions
-// instead of doing string/Bytes randomly.
-// Also use concat instead of + - will likely have to do this anyway when
-// dealing with Bytes
-// Pass event into the helpers instead of taking so many params when possible (if it always)
-// will take that one event
-// this will clean up both files (look at getOrInitFlowOperator and getFlowOperatorID)
-
 /**************************************************************************
  * Constants
  *************************************************************************/
 
 export const BIG_INT_ZERO = BigInt.fromI32(0);
 export const BIG_INT_ONE = BigInt.fromI32(1);
-export const ZERO_ADDRESS = Address.fromString(
-    "0x0000000000000000000000000000000000000000"
-);
-export const BYTES_KECCAK_DASH = Bytes.fromByteArray(
-    crypto.keccak256(Bytes.fromUTF8("-"))
-);
-// d3b8281179950f98149eefdb158d0e1acb56f56e8e343aa9fefafa7e36959561
+export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 
 /**************************************************************************
@@ -47,11 +32,13 @@ export function createEventID(
     eventName: string,
     event: ethereum.Event
 ): string {
-    return eventName
-        .concat("-")
-        .concat(event.transaction.hash.toHexString())
-        .concat("-")
-        .concat(event.logIndex.toString());
+    return (
+        eventName +
+        "-" +
+        event.transaction.hash.toHexString() +
+        "-" +
+        event.logIndex.toString()
+    );
 }
 
 /**************************************************************************
@@ -87,7 +74,7 @@ export function getIsListedToken(
             ? "test"
             : "v1";
     let result = resolverContract.try_get(
-        "supertokens.".concat(version).concat(".").concat(token.symbol)
+        "supertokens." + version + "." + token.symbol
     );
     let superTokenAddress = result.reverted ? new Address(0) : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
@@ -149,7 +136,7 @@ export function getStreamRevisionPrefix(
     receiverId: string,
     tokenId: string
 ): string {
-    return senderId.concat("-").concat(receiverId).concat("-").concat(tokenId);
+    return senderId + "-" + receiverId + "-" + tokenId;
 }
 
 export function getStreamID(
@@ -158,16 +145,18 @@ export function getStreamID(
     tokenId: string,
     revisionIndex: number
 ): string {
-    return getStreamRevisionPrefix(senderId, receiverId, tokenId)
-        .concat("-")
-        .concat(revisionIndex.toString());
+    return (
+        getStreamRevisionPrefix(senderId, receiverId, tokenId) +
+        "-" +
+        revisionIndex.toString()
+    );
 }
 
 export function getStreamPeriodID(
     streamId: string,
     periodRevisionIndex: number
 ): string {
-    return streamId.concat("-").concat(periodRevisionIndex.toString());
+    return streamId + "-" + periodRevisionIndex.toString();
 }
 
 export function getFlowOperatorID(
@@ -242,8 +231,6 @@ export function getAmountStreamedSinceLastUpdatedAt(
 export function getAccountTokenSnapshotID(
     accountId: Bytes,
     tokenId: Bytes
-): Bytes {
-    return accountId
-        .concat(Bytes.fromByteArray(BYTES_KECCAK_DASH))
-        .concat(tokenId);
+): string {
+    return accountId.toHex() + "-" + tokenId.toHex();
 }

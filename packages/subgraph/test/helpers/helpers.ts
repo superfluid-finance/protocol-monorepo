@@ -8,7 +8,7 @@ import {
     ITestUpdateFlowOperatorData,
     ITestModifyFlowData,
 } from "../interfaces";
-import { FlowActionType, KECCAK_256_DASH } from "./constants";
+import { FlowActionType } from "./constants";
 import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
 import { Resolver, TestToken } from "../../typechain";
@@ -54,7 +54,7 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     console.log("\n");
     const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
-    const fDAIx = await sf.loadSuperToken(fDAIxAddress) as WrapperSuperToken;
+    const fDAIx = (await sf.loadSuperToken(fDAIxAddress)) as WrapperSuperToken;
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
@@ -262,7 +262,7 @@ export const getSubscriptionId = (
         .join("-");
 
 export const getATSId = (accountId: string, tokenId: string) => {
-    return accountId + KECCAK_256_DASH + getFormattedBytesAddress(tokenId);
+    return accountId + "-" + tokenId;
 };
 
 /**************************************************************************
@@ -428,10 +428,6 @@ export const hasSubscriptionWithUnits = (
     return subscription != null && toBN(subscription.units).gt(toBN(0));
 };
 
-/** Takes 0x1234 and returns 1234 */
-export const getFormattedBytesAddress = (address: string) => {
-    return address.split("0x")[1];
-};
 /**
  * See ConstantFlowAgreementV1.sol for more details about deposit clipping.
  * @param deposit

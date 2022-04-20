@@ -227,7 +227,7 @@ describe("Subgraph Tests", () => {
     before(async () => {
         // NOTE: make the token symbol more customizable in the future
         let { users, sf, fDAI, fDAIx, totalSupply } = await beforeSetup(
-            10000000
+            100000000
         );
         initialTotalSupply = totalSupply;
         userAddresses = users;

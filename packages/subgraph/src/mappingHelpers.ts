@@ -476,7 +476,7 @@ export function updateAggregateIDASubscriptionsData(
     block: ethereum.Block
 ): void {
     // NOTE: we ignore if address is ZERO_ADDRESS
-    // if (accountAddress.equals(ZERO_ADDRESS)) return;
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
 
     let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     let totalSubscriptionWithUnitsDelta =
@@ -559,7 +559,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     block: ethereum.Block
 ): void {
     // NOTE: we ignore if address is ZERO_ADDRESS
-    // if (accountAddress.equals(ZERO_ADDRESS)) return;
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
 
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
         accountAddress,

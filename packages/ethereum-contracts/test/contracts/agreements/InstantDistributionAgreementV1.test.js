@@ -1792,57 +1792,6 @@ describe("Using InstantDistributionAgreement v1", function () {
             );
         });
 
-        it.skip("#2.5 subscriber deleteSubscription callbacks", async () => {
-            const units = toWad("0.003").toString();
-            await shouldUpdateSubscription({
-                testenv: t,
-                superToken,
-                publisherName: "app",
-                indexId: DEFAULT_INDEX_ID,
-                subscriberName: "alice",
-                units,
-                fn: async () => {
-                    return await web3tx(
-                        app.updateSubscription,
-                        "app.updateSubscription alice"
-                    )(alice, units);
-                },
-            });
-            const tx = await shouldDeleteSubscription({
-                testenv: t,
-                superToken,
-                publisherName: "app",
-                indexId: DEFAULT_INDEX_ID,
-                subscriberName: "alice",
-                senderName: "alice",
-                userData: web3.eth.abi.encodeParameters(
-                    ["bytes32", "bytes4", "bytes"],
-                    [
-                        web3.utils.sha3("deleted"),
-                        idaSelector("deleteSubscription"),
-                        "0x",
-                    ]
-                ),
-            });
-            await expectEvent.inTransaction(
-                tx.tx,
-                IDASuperAppTester,
-                "SubscriptionDataBefore",
-                {
-                    publisher: app.address,
-                    indexId: DEFAULT_INDEX_ID,
-                    approved: false,
-                    units,
-                    pendingDistribution: "0",
-                }
-            );
-            await expectEvent.notEmitted.inTransaction(
-                tx.tx,
-                IDASuperAppTester,
-                "SubscriptionDataAfter"
-            );
-        });
-
         it("#2.6 publisher deleteSubscription callbacks", async () => {
             const units = toWad("0.003").toString();
             await shouldCreateIndex({

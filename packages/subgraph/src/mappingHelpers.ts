@@ -720,14 +720,16 @@ export function updateAggregateEntitiesTransferData(
         block
     );
 
-    // NOTE: this won't exist if address is ZERO_ADDRESS
-    fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
-        fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
-            value
-        );
-    fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-    fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
-    fromAccountTokenSnapshot.save();
+    if (fromAddress.notEqual(ZERO_ADDRESS)) {
+        // NOTE: fromAccountTokenSnapshot won't exist if address is ZERO_ADDRESS
+        fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
+            fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
+                value
+            );
+        fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
+        fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
+        fromAccountTokenSnapshot.save();
+    }
 
     let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =

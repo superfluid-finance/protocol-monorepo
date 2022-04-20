@@ -21,7 +21,7 @@ const config: HardhatUserConfig = {
     networks: {
         localhost: {
             url: "http://0.0.0.0:8545/",
-            chainId: 31337,
+            chainId: 1337,
         },
         matic: {
             url: "https://polygon-rpc.com/",

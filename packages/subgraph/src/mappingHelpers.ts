@@ -35,6 +35,7 @@ import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowA
  * HOL initializer functions
  *************************************************************************/
 /**
+ * NOTE: ALWAYS CHECK ACCOUNT IS NOT ZERO_ADDRESS BEFORE CALLING THIS FUNCTION
  * Gets the Account entity with id or creates one with it. updatedAt is
  * updated each time any data associated with the user is updated.
  */
@@ -44,11 +45,6 @@ export function getOrInitAccount(
 ): Account {
     let account = Account.load(accountAddress.toHex());
     let hostAddress = getHostAddress();
-
-    // filter out 0 address accounts
-    // if (accountAddress.equals(ZERO_ADDRESS)) {
-    //     return account as Account;
-    // }
 
     let currentTimestamp = block.timestamp;
     if (account == null) {
@@ -382,11 +378,6 @@ export function getOrInitAccountTokenSnapshot(
     let atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
 
-    // filter out 0 address ATS
-    // if (accountAddress.equals(ZERO_ADDRESS)) {
-    //     return accountTokenSnapshot as AccountTokenSnapshot;
-    // }
-
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
@@ -449,12 +440,11 @@ export function updateAccountUpdatedAt(
     accountAddress: Address,
     block: ethereum.Block
 ): void {
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
     let account = getOrInitAccount(accountAddress, block);
-    if (account) {
-        account.updatedAtTimestamp = block.timestamp;
-        account.updatedAtBlockNumber = block.number;
-        account.save();
-    }
+    account.updatedAtTimestamp = block.timestamp;
+    account.updatedAtBlockNumber = block.number;
+    account.save();
 }
 
 /**************************************************************************

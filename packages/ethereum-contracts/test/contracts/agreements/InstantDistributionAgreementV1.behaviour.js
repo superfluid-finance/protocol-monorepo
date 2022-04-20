@@ -597,13 +597,14 @@ async function shouldUpdateSubscription({
     publisherName,
     indexId,
     subscriberName,
+    subscriberAddress,
     units,
     userData,
     fn,
 }) {
     console.log("======== shouldUpdateSubscription begins ========");
     const publisher = testenv.getAddress(publisherName);
-    const subscriber = testenv.getAddress(subscriberName);
+    const subscriber = subscriberAddress || testenv.getAddress(subscriberName);
 
     const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
         testenv,
@@ -831,12 +832,13 @@ async function shouldDeleteSubscription({
     publisherName,
     indexId,
     subscriberName,
+    subscriberAddress,
     senderName,
     userData,
 }) {
     console.log("======== shouldDeleteSubscription begins ========");
     const publisher = testenv.getAddress(publisherName);
-    const subscriber = testenv.getAddress(subscriberName);
+    const subscriber = subscriberAddress || testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
     const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
@@ -967,6 +969,7 @@ async function shouldClaimPendingDistribution({
     superToken,
     publisherName,
     indexId,
+    subscriberAddress,
     subscriberName,
     senderName,
     userData,
@@ -974,7 +977,7 @@ async function shouldClaimPendingDistribution({
     console.log("======== shouldClaimPendingDistribution begins ========");
 
     const publisher = testenv.getAddress(publisherName);
-    const subscriber = testenv.getAddress(subscriberName);
+    const subscriber = subscriberAddress || testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
     const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
@@ -987,7 +990,7 @@ async function shouldClaimPendingDistribution({
 
     const tx = await web3tx(
         testenv.sf.ida.claim,
-        `${subscriberName} claims pending distrubtions from ${publisherName}@${indexId}`
+        `${subscriberName} claims pending distributions from ${publisherName}@${indexId}`
     )({
         superToken: superToken.address,
         publisher,

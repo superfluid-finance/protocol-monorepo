@@ -41,6 +41,7 @@ contract InstantDistributionAgreementV1 is
         E_SUBS_NOT_APPROVED subscription not approved
         E_NO_SUBS - subscription does not exist
         E_NOT_ALLOWED - operation not allowed
+        E_NO_ZERO_SUBS - no zero address subscribers
      */
 
     using SafeCast for uint256;
@@ -489,6 +490,7 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        require(subscriber != address(0), "E_NO_ZERO_SUBS");
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         bytes memory userData;
@@ -713,8 +715,11 @@ contract InstantDistributionAgreementV1 is
             sender = context.msgSender;
             userData = context.userData;
         }
+        require(subscriber != address(0), "E_NO_ZERO_SUBS");
 
-        // both publisher and subscriber can delete a subscription
+        // only publisher can delete a subscription
+        // follows from the invariant that only the publisher
+        // has the ability to modify the units a subscriber has
         require(sender == publisher, "IDA: E_NOT_ALLOWED");
 
         (
@@ -784,6 +789,7 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         AgreementLibrary.authorizeTokenAccess(token, ctx);
+        require(subscriber != address(0), "E_NO_ZERO_SUBS");
 
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;

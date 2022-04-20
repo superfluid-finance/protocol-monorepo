@@ -16,6 +16,7 @@ const {expectRevert} = require("../../utils/expectRevert");
 
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -307,6 +308,48 @@ describe("Using InstantDistributionAgreement v1", function () {
                         amount: toWad(1).toString(),
                     }),
                     "IDA: E_LOW_BALANCE"
+                );
+            });
+
+            it("#1.1.9 publisher should not be able to update subscription to zero address", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await expectRevert(
+                    shouldUpdateSubscription({
+                        testenv: t,
+                        superToken,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberAddress: ZERO_ADDRESS,
+                        units: toWad("0.001").toString(),
+                    }),
+                    "E_NO_ZERO_SUBS"
+                );
+            });
+
+            it("#1.2.0 publisher should not be able to delete zero address subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await expectRevert(
+                    shouldDeleteSubscription({
+                        testenv: t,
+                        superToken,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberAddress: ZERO_ADDRESS,
+                        senderName: "alice",
+                    }),
+                    "E_NO_ZERO_SUBS"
                 );
             });
         });
@@ -1280,6 +1323,27 @@ describe("Using InstantDistributionAgreement v1", function () {
                         senderName: "bob",
                     }),
                     "IDA: E_SUBS_APPROVED"
+                );
+            });
+
+            it("#1.4.6 cannot claim from zero address", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await expectRevert(
+                    shouldClaimPendingDistribution({
+                        testenv: t,
+                        superToken,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberAddress: ZERO_ADDRESS,
+                        senderName: "bob",
+                    }),
+                    "E_NO_ZERO_SUBS"
                 );
             });
         });

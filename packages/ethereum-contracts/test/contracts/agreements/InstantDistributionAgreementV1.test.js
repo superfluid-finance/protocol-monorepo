@@ -328,7 +328,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         subscriberAddress: ZERO_ADDRESS,
                         units: toWad("0.001").toString(),
                     }),
-                    "E_NO_ZERO_SUBS"
+                    "IDA: E_NO_ZERO_SUBS"
                 );
             });
 
@@ -349,7 +349,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         subscriberAddress: ZERO_ADDRESS,
                         senderName: "alice",
                     }),
-                    "E_NO_ZERO_SUBS"
+                    "IDA: E_NO_ZERO_SUBS"
                 );
             });
         });
@@ -1343,7 +1343,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         subscriberAddress: ZERO_ADDRESS,
                         senderName: "bob",
                     }),
-                    "E_NO_ZERO_SUBS"
+                    "IDA: E_NO_ZERO_SUBS"
                 );
             });
         });

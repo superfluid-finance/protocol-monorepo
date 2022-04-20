@@ -490,7 +490,7 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        require(subscriber != address(0), "E_NO_ZERO_SUBS");
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         bytes memory userData;
@@ -715,7 +715,7 @@ contract InstantDistributionAgreementV1 is
             sender = context.msgSender;
             userData = context.userData;
         }
-        require(subscriber != address(0), "E_NO_ZERO_SUBS");
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
 
         // only publisher can delete a subscription
         // follows from the invariant that only the publisher
@@ -789,7 +789,7 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         AgreementLibrary.authorizeTokenAccess(token, ctx);
-        require(subscriber != address(0), "E_NO_ZERO_SUBS");
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
 
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;

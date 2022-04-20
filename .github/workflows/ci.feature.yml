@@ -157,8 +157,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn && yarn install
+      - name: "Install yarn"
+        run: npm install -g yarn
+        
+      - name: "Install subgraph dependencies"
+        run: yarn install
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run hardhat node"

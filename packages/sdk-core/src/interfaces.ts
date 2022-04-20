@@ -5,6 +5,7 @@ import {
     IInstantDistributionAgreementV1,
     Superfluid,
 } from "./typechain";
+import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -217,6 +218,11 @@ export interface IGetFlowOperatorDataByIDParams {
     readonly superToken: string;
     readonly flowOperatorId: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetGovernanceParametersParams {
+    providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    tokenAddress?: string;
 }
 export interface ISuperTokenFlowOperatorDataParams {
     readonly sender: string;
@@ -437,10 +443,12 @@ export interface IConfig {
     readonly hostAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
+    readonly governanceAddress: string;
 }
 
 export interface IContracts {
     readonly cfaV1: IConstantFlowAgreementV1;
+    readonly governance: SuperfluidGovernanceII;
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
 }
@@ -495,4 +503,11 @@ export interface IWeb3FlowOperatorData {
     readonly flowOperatorId: string;
     readonly permissions: string;
     readonly flowRateAllowance: string;
+}
+
+export interface IWeb3GovernanceParams {
+    readonly liquidationPeriod: string;
+    readonly patricianPeriod: string;
+    readonly rewardAddress: string;
+    readonly superTokenMinimumDeposit: string;
 }

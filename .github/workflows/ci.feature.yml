@@ -165,7 +165,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run hardhat node"
-        run: npx hardhat node -hostname 0.0.0.0 &
+        run: npx hardhat node --hostname 0.0.0.0 &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Checkout graph node repo and set up local graph node"

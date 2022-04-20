@@ -732,7 +732,7 @@ contract InstantDistributionAgreementV1 is
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
-            sender == subscriber ? publisher : subscriber,
+            subscriber,
             vars.sId,
             "");
         newCtx = ctx;

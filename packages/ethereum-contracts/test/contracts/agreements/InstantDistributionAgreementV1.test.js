@@ -318,14 +318,12 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-
                 await expectRevert(
-                    shouldUpdateSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
+                    t.sf.ida.updateSubscription({
+                        superToken: superToken.address,
+                        publisher: t.getAddress("alice"),
                         indexId: DEFAULT_INDEX_ID,
-                        subscriberAddress: ZERO_ADDRESS,
+                        subscriber: ZERO_ADDRESS,
                         units: toWad("0.001").toString(),
                     }),
                     "IDA: E_NO_ZERO_SUBS"
@@ -341,13 +339,12 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await expectRevert(
-                    shouldDeleteSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
+                    t.sf.ida.deleteSubscription({
+                        superToken: superToken.address,
                         indexId: DEFAULT_INDEX_ID,
-                        subscriberAddress: ZERO_ADDRESS,
-                        senderName: "alice",
+                        publisher: t.getAddress("alice"),
+                        subscriber: ZERO_ADDRESS,
+                        sender: t.getAddress("alice"),
                     }),
                     "IDA: E_NO_ZERO_SUBS"
                 );
@@ -1335,13 +1332,12 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await expectRevert(
-                    shouldClaimPendingDistribution({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
+                    t.sf.ida.claim({
+                        superToken: superToken.address,
                         indexId: DEFAULT_INDEX_ID,
-                        subscriberAddress: ZERO_ADDRESS,
-                        senderName: "bob",
+                        publisher: t.getAddress("alice"),
+                        subscriber: ZERO_ADDRESS,
+                        sender: t.getAddress("bob"),
                     }),
                     "IDA: E_NO_ZERO_SUBS"
                 );

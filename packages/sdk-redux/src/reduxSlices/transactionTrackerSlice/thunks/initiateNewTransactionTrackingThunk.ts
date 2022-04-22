@@ -8,7 +8,7 @@ import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {trackPendingTransactionThunk} from './trackPendingTransactionThunk';
 
 /**
- *
+ * Used for tracking _brand new_ transactions.
  */
 export const initiateNewTransactionTrackingThunk = createAsyncThunk<
     void,

@@ -9,11 +9,15 @@ import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {createGeneralTags} from '../../rtkQuery/cacheTags/CacheTagTypes';
 import {EthersError} from '../ethersError';
-import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
+import {
+    TransactionTrackerReducer,
+    transactionTrackerSelectors,
+    transactionTrackerSlicePrefix,
+} from '../transactionTrackerSlice';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
 
 /**
- *
+ * Used for tracking a transaction that has already been put into the redux store.
  */
 export const trackPendingTransactionThunk = createAsyncThunk<
     void,
@@ -21,8 +25,15 @@ export const trackPendingTransactionThunk = createAsyncThunk<
         chainId: number;
         transactionHash: string;
     }
->(`${transactionTrackerSlicePrefix}/trackPendingTransaction`, async (arg, {dispatch}) => {
+>(`${transactionTrackerSlicePrefix}/trackPendingTransaction`, async (arg, {getState, dispatch}) => {
     const transactionHash = arg.transactionHash;
+    const state = getState() as {[transactionTrackerSlicePrefix]: TransactionTrackerReducer};
+
+    const transaction = transactionTrackerSelectors.selectById(state, transactionHash);
+    if (!transaction) {
+        throw new Error(`Transaction [${transactionHash}] not found in store.`);
+    }
+
     const framework = await getFramework(arg.chainId);
 
     await waitForOneConfirmation(framework.settings.provider, transactionHash)

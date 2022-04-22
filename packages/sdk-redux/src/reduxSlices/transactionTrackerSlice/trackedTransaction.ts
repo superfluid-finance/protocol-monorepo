@@ -1,4 +1,3 @@
-import {createEntityAdapter} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
 import {TransactionTitle} from './transactionTitle';
@@ -25,10 +24,3 @@ export interface TrackedTransaction {
     title: TransactionTitle;
     extraData: Record<string, unknown>;
 }
-
-export const transactionsAdapter = createEntityAdapter<TrackedTransaction>({
-    selectId: (transaction) => transaction.hash,
-    sortComparer: (a) => a.timestampMs,
-});
-
-export const transactionSelectors = transactionsAdapter.getSelectors();

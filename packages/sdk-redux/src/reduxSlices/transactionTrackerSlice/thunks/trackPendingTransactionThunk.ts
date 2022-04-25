@@ -9,11 +9,8 @@ import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {createGeneralTags} from '../../rtkQuery/cacheTags/CacheTagTypes';
 import {EthersError} from '../ethersError';
-import {
-    TransactionTrackerReducer,
-    transactionTrackerSelectors,
-    transactionTrackerSlicePrefix,
-} from '../transactionTrackerSlice';
+import {transactionTrackerSelectors} from '../transactionTrackerAdapter';
+import {TransactionTrackerReducer, transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
 
 /**

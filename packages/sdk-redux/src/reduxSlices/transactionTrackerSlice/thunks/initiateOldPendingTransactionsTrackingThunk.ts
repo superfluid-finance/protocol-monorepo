@@ -1,11 +1,8 @@
 import {createAsyncThunk} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {
-    TransactionTrackerReducer,
-    transactionTrackerSelectors,
-    transactionTrackerSlicePrefix,
-} from '../transactionTrackerSlice';
+import {transactionTrackerSelectors} from '../transactionTrackerAdapter';
+import {TransactionTrackerReducer, transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 
 import {trackPendingTransactionThunk} from './trackPendingTransactionThunk';
 

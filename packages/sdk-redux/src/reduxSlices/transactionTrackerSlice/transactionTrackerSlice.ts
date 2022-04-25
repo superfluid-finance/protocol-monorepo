@@ -1,6 +1,6 @@
-import {createEntityAdapter, createSlice} from '@reduxjs/toolkit';
+import {createSlice} from '@reduxjs/toolkit';
 
-import {TrackedTransaction} from './trackedTransaction';
+import {transactionTrackerAdapter} from './transactionTrackerAdapter';
 
 export const transactionTrackerSlicePrefix = 'superfluid_transactions' as const;
 
@@ -18,12 +18,3 @@ export const createTransactionTrackerSlice = () => ({
 
 export type TransactionTrackerSlice = ReturnType<typeof createTransactionTrackerSlice>;
 export type TransactionTrackerReducer = ReturnType<TransactionTrackerSlice['getInitialState']>;
-
-export const transactionTrackerAdapter = createEntityAdapter<TrackedTransaction>({
-    selectId: (transaction) => transaction.hash,
-    sortComparer: (a) => a.timestampMs,
-});
-
-export const transactionTrackerSelectors = transactionTrackerAdapter.getSelectors<{
-    [transactionTrackerSlicePrefix]: TransactionTrackerReducer;
-}>((state) => state[transactionTrackerSlicePrefix]);

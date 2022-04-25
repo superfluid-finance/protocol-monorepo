@@ -14,7 +14,6 @@ export type ErrorType =
     | "POPULATE_TRANSACTION"
     | "SIGN_TRANSACTION"
     | "UNSUPPORTED_OPERATION"
-    | "UNSUPPORTED_FUNCTIONALITY"
     | "MISSING_TRANSACTION_PROPERTIES"
     | "BATCH_CALL_ERROR"
     | "NETWORK_MISMATCH"
@@ -34,7 +33,6 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["EXECUTE_TRANSACTION", "Execute Transaction"],
     ["SIGN_TRANSACTION", "Sign Transaction"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],
-    ["UNSUPPORTED_FUNCTIONALITY", "Unsupported Functionality"],
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
     ["NETWORK_MISMATCH", "Network Mismatch"],

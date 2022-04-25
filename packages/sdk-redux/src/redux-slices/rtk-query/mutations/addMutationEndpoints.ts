@@ -1,3 +1,4 @@
+import {NativeAssetSuperToken, WrapperSuperToken} from '@superfluid-finance/sdk-core';
 import {ethers} from 'ethers';
 
 import {getFramework, getFrameworkAndSigner} from '../../../sdkReduxConfig';
@@ -335,6 +336,12 @@ export const addMutationEndpoints = (builder: ApiSliceEndpointBuilder) => ({
                 signer.getAddress(),
             ]);
 
+            const canDowngradeTokenType =
+                superToken instanceof WrapperSuperToken || superToken instanceof NativeAssetSuperToken;
+            if (!canDowngradeTokenType) {
+                throw new Error('Only WrapperSuperToken or NativeAssetSuperToken can be downgraded.');
+            }
+
             const transactionResponse = await superToken
                 .downgrade({
                     amount: arg.amountWei,
@@ -571,6 +578,12 @@ export const addMutationEndpoints = (builder: ApiSliceEndpointBuilder) => ({
                 framework.loadSuperToken(arg.superTokenAddress),
                 signer.getAddress(),
             ]);
+
+            const canUpgradeTokenType =
+                superToken instanceof WrapperSuperToken || superToken instanceof NativeAssetSuperToken;
+            if (!canUpgradeTokenType) {
+                throw new Error('Only WrapperSuperToken or NativeAssetSuperToken can be upgraded.');
+            }
 
             const underlyingTokenAllowance = await superToken
                 .underlyingToken!.allowance({

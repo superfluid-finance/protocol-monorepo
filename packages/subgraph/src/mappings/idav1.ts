@@ -59,10 +59,7 @@ export function handleIndexCreated(event: IndexCreated): void {
     index.save();
 
     // update streamed until updated at field
-    updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token,
-        event.block
-    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     let tokenStatistic = getOrInitTokenStatistic(
         event.params.token,
@@ -126,10 +123,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         previousTotalAmountDistributed.plus(distributionDelta);
     index.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token,
-        event.block
-    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     let tokenStatistic = getOrInitTokenStatistic(
         event.params.token,
@@ -418,7 +412,6 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
-    let tokenId = event.params.token;
 
     let subscription = getOrInitSubscription(
         event.params.subscriber,
@@ -480,7 +473,7 @@ export function handleSubscriptionUnitsUpdated(
     // and therefore subtracts the number of totalSubscriptionWithUnits and
     // totalApprovedSubscriptions
     if (units.equals(BIG_INT_ZERO)) {
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
         updateAggregateIDASubscriptionsData(
             event.params.subscriber,
@@ -508,7 +501,7 @@ export function handleSubscriptionUnitsUpdated(
         index.totalSubscriptionsWithUnits =
             index.totalSubscriptionsWithUnits + 1;
 
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
         updateAggregateIDASubscriptionsData(
             event.params.subscriber,

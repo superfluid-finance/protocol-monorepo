@@ -116,6 +116,16 @@ contract ConstantFlowAgreementV1 is
         require(deposit < 2**95, "CFA: deposit number too big");
         deposit = _clipDepositNumberRoundingDown(deposit);
         (uint256 liquidationPeriod, ) = _decode3PsData(token);
+        getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
+    }
+
+    /// @dev IConstantFlowAgreementV1.createFlow implementation
+    function getMaximumFlowRateFromDepositPure(
+        uint256 liquidationPeriod,
+        uint256 deposit)
+        public pure
+        returns (int96 flowRate)
+    {
         uint256 flowrate1 = deposit / liquidationPeriod;
 
         // NOTE downcasting is safe as we constrain deposit to less than
@@ -366,7 +376,7 @@ contract ConstantFlowAgreementV1 is
     function _createOrUpdateFlowCheck(
         _StackVars_createOrUpdateFlow memory flowVars,
         ISuperfluid.Context memory currentContext
-    ) 
+    )
         internal pure
         returns(bytes32 flowId, FlowParams memory flowParams)
     {
@@ -464,7 +474,7 @@ contract ConstantFlowAgreementV1 is
         // delete should only be called by sender, receiver or flowOperator
         // unless it is a liquidation (availale balance < 0)
         if (currentContext.msgSender != flowVars.sender &&
-            currentContext.msgSender != flowVars.receiver && 
+            currentContext.msgSender != flowVars.receiver &&
             !hasPermissions)
         {
             if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.sender)) &&
@@ -555,7 +565,7 @@ contract ConstantFlowAgreementV1 is
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    ) 
+    )
         external override
         returns(bytes memory newCtx)
     {
@@ -565,8 +575,8 @@ contract ConstantFlowAgreementV1 is
         {
             // check if flow operator has create permissions
             (
-                bytes32 flowOperatorId, 
-                uint8 permissions, 
+                bytes32 flowOperatorId,
+                uint8 permissions,
                 int96 flowRateAllowance
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
             require(
@@ -594,7 +604,7 @@ contract ConstantFlowAgreementV1 is
             );
         }
     }
-    
+
     /// @dev IConstantFlowAgreementV1.updateFlowByOperator implementation
     function updateFlowByOperator(
         ISuperfluidToken token,
@@ -602,7 +612,7 @@ contract ConstantFlowAgreementV1 is
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    ) 
+    )
         external override
         returns(bytes memory newCtx)
     {
@@ -615,8 +625,8 @@ contract ConstantFlowAgreementV1 is
         {
             // check if flow operator has create permissions
             (
-                bytes32 flowOperatorId, 
-                uint8 permissions, 
+                bytes32 flowOperatorId,
+                uint8 permissions,
                 int96 flowRateAllowance
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
             require(
@@ -631,7 +641,7 @@ contract ConstantFlowAgreementV1 is
             require(updatedFlowRateAllowance >= 0, "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE");
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
-        
+
         {
             _StackVars_createOrUpdateFlow memory flowVars;
             flowVars.token = token;
@@ -674,7 +684,7 @@ contract ConstantFlowAgreementV1 is
 
     /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
     function updateFlowOperatorPermissions(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address sender,
         address flowOperator,
         uint8 permissions,
@@ -698,7 +708,7 @@ contract ConstantFlowAgreementV1 is
 
     /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
     function authorizeFlowOperatorWithFullControl(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address sender,
         address flowOperator,
         bytes calldata ctx
@@ -718,11 +728,11 @@ contract ConstantFlowAgreementV1 is
 
     /// @dev IConstantFlowAgreementV1.revokeFlowOperatorWithFullControl implementation
     function revokeFlowOperatorWithFullControl(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address sender,
         address flowOperator,
         bytes calldata ctx
-    ) 
+    )
         external override
         returns(bytes memory newCtx)
     {
@@ -732,10 +742,10 @@ contract ConstantFlowAgreementV1 is
 
     /// @dev IConstantFlowAgreementV1.getFlowOperatorData implementation
     function getFlowOperatorData(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address sender,
         address flowOperator
-    ) 
+    )
         public view override
         returns(bytes32 flowOperatorId, uint8 permissions, int96 flowRateAllowance)
     {
@@ -747,7 +757,7 @@ contract ConstantFlowAgreementV1 is
 
     /// @dev IConstantFlowAgreementV1.getFlowOperatorDataByID implementation
     function getFlowOperatorDataByID(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         bytes32 flowOperatorId
     )
         external view override
@@ -811,8 +821,8 @@ contract ConstantFlowAgreementV1 is
         bytes32 flowOperatorId,
         uint8 existingPermissions,
         int96 updatedFlowRateAllowance
-    ) 
-        private 
+    )
+        private
     {
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = existingPermissions;

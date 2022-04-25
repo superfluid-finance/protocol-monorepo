@@ -679,7 +679,7 @@ export class WrapperSuperToken extends SuperToken {
      * Upgrade `amount` of an ERC20 token to its SuperToken to `to` address.
      * @param amount The amount to be upgraded.
      * @param to The destination of the upgraded native asset super tokens.
-     * @param data Bytes data passed to operator to execute in mint function
+     * @param data Bytes operatorData
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */

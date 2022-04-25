@@ -89,10 +89,15 @@ describe("Miscellaneous for test coverages", function () {
         });
     });
 
-    describe("Libs", () => {
-        it("CallUtils", async () => {
-            const CallUtilsMock = artifacts.require("CallUtilsMock");
-            const callUtilsMock = await CallUtilsMock.new();
+    describe("Libs/CallUtils", () => {
+        const CallUtilsMock = artifacts.require("CallUtilsMock");
+        let callUtilsMock;
+
+        before(async () => {
+            callUtilsMock = await CallUtilsMock.new();
+        });
+
+        it("CallUtils.revertFromReturnedData", async () => {
             await expectRevert(
                 callUtilsMock.revertTest("revertEmpty()"),
                 "CallUtils: target revert()"
@@ -147,7 +152,13 @@ describe("Miscellaneous for test coverages", function () {
             // TODO: Add revert custom error tests
         });
 
-        it("Int96SafeMath", async () => {
+        it("CallUtils.isValidAbiEncodedBytes", async () => {
+            await callUtilsMock.testIsValidAbiEncodedBytes();
+        });
+    });
+
+    describe("Libs/Int96SafeMath", () => {
+        it("Int96SafeMath common cases", async () => {
             const MAX_INT96 = toBN("39614081257132168796771975167");
             const MAX_INT96_DIV_2 = toBN("19807040628566084398385987583");
             const MAX_INT96_DIV_2_PLUS_1 = toBN(
@@ -273,8 +284,10 @@ describe("Miscellaneous for test coverages", function () {
                 "testInt96SafeMathDiv overflow"
             );
         });
+    });
 
-        it("UInt128SafeMath", async () => {
+    describe("Libs/UInt128SafeMath", () => {
+        it("UInt128SafeMath common cases", async () => {
             const MAX_UINT128 = "340282366920938463463374607431768211455";
             const MAX_UINT128_MINUS_1 =
                 "340282366920938463463374607431768211454";

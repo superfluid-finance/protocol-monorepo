@@ -22,7 +22,7 @@
         "utils/**/*"
     ],
     "scripts": {
-        "dev": "nodemon -e sol,js -i build -x 'yarn test-contracts:js 2>&1'",
+        "dev": "tasks/dev.sh",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
         "build:contracts-size": "bash tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
@@ -32,12 +32,12 @@
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
         "test:contracts:js": "yarn test-contracts:js --parallel",
-        "test-contracts:js": "export IS_HARDHAT=true && npx hardhat test testsuites/all-contracts.js",
+        "test-contracts:js": "IS_HARDHAT=true npx hardhat test testsuites/all-contracts.js",
         "test-contracts:sol": "truffle test test/contracts/*/*.sol",
         "test-contracts:0.8.0-compatibility": "./test/test-0.8.0.sh",
         "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
-        "test-coverage": "export IS_HARDHAT=true && npx hardhat coverage --testfiles testsuites/all-contracts.js --solcoverjs ./.solcover.js",
+        "test-coverage": "IS_HARDHAT=true npx hardhat coverage --testfiles testsuites/all-contracts.js --solcoverjs ./.solcover.js",
         "posttest": "yarn testenv:stop",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",

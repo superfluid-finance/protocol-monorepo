@@ -142,7 +142,7 @@ contract AgreementMock is AgreementBase {
     }
 
     /**
-     * Agreement Framework mockings
+     * Agreement Framework Exploiters
      */
 
     function tryCallAppBeforeCallback(ISuperfluid host) external {
@@ -168,6 +168,10 @@ contract AgreementMock is AgreementBase {
     function tryJailApp(ISuperfluid host) external {
         host.jailApp("", ISuperApp(address(0)), 0);
     }
+
+    /**
+     * Agreement Operations
+     */
 
     function doRevert(string calldata reason, bytes calldata ctx) external view requireValidCtx(ctx) {
         revert(reason);
@@ -320,7 +324,7 @@ contract AgreementMock is AgreementBase {
     }
 
     modifier requireValidCtx(bytes memory ctx) {
-        require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
+        require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid given by host?!");
         _;
     }
 }

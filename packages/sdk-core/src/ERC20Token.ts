@@ -9,13 +9,11 @@ import { normalizeAddress } from "./utils";
 
 export default class ERC20Token {
     readonly address: string;
+    readonly contract: ERC20WithTokenInfo;
 
     constructor(address: string) {
         this.address = address;
-    }
-
-    get contract() {
-        return new ethers.Contract(
+        this.contract = new ethers.Contract(
             this.address,
             ERC20WithTokenInfoABI.abi
         ) as ERC20WithTokenInfo;

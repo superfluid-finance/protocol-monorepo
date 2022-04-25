@@ -84,6 +84,7 @@ describe("SuperToken Tests", () => {
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
+                        governanceAddress: ""
                     },
                 });
             } catch (err: any) {
@@ -102,6 +103,7 @@ describe("SuperToken Tests", () => {
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
+                        governanceAddress: ""
                     },
                 });
             } catch (err: any) {

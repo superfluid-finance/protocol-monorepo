@@ -2,6 +2,7 @@ import { ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import ERC20Token from "./ERC20Token";
+import Governance from "./Governance";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
@@ -33,6 +34,7 @@ import {
     ISuperTokenUpdateSubscriptionUnitsParams,
     IWeb3FlowInfo,
     IWeb3FlowOperatorData,
+    IWeb3GovernanceParams,
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
@@ -75,7 +77,9 @@ export default abstract class SuperToken extends ERC20Token {
     readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
+    readonly governance: Governance;
     readonly underlyingToken?: ERC20Token;
+    override readonly contract: ISuperToken;
 
     protected constructor(options: ITokenOptions, settings: ITokenSettings) {
         // initialize ERC20 token functions here
@@ -89,6 +93,15 @@ export default abstract class SuperToken extends ERC20Token {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
+        this.governance = new Governance(
+            this.settings.config.governanceAddress,
+            this.settings.config.hostAddress
+        );
+
+        this.contract = new ethers.Contract(
+            this.settings.address,
+            SuperTokenABI.abi
+        ) as ISuperToken;
     }
 
     static create = async (options: ITokenOptions): Promise<SuperTokenType> => {
@@ -151,13 +164,6 @@ export default abstract class SuperToken extends ERC20Token {
             });
         }
     };
-
-    override get contract() {
-        return new ethers.Contract(
-            this.settings.address,
-            SuperTokenABI.abi
-        ) as ISuperToken;
-    }
 
     /** ### SuperToken Contract Read Functions ### */
 
@@ -640,6 +646,17 @@ export default abstract class SuperToken extends ERC20Token {
         return this.idaV1.claim({
             superToken: this.settings.address,
             ...params,
+        });
+    };
+
+    /** ### Governance Read Functions ### */
+
+    getGovernanceParameters = async (
+        providerOrSigner: ethers.providers.Provider | ethers.Signer
+    ): Promise<IWeb3GovernanceParams> => {
+        return this.governance.getGovernanceParameters({
+            providerOrSigner,
+            token: this.settings.address,
         });
     };
 }

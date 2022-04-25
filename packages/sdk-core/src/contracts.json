@@ -5,6 +5,7 @@
     "IResolver",
     "ISETH",
     "Superfluid",
+    "SuperfluidGovernanceII",
     "SuperfluidLoader",
     "SuperToken",
     "TestToken"

@@ -33,14 +33,12 @@ const idaInterface = new ethers.utils.Interface(
 export default class InstantDistributionAgreementV1 {
     readonly options: IAgreementV1Options;
     readonly host: Host;
+    readonly contract: IInstantDistributionAgreementV1;
 
     constructor(options: IAgreementV1Options) {
         this.options = options;
         this.host = new Host(options.config.hostAddress);
-    }
-
-    get contract() {
-        return new ethers.Contract(
+        this.contract = new ethers.Contract(
             this.options.config.idaV1Address,
             IInstantDistributionAgreementV1ABI.abi
         ) as IInstantDistributionAgreementV1;

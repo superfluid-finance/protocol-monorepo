@@ -43,7 +43,7 @@ describe("Governance Tests", () => {
         expect(defaultParams.rewardAddress).to.equal(
             DEFAULT_PARAMS.REWARD_ADDRESS
         );
-        expect(defaultParams.superTokenMinimumDeposit).to.equal(
+        expect(defaultParams.minimumDeposit).to.equal(
             DEFAULT_PARAMS.SUPER_TOKEN_MINIMUM_DEPOSIT
         );
     });
@@ -62,7 +62,7 @@ describe("Governance Tests", () => {
         expect(tokenSpecificParams.rewardAddress).to.equal(
             DEFAULT_PARAMS.REWARD_ADDRESS
         );
-        expect(tokenSpecificParams.superTokenMinimumDeposit).to.equal(
+        expect(tokenSpecificParams.minimumDeposit).to.equal(
             DEFAULT_PARAMS.SUPER_TOKEN_MINIMUM_DEPOSIT
         );
     });

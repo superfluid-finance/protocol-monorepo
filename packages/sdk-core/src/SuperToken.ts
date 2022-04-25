@@ -656,7 +656,7 @@ export default abstract class SuperToken extends ERC20Token {
     ): Promise<IWeb3GovernanceParams> => {
         return this.governance.getGovernanceParameters({
             providerOrSigner,
-            tokenAddress: this.settings.address,
+            token: this.settings.address,
         });
     };
 }

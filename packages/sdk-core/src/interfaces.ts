@@ -222,7 +222,7 @@ export interface IGetFlowOperatorDataByIDParams {
 
 export interface IGetGovernanceParametersParams {
     providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    tokenAddress?: string;
+    token?: string;
 }
 export interface ISuperTokenFlowOperatorDataParams {
     readonly sender: string;
@@ -509,5 +509,5 @@ export interface IWeb3GovernanceParams {
     readonly liquidationPeriod: string;
     readonly patricianPeriod: string;
     readonly rewardAddress: string;
-    readonly superTokenMinimumDeposit: string;
+    readonly minimumDeposit: string;
 }

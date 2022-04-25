@@ -73,6 +73,7 @@ describe("Framework Tests", () => {
         });
 
         it("Should throw an error if your provider network and selected chainId/networkName don't match", async () => {
+            const chainId = (await deployer.provider!.getNetwork()).chainId;
             try {
                 await Framework.create({
                     chainId: 4,
@@ -81,7 +82,7 @@ describe("Framework Tests", () => {
             } catch (err: any) {
                 expect(err.message).to.equal(
                     "Network Mismatch Error - Your provider network chainId is: " +
-                        1337 +
+                        chainId +
                         " whereas your desired chainId is: " +
                         4
                 );
@@ -135,8 +136,9 @@ describe("Framework Tests", () => {
     describe("Framework.create Tests", () => {
         it("Should throw an error if loadFramework fails", async () => {
             try {
+                const chainId = (await deployer.provider!.getNetwork()).chainId;
                 await Framework.create({
-                    chainId: 1337,
+                    chainId,
                     provider: deployer.provider!,
                     customSubgraphQueriesEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
                     resolverAddress:

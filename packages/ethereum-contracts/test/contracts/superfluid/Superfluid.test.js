@@ -655,10 +655,10 @@ describe("Superfluid Host Contract", function () {
                     );
                 });
 
-                it("#6.2 use agreement framework as an unregisterred agreement", async () => {
+                it("#6.2 use agreement framework as an unregistered agreement", async () => {
                     const reason = "SF: sender is not listed agreeement";
 
-                    // call from an unregisterred mock agreement
+                    // call from an unregistered mock agreement
                     const mock = await createAgreementMock(
                         web3.utils.sha3("typeA"),
                         0
@@ -1645,7 +1645,7 @@ describe("Superfluid Host Contract", function () {
                     superfluid.callAgreement(alice, "0x", "0x"),
                     "revert"
                 );
-                // call to an unregisterred mock agreement
+                // call to an unregistered mock agreement
                 let mock = await createAgreementMock(
                     web3.utils.sha3("typeA"),
                     0
@@ -1718,7 +1718,7 @@ describe("Superfluid Host Contract", function () {
                     superfluid.callAppAction(alice, "0x"),
                     "revert"
                 );
-                // call to an unregisterred mock agreement
+                // call to an unregistered mock agreement
                 await expectRevertedWith(
                     superfluid.callAppAction(governance.address, "0x"),
                     reason

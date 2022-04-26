@@ -1,13 +1,9 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-// const {BN, expectRevertedWith} = require("@openzeppelin/test-helpers");
-// const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 const {expectRevertedWith} = require("../../utils/expectRevert");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const initialSupply = toBN(100);
-
-// const traveler = require("ganache-time-traveler");
 
 describe("CFAv1 Library testing", function () {
     this.timeout(300e3);

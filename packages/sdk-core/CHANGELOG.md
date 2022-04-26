@@ -16,8 +16,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
 - Added `nativeTokenSymbol` property to `constants.ts`
 - Split `SuperToken` class into: `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes
-- Support `upgradeByETH`, `upgradeByETHTo` and `downgradeToETH` functions via `NativeAssetSuperToken`
-- Added `UNSUPPORTED_FUNCTIONALITY` error type for `upgrade`/`downgrade` by `NativeAssetSuperToken`
+- Support `upgrade`, `upgradeTo` and `downgrade` functions via `NativeAssetSuperToken`
+- Added `upgradeTo` to `WrapperSuperToken` class as this was missing as well
 
 ### Changed
 - Renamed `Token` to `ERC20Token`

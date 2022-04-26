@@ -1,3 +1,5 @@
+import {NativeAssetSuperToken, WrapperSuperToken} from '@superfluid-finance/sdk-core';
+
 import {getFramework, getSigner} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionTrackerSlice/registerNewTransaction';
@@ -17,6 +19,12 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
+
+            const canUpgradeTokenType =
+                superToken instanceof WrapperSuperToken || superToken instanceof NativeAssetSuperToken;
+            if (!canUpgradeTokenType) {
+                throw new Error('Only WrapperSuperToken or NativeAssetSuperToken can be upgraded.');
+            }
 
             const transactionResponse = await superToken
                 .upgrade({
@@ -63,6 +71,12 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
+
+            const canDowngradeTokenType =
+                superToken instanceof WrapperSuperToken || superToken instanceof NativeAssetSuperToken;
+            if (!canDowngradeTokenType) {
+                throw new Error('Only WrapperSuperToken or NativeAssetSuperToken can be downgraded.');
+            }
 
             const transactionResponse = await superToken
                 .downgrade({

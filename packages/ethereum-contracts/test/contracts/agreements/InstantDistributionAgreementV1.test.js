@@ -16,6 +16,7 @@ const {expectRevert} = require("../../utils/expectRevert");
 
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -307,6 +308,45 @@ describe("Using InstantDistributionAgreement v1", function () {
                         amount: toWad(1).toString(),
                     }),
                     "IDA: E_LOW_BALANCE"
+                );
+            });
+
+            it("#1.1.9 publisher should not be able to update subscription to zero address", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await expectRevert(
+                    t.sf.ida.updateSubscription({
+                        superToken: superToken.address,
+                        publisher: t.getAddress("alice"),
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriber: ZERO_ADDRESS,
+                        units: toWad("0.001").toString(),
+                    }),
+                    "IDA: E_NO_ZERO_SUBS"
+                );
+            });
+
+            it("#1.2.0 publisher should not be able to delete zero address subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await expectRevert(
+                    t.sf.ida.deleteSubscription({
+                        superToken: superToken.address,
+                        indexId: DEFAULT_INDEX_ID,
+                        publisher: t.getAddress("alice"),
+                        subscriber: ZERO_ADDRESS,
+                        sender: t.getAddress("alice"),
+                    }),
+                    "IDA: E_NO_ZERO_SUBS"
                 );
             });
         });
@@ -1282,6 +1322,26 @@ describe("Using InstantDistributionAgreement v1", function () {
                     "IDA: E_SUBS_APPROVED"
                 );
             });
+
+            it("#1.4.6 cannot claim from zero address", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await expectRevert(
+                    t.sf.ida.claim({
+                        superToken: superToken.address,
+                        indexId: DEFAULT_INDEX_ID,
+                        publisher: t.getAddress("alice"),
+                        subscriber: ZERO_ADDRESS,
+                        sender: t.getAddress("bob"),
+                    }),
+                    "IDA: E_NO_ZERO_SUBS"
+                );
+            });
         });
 
         describe("#1.5 complex sequences", () => {
@@ -1725,57 +1785,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: units2,
                     pendingDistribution: "0",
                 }
-            );
-        });
-
-        it.skip("#2.5 subscriber deleteSubscription callbacks", async () => {
-            const units = toWad("0.003").toString();
-            await shouldUpdateSubscription({
-                testenv: t,
-                superToken,
-                publisherName: "app",
-                indexId: DEFAULT_INDEX_ID,
-                subscriberName: "alice",
-                units,
-                fn: async () => {
-                    return await web3tx(
-                        app.updateSubscription,
-                        "app.updateSubscription alice"
-                    )(alice, units);
-                },
-            });
-            const tx = await shouldDeleteSubscription({
-                testenv: t,
-                superToken,
-                publisherName: "app",
-                indexId: DEFAULT_INDEX_ID,
-                subscriberName: "alice",
-                senderName: "alice",
-                userData: web3.eth.abi.encodeParameters(
-                    ["bytes32", "bytes4", "bytes"],
-                    [
-                        web3.utils.sha3("deleted"),
-                        idaSelector("deleteSubscription"),
-                        "0x",
-                    ]
-                ),
-            });
-            await expectEvent.inTransaction(
-                tx.tx,
-                IDASuperAppTester,
-                "SubscriptionDataBefore",
-                {
-                    publisher: app.address,
-                    indexId: DEFAULT_INDEX_ID,
-                    approved: false,
-                    units,
-                    pendingDistribution: "0",
-                }
-            );
-            await expectEvent.notEmitted.inTransaction(
-                tx.tx,
-                IDASuperAppTester,
-                "SubscriptionDataAfter"
             );
         });
 

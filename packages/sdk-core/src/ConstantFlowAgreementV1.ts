@@ -39,14 +39,12 @@ const cfaInterface = new ethers.utils.Interface(
 export default class ConstantFlowAgreementV1 {
     readonly options: IAgreementV1Options;
     readonly host: Host;
+    readonly contract: IConstantFlowAgreementV1;
 
     constructor(options: IAgreementV1Options) {
         this.options = options;
         this.host = new Host(options.config.hostAddress);
-    }
-
-    get contract() {
-        return new ethers.Contract(
+        this.contract = new ethers.Contract(
             this.options.config.cfaV1Address,
             IConstantFlowAgreementV1ABI.abi
         ) as IConstantFlowAgreementV1;

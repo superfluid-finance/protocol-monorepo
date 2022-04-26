@@ -670,27 +670,51 @@ describe("Superfluid Host Contract", function () {
                         0
                     );
                     await expectRevert(
-                        mock.tryCallAppBeforeCallback(superfluid.address),
+                        mock.tryCallAppBeforeCallback(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryCallAppAfterCallback(superfluid.address),
+                        mock.tryCallAppAfterCallback(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryAppCallbackPush(superfluid.address),
+                        mock.tryAppCallbackPush(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryAppCallbackPop(superfluid.address),
+                        mock.tryAppCallbackPop(superfluid.address, "0x"),
                         reason
                     );
                     await expectRevert(
-                        mock.tryCtxUseAllowance(superfluid.address),
+                        mock.tryCtxUseAllowance(
+                            superfluid.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryJailApp(superfluid.address),
+                        mock.tryJailApp(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                 });
@@ -703,27 +727,51 @@ describe("Superfluid Host Contract", function () {
                         0
                     );
                     await expectRevert(
-                        mock.tryCallAppBeforeCallback(superfluid.address),
+                        mock.tryCallAppBeforeCallback(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryCallAppAfterCallback(superfluid.address),
+                        mock.tryCallAppAfterCallback(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryAppCallbackPush(superfluid.address),
+                        mock.tryAppCallbackPush(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryAppCallbackPop(superfluid.address),
+                        mock.tryAppCallbackPop(superfluid.address, "0x"),
                         reason
                     );
                     await expectRevert(
-                        mock.tryCtxUseAllowance(superfluid.address),
+                        mock.tryCtxUseAllowance(
+                            superfluid.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                     await expectRevert(
-                        mock.tryJailApp(superfluid.address),
+                        mock.tryJailApp(
+                            superfluid.address,
+                            app.address,
+                            false /* do not hack Ctx */,
+                            "0x"
+                        ),
                         reason
                     );
                 });
@@ -743,36 +791,155 @@ describe("Superfluid Host Contract", function () {
                     );
                 });
 
-                it("#6.5 bad agreement implementation", async () => {
-                    //const reason = "reverted";
-                    // await app.setNextCallbackAction(0 /* noop */, "0x");
-                    // await expectRevert(superfluid.callAgreement(
-                    //     agreement.address,
-                    //     agreement.contract.methods
-                    //         .callAppBeforeAgreementCreatedCallback(
-                    //             app.address,
-                    //             "0x"
-                    //         )
-                    //         .encodeABI(),
-                    //     "0x"
-                    // ), reason);
-                    // await expectRevert(
-                    //     agreement.tryCallAppAfterCallback(superfluid.address),
-                    //     reason
-                    // );
-                    // await expectRevert(
-                    //     agreement.tryAppCallbackPush(superfluid.address),
-                    //     reason
-                    // );
-                    // await expectRevert(
-                    //     agreement.tryAppCallbackPop(superfluid.address),
-                    //     reason
-                    // );
-                    // await expectRevert(
-                    //     agreement.tryCtxUseAllowance(superfluid.address),
-                    //     reason
-                    // );
-                    // await expectRevert(agreement.tryJailApp(superfluid.address), reason);
+                it("#6.5 bad agreement implementations", async () => {
+                    const reason = "reverted";
+
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .tryCallAppBeforeCallback(
+                                superfluid.address,
+                                app.address,
+                                false /* do not hack Ctx */,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .tryCallAppBeforeCallback(
+                                    superfluid.address,
+                                    app.address,
+                                    true /* hack the Ctx */,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        reason
+                    );
+
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .tryCallAppAfterCallback(
+                                superfluid.address,
+                                app.address,
+                                false /* do not hack Ctx */,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .tryCallAppAfterCallback(
+                                    superfluid.address,
+                                    app.address,
+                                    true /* hack the Ctx */,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        reason
+                    );
+
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .tryAppCallbackPush(
+                                superfluid.address,
+                                app.address,
+                                false /* hack the Ctx */,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .tryAppCallbackPush(
+                                    superfluid.address,
+                                    app.address,
+                                    true /* hack the Ctx */,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        reason
+                    );
+
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .tryAppCallbackPop(superfluid.address, "0x")
+                            .encodeABI(),
+                        "0x"
+                    );
+                    // NOTE that tryAppCallbackPop cannot be protected YET
+
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .tryCtxUseAllowance(
+                                superfluid.address,
+                                false /* hack the Ctx */,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .tryCtxUseAllowance(
+                                    superfluid.address,
+                                    true /* hack the Ctx */,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        reason
+                    );
+
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .tryJailApp(
+                                superfluid.address,
+                                app.address,
+                                false /* hack the Ctx */,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .tryJailApp(
+                                    superfluid.address,
+                                    app.address,
+                                    true /* hack the Ctx */,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        reason
+                    );
                 });
             });
 

@@ -189,6 +189,11 @@ yarn dev
 This has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
 The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
+You may also focus on a specific testsuite with yarn dev:
+```
+yarn dev test/contracts/misc.test.js
+```
+
 After finishing the session, you can stop the hardhat instance you started in the first step (Ctrl-C).
 Also, don't forget to remove `only` keywords from test files before making git commits.
 

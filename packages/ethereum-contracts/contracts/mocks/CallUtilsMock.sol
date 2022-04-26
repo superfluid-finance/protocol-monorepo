@@ -56,7 +56,7 @@ contract CallUtilsMock {
         // This call will fail because funcPtr is still a zero-initialized function pointer
         return funcPtr(4, 5);
     }
-    
+
     // case 3: Error(string)
     function revertString() public pure {
         revert("gm");
@@ -75,5 +75,13 @@ contract CallUtilsMock {
         if (!success) {
             CallUtils.revertFromReturnedData(data);
         }
+    }
+
+    function testIsValidAbiEncodedBytes() external pure {
+        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(1, 2, 3)), "bad data");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(0))), "0");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(1))), "1");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(32))), "32");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(33))), "33");
     }
 }

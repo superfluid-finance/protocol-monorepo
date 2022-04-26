@@ -8,8 +8,6 @@ import {
     ISuperAgreement
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import { Strings } from "../libs/Strings.sol";
-
 /**
  * @title Superfluid loader contract
  * @author Superfluid
@@ -44,7 +42,7 @@ contract SuperfluidLoader {
     {
         // load superfluid host contract
         result.superfluid = ISuperfluid(_resolver.get(
-            Strings.concat(Strings.toSlice("Superfluid."), Strings.toSlice(releaseVersion))
+            string.concat("Superfluid.", releaseVersion)
         ));
         result.superTokenFactory = result.superfluid.getSuperTokenFactory();
         result.agreementCFAv1 = result.superfluid.getAgreementClass(

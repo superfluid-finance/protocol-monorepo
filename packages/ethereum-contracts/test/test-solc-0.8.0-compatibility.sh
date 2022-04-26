@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# NOTE: This utility checks the solc-0.8.0 compatibility of all the interface contracts we export
+
 # make sure that if any step fails, the script fails
 set -xe
 
@@ -13,7 +15,9 @@ if [ ! -f "$SOLC" ]; then
     wget https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/solc-linux-amd64-v0.8.0%2Bcommit.c7dfd78e -O $SOLC
     chmod +x ./$SOLC
 fi
-sha256sum ./$SOLC
+CHKSUM=$(sha256sum ./$SOLC | awk '{print $1}')
+EXPECTED_CHKSUM="64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc"
+[ "$CHKSUM" == "$EXPECTED_CHKSUM" ]
 
 # https://github.com/ethereum/solc-bin/blob/gh-pages/linux-amd64/list.json
 # 0x64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc

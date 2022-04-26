@@ -888,6 +888,19 @@ async function shouldRevertChangeFlowByOperator({
     );
 }
 
+async function expectNetFlow({testenv, account, superToken, value}) {
+    const actualNetFlowRate = await testenv.contracts.cfa.getNetFlow(
+        superToken.address,
+        testenv.getAddress(account)
+    );
+    console.log(`expected net flow for ${account}: ${value.toString()}`);
+    assert.equal(
+        actualNetFlowRate.toString(),
+        value.toString(),
+        `Unexpected net flow for ${account}`
+    );
+}
+
 module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
@@ -898,4 +911,5 @@ module.exports = {
     shouldRevertUpdateFlowOperatorPermissions,
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertChangeFlowByOperator,
+    expectNetFlow,
 };

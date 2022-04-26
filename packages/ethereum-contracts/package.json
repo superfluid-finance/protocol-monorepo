@@ -56,7 +56,6 @@
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.4",
         "hardhat": "^2.9.3",
-        "solidity-stringutils": "github:Arachnid/solidity-stringutils#46983c6d9462a80229cf0d5bab8ea3b3ee31066c",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {

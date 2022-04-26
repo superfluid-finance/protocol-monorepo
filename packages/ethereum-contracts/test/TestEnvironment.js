@@ -760,7 +760,7 @@ module.exports = class TestEnvironment {
      * @param superToken
      */
     writePlotDataIntoCSVFile(path, superToken) {
-        const outputDir = "./output/test_output";
+        const outputDir = "./build/test_output";
         fs.mkdirSync(outputDir, {recursive: true});
         const csvFormatPlotData =
             this.formatPlotDataIntoProcessableFormat(superToken);

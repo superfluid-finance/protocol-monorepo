@@ -1,5 +1,5 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevert} = require("../../utils/expectRevert");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -62,7 +62,7 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             (await token.balanceOf.call(admin)).toString(),
             toWad(0).toString()
         );
-        await expectRevert(
+        await expectRevertedWith(
             token.initialize(
                 t.constants.ZERO_ADDRESS,
                 18,
@@ -81,7 +81,7 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             "MBT"
         );
 
-        await expectRevert(
+        await expectRevertedWith(
             token.deposit(
                 bob,
                 web3.eth.abi.encodeParameter("uint256", AMOUNT_1)
@@ -95,14 +95,14 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             {from: chainMgr}
         );
 
-        await expectRevert(
+        await expectRevertedWith(
             token.withdraw(AMOUNT_1),
             "SuperfluidToken: burn amount exceeds balance"
         );
 
         await token.withdraw(AMOUNT_1, {from: bob});
 
-        await expectRevert(
+        await expectRevertedWith(
             token.updateChildChainManager(bob),
             "MBNSuperToken: only governance allowed"
         );

@@ -1,5 +1,5 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevert} = require("../../utils/expectRevert");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -113,7 +113,7 @@ describe("Super ETH (SETH) Contract", function () {
             from: alice,
         });
 
-        await expectRevert(
+        await expectRevertedWith(
             seth.downgradeToETH(toWad(1).addn(1), {from: alice}),
             "SuperfluidToken: burn amount exceeds balance"
         );

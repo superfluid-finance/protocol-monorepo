@@ -75,12 +75,12 @@ export function getOrInitSuperToken(
 ): Token {
     let tokenId = tokenAddress.toHex();
     let token = Token.load(tokenId);
-    let currentTimestamp = block.timestamp;
-    let resolverAddress = getResolverAddress();
-
     if (tokenAddress.equals(ZERO_ADDRESS)) {
         return token as Token;
     }
+
+    let currentTimestamp = block.timestamp;
+    let resolverAddress = getResolverAddress();
 
     if (token == null) {
         // Note: this is necessary otherwise we will not be able to capture

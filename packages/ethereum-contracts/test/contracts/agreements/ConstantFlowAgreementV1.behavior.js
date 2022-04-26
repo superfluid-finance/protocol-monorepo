@@ -1,4 +1,4 @@
-const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const {expectEvent, expectRevertedWith} = require("@openzeppelin/test-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
@@ -757,7 +757,7 @@ async function shouldRevertUpdateFlowOperatorPermissions({
     console.log(
         `${sender} granting ${permissions} to ${flowOperator} with ${flowRateAllowance} flow rate allowance`
     );
-    await expectRevert(
+    await expectRevertedWith(
         getUpdateFlowOperatorPermissionsPromise({
             testenv,
             token,
@@ -872,7 +872,7 @@ async function shouldRevertChangeFlowByOperator({
         `${methodSignature}: ${sender} to ${receiver} at ${flowRate}/s by ${flowOperator}`
     );
 
-    await expectRevert(
+    await expectRevertedWith(
         getChangeFlowByFlowOperatorPromise({
             testenv,
             methodSignature,

@@ -1,9 +1,9 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-// const {BN, expectRevert} = require("@openzeppelin/test-helpers");
+// const {BN, expectRevertedWith} = require("@openzeppelin/test-helpers");
 // const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
-const {expectRevert} = require("../../utils/expectRevert");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const initialSupply = toBN(100);
 
@@ -325,7 +325,7 @@ describe("CFAv1 Library testing", function () {
                 "3858024691358", //10 per month
                 {from: alice}
             );
-            await expectRevert(
+            await expectRevertedWith(
                 CFALibraryMock.createFlowTest(
                     superToken.address,
                     bob,
@@ -337,7 +337,7 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("4.2 - Update should revert if flow does not exist", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 CFALibraryMock.updateFlowTest(
                     superToken.address,
                     alice,
@@ -349,7 +349,7 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("4.3 - Delete should revert if flow does not exist", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 CFALibraryMock.deleteFlowTest(superToken.address, alice, {
                     from: bob,
                 }),
@@ -358,7 +358,7 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("4.4 - It should revert if given an invalid ctx", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 CFALibraryMock.createFlowWithCtxTest(
                     "0x",
                     bob,

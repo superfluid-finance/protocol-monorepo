@@ -1,4 +1,4 @@
-const {expectRevert} = require("../../utils/expectRevert");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const TestEnvironment = require("../../TestEnvironment");
 const SuperUpgrader = artifacts.require("SuperUpgrader");
@@ -57,12 +57,12 @@ describe("Superfluid Super Upgrader Contract", function () {
         it("#1.2 Should revert without owner address", async () => {
             const backendWithZero = [...backend];
             backendWithZero.push(ZERO_ADDRESS);
-            await expectRevert(
+            await expectRevertedWith(
                 SuperUpgrader.new(ZERO_ADDRESS, new Array()),
                 "adminRole is empty"
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 SuperUpgrader.new(admin, backendWithZero),
                 "backend can't be zero"
             );
@@ -88,7 +88,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             )(upgrader.address, toWad("3"), {
                 from: alice,
             });
-            await expectRevert(
+            await expectRevertedWith(
                 upgrader.upgrade(superToken.address, alice, toWad("3"), {
                     from: eve,
                 }),
@@ -185,7 +185,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         it("#2.5 Should revert without approval", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
 
-            await expectRevert(
+            await expectRevertedWith(
                 web3tx(upgrader.upgrade, "upgrader.upgrade")(
                     superToken.address,
                     alice,
@@ -207,7 +207,7 @@ describe("Superfluid Super Upgrader Contract", function () {
                 from: alice,
             });
 
-            await expectRevert(
+            await expectRevertedWith(
                 web3tx(upgrader.upgrade, "upgrader.upgrade")(
                     superToken.address,
                     alice,
@@ -260,7 +260,7 @@ describe("Superfluid Super Upgrader Contract", function () {
                 "Alice opt-out"
             )({from: alice});
 
-            await expectRevert(
+            await expectRevertedWith(
                 upgrader.upgrade(superToken.address, alice, toWad("3"), {
                     from: backend[0],
                 }),
@@ -326,17 +326,17 @@ describe("Superfluid Super Upgrader Contract", function () {
                 "address should be in backend role"
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 upgrader.grantBackendAgent(ZERO_ADDRESS, {from: admin}),
                 "operation not allowed"
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 upgrader.grantBackendAgent(eve, {from: eve}),
                 `AccessControl: account ${eve.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 upgrader.revokeBackendAgent(backend[1], {from: eve}),
                 `AccessControl: account ${eve.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
             );

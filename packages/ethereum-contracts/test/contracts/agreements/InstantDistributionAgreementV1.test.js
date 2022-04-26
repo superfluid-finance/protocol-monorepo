@@ -12,7 +12,7 @@ const {
     shouldClaimPendingDistribution,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
 
-const {expectRevert} = require("../../utils/expectRevert");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
@@ -100,7 +100,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     shouldCreateIndex({
                         testenv: t,
                         superToken,
@@ -154,7 +154,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.1.5 publisher should fail to update non-existent index", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.ida.updateIndex({
                         superToken: superToken.address,
                         publisher: alice,
@@ -163,7 +163,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.ida.distribute({
                         superToken: superToken.address,
                         publisher: alice,
@@ -172,7 +172,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.agreements.ida.calculateDistribution(
                         superToken.address,
                         alice,
@@ -226,7 +226,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     [bob, toWad("0.00")],
                 ]);
 
-                await expectRevert(
+                await expectRevertedWith(
                     shouldDistribute({
                         testenv: t,
                         superToken,
@@ -299,7 +299,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: toWad("0.001").toString(),
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     shouldDistribute({
                         testenv: t,
                         superToken,
@@ -318,7 +318,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.ida.updateSubscription({
                         superToken: superToken.address,
                         publisher: t.getAddress("alice"),
@@ -338,7 +338,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.ida.deleteSubscription({
                         superToken: superToken.address,
                         indexId: DEFAULT_INDEX_ID,
@@ -384,7 +384,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     shouldApproveSubscription({
                         testenv: t,
                         superToken,
@@ -505,7 +505,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     shouldDeleteSubscription({
                         testenv: t,
                         superToken,
@@ -532,7 +532,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     shouldDeleteSubscription({
                         testenv: t,
                         superToken,
@@ -688,7 +688,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.2.10 one should fail to use a subscription of a non-existent index", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     shouldApproveSubscription({
                         testenv: t,
                         superToken,
@@ -698,7 +698,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     shouldUpdateSubscription({
                         testenv: t,
                         superToken,
@@ -709,7 +709,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.ida.getSubscription({
                         superToken: superToken.address,
                         publisher: alice,
@@ -808,7 +808,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                     units: toWad("0.001").toString(),
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     shouldRevokeSubscription({
                         testenv: t,
                         superToken,
@@ -827,7 +827,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     shouldRevokeSubscription({
                         testenv: t,
                         superToken,
@@ -840,7 +840,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.2.14 subscriber should fail to revoke a subscription of a non-existent index", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     shouldRevokeSubscription({
                         testenv: t,
                         superToken,
@@ -1267,7 +1267,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     shouldClaimPendingDistribution({
                         testenv: t,
                         superToken,
@@ -1281,7 +1281,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.4.4 one should not claim from a subscription of a non-existent index", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     shouldClaimPendingDistribution({
                         testenv: t,
                         superToken,
@@ -1310,7 +1310,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     shouldClaimPendingDistribution({
                         testenv: t,
                         superToken,
@@ -1331,7 +1331,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.ida.claim({
                         superToken: superToken.address,
                         indexId: DEFAULT_INDEX_ID,
@@ -1396,7 +1396,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             it("#1.5.2 context should not be exploited", async () => {
                 const {superfluid, ida} = t.contracts;
 
-                await expectRevert(
+                await expectRevertedWith(
                     superfluid.callAgreement(
                         ida.address,
                         ida.contract.methods
@@ -1920,7 +1920,7 @@ describe("Using InstantDistributionAgreement v1", function () {
 
         it("#2.8 getSubscriptionByID revert with E_NO_SUBS", async () => {
             await app.setForceGetSubscriptionByID();
-            await expectRevert(
+            await expectRevertedWith(
                 shouldApproveSubscription({
                     testenv: t,
                     superToken,
@@ -1946,7 +1946,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
             const fakeHost = await FakeSuperfluidMock.new();
             const ida = t.sf.agreements.ida;
-            await expectRevert(
+            await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -1956,7 +1956,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevert(
+            await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -1966,7 +1966,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevert(
+            await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -1976,7 +1976,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevert(
+            await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -1986,7 +1986,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevert(
+            await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -2266,7 +2266,7 @@ describe("Using InstantDistributionAgreement v1", function () {
 
             await timeTravelOnce();
 
-            await expectRevert(
+            await expectRevertedWith(
                 shouldDistribute({
                     testenv: t,
                     superToken,
@@ -2390,7 +2390,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 units: toWad("0.001").toString(),
             });
 
-            await expectRevert(
+            await expectRevertedWith(
                 shouldDistribute({
                     testenv: t,
                     superToken,

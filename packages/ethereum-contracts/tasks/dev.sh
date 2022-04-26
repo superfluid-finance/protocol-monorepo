@@ -12,7 +12,7 @@ export IS_HARDHAT=true
 C="$@"
 
 if [ -z "$C" ];then
-    X="yarn test-contracts:js 2>&1"
+    X="yarn test:contracts:js 2>&1"
 else
     X="npx hardhat test $C"
 fi

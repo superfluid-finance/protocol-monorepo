@@ -1,4 +1,5 @@
-const {expectEvent, expectRevertedWith} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");

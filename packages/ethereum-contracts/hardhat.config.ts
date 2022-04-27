@@ -1,7 +1,8 @@
-import {HardhatUserConfig} from "hardhat/config";
+import {HardhatUserConfig, subtask} from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
+import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names"
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 
@@ -13,7 +14,17 @@ try {
     );
 }
 
+// hardhat mixin magic: https://github.com/NomicFoundation/hardhat/issues/2306#issuecomment-1039452928
+// filter out foundry test codes
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
+    const paths = await runSuper();
+    return paths.filter((p: string) => !p.includes("test/foundry"));
+});
+
 const config: HardhatUserConfig = {
+    paths: {
+        sources: "./contracts"
+    },
     solidity: {
         version: "0.8.13",
         settings: {

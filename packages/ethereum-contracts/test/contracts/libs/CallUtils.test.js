@@ -2,11 +2,13 @@ const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const CallUtilsMock = artifacts.require("CallUtilsMock");
+const CallUtilsTester = artifacts.require("CallUtilsTester");
 
 describe("CallUtils", function () {
     const t = TestEnvironment.getSingleton();
 
     let callUtilsMock;
+    let callUtilsTester;
 
     before(async () => {
         await t.beforeTestSuite({
@@ -14,6 +16,7 @@ describe("CallUtils", function () {
             nAccounts: 5,
         });
         callUtilsMock = await CallUtilsMock.new();
+        callUtilsTester = await CallUtilsTester.new();
     });
 
     it("CallUtils.revertFromReturnedData", async () => {
@@ -70,6 +73,6 @@ describe("CallUtils", function () {
     });
 
     it("CallUtils.isValidAbiEncodedBytes", async () => {
-        await callUtilsMock.testIsValidAbiEncodedBytes();
+        await callUtilsTester.testIsValidAbiEncodedBytes();
     });
 });

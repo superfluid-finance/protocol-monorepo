@@ -28,107 +28,95 @@ describe("Int96SafeMath", function () {
         assert.equal((await tester.getInt96Max()).toString(), MAX_INT96);
         assert.equal((await tester.getInt96Min()).toString(), MIN_INT96);
 
-        // testInt96SafeMathMul
+        // doInt96SafeMathMul
         assert.equal(
-            (await tester.testInt96SafeMathMul(0, MAX_INT96)).toString(),
+            (await tester.doInt96SafeMathMul(0, MAX_INT96)).toString(),
             "0"
         );
         assert.equal(
-            (await tester.testInt96SafeMathMul(2, MAX_INT96_DIV_2)).toString(),
+            (await tester.doInt96SafeMathMul(2, MAX_INT96_DIV_2)).toString(),
             MAX_INT96_MINUS_1.toString()
         );
         await expectRevertedWith(
-            tester.testInt96SafeMathMul(MAX_INT96_DIV_2_PLUS_1, 2),
-            "testInt96SafeMathMul overflow"
+            tester.doInt96SafeMathMul(MAX_INT96_DIV_2_PLUS_1, 2),
+            "doInt96SafeMathMul overflow"
         );
         assert.equal(
-            (await tester.testInt96SafeMathMul(2, MIN_INT96_DIV_2)).toString(),
+            (await tester.doInt96SafeMathMul(2, MIN_INT96_DIV_2)).toString(),
             MIN_INT96.toString()
         );
         await expectRevertedWith(
-            tester.testInt96SafeMathMul(MIN_INT96_DIV_2_MINUS_1, 2),
-            "testInt96SafeMathMul overflow"
+            tester.doInt96SafeMathMul(MIN_INT96_DIV_2_MINUS_1, 2),
+            "doInt96SafeMathMul overflow"
         );
         await expectRevertedWith(
-            tester.testInt96SafeMathMul("-1", MIN_INT96),
-            "testInt96SafeMathMul overflow"
+            tester.doInt96SafeMathMul("-1", MIN_INT96),
+            "doInt96SafeMathMul overflow"
         );
 
-        // testInt96SafeMathAdd
+        // doInt96SafeMathAdd
         assert.equal(
             (await tester.echoInt96(MAX_INT96)).toString(),
             MAX_INT96.toString()
         );
         assert.equal(
             (
-                await tester.testInt96SafeMathAdd(MAX_INT96_MINUS_1, "1")
+                await tester.doInt96SafeMathAdd(MAX_INT96_MINUS_1, "1")
             ).toString(),
             MAX_INT96.toString()
         );
         await expectRevertedWith(
-            tester.testInt96SafeMathAdd(MAX_INT96, "1"),
-            "testInt96SafeMathAdd overflow"
+            tester.doInt96SafeMathAdd(MAX_INT96, "1"),
+            "doInt96SafeMathAdd overflow"
         );
 
-        // testInt96SafeMathSub
+        // doInt96SafeMathSub
         assert.equal(
             (await tester.echoInt96(MIN_INT96)).toString(),
             MIN_INT96.toString()
         );
         assert.equal(
-            (
-                await tester.testInt96SafeMathSub(MIN_INT96_PLUS_1, "1")
-            ).toString(),
+            (await tester.doInt96SafeMathSub(MIN_INT96_PLUS_1, "1")).toString(),
             MIN_INT96.toString()
         );
         await expectRevertedWith(
-            tester.testInt96SafeMathSub(MIN_INT96, "1"),
-            "testInt96SafeMathSub overflow"
+            tester.doInt96SafeMathSub(MIN_INT96, "1"),
+            "doInt96SafeMathSub overflow"
         );
-        // testInt96SafeMathDiv
+        // doInt96SafeMathDiv
         assert.equal(
-            (await tester.testInt96SafeMathDiv(MAX_INT96, 1)).toString(),
+            (await tester.doInt96SafeMathDiv(MAX_INT96, 1)).toString(),
             MAX_INT96.toString()
         );
         assert.equal(
-            (
-                await tester.testInt96SafeMathDiv(MAX_INT96_MINUS_1, 2)
-            ).toString(),
+            (await tester.doInt96SafeMathDiv(MAX_INT96_MINUS_1, 2)).toString(),
             MAX_INT96_DIV_2.toString()
         );
         assert.equal(
-            (
-                await tester.testInt96SafeMathDiv(MAX_INT96, MAX_INT96)
-            ).toString(),
+            (await tester.doInt96SafeMathDiv(MAX_INT96, MAX_INT96)).toString(),
             "1"
         );
         assert.equal(
-            (
-                await tester.testInt96SafeMathDiv(MIN_INT96, MIN_INT96)
-            ).toString(),
+            (await tester.doInt96SafeMathDiv(MIN_INT96, MIN_INT96)).toString(),
             "1"
         );
         assert.equal(
-            (
-                await tester.testInt96SafeMathDiv(MAX_INT96, MIN_INT96)
-            ).toString(),
+            (await tester.doInt96SafeMathDiv(MAX_INT96, MIN_INT96)).toString(),
             "0"
         );
         assert.equal(
-            (
-                await tester.testInt96SafeMathDiv(MIN_INT96, MAX_INT96)
-            ).toString(),
+            (await tester.doInt96SafeMathDiv(MIN_INT96, MAX_INT96)).toString(),
             "-1"
         );
 
         await expectRevertedWith(
-            tester.testInt96SafeMathDiv(MIN_INT96, 0),
-            "testInt96SafeMathDiv overflow"
+            tester.doInt96SafeMathDiv(MIN_INT96, 0),
+            "doInt96SafeMathDiv overflow"
         );
 
         await expectRevertedWith(
-            tester.testInt96SafeMathDiv(MIN_INT96, -1),
-            "testInt96SafeMathDiv overflow"
+            tester.doInt96SafeMathDiv(MIN_INT96, -1),
+            "doInt96SafeMathDiv overflow"
         );
     });
 });

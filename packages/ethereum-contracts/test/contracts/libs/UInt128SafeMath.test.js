@@ -22,17 +22,17 @@ describe("UInt128SafeMath", function () {
 
         assert.equal(
             (
-                await tester.testUInt128SafeMathAdd(MAX_UINT128_MINUS_1, "1")
+                await tester.doUInt128SafeMathAdd(MAX_UINT128_MINUS_1, "1")
             ).toString(),
             MAX_UINT128
         );
         await expectRevertedWith(
-            tester.testUInt128SafeMathAdd("1", MAX_UINT128),
-            "testUInt128SafeMathAdd overflow"
+            tester.doUInt128SafeMathAdd("1", MAX_UINT128),
+            "doUInt128SafeMathAdd overflow"
         );
         await expectRevertedWith(
-            tester.testInt128SafeMathSub("0", "1"),
-            "testInt96SafeMathSub overflow"
+            tester.doInt128SafeMathSub("0", "1"),
+            "doInt96SafeMathSub overflow"
         );
     });
 });

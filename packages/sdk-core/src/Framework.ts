@@ -39,7 +39,7 @@ type SupportedProvider =
 // instead of having to pass it in every single time
 export interface IFrameworkOptions {
     chainId?: number;
-    customSubgraphQueriesEndpoint?: string;
+    customSubgraphQueriesEndpoint?: "v1" | "dev" | "feature" | string;
     dataMode?: DataMode;
     networkName?: string;
     resolverAddress?: string;

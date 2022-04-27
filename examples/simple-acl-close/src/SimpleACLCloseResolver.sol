@@ -26,20 +26,22 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         uint256 _endTime,
         IConstantFlowAgreementV1 _cfa,
         ISuperfluidToken _superToken,
-        address _flowReceiver,
-        address _ops
+        address _flowReceiver
     ) {
         endTime = _endTime;
         cfa = _cfa;
         superToken = _superToken;
         flowSender = msg.sender;
         flowReceiver = _flowReceiver;
-        ops = _ops;
     }
 
     modifier opsOnly() {
         if (msg.sender != ops) revert OpsOnly();
         _;
+    }
+
+    function setOps(address _ops) external onlyOwner {
+        ops = _ops;
     }
 
     function checker()

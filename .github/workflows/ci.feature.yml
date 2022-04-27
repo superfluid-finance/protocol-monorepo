@@ -74,6 +74,31 @@ jobs:
       - name: Test ethereum-contracts
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
+  
+  test-ethereum-contracts-foundry:
+    name: Build and test ethereum-contracts with foundry (Feature Branch)
+
+    runs-on: ubuntu-latest
+
+    env:
+      contracts-working-directory: ./packages/ethereum-contracts
+
+    needs: [check]
+    if: needs.check.outputs.build_ethereum_contracts
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run tests
+        run: forge test -vvv
+        working-directory: ${{ env.contracts-working-directory }}
 
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)

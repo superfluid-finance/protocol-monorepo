@@ -55,45 +55,12 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install, lint and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
-
-      - name: Test ethereum-contracts
-        run: |
-          yarn workspace @superfluid-finance/ethereum-contracts test
-  
-  test-ethereum-contracts-foundry:
-    name: Build and test ethereum-contracts with foundry (Feature Branch)
-
-    runs-on: ubuntu-latest
-
-    env:
-      contracts-working-directory: ./packages/ethereum-contracts
-
-    needs: [check]
-    if: needs.check.outputs.build_ethereum_contracts
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-
-    steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -111,10 +78,10 @@ jobs:
         with:
           version: nightly
 
-      - name: Run tests
-        run: forge test -vvv
-        working-directory: ${{ env.contracts-working-directory }}
-
+      - name: Test ethereum-contracts
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts test
+  
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 

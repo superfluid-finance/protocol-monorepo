@@ -108,13 +108,14 @@ contract SuperfluidFramework {
             )
         );
 
+        // NOTE: This causes forge test to just build and not test and seems to silently fail
         // STEP 14
         // Deploy InstantDistributionAgreementV1
-        ida = new InstantDistributionAgreementV1(host);
+        // ida = new InstantDistributionAgreementV1(host);
 
         // STEP 15
         // Register InstantDistributionAgreementV1 with Governance
-        governance.registerAgreementClass(host, address(ida));
+        // governance.registerAgreementClass(host, address(ida));
 
         // STEP 16
         // Deploy SuperTokenFactoryHelper

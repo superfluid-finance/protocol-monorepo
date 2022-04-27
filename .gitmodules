@@ -1,6 +1,0 @@
-[submodule "examples/simple-acl-close/lib/ds-test"]
-	path = examples/simple-acl-close/lib/ds-test
-	url = https://github.com/dapphub/ds-test
-[submodule "examples/simple-acl-close/lib/forge-std"]
-	path = examples/simple-acl-close/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std

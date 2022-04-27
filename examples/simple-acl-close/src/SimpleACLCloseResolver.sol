@@ -7,36 +7,52 @@ import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contrac
 import { ISuperfluid } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IResolver } from "./interfaces/IResolver.sol";
 
-contract StreamButlerResolver is IResolver, Ownable {
-    IConstantFlowAgreementV1 public cfa;
-    uint256 public endTime;
-    ISuperfluidToken public token;
-    address public flowSender;
-    address public flowReceiver;
+/**
+ * @title A simple Gelato resolver which utilizes Superfluid's ACL feature to close a single stream.
+ * @author Superfluid
+ * @dev This only works for a single token and one stream at a time.
+ */
+contract SimpleACLCloseResolver is IResolver, Ownable {
+    IConstantFlowAgreementV1 internal cfa;
+    uint256 internal endTime;
+    ISuperfluidToken internal superToken;
+    address internal flowSender;
+    address internal flowReceiver;
+    address internal ops;
+
+    error OpsOnly();
 
     constructor(
         uint256 _endTime,
         IConstantFlowAgreementV1 _cfa,
-        ISuperfluidToken _token,
-        address _flowReceiver
+        ISuperfluidToken _superToken,
+        address _flowReceiver,
+        address _ops
     ) {
         endTime = _endTime;
         cfa = _cfa;
-        token = _token;
+        superToken = _superToken;
         flowSender = msg.sender;
         flowReceiver = _flowReceiver;
+        ops = _ops;
+    }
+
+    modifier opsOnly() {
+        if (msg.sender != ops) revert OpsOnly();
+        _;
     }
 
     function checker()
         external
         view
+        opsOnly
         returns (bool canExec, bytes memory execPayload)
     {
         canExec = block.timestamp >= endTime;
 
         bytes memory callData = abi.encodeWithSelector(
             IConstantFlowAgreementV1.deleteFlowByOperator.selector,
-            token,
+            superToken,
             flowSender,
             flowReceiver,
             new bytes(0)

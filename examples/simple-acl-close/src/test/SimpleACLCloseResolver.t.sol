@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import { DSTest } from "ds-test/test.sol";
+import { Test } from "forge-std/Test.sol";
 import { Vm } from "forge-std/Vm.sol";
+// import { console } from "forge-std/console.sol";
 import { ERC20PresetMinterPauser } from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import {IInstantDistributionAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import { SuperfluidFramework, Superfluid, ConstantFlowAgreementV1, SuperTokenFactory } from "./SuperfluidFramework.t.sol";
 import { SuperfluidTester } from "./SuperfluidTester.t.sol";
-import { StreamButler } from "../StreamButler.sol";
-import { StreamButlerResolver } from "../StreamButlerResolver.sol";
+import { SimpleACLCloseResolver } from "../SimpleACLCloseResolver.sol";
 
 // Only the owner or gelato ops can execute the functions with the isOwnerOrOps modifier
 // Should not be able to close the flow unless you are the owner OR gelato ops and it is within the timeframe
 // The contract should definitely have permissions to modify if permissions have been granted
 // the last deleted index stuff should be working properly
 
-contract StreamButlerTest is DSTest {
+contract SimpleACLCloseResolverTest is Test {
     Vm private _vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     uint256 private constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint256 private constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     address private constant alpha = address(1);
+    address private constant ops = address(69);
     address private constant admin = address(420);
 
     Superfluid private _host;
@@ -28,8 +30,7 @@ contract StreamButlerTest is DSTest {
     SuperTokenFactory private _superTokenFactory;
     ERC20PresetMinterPauser private _token;
     SuperToken private _superToken;
-    StreamButler private _streamButler;
-    StreamButlerResolver private _streamButlerResolver; // ops
+    SimpleACLCloseResolver private _simpleACLCloseResolver;
     SuperfluidTester private _alphaTester;
     SuperfluidTester private _adminTester;
 
@@ -55,11 +56,20 @@ contract StreamButlerTest is DSTest {
         // initialize Super ButlerToken
         _superToken.initialize(_token, 18, "Butler Token", "BUTx");
 
-        // initialize Stream Butler
-        _streamButler = new StreamButler(
-            address(_host),
-            address(_cfa),
-            30 seconds
+        // initialize SuperfluidTester accounts
+        _adminTester = new SuperfluidTester(
+            _host,
+            _cfa,
+            IInstantDistributionAgreementV1(address(0)), // don't care about IDA
+            _token,
+            _superToken
+        );
+        _alphaTester = new SuperfluidTester(
+            _host,
+            _cfa,
+            IInstantDistributionAgreementV1(address(0)), // don't care about IDA
+            _token,
+            _superToken
         );
 
         // mint tokens for accounts
@@ -70,13 +80,17 @@ contract StreamButlerTest is DSTest {
         _adminTester.upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
         _alphaTester.upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
 
-        // initialize Stream Butler Resolver
-        _streamButlerResolver = new StreamButlerResolver(
-            address(_streamButler)
+        // initialize Simple ACL Close Resolver
+        _simpleACLCloseResolver = new SimpleACLCloseResolver(
+            block.timestamp + 14400,
+            _cfa,
+            _superToken,
+            address(_alphaTester)
         );
 
-        // set stream butler resolver in _streamButler
-        _streamButler.setOps(address(_streamButlerResolver));
+        // transfer ownership of the Simple ACL Close Resolver from
+        // this test contract to the _admin
+        _simpleACLCloseResolver.transferOwnership(address(_adminTester));
 
         _vm.stopPrank();
     }
@@ -93,8 +107,7 @@ contract StreamButlerTest is DSTest {
     // should be able to update one flow as owner
     // should be able to delete one flow as owner
 
-
     function testExample() public {
-        assertTrue(true);
+        assertTrue(false);
     }
 }

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >=0.8.0;
 
-import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+import { Superfluid } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
+import { IERC20, ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IInstantDistributionAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+import { IDAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 contract SuperfluidTester {
     CFAv1Library.InitData private _cfaLib;

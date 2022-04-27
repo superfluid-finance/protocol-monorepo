@@ -78,7 +78,7 @@ export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
         : options.chainId;
     const resolverData = chainId ? chainIdToResolverDataMap.get(chainId) : null;
     if (resolverData) {
-        return resolverData.subgraphAPIEndpoint;
+        return resolverData.subgraphAPIEndpoint.replace("-v1-", "-dev-"); // TODO(KK): Temporary fix because new subgraph endpoints are not yet available.
     }
 
     /* istanbul ignore next */

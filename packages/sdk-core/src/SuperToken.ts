@@ -129,9 +129,13 @@ export default abstract class SuperToken extends ERC20Token {
                 networkName,
             };
 
-            const tokenSymbol = await superToken
-                .connect(options.provider)
-                .symbol();
+            if (underlyingTokenAddress !== ethers.constants.AddressZero) {
+                return new WrapperSuperToken(options, {
+                    ...settings,
+                    underlyingTokenAddress,
+                });
+            }
+
             const resolverData = chainIdToResolverDataMap.get(chainId) || {
                 subgraphAPIEndpoint: "",
                 resolverAddress: "",
@@ -141,6 +145,9 @@ export default abstract class SuperToken extends ERC20Token {
             const nativeTokenSymbol = resolverData.nativeTokenSymbol || "ETH";
             const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
 
+            const tokenSymbol = await superToken
+                .connect(options.provider)
+                .symbol();
             if (nativeSuperTokenSymbol === tokenSymbol) {
                 return new NativeAssetSuperToken(
                     options,
@@ -149,12 +156,6 @@ export default abstract class SuperToken extends ERC20Token {
                 );
             }
 
-            if (underlyingTokenAddress !== ethers.constants.AddressZero) {
-                return new WrapperSuperToken(options, {
-                    ...settings,
-                    underlyingTokenAddress,
-                });
-            }
             return new PureSuperToken(options, settings);
         } catch (err) {
             throw new SFError({

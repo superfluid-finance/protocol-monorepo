@@ -217,6 +217,8 @@ jobs:
 
       - name: Build
         run: yarn build
+        env:
+          SUBGRAPH_RELEASE_TAG: dev
 
       - name: Setup canary package versions locally
         run: |

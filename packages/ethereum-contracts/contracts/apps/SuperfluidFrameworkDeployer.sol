@@ -27,6 +27,8 @@ contract SuperfluidFrameworkDeployer {
     /// @notice Deploys everything... probably
     constructor() {
         // Make sure ERC1820 is deployed
+        // TODO with foundry etched ERC1820 contract is not available yet during the same transaction while in a
+        // different external call. It could be either an EVM spec behaviour, or it could be a foundry-evm behaviour.
         /* {
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly

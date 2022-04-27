@@ -15,6 +15,7 @@
         "/build/contracts/*.json",
         "!/build/contracts/*Mock*.json",
         "!/build/contracts/*Tester*.json",
+        "!/build/contracts/*Anvil.json",
         "/build/contracts-sizes.txt",
         "/build/abi.js",
         "artifacts/**/*",

@@ -8,8 +8,8 @@ import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/sup
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
 import { IInstantDistributionAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { SuperfluidFramework, Superfluid, ConstantFlowAgreementV1, SuperTokenFactory } from "./SuperfluidFramework.t.sol";
-import { SuperfluidTester } from "./SuperfluidTester.t.sol";
 import { SimpleACLCloseResolver } from "../SimpleACLCloseResolver.sol";
 import { OpsMock } from "../mocks/OpsMock.sol";
 
@@ -27,6 +27,9 @@ contract SimpleACLCloseResolverTest is Test {
     address private constant npc = address(2);
     OpsMock private ops;
     address private constant admin = address(420);
+    address[] private TEST_ACCOUNTS = [alpha, npc, admin];
+
+    using CFAv1Library for CFAv1Library.InitData;
 
     Superfluid private _host;
     ConstantFlowAgreementV1 private _cfa;
@@ -34,8 +37,7 @@ contract SimpleACLCloseResolverTest is Test {
     ERC20PresetMinterPauser private _token;
     ISuperToken private _superToken;
     SimpleACLCloseResolver private _simpleACLCloseResolver;
-    SuperfluidTester private _alphaTester;
-    SuperfluidTester private _adminTester;
+    CFAv1Library.InitData private _cfaLib;
 
     function setUp() public {
         // Deploy and retrieve contracts using `_vm` and `admin`. The admin deploys everything.
@@ -43,6 +45,8 @@ contract SimpleACLCloseResolverTest is Test {
             _vm,
             admin
         ).framework();
+        _cfaLib.host = _host;
+        _cfaLib.cfa = _cfa;
 
         // NOTE: If you're copy-pasting this for your own test, you can safely delete the rest of
         // this function :)
@@ -59,38 +63,23 @@ contract SimpleACLCloseResolverTest is Test {
             "Super Butler Token",
             "BUTx"
         );
-        // initialize Super ButlerToken
-
-        // initialize SuperfluidTester accounts
-        _adminTester = new SuperfluidTester(
-            _host,
-            _cfa,
-            IInstantDistributionAgreementV1(address(0)), // don't care about IDA
-            _token,
-            _superToken
-        );
-        _alphaTester = new SuperfluidTester(
-            _host,
-            _cfa,
-            IInstantDistributionAgreementV1(address(0)), // don't care about IDA
-            _token,
-            _superToken
-        );
 
         // mint tokens for accounts
-        _token.mint(address(_adminTester), INIT_TOKEN_BALANCE);
-        _token.mint(address(_alphaTester), INIT_TOKEN_BALANCE);
-
-        // upgrade tokens for accounts
-        _adminTester.upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
-        _alphaTester.upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
+        for (uint8 i = 0; i < TEST_ACCOUNTS.length; i++) {
+            _vm.prank(admin);
+            _token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
+            _vm.startPrank(TEST_ACCOUNTS[i]);
+            _token.approve(address(_superToken), INIT_TOKEN_BALANCE);
+            _superToken.upgrade(INIT_TOKEN_BALANCE);
+            _vm.stopPrank();
+        }
 
         // initialize Simple ACL Close Resolver
         _simpleACLCloseResolver = new SimpleACLCloseResolver(
             block.timestamp + 14400,
             _cfa,
             _superToken,
-            address(_alphaTester)
+            address(alpha)
         );
 
         // create ops mock contract
@@ -100,19 +89,18 @@ contract SimpleACLCloseResolverTest is Test {
 
         // transfer ownership of the Simple ACL Close Resolver from
         // this test contract to the _admin
-        _simpleACLCloseResolver.transferOwnership(address(_adminTester));
+        _simpleACLCloseResolver.transferOwnership(admin);
 
         _vm.stopPrank();
     }
 
-    // expect revert if you try to create a stream via StreamButler prior to providing allowance
     // provide allowance
     // expect revert for all the functions which are called by someone other than the owner or ops" isOwnerOrOps
 
     function testCannotExecuteRightNow() public {
-        // create a stream from _adminTester to npc
-        _vm.startPrank(address(_adminTester));
-        _adminTester.flow(npc, 100);
+        // create a stream from admin to npc
+        _vm.startPrank(admin);
+        _cfaLib.flow(npc, _superToken, 100);
         _vm.expectRevert(OpsMock.CannotExecute.selector);
     
         ops.exec();
@@ -120,9 +108,9 @@ contract SimpleACLCloseResolverTest is Test {
     }
 
     function testCannotCloseWithoutApproval() public {
-        // create a stream from _adminTester to npc
-        _vm.startPrank(address(_adminTester));
-        _adminTester.flow(npc, 100);
+        // create a stream from admin to npc
+        _vm.startPrank(admin);
+        _cfaLib.flow(npc, _superToken, 100);
         
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);

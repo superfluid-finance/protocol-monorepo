@@ -1,0 +1,31 @@
+{
+  "name": "simple-acl-close",
+  "version": "0.0.1",
+  "description": "A simple gelato resolver which uses Superfluid's ACL feature to close a single stream.",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "forge test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/superfluid-finance/protocol-monorepo/examples.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
+  },
+  "homepage": "https://github.com/superfluid-finance/protocol-monorepo/#readme",
+  "devDependencies": {
+    "@superfluid-finance/ethereum-contracts": "1.1.2-dev.0839cae.0",
+    "dotenv": "^16.0.0",
+    "hardhat": "^2.9.3",
+    "hardhat-prettier": "^0.0.1",
+    "prettier": "^2.6.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  }
+}

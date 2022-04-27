@@ -86,10 +86,25 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
 
+    strategy:
+      matrix:
+        node-version: [16.x]
+
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint and build
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1

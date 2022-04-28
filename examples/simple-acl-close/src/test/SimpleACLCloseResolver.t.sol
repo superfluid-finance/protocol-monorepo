@@ -87,7 +87,7 @@ contract SimpleACLCloseResolverTest is Test {
         // create ops mock contract
         ops = new OpsMock(address(_simpleACLCloseResolver), address(_host));
 
-        _simpleACLCloseResolver.setOps(address(ops));
+        _simpleACLCloseResolver.updateOps(address(ops));
 
         _vm.stopPrank();
     }
@@ -164,9 +164,21 @@ contract SimpleACLCloseResolverTest is Test {
     }
 
     // Resolver Tests
-    function testNonOpsCannotRunChecker() public {
-        _vm.expectRevert(SimpleACLCloseResolver.OpsOnly.selector);
-        _simpleACLCloseResolver.checker();
+
+    function testCannotSetInvalidReceiver() public {
+        _vm.startPrank(admin);
+        _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowReceiver.selector);
+        _simpleACLCloseResolver.updateFlowReceiver(address(0));
+        _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowReceiver.selector);
+        _simpleACLCloseResolver.updateFlowReceiver(admin);
+    }
+
+    function testCannotSetInvalidSender() public {
+        _vm.startPrank(admin);
+        _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowSender.selector);
+        _simpleACLCloseResolver.updateFlowSender(address(0));
+        _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowSender.selector);
+        _simpleACLCloseResolver.updateFlowSender(npc);
     }
 
     /**
@@ -187,17 +199,10 @@ contract SimpleACLCloseResolverTest is Test {
         );
 
         // warp to a time when it's acceptable to execute
-        _vm.warp(block.timestamp + 14401);
+        _vm.warp(block.timestamp + 14400);
 
         ops.exec();
         _vm.stopPrank();
-    }
-
-    // Resolver Tests
-    function testOpsCanRunChecker() public {
-        _vm.prank(address(ops));
-        (bool canExec, ) = _simpleACLCloseResolver.checker();
-        assertEq(canExec, false);
     }
 
     /**
@@ -205,11 +210,72 @@ contract SimpleACLCloseResolverTest is Test {
      */
 
     // Resolver Tests
-    function testUpdateEndTime(uint256 _endTime) public {
+    function testNonOpsCannotRunChecker(address _caller) public {
+        _vm.assume(_caller != address(ops));
+        _vm.expectRevert(SimpleACLCloseResolver.OpsOnly.selector);
+        _vm.prank(_caller);
+        _simpleACLCloseResolver.checker();
+    }
+
+    function testCanUpdateEndTime(uint256 _endTime, address _newOwner) public {
         _vm.warp(1);
-        _vm.assume(_endTime > block.timestamp);
-        _vm.startPrank(admin);
+        _vm.assume(_endTime > block.timestamp && _newOwner != address(0));
+
+        _vm.prank(admin);
+        _simpleACLCloseResolver.transferOwnership(_newOwner);
+
+        _vm.prank(_newOwner);
         _simpleACLCloseResolver.updateEndTime(_endTime);
+    }
+
+    function testCanUpdateFlowReceiver(address _flowReceiver, address _newOwner)
+        public
+    {
+        _vm.assume(
+            _flowReceiver != _newOwner &&
+                _flowReceiver != address(0) &&
+                _newOwner != address(0)
+        );
+
+        _vm.prank(admin);
+        _simpleACLCloseResolver.transferOwnership(_newOwner);
+
+        _vm.prank(_newOwner);
+        _simpleACLCloseResolver.updateFlowReceiver(_flowReceiver);
+    }
+
+    function testCanUpdateFlowSender(address _flowSender, address _newOwner)
+        public
+    {
+        _vm.assume(
+            _flowSender != _newOwner &&
+                _flowSender != address(0) &&
+                _newOwner != address(0)
+        );
+
+        _vm.prank(admin);
+        _simpleACLCloseResolver.transferOwnership(_newOwner);
+
+        _vm.prank(_newOwner);
+        _simpleACLCloseResolver.updateFlowSender(_flowSender);
+    }
+
+    function testCanUpdateOps(address _newOps, address _newOwner) public {
+        _vm.assume(
+            _newOps != _newOwner &&
+                _newOps != address(0) &&
+                _newOwner != address(0)
+        );
+
+        _vm.prank(admin);
+        _simpleACLCloseResolver.transferOwnership(_newOwner);
+
+        _vm.prank(_newOwner);
+        _simpleACLCloseResolver.updateOps(_newOps);
+
+        // call checker as _newOps
+        _vm.prank(_newOps);
+        _simpleACLCloseResolver.checker();
     }
 
     function testCannotUpdateEndTimeToEarlier(uint256 _endTime) public {
@@ -220,9 +286,36 @@ contract SimpleACLCloseResolverTest is Test {
         _simpleACLCloseResolver.updateEndTime(_endTime);
     }
 
-    // TODO: should be able to update flow receiver
+    function testNonOwnerCannotUpdateFlowSender(address _nonOwner) public {
+        _vm.expectRevert("Ownable: caller is not the owner");
+        _vm.assume(_nonOwner != admin);
+        _vm.prank(_nonOwner);
+        _simpleACLCloseResolver.updateFlowSender(_nonOwner);
+    }
 
-    // TODO: should be able to change ops and run checker with new ops
+    function testNonOwnerCannotUpdateFlowReceiver(address _nonOwner) public {
+        _vm.expectRevert("Ownable: caller is not the owner");
+        _vm.assume(_nonOwner != admin);
+        _vm.prank(_nonOwner);
+        _simpleACLCloseResolver.updateFlowReceiver(_nonOwner);
+    }
+
+    function testNonOwnerCannotUpdateEndTime(
+        address _nonOwner,
+        uint256 _endTime
+    ) public {
+        _vm.expectRevert("Ownable: caller is not the owner");
+        _vm.assume(_nonOwner != admin && _endTime > block.timestamp);
+        _vm.prank(_nonOwner);
+        _simpleACLCloseResolver.updateEndTime(_endTime);
+    }
+
+    function testNonOwnerCannotUpdateOps(address _nonOwner) public {
+        _vm.expectRevert("Ownable: caller is not the owner");
+        _vm.assume(_nonOwner != admin);
+        _vm.prank(_nonOwner);
+        _simpleACLCloseResolver.updateOps(_nonOwner);
+    }
 
     // TODO: should be able to update flow receiver and handle closing of new flow
 

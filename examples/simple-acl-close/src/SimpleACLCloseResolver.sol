@@ -23,6 +23,7 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
     error OpsOnly();
     error InvalidEndTime();
     error InvalidFlowReceiver();
+    error InvalidFlowSender();
 
     constructor(
         uint256 _endTime,
@@ -43,7 +44,7 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         _;
     }
 
-    function setOps(address _ops) external onlyOwner {
+    function updateOps(address _ops) external onlyOwner {
         ops = _ops;
     }
 
@@ -56,6 +57,12 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         if (_flowReceiver == flowSender || _flowReceiver == address(0))
             revert InvalidFlowReceiver();
         flowReceiver = _flowReceiver;
+    }
+
+    function updateFlowSender(address _flowSender) external onlyOwner {
+        if (_flowSender == flowReceiver || _flowSender == address(0))
+            revert InvalidFlowSender();
+        flowSender = _flowSender;
     }
 
     function checker()

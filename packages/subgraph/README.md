@@ -149,6 +149,8 @@ Open another terminal window and run `./setup_graph.sh` and your local graph wil
 
 > Note: You can check out this [blog post](https://medium.com/blockrocket/dapp-development-with-a-local-subgraph-ganache-setup-566a4d4cbb) for more details if you run into any issues.
 
+> Another note: If you are using an M1 mac, follow the instructions [here](https://github.com/graphprotocol/graph-node/tree/master/docker#running-graph-node-on-an-macbook-m1) otherwise you will probably run into issues.
+
 You should see ganache logs start coming in:
 
 ```
@@ -409,6 +411,7 @@ When adding new networks, we must do the following:
 - Add the new network to `networks.json` and add a new file to `/config` with the same name as the network e.g. adding network `avalanche-fuji` to the array in `networks.json` and then adding `avalanche-fuji.json` to `/config`. The name of the network here is dicated by and must match how we name the network for our subgraph endpoint, e.g. `protocol-dev-avalanche-fuji`
 - The name of the network in the `/config` json file should match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks)
 - Therefore, the `network` we are comparing in the `addresses.template.test` file should also match the official naming.
+- We also need to add the host and resolver addresses to the `addresses.template.ts` file.
 
 # Contributing
 

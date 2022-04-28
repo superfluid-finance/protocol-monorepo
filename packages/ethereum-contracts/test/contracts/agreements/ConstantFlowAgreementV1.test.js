@@ -1,26 +1,39 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {BN, expectRevert} = require("@openzeppelin/test-helpers");
+const {BN, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
-    clipDepositNumber,
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
-    syncAccountExpectedBalanceDeltas,
+    shouldUpdateFlowOperatorPermissionsAndValidateEvent,
+    shouldRevertUpdateFlowOperatorPermissions,
+    shouldRevertChangeFlowByOperator,
+    shouldCreateFlowByOperator,
+    shouldUpdateFlowByOperator,
+    shouldDeleteFlowByOperator,
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const traveler = require("ganache-time-traveler");
+const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
-const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
+const ALLOW_CREATE = 1 << 0;
+const ALLOW_UPDATE = 1 << 1;
+const ALLOW_DELETE = 1 << 2;
+
+// TODO: when doing the hardhat refactor, make the input of users just addresses
+// not addresses OR aliases - should be consistent throughout - aliases should
+// solely be used for output, but we should be using addresses in the code
+// we should have one file dedicated to different constants/enums as well
 
 describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const {ZERO_ADDRESS} = t.constants;
+    const {ZERO_ADDRESS, MAXIMUM_FLOW_RATE} = t.constants;
     const {LIQUIDATION_PERIOD, FLOW_RATE1, MINIMUM_DEPOSIT} = t.configs;
 
     let admin, alice, bob, dan;
@@ -50,6 +63,21 @@ describe("Using ConstantFlowAgreement v1", function () {
         await t.beforeEachTestCase();
     });
 
+    // TODO: regex from # until the end
+    afterEach(() => {
+        if (t.plotData.enabled) {
+            t.writePlotDataIntoCSVFile(
+                this.ctx.test.title
+                    .split("#")[1]
+                    // eslint-disable-next-line
+                    .split('"')[0]
+                    .split(" ")
+                    .join("_"),
+                superToken.address
+            );
+        }
+    });
+
     async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
         const block1 = await web3.eth.getBlock("latest");
         console.log("current block time", block1.timestamp);
@@ -60,9 +88,10 @@ describe("Using ConstantFlowAgreement v1", function () {
     }
 
     async function verifyAll(opts) {
+        const cfaDataModel = new CFADataModel(t, superToken);
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
-            syncAccountExpectedBalanceDeltas({
+            cfaDataModel.syncAccountExpectedBalanceDeltas({
                 testenv: t,
                 superToken: superToken.address,
                 timestamp: block2.timestamp,
@@ -111,77 +140,151 @@ describe("Using ConstantFlowAgreement v1", function () {
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
     }
 
-    function shouldTestLiquidationByAgent({titlePrefix, sender, receiver, by}) {
-        it(`${titlePrefix}.a should be liquidated by agent when critical but solvent`, async () => {
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-            // drain the balance until critical (60sec extra)
-            await timeTravelOnceAndVerifyAll({
-                time:
-                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
-                    LIQUIDATION_PERIOD +
-                    60,
-                allowCriticalAccount: true,
-            });
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-
-            await shouldDeleteFlow({
-                testenv: t,
-                superToken,
+    function shouldCreateSolventLiquidationTest({
+        titlePrefix,
+        sender,
+        receiver,
+        by,
+        seconds,
+    }) {
+        it(`${titlePrefix}.a should be liquidated when critical but solvent`, async () => {
+            const defaultSolvencyStatus = {
+                preIsCritical: false,
+                preIsSolvent: true,
+                postIsCritical: true,
+                postIsSolvent: true,
+            };
+            await _testLiquidation({
                 sender,
                 receiver,
                 by,
+                seconds,
+                solvencyStatuses: defaultSolvencyStatus,
             });
-
-            await verifyAll();
         });
     }
 
-    function shouldTestSelfLiquidation({
+    function shouldCreateBailoutTest({
         titlePrefix,
         sender,
         receiver,
         by,
         allowCriticalAccount,
+        seconds,
     }) {
-        it(`${titlePrefix}.b can self liquidate when insolvent`, async () => {
-            assert.isFalse(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isTrue(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-            // drain the balance until insolvent (60sec extra)
-            await timeTravelOnceAndVerifyAll({
-                time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60,
-                allowCriticalAccount: true,
-            });
-            assert.isTrue(
-                await superToken.isAccountCriticalNow(t.aliases[sender])
-            );
-            assert.isFalse(
-                await superToken.isAccountSolventNow(t.aliases[sender])
-            );
-
-            await shouldDeleteFlow({
-                testenv: t,
-                superToken,
+        it(`${titlePrefix}.b can liquidate and bail out when insolvent`, async () => {
+            const defaultSolvencyStatus = {
+                preIsCritical: false,
+                preIsSolvent: true,
+                postIsCritical: true,
+                postIsSolvent: false,
+            };
+            await _testLiquidation({
+                isBailout: true,
                 sender,
                 receiver,
                 by,
+                allowCriticalAccount,
+                seconds,
+                solvencyStatuses: defaultSolvencyStatus,
             });
-
-            await verifyAll({allowCriticalAccount});
         });
+    }
+
+    async function _testLiquidation({
+        sender,
+        receiver,
+        by,
+        seconds,
+        allowCriticalAccount,
+        solvencyStatuses,
+        isBailout,
+        shouldSkipTimeTravel,
+    }) {
+        // get initial state
+        await t.validateSystemInvariance({
+            allowCriticalAccount,
+            description: "STR:" + receiver,
+        });
+
+        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: t.aliases[sender],
+        });
+        const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
+
+        if (solvencyStatuses.preIsCritical) {
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        }
+
+        if (solvencyStatuses.preIsSolvent) {
+            assert.isTrue(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        }
+
+        if (netFlowRate.eq(toBN(0))) {
+            // ensure that when testing liquidations when the account has a 0 net flow
+            // that the available balance is negative: still can be liquidated but
+            // they aren't at risk of going insolvent unless their inflow stops
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            // provide the option to skip time travel, especially in the multi flow cases
+            if (!shouldSkipTimeTravel) {
+                const liquidationPeriod = isBailout ? 0 : LIQUIDATION_PERIOD;
+                // drain the balance until critical (`seconds` sec extra)
+                await timeTravelOnceAndVerifyAll({
+                    time:
+                        t.configs.INIT_BALANCE.div(netFlowRate).toNumber() -
+                        liquidationPeriod +
+                        seconds,
+                    allowCriticalAccount: true,
+                });
+            }
+        }
+
+        if (solvencyStatuses.postIsCritical) {
+            assert.isTrue(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountCriticalNow(t.aliases[sender])
+            );
+        }
+
+        if (solvencyStatuses.postIsSolvent) {
+            assert.isTrue(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        } else {
+            assert.isFalse(
+                await superToken.isAccountSolventNow(t.aliases[sender])
+            );
+        }
+
+        await shouldDeleteFlow({
+            testenv: t,
+            superToken,
+            sender,
+            receiver,
+            by,
+            accountFlowInfo,
+        });
+
+        await verifyAll({allowCriticalAccount, description: "LIQ"});
     }
 
     context("#1 without callbacks", () => {
@@ -210,7 +313,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.2 should reject when there is not enough balance", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -222,7 +325,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.3 should reject when zero flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -234,7 +337,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.4 should reject when negative flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -246,7 +349,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.5 should reject when self flow", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -267,7 +370,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver,
                     flowRate: FLOW_RATE1,
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -279,7 +382,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.7 should reject when overflow flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -291,7 +394,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.8 should reject when receiver is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -353,7 +456,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.4 should not update with zero flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -365,7 +468,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.5 should not update with negative flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -377,7 +480,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.6 should not update non existing flow", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -389,7 +492,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.7 should not update non existing flow (self flow)", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -401,7 +504,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.8 should reject when there is not enough balance", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -415,7 +518,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.9 should reject when overflow flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -427,7 +530,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.10 should reject when receiver is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -498,7 +601,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.3.3 should not delete non-existing flow", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -509,7 +612,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.3.4 should reject when receiver is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -520,7 +623,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.3.5 should reject when sender is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: ZERO_ADDRESS,
@@ -529,54 +632,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     }),
                     "CFA: sender is zero"
                 );
-            });
-
-            context("#1.3.6 with reward address as admin", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to admin"
-                    )(superfluid.address, ZERO_ADDRESS, admin);
-                });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.3.6",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.3.6",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                });
-            });
-
-            context("#1.3.7 with zero reward address", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to zero"
-                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
-                });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.3.7",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.3.7",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: sender,
-                    // no one will bail you out, alice :(
-                    allowCriticalAccount: true,
-                });
             });
         });
 
@@ -592,10 +647,12 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver,
                     flowRate: FLOW_RATE1,
                 });
+
+                t.initializePlotData(true); // observing all accounts
             });
 
             it("#1.4.1 should reject when sender account is not critical", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -607,7 +664,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.4.2 should reject when sender is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: ZERO_ADDRESS,
@@ -619,7 +676,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.4.3 should reject when sender account is not critical", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -630,52 +687,1345 @@ describe("Using ConstantFlowAgreement v1", function () {
                 );
             });
 
-            context("#1.4.4 with reward address as admin", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to admin"
-                    )(superfluid.address, ZERO_ADDRESS, admin);
+            context(
+                "#1.4.4 with reward address as admin (agent is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.4",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.4",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.5 with zero reward address (agent is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.5",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.5",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.6 with reward address as admin (sender is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.6",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.6",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        allowCriticalAccount: true,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.7 with zero reward address (sender is liquidator)",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.7",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        seconds: 60,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.7",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        // no one will bail you out, alice :(
+                        allowCriticalAccount: true,
+                        seconds: 60,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.8 test agent liquidation out of patrician period",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to admin"
+                        )(superfluid.address, ZERO_ADDRESS, admin);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.8",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.8",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.9 test sender reward account liquidation out of patrician period",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to sender"
+                        )(superfluid.address, ZERO_ADDRESS, t.aliases[sender]);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.9",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.9",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: sender,
+                        // thanks for bailing every one out, alice :)
+                        allowCriticalAccount: true,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.10 test reward account liquidation out of patrician period",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to agent"
+                        )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.10",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.10",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.11 with zero reward address out of patrician period",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to zero"
+                        )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.11",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.11",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: agent,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                }
+            );
+
+            context(
+                "#1.4.12 with receiver as liquidator out of patrician period",
+                () => {
+                    beforeEach(async () => {
+                        await web3tx(
+                            governance.setRewardAddress,
+                            "set reward address to agent"
+                        )(superfluid.address, ZERO_ADDRESS, t.aliases[agent]);
+
+                        t.initializePlotData(true); // observing all accounts
+                    });
+                    shouldCreateSolventLiquidationTest({
+                        titlePrefix: "#1.4.12",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: receiver,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                    shouldCreateBailoutTest({
+                        titlePrefix: "#1.4.12",
+                        superToken,
+                        sender,
+                        receiver,
+                        by: receiver,
+                        // thanks for bailing every one out, dan :)
+                        allowCriticalAccount: true,
+                        seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    });
+                }
+            );
+
+            it("#1.4.13 allow liquidation with sender positive net flowrate", async () => {
+                // drain the sender into criticality
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber()
+                );
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+
+                // start a reverse flow leading to a slightly positive sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.add(toBN(1)).toString(),
                 });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.4.4",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
-                });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.4.4",
-                    superToken,
-                    sender,
-                    receiver,
-                    by: agent,
+
+                assert.isTrue(
+                    (
+                        await cfa.getNetFlow(
+                            superToken.address,
+                            t.aliases[sender]
+                        )
+                    ).gt(toBN(0))
+                );
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+
+                // account still critical, should be possible to liquidate
+                await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
                 });
             });
 
-            context("#1.4.5 with zero reward address", () => {
-                beforeEach(async () => {
-                    await web3tx(
-                        governance.setRewardAddress,
-                        "set reward address to zero"
-                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
+            it("#1.4.14a correct reward attribution for patrician period", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into patrician territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        1
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
                 });
-                shouldTestLiquidationByAgent({
-                    titlePrefix: "#1.4.5",
+
+                // rewards should go to the rewardAddress
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: admin}
+                );
+
+                // reward account (here: admin) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.notEqual(
+                    adminPostBal.toString(),
+                    adminInitBal.toString()
+                );
+
+                assert.equal(agentPostBal.toString(), agentInitBal.toString());
+            });
+
+            it("#1.4.14b correct reward attribution for patrician period with two-way flows", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into patrician territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        1
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the rewardAddress
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: admin}
+                );
+
+                // reward account (here: admin) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.notEqual(
+                    adminPostBal.toString(),
+                    adminInitBal.toString()
+                );
+
+                assert.equal(agentPostBal.toString(), agentInitBal.toString());
+            });
+
+            it("#1.4.14c correct reward attribution for patrician period with multiple outflows", async () => {
+                // start another, larger, outflow
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases.carol,
+                    flowRate: FLOW_RATE1.mul(toBN(5)).toString(),
+                });
+
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into patrician territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(
+                        FLOW_RATE1.mul(toBN(6))
+                    ).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        1
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the rewardAddress
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: admin}
+                );
+
+                // reward account (here: admin) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.notEqual(
+                    adminPostBal.toString(),
+                    adminInitBal.toString()
+                );
+
+                assert.equal(agentPostBal.toString(), agentInitBal.toString());
+            });
+
+            it("#1.4.15a correct reward attribution for plebs period", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into plebs territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        t.configs.PATRICIAN_PERIOD +
+                        1
+                );
+
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+                assert.isTrue(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the agent (plebs rule)
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(adminPostBal.toString(), adminInitBal.toString());
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
+            });
+
+            it("#1.4.15b correct reward attribution for plebs period with two-way flows", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into plebs territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        t.configs.PATRICIAN_PERIOD +
+                        1
+                );
+
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+                assert.isTrue(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the agent (plebs rule)
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(adminPostBal.toString(), adminInitBal.toString());
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
+            });
+
+            it("#1.4.15c correct reward attribution for plebs period with multiple outflows", async () => {
+                // start another, larger, outflow
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases.carol,
+                    flowRate: FLOW_RATE1.mul(toBN(5)).toString(),
+                });
+
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into plebs territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(
+                        FLOW_RATE1.mul(toBN(6))
+                    ).toNumber() -
+                        t.configs.LIQUIDATION_PERIOD +
+                        t.configs.PATRICIAN_PERIOD +
+                        1
+                );
+
+                assert.isTrue(
+                    await superToken.isAccountCriticalNow(t.aliases[sender])
+                );
+                assert.isTrue(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // rewards should go to the agent (plebs rule)
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(adminPostBal.toString(), adminInitBal.toString());
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
+            });
+
+            it("#1.4.16a correct reward attribution for pirate period", async () => {
+                const adminInitBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentInitBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+
+                // drain the sender into pirate territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
+                );
+
+                assert.isFalse(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // the agent should get the reward
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+
+                // reward account (here: agent) should have received the deposit
+                const adminPostBal = (
+                    await superToken.realtimeBalanceOfNow(admin)
+                ).availableBalance;
+                const agentPostBal = (
+                    await superToken.realtimeBalanceOfNow(t.aliases[agent])
+                ).availableBalance;
+                assert.equal(
+                    adminPostBal.lt(adminInitBal),
+                    true,
+                    "reward account not affected by bailout as expected"
+                );
+                assert.notEqual(
+                    agentPostBal.toString(),
+                    agentInitBal.toString()
+                );
+            });
+
+            it("#1.4.16b correct reward attribution for pirate period with two-way flows", async () => {
+                // drain the sender into pirate territory
+                await timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
+                );
+
+                assert.isFalse(
+                    await superToken.isAccountSolventNow(t.aliases[sender])
+                );
+
+                // start a reverse flow leading to a near-zero negative sender net flowrate
+                await t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[receiver],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                });
+
+                // agent liquidates
+                const r = await t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent],
+                });
+
+                // the agent should get the reward
+                await expectEvent.inTransaction(
+                    r.tx,
+                    t.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {rewardAccount: t.aliases[agent]}
+                );
+            });
+        });
+
+        describe("#1.5 multiple flow liquidations", () => {
+            beforeEach(async () => {
+                await web3tx(
+                    governance.setRewardAddress,
+                    "set reward address to admin"
+                )(superfluid.address, ZERO_ADDRESS, admin);
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+                await shouldCreateFlow({
+                    testenv: t,
                     superToken,
                     sender,
                     receiver,
-                    by: agent,
+                    flowRate: FLOW_RATE1,
                 });
-                shouldTestSelfLiquidation({
-                    titlePrefix: "#1.4.5",
+                await shouldCreateFlow({
+                    testenv: t,
                     superToken,
+                    sender,
+                    receiver: agent,
+                    flowRate: FLOW_RATE1,
+                });
+                t.initializePlotData(true); // observing all accounts
+            });
+
+            it("#1.5.1 should be able to liquidate multiple flows when critical", async () => {
+                // NOTE: the solvencyStatuses were added due to these multi flow tests because
+                // the status of the accounts vary now due to the fact that there is more than
+                // a single flow which the user has
+                await _testLiquidation({
                     sender,
                     receiver,
                     by: agent,
-                    // thanks for bailing every one out, dan :)
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: receiver,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.2 should be able to liquidate multiple flows when insolvent", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.3 should be able to liquidate an insolvent flow and then a critical one", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.4 should be able to liquidate a critical flow and then an insolvent one", async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: 60,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.5 test agent multiple critical flow liquidations out of patrician period", async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.6 test agent multiple insolvent flow liquidations out of patrician period", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.7 test agent critical then insolvent flow liquidations out of patrician period", async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.5.8 test agent insolvent then critical flow liquidations out of patrician period", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    allowCriticalAccount: true,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+        });
+
+        describe("#1.6 sender multi flow with inflow liquidations", () => {
+            beforeEach(async () => {
+                await web3tx(
+                    governance.setRewardAddress,
+                    "set reward address to admin"
+                )(superfluid.address, ZERO_ADDRESS, admin);
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+                /**
+                 * Sender => Receiver @ 1.1
+                 * Sender => Agent @ 1
+                 * Agent => Sender @ 1
+                 */
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                });
+                await shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver: agent,
+                    flowRate: FLOW_RATE1,
+                });
+                await shouldCreateFlow({
+                    sender: agent,
+                    receiver: sender,
+                    superToken,
+                    testenv: t,
+                    flowRate: FLOW_RATE1,
+                });
+                t.initializePlotData(true); // observing all accounts
+            });
+
+            it("#1.6.1 should be able to liquidate multiple critical flows with an inflow", async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.6.2 should be able to liquidate multiple insolvent flows with an inflow", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.6.3 should be able to liquidate insolvent flow then critical flow with an inflow", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it("#1.6.4 should be able to liquidate critical flow then insolvent flow with an inflow", async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+            });
+
+            it(`#1.6.5 should be able to liquidate a user with a negative
+                 AB and a net flow rate of 0 (crit->crit)`, async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+                await _testLiquidation({
+                    sender,
+                    receiver: agent,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: true,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+            });
+
+            it("#1.6.6 should reject when account is not critical", async () => {
+                await expectRevertedWith(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[receiver],
+                        by: t.aliases[agent],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+
+                await expectRevertedWith(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[agent],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+
+                await expectRevertedWith(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[agent],
+                        receiver: t.aliases[sender],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+            });
+
+            it("#1.6.7 should reject when account is not critical after a bailout", async () => {
+                await _testLiquidation({
+                    isBailout: true,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: false,
+                    },
+                });
+
+                await shouldUpdateFlow({
+                    sender: agent,
+                    receiver: sender,
+                    superToken,
+                    testenv: t,
+                    flowRate: FLOW_RATE1.mul(toBN(2)),
+                });
+
+                const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+                    superToken: superToken.address,
+                    account: t.aliases[sender],
+                });
+                const netFlowRate = toBN(accountFlowInfo.flowRate);
+                const balanceData = await superToken.realtimeBalanceOfNow(
+                    t.aliases[sender]
+                );
+
+                // bring the user back to a non-critical state
+                await timeTravelOnceAndVerifyAll({
+                    time: Math.round(
+                        balanceData.availableBalance
+                            .mul(toBN(-1))
+                            .div(netFlowRate)
+                            .toNumber() * 1.1
+                    ),
                     allowCriticalAccount: true,
                 });
+
+                await expectRevertedWith(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[agent],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
+            });
+
+            it("#1.6.8 should reject when account is not critical after a liquidation", async () => {
+                await _testLiquidation({
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: 60,
+                    allowCriticalAccount: true,
+                    solvencyStatuses: {
+                        preIsCritical: false,
+                        preIsSolvent: true,
+                        postIsCritical: true,
+                        postIsSolvent: true,
+                    },
+                });
+
+                await shouldUpdateFlow({
+                    sender: agent,
+                    receiver: sender,
+                    superToken,
+                    testenv: t,
+                    flowRate: FLOW_RATE1.mul(toBN(2)),
+                });
+
+                const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+                    superToken: superToken.address,
+                    account: t.aliases[sender],
+                });
+                const netFlowRate = toBN(accountFlowInfo.flowRate);
+                const balanceData = await superToken.realtimeBalanceOfNow(
+                    t.aliases[sender]
+                );
+
+                // bring the user back to a non-critical state
+                await timeTravelOnceAndVerifyAll({
+                    time: Math.round(
+                        balanceData.availableBalance
+                            .mul(toBN(-1))
+                            .div(netFlowRate)
+                            .toNumber() * 1.1
+                    ),
+                    allowCriticalAccount: true,
+                });
+
+                await expectRevertedWith(
+                    t.sf.cfa.deleteFlow({
+                        superToken: superToken.address,
+                        sender: t.aliases[sender],
+                        receiver: t.aliases[agent],
+                        by: t.aliases[receiver],
+                    }),
+                    "CFA: sender account is not critical"
+                );
             });
         });
 
@@ -720,7 +2070,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             superToken.address,
                             deposit.toString()
                         );
-                    const expectedFlowRate = clipDepositNumber(
+                    const expectedFlowRate = CFADataModel.clipDepositNumber(
                         toBN(deposit),
                         true /* rounding down */
                     ).div(toBN(LIQUIDATION_PERIOD));
@@ -738,7 +2088,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await test("10000000000000");
                 const maxDeposit = toBN(1).shln(95).subn(1);
                 await test(maxDeposit);
-                expectRevert(
+                expectRevertedWith(
                     test(maxDeposit.addn(1)),
                     "CFA: deposit number too big"
                 );
@@ -751,7 +2101,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                             superToken.address,
                             flowRate.toString()
                         );
-                    let expectedDeposit = clipDepositNumber(
+                    let expectedDeposit = CFADataModel.clipDepositNumber(
                         toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD))
                     );
                     expectedDeposit =
@@ -771,7 +2121,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await test(0);
                 await test(1);
                 await test("10000000000000");
-                await expectRevert(
+                await expectRevertedWith(
                     cfa.getDepositRequiredForFlowRate.call(
                         superToken.address,
                         toBN("-100000000000000")
@@ -782,7 +2132,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     .shln(95)
                     .div(toBN(LIQUIDATION_PERIOD));
                 await test(maxFlowRate);
-                await expectRevert(
+                await expectRevertedWith(
                     test(maxFlowRate.addn(1)),
                     "CFA: flow rate too big"
                 );
@@ -792,7 +2142,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 const FakeSuperfluidMock =
                     artifacts.require("FakeSuperfluidMock");
                 const fakeHost = await FakeSuperfluidMock.new();
-                await expectRevert(
+                await expectRevertedWith(
                     fakeHost.callAgreement(
                         cfa.address,
                         cfa.contract.methods
@@ -802,7 +2152,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     ),
                     "unauthorized host"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     fakeHost.callAgreement(
                         cfa.address,
                         cfa.contract.methods
@@ -812,7 +2162,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     ),
                     "unauthorized host"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     fakeHost.callAgreement(
                         cfa.address,
                         cfa.contract.methods
@@ -1025,7 +2375,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         t.configs.MINIMUM_DEPOSIT.add(toBN(1))
                     )
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     shouldCreateFlow({
                         testenv: t,
                         superToken,
@@ -1062,7 +2412,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         // due to clipping of flow rate, mfa outgoing flow rate is always equal or less
         // then the sender's rate
         function mfaFlowRate(flowRate, pct = 100) {
-            return clipDepositNumber(
+            return CFADataModel.clipDepositNumber(
                 toBN(flowRate)
                     .mul(toBN(LIQUIDATION_PERIOD))
                     .muln(pct)
@@ -1462,7 +2812,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 },
             };
 
-            await expectRevert(
+            await expectRevertedWith(
                 shouldCreateFlow({
                     testenv: t,
                     superToken,
@@ -1675,7 +3025,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
             await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
 
-            await expectRevert(
+            await expectRevertedWith(
                 t.sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: t.aliases[sender],
@@ -1685,6 +3035,10 @@ describe("Using ConstantFlowAgreement v1", function () {
                 "CFA: sender account is not critical"
             );
 
+            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
+                superToken: superToken.address,
+                account: t.aliases[sender],
+            });
             await timeTravelOnceAndVerifyAll({
                 time:
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
@@ -1693,6 +3047,13 @@ describe("Using ConstantFlowAgreement v1", function () {
                 allowCriticalAccount: true,
             });
 
+            const balanceData = await superToken.realtimeBalanceOfNow(
+                t.aliases[sender]
+            );
+            const timeInDeficit = balanceData.availableBalance.div(
+                toBN(0).sub(FLOW_RATE1)
+            );
+
             await shouldDeleteFlow({
                 testenv: t,
                 superToken,
@@ -1700,6 +3061,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: "mfa",
                 by: "dan",
                 mfa,
+                time: timeInDeficit,
+                accountFlowInfo,
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
             await expectNetFlow(sender, "0");
@@ -1707,10 +3070,15 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow(receiver1, "0");
             await expectNetFlow(receiver2, "0");
             await timeTravelOnceAndVerifyAll();
+            t.writePlotDataIntoCSVFile(
+                this.ctx.test.title.split(" ").join("_"),
+                superToken.address
+            );
         });
 
         it("#2.11 mfa-1to1_150pct_create_full_delete_mfa_receiver_flow_by_liquidator", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE.muln(2));
+            t.initializePlotData(true); // observing all accounts
             await t.transferBalance(sender, "mfa", toWad(50));
 
             const mfa = {
@@ -1742,7 +3110,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 75));
             await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 75));
 
-            await expectRevert(
+            await expectRevertedWith(
                 t.sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: app.address,
@@ -1821,6 +3189,10 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectNetFlow(receiver1, "0");
             await expectNetFlow(receiver2, "0");
             await t.validateSystemInvariance();
+            t.writePlotDataIntoCSVFile(
+                this.ctx.test.title.split(" ").join("_"),
+                superToken.address
+            );
         });
 
         it("#2.12 mfa-1to2[50,50]_100pct_create-partial_delete-negative_app_balance", async () => {
@@ -1888,7 +3260,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#2.20 createFlow via app action should respect deposit rule", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 t.sf.host.callAppAction(
                     app.address,
                     app.contract.methods
@@ -1921,7 +3293,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 },
             };
 
-            await expectRevert(
+            await expectRevertedWith(
                 shouldCreateFlow({
                     testenv: t,
                     superToken,
@@ -2152,7 +3524,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             )(cfa.address, superfluid.address, superToken2.address);
             t.addAlias("app", app.address);
 
-            await expectRevert(
+            await expectRevertedWith(
                 web3tx(
                     t.sf.cfa.createFlow,
                     "alice -> app"
@@ -2181,7 +3553,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             let flow1, flow2;
             flow1 = await cfa.getFlow(superToken.address, alice, app.address);
             flow2 = await cfa.getFlow(superToken2.address, app.address, alice);
-            const deposit = clipDepositNumber(
+            const deposit = CFADataModel.clipDepositNumber(
                 FLOW_RATE1.muln(LIQUIDATION_PERIOD)
             ).toString();
             console.log(
@@ -2255,6 +3627,1027 @@ describe("Using ConstantFlowAgreement v1", function () {
             assert.isFalse(
                 await t.contracts.superfluid.isAppJailed(app.address)
             );
+        });
+    });
+
+    context("#4 Access Control List", () => {
+        let aliceSenderBaseData;
+        let aliceSenderAdminFlowOperator;
+
+        beforeEach(async () => {
+            await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+            await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
+            await t.upgradeBalance("dan", t.configs.INIT_BALANCE);
+
+            aliceSenderBaseData = {
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                ctx: "0x",
+            };
+            aliceSenderAdminFlowOperator = {
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                from: alice,
+            };
+        });
+
+        it("#4.1 should revert if attempting to encode unclean permissions", async () => {
+            /// anything greater than 7 (1 1 1)
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "69",
+                flowRateAllowance: "42069",
+                expectedErrorString: "CFA: Unclean permissions",
+            });
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "8",
+                flowRateAllowance: "42069",
+                expectedErrorString: "CFA: Unclean permissions",
+            });
+        });
+
+        it("#4.2 should revert on unauthorized update of flow operator permissions", async () => {
+            // admin trying to grant themselves permission to alice
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                permissions: "7",
+                flowRateAllowance: "99999999999999",
+                from: admin,
+                expectedErrorString: "CFA: E_NO_PERMISSIONS_UPDATE",
+            });
+        });
+
+        it("#4.3 should properly update flow operator permissions with same flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            // allow create
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            // allow update
+            permissions = ALLOW_UPDATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            // allow delete
+            // can set flowRateAllowance with just delete as well
+            permissions = ALLOW_DELETE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+        });
+
+        it("#4.4 should properly update one flow operator permission with different flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "3388",
+            });
+        });
+
+        it("#4.5 should properly update flow operator permissions with different flowRateAllowance", async () => {
+            // stack the permissions
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            permissions = permissions | ALLOW_UPDATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "3388",
+            });
+
+            permissions = permissions | ALLOW_DELETE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "123456",
+            });
+        });
+
+        it("#4.6 should properly update one flow operator permission with same flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+        });
+
+        it("#4.7 should be able to set permissions whilst setting flowRateAllowance as 0", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "0",
+            });
+        });
+
+        it("#4.8 should be able to set flowRateAllowance whilst not settings permissions", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "0",
+                flowRateAllowance: "42069",
+            });
+        });
+
+        it("#4.9 should be able to authorize flow operator with full control", async () => {
+            // authorize a flow operator with full control from scratch
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "0",
+                flowRateAllowance: "0",
+                isFullControl: true,
+            });
+            // authorize a flow operator with full control after authorizing some permissions
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                testenv: t,
+                token: superToken.address,
+                sender: bob,
+                flowOperator: admin,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+                ctx: "0x",
+                from: bob,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                testenv: t,
+                token: superToken.address,
+                sender: bob,
+                flowOperator: admin,
+                ctx: "0x",
+                from: bob,
+                isFullControl: true,
+            });
+        });
+
+        it("#4.10 should be able to revoke flow operator with full control", async () => {
+            const sharedData = {
+                testenv: t,
+                token: superToken.address,
+                sender: bob,
+                flowOperator: admin,
+                ctx: "0x",
+                from: bob,
+                permissions: "0",
+                flowRateAllowance: "0",
+            };
+
+            // should be able to revoke a flow operator with full control even though none exists
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControlRevoke: true,
+            });
+
+            let permissions = ALLOW_CREATE;
+            // should be able to revoke a flow operator with full control after authorizing some
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControlRevoke: true,
+            });
+
+            // should be able to revoke after authorizing full control
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControl: true,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControlRevoke: true,
+            });
+        });
+
+        it("#4.11 should revert if attempting to create/update/delete without permissions to do so", async () => {
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: "1738",
+                expectedErrorString: "CFA: E_NO_OPERATOR_CREATE_FLOW",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: "1738",
+                expectedErrorString: "E_NO_OPERATOR_UPDATE_FLOW",
+            });
+
+            await shouldCreateFlow({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: "0",
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+        });
+
+        it("#4.12 should revert if attempting to call create/update/delete flowByOperator as the sender", async () => {
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: "1738",
+                expectedErrorString: "CFA: E_NO_SENDER_CREATE",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: "1738",
+                expectedErrorString: "CFA: E_NO_SENDER_UPDATE",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+        });
+
+        it("#4.13 should revert if create/update with flow rate exceeding flowRateAllowance", async () => {
+            const flowRateAllowance = FLOW_RATE1.mul(toBN(3));
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: flowRateAllowance,
+            });
+
+            // should revert when attempting to create one big flow
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: dan,
+                flowOperator: admin,
+                flowRate: flowRateAllowance.add(toBN(1)),
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
+            });
+
+            // should revert when attempting to create flows where allowance is exceeded
+            // (SUM OF FLOWS > flowRateAllowance)
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: dan,
+                flowOperator: admin,
+                flowRate: flowRateAllowance,
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
+            });
+
+            // should be able to update to the max
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: flowRateAllowance,
+                flowOperator: "admin",
+            });
+
+            // should revert when attempting to updating when allowance is out
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: flowRateAllowance.add(toBN(1)),
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
+            });
+        });
+
+        it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            // attempts to update/delete should revert (only create allowed)
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_UPDATE_FLOW",
+            });
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
+            });
+            // should be able to update flow now
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            // should be able to delete flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.15 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                isFullControl: true,
+            });
+
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // should be able to update flow now
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+
+            // should be able to update flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.16 shouldn't decrease flowRateAllowance if it is type(int96).max", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: MAXIMUM_FLOW_RATE,
+                from: alice,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+            // flowRateAllowance should still equal MAXIMUM_FLOW_RATE
+            const flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                MAXIMUM_FLOW_RATE.toString()
+            );
+        });
+
+        it("#4.17 shouldn't decrease flowRateAllowance if the user updates to an equal or lower flowRate", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(8)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(8))).toString()
+            );
+            let updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+
+            let lowerSameFlowRate = FLOW_RATE1.div(toBN(10));
+
+            // update flow to lower flow rate
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: lowerSameFlowRate,
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                updatedFlowRateAllowance.toString()
+            );
+
+            // update flow to same flow rate
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: lowerSameFlowRate,
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                updatedFlowRateAllowance.toString()
+            );
+        });
+
+        it("#4.18 should reset flowRateAllowance properly if the user updates the flowOperatorData", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(8)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(8))).toString()
+            );
+
+            // we validate that the flowRateAllowance is FLOW_RATE1 in this function
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+        });
+
+        it("#4.19 flowRateAllowance should remain unchanged if operator deletes a flow", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            const lowerSameFlowRateAllowance = FLOW_RATE1.sub(
+                FLOW_RATE1.div(toBN(10))
+            ).toString();
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                lowerSameFlowRateAllowance
+            );
+
+            // should be able to delete flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                lowerSameFlowRateAllowance
+            );
+        });
+
+        it("#4.20 should decrease flowRateAllowance if operator updates to a higher flowRate", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(10))).toString()
+            );
+            let updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+
+            // update flow to higher flow rate and properly update flowRateAllowance
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                updatedFlowRateAllowance
+                    .sub(FLOW_RATE1.div(toBN(8)).sub(FLOW_RATE1.div(toBN(10))))
+                    .toString()
+            );
+            updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+        });
+
+        it("#4.21 flowRateAllowance should remain unchanged if sender creates/updates/deletes flow", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+
+            const sharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+            };
+
+            await shouldCreateFlow({
+                ...sharedData,
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+            });
+
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+
+            await shouldUpdateFlow({
+                ...sharedData,
+                flowRate: FLOW_RATE1.mul(toBN(4)),
+            });
+
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+
+            await shouldDeleteFlow({
+                ...sharedData,
+                by: "alice",
+            });
+        });
+
+        it("#4.22 should be able to set multiple flow operators", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: bob,
+                permissions: ALLOW_UPDATE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+                from: alice,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: dan,
+                permissions: ALLOW_DELETE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+                from: alice,
+            });
+        });
+
+        it("#4.23 You should not be able to set yourself as a flowOperator", async () => {
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderBaseData,
+                flowOperator: alice,
+                permissions: "7",
+                flowRateAllowance: "42069",
+                from: alice,
+                expectedErrorString: "CFA: E_NO_SENDER_FLOW_OPERATOR",
+            });
+        });
+
+        it("#4.24 Should allow multiple flowOperators to create/update/delete", async () => {
+            const ALL_PERMISSIONS = ALLOW_CREATE | ALLOW_UPDATE | ALLOW_DELETE;
+            const permissionsSharedData = {
+                ...aliceSenderBaseData,
+                permissions: ALL_PERMISSIONS.toString(),
+                from: alice,
+            };
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...permissionsSharedData,
+                flowOperator: admin,
+                flowRateAllowance: FLOW_RATE1,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...permissionsSharedData,
+                flowOperator: bob,
+                flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...permissionsSharedData,
+                flowOperator: dan,
+                flowRateAllowance: FLOW_RATE1.div(toBN(2)),
+            });
+
+            const changeFlowSharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+            };
+
+            // create alice -> bob by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // update alice -> bob by dan
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(4)),
+                flowOperator: "dan",
+            });
+
+            // create alice -> dan by bob
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "bob",
+            });
+
+            // delete alice -> dan by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.25 Should allow flowOperator to update/delete a flow they didn't create", async () => {
+            const sharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+            };
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            // alice -> bob by alice
+            await shouldCreateFlow({
+                ...sharedData,
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+            });
+
+            // update alice -> bob by admin
+            await shouldUpdateFlowByOperator({
+                ...sharedData,
+                flowRate: FLOW_RATE1.div(toBN(4)),
+                flowOperator: "admin",
+            });
+
+            // delete alice -> bob by admin
+            await shouldDeleteFlowByOperator({
+                ...sharedData,
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.26 Should getFlowOperatorDataByID", async () => {
+            const permissions = (
+                ALLOW_CREATE |
+                ALLOW_UPDATE |
+                ALLOW_DELETE
+            ).toString();
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions,
+                flowRateAllowance: FLOW_RATE1,
+            });
+            const flowOperatorId = t.getFlowOperatorId(alice, admin);
+
+            const data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+
+            assert.equal(data.permissions.toString(), permissions);
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+        });
+
+        it("#4.27 Should allow a flowOperator to create/update multiple flows", async () => {
+            const changeFlowSharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+            };
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
+            });
+
+            // create alice -> bob by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+
+            const flowOperatorId = t.getFlowOperatorId(alice, admin);
+
+            let data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(5)).sub(FLOW_RATE1).toString()
+            );
+
+            // create alice -> dan by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(4)).sub(FLOW_RATE1).toString()
+            );
+
+            // update alice -> bob by admin
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(3)).sub(FLOW_RATE1).toString()
+            );
+
+            // update alice -> dan by admin
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(2)).sub(FLOW_RATE1).toString()
+            );
+            // delete alice -> bob by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+            // delete alice -> dan by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowOperator: "admin",
+            });
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+        });
+
+        it("#4.28 Should revert when trying to upate flow operator permissions with negative allowance", async () => {
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: "-1",
+                expectedErrorString: "CFA: E_NO_NEGATIVE_ALLOWANCE",
+            });
         });
     });
 
@@ -2385,7 +4778,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#10.4 ctx should not be exploited", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 superfluid.callAgreement(
                     cfa.address,
                     cfa.contract.methods

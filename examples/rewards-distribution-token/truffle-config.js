@@ -84,7 +84,14 @@ module.exports = {
     // production: true    // Treats this network as if it was a public net. (default: false)
     // }
 
+    ganache: {
+      host: "127.0.0.1",
+      network_id: "*",
+      port: process.env.GANACHE_PORT || 8545,
+    },
+
     goerli: {
+
         provider: () => new HDWalletProvider(
             process.env.GOERLI_MNEMONIC,
             process.env.GOERLI_PROVIDER_URL,
@@ -97,11 +104,7 @@ module.exports = {
         skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
     },
 
-    ganache: {
-        host: "127.0.0.1",
-        network_id: "*",
-        port: process.env.GANACHE_PORT || 8545,
-    },
+    
 
   },
 
@@ -113,7 +116,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.7.3",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.8.13",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {

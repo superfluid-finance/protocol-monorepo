@@ -1,4 +1,5 @@
-const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
@@ -70,14 +71,14 @@ describe("SuperTokenFactory Contract", function () {
 
         it("#1.3 only host can update the code", async () => {
             assert.equal(await factory.getHost.call(), superfluid.address);
-            await expectRevert(
+            await expectRevertedWith(
                 factory.updateCode(ZERO_ADDRESS),
                 "SuperTokenFactory: only host can update code"
             );
         });
 
         it("#1.4 only can initialize once", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 factory.initialize(),
                 "Initializable: contract is already initialized"
             );
@@ -121,7 +122,7 @@ describe("SuperTokenFactory Contract", function () {
                     (await superToken1.waterMark.call()).toString(),
                     "0"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     governance.batchUpdateSuperTokenLogic(superfluid.address, [
                         superToken1.address,
                     ]),
@@ -173,7 +174,7 @@ describe("SuperTokenFactory Contract", function () {
                     (await superToken1.waterMark.call()).toString(),
                     "42"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     governance.batchUpdateSuperTokenLogic(superfluid.address, [
                         superToken1.address,
                     ]),
@@ -254,7 +255,7 @@ describe("SuperTokenFactory Contract", function () {
         });
 
         it("#2.c.1 should fail on ZERO_ADDRESS", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 factory.createERC20Wrapper(
                     ZERO_ADDRESS,
                     18,

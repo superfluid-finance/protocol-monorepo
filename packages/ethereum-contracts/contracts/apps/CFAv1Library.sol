@@ -1,6 +1,5 @@
-//SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
-pragma experimental ABIEncoderV2;
+// SPDX-License-Identifier: AGPLv3
+pragma solidity >= 0.8.0;
 
 import {
     ISuperfluid,
@@ -11,6 +10,13 @@ import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
+/**
+ * @title Constant flow agreement v1 library
+ * @author Superfluid
+ * @dev for working with the constant flow agreement within solidity
+ * @dev the first set of functions are each for callAgreement()
+ * @dev the second set of functions are each for use in callAgreementWithContext()
+ */
 library CFAv1Library {
 
     struct InitData {
@@ -18,11 +24,13 @@ library CFAv1Library {
         IConstantFlowAgreementV1 cfa;
     }
 
-    //@dev for working with the constant flow agreement within solidity
-    //the first set of functions are each for callAgreement()
-    //the second set of functions are each for use in callAgreementWithContext()
-
-    //create/update/delete flow without userData
+    /**
+     * @dev Create/update/delete flow without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
     function flow(
         InitData storage cfaLibrary,
         address receiver,
@@ -41,7 +49,14 @@ library CFAv1Library {
         }
     }
 
-    //create/update/delete flow with userData
+    /**
+     * @dev Create/update/delete flow with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
     function flow(
         InitData storage cfaLibrary,
         address receiver,
@@ -61,7 +76,13 @@ library CFAv1Library {
         }
     }
 
-     //create flow without userData
+    /**
+     * @dev Create flow without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
     function createFlow(
         InitData storage cfaLibrary,
         address receiver,
@@ -77,12 +98,18 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x" //empty user data
+            "0x" // empty user data
         );
     }
     
-
-    //create flow with userData
+    /**
+     * @dev Create flow with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
     function createFlow(
         InitData storage cfaLibrary, 
         address receiver,
@@ -103,7 +130,13 @@ library CFAv1Library {
         );
     }
 
-    //update flow without userData
+    /**
+     * @dev Update flow without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
     function updateFlow(
         InitData storage cfaLibrary,
         address receiver,
@@ -119,12 +152,19 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x" //empty user data
+            "0x" // empty user data
         );
     }
     
 
-    //update flow with userData
+    /**
+     * @dev Update flow with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
     function updateFlow(
         InitData storage cfaLibrary,
         address receiver,
@@ -145,7 +185,13 @@ library CFAv1Library {
         );
     }
 
-    //delete flow
+    /**
+     * @dev Delete flow without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     */
     function deleteFlow(
         InitData storage cfaLibrary,
         address sender,
@@ -161,12 +207,19 @@ library CFAv1Library {
                 receiver,
                 new bytes(0) // placeholder
             ),
-            "0x" //empty user data
+            "0x" // empty user data
         );
     }
     
 
-    //delete flow with userData 
+    /**
+     * @dev Delete flow with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param userData The user provided data
+     */
     function deleteFlow(
         InitData storage cfaLibrary,
         address sender,
@@ -187,7 +240,14 @@ library CFAv1Library {
         );
     }
 
-    //create/update/delete flow with ctx 
+    /**
+     * @dev Create/update/delete flow with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
     function flowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -207,7 +267,15 @@ library CFAv1Library {
         }
     }
 
-    //create/update/delete flow with ctx and userdata
+    /**
+     * @dev Create/update/delete flow with context and userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
     function flowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -228,7 +296,14 @@ library CFAv1Library {
         }
     }
 
-  //create flow with ctx 
+    /**
+     * @dev Create flow with context and userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
     function createFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -245,12 +320,20 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x", //empty user data
+            "0x", // empty user data
             ctx
         );
     }
 
-    //create flow with ctx and userData
+    /**
+     * @dev Create flow with context and userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
     function createFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -273,7 +356,14 @@ library CFAv1Library {
         );
     }
 
-  //update flow with ctx but without userData 
+    /**
+     * @dev Update flow with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
     function updateFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -290,12 +380,20 @@ library CFAv1Library {
                 flowRate,
                 new bytes(0) // placeholder
             ),
-            "0x", //empty user data
+            "0x", // empty user data
             ctx
         );
     }
 
-    //update flow with ctx and userData
+    /**
+     * @dev Update flow with context and userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
     function updateFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -318,7 +416,14 @@ library CFAv1Library {
         );
     }
 
-  //delete flow with ctx 
+    /**
+     * @dev Delete flow with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     */
     function deleteFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,
@@ -340,7 +445,15 @@ library CFAv1Library {
         );
     }
 
-    //delete flow with ctx and userData 
+    /**
+     * @dev Delete flow with context and userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param userData The user provided data
+     */
     function deleteFlowWithCtx(
         InitData storage cfaLibrary,
         bytes memory ctx,

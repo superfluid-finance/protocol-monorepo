@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.13;
 
 import {
     IInstantDistributionAgreementV1,
@@ -14,22 +14,18 @@ import {
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 /**
- * @dev The IInstantDistributionAgreementV1 implementation
- *
- * NOTE:
- * - Please read IInstantDistributionAgreementV1 for implementation notes.
- * - For some deeper technical notes, please visit protocol-monorepo wiki area.
- *
+ * @title InstantDistributionAgreementV1 contract
  * @author Superfluid
+ * @dev Please read IInstantDistributionAgreementV1 for implementation notes.
+ * @dev For more technical notes, please visit protocol-monorepo wiki area.
+ *
  */
 contract InstantDistributionAgreementV1 is
     AgreementBase,
@@ -45,12 +41,11 @@ contract InstantDistributionAgreementV1 is
         E_SUBS_NOT_APPROVED subscription not approved
         E_NO_SUBS - subscription does not exist
         E_NOT_ALLOWED - operation not allowed
+        E_NO_ZERO_SUBS - no zero address subscribers
      */
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
     using UInt128SafeMath for uint128;
-    using SignedSafeMath for int256;
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
@@ -128,8 +123,10 @@ contract InstantDistributionAgreementV1 is
                 IndexData memory idata;
                 (exist, idata) = _getIndexData(token, iId);
                 assert(exist);
-                dynamicBalance = dynamicBalance.add(
-                    int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
+                dynamicBalance = dynamicBalance + (
+                    // NOTE casting these values to int256 is okay because the original values
+                    // are uint128
+                    int256(uint256(idata.indexValue - sdata.indexValue)) * int256(uint256(sdata.units))
                 );
             }
         }
@@ -208,7 +205,7 @@ contract InstantDistributionAgreementV1 is
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
         uint128 indexDelta = (amount / totalUnits).toUint128();
         newIndexValue = idata.indexValue.add(indexDelta, "IDA: E_OVERFLOW");
-        actualAmount = uint256(indexDelta).mul(totalUnits);
+        actualAmount = uint256(indexDelta) * totalUnits;
     }
 
     /// @dev IInstantDistributionAgreementV1.updateIndex implementation
@@ -270,10 +267,14 @@ contract InstantDistributionAgreementV1 is
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
         token.settleBalance(publisher,
-            (-int256(newIndexValue - idata.indexValue)).mul(int256(idata.totalUnitsApproved)));
+            // NOTE casting these values to int256 is okay because the original values
+            // are uint128
+            (-int256(uint256(newIndexValue - idata.indexValue))) * int256(uint256(idata.totalUnitsApproved)));
         //   - adjust the publisher's deposit amount
         _adjustPublisherDeposit(token, publisher,
-            int256(newIndexValue - idata.indexValue).mul(int256(idata.totalUnitsPending)));
+            // NOTE casting these values to int256 is okay because the original values
+            // are uint128
+            int256(uint256(newIndexValue - idata.indexValue)) * int256(uint256(idata.totalUnitsPending)));
         // adjust the publisher's index data
         uint128 oldIndexValue = idata.indexValue;
         idata.indexValue = newIndexValue;
@@ -384,8 +385,10 @@ contract InstantDistributionAgreementV1 is
         } else {
             cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-
-            int balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+            // NOTE casting these values to int256 is okay because the original values
+            // are uint128
+            int balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+                * int256(uint256(vars.sdata.units));
 
             // update publisher data and adjust publisher's deposits
             vars.idata.totalUnitsApproved += vars.sdata.units;
@@ -449,8 +452,10 @@ contract InstantDistributionAgreementV1 is
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-
-        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+        // NOTE downcasting these values to int256 is okay because the original values
+        // are uint128
+        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+            * int256(uint256(vars.sdata.units));
 
         vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units, "IDA: E_OVERFLOW");
         vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(vars.sdata.units, "IDA: E_OVERFLOW");
@@ -485,6 +490,7 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         bytes memory userData;
@@ -556,8 +562,10 @@ contract InstantDistributionAgreementV1 is
             vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units, "IDA: E_OVERFLOW");
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         }
-
-        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+        // NOTE casting these values to int256 is okay because the original values
+        // are uint128
+        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+            * int256(uint256(vars.sdata.units));
 
         // adjust publisher's deposit and balances if subscription is pending
         if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
@@ -707,8 +715,11 @@ contract InstantDistributionAgreementV1 is
             sender = context.msgSender;
             userData = context.userData;
         }
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
 
-        // both publisher and subscriber can delete a subscription
+        // only publisher can delete a subscription
+        // follows from the invariant that only the publisher
+        // has the ability to modify the units a subscriber has
         require(sender == publisher, "IDA: E_NOT_ALLOWED");
 
         (
@@ -721,15 +732,17 @@ contract InstantDistributionAgreementV1 is
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
-            sender == subscriber ? publisher : subscriber,
+            subscriber,
             vars.sId,
             "");
         newCtx = ctx;
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
-
-        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
+        // NOTE casting these values to int256 is okay because the original values
+        // are uint128
+        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
+            * int256(uint256(vars.sdata.units));
 
         // update publisher index agreement data
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
@@ -775,6 +788,9 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        AgreementLibrary.authorizeTokenAccess(token, ctx);
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
+
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
 
@@ -926,8 +942,11 @@ contract InstantDistributionAgreementV1 is
         uint256 b = uint256(adata[1]);
         exist = a > 0;
         if (exist) {
-            idata.indexValue = uint128(a & uint256(int128(-1)));
-            idata.totalUnitsApproved = uint128(b & uint256(int128(-1)));
+            // NOTE We will do an unsafe downcast from uint256 => uint128
+            // as we know this is safe
+            // see https://gist.github.com/0xdavinchee/9834dc689543f19ec07872ad7d766b09
+            idata.indexValue = uint128(a);
+            idata.totalUnitsApproved = uint128(b);
             idata.totalUnitsPending = uint128(b >> 128);
         }
     }
@@ -965,7 +984,7 @@ contract InstantDistributionAgreementV1 is
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
-        data[0] = bytes32(int256(data[0]) + delta);
+        data[0] = bytes32(uint256(uint256(data[0]).toInt256() + delta));
         token.updateAgreementStateSlot(
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
@@ -989,7 +1008,7 @@ contract InstantDistributionAgreementV1 is
     {
         data = new bytes32[](2);
         data[0] = bytes32(
-            (uint256(sdata.publisher) << (12*8)) |
+            (uint256(uint160(sdata.publisher)) << (12*8)) |
             (uint256(sdata.indexId) << 32) |
             uint256(sdata.subId)
         );
@@ -1014,7 +1033,10 @@ contract InstantDistributionAgreementV1 is
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & type(uint32).max);
             sdata.subId = uint32(a & type(uint32).max);
-            sdata.indexValue = uint128(b & uint256(int128(-1)));
+            // NOTE We will do an unsafe downcast from uint256 => uint128
+            // as we know this is safe
+            // see https://gist.github.com/0xdavinchee/9834dc689543f19ec07872ad7d766b09
+            sdata.indexValue = uint128(b);
             sdata.units = uint128(b >> 128);
         }
     }

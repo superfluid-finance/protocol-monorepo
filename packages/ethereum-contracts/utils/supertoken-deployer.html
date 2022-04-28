@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SuperToken Deployer</title>
+        <meta charset="UTF-8">
+        <script src="https://cdn.jsdelivr.net/npm/ethers@5.5.4/dist/ethers.umd.min.js"
+                integrity="sha256-u2JkA91avqVaE60Vn+iwn8Nh6yQpddB4D6mTLwbEntk="
+                crossorigin="anonymous">
+        </script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+                integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
+                crossorigin="anonymous">
+        </script>
+        <style>
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .height-fit-content {
+                height: fit-content;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="outerDiv">
+            <div class="header-container">
+                <h1>SuperToken Deployer</h1>
+                <h3 id="loader" style="text-align: center; display: none;">Loading...</h3>
+                <button id='connect-wallet-btn' type="button" class="height-fit-content"
+                        onclick="execFuncWithLoader(connectWallet)">
+                    connect wallet
+                </button>
+            </div>
+
+            <div>
+                <label for="underlyingAddress">Address of underlying ERC20 token:</label><br/>
+                <input id="underlyingAddress" size="40"/><br/>
+                <button onclick="execFuncWithLoader(deployWrapper)">Deploy SuperToken wrapper contract</button><br></br>
+                <span id="underlyingMeta"></span><br/>
+                <span id="superTokenMeta"></span><br/><br/>
+                <b><span id="superTokenAddr"></span></b><br/>
+    <!--            <button onclick="execFuncWithLoader(deployWrapper)">query</button>-->
+            </div>
+        </div>
+
+        <script>
+            // this ABI strings could be trimmed down by removing unused methods
+            TokenInfoAbi = '[{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}]';
+            ISuperfluidAbi = '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes32","name":"agreementType","type":"bytes32"},{"indexed":false,"internalType":"address","name":"code","type":"address"}],"name":"AgreementClassRegistered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes32","name":"agreementType","type":"bytes32"},{"indexed":false,"internalType":"address","name":"code","type":"address"}],"name":"AgreementClassUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract ISuperApp","name":"app","type":"address"}],"name":"AppRegistered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"contract ISuperfluidGovernance","name":"oldGov","type":"address"},{"indexed":false,"internalType":"contract ISuperfluidGovernance","name":"newGov","type":"address"}],"name":"GovernanceReplaced","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract ISuperApp","name":"app","type":"address"},{"indexed":false,"internalType":"uint256","name":"reason","type":"uint256"}],"name":"Jail","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"contract ISuperTokenFactory","name":"newFactory","type":"address"}],"name":"SuperTokenFactoryUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract ISuperToken","name":"token","type":"address"},{"indexed":false,"internalType":"address","name":"code","type":"address"}],"name":"SuperTokenLogicUpdated","type":"event"},{"inputs":[],"name":"getGovernance","outputs":[{"internalType":"contract ISuperfluidGovernance","name":"governance","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperfluidGovernance","name":"newGov","type":"address"}],"name":"replaceGovernance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClassLogic","type":"address"}],"name":"registerAgreementClass","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClassLogic","type":"address"}],"name":"updateAgreementClass","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"agreementType","type":"bytes32"}],"name":"isAgreementTypeListed","outputs":[{"internalType":"bool","name":"yes","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"}],"name":"isAgreementClassListed","outputs":[{"internalType":"bool","name":"yes","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"agreementType","type":"bytes32"}],"name":"getAgreementClass","outputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"bitmap","type":"uint256"}],"name":"mapAgreementClasses","outputs":[{"internalType":"contract ISuperAgreement[]","name":"agreementClasses","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"bitmap","type":"uint256"},{"internalType":"bytes32","name":"agreementType","type":"bytes32"}],"name":"addToAgreementClassesBitmap","outputs":[{"internalType":"uint256","name":"newBitmap","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"bitmap","type":"uint256"},{"internalType":"bytes32","name":"agreementType","type":"bytes32"}],"name":"removeFromAgreementClassesBitmap","outputs":[{"internalType":"uint256","name":"newBitmap","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSuperTokenFactory","outputs":[{"internalType":"contract ISuperTokenFactory","name":"factory","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSuperTokenFactoryLogic","outputs":[{"internalType":"address","name":"logic","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperTokenFactory","name":"newFactory","type":"address"}],"name":"updateSuperTokenFactory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperToken","name":"token","type":"address"}],"name":"updateSuperTokenLogic","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"configWord","type":"uint256"}],"name":"registerApp","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"configWord","type":"uint256"},{"internalType":"string","name":"registrationKey","type":"string"}],"name":"registerAppWithKey","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"uint256","name":"configWord","type":"uint256"}],"name":"registerAppByFactory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"}],"name":"isApp","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"}],"name":"getAppLevel","outputs":[{"internalType":"uint8","name":"appLevel","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"}],"name":"getAppManifest","outputs":[{"internalType":"bool","name":"isSuperApp","type":"bool"},{"internalType":"bool","name":"isJailed","type":"bool"},{"internalType":"uint256","name":"noopMask","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"}],"name":"isAppJailed","outputs":[{"internalType":"bool","name":"isJail","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"targetApp","type":"address"}],"name":"allowCompositeApp","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"contract ISuperApp","name":"targetApp","type":"address"}],"name":"isCompositeAppAllowed","outputs":[{"internalType":"bool","name":"isAppAllowed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bool","name":"isTermination","type":"bool"},{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"callAppBeforeCallback","outputs":[{"internalType":"bytes","name":"cbdata","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bool","name":"isTermination","type":"bool"},{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"callAppAfterCallback","outputs":[{"internalType":"bytes","name":"appCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes","name":"ctx","type":"bytes"},{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"uint256","name":"appAllowanceGranted","type":"uint256"},{"internalType":"int256","name":"appAllowanceUsed","type":"int256"},{"internalType":"contract ISuperfluidToken","name":"appAllowanceToken","type":"address"}],"name":"appCallbackPush","outputs":[{"internalType":"bytes","name":"appCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes","name":"ctx","type":"bytes"},{"internalType":"int256","name":"appAllowanceUsedDelta","type":"int256"}],"name":"appCallbackPop","outputs":[{"internalType":"bytes","name":"newCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes","name":"ctx","type":"bytes"},{"internalType":"uint256","name":"appAllowanceWantedMore","type":"uint256"},{"internalType":"int256","name":"appAllowanceUsedDelta","type":"int256"}],"name":"ctxUseAllowance","outputs":[{"internalType":"bytes","name":"newCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes","name":"ctx","type":"bytes"},{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"uint256","name":"reason","type":"uint256"}],"name":"jailApp","outputs":[{"internalType":"bytes","name":"newCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bytes","name":"userData","type":"bytes"}],"name":"callAgreement","outputs":[{"internalType":"bytes","name":"returnedData","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"}],"name":"callAppAction","outputs":[{"internalType":"bytes","name":"returnedData","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bytes","name":"userData","type":"bytes"},{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"callAgreementWithContext","outputs":[{"internalType":"bytes","name":"newCtx","type":"bytes"},{"internalType":"bytes","name":"returnedData","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperApp","name":"app","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"callAppActionWithContext","outputs":[{"internalType":"bytes","name":"newCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"decodeCtx","outputs":[{"components":[{"internalType":"uint8","name":"appLevel","type":"uint8"},{"internalType":"uint8","name":"callType","type":"uint8"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"address","name":"msgSender","type":"address"},{"internalType":"bytes4","name":"agreementSelector","type":"bytes4"},{"internalType":"bytes","name":"userData","type":"bytes"},{"internalType":"uint256","name":"appAllowanceGranted","type":"uint256"},{"internalType":"uint256","name":"appAllowanceWanted","type":"uint256"},{"internalType":"int256","name":"appAllowanceUsed","type":"int256"},{"internalType":"address","name":"appAddress","type":"address"},{"internalType":"contract ISuperfluidToken","name":"appAllowanceToken","type":"address"}],"internalType":"struct ISuperfluid.Context","name":"context","type":"tuple"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"isCtxValid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"internalType":"uint32","name":"operationType","type":"uint32"},{"internalType":"address","name":"target","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct ISuperfluid.Operation[]","name":"operations","type":"tuple[]"}],"name":"batchCall","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint32","name":"operationType","type":"uint32"},{"internalType":"address","name":"target","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct ISuperfluid.Operation[]","name":"operations","type":"tuple[]"}],"name":"forwardBatchCall","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+            ISuperTokenFactoryAbi = '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract ISuperToken","name":"token","type":"address"}],"name":"CustomSuperTokenCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract ISuperToken","name":"token","type":"address"}],"name":"SuperTokenCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"contract ISuperToken","name":"tokenLogic","type":"address"}],"name":"SuperTokenLogicCreated","type":"event"},{"inputs":[],"name":"getHost","outputs":[{"internalType":"address","name":"host","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getSuperTokenLogic","outputs":[{"internalType":"contract ISuperToken","name":"superToken","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract ERC20WithTokenInfo","name":"underlyingToken","type":"address"},{"internalType":"enum ISuperTokenFactory.Upgradability","name":"upgradability","type":"uint8"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"}],"name":"createERC20Wrapper","outputs":[{"internalType":"contract ISuperToken","name":"superToken","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract IERC20","name":"underlyingToken","type":"address"},{"internalType":"uint8","name":"underlyingDecimals","type":"uint8"},{"internalType":"enum ISuperTokenFactory.Upgradability","name":"upgradability","type":"uint8"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"}],"name":"createERC20Wrapper","outputs":[{"internalType":"contract ISuperToken","name":"superToken","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"customSuperTokenProxy","type":"address"}],"name":"initializeCustomSuperToken","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+
+            // TODO: replace with external canonical network list
+            networks = [
+                { chainId: 5, hostAddr: "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9" }, // eth-goerli
+                { chainId: 42, hostAddr: "0xF0d7d1D47109bA426B9D8A3Cde1941327af1eea3" }, // eth-kovan
+                { chainId: 4, hostAddr: "0xeD5B5b32110c3Ded02a07c8b8e97513FAfb883B6" }, // eth-rinkeby
+                { chainId: 3, hostAddr: "0xF2B4E81ba39F5215Db2e05B2F66f482BB8e87FD2" }, // eth-ropsten
+                { chainId: 80001, hostAddr: "0xEB796bdb90fFA0f28255275e16936D25d3418603" }, // polygon-mumbai
+                { chainId: 69, hostAddr: "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED" }, // optimism-kovan
+                { chainId: 421611, hostAddr: "0xE01F8743677Da897F4e7De9073b57Bf034FC2433" }, // arbitrum-rinkeby
+                { chainId: 43113, hostAddr: "0xf04F2C525819691ed9ABD3D2B7109E1633795e68" }, // avalanche-fuji
+
+                { chainId: 137, hostAddr: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7" }, // polygon-mainnet
+                { chainId: 100, hostAddr: "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7" }, // xdai-mainnet
+                { chainId: 10, hostAddr: "0x567c4B141ED61923967cA25Ef4906C8781069a10" }, // optimism-mainnnet
+                { chainId: 42161, hostAddr: "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192" }, // arbitrum-one
+                // { chainId: 43114, hostAddr: "0x0000000000000000000000000000000000000000" } // avalanche-C
+            ];
+
+            let connData = {}; // chainId, provider, userAddress, ...
+            let tokenData= {}; // underlying ERC20 token
+
+            // sets/updates an item named <id> in <dataObject> on change (keyup event)
+            function bindInputData(id, dataObject) {
+                $(`#${id}`).keyup(function () {
+                    dataObject[id] = this.value;
+                });
+            }
+
+            bindInputData("underlyingAddress", tokenData);
+
+            // executes a function and shows a loading UI hint in the meantime
+            async function execFuncWithLoader(func) {
+                $("#loader").toggle();
+                try {
+                    await func();
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    $("#loader").toggle();
+                }
+            }
+
+            // connects to a browser injected wallet (https://eips.ethereum.org/EIPS/eip-1193)
+            async function connectWallet() {
+                // does nothing if already connected
+                if (!connData.provider) {
+                    $("#connect-wallet-btn").text("connecting...");
+                    const response = await window.ethereum.request({ method: "eth_requestAccounts" });
+                    connData.userAddress = response[0];
+                    connData.chainId = Number(window.ethereum.chainId);
+                    connData.provider = new ethers.providers.Web3Provider(window.ethereum);
+                    if (!window.ethereum) {
+                        alert("ERR: no injected ethereum provider found");
+                        return;
+                    }
+                    connData.network = networks.filter(n => n.chainId === connData.chainId)[0];
+                    if (connData.network === undefined) {
+                        alert(`ERR: wallet connected to unsupported network (chainId: ${connData.chainId}`);
+                        return;
+                    }
+                    $("#connect-wallet-btn").text(connData.userAddress + " | chain id: " + connData.chainId);
+                    $("#connect-wallet-prompt").toggle();
+                }
+            }
+
+            // query the token contract (address provided by user) and deploy a SuperToken wrapper for it
+            async function deployWrapper() {
+                if(connData.provider === undefined) {
+                    alert("no wallet connected");
+                    return;
+                }
+
+                // show metadata of existing and to-be-deployed token contracts
+                const underlyingAddr = tokenData.underlyingAddress;
+                try {
+                    tokenData.contract = new ethers.Contract(underlyingAddr, TokenInfoAbi, connData.provider);
+                    tokenData.name = await tokenData.contract.name();
+                    tokenData.symbol = await tokenData.contract.symbol();
+                    $("#underlyingMeta").text(`ERC20: name ${tokenData.name} | symbol ${tokenData.symbol}`);
+                    const superTokenName = `Super ${tokenData.name}`;
+                    const superTokenSymbol = `${tokenData.symbol}x`;
+                    $("#superTokenMeta").text(`SuperToken: name ${superTokenName} | symbol ${superTokenSymbol}`);
+
+                    // trigger the actual deployment
+
+                    console.log(`hostAddr: ${connData.network.hostAddr}`);
+                    const host = new ethers.Contract(connData.network.hostAddr, ISuperfluidAbi, connData.provider);
+                    const factoryAddr = await host.getSuperTokenFactory();
+                    console.log(`factoryAddr: ${factoryAddr}`);
+                    const factory = new ethers.Contract(factoryAddr, ISuperTokenFactoryAbi, connData.provider.getSigner());
+
+                    factory.on("SuperTokenCreated", (superTokenAddr) => {
+                        console.log(`new SuperToken deployed to ${superTokenAddr}`);
+                        $("#superTokenAddr").text(`New SuperToken contract deployed at ${superTokenAddr}`);
+                    });
+
+                    // this ugliness is caused by the function being overloaded
+                    const res = await factory['createERC20Wrapper(address,uint8,string,string)'](
+                        underlyingAddr,
+                        1, // semi-upgradable
+                        superTokenName,
+                        superTokenSymbol
+                    );
+                    console.log(`pending tx: ${res.hash}`);
+
+                    const receipt = await connData.provider.waitForTransaction(res.hash);
+                    console.log(`receipt: ${JSON.stringify(receipt, null, 2)}`);
+                } catch(e) {
+                    console.error(`createERC20Wrapper failed with: ${JSON.stringify(e, null, 2)}`);
+                    alert(`Error: ${JSON.stringify(e, null, 2)}`);
+                }
+            }
+
+            // update connection on wallet changes (account or network switching)
+            if (window.ethereum) {
+                window.ethereum.on("accountsChanged", async accounts => {
+                    connData.userAddress = accounts[0];
+                    $("#connect-wallet-btn").text(connData.userAddress + " | chain id: " + connData.chainId);
+                });
+                window.ethereum.on("chainChanged", async chainId => {
+                    connData.chainId = Number(chainId);
+                    connData.provider = new ethers.providers.Web3Provider(window.ethereum);
+                    $("#connect-wallet-btn").text(connData.userAddress + " | chain id: " + connData.chainId);
+                });
+            }
+        </script>
+    </body>
+</html>

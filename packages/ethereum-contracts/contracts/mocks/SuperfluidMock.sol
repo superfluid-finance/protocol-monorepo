@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.13;
 
 import {
     Superfluid,
@@ -25,28 +24,28 @@ contract SuperfluidUpgradabilityTester is Superfluid {
         uint256 offset;
 
         assembly { slot:= _gov.slot offset := _gov.offset }
-        require (slot == 0 && offset == 2, "_gov changed location");
+        require(slot == 0 && offset == 2, "_gov changed location");
 
         assembly { slot:= _agreementClasses.slot offset := _agreementClasses.offset }
-        require (slot == 1 && offset == 0, "_agreementClasses changed location");
+        require(slot == 1 && offset == 0, "_agreementClasses changed location");
 
         assembly { slot:= _agreementClassIndices.slot offset := _agreementClassIndices.offset }
-        require (slot == 2 && offset == 0, "_agreementClassIndices changed location");
+        require(slot == 2 && offset == 0, "_agreementClassIndices changed location");
 
         assembly { slot:= _superTokenFactory.slot offset := _superTokenFactory.offset }
-        require (slot == 3 && offset == 0, "_superTokenFactory changed location");
+        require(slot == 3 && offset == 0, "_superTokenFactory changed location");
 
         assembly { slot:= _appManifests.slot offset := _appManifests.offset }
-        require (slot == 4 && offset == 0, "_appManifests changed location");
+        require(slot == 4 && offset == 0, "_appManifests changed location");
 
         assembly { slot:= _compositeApps.slot offset := _compositeApps.offset }
-        require (slot == 5 && offset == 0, "_compositeApps changed location");
+        require(slot == 5 && offset == 0, "_compositeApps changed location");
 
         assembly { slot:= _ctxStamp.slot offset := _ctxStamp.offset }
-        require (slot == 6 && offset == 0, "_ctxStamp changed location");
+        require(slot == 6 && offset == 0, "_ctxStamp changed location");
 
         assembly { slot:= _appKeysUsed.slot offset := _appKeysUsed.offset }
-        require (slot == 7 && offset == 0, "_appKeysUsed changed location");
+        require(slot == 7 && offset == 0, "_appKeysUsed changed location");
     }
 
     // @dev Make sure the context struct layout never change over the course of the development
@@ -166,15 +165,7 @@ contract SuperfluidMock is Superfluid {
         bool success;
         (success, returnedData) = address(this).staticcall(data);
         if (success) return returnedData;
-        else revert(CallUtils.getRevertMsg(returnedData));
-    }
-
-    function testIsValidAbiEncodedBytes() external pure {
-        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(1, 2, 3)), "bad data");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(0))), "0");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(1))), "1");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(32))), "32");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(33))), "33");
+        else CallUtils.revertFromReturnedData(returnedData);
     }
 
     function jailApp(ISuperApp app)

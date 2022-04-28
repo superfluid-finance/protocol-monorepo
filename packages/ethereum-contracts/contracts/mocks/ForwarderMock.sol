@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.13;
 
 import { CallUtils } from "../libs/CallUtils.sol";
 import { IRelayRecipient } from "../interfaces/ux/IRelayRecipient.sol";
-
 
 /**
  * @dev A test forwarder that can impersonate any account needed.
@@ -35,7 +33,7 @@ contract ForwarderMock {
             "unknown IRelayRecipient.versionRecipient");
         // solhint-disable-next-line avoid-low-level-calls
         (success, ret) = req.to.call{gas : req.gas, value : req.value}(abi.encodePacked(req.data, req.from));
-        if (!success) revert(CallUtils.getRevertMsg(ret));
+        if (!success) CallUtils.revertFromReturnedData(ret);
     }
 
 }

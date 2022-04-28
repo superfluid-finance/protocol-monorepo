@@ -22,8 +22,9 @@ lerna-debug.log
 yarn-error.log
 package-lock.json
 .DS_Store
-
+.idea
 
 .vscode/
 *-workspace
-**/*/.npmrc
+.npmrc
+

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.13;
 
 import { CallUtils } from "../libs/CallUtils.sol";
-
 
 contract FakeSuperfluidMock {
 
@@ -17,6 +16,6 @@ contract FakeSuperfluidMock {
         // solhint-disable-next-line avoid-low-level-calls
         (success, returnedData) = agreement.call(callData);
         assert(!success);
-        revert(CallUtils.getRevertMsg(returnedData));
+        CallUtils.revertFromReturnedData(returnedData);
     }
 }

@@ -1,4 +1,4 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -45,7 +45,7 @@ describe("NativeSuperTokenProxy Contract", function () {
             (await token.balanceOf.call(admin)).toString(),
             toWad(42).toString()
         );
-        await expectRevert(
+        await expectRevertedWith(
             tokenProxy.initialize("Hacker", "HH", toWad(0)),
             "Initializable: contract is already initialized"
         );

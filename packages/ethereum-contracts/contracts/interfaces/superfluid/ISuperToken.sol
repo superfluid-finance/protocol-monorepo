@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.7.0;
+pragma solidity >= 0.8.0;
 
 import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
@@ -8,13 +8,14 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title Superfluid's super token (Superfluid Token + ERC20 + ERC777) interface
- *
+ * @title Super token (Superfluid Token + ERC20 + ERC777) interface
  * @author Superfluid
  */
 interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
-    /// @dev Initialize the contract
+    /**
+     * @dev Initialize the contract
+     */
     function initialize(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
@@ -75,7 +76,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
      *
-     * Returns a boolean value indicating whether the operation succeeded.
+     * @return Returns Success a boolean value indicating whether the operation succeeded.
      *
      * Emits a {Transfer} event.
      */
@@ -83,8 +84,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
-     * allowed to spend on behalf of `owner` through {transferFrom}. This is
-     * zero by default.
+     *         allowed to spend on behalf of `owner` through {transferFrom}. This is
+     *         zero by default.
      *
      * This value changes when {approve} or {transferFrom} are called.
      */
@@ -93,7 +94,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
      *
-     * Returns a boolean value indicating whether the operation succeeded.
+     * @return Returns Success a boolean value indicating whether the operation succeeded.
      *
      * IMPORTANT: Beware that changing an allowance with this method brings the risk
      * that someone may use both the old and the new allowance by unfortunate
@@ -108,10 +109,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
-     * allowance mechanism. `amount` is then deducted from the caller's
-     * allowance.
+     *         allowance mechanism. `amount` is then deducted from the caller's
+     *         allowance.
      *
-     * Returns a boolean value indicating whether the operation succeeded.
+     * @return Returns Success a boolean value indicating whether the operation succeeded.
      *
      * Emits a {Transfer} event.
      */
@@ -153,8 +154,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Returns the smallest part of the token that is not divisible. This
-     * means all token operations (creation, movement and destruction) must have
-     * amounts that are a multiple of this number.
+     *         means all token operations (creation, movement and destruction) must have
+     *         amounts that are a multiple of this number.
      *
      * For super token contracts, this value is 1 always
      */
@@ -163,9 +164,9 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
      *
-     * If send or receive hooks are registered for the caller and `recipient`,
-     * the corresponding functions will be called with `data` and empty
-     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
+     * @dev If send or receive hooks are registered for the caller and `recipient`,
+     *      the corresponding functions will be called with `data` and empty
+     *      `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
      *
      * Emits a {Sent} event.
      *

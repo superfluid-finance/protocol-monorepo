@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.13;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -24,10 +23,9 @@ import { CallUtils } from "../libs/CallUtils.sol";
 
 import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
 
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
+/// FIXME Lots of reverts in here - can put custom errors
 
 /**
  * @dev The Superfluid host implementation.
@@ -44,9 +42,7 @@ contract Superfluid is
     BaseRelayRecipient
 {
 
-    using SafeMath for uint256;
     using SafeCast for uint256;
-    using SignedSafeMath for int256;
 
     struct AppManifest {
         uint256 configWord;
@@ -122,6 +118,15 @@ contract Superfluid is
         require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
         require(!Superfluid(newAddress).NON_UPGRADABLE_DEPLOYMENT(), "SF: cannot downgrade to non upgradable");
         _updateCodeAddress(newAddress);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Time
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function getNow() public view  returns (uint256) {
+        // solhint-disable-next-line not-rely-on-time
+        return block.timestamp;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -445,6 +450,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns(bytes memory cbdata)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
@@ -469,6 +475,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns(bytes memory newCtx)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
@@ -506,6 +513,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -532,7 +540,7 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
+        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
         newCtx = _updateContext(context);
     }
 
@@ -543,12 +551,13 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
 
-        context.appAllowanceWanted = context.appAllowanceWanted.add(appAllowanceWantedMore);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
+        context.appAllowanceWanted = context.appAllowanceWanted + appAllowanceWantedMore;
+        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
 
         newCtx = _updateContext(context);
     }
@@ -560,6 +569,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         _jailApp(app, reason);
@@ -588,8 +598,7 @@ contract Superfluid is
         bytes memory  ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: agreementSelector,
             userData: userData,
@@ -602,7 +611,7 @@ contract Superfluid is
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
         if (!success) {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -627,14 +636,14 @@ contract Superfluid is
         internal
         cleanCtx
         isAppActive(app)
+        isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
         //Build context data
         bytes memory ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: 0,
             userData: "",
@@ -650,7 +659,7 @@ contract Superfluid is
             ctx = abi.decode(returnedData, (bytes));
             require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -660,9 +669,7 @@ contract Superfluid is
         ISuperApp app,
         bytes memory callData
     )
-        external override
-        cleanCtx
-        isAppActive(app)
+        external override // NOTE: modifiers are called in _callAppAction
         returns(bytes memory returnedData)
     {
         return _callAppAction(msg.sender, app, callData);
@@ -679,7 +686,7 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        validCtx(ctx)
+        requireValidCtx(ctx)
         isAgreement(agreementClass)
         returns (bytes memory newCtx, bytes memory returnedData)
     {
@@ -702,7 +709,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
     }
 
@@ -712,8 +719,9 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        validCtx(ctx)
+        requireValidCtx(ctx)
         isAppActive(app)
+        isValidAppAction(callData)
         returns(bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -732,7 +740,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(CallUtils.getRevertMsg(returnedData));
+            CallUtils.revertFromReturnedData(returnedData);
         }
     }
 
@@ -975,9 +983,8 @@ contract Superfluid is
             // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
             if (gasleft() > gasLeftBefore / 63) {
                 if (!isTermination) {
-                    revert(CallUtils.getRevertMsg(returnedData));
+                    CallUtils.revertFromReturnedData(returnedData);
                 } else {
-                    //revert(CallUtils.getRevertMsg(returnedData)); { }
                     _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
                 }
             } else {
@@ -1030,8 +1037,13 @@ contract Superfluid is
         // outside
     }
 
-    modifier validCtx(bytes memory ctx) {
+    modifier requireValidCtx(bytes memory ctx) {
         require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_NOT_VALID");
+        _;
+    }
+
+    modifier assertValidCtx(bytes memory ctx) {
+        assert(_isCtxValid(ctx));
         _;
     }
 
@@ -1059,6 +1071,19 @@ contract Superfluid is
         uint256 w = _appManifests[app].configWord;
         require(w > 0, "SF: not a super app");
         require(!SuperAppDefinitions.isAppJailed(w), "SF: app is jailed");
+        _;
+    }
+
+    modifier isValidAppAction(bytes memory callData) {
+        bytes4 actionSelector = CallUtils.parseSelector(callData);
+        if (actionSelector == ISuperApp.beforeAgreementCreated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.beforeAgreementUpdated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.beforeAgreementTerminated.selector ||
+            actionSelector == ISuperApp.afterAgreementCreated.selector) {
+            revert("SF: agreement callback is not action");
+        }
         _;
     }
 }

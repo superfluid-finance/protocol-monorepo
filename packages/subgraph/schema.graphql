@@ -44,11 +44,19 @@ type FlowUpdatedEvent implements Event @entity {
     receiver: Bytes!
 
     """
+    The address that is triggering the flow update.
+    This will be the zero address until the flowOperator
+    feature is live.
+    """
+    flowOperator: Bytes!
+
+    """
     The flow rate per second.
     """
     flowRate: BigInt!
     totalSenderFlowRate: BigInt!
     totalReceiverFlowRate: BigInt!
+    deposit: BigInt!
     userData: Bytes!
 
     # Custom Properties (not on event)
@@ -78,8 +86,37 @@ type FlowUpdatedEvent implements Event @entity {
     stream: Stream!
 }
 
+type FlowOperatorUpdatedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, sender, and flowOperator addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+
+    """
+    The address of the `token` being streamed.
+    """
+    token: Bytes!
+    sender: Bytes!
+
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
+    permissions: Int!
+    flowRateAllowance: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    flowOperator: FlowOperator!
+}
+
 #  InstantDistributionAgreementV1 #
-type IndexCreatedEvent implements Event @entity {
+type IndexCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -99,7 +136,7 @@ type IndexCreatedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexDistributionClaimedEvent implements Event @entity {
+type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -120,7 +157,7 @@ type IndexDistributionClaimedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexUpdatedEvent implements Event @entity {
+type IndexUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -144,7 +181,7 @@ type IndexUpdatedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexSubscribedEvent implements Event @entity {
+type IndexSubscribedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -165,7 +202,7 @@ type IndexSubscribedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexUnitsUpdatedEvent implements Event @entity {
+type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -190,7 +227,7 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexUnsubscribedEvent implements Event @entity {
+type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -211,7 +248,7 @@ type IndexUnsubscribedEvent implements Event @entity {
     index: Index!
 }
 
-type SubscriptionApprovedEvent implements Event @entity {
+type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -232,7 +269,8 @@ type SubscriptionApprovedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionDistributionClaimedEvent implements Event @entity {
+type SubscriptionDistributionClaimedEvent implements Event
+    @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -253,7 +291,7 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionRevokedEvent implements Event @entity {
+type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -274,7 +312,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionUnitsUpdatedEvent implements Event @entity {
+type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -301,7 +339,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
 
 #     Host    #
 
-type AgreementClassRegisteredEvent implements Event @entity {
+type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -316,7 +354,7 @@ type AgreementClassRegisteredEvent implements Event @entity {
     code: Bytes!
 }
 
-type AgreementClassUpdatedEvent implements Event @entity {
+type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -331,7 +369,7 @@ type AgreementClassUpdatedEvent implements Event @entity {
     code: Bytes!
 }
 
-type AppRegisteredEvent implements Event @entity {
+type AppRegisteredEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -345,7 +383,7 @@ type AppRegisteredEvent implements Event @entity {
     app: Bytes!
 }
 
-type GovernanceReplacedEvent implements Event @entity {
+type GovernanceReplacedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -360,7 +398,7 @@ type GovernanceReplacedEvent implements Event @entity {
     newGovernance: Bytes!
 }
 
-type JailEvent implements Event @entity {
+type JailEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -375,7 +413,7 @@ type JailEvent implements Event @entity {
     reason: BigInt!
 }
 
-type SuperTokenFactoryUpdatedEvent implements Event @entity {
+type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -389,7 +427,7 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity {
     newFactory: Bytes!
 }
 
-type SuperTokenLogicUpdatedEvent implements Event @entity {
+type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -405,7 +443,7 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
 }
 
 #     Resolver    #
-type RoleAdminChangedEvent implements Event @entity {
+type RoleAdminChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -421,7 +459,7 @@ type RoleAdminChangedEvent implements Event @entity {
     newAdminRole: Bytes!
 }
 
-type RoleGrantedEvent implements Event @entity {
+type RoleGrantedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -437,7 +475,7 @@ type RoleGrantedEvent implements Event @entity {
     sender: Bytes!
 }
 
-type RoleRevokedEvent implements Event @entity {
+type RoleRevokedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -454,7 +492,8 @@ type RoleRevokedEvent implements Event @entity {
 }
 
 #     SuperfluidGovernance    #
-type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
+type CFAv1LiquidationPeriodChangedEvent implements Event
+    @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -471,7 +510,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     liquidationPeriod: BigInt!
 }
 
-type ConfigChangedEvent implements Event @entity {
+type ConfigChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -489,7 +528,7 @@ type ConfigChangedEvent implements Event @entity {
     value: BigInt!
 }
 
-type RewardAddressChangedEvent implements Event @entity {
+type RewardAddressChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -506,7 +545,25 @@ type RewardAddressChangedEvent implements Event @entity {
     rewardAddress: Bytes!
 }
 
-type TrustedForwarderChangedEvent implements Event @entity {
+type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    host: Bytes!
+    superToken: Bytes!
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    liquidationPeriod: BigInt!
+    patricianPeriod: BigInt!
+}
+
+type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -525,7 +582,7 @@ type TrustedForwarderChangedEvent implements Event @entity {
 }
 
 #     SuperToken    #
-type AgreementLiquidatedByEvent implements Event @entity {
+type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -546,7 +603,30 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bailoutAmount: BigInt!
 }
 
-type BurnedEvent implements Event @entity {
+type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    token: Bytes!
+    liquidatorAccount: Bytes!
+    agreementClass: Bytes!
+    agreementId: Bytes!
+    targetAccount: Bytes!
+    rewardAccount: Bytes!
+    rewardAmount: BigInt!
+    targetAccountBalanceDelta: BigInt!
+    version: BigInt!
+    liquidationType: Int!
+}
+
+type BurnedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -564,7 +644,7 @@ type BurnedEvent implements Event @entity {
     operatorData: Bytes!
 }
 
-type MintedEvent implements Event @entity {
+type MintedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -582,7 +662,7 @@ type MintedEvent implements Event @entity {
     operatorData: Bytes!
 }
 
-type SentEvent implements Event @entity {
+type SentEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -601,7 +681,7 @@ type SentEvent implements Event @entity {
     operatorData: Bytes!
 }
 
-type TransferEvent implements Event @entity {
+type TransferEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -618,7 +698,7 @@ type TransferEvent implements Event @entity {
     token: Bytes!
 }
 
-type TokenDowngradedEvent implements Event @entity {
+type TokenDowngradedEvent implements Event @entity(immutable: true) {
     id: ID!
     account: Account!
     transactionHash: Bytes!
@@ -634,7 +714,7 @@ type TokenDowngradedEvent implements Event @entity {
     amount: BigInt!
 }
 
-type TokenUpgradedEvent implements Event @entity {
+type TokenUpgradedEvent implements Event @entity(immutable: true) {
     id: ID!
     account: Account!
     transactionHash: Bytes!
@@ -652,7 +732,7 @@ type TokenUpgradedEvent implements Event @entity {
 
 #     SuperTokenFactory    #
 
-type CustomSuperTokenCreatedEvent implements Event @entity {
+type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -666,7 +746,7 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     token: Bytes!
 }
 
-type SuperTokenCreatedEvent implements Event @entity {
+type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -680,7 +760,7 @@ type SuperTokenCreatedEvent implements Event @entity {
     token: Bytes!
 }
 
-type SuperTokenLogicCreatedEvent implements Event @entity {
+type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -694,16 +774,16 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     tokenLogic: Bytes!
 }
 
-####################
-#   HOL Entities   #
-####################
+#########################
+# Higher Order Entities #
+#########################
 # State is defined as properties that will change outside
 # of the BaseEntity properties.
 # Links is defined as a property which links the current
-# entity to another HOL entity.
+# entity to another higher order entity.
 
 """
-Account: A HOL entity created for any addresses which interact with
+Account: A higher order entity created for any addresses which interact with
 Superfluid contracts.
 """
 type Account @entity {
@@ -737,7 +817,7 @@ type Account @entity {
 }
 
 """
-Index: A Index HOL entity.
+Index: An Index higher order entity.
 """
 type Index @entity {
     """
@@ -813,7 +893,7 @@ type Index @entity {
 }
 
 """
-IndexSubscription: A HOL entity that contains subscription data for a `subscriber` account of a particular
+IndexSubscription: A higher order entity that contains subscription data for a `subscriber` account of a particular
 `Index`.
 """
 type IndexSubscription @entity {
@@ -872,7 +952,7 @@ type IndexSubscription @entity {
 }
 
 """
-Stream: A HOL entity that represents the lifetime of a stream between a `sender` and a `receiver`.
+Stream: A higher order entity that represents the lifetime of a stream between a `sender` and a `receiver`.
 A account can start a stream, update the flow rate, but when they close it, it is
 considered "dead". The next stream you create with the same `sender` and `receiver`
 will create a new stream entity. Therefore, multiple stream entities can be created
@@ -889,6 +969,7 @@ type Stream @entity {
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
     currentFlowRate: BigInt!
+    deposit: BigInt!
 
     """
     The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
@@ -906,7 +987,52 @@ type Stream @entity {
 }
 
 """
-StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
+FlowOperator: A higher order entity that of a flow operator for an `AccountTokenSnapshot`.
+"""
+type FlowOperator @entity {
+    """
+    ID composed of: flowOperator - token - sender
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlockNumber: BigInt!
+
+    """
+    The permissions granted to the `flowOperator`.
+    Octo bitmask representation.
+    """
+    permissions: Int!
+
+    """
+    The flow rate allowance granted to the `flowOperator`
+    by the `sender`. This can be reset if the `sender`
+    updates the `flowOperator` flow rate allowance.
+    """
+    flowRateAllowanceGranted: BigInt!
+
+    """
+    The remaining flow rate allowance the `flowOperator` has,
+    this will go down every time when `flowOperator` uses it
+    (if they increase flowRate or create a new flow)
+    and can only be reset if the `sender` updates the flow
+    rate allowance.
+    """
+    flowRateAllowanceRemaining: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    flowOperator: Bytes!
+    sender: Account!
+    token: Token!
+    accountTokenSnapshot: AccountTokenSnapshot!
+
+    flowOperatorUpdatedEvents: [FlowOperatorUpdatedEvent!]!
+        @derivedFrom(field: "flowOperator")
+}
+
+"""
+StreamPeriod: A higher order entity that represents a period of time in a Stream with a constant flowRate.
 """
 type StreamPeriod @entity {
     """
@@ -922,6 +1048,7 @@ type StreamPeriod @entity {
     token: Token!
 
     flowRate: BigInt!
+    deposit: BigInt!
 
     startedAtTimestamp: BigInt!
     startedAtBlockNumber: BigInt!
@@ -946,7 +1073,7 @@ type StreamRevision @entity {
 }
 
 """
-Token: A HOL entity created for super tokens that are "valid" (tokens that have
+Token: A higher order entity created for super tokens that are "valid" (tokens that have
 Superfluid's host contract address set as the host).
 """
 type Token @entity {
@@ -987,7 +1114,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID-tokenID
+    ID composed of: accountID + keccak256("-") + tokenID (without the 0x)
     """
     id: ID!
     updatedAtTimestamp: BigInt!
@@ -1019,6 +1146,11 @@ type AccountTokenSnapshot @entity {
     balanceUntilUpdatedAt: BigInt!
 
     """
+    The total deposit this account has held by the CFA agreement for `account` active streams.
+    """
+    totalDeposit: BigInt!
+
+    """
     The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalNetFlowRate: BigInt!
@@ -1046,6 +1178,7 @@ type AccountTokenSnapshot @entity {
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
+    flowOperators: [FlowOperator!]! @derivedFrom(field: "accountTokenSnapshot")
 }
 
 """
@@ -1053,7 +1186,7 @@ TokenStatistic: An aggregate entity which aggregates data of a single `token`.
 """
 type TokenStatistic @entity {
     """
-    ID: tokenID
+    id: token address
     """
     id: ID!
     updatedAtTimestamp: BigInt!
@@ -1090,6 +1223,11 @@ type TokenStatistic @entity {
     Counts all approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
+
+    """
+    The total deposit held by the CFA agreement for this particular `token`.
+    """
+    totalDeposit: BigInt!
 
     """
     The total outflow rate of the `token` (how much value is being moved).

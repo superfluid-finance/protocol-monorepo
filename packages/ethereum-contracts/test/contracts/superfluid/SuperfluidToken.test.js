@@ -1,7 +1,4 @@
-const {
-    expectRevert,
-    // expectEvent
-} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const {
     web3tx,
@@ -256,7 +253,7 @@ describe("SuperfluidToken implementation", function () {
                     "0x42",
                     testData
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     acA.createAgreementFor(
                         superToken.address,
                         "0x42",
@@ -265,13 +262,13 @@ describe("SuperfluidToken implementation", function () {
                     "SuperfluidToken: agreement already created"
                 );
                 // try overlapping data
-                await expectRevert(
+                await expectRevertedWith(
                     acA.createAgreementFor(superToken.address, "0x42", [
                         testData[0],
                     ]),
                     "SuperfluidToken: agreement already created"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     acA.createAgreementFor(superToken.address, "0x42", [
                         ...testData,
                         ...testData,
@@ -334,7 +331,7 @@ describe("SuperfluidToken implementation", function () {
                     acA.terminateAgreementFor,
                     "terminateAgreementFor"
                 )(superToken.address, "0x42", 2);
-                await expectRevert(
+                await expectRevertedWith(
                     acA.terminateAgreementFor(superToken.address, "0x42", 2),
                     "SuperfluidToken: agreement does not exist"
                 );
@@ -433,7 +430,7 @@ describe("SuperfluidToken implementation", function () {
                     web3.utils.sha3("typeBad"),
                     1
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     "SuperfluidToken: only listed agreeement"
                 );
@@ -472,10 +469,11 @@ describe("SuperfluidToken implementation", function () {
                 web3.utils.sha3("typeBad"),
                 1
             );
-            await expectRevert(
+            await expectRevertedWith(
                 acBad.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     bob,
                     alice,
                     0,
@@ -498,10 +496,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10" /* reward */,
-                    "0"
+                    "-10"
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
                 assert.equal(await availableBalanceOf(bob), "-10");
@@ -512,10 +511,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     admin /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10" /* reward */,
-                    "0" /* bailout */
+                    "-10" /* targetAccountBalanceDelta */
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
                 assert.equal(await availableBalanceOf(bob), "-10");
@@ -526,10 +526,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    false,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10" /* reward */,
-                    "5" /* bailout */
+                    "5" /* targetAccountBalanceDelta */
                 );
                 assert.equal(await availableBalanceOf(admin), "-15");
                 assert.equal(await availableBalanceOf(bob), "5");
@@ -550,10 +551,11 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    true,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10",
-                    "0"
+                    "-10"
                 );
                 assert.equal(await availableBalanceOf(bob), "-10");
                 assert.equal(await availableBalanceOf(alice), "10");
@@ -563,8 +565,9 @@ describe("SuperfluidToken implementation", function () {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
+                    false,
                     alice /* liquidator account */,
-                    bob /* panelty account */,
+                    bob /* target account */,
                     "10",
                     "5"
                 );

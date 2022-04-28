@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 
 # make sure that if any step fails, the script fails
 set -xe
@@ -13,7 +13,8 @@ yarn test
 # test deployment
 # TODO: to use @superfluid-finance/ethereum-contracts/tasks/testenv-ctl.sh script when available
 export RELEASE_VERSION=test
-export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
+export GANACHE_PORT=5600
+# export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
 echo "Ganache port: $GANACHE_PORT"
 npx ganache-cli --port $GANACHE_PORT &
 ganache_pid=$!

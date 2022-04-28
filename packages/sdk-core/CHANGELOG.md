@@ -5,6 +5,36 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Added option to specify block details when querying through a `SubgraphQueryHandler`
+- Added Subgraph's `_meta` table query
+- Added `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
+- Added `PageNumberPaging` for UI development friendly pagination API
+- Added `AllPaging` to recursively query all results from Subgraph
+- Added support for `TypedDocumentNode` for `SubgraphClient`
+- Expose underlying ethers.js contracts for each class: CFAv1, Host, IDAv1 and `contracts` property in `Framework` class
+- Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
+- Added `nativeTokenSymbol` property to `constants.ts`
+- Split `SuperToken` class into: `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes
+- Support `upgrade`, `upgradeTo` and `downgrade` functions via `NativeAssetSuperToken`
+- Added `upgradeTo` to `WrapperSuperToken` class as this was missing as well
+
+### Changed
+- Renamed `Token` to `ERC20Token`
+- Exported `ERC20Token`
+- Renamed `PagedResult.data` to `PagedResult.items`
+- Moved `listAllResults` into separate function from `Query` object
+- Removed `SubgraphClient.batchRequests` because Subgraph Node didn't support it
+
+### Internal
+- Use `eslint-plugin-prettier` over separate `prettier` instance
+
+## [0.3.2] - 2022-03-16
+
+### Added
+
+- Added "optimism-mainnet" and "arbitrum-one" support
+
 ## [0.3.1] - 2022-02-16
 
 ### Added

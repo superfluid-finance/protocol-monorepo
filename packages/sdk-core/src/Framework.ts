@@ -5,6 +5,7 @@ import Web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
@@ -19,7 +20,12 @@ import {
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import {
+    IConfig,
+    IContracts,
+    IResolverData,
+    ISignerConstructorOptions,
+} from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { DataMode } from "./types";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
@@ -52,14 +58,16 @@ export interface IFrameworkSettings {
 }
 
 /**
- * @dev Superfluid Framework Class
+ * Superfluid Framework Class
  * @description The entrypoint for the SDK-core, `create` an instance of this for full functionality.
  */
 export default class Framework {
     readonly userInputOptions: IFrameworkOptions;
     settings: IFrameworkSettings;
+    contracts: IContracts;
 
     cfaV1: ConstantFlowAgreementV1;
+    governance: Governance;
     host: Host;
     idaV1: InstantDistributionAgreementV1;
     query: Query;
@@ -74,15 +82,26 @@ export default class Framework {
         this.cfaV1 = new ConstantFlowAgreementV1({
             config: this.settings.config,
         });
+        this.governance = new Governance(
+            this.settings.config.governanceAddress,
+            this.settings.config.hostAddress
+        );
         this.host = new Host(this.settings.config.hostAddress);
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
         this.query = new Query(this.settings);
+
+        this.contracts = {
+            cfaV1: this.cfaV1.contract,
+            governance: this.governance.contract,
+            host: this.host.contract,
+            idaV1: this.idaV1.contract,
+        };
     }
 
     /**
-     * @dev Creates the Framework object based on user provided `options`.
+     * Creates the Framework object based on user provided `options`.
      * @param options.chainId the chainId of your desired network (e.g. 137 = matic)
      * @param options.customSubgraphQueriesEndpoint your custom subgraph endpoint
      * @param options.dataMode the data mode you'd like the framework to use (SUBGRAPH_ONLY, SUBGRAPH_WEB3, WEB3_ONLY)
@@ -101,7 +120,6 @@ export default class Framework {
 
         const networkName = getNetworkName(options);
         const chainId =
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
@@ -138,10 +156,13 @@ export default class Framework {
         }
 
         try {
-            const resolverData = chainIdToResolverDataMap.get(chainId) || {
+            const resolverData: IResolverData = chainIdToResolverDataMap.get(
+                chainId
+            ) || {
                 subgraphAPIEndpoint: "",
                 resolverAddress: "",
                 networkName: "",
+                nativeTokenSymbol: "",
             };
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
@@ -164,6 +185,11 @@ export default class Framework {
             const framework = await superfluidLoader.loadFramework(
                 releaseVersion
             );
+            const governanceAddress = await new Host(
+                framework.superfluid
+            ).contract
+                .connect(provider)
+                .getGovernance();
 
             const settings: IFrameworkSettings = {
                 chainId,
@@ -177,6 +203,7 @@ export default class Framework {
                     hostAddress: framework.superfluid,
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
+                    governanceAddress,
                 },
             };
 
@@ -191,7 +218,7 @@ export default class Framework {
     };
 
     /**
-     * @dev Create a signer which can be used to sign transactions.
+     * Create a signer which can be used to sign transactions.
      * @param options.web3Provider a Web3Provider object (e.g. client side - metamask, web3modal)
      * @param options.provider an ethers Provider object (e.g. via Hardhat ethers)
      * @param options.privateKey a test account private key
@@ -238,7 +265,7 @@ export default class Framework {
     };
 
     /**
-     * @dev Create a `BatchCall` class from the `Framework`.
+     * Create a `BatchCall` class from the `Framework`.
      * @param operations the list of operations to execute
      * @returns `BatchCall` class
      */
@@ -250,18 +277,33 @@ export default class Framework {
     };
 
     /**
-     * @dev Load a `SuperToken` class from the `Framework`.
+     * Loads `SuperTokenWithUnderlying`, `SuperTokenWithoutUnderlying` or `NativeAssetSuperToken` class from the `Framework`.
      * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */
-    loadSuperToken = async (
+    loadSuperToken = async <T extends SuperToken = SuperToken>(
         tokenAddressOrSymbol: string
-    ): Promise<SuperToken> => {
-        let address;
-        const isValidAddress = ethers.utils.isAddress(tokenAddressOrSymbol);
+    ) => {
+        const address = await this._tryGetTokenAddress(tokenAddressOrSymbol);
+        return (await SuperToken.create({
+            ...this.settings,
+            address,
+        })) as T;
+    };
 
-        if (isValidAddress) {
-            address = tokenAddressOrSymbol;
+    /**
+     * Try to get the token address given an address (returns if valid) or the token symbol via the resolver.
+     * @param tokenAddressOrSymbol
+     * @returns token address
+     */
+    private _tryGetTokenAddress = async (
+        tokenAddressOrSymbol: string
+    ): Promise<string> => {
+        const isInputValidAddress =
+            ethers.utils.isAddress(tokenAddressOrSymbol);
+
+        if (isInputValidAddress) {
+            return tokenAddressOrSymbol;
         } else {
             try {
                 const superTokenKey =
@@ -275,8 +317,7 @@ export default class Framework {
                     IResolverABI.abi,
                     this.settings.provider
                 ) as IResolver;
-                const tokenAddress = await resolver.get(superTokenKey);
-                address = tokenAddress;
+                return await resolver.get(superTokenKey);
             } catch (err) {
                 throw new SFError({
                     type: "SUPERTOKEN_INITIALIZATION",
@@ -288,10 +329,5 @@ export default class Framework {
                 });
             }
         }
-
-        return await SuperToken.create({
-            ...this.settings,
-            address,
-        });
     };
 }

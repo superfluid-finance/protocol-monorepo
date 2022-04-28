@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.5.0;
+pragma solidity >= 0.8.0;
 
 /**
- * @dev Abstraction for a address resolver contract
- *
+ * @title Abstraction for an address resolver contract
  * @author Superfluid
  */
 interface IResolver {
@@ -11,12 +10,12 @@ interface IResolver {
     event Set(string indexed name, address target);
 
     /**
-     * @dev Set resolver address name.
+     * @dev Set resolver address name
      */
     function set(string calldata name, address target) external;
 
     /**
-     * @dev Get address by name.
+     * @dev Get address by name
      */
     function get(string calldata name) external view returns (address);
 

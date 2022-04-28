@@ -1,4 +1,11 @@
 import { ethers, Overrides } from "ethers";
+
+import {
+    IConstantFlowAgreementV1,
+    IInstantDistributionAgreementV1,
+    Superfluid,
+} from "./typechain";
+import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -47,9 +54,16 @@ export interface ISuperTokenModifyFlowParams {
 export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
+}
+
+export interface ISuperTokenCreateFlowByOperatorParams
+    extends ISuperTokenCreateFlowParams {
     readonly sender: string;
 }
+
 export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
+export type ISuperTokenUpdateFlowByOperatorParams =
+    ISuperTokenCreateFlowByOperatorParams;
 export interface ISuperTokenDeleteFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly sender: string;
@@ -107,21 +121,47 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams {
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
-export interface IModifyFlowParams {
-    readonly receiver: string;
+
+export interface IModifyFlowParams extends ISuperTokenModifyFlowParams {
     readonly superToken: string;
-    readonly flowRate?: string;
-    readonly sender?: string;
-    readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
 }
+export interface ICreateFlowByOperatorParams extends ICreateFlowParams {
+    readonly sender: string;
+}
 
 export type IUpdateFlowParams = ICreateFlowParams;
+export type IUpdateFlowByOperatorParams = ICreateFlowByOperatorParams;
+
 export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
+}
+
+export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly permissions: number;
+    readonly flowRateAllowance: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface ISuperTokenFullControlParams {
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly userData?: string;
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface IUpdateFlowOperatorPermissionsParams
+    extends ISuperTokenUpdateFlowOperatorPermissionsParams {
+    readonly superToken: string;
+}
+
+export interface IFullControlParams extends ISuperTokenFullControlParams {
+    readonly superToken: string;
 }
 
 export interface IRealtimeBalanceOfParams {
@@ -164,6 +204,34 @@ export interface IGetFlowParams {
 export interface IGetAccountFlowInfoParams {
     readonly superToken: string;
     readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetFlowOperatorDataParams {
+    readonly superToken: string;
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetFlowOperatorDataByIDParams {
+    readonly superToken: string;
+    readonly flowOperatorId: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetGovernanceParametersParams {
+    providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    token?: string;
+}
+export interface ISuperTokenFlowOperatorDataParams {
+    readonly sender: string;
+    readonly flowOperator: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface ISuperTokenFlowOperatorDataByIDParams {
+    readonly flowOperatorId: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
@@ -360,6 +428,7 @@ export interface IResolverData {
     readonly subgraphAPIEndpoint: string;
     readonly networkName: string;
     readonly resolverAddress: string;
+    readonly nativeTokenSymbol: string;
 }
 
 export interface ISignerConstructorOptions {
@@ -374,6 +443,14 @@ export interface IConfig {
     readonly hostAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
+    readonly governanceAddress: string;
+}
+
+export interface IContracts {
+    readonly cfaV1: IConstantFlowAgreementV1;
+    readonly governance: SuperfluidGovernanceII;
+    readonly host: Superfluid;
+    readonly idaV1: IInstantDistributionAgreementV1;
 }
 
 export interface IAgreementV1Options {
@@ -415,4 +492,22 @@ export interface IWeb3FlowInfo {
     readonly flowRate: string;
     readonly deposit: string;
     readonly owedDeposit: string;
+}
+
+export interface IWeb3FlowOperatorDataParams {
+    readonly flowOperatorId: string;
+    readonly permissions: number;
+    readonly flowRateAllowance: ethers.BigNumber;
+}
+export interface IWeb3FlowOperatorData {
+    readonly flowOperatorId: string;
+    readonly permissions: string;
+    readonly flowRateAllowance: string;
+}
+
+export interface IWeb3GovernanceParams {
+    readonly liquidationPeriod: string;
+    readonly patricianPeriod: string;
+    readonly rewardAddress: string;
+    readonly minimumDeposit: string;
 }

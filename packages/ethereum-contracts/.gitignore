@@ -2,3 +2,5 @@
 /coverage
 /.coverage_*
 /reports
+/artifacts
+/cache

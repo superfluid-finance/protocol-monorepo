@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../utils/expectRevert");
 const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
@@ -158,13 +158,18 @@ contract("Embeded deployment scripts", (accounts) => {
                 assert.isFalse(
                     await codeChanged(web3, Superfluid, s.superfluidCode)
                 );
-                assert.isFalse(
-                    await codeChanged(
-                        web3,
-                        SuperTokenFactory,
-                        s.superTokenFactoryLogic
-                    )
-                );
+
+                // .detectNetwork().then() was added due to hardhat truffle complaining
+                // that no network was set
+                SuperTokenFactory.detectNetwork().then(async () => {
+                    assert.isFalse(
+                        await codeChanged(
+                            web3,
+                            SuperTokenFactory,
+                            s.superTokenFactoryLogic
+                        )
+                    );
+                });
             });
 
             it("fresh deployment (useMocks=true)", async () => {
@@ -174,16 +179,24 @@ contract("Embeded deployment scripts", (accounts) => {
                 });
                 const s = await getSuperfluidAddresses();
                 // check if it useMocks=true
-                assert.isFalse(
-                    await codeChanged(web3, SuperfluidMock, s.superfluidCode)
-                );
-                assert.isFalse(
-                    await codeChanged(
-                        web3,
-                        SuperTokenFactoryMock,
-                        s.superTokenFactoryLogic
-                    )
-                );
+                SuperfluidMock.detectNetwork().then(async () => {
+                    assert.isFalse(
+                        await codeChanged(
+                            web3,
+                            SuperfluidMock,
+                            s.superfluidCode
+                        )
+                    );
+                });
+                SuperTokenFactoryMock.detectNetwork().then(async () => {
+                    assert.isFalse(
+                        await codeChanged(
+                            web3,
+                            SuperTokenFactoryMock,
+                            s.superTokenFactoryLogic
+                        )
+                    );
+                });
             });
 
             it("nonUpgradable deployment", async () => {
@@ -196,7 +209,7 @@ contract("Embeded deployment scripts", (accounts) => {
                     nonUpgradable: true,
                     useMocks: false,
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     deployFramework(errorHandler, {
                         ...deploymentOptions,
                         nonUpgradable: true,
@@ -481,7 +494,7 @@ contract("Embeded deployment scripts", (accounts) => {
         console.log("superfluid(proxy)", s.superfluid.address);
         console.log("*superfluid(logic)", superfluidLogic.address);
         console.log("**superfluid", await superfluidLogic.getCodeAddress());
-        await expectRevert(
+        await expectRevertedWith(
             superfluidLogic.updateCode(destructor.address, {from: attacker}),
             "UUPSProxiable: not upgradable"
         );
@@ -493,7 +506,7 @@ contract("Embeded deployment scripts", (accounts) => {
         const s = await getSuperfluidAddresses();
         const gov = await TestGovernance.at(s.gov);
         assert.equal(gov.address, await s.superfluid.getGovernance());
-        await expectRevert(
+        await expectRevertedWith(
             gov.updateContracts(
                 s.superfluid.address,
                 s.superfluid.address, // a dead loop proxy

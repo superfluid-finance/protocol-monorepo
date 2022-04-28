@@ -28,6 +28,7 @@ tenderly.yaml
 /node_modules
 /.pnp
 .pnp.js
+.yarn.lock
 
 # testing
 coverage

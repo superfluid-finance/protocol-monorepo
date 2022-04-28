@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.7.6;
+pragma solidity 0.8.13;
 
 import {
     CustomSuperTokenBase,
@@ -7,7 +7,6 @@ import {
 }
 from "../interfaces/superfluid/CustomSuperTokenBase.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-
 
 abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
     function getFirstCustomTokenStorageSlot() external pure virtual returns (uint slot);

@@ -1,7 +1,14 @@
 import { ethers } from "hardhat";
-import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, SFError, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
-import { beforeSetup, getRandomFlowRate, toBN } from "./helpers/helpers";
+import {
+    asleep,
+    beforeSetup,
+    getATSId,
+    getRandomFlowRate,
+    monthlyToSecondRate,
+    toBN,
+} from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IDistributionLocalData,
@@ -12,15 +19,28 @@ import {
     ITokenStatistic,
     ISubscriberDistributionTesterParams,
     IUpdateGlobalObjects,
+    IFlowOperator,
 } from "./interfaces";
-import { FlowActionType, IDAEventType } from "./helpers/constants";
-import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
+import {
+    ALLOW_CREATE,
+    FlowActionType,
+    IDAEventType,
+} from "./helpers/constants";
+import {
+    testFlowUpdated,
+    testModifyIDA,
+    testUpdateFlowOperatorPermissions,
+} from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
 import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let framework: Framework;
+    // TODO: Refactor by using the framework to get the tokens and contracts
+    // no need to initialize w/ localAddresses for example
+    // best to utilize framework fully
     let dai: TestToken;
     let daix: SuperToken;
     let provider = ethers.getDefaultProvider("http://0.0.0.0:8545");
@@ -38,6 +58,7 @@ describe("Subgraph Tests", () => {
         [id: string]: IAccountTokenSnapshot | undefined;
     } = {}; // id is ats id
     let tokenStatistics: { [id: string]: ITokenStatistic | undefined } = {}; // id is tokenStats id
+    let flowOperators: { [id: string]: IFlowOperator | undefined } = {}; // id is flowOperator-token-sender
 
     function updateGlobalObjects(data: IUpdateGlobalObjects) {
         if (data.revisionIndexId && data.updatedStreamData) {
@@ -74,12 +95,80 @@ describe("Subgraph Tests", () => {
             accountTokenSnapshots[data.updatedSubscriberATS.id] =
                 data.updatedSubscriberATS;
         }
-        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+        if (data.updatedFlowOperator) {
+            flowOperators[data.updatedFlowOperator.id] =
+                data.updatedFlowOperator;
+        }
+        if (data.updatedTokenStats) {
+            tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+        }
+    }
+
+    async function transferAndUpdate(
+        amount: string,
+        sender: SignerWithAddress,
+        receiver: string
+    ) {
+        let response = await daix
+            .transfer({
+                receiver,
+                amount,
+            })
+            .exec(sender);
+        await response.wait();
+
+        if (!response.blockNumber) {
+            throw new Error("No block number.");
+        }
+
+        let block = await provider.getBlock(response.blockNumber);
+        // update transfer amount
+        const senderATSId = getATSId(
+            sender.address.toLowerCase(),
+            daix.address.toLowerCase()
+        );
+        const senderATS = accountTokenSnapshots[senderATSId];
+
+        if (senderATS) {
+            const updatedTransferAmount = toBN(
+                senderATS.totalAmountTransferredUntilUpdatedAt
+            ).add(toBN(amount));
+            accountTokenSnapshots[senderATSId] = {
+                ...senderATS,
+                totalAmountTransferredUntilUpdatedAt:
+                    updatedTransferAmount.toString(),
+            };
+        }
+        const tokenStats = tokenStatistics[daix.address.toLowerCase()];
+
+        if (tokenStats) {
+            const timeDelta = toBN(block.timestamp.toString()).sub(
+                toBN(tokenStats.updatedAtTimestamp)
+            );
+            // TODO: This seems a little strange, I don't see why we need to
+            // add the streamedAmountDiff into the amountStreamed total
+            // investigate this further when we refactor these tests
+            const amountStreamed = toBN(
+                tokenStats.totalAmountStreamedUntilUpdatedAt
+            ).add(toBN(tokenStats.totalOutflowRate).mul(timeDelta));
+            const streamedAmountDiff = amountStreamed.sub(
+                toBN(tokenStats.totalAmountStreamedUntilUpdatedAt)
+            );
+            tokenStatistics[daix.address.toLowerCase()] = {
+                ...tokenStats,
+                updatedAtBlockNumber: response.blockNumber!.toString(),
+                updatedAtTimestamp: block.timestamp.toString(),
+                totalAmountStreamedUntilUpdatedAt: amountStreamed
+                    .add(streamedAmountDiff)
+                    .toString(),
+            };
+        }
     }
 
     function getStreamLocalData(): IStreamLocalData {
         return {
             accountTokenSnapshots,
+            flowOperators,
             revisionIndexes,
             periodRevisionIndexes,
             streamData,
@@ -137,8 +226,8 @@ describe("Subgraph Tests", () => {
 
     before(async () => {
         // NOTE: make the token symbol more customizable in the future
-        let {users, sf, fDAI, fDAIx, totalSupply} = await beforeSetup(
-            10000000
+        let { users, sf, fDAI, fDAIx, totalSupply } = await beforeSetup(
+            100000000
         );
         initialTotalSupply = totalSupply;
         userAddresses = users;
@@ -185,6 +274,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                     totalSupply: initialTotalSupply,
                 });
@@ -202,6 +292,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -212,6 +303,7 @@ describe("Subgraph Tests", () => {
         //  * Flow Update Tests
         //  */
         it("Should return correct data after updating multiple flows from one person to many.", async () => {
+            // Deployer to All
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
@@ -220,6 +312,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -233,6 +326,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -240,6 +334,7 @@ describe("Subgraph Tests", () => {
         });
 
         it("Should return correct data after updating multiple flows from many to one person.", async () => {
+            // All to Deployer
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
                 // update the global environment objects
@@ -248,6 +343,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -262,6 +358,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -280,6 +377,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Delete,
                     newFlowRate: 0,
                     sender: userAddresses[i],
+                    flowOperator: userAddresses[i],
                     receiver: userAddresses[0],
                 });
                 updateGlobalObjects(data);
@@ -295,6 +393,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Delete,
                     newFlowRate: 0,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -311,6 +410,7 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Create,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
@@ -327,10 +427,177 @@ describe("Subgraph Tests", () => {
                     actionType: FlowActionType.Update,
                     newFlowRate: randomFlowRate,
                     sender: userAddresses[0],
+                    flowOperator: userAddresses[0],
                     receiver: userAddresses[i],
                 });
                 updateGlobalObjects(data);
             }
+        });
+
+        it("Should liquidate a stream", async () => {
+            try {
+                const flowRate = monthlyToSecondRate(5000);
+                const sender = userAddresses[0];
+                const receiver = userAddresses[1];
+                const liquidator = userAddresses[2];
+                // update the global environment objects
+                updateGlobalObjects(
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: flowRate,
+                        sender,
+                        flowOperator: sender,
+                        receiver,
+                    })
+                );
+
+                // get balance of sender
+                let balanceOfSender = await daix.realtimeBalanceOf({
+                    account: sender,
+                    providerOrSigner: provider,
+                });
+                const senderSigner = await ethers.getSigner(sender);
+                const liquidatorSigner = await ethers.getSigner(liquidator);
+                const transferAmount = toBN(balanceOfSender.availableBalance)
+                    // transfer total - 5 seconds of flow
+                    .sub(toBN((flowRate * 5).toString()))
+                    .toString();
+
+                await transferAndUpdate(
+                    transferAmount,
+                    senderSigner,
+                    liquidator
+                );
+                // wait for flow to get drained
+                // cannot use time traveler due to
+                // subgraph constraints
+                let balanceOf;
+                do {
+                    balanceOf = await daix.realtimeBalanceOf({
+                        account: sender,
+                        providerOrSigner: provider,
+                    });
+                    await asleep(1000);
+                } while (Number(balanceOf.availableBalance) >= 0);
+
+                updateGlobalObjects(
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Delete,
+                        newFlowRate: 0,
+                        sender,
+                        flowOperator: liquidator,
+                        receiver,
+                        liquidator,
+                    })
+                );
+
+                // transfer balance back to sender
+                await transferAndUpdate(
+                    transferAmount,
+                    liquidatorSigner,
+                    sender
+                );
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        it("Should be able to update flow operator permissions", async () => {
+            const flowRateAllowance = monthlyToSecondRate(5000).toString();
+
+            // give create permissions
+            updateGlobalObjects(
+                await testUpdateFlowOperatorPermissions({
+                    isCreate: true,
+                    framework,
+                    provider,
+                    superToken: daix,
+                    isFullControl: false,
+                    isFullControlRevoke: false,
+                    sender: userAddresses[0],
+                    permissions: ALLOW_CREATE,
+                    flowOperator: userAddresses[2],
+                    flowOperators,
+                    flowRateAllowance,
+                    accountTokenSnapshots,
+                })
+            );
+
+            // revoke all permissions
+            updateGlobalObjects(
+                await testUpdateFlowOperatorPermissions({
+                    isCreate: false,
+                    framework,
+                    provider,
+                    superToken: daix,
+                    isFullControl: false,
+                    isFullControlRevoke: true,
+                    sender: userAddresses[0],
+                    permissions: 0,
+                    flowOperator: userAddresses[2],
+                    flowOperators,
+                    flowRateAllowance: "0",
+                    accountTokenSnapshots,
+                })
+            );
+
+            // grant full control
+            updateGlobalObjects(
+                await testUpdateFlowOperatorPermissions({
+                    isCreate: false,
+                    framework,
+                    provider,
+                    superToken: daix,
+                    isFullControl: true,
+                    isFullControlRevoke: false,
+                    sender: userAddresses[0],
+                    permissions: 0,
+                    flowOperator: userAddresses[2],
+                    flowOperators,
+                    flowRateAllowance: "0",
+                    accountTokenSnapshots,
+                })
+            );
+        });
+
+        it("Should allow flowOperator to create/update/delete a flow on behalf of sender", async () => {
+            // create flow by operator
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Create,
+                    newFlowRate: monthlyToSecondRate(1000),
+                    sender: userAddresses[0],
+                    flowOperator: userAddresses[2],
+                    receiver: userAddresses[1],
+                })
+            );
+
+            // update flow by operator
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: monthlyToSecondRate(2000),
+                    sender: userAddresses[0],
+                    flowOperator: userAddresses[2],
+                    receiver: userAddresses[1],
+                })
+            );
+
+            // delete flow by operator
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Delete,
+                    newFlowRate: 0,
+                    sender: userAddresses[0],
+                    flowOperator: userAddresses[2],
+                    receiver: userAddresses[1],
+                })
+            );
         });
     });
 
@@ -410,12 +677,12 @@ describe("Subgraph Tests", () => {
 
                 data = await testModifyIDA({
                     ...getBaseIDAData(
-                        {...baseParams, subscriber: ""},
+                        { ...baseParams, subscriber: "" },
                         provider
                     ),
                     eventType: IDAEventType.IndexUpdated,
                     amountOrIndexValue,
-                    isDistribute: false,
+                    isDistribute: true,
                 });
                 updateGlobalObjects(data);
 
@@ -648,7 +915,7 @@ describe("Subgraph Tests", () => {
                 const amountOrIndexValue = toBN(to18DecimalNumString(100));
                 data = await testModifyIDA({
                     ...getBaseIDAData(
-                        {...baseParams, subscriber: ""},
+                        { ...baseParams, subscriber: "" },
                         provider
                     ),
                     eventType: IDAEventType.IndexUpdated,
@@ -784,7 +1051,7 @@ describe("Subgraph Tests", () => {
             const amountOrIndexValue = toBN(to18DecimalNumString(200));
             let data = await testModifyIDA({
                 ...getBaseIDAData(
-                    {...multiBaseParams, subscriber: ""},
+                    { ...multiBaseParams, subscriber: "" },
                     provider
                 ),
                 eventType: IDAEventType.IndexUpdated,

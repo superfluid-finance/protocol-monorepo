@@ -7,25 +7,23 @@ import {
 } from "../queries/aggregateQueries";
 
 export const fetchATSAndValidate = async (
-    atsId: string,
     expectedATSData: IAccountTokenSnapshot
 ) => {
     const graphATS = await fetchEntityAndEnsureExistence<IAccountTokenSnapshot>(
         getAccountTokenSnapshot,
-        atsId,
+        expectedATSData.id,
         "AccountTokenSnapshot"
     );
     validateATSEntity(graphATS, expectedATSData);
 };
 
 export const fetchTokenStatsAndValidate = async (
-    tokenId: string,
     expectedTokenStatsData: ITokenStatistic
 ) => {
     const graphTokenStats =
         await fetchEntityAndEnsureExistence<ITokenStatistic>(
             getTokenStatistic,
-            tokenId,
+            expectedTokenStatsData.id,
             "TokenStats"
         );
     validateTokenStatsEntity(graphTokenStats, expectedTokenStatsData);
@@ -53,6 +51,7 @@ export const validateATSEntity = (
             expectedTotalAmountStreamedUntilUpdatedAt,
         totalAmountTransferredUntilUpdatedAt:
             expectedTotalAmountTransferredUntilUpdatedAt,
+        totalDeposit: expectedTotalDeposit,
     } = expectedATSData;
 
     expect(
@@ -81,6 +80,9 @@ export const validateATSEntity = (
     ).to.equal(expectedTotalNetFlowRate);
     expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
         expectedTotalInflowRate
+    );
+    expect(graphATSData.totalDeposit, "ATS: totalDeposit error").to.equal(
+        expectedTotalDeposit
     );
     expect(
         graphATSData.totalOutflowRate,
@@ -120,6 +122,7 @@ export const validateTokenStatsEntity = (
         totalAmountDistributedUntilUpdatedAt:
             expectedTotalAmountDistributedUntilUpdatedAt,
         totalSupply: expectedTotalSupply,
+        totalDeposit: expectedTotalDeposit,
     } = expectedTokenStats;
 
     expect(
@@ -157,4 +160,7 @@ export const validateTokenStatsEntity = (
         graphTokenStats.totalAmountDistributedUntilUpdatedAt,
         "totalAmountDistributedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountDistributedUntilUpdatedAt);
+    expect(graphTokenStats.totalDeposit, "totalDeposit error").to.equal(
+        expectedTotalDeposit
+    );
 };

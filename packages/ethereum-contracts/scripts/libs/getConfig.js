@@ -32,22 +32,26 @@ module.exports = function getConfig(chainId) {
         5: {
             // goerli
             liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
         4: {
             // rinkeby
             liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x1730cAe53340aB01228019618C2b544642f3650A",
         },
 
         3: {
             // ropsten
             liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x1De6349B96774ed5E3569e47D609C19A8dE15C89",
         },
         42: {
             // kovan
             liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0xE8Df44bcaedD41586cE73eB85e409bcaa834497B",
         },
 
@@ -57,11 +61,13 @@ module.exports = function getConfig(chainId) {
         80001: {
             // (matic) mumbai testnet
             liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x2B99251eC9650e507936fa9530D11dE4d6C9C05c",
         },
         137: {
             // (matic) mainnet
             liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
             tokenList: ["DAIx", "USDCx", "ETHx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
@@ -78,6 +84,7 @@ module.exports = function getConfig(chainId) {
         //
         100: {
             liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
             tokenList: ["ETHx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
@@ -90,6 +97,7 @@ module.exports = function getConfig(chainId) {
         //
         56: {
             liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
             tokenList: [],
             // governance default configs
             gov_enableAppWhiteListing: true,
@@ -105,10 +113,25 @@ module.exports = function getConfig(chainId) {
         // Optimistic Ethereum: https://community.optimism.io/docs/
         //
         10: {
-            // op mainnet
+            // optimism mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 4300000,
+                getLogsRange: 50000,
+            },
         },
         69: {
-            // op kovan
+            // optimism testnet (kovan)
+            data: {
+                initialBlockNumber: 300000,
+                getLogsRange: 50000,
+            },
         },
 
         //
@@ -116,9 +139,24 @@ module.exports = function getConfig(chainId) {
         //
         42161: {
             // arbitrum one mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 7600000,
+                getLogsRange: 50000,
+            },
         },
         421611: {
             // arbitrum testnet (rinkeby)
+            data: {
+                initialBlockNumber: 7300000,
+                getLogsRange: 50000,
+            },
         },
 
         //
@@ -133,9 +171,24 @@ module.exports = function getConfig(chainId) {
         //
         43114: {
             // avalanche mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["AVAXx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 11950000,
+                getLogsRange: 50000,
+            },
         },
         43113: {
             // avalanche fuji testnet
+            data: {
+                initialBlockNumber: 3220000,
+                getLogsRange: 50000,
+            },
         },
 
         //
@@ -143,6 +196,13 @@ module.exports = function getConfig(chainId) {
         //
         42220: {
             // celo mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["CELOx"],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
         },
     };
 
@@ -151,6 +211,8 @@ module.exports = function getConfig(chainId) {
         ...{
             // default liquidation period for the test deployments
             liquidationPeriod: 3600,
+            // default patrician period for test deployments
+            patricianPeriod: 3600 * 0.2,
             // default token list for the test deployments
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
             data: {},

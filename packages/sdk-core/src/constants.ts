@@ -1,4 +1,5 @@
 import { IResolverData } from "./interfaces";
+import SubgraphReleaseTag from "./subgraphReleaseTag.json";
 
 export const MONTHS_PER_YEAR = 12;
 export const DAYS_PER_MONTH = 30;
@@ -64,7 +65,8 @@ export const networkNames: string[] = [
     ARBITRUM_ONE,
 ];
 
-const subgraphReleaseTag = process.env.SUBGRAPH_RELEASE_TAG || "v1";
+const subgraphReleaseTag =
+    process.env.SUBGRAPH_RELEASE_TAG || SubgraphReleaseTag.value;
 
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [

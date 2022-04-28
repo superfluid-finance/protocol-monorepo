@@ -221,7 +221,9 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build
-        run: yarn build
+        run: |
+          yarn set-default-subgraph-release-tag
+          yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev
 

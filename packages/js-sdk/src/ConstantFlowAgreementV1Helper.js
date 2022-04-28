@@ -24,6 +24,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
      * @param {Buffer} userData the user data passed to the callbacks
+     * @param {Object} gasOptions pass network gas parameters
      * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
@@ -33,6 +34,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         flowRate,
         userData,
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -63,6 +65,10 @@ module.exports = class ConstantFlowAgreementV1Helper {
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         this._sf._pushTxForGasReport(tx, "createFlow");
@@ -77,6 +83,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
      * @param {Buffer} userData the user data passed to the callbacks
+     * @param {Object} gasOptions pass network gas parameters
      * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
@@ -86,6 +93,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         flowRate,
         userData,
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -117,6 +125,10 @@ module.exports = class ConstantFlowAgreementV1Helper {
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
 
@@ -132,6 +144,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} receiver receiver of the flow
      * @param {addressParam} by delete flow by a third party (liquidations)
      * @param {Buffer} userData the user data passed to the callbacks
+     * @param {Object} gasOptions pass network gas parameters
      * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
@@ -141,6 +154,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         by,
         userData,
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -170,6 +184,10 @@ module.exports = class ConstantFlowAgreementV1Helper {
             ],
             sender: byNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         this._sf._pushTxForGasReport(tx, "deleteFlow");

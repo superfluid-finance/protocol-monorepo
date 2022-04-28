@@ -54,7 +54,7 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     console.log("\n");
     const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
-    const fDAIx = await sf.loadSuperToken(fDAIxAddress) as WrapperSuperToken;
+    const fDAIx = (await sf.loadSuperToken(fDAIxAddress)) as WrapperSuperToken;
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
@@ -261,6 +261,10 @@ export const getSubscriptionId = (
         .map((x) => x.toLowerCase())
         .join("-");
 
+export const getATSId = (accountId: string, tokenId: string) => {
+    return accountId + "-" + tokenId;
+};
+
 /**************************************************************************
  * Modifier Functions
  *************************************************************************/
@@ -370,7 +374,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),
-        deposit
+        deposit,
     };
 };
 
@@ -426,9 +430,9 @@ export const hasSubscriptionWithUnits = (
 
 /**
  * See ConstantFlowAgreementV1.sol for more details about deposit clipping.
- * @param deposit 
- * @param roundingDown 
- * @returns 
+ * @param deposit
+ * @param roundingDown
+ * @returns
  */
 export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     // last 32 bits of the deposit (96 bits) is clipped off

@@ -1,5 +1,5 @@
+import SubgraphReleaseTag from "./defaultSubgraphReleaseTag.json";
 import { IResolverData } from "./interfaces";
-import SubgraphReleaseTag from "./subgraphReleaseTag.json";
 
 export const MONTHS_PER_YEAR = 12;
 export const DAYS_PER_MONTH = 30;

@@ -5,12 +5,12 @@ import "forge-std/Test.sol";
 import {ERC20PresetMinterPauser} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
 import {
-    SuperfluidFrameworkDeployer,
     Superfluid,
     ConstantFlowAgreementV1,
     InstantDistributionAgreementV1,
-    SuperTokenFactory
-} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperfluidFrameworkDeployer.sol";
+    SuperTokenFactory,
+    SuperfluidFrameworkDeployer
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import {
     ISuperToken
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";

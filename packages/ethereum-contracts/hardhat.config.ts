@@ -22,9 +22,6 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper
 });
 
 const config: HardhatUserConfig = {
-    paths: {
-        sources: "./contracts"
-    },
     solidity: {
         version: "0.8.13",
         settings: {

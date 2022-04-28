@@ -16,7 +16,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Superfluid
  * @dev This is a simple implementation where the supply is pre-minted.
  */
-contract NativeSuperTokenProxy is INativeSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
+contract PureSuperToken is INativeSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
     function initialize(string calldata name, string calldata symbol, uint256 initialSupply)
         external override
     {

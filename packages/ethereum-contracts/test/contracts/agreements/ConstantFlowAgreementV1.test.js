@@ -2398,7 +2398,7 @@ describe("Using ConstantFlowAgreement v1", function () {
     });
 
     context("#2 multi flows super app scenarios", () => {
-        const MultiFlowApp = artifacts.require("MultiFlowApp");
+        const MultiFlowTesterApp = artifacts.require("MultiFlowTesterApp");
 
         const sender = "alice";
         const receiver1 = "bob";
@@ -2410,7 +2410,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         let app;
 
         beforeEach(async () => {
-            app = await web3tx(MultiFlowApp.new, "MultiApp.new")(
+            app = await web3tx(MultiFlowTesterApp.new, "MultiApp.new")(
                 cfa.address,
                 superfluid.address
             );

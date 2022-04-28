@@ -36,19 +36,19 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        additionalContracts: ["NativeSuperTokenProxy", "INativeSuperToken"],
+        additionalContracts: ["PureSuperToken", "INativeSuperToken"],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const {NativeSuperTokenProxy, INativeSuperToken} = sf.contracts;
+    const {PureSuperToken, INativeSuperToken} = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()
     );
 
-    console.log("Deploying NativeSuperTokenProxy...");
-    const proxy = await NativeSuperTokenProxy.new();
+    console.log("Deploying PureSuperToken...");
+    const proxy = await PureSuperToken.new();
 
     const token = await INativeSuperToken.at(proxy.address);
 

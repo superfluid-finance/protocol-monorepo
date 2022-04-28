@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {Resolver} from "../ux/Resolver.sol";
-import {TestGovernance} from "../test/TestGovernance.sol";
-import {SuperfluidLoader} from "../ux/SuperfluidLoader.sol";
+import {Resolver} from "../utils/Resolver.sol";
+import {SuperfluidLoader} from "../utils/SuperfluidLoader.sol";
 import {Superfluid} from "../superfluid/Superfluid.sol";
 import {UUPSProxy} from "../upgradability/UUPSProxy.sol";
 import {ConstantFlowAgreementV1} from "../agreements/ConstantFlowAgreementV1.sol";
 import {InstantDistributionAgreementV1} from "../agreements/InstantDistributionAgreementV1.sol";
 import {SuperTokenFactoryHelper, SuperTokenFactory} from "../superfluid/SuperTokenFactory.sol";
+import {TestGovernance} from "./TestGovernance.sol";
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs

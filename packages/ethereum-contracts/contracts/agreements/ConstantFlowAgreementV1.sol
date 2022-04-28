@@ -40,7 +40,6 @@ contract ConstantFlowAgreementV1 is
      * E_NO_OPERATOR_CREATE_FLOW - operator does not have permissions to create flow
      * E_NO_OPERATOR_UPDATE_FLOW - operator does not have permissions to update flow
      * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
-     * E_NO_PERMISSIONS_UPDATE - unauthorized flow operator permissions update (not from sender)
      * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
      * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
      */
@@ -675,7 +674,6 @@ contract ConstantFlowAgreementV1 is
     /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
     function updateFlowOperatorPermissions(
         ISuperfluidToken token,
-        address sender,
         address flowOperator,
         uint8 permissions,
         int96 flowRateAllowance, // flowRateBudget
@@ -684,22 +682,22 @@ contract ConstantFlowAgreementV1 is
         newCtx = ctx;
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        require(sender == currentContext.msgSender, "CFA: E_NO_PERMISSIONS_UPDATE");
-        require(sender != flowOperator, "CFA: E_NO_SENDER_FLOW_OPERATOR");
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with 
+        // authorizeTokenAccess:
+        require(currentContext.msgSender != flowOperator, "CFA: E_NO_SENDER_FLOW_OPERATOR");
         require(flowRateAllowance >= 0, "CFA: E_NO_NEGATIVE_ALLOWANCE");
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
         flowOperatorData.flowRateAllowance = flowRateAllowance;
-        bytes32 flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
+        bytes32 flowOperatorId = _generateFlowOperatorId(currentContext.msgSender, flowOperator);
         token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
 
-        emit FlowOperatorUpdated(token, sender, flowOperator, permissions, flowRateAllowance);
+        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
     }
 
     /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
     function authorizeFlowOperatorWithFullControl(
         ISuperfluidToken token,
-        address sender,
         address flowOperator,
         bytes calldata ctx
     )
@@ -708,7 +706,6 @@ contract ConstantFlowAgreementV1 is
     {
         newCtx = updateFlowOperatorPermissions(
             token,
-            sender,
             flowOperator,
             FlowOperatorDefinitions.AUTHORIZE_FULL_CONTROL,
             type(int96).max,
@@ -719,15 +716,14 @@ contract ConstantFlowAgreementV1 is
     /// @dev IConstantFlowAgreementV1.revokeFlowOperatorWithFullControl implementation
     function revokeFlowOperatorWithFullControl(
         ISuperfluidToken token,
-        address sender,
         address flowOperator,
         bytes calldata ctx
     )
         external override
         returns(bytes memory newCtx)
     {
-        // REVOKE_FULL_CONTROL = 0
-        newCtx = updateFlowOperatorPermissions(token, sender, flowOperator, 0, 0, ctx);
+        // NOTE: REVOKE_FULL_CONTROL = 0
+        newCtx = updateFlowOperatorPermissions(token, flowOperator, 0, 0, ctx);
     }
 
     /// @dev IConstantFlowAgreementV1.getFlowOperatorData implementation

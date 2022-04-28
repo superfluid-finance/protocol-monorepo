@@ -71,9 +71,8 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (bool);
 
     /**
-     * @dev `sender` updates permissions for the `flowOperator` with `flowRateAllowance`
+     * @dev msgSender from `ctx` updates permissions for the `flowOperator` with `flowRateAllowance`
      * @param token Super token address
-     * @param sender The permission granter address
      * @param flowOperator The permission grantee address
      * @param permissions A bitmask representation of the granted permissions
      * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
@@ -81,7 +80,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      */
     function updateFlowOperatorPermissions(
         ISuperfluidToken token,
-        address sender,
         address flowOperator,
         uint8 permissions,
         int96 flowRateAllowance,
@@ -91,15 +89,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns(bytes memory newCtx);
 
     /**
-     * @dev `sender` grants `flowOperator` create/update/delete permissions with flowRateAllowance as type(int96).max
+     * @dev msgSender from `ctx` grants `flowOperator` all permissions with flowRateAllowance as type(int96).max
      * @param token Super token address
-     * @param sender The permission granter address
      * @param flowOperator The permission grantee address
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      */
     function authorizeFlowOperatorWithFullControl(
         ISuperfluidToken token,
-        address sender,
         address flowOperator,
         bytes calldata ctx
     )
@@ -107,16 +103,14 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns(bytes memory newCtx);
 
      /**
-     * @notice `sender` revokes `flowOperator` create/update/delete permissions
+     * @notice msgSender from `ctx` revokes `flowOperator` create/update/delete permissions
      * @dev `permissions` and `flowRateAllowance` will both be set to 0
      * @param token Super token address
-     * @param sender The permission granter address
      * @param flowOperator The permission grantee address
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      */
     function revokeFlowOperatorWithFullControl(
         ISuperfluidToken token,
-        address sender,
         address flowOperator,
         bytes calldata ctx
     )

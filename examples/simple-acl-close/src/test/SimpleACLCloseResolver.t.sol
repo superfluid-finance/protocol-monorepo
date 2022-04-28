@@ -13,11 +13,6 @@ import { SuperfluidFramework, Superfluid, ConstantFlowAgreementV1, SuperTokenFac
 import { SimpleACLCloseResolver } from "../SimpleACLCloseResolver.sol";
 import { OpsMock } from "../mocks/OpsMock.sol";
 
-// Only the owner or gelato ops can execute the functions with the isOwnerOrOps modifier
-// Should not be able to close the flow unless you are the owner OR gelato ops and it is within the timeframe
-// The contract should definitely have permissions to modify if permissions have been granted
-// the last deleted index stuff should be working properly
-
 contract SimpleACLCloseResolverTest is Test {
     Vm private _vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
@@ -38,6 +33,10 @@ contract SimpleACLCloseResolverTest is Test {
     ISuperToken private _superToken;
     SimpleACLCloseResolver private _simpleACLCloseResolver;
     CFAv1Library.InitData private _cfaLib;
+
+    /**************************************************************************
+     * Setup Function
+     *************************************************************************/
 
     function setUp() public {
         // Deploy and retrieve contracts using `_vm` and `admin`. The admin deploys everything.
@@ -63,6 +62,7 @@ contract SimpleACLCloseResolverTest is Test {
             "Super Butler Token",
             "BUTx"
         );
+        _vm.stopPrank();
 
         // mint tokens for accounts
         for (uint8 i = 0; i < TEST_ACCOUNTS.length; i++) {
@@ -74,12 +74,14 @@ contract SimpleACLCloseResolverTest is Test {
             _vm.stopPrank();
         }
 
+        _vm.startPrank(admin);
         // initialize Simple ACL Close Resolver
         _simpleACLCloseResolver = new SimpleACLCloseResolver(
             block.timestamp + 14400,
             _cfa,
             _superToken,
-            address(alpha)
+            admin,
+            npc
         );
 
         // create ops mock contract
@@ -87,22 +89,26 @@ contract SimpleACLCloseResolverTest is Test {
 
         _simpleACLCloseResolver.setOps(address(ops));
 
-        // transfer ownership of the Simple ACL Close Resolver from
-        // this test contract to the _admin
-        _simpleACLCloseResolver.transferOwnership(admin);
-
         _vm.stopPrank();
     }
 
-    // provide allowance
-    // expect revert for all the functions which are called by someone other than the owner or ops" isOwnerOrOps
+    /**************************************************************************
+     * Tests
+     *************************************************************************/
 
+    /**
+     * Revert Tests
+     */
+
+    // Ops Tests
     function testCannotExecuteRightNow() public {
         // create a stream from admin to npc
         _vm.startPrank(admin);
         _cfaLib.flow(npc, _superToken, 100);
+
+        // fails because cannot execute yet
         _vm.expectRevert(OpsMock.CannotExecute.selector);
-    
+
         ops.exec();
         _vm.stopPrank();
     }
@@ -111,12 +117,134 @@ contract SimpleACLCloseResolverTest is Test {
         // create a stream from admin to npc
         _vm.startPrank(admin);
         _cfaLib.flow(npc, _superToken, 100);
-        
+
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);
         _vm.expectRevert(OpsMock.FailedExecution.selector);
 
         // still fail because of no flowOperator approval
         ops.exec();
+    }
+
+    function testCannotCloseBeforeEndTime() public {
+        // create a stream from admin to npc
+        _vm.startPrank(admin);
+        _cfaLib.flow(npc, _superToken, 100);
+
+        // grant permissions so ops has full flow operator permissions
+        _grantFlowOperatorPermissions(
+            address(_superToken),
+            admin,
+            address(ops)
+        );
+
+        // fails because cannot execute yet
+        _vm.expectRevert(OpsMock.CannotExecute.selector);
+
+        ops.exec();
+        _vm.stopPrank();
+    }
+
+    function testCannotCloseNonExistentFlow() public {
+        _vm.startPrank(admin);
+
+        // grant permissions so ops has full flow operator permissions
+        _grantFlowOperatorPermissions(
+            address(_superToken),
+            admin,
+            address(ops)
+        );
+
+        // warp to a time when it's acceptable to execute
+        _vm.warp(block.timestamp + 14401);
+        _vm.expectRevert(OpsMock.FailedExecution.selector);
+        // try to close a stream that doesn't exist
+        ops.exec();
+        _vm.stopPrank();
+    }
+
+    // Resolver Tests
+    function testNonOpsCannotRunChecker() public {
+        _vm.expectRevert(SimpleACLCloseResolver.OpsOnly.selector);
+        _simpleACLCloseResolver.checker();
+    }
+
+    /**
+     * Passing Tests
+     */
+
+    // Ops Tests
+    function testCanCloseAfterEndTime() public {
+        // create a stream from admin to npc
+        _vm.startPrank(admin);
+        _cfaLib.flow(npc, _superToken, 100);
+
+        // grant permissions so ops has full flow operator permissions
+        _grantFlowOperatorPermissions(
+            address(_superToken),
+            admin,
+            address(ops)
+        );
+
+        // warp to a time when it's acceptable to execute
+        _vm.warp(block.timestamp + 14401);
+
+        ops.exec();
+        _vm.stopPrank();
+    }
+
+    // Resolver Tests
+    function testOpsCanRunChecker() public {
+        _vm.prank(address(ops));
+        (bool canExec, ) = _simpleACLCloseResolver.checker();
+        assertEq(canExec, false);
+    }
+
+    /**
+     * Fuzz Tests
+     */
+
+    // Resolver Tests
+    function testUpdateEndTime(uint256 _endTime) public {
+        _vm.warp(1);
+        _vm.assume(_endTime > block.timestamp);
+        _vm.startPrank(admin);
+        _simpleACLCloseResolver.updateEndTime(_endTime);
+    }
+
+    function testCannotUpdateEndTimeToEarlier(uint256 _endTime) public {
+        _vm.expectRevert(SimpleACLCloseResolver.InvalidEndTime.selector);
+        _vm.warp(100000000);
+        _vm.assume(_endTime < block.timestamp);
+        _vm.startPrank(admin);
+        _simpleACLCloseResolver.updateEndTime(_endTime);
+    }
+
+    // TODO: should be able to update flow receiver
+
+    // TODO: should be able to change ops and run checker with new ops
+
+    // TODO: should be able to update flow receiver and handle closing of new flow
+
+    /**************************************************************************
+     * Helper functions
+     *************************************************************************/
+
+    function _grantFlowOperatorPermissions(
+        address _flowSuperToken,
+        address _sender,
+        address _flowOperator
+    ) internal {
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.authorizeFlowOperatorWithFullControl.selector,
+                _flowSuperToken,
+                _sender,
+                _flowOperator,
+                new bytes(0)
+            ),
+            "0x"
+        );
     }
 }

@@ -36,12 +36,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        additionalContracts: ["PureSuperToken", "INativeSuperToken"],
+        additionalContracts: ["PureSuperToken", "IPureSuperToken"],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const {PureSuperToken, INativeSuperToken} = sf.contracts;
+    const {PureSuperToken, IPureSuperToken} = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()
@@ -50,7 +50,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("Deploying PureSuperToken...");
     const proxy = await PureSuperToken.new();
 
-    const token = await INativeSuperToken.at(proxy.address);
+    const token = await IPureSuperToken.at(proxy.address);
 
     console.log("Invoking initialize...");
     await token.initialize(

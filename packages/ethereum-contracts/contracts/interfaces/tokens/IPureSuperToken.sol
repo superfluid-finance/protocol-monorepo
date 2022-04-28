@@ -4,15 +4,15 @@ pragma solidity >= 0.8.0;
 import { ISuperToken } from "../superfluid/ISuperToken.sol";
 
 /**
- * @title Native SuperToken custom interface
+ * @title Pure Super Token custom interface
  * @author Superfluid
  */
-interface INativeSuperTokenCustom {
+interface IPureSuperTokenCustom {
     function initialize(string calldata name, string calldata symbol, uint256 initialSupply) external;
 }
 
 /**
- * @title Native SuperToken interface
+ * @title Pure Super Token interface
  * @author Superfluid
  */
-interface INativeSuperToken is INativeSuperTokenCustom, ISuperToken {}
+interface IPureSuperToken is IPureSuperTokenCustom, ISuperToken {}

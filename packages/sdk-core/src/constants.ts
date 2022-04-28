@@ -1,4 +1,4 @@
-import SubgraphReleaseTag from "./defaultSubgraphReleaseTag.json";
+import DefaultSubgraphReleaseTag from "./defaultSubgraphReleaseTag.json";
 import { IResolverData } from "./interfaces";
 
 export const MONTHS_PER_YEAR = 12;
@@ -66,7 +66,7 @@ export const networkNames: string[] = [
 ];
 
 const subgraphReleaseTag =
-    process.env.SUBGRAPH_RELEASE_TAG || SubgraphReleaseTag.value;
+    process.env.SUBGRAPH_RELEASE_TAG || DefaultSubgraphReleaseTag.value;
 
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [

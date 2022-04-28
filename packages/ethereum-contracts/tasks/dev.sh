@@ -17,4 +17,4 @@ else
     X="yarn run-hardhat test $C"
 fi
 
-nodemon -e sol,js -i build -x "$X"
+yarn run-nodemon "$X"

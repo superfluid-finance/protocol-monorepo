@@ -2,52 +2,56 @@
 pragma solidity 0.8.13;
 
 import "forge-std/Test.sol";
-import {ERC20PresetMinterPauser} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
 import {
     Superfluid,
     ConstantFlowAgreementV1,
     InstantDistributionAgreementV1,
-    SuperTokenFactory,
+    ERC20PresetMinterPauser,
+    SuperToken,
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
-import {
-    ISuperToken
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import {
-    ISuperTokenFactory,
-    ERC20WithTokenInfo
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 
-contract SuperfluidFrameworkDeployerTester is Test {
+contract FoundrySuperfluidTester is Test {
 
-    uint private constant INIT_TOKEN_BALANCE = type(uint128).max;
-    address private constant alice = address(0xA);
-    address private constant bob = address(0xB);
-    address[] private TEST_ACCOUNTS = [alice, bob];
+    uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
+    uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
+    address internal constant admin = address(0x420);
+    address internal constant alice = address(0x421);
+    address internal constant bob = address(0x422);
+    address internal constant carol = address(0x423);
+    address internal constant dan = address(0x424);
+    address internal constant eve = address(0x425);
+    address internal constant frank = address(0x426);
+    address internal constant grace = address(0x427);
+    address internal constant heidi = address(0x428);
+    address internal constant ivan = address(0x429);
+    address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
 
-    uint256 private _expectedTotalSupply = INIT_TOKEN_BALANCE * TEST_ACCOUNTS.length;
+    uint internal immutable N_TESERS;
+    SuperfluidFrameworkDeployer internal immutable sf;
+    Superfluid internal host;
+    ConstantFlowAgreementV1 internal cfa;
+    InstantDistributionAgreementV1 internal ida;
 
-    SuperfluidFrameworkDeployer private immutable _sf;
+    ERC20PresetMinterPauser internal token;
+    SuperToken internal superToken;
 
-    Superfluid private immutable _host;
-    ConstantFlowAgreementV1 private immutable _cfa;
-    InstantDistributionAgreementV1 private immutable _ida;
-    SuperTokenFactory _superTokenFactory;
+    CFAv1Library.InitData internal cfaLib;
+    IDAv1Library.InitData internal idaLib;
 
-    ERC20PresetMinterPauser private _token;
-    ISuperToken private _superToken;
-    //SuperfluidTester[N_TEST_ACCOUNTS] private _testers;
+    uint256 private _expectedTotalSupply = 0;
 
-    CFAv1Library.InitData private _cfaLib;
-    using CFAv1Library for CFAv1Library.InitData;
+    constructor (uint8 nTesters) {
+        require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
+        N_TESERS = nTesters;
 
+        vm.startPrank(admin);
 
-    constructor () {
         // Deploy ERC1820
-        // TODO move this to a BaseFoundryTester contract
         vm.etch(
             address(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24),
             bytes(
@@ -55,74 +59,41 @@ contract SuperfluidFrameworkDeployerTester is Test {
             )
         );
 
-        _sf = new SuperfluidFrameworkDeployer();
-        (_host, _cfa, _ida, _superTokenFactory) = _sf.getFramework();
+        sf = new SuperfluidFrameworkDeployer();
+        (host, cfa, ida,) = sf.getFramework();
 
-        _cfaLib.host = _host;
-        _cfaLib.cfa = _cfa;
+        cfaLib.host = host;
+        cfaLib.cfa = cfa;
+        idaLib.host = host;
+        idaLib.ida = ida;
+
+        vm.stopPrank();
     }
 
-    function setUp() public {
-        _token = new ERC20PresetMinterPauser("FTT", "FTT");
+    function setUp() virtual public {
+        (token, superToken) = sf.deployWrapperSuperToken("FTT", "FTT");
 
-        _superToken = _superTokenFactory.createERC20Wrapper(
-            ERC20WithTokenInfo(address(_token)),
-            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-            "FTTx",
-            "FTTx");
+        for (uint i = 0; i < N_TESERS; ++i) {
+            sf.mintToken(token, TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
 
-        for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            _token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
             vm.startPrank(TEST_ACCOUNTS[i]);
-            _token.approve(address(_superToken), INIT_TOKEN_BALANCE);
-            _superToken.upgrade(INIT_TOKEN_BALANCE);
+            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
+            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
+            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
         }
-
-        /* vm.prank(bob);
-        _token.mint(bob, INIT_TOKEN_BALANCE);
-        _token.approve(address(_superToken), INIT_TOKEN_BALANCE);
-        _superToken.upgrade(INIT_TOKEN_BALANCE); */
-    }
-
-    function testBob2Alice(uint32 flowRate) public {
-        vm.assume(flowRate > 0);
-        vm.assume(flowRate <= uint32(type(int32).max));
-
-        vm.startPrank(alice);
-        _cfaLib.flow(bob, _superToken, int96(int32(flowRate)));
-        vm.stopPrank();
-
-        assertTrue(checkAllInvariants());
-    }
-
-    function testBobAliceLoop(uint32 flowRate) public {
-        vm.assume(flowRate > 0);
-        vm.assume(flowRate <= uint32(type(int32).max));
-
-        vm.startPrank(alice);
-        _cfaLib.flow(bob, _superToken, int96(int32(flowRate)));
-        vm.stopPrank();
-
-        vm.startPrank(bob);
-        _cfaLib.flow(alice, _superToken, int96(int32(flowRate)));
-        vm.stopPrank();
-
-        assertEq(_cfa.getNetFlow(_superToken, alice), 0);
-        assertEq(_cfa.getNetFlow(_superToken, bob), 0);
-
-        assertTrue(checkAllInvariants());
     }
 
     function checkAllInvariants() public view returns (bool) {
-        return checkLiquiditySumInvariance() &&
+        return
+            checkLiquiditySumInvariance() &&
             checkNetFlowRateSumInvariant();
     }
 
     function checkLiquiditySumInvariance() public view returns (bool) {
         int256 liquiditySum;
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            (int256 avb, uint256 d, uint256 od, ) = _superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
+            (int256 avb, uint256 d, uint256 od, ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
             liquiditySum += avb + int256(d) - int256(od);
         }
         return int256(_expectedTotalSupply) == liquiditySum;
@@ -131,7 +102,7 @@ contract SuperfluidFrameworkDeployerTester is Test {
     function checkNetFlowRateSumInvariant() public view returns (bool) {
         int96 netFlowRateSum;
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            netFlowRateSum += _cfa.getNetFlow(_superToken, address(TEST_ACCOUNTS[i]));
+            netFlowRateSum += cfa.getNetFlow(superToken, address(TEST_ACCOUNTS[i]));
         }
         return netFlowRateSum == 0;
     }

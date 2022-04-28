@@ -18,9 +18,7 @@ require("./apps-contracts.js");
 require("../test/contracts/scenarios/scenarios.js");
 
 // Utility contracts
+require("../test/contracts/utils/Resolver.test.js");
+require("../test/contracts/utils/SuperUpgrader.test.js");
 require("../test/contracts/utils/BatchLiquidator.test.js");
 require("../test/contracts/utils/TOGA.test");
-
-// UX contracts
-require("../test/contracts/ux/Resolver.test.js");
-require("../test/contracts/ux/SuperUpgrader.test.js");

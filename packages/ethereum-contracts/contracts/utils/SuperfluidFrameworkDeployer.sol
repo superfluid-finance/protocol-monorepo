@@ -1,23 +1,28 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {Resolver} from "../utils/Resolver.sol";
-import {SuperfluidLoader} from "../utils/SuperfluidLoader.sol";
-import {Superfluid} from "../superfluid/Superfluid.sol";
+import {ERC20PresetMinterPauser} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+
 import {UUPSProxy} from "../upgradability/UUPSProxy.sol";
+
+import {Superfluid} from "../superfluid/Superfluid.sol";
+import {TestGovernance} from "./TestGovernance.sol";
 import {ConstantFlowAgreementV1} from "../agreements/ConstantFlowAgreementV1.sol";
 import {InstantDistributionAgreementV1} from "../agreements/InstantDistributionAgreementV1.sol";
-import {SuperTokenFactoryHelper, SuperTokenFactory} from "../superfluid/SuperTokenFactory.sol";
-import {TestGovernance} from "./TestGovernance.sol";
+import {
+    ISuperTokenFactory,
+    SuperTokenFactory,
+    SuperTokenFactoryHelper,
+    ERC20WithTokenInfo
+} from "../superfluid/SuperTokenFactory.sol";
+import {SuperToken} from "../superfluid/SuperToken.sol";
+
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
 contract SuperfluidFrameworkDeployer {
 
-    /// @dev Look at all those contracts. These are used for framework deployment.
-    Resolver internal resolver;
     TestGovernance internal governance;
-    SuperfluidLoader internal superfluidLoader;
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfa;
     InstantDistributionAgreementV1 internal ida;
@@ -36,29 +41,14 @@ contract SuperfluidFrameworkDeployer {
             require(cs > 0, "ERC1820 not deployed");
         } */
 
-        // Deploy Superfluid Resolver
-        resolver = new Resolver();
-
         // Deploy TestGovernance. Needs initialization later.
         governance = new TestGovernance();
-
-        // Register Governance with Resolver
-        resolver.set("TestGovernance.test", address(governance));
-
-        // Deploy Superfluid Loader
-        superfluidLoader = new SuperfluidLoader(resolver);
-
-        // Register SuperfluidLoader with Resolver
-        resolver.set("SuperfluidLoader-v1", address(superfluidLoader));
 
         // Deploy Superfluid
         host = new Superfluid(true, false);
 
         // Initialize Superfluid with Governance address
         host.initialize(governance);
-
-        // Register Superfluid with Resolver
-        resolver.set("Superfluid.test", address(host));
 
         // Initialize Governance
         address[] memory trustedForarders = new address[](0);
@@ -101,10 +91,8 @@ contract SuperfluidFrameworkDeployer {
     }
 
     /// @notice Fetches the framework contracts
-    /// TODO returns a memory structure instead
     function getFramework()
-        public
-        view
+        external view
         returns (
             Superfluid,
             ConstantFlowAgreementV1,
@@ -113,5 +101,30 @@ contract SuperfluidFrameworkDeployer {
         )
     {
         return (host, cfa, ida, superTokenFactory);
+    }
+
+    /// @notice Deploy new wrapper super token
+    function deployWrapperSuperToken(string calldata name, string calldata symbol)
+        external
+        returns (
+            ERC20PresetMinterPauser token,
+            SuperToken superToken
+        )
+    {
+        token = new ERC20PresetMinterPauser(name, symbol);
+
+        superToken = SuperToken(address(
+            superTokenFactory.createERC20Wrapper(
+            ERC20WithTokenInfo(address(token)),
+            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
+            string.concat(name, "x"),
+            string.concat(symbol, "x"))
+        ));
+    }
+
+    function mintToken(ERC20PresetMinterPauser token, address to, uint256 amount)
+        external
+    {
+        token.mint(to, amount);
     }
 }

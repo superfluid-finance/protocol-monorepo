@@ -20,10 +20,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Fix ERC1820 artifact issue (#759)
 - Fix an issue with output dir (#748)
 - [SECURITY] InstantDistributionAgreement.claim should be guarded by ctx check.
-- Inteface renaming fix re patrician periods (#747)
+- Interface renaming fix re patrician periods (#747)
 
 ### Changed
 
+- Remove Strings.sol again
 - Disable zero address subscription for IDA (#751)
 - Update dev dependencies (#694)
 - Use hardhat for ethereum-contracts tests (#727)
@@ -31,7 +32,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Improvements
 
-- Redeuce trust assumptions host <-> agreements (#749)
+- Reduce trust assumptions host <-> agreements (#749)
 - Additional IDA test cases (#722)
 
 ## [v1.1.1] - 2022-03-18

@@ -17,7 +17,6 @@
         "!/build/contracts/*Tester*.json",
         "/build/contracts-sizes.txt",
         "/build/abi.js",
-        "artifacts/**/*",
         "scripts/**/*",
         "utils/**/*"
     ],

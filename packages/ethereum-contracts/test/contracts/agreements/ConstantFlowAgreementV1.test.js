@@ -2172,6 +2172,97 @@ describe("Using ConstantFlowAgreement v1", function () {
                     ),
                     "unauthorized host"
                 );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .updateFlowOperatorPermissions(
+                                superToken.address,
+                                bob,
+                                1,
+                                1,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .authorizeFlowOperatorWithFullControl(
+                                superToken.address,
+                                bob,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .revokeFlowOperatorWithFullControl(
+                                superToken.address,
+                                bob,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .createFlowByOperator(
+                                superToken.address,
+                                bob,
+                                dan,
+                                1,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .updateFlowByOperator(
+                                superToken.address,
+                                bob,
+                                dan,
+                                1,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .deleteFlowByOperator(
+                                superToken.address,
+                                bob,
+                                dan,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
             });
         });
 
@@ -4637,6 +4728,140 @@ describe("Using ConstantFlowAgreement v1", function () {
                 flowRateAllowance: "-1",
                 expectedErrorString: "CFA: E_NO_NEGATIVE_ALLOWANCE",
             });
+        });
+
+        // NOTE: I think it will be good practice to do this for any future additions to
+        // agreement functions that are called via callAgreement - yes, repetitive and maybe
+        // redundant, but a sanity check nonetheless to ensure that we are calling
+        // authorizeTokenAccess in our new agreement functions
+        it("#4.28 Should revert when trying to pass in dirty context", async () => {
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .updateFlowOperatorPermissions(
+                            superToken.address,
+                            bob,
+                            1,
+                            FLOW_RATE1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .authorizeFlowOperatorWithFullControl(
+                            superToken.address,
+                            bob,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .revokeFlowOperatorWithFullControl(
+                            superToken.address,
+                            bob,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .createFlowByOperator(
+                            superToken.address,
+                            bob,
+                            dan,
+                            1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .updateFlowByOperator(
+                            superToken.address,
+                            bob,
+                            dan,
+                            1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .deleteFlowByOperator(
+                            superToken.address,
+                            bob,
+                            dan,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
         });
     });
 

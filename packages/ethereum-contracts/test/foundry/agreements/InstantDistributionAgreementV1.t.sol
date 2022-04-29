@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import "../FoundrySuperfluidTester.sol";
 
 
-contract IDAFoundryTester is FoundrySuperfluidTester {
+contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
 
     using IDAv1Library for IDAv1Library.InitData;
 

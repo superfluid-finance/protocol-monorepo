@@ -32,7 +32,7 @@ contract FoundrySuperfluidTester is Test {
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
 
     uint internal immutable N_TESTERS;
-    SuperfluidFrameworkDeployer internal immutable sf;
+    SuperfluidFrameworkDeployer internal immutable sfDeployer;
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfa;
     InstantDistributionAgreementV1 internal ida;
@@ -59,8 +59,8 @@ contract FoundrySuperfluidTester is Test {
             )
         );
 
-        sf = new SuperfluidFrameworkDeployer();
-        (host, cfa, ida,) = sf.getFramework();
+        sfDeployer = new SuperfluidFrameworkDeployer();
+        (host, cfa, ida,) = sfDeployer.getFramework();
 
         cfaLib.host = host;
         cfaLib.cfa = cfa;
@@ -71,10 +71,10 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function setUp() virtual public {
-        (token, superToken) = sf.deployWrapperSuperToken("FTT", "FTT");
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT");
 
         for (uint i = 0; i < N_TESTERS; ++i) {
-            sf.mintToken(token, TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
+            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
 
             vm.startPrank(TEST_ACCOUNTS[i]);
             token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);

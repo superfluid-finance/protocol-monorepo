@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import "../FoundrySuperfluidTester.sol";
 
 
-contract CFAFoundryTester is FoundrySuperfluidTester {
+contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
 
     using CFAv1Library for CFAv1Library.InitData;
 

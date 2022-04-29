@@ -112,6 +112,9 @@ contract SuperfluidFrameworkDeployer {
         )
     {
         token = new ERC20PresetMinterPauser(name, symbol);
+        token.grantRole(token.DEFAULT_ADMIN_ROLE(), msg.sender);
+        token.grantRole(token.MINTER_ROLE(), msg.sender);
+        token.grantRole(token.PAUSER_ROLE(), msg.sender);
 
         superToken = SuperToken(address(
             superTokenFactory.createERC20Wrapper(
@@ -122,9 +125,4 @@ contract SuperfluidFrameworkDeployer {
         ));
     }
 
-    function mintToken(ERC20PresetMinterPauser token, address to, uint256 amount)
-        external
-    {
-        token.mint(to, amount);
-    }
 }

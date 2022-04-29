@@ -163,14 +163,12 @@ yarn test
 
 Run a specific test using the [exclusive tests](https://mochajs.org/#exclusive-tests) feature of MochaJS:
 ```sh
-yarn pretest
-npx hardhat test test/contracts/agreements/ConstantFlowAgreementV1.test.js
-yarn posttest
+yarn run-hardhat test test/contracts/agreements/ConstantFlowAgreementV1.test.js
 ```
 
 Run the test suite for core contracts:
 ```sh
-npx hardhat test testsuites/superfluid-core.js
+yarn run-hardhat test testsuites/superfluid-core.js
 ```
 
 The `pretest` script starts a ganache instance with deterministic accounts in the background, the `posttest` script stops it.
@@ -191,7 +189,7 @@ The selected test(s) will run once when starting the session and re-run everytim
 
 You may also focus on a specific testsuite with yarn dev:
 ```
-yarn dev test/contracts/misc.test.js
+yarn dev test/contracts/libs/CallUtils.test.js
 ```
 
 After finishing the session, you can stop the hardhat instance you started in the first step (Ctrl-C).
@@ -201,9 +199,19 @@ To generate jpeg image charts from the test output run first install these depen
 ```
 python3 -m pip install -U libraryName
 ```
+
 After that is done, just simply run the testDataToCharts script and put the folder containing the csv files as the first argument e.g
 ```
 python3 testDataToCharts.py output
+```
+
+### Other Useful Commands
+
+```
+yarn run-hardhat # run hardhat
+yarn run-truffle # run truffle
+yarn run-forge # run foundry forge
+yarn run-nodemon forge test # use nodemon to run forge test
 ```
 
 ### Troubleshooting

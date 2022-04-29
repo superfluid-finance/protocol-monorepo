@@ -55,7 +55,9 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -71,10 +73,15 @@ jobs:
           yarn lint
           yarn build
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
       - name: Test ethereum-contracts
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
-
+  
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.13;
 
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
@@ -20,10 +22,8 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { CallUtils } from "../libs/CallUtils.sol";
+import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
 
-import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
-
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /// FIXME Lots of reverts in here - can put custom errors
 

@@ -2,7 +2,8 @@
 pragma solidity 0.8.13;
 
 import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import { IResolver } from "../interfaces/ux/IResolver.sol";
+import { IResolver } from "../interfaces/utils/IResolver.sol";
+
 
 /**
  * @title Resolver contract

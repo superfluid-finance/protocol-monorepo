@@ -12,6 +12,8 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 /**
  * @dev Super ETH (SETH) custom super token implementation
  * @author Superfluid
+ *
+ * It is also called a Native-Asset Super Token.
  */
 contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
     event TokenUpgraded(address indexed account, uint256 amount);

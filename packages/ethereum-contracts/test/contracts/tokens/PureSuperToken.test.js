@@ -2,11 +2,11 @@ const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
-const NativeSuperTokenProxy = artifacts.require("NativeSuperTokenProxy");
+const PureSuperToken = artifacts.require("PureSuperToken");
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
 
-describe("NativeSuperTokenProxy Contract", function () {
+describe("PureSuperToken Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
@@ -30,7 +30,7 @@ describe("NativeSuperTokenProxy Contract", function () {
     });
 
     it("#1 create token", async () => {
-        const tokenProxy = await NativeSuperTokenProxy.new();
+        const tokenProxy = await PureSuperToken.new();
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,
             "superTokenFactory.initializeCustomSuperToken"

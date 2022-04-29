@@ -24,20 +24,20 @@ contract UtilsTester {
         return c1;
     }
 
-    function testInt96SafeMathMul(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.mul(a, b, "testInt96SafeMathMul overflow");
+    function doInt96SafeMathMul(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.mul(a, b, "doInt96SafeMathMul overflow");
     }
 
-    function testInt96SafeMathAdd(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.add(a, b, "testInt96SafeMathAdd overflow");
+    function doInt96SafeMathAdd(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.add(a, b, "doInt96SafeMathAdd overflow");
     }
 
-    function testInt96SafeMathSub(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.sub(a, b, "testInt96SafeMathSub overflow");
+    function doInt96SafeMathSub(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.sub(a, b, "doInt96SafeMathSub overflow");
     }
 
-    function testInt96SafeMathDiv(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.div(a, b, "testInt96SafeMathDiv overflow");
+    function doInt96SafeMathDiv(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.div(a, b, "doInt96SafeMathDiv overflow");
     }
 
     /// UInt128SafeMath
@@ -46,12 +46,12 @@ contract UtilsTester {
         return type(uint128).max;
     }
 
-    function testUInt128SafeMathAdd(uint128 a, uint128 b) external pure returns (uint128 c) {
-        return UInt128SafeMath.add(a, b, "testUInt128SafeMathAdd overflow");
+    function doUInt128SafeMathAdd(uint128 a, uint128 b) external pure returns (uint128 c) {
+        return UInt128SafeMath.add(a, b, "doUInt128SafeMathAdd overflow");
     }
 
-    function testInt128SafeMathSub(uint128 a, uint128 b) external pure returns (uint128 c) {
-        return UInt128SafeMath.sub(a, b, "testInt96SafeMathSub overflow");
+    function doInt128SafeMathSub(uint128 a, uint128 b) external pure returns (uint128 c) {
+        return UInt128SafeMath.sub(a, b, "doInt96SafeMathSub overflow");
     }
 
 }

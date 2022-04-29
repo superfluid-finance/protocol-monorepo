@@ -10,12 +10,12 @@ import {
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
- * @title Multi Flow (Super) App
+ * @title Multi Flow tester App (MFA)
  * @author Superfluid
  * @dev A super app that can split incoming flows to multiple outgoing flows.
  *      This is used for testing CFA callbacks logic.
  */
-contract MultiFlowApp is SuperAppBase {
+contract MultiFlowTesterApp is SuperAppBase {
 
     struct ReceiverData {
         address to;

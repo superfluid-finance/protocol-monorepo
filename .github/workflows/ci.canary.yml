@@ -25,6 +25,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Show contexts
         run: |
@@ -39,6 +41,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Install, lint, build, and test
         run: |
@@ -217,7 +224,7 @@ jobs:
 
       - name: Build
         run: |
-          yarn set-default-subgraph-release-tag
+          yarn --cwd packages/sdk-core set-default-subgraph-release-tag
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev

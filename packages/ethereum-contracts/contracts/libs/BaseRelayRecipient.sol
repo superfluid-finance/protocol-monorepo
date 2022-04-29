@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.13;
 
-import "../interfaces/ux/IRelayRecipient.sol";
+import "../interfaces/utils/IRelayRecipient.sol";
+
 
 /**
  * @title Base relay recipient contract

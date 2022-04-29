@@ -31,7 +31,7 @@ contract FoundrySuperfluidTester is Test {
     address internal constant ivan = address(0x429);
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
 
-    uint internal immutable N_TESERS;
+    uint internal immutable N_TESTERS;
     SuperfluidFrameworkDeployer internal immutable sf;
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfa;
@@ -47,7 +47,7 @@ contract FoundrySuperfluidTester is Test {
 
     constructor (uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
-        N_TESERS = nTesters;
+        N_TESTERS = nTesters;
 
         vm.startPrank(admin);
 
@@ -73,7 +73,7 @@ contract FoundrySuperfluidTester is Test {
     function setUp() virtual public {
         (token, superToken) = sf.deployWrapperSuperToken("FTT", "FTT");
 
-        for (uint i = 0; i < N_TESERS; ++i) {
+        for (uint i = 0; i < N_TESTERS; ++i) {
             sf.mintToken(token, TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
 
             vm.startPrank(TEST_ACCOUNTS[i]);

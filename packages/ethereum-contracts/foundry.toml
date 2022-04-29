@@ -2,7 +2,7 @@
 root = '../..'
 libs = ['lib']
 src = 'packages/ethereum-contracts'
-remappings =[
+remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',

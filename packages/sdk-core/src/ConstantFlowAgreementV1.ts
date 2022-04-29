@@ -285,7 +285,6 @@ export default class ConstantFlowAgreementV1 {
     /**
      * Update permissions for a flow operator as a sender.
      * @param superToken The token to be flowed.
-     * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param permission The permissions to set.
      * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
@@ -297,7 +296,6 @@ export default class ConstantFlowAgreementV1 {
         params: IUpdateFlowOperatorPermissionsParams
     ): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
-        const normalizedSender = normalizeAddress(params.sender);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
         if (!isPermissionsClean(params.permissions)) {
             throw new SFError({
@@ -317,7 +315,6 @@ export default class ConstantFlowAgreementV1 {
             "updateFlowOperatorPermissions",
             [
                 normalizedToken,
-                normalizedSender,
                 normalizedFlowOperator,
                 params.permissions,
                 params.flowRateAllowance,
@@ -336,7 +333,6 @@ export default class ConstantFlowAgreementV1 {
     /**
      * Give flow operator full control - max flow rate and create/update/delete permissions.
      * @param superToken The token to be flowed.
-     * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -345,12 +341,11 @@ export default class ConstantFlowAgreementV1 {
         params: IFullControlParams
     ): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
-        const normalizedSender = normalizeAddress(params.sender);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
 
         const callData = cfaInterface.encodeFunctionData(
             "authorizeFlowOperatorWithFullControl",
-            [normalizedToken, normalizedSender, normalizedFlowOperator, "0x"]
+            [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
         return this.host.populateCallAgreementTxnAndReturnOperation(
@@ -364,19 +359,17 @@ export default class ConstantFlowAgreementV1 {
     /**
      * Revoke flow operator control - set flow rate to 0 with no permissions.
      * @param superToken The token to be flowed.
-     * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
      */
     revokeFlowOperatorWithFullControl(params: IFullControlParams): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
-        const normalizedSender = normalizeAddress(params.sender);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
 
         const callData = cfaInterface.encodeFunctionData(
             "revokeFlowOperatorWithFullControl",
-            [normalizedToken, normalizedSender, normalizedFlowOperator, "0x"]
+            [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
         return this.host.populateCallAgreementTxnAndReturnOperation(

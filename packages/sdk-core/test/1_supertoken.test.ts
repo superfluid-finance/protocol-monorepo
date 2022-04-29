@@ -591,7 +591,6 @@ describe("SuperToken Tests", () => {
                 const permissions = AUTHORIZE_FULL_CONTROL + 1;
                 const operation = daix.updateFlowOperatorPermissions({
                     flowRateAllowance,
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
@@ -609,7 +608,6 @@ describe("SuperToken Tests", () => {
                 const permissions = AUTHORIZE_FULL_CONTROL;
                 const operation = daix.updateFlowOperatorPermissions({
                     flowRateAllowance,
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
@@ -635,7 +633,6 @@ describe("SuperToken Tests", () => {
             const updateFlowOperatorPermissionsOperation =
                 daix.updateFlowOperatorPermissions({
                     flowRateAllowance,
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
@@ -665,7 +662,6 @@ describe("SuperToken Tests", () => {
             permissions = 0; // no permissions
             const revokeFlowOperatorWithFullControlOperation =
                 daix.revokeFlowOperatorWithFullControl({
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                 });
             await expect(
@@ -692,7 +688,6 @@ describe("SuperToken Tests", () => {
             permissions = AUTHORIZE_FULL_CONTROL; // all permissions
             const authorizeFlowOperatorWithFullControlOperation =
                 daix.authorizeFlowOperatorWithFullControl({
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                 });
             await expect(

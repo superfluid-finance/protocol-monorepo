@@ -1,4 +1,10 @@
-import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
+import {
+    BigInt,
+    Bytes,
+    ethereum,
+    Address,
+    log,
+} from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
@@ -8,27 +14,21 @@ import {
     TokenStatistic,
 } from "../generated/schema";
 
-// TODO when refactoring subgraph to use Bytes id's and immmutable entities
-// for consistency, only pass Bytes/Address to helper functions
-// instead of doing string/Bytes randomly.
-// Also use concat instead of + - will likely have to do this anyway when
-// dealing with Bytes
-// Pass event into the helpers instead of taking so many params when possible (if it always)
-// will take that one event
-// this will clean up both files (look at getOrInitFlowOperator and getFlowOperatorID)
-
 /**************************************************************************
  * Constants
  *************************************************************************/
 
-export let BIG_INT_ZERO = BigInt.fromI32(0);
-export let BIG_INT_ONE = BigInt.fromI32(1);
-export let ZERO_ADDRESS = Address.fromString(
-    "0x0000000000000000000000000000000000000000"
-);
-export let MAX_FLOW_RATE = BigInt.fromI32(2)
-    .pow(95)
-    .minus(BigInt.fromI32(1));
+export const BIG_INT_ZERO = BigInt.fromI32(0);
+export const BIG_INT_ONE = BigInt.fromI32(1);
+export const ZERO_ADDRESS = Address.zero();
+export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
+
+/**************************************************************************
+ * Convenience Conversions
+ *************************************************************************/
+export function bytesToAddress(bytes: Bytes): Address {
+    return Address.fromBytes(bytes);
+}
 
 /**************************************************************************
  * Event entities util functions
@@ -38,11 +38,13 @@ export function createEventID(
     eventName: string,
     event: ethereum.Event
 ): string {
-    return eventName
-        .concat("-")
-        .concat(event.transaction.hash.toHexString())
-        .concat("-")
-        .concat(event.logIndex.toString());
+    return (
+        eventName +
+        "-" +
+        event.transaction.hash.toHexString() +
+        "-" +
+        event.logIndex.toString()
+    );
 }
 
 /**************************************************************************
@@ -59,7 +61,7 @@ export function getTokenInfoAndReturn(
     let symbolResult = tokenContract.try_symbol();
     let decimalsResult = tokenContract.try_decimals();
     token.underlyingAddress = underlyingAddressResult.reverted
-        ? new Address(0)
+        ? ZERO_ADDRESS
         : underlyingAddressResult.value;
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
@@ -78,9 +80,9 @@ export function getIsListedToken(
             ? "test"
             : "v1";
     let result = resolverContract.try_get(
-        "supertokens.".concat(version).concat(".").concat(token.symbol)
+        "supertokens." + version + "." + token.symbol
     );
-    let superTokenAddress = result.reverted ? new Address(0) : result.value;
+    let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;
 }
@@ -135,45 +137,59 @@ export function tokenHasValidHost(
 
 // Get Higher Order Entity ID functions
 // CFA Higher Order Entity
-export function getStreamRevisionPrefix(
-    senderId: string,
-    receiverId: string,
-    tokenId: string
+export function getStreamRevisionID(
+    senderAddress: Address,
+    receiverAddress: Address,
+    tokenAddress: Address
 ): string {
-    return senderId.concat("-").concat(receiverId).concat("-").concat(tokenId);
+    return (
+        senderAddress.toHex() +
+        "-" +
+        receiverAddress.toHex() +
+        "-" +
+        tokenAddress.toHex()
+    );
 }
 
 export function getStreamID(
-    senderId: string,
-    receiverId: string,
-    tokenId: string,
+    senderAddress: Address,
+    receiverAddress: Address,
+    tokenAddress: Address,
     revisionIndex: number
 ): string {
-    return getStreamRevisionPrefix(senderId, receiverId, tokenId)
-        .concat("-")
-        .concat(revisionIndex.toString());
+    return (
+        getStreamRevisionID(senderAddress, receiverAddress, tokenAddress) +
+        "-" +
+        revisionIndex.toString()
+    );
 }
 
 export function getStreamPeriodID(
     streamId: string,
     periodRevisionIndex: number
 ): string {
-    return streamId.concat("-").concat(periodRevisionIndex.toString());
+    return streamId + "-" + periodRevisionIndex.toString();
 }
 
 export function getFlowOperatorID(
-    flowOperator: Bytes,
-    token: Bytes,
-    sender: Bytes
+    flowOperatorAddress: Address,
+    tokenAddress: Address,
+    senderAddress: Address
 ): string {
-    return flowOperator.toHex() + "-" + token.toHex() + "-" + sender.toHex();
+    return (
+        flowOperatorAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        senderAddress.toHex()
+    );
 }
 
 // IDA Higher Order Entity
 export function getSubscriptionID(
-    subscriberAddress: Bytes,
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
+    subscriberAddress: Address,
+    publisherAddress: Address,
+    tokenAddress: Address,
     indexId: BigInt
 ): string {
     return (
@@ -188,8 +204,8 @@ export function getSubscriptionID(
 }
 
 export function getIndexID(
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
+    publisherAddress: Address,
+    tokenAddress: Address,
     indexId: BigInt
 ): string {
     return (
@@ -199,6 +215,14 @@ export function getIndexID(
         "-" +
         indexId.toString()
     );
+}
+
+// Get Aggregate ID functions
+export function getAccountTokenSnapshotID(
+    accountAddress: Address,
+    tokenAddress: Address
+): string {
+    return accountAddress.toHex() + "-" + tokenAddress.toHex();
 }
 
 // Get HOL Exists Functions
@@ -227,12 +251,4 @@ export function getAmountStreamedSinceLastUpdatedAt(
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(previousTotalOutflowRate);
-}
-
-// Get Aggregate ID functions
-export function getAccountTokenSnapshotID(
-    accountId: string,
-    tokenId: string
-): string {
-    return accountId.concat("-").concat(tokenId);
 }

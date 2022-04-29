@@ -12,9 +12,9 @@ export IS_HARDHAT=true
 C="$@"
 
 if [ -z "$C" ];then
-    X="yarn test:contracts:js 2>&1"
+    X="yarn test:contracts:hardhat 2>&1"
 else
-    X="npx hardhat test $C"
+    X="yarn run-hardhat test $C"
 fi
 
-nodemon -e sol,js -i build -x "$X"
+yarn run-nodemon "$X"

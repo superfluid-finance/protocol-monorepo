@@ -25,6 +25,8 @@ const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.dat
 
 let _singleton;
 
+const DEFAULT_TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
+
 /**
  * @dev Test environment for test cases
  *
@@ -180,6 +182,15 @@ module.exports = class TestEnvironment {
             oldEvmSnapshotId,
             JSON.stringify(this._evmSnapshots)
         );
+    }
+
+    async timeTravelOnce(time = DEFAULT_TEST_TRAVEL_TIME) {
+        const block1 = await web3.eth.getBlock("latest");
+        console.log("current block time", block1.timestamp);
+        console.log(`time traveler going to the future +${time}...`);
+        await traveler.advanceTimeAndBlock(time);
+        const block2 = await web3.eth.getBlock("latest");
+        console.log("new block time", block2.timestamp);
     }
 
     /**************************************************************************

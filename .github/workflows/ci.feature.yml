@@ -37,7 +37,7 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -55,7 +55,9 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -71,10 +73,15 @@ jobs:
           yarn lint
           yarn build
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
       - name: Test ethereum-contracts
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
-
+  
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 
@@ -84,7 +91,7 @@ jobs:
     if: needs.check.outputs.build_ethereum_contracts
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -113,7 +120,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -150,7 +157,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -164,7 +171,7 @@ jobs:
         run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
       - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: graphprotocol/graph-node
           path: graph-node
@@ -205,7 +212,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -253,7 +260,7 @@ jobs:
       fail-fast: false
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: source
       - name: apt

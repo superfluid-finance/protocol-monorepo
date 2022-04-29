@@ -657,7 +657,6 @@ async function shouldDeleteFlowByOperator({
 function getUpdateFlowOperatorPermissionsPromise({
     testenv,
     token,
-    sender,
     flowOperator,
     permissions,
     flowRateAllowance,
@@ -670,7 +669,6 @@ function getUpdateFlowOperatorPermissionsPromise({
         cfa.contract.methods
             .updateFlowOperatorPermissions(
                 token,
-                sender,
                 flowOperator,
                 permissions,
                 flowRateAllowance,
@@ -685,7 +683,6 @@ function getUpdateFlowOperatorPermissionsPromise({
 function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
     testenv,
     token,
-    sender,
     flowOperator,
     ctx,
     from,
@@ -699,7 +696,6 @@ function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
         cfa.address,
         cfa.contract.methods[methodSignature](
             token,
-            sender,
             flowOperator,
             ctx
         ).encodeABI(),
@@ -746,7 +742,6 @@ function getChangeFlowByFlowOperatorPromise({
 async function shouldRevertUpdateFlowOperatorPermissions({
     testenv,
     token,
-    sender,
     flowOperator,
     permissions,
     flowRateAllowance,
@@ -756,13 +751,12 @@ async function shouldRevertUpdateFlowOperatorPermissions({
 }) {
     console.log("\n[EXPECT UPDATE FLOW OPERATOR PERMISSIONS REVERT]");
     console.log(
-        `${sender} granting ${permissions} to ${flowOperator} with ${flowRateAllowance} flow rate allowance`
+        `${from} granting ${permissions} to ${flowOperator} with ${flowRateAllowance} flow rate allowance`
     );
     await expectRevertedWith(
         getUpdateFlowOperatorPermissionsPromise({
             testenv,
             token,
-            sender,
             flowOperator,
             permissions,
             flowRateAllowance,
@@ -774,14 +768,13 @@ async function shouldRevertUpdateFlowOperatorPermissions({
 }
 
 /**
- * @dev Updates the flow operator permissions and validates that the
+ * @description Updates the flow operator permissions and validates that the
  * event emits the correct values (newly defined values) and that the
  * agreementData was properly updated.
  */
 async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     testenv,
     token,
-    sender,
     flowOperator,
     permissions,
     flowRateAllowance,
@@ -801,7 +794,6 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
         tx = await getUpdateFlowOperatorPermissionsPromise({
             testenv,
             token,
-            sender,
             flowOperator,
             permissions,
             flowRateAllowance,
@@ -814,7 +806,6 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
         tx = await getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
             testenv,
             token,
-            sender,
             flowOperator,
             ctx,
             from,
@@ -839,7 +830,7 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
         "FlowOperatorUpdated",
         {
             token,
-            sender,
+            sender: from,
             flowOperator,
             permissions: expectedPermissions,
             flowRateAllowance: expectedFlowRateAllowance,
@@ -847,9 +838,9 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     );
 
     // validate agreementData was properly updated
-    const data = await cfa.getFlowOperatorData(token, sender, flowOperator);
+    const data = await cfa.getFlowOperatorData(token, from, flowOperator);
     const expectedFlowOperatorId = testenv.getFlowOperatorId(
-        sender,
+        from,
         flowOperator
     );
     assert.equal(data.flowOperatorId, expectedFlowOperatorId);
@@ -888,6 +879,19 @@ async function shouldRevertChangeFlowByOperator({
     );
 }
 
+async function expectNetFlow({testenv, account, superToken, value}) {
+    const actualNetFlowRate = await testenv.contracts.cfa.getNetFlow(
+        superToken.address,
+        testenv.getAddress(account)
+    );
+    console.log(`expected net flow for ${account}: ${value.toString()}`);
+    assert.equal(
+        actualNetFlowRate.toString(),
+        value.toString(),
+        `Unexpected net flow for ${account}`
+    );
+}
+
 module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
@@ -898,4 +902,5 @@ module.exports = {
     shouldRevertUpdateFlowOperatorPermissions,
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertChangeFlowByOperator,
+    expectNetFlow,
 };

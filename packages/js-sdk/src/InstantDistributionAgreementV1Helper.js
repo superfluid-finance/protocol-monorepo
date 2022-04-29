@@ -30,6 +30,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         publisher,
         indexId,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -49,6 +50,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Index created.");
@@ -70,6 +75,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         amount,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -89,6 +95,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Distribution complete.");
@@ -113,6 +123,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         indexValue,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -132,6 +143,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Index updated.");
@@ -155,6 +170,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         subscriber,
         units,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -183,6 +199,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Subscription updated.");
@@ -208,6 +228,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         subscriber,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -235,6 +256,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: subscriberNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Subscription approved.");
@@ -259,6 +284,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         publisher,
         subscriber,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -286,6 +312,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: subscriberNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Subscription revoked.");
@@ -312,6 +342,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         subscriber,
         sender,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -341,6 +372,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Subscription deleted.");
@@ -394,6 +429,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         subscriber,
         sender,
         userData = "0x",
+        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -423,6 +459,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
+            gasOptions: {
+                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
+                maxFeePerGas: gasOptions.maxFeePerGas,
+            },
             onTransaction,
         });
         console.debug("Claim complete.");

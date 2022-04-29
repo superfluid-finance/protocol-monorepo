@@ -19,6 +19,7 @@ import {
     IFlowOperator,
 } from "../interfaces";
 import {
+    getATSId,
     getFlowOperatorId,
     getIndexId,
     getRevisionIndexId,
@@ -162,11 +163,11 @@ export const getOrInitAccountTokenSnapshot = (
     updatedAtBlockNumber: string,
     updatedAtTimestamp: string
 ): IAccountTokenSnapshot => {
-    const atsId = accountId + "-" + tokenId;
+    const atsId = getATSId(accountId, tokenId);
     const existingATS = accountTokenSnapshots[atsId];
     if (existingATS == null) {
         return {
-            id: accountId + "-" + tokenId,
+            id: atsId,
             updatedAtBlockNumber,
             updatedAtTimestamp,
             totalNumberOfActiveStreams: 0,

@@ -87,8 +87,6 @@ contract SimpleACLCloseResolverTest is Test {
         // create ops mock contract
         ops = new OpsMock(address(_simpleACLCloseResolver), address(_host));
 
-        _simpleACLCloseResolver.updateOps(address(ops));
-
         _vm.stopPrank();
     }
 
@@ -116,6 +114,10 @@ contract SimpleACLCloseResolverTest is Test {
     function testCannotCloseWithoutApproval() public {
         // create a stream from admin to npc
         _vm.startPrank(admin);
+
+        // move block.timestamp to 1 because it is currently at 0
+        _vm.warp(block.timestamp + 1);
+
         _cfaLib.flow(npc, _superToken, 100);
 
         // warp to a time when it's acceptable to execute
@@ -147,6 +149,7 @@ contract SimpleACLCloseResolverTest is Test {
 
     function testCannotCloseNonExistentFlow() public {
         _vm.startPrank(admin);
+        _cfaLib.flow(npc, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
         _grantFlowOperatorPermissions(
@@ -157,7 +160,7 @@ contract SimpleACLCloseResolverTest is Test {
 
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);
-        _vm.expectRevert(OpsMock.FailedExecution.selector);
+        _vm.expectRevert(OpsMock.CannotExecute.selector);
         // try to close a stream that doesn't exist
         ops.exec();
         _vm.stopPrank();
@@ -189,6 +192,10 @@ contract SimpleACLCloseResolverTest is Test {
     function testCanCloseAfterEndTime() public {
         // create a stream from admin to npc
         _vm.startPrank(admin);
+
+        // move block.timestamp to 1 because it is currently at 0
+        _vm.warp(block.timestamp + 1);
+
         _cfaLib.flow(npc, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
@@ -210,12 +217,6 @@ contract SimpleACLCloseResolverTest is Test {
      */
 
     // Resolver Tests
-    function testNonOpsCannotRunChecker(address _caller) public {
-        _vm.assume(_caller != address(ops));
-        _vm.expectRevert(SimpleACLCloseResolver.OpsOnly.selector);
-        _vm.prank(_caller);
-        _simpleACLCloseResolver.checker();
-    }
 
     function testCanUpdateEndTime(uint256 _endTime, address _newOwner) public {
         _vm.warp(1);
@@ -234,7 +235,8 @@ contract SimpleACLCloseResolverTest is Test {
         _vm.assume(
             _flowReceiver != _newOwner &&
                 _flowReceiver != address(0) &&
-                _newOwner != address(0)
+                _newOwner != address(0) &&
+                _flowReceiver != admin
         );
 
         _vm.prank(admin);
@@ -269,9 +271,6 @@ contract SimpleACLCloseResolverTest is Test {
 
         _vm.prank(admin);
         _simpleACLCloseResolver.transferOwnership(_newOwner);
-
-        _vm.prank(_newOwner);
-        _simpleACLCloseResolver.updateOps(_newOps);
 
         // call checker as _newOps
         _vm.prank(_newOps);
@@ -310,14 +309,6 @@ contract SimpleACLCloseResolverTest is Test {
         _simpleACLCloseResolver.updateEndTime(_endTime);
     }
 
-    function testNonOwnerCannotUpdateOps(address _nonOwner) public {
-        _vm.expectRevert("Ownable: caller is not the owner");
-        _vm.assume(_nonOwner != admin);
-        _vm.prank(_nonOwner);
-        _simpleACLCloseResolver.updateOps(_nonOwner);
-    }
-
-    // TODO: should be able to update flow receiver and handle closing of new flow
 
     /**************************************************************************
      * Helper functions

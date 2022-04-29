@@ -13,14 +13,13 @@ import { IResolver } from "./interfaces/IResolver.sol";
  * @dev This only works for a single token and one stream at a time.
  */
 contract SimpleACLCloseResolver is IResolver, Ownable {
-    IConstantFlowAgreementV1 internal cfa;
-    uint256 internal endTime;
-    ISuperfluidToken internal superToken;
-    address internal flowSender;
-    address internal flowReceiver;
-    address internal ops;
+    IConstantFlowAgreementV1 public cfa;
+    uint256 public endTime;
+    ISuperfluidToken public superToken;
+    address public flowSender;
+    address public flowReceiver;
+    uint256 public gasLimit;
 
-    error OpsOnly();
     error InvalidEndTime();
     error InvalidFlowReceiver();
     error InvalidFlowSender();
@@ -32,20 +31,12 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         address _flowSender,
         address _flowReceiver
     ) {
+        if (_endTime < block.timestamp) revert InvalidEndTime();
         endTime = _endTime;
         cfa = _cfa;
         superToken = _superToken;
         flowSender = _flowSender;
         flowReceiver = _flowReceiver;
-    }
-
-    modifier opsOnly() {
-        if (msg.sender != ops) revert OpsOnly();
-        _;
-    }
-
-    function updateOps(address _ops) external onlyOwner {
-        ops = _ops;
     }
 
     function updateEndTime(uint256 _endTime) external onlyOwner {
@@ -68,10 +59,13 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
     function checker()
         external
         view
-        opsOnly
         returns (bool canExec, bytes memory execPayload)
     {
-        canExec = block.timestamp >= endTime;
+        // TODO: add gasPrice check for canExec
+
+        // timestamp == 0 means the flow doesn't exist so it won't try to execute
+        (uint256 timestamp, , , ) = cfa.getFlow(superToken, flowSender, flowReceiver);
+        canExec = block.timestamp >= endTime && timestamp != 0;
 
         bytes memory callData = abi.encodeWithSelector(
             IConstantFlowAgreementV1.deleteFlowByOperator.selector,

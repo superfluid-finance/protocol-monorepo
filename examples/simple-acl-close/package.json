@@ -19,7 +19,10 @@
   },
   "homepage": "https://github.com/superfluid-finance/protocol-monorepo/#readme",
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@superfluid-finance/ethereum-contracts": "1.1.2-dev.0839cae.0",
+    "@superfluid-finance/sdk-core": "0.3.2",
     "dotenv": "^16.0.0",
     "hardhat": "^2.9.3",
     "hardhat-prettier": "^0.0.1",

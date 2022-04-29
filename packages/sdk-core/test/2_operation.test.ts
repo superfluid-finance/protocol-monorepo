@@ -37,7 +37,6 @@ describe("Operation Tests", () => {
     it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
         const revokeControlOp = framework.cfaV1.revokeFlowOperatorWithFullControl({
             superToken: superToken.address,
-            sender: deployer.address,
             flowOperator: alpha.address,
         });
         const signer = framework.createSigner({

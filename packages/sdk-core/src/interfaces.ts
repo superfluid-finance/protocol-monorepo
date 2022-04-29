@@ -140,7 +140,6 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
 }
 
 export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
-    readonly sender: string;
     readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
@@ -149,7 +148,6 @@ export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
 }
 
 export interface ISuperTokenFullControlParams {
-    readonly sender: string;
     readonly flowOperator: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };

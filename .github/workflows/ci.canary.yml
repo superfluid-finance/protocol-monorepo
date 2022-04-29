@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -107,7 +107,7 @@ jobs:
       sdk-core-working-directory: ./packages/sdk-core
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -162,7 +162,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -176,7 +176,7 @@ jobs:
         run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
       - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: graphprotocol/graph-node
           path: graph-node
@@ -206,9 +206,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: superfluid-finance/build-scripts
           path: build-scripts
@@ -292,7 +292,7 @@ jobs:
         network: [goerli]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1

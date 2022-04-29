@@ -37,7 +37,7 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -91,7 +91,7 @@ jobs:
     if: needs.check.outputs.build_ethereum_contracts
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -120,7 +120,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -157,7 +157,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -171,7 +171,7 @@ jobs:
         run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
       - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: graphprotocol/graph-node
           path: graph-node
@@ -212,7 +212,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -260,7 +260,7 @@ jobs:
       fail-fast: false
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: source
       - name: apt

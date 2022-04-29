@@ -217,7 +217,7 @@ jobs:
 
       - name: Build
         run: |
-          yarn set-default-subgraph-release-tag
+          yarn --cwd packages/sdk-core set-default-subgraph-release-tag
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev

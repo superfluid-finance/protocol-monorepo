@@ -54,7 +54,7 @@
     },
     "devDependencies": {
         "@ethersproject/contracts": "^5.6.0",
-        "@superfluid-finance/ethereum-contracts": "1.2.0",
+        "@superfluid-finance/ethereum-contracts": "1.2.1",
         "chai-as-promised": "^7.1.1",
         "webpack": "^5.72.0",
         "webpack-bundle-analyzer": "^4.5.0",

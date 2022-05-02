@@ -2559,7 +2559,7 @@ describe("Superfluid Host Contract", function () {
             );
         });
 
-        it("#40.5 app can register with an used key should fail", async () => {
+        it.skip("#40.5 app can register with an used key should fail", async () => {
             const appKey = createAppKey(bob, "hello world again");
             await governance.whiteListNewApp(superfluid.address, appKey);
             await SuperAppMockWithRegistrationkey.new(

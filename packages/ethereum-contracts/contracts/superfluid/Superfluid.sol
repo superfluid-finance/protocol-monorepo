@@ -328,8 +328,6 @@ contract Superfluid is
             !_appKeysUsed[configKey],
             "SF: registration key already used"
         );
-        // clear the key so that it can't be reused
-        _appKeysUsed[configKey] = true;
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 

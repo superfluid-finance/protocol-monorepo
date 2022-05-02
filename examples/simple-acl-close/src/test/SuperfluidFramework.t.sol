@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import { Vm } from "forge-std/Vm.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
-import { Resolver } from "@superfluid-finance/ethereum-contracts/contracts/ux/Resolver.sol";
-import { TestGovernance } from "@superfluid-finance/ethereum-contracts/contracts/test/TestGovernance.sol";
-import { SuperfluidLoader } from "@superfluid-finance/ethereum-contracts/contracts/ux/SuperfluidLoader.sol";
+import { Resolver } from "@superfluid-finance/ethereum-contracts/contracts/utils/Resolver.sol";
+import { TestGovernance } from "@superfluid-finance/ethereum-contracts/contracts/utils/TestGovernance.sol";
+import { SuperfluidLoader } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidLoader.sol";
 import { Superfluid } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
 import { UUPSProxy } from "@superfluid-finance/ethereum-contracts/contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";

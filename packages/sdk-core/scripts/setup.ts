@@ -1,12 +1,7 @@
 import { ethers } from "hardhat";
-import { abi as TestTokenABI } from "../src/abi/TestToken.json";
-import { abi as IResolverABI } from "../src/abi/IResolver.json";
-import { abi as SuperTokenABI } from "../src/abi/SuperToken.json";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
-    IResolver,
-    SuperToken,
     TestToken,
 } from "../src/typechain";
 import { DataMode, Framework, WrapperSuperToken } from "../src";

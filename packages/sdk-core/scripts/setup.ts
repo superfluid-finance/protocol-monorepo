@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { abi as TestTokenABI } from "../src/abi/TestToken.json";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
@@ -52,8 +53,11 @@ export const setup = async (props: ISetupProps) => {
         "fDAIx"
     )) as WrapperSuperToken;
     const SuperToken = superTokenClass.contract;
-    const underlyingTokenClass = superTokenClass.underlyingToken;
-    const Token = underlyingTokenClass.contract as TestToken;
+    const Token = new ethers.Contract(
+        superTokenClass.underlyingToken.address,
+        TestTokenABI,
+        Deployer
+    ) as TestToken;
     if (props.amount) {
         const initialAmount = ethers.utils.parseUnits(props.amount);
         for (let i = 0; i < signers.length; i++) {

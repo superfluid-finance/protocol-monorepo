@@ -5,7 +5,7 @@ import {
     IInstantDistributionAgreementV1,
     TestToken,
 } from "../src/typechain";
-import { DataMode, Framework, SuperToken, WrapperSuperToken } from "../src";
+import { DataMode, Framework, WrapperSuperToken } from "../src";
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
 // test test test test test test test test test test test junk
@@ -52,7 +52,7 @@ export const setup = async (props: ISetupProps) => {
     const superTokenClass = (await frameworkClass.loadSuperToken(
         "fDAIx"
     )) as WrapperSuperToken;
-    const SuperToken = superTokenClass.contract.connect(Deployer) as SuperToken;
+    let SuperToken = superTokenClass.contract;
     const Token = new ethers.Contract(
         superTokenClass.underlyingToken.address,
         TestTokenABI,
@@ -77,6 +77,7 @@ export const setup = async (props: ISetupProps) => {
             });
         }
     }
+    SuperToken = superTokenClass.contract.connect(Deployer);
 
     return {
         CFAV1,

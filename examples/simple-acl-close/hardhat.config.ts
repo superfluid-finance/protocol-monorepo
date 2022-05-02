@@ -4,6 +4,9 @@ import "@nomiclabs/hardhat-ethers";
 import "hardhat-prettier";
 import "@nomiclabs/hardhat-etherscan";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
+import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-waffle";
 
 try {
     dotenvConfig();

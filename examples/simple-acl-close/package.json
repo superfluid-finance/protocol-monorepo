@@ -6,7 +6,12 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "forge test"
+    "test": "forge test",
+    "hardhat-test": "hardhat test",
+    "console": "hardhat console",
+    "hh-node": "hardhat node",
+    "hardhat-verify": "hardhat verifyContract",
+    "deploy": "hardhat run scripts/deploy.ts --network"
   },
   "repository": {
     "type": "git",

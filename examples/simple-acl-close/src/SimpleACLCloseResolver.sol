@@ -18,7 +18,6 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
     ISuperfluidToken public superToken;
     address public flowSender;
     address public flowReceiver;
-    uint256 public gasLimit;
 
     error InvalidEndTime();
     error InvalidFlowReceiver();
@@ -61,8 +60,6 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         view
         returns (bool canExec, bytes memory execPayload)
     {
-        // TODO: add gasPrice check for canExec
-
         // timestamp == 0 means the flow doesn't exist so it won't try to execute
         (uint256 timestamp, , , ) = cfa.getFlow(superToken, flowSender, flowReceiver);
         canExec = block.timestamp >= endTime && timestamp != 0;

@@ -33,6 +33,32 @@ This runs the `all:` command which does the following:
 - `solc`: installs the specified solc version
 - `build`: builds the contracts
 
+> NOTE: You can also run these separately, e.g. `make install`
+
+## Deployment and Interaction w/ Hardhat Console
+Open a terminal window and start up a local hardhat node: `yarn hh-node` or `npx hardhat node`.
+
+Open another terminal window and deploy the contracts locally: `yarn deploy <NETWORK_NAME>` or `npx hardhat run scripts/deploy.ts --network <NETWORK_NAME>`
+
+Start a hardhat console session: `yarn console <NETWORK_NAME>` or `npx hardhat console --network <NETWORK_NAME>`
+
+Attach the newly deployed contract:
+
+`const simpleACLCloseResolver = await hre.ethers.getContractAt("SimpleACLCloseResolver", <CONTRACT_ADDRESS>);`
+
+Now you can interact with the contract in the CLI.
+
+> NOTE: Use localhost as `<NETWORK_NAME>` if you want to deploy locally.
+
+## Contract Verification
+Contract verification occurs by default after deploying via Hardhat. This will require multiple retries due to the bytecode not being deployed until after a certain number of confirmations has gone through.
+
+To verify a contract manually via the CLI, we need to use a custom created Hardhat task:
+```
+yarn hardhat-verify --address <CONTRACT_ADDRESS> --args '[<END_TIME>, "<CFA_ADDRESS>", "<SUPERTOKEN_ADDRESS>", "<SENDER_ADDRESS>", "<RECEIVER_ADDRESS>"]'
+```
+> NOTE: You can also set the SKIP_VERIFICATION variable to true in `.env` to skip the contract verification process after contract deployment.
+
 ## Steps
 To get this up and running and helping you close a stream, here is a step-by-step guide:
 
@@ -46,18 +72,12 @@ You can get your desired end time by creating a date object in javascript and th
 
 Forge command: `make deploy`
 
-Hardhat command: `yarn deploy` or `npx hardhat run scripts/deploy.ts`
+Hardhat command: `yarn deploy <NETWORK_NAME>` or `npx hardhat run scripts/deploy.ts --network <NETWORK_NAME>`
 
-> NOTE: You will have to provide the necessary .env values for this to work.
+> NOTE: You will have to provide/update the necessary .env values for this to work.
 
 (optional) Verify your contract - this makes it slightly easier when setting up the task on gelato ops.
-If you don't verify, you just need to copy the ABI into the input when prompted for it when setting up your task with Gelato.
-
-You can also do this with forge or Hardhat as well.
-
-Forge command: `make verify`
-
-Hardhat command: `yarn verify` or `npx hardhat
+If you don't verify, you just need to copy the ABI into the input when prompted for it when setting up your task with Gelato. Refer above for the commands on contract verification.
 
 2. Authorize delete control to the flow operator (gelato ops).
 
@@ -76,5 +96,5 @@ npx hardhat run scripts/authorizeControl.ts --network <NETWORK_NAME>
 ## Next Steps
 The written example is only for closing streams, but you can easily modify the resolver to:
 
- - Automatically upgrade tokens for your account when your supertoken balance is a certain amount
+ - Automatically upgrade tokens for your account when your supertoken balance is at a certain amount
  - Handle managing multiple streams

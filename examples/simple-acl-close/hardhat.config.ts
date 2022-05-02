@@ -1,12 +1,12 @@
-import { HardhatUserConfig, subtask } from "hardhat/config";
+import { HardhatUserConfig, subtask, task, types } from "hardhat/config";
 import { config as dotenvConfig } from "dotenv";
-import "@nomiclabs/hardhat-ethers";
 import "hardhat-prettier";
 import "@nomiclabs/hardhat-etherscan";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
+import { verifyContract } from "./scripts/verify";
 
 try {
     dotenvConfig();
@@ -24,6 +24,17 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
         return paths.filter((p: string) => !p.endsWith(".t.sol"));
     },
 );
+
+/**
+ * Verify Contract task
+ * Run: `npx verifyContract --address <ADDRESS> --args '["0x..", 123, "0x..."]'`
+ */
+task("verifyContract", "Verify a contract")
+    .addParam("address", "the contract address", "0x...", types.string)
+    .addParam("args", "constructor arguments", {}, types.json)
+    .setAction(async function (taskArgs, hre) {
+        await verifyContract(hre, taskArgs.address, taskArgs.args);
+    });
 
 const config: HardhatUserConfig = {
     solidity: {

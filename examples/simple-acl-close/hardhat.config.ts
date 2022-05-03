@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
         goerli: {
             url: process.env.GOERLI_PROVIDER_URL || "",
             chainId: 5,
-            accounts: [process.env.PRIVATE_KEY || ""],
+            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
         },
     },
     paths: {

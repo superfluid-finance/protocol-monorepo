@@ -77,6 +77,9 @@ To have a TDD workflow, we use nodemon to track changes to .ts/.sol files for ha
 Forge driven test development command: `yarn forge-dev`
 Hardhat driven test development command: `yarn hardhat-dev`
 
+## Coverage
+To get a coverage report, run `yarn coverage` or `npx hardhat coverage`.
+
 ## Steps
 To get this up and running and helping you close a stream, here is a step-by-step guide:
 

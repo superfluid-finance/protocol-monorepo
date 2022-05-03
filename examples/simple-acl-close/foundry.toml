@@ -2,5 +2,6 @@
 src = 'src'
 out = 'out'
 libs = ['lib']
+gas_reports = ["SimpleACLCloseResolver"]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

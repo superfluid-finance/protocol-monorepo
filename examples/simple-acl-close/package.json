@@ -8,6 +8,7 @@
     "scripts": {
         "forge-test": "forge test",
         "hardhat-test": "hardhat test",
+        "coverage": "hardhat coverage",
         "forge-build": "forge build",
         "hardhat-build": "hardhat compile",
         "console": "hardhat console",

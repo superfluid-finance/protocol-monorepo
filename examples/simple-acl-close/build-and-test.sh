@@ -10,7 +10,9 @@ yarn install --frozen-lockfile
 yarn hardhat-node &
 
 # test contracts w/ forge
-yarn forge-test
+# yarn forge-test
+
+npx hardhat compile
 
 # test contracts w/ hardhat
 yarn hardhat-test --network localhost

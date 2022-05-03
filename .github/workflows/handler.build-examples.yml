@@ -41,12 +41,6 @@ jobs:
           submodules: recursive
           path: monorepo
 
-      - name: Install Foundry
-        if: ${{ matrix.example }} == 'simple-acl-close'
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Check changeset
         if: github.event_name == 'push'
         run: tasks/check-changeset.sh ${{ github.sha }} dev

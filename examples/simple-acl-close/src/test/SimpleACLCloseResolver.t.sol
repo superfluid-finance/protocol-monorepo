@@ -18,11 +18,10 @@ contract SimpleACLCloseResolverTest is Test {
 
     uint256 private constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint256 private constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
-    address private constant alpha = address(1);
-    address private constant npc = address(2);
+    address private constant receiver = address(2);
     OpsMock private ops;
-    address private constant admin = address(420);
-    address[] private TEST_ACCOUNTS = [alpha, npc, admin];
+    address private constant sender = address(420);
+    address[] private TEST_ACCOUNTS = [receiver, sender];
 
     using CFAv1Library for CFAv1Library.InitData;
 
@@ -39,10 +38,10 @@ contract SimpleACLCloseResolverTest is Test {
      *************************************************************************/
 
     function setUp() public {
-        // Deploy and retrieve contracts using `_vm` and `admin`. The admin deploys everything.
+        // Deploy and retrieve contracts using `_vm` and `sender`. The sender deploys everything.
         (_host, _cfa, , _superTokenFactory) = new SuperfluidFramework(
             _vm,
-            admin
+            sender
         ).framework();
         _cfaLib.host = _host;
         _cfaLib.cfa = _cfa;
@@ -50,8 +49,8 @@ contract SimpleACLCloseResolverTest is Test {
         // NOTE: If you're copy-pasting this for your own test, you can safely delete the rest of
         // this function :)
 
-        // Become admin
-        _vm.startPrank(admin);
+        // Become sender
+        _vm.startPrank(sender);
 
         // initialize underlying token
         _token = new ERC20PresetMinterPauser("Butler Token", "BUT");
@@ -66,7 +65,7 @@ contract SimpleACLCloseResolverTest is Test {
 
         // mint tokens for accounts
         for (uint8 i = 0; i < TEST_ACCOUNTS.length; i++) {
-            _vm.prank(admin);
+            _vm.prank(sender);
             _token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
             _vm.startPrank(TEST_ACCOUNTS[i]);
             _token.approve(address(_superToken), INIT_TOKEN_BALANCE);
@@ -74,14 +73,14 @@ contract SimpleACLCloseResolverTest is Test {
             _vm.stopPrank();
         }
 
-        _vm.startPrank(admin);
+        _vm.startPrank(sender);
         // initialize Simple ACL Close Resolver
         _simpleACLCloseResolver = new SimpleACLCloseResolver(
             block.timestamp + 14400,
             _cfa,
             _superToken,
-            admin,
-            npc
+            sender,
+            receiver
         );
 
         // create ops mock contract
@@ -100,9 +99,9 @@ contract SimpleACLCloseResolverTest is Test {
 
     // Ops Tests
     function testCannotExecuteRightNow() public {
-        // create a stream from admin to npc
-        _vm.startPrank(admin);
-        _cfaLib.flow(npc, _superToken, 100);
+        // create a stream from sender to receiver
+        _vm.startPrank(sender);
+        _cfaLib.flow(receiver, _superToken, 100);
 
         // fails because cannot execute yet
         _vm.expectRevert(OpsMock.CannotExecute.selector);
@@ -112,13 +111,13 @@ contract SimpleACLCloseResolverTest is Test {
     }
 
     function testCannotCloseWithoutApproval() public {
-        // create a stream from admin to npc
-        _vm.startPrank(admin);
+        // create a stream from sender to receiver
+        _vm.startPrank(sender);
 
         // move block.timestamp to 1 because it is currently at 0
         _vm.warp(block.timestamp + 1);
 
-        _cfaLib.flow(npc, _superToken, 100);
+        _cfaLib.flow(receiver, _superToken, 100);
 
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);
@@ -129,14 +128,13 @@ contract SimpleACLCloseResolverTest is Test {
     }
 
     function testCannotCloseBeforeEndTime() public {
-        // create a stream from admin to npc
-        _vm.startPrank(admin);
-        _cfaLib.flow(npc, _superToken, 100);
+        // create a stream from sender to receiver
+        _vm.startPrank(sender);
+        _cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
         _grantFlowOperatorPermissions(
             address(_superToken),
-            admin,
             address(ops)
         );
 
@@ -148,13 +146,12 @@ contract SimpleACLCloseResolverTest is Test {
     }
 
     function testCannotCloseNonExistentFlow() public {
-        _vm.startPrank(admin);
-        _cfaLib.flow(npc, _superToken, 100);
+        _vm.startPrank(sender);
+        _cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
         _grantFlowOperatorPermissions(
             address(_superToken),
-            admin,
             address(ops)
         );
 
@@ -169,19 +166,19 @@ contract SimpleACLCloseResolverTest is Test {
     // Resolver Tests
 
     function testCannotSetInvalidReceiver() public {
-        _vm.startPrank(admin);
+        _vm.startPrank(sender);
         _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowReceiver.selector);
         _simpleACLCloseResolver.updateFlowReceiver(address(0));
         _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowReceiver.selector);
-        _simpleACLCloseResolver.updateFlowReceiver(admin);
+        _simpleACLCloseResolver.updateFlowReceiver(sender);
     }
 
     function testCannotSetInvalidSender() public {
-        _vm.startPrank(admin);
+        _vm.startPrank(sender);
         _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowSender.selector);
         _simpleACLCloseResolver.updateFlowSender(address(0));
         _vm.expectRevert(SimpleACLCloseResolver.InvalidFlowSender.selector);
-        _simpleACLCloseResolver.updateFlowSender(npc);
+        _simpleACLCloseResolver.updateFlowSender(receiver);
     }
 
     /**
@@ -190,18 +187,17 @@ contract SimpleACLCloseResolverTest is Test {
 
     // Ops Tests
     function testCanCloseAfterEndTime() public {
-        // create a stream from admin to npc
-        _vm.startPrank(admin);
+        // create a stream from sender to receiver
+        _vm.startPrank(sender);
 
         // move block.timestamp to 1 because it is currently at 0
         _vm.warp(block.timestamp + 1);
 
-        _cfaLib.flow(npc, _superToken, 100);
+        _cfaLib.flow(receiver, _superToken, 100);
 
-        // grant permissions so ops has full flow operator permissions
+        // grant permissions so ops has delete flow operator permissions
         _grantFlowOperatorPermissions(
             address(_superToken),
-            admin,
             address(ops)
         );
 
@@ -222,7 +218,7 @@ contract SimpleACLCloseResolverTest is Test {
         _vm.warp(1);
         _vm.assume(_endTime > block.timestamp && _newOwner != address(0));
 
-        _vm.prank(admin);
+        _vm.prank(sender);
         _simpleACLCloseResolver.transferOwnership(_newOwner);
 
         _vm.prank(_newOwner);
@@ -236,10 +232,10 @@ contract SimpleACLCloseResolverTest is Test {
             _flowReceiver != _newOwner &&
                 _flowReceiver != address(0) &&
                 _newOwner != address(0) &&
-                _flowReceiver != admin
+                _flowReceiver != sender
         );
 
-        _vm.prank(admin);
+        _vm.prank(sender);
         _simpleACLCloseResolver.transferOwnership(_newOwner);
 
         _vm.prank(_newOwner);
@@ -255,46 +251,31 @@ contract SimpleACLCloseResolverTest is Test {
                 _newOwner != address(0)
         );
 
-        _vm.prank(admin);
+        _vm.prank(sender);
         _simpleACLCloseResolver.transferOwnership(_newOwner);
 
         _vm.prank(_newOwner);
         _simpleACLCloseResolver.updateFlowSender(_flowSender);
     }
 
-    function testCanUpdateOps(address _newOps, address _newOwner) public {
-        _vm.assume(
-            _newOps != _newOwner &&
-                _newOps != address(0) &&
-                _newOwner != address(0)
-        );
-
-        _vm.prank(admin);
-        _simpleACLCloseResolver.transferOwnership(_newOwner);
-
-        // call checker as _newOps
-        _vm.prank(_newOps);
-        _simpleACLCloseResolver.checker();
-    }
-
     function testCannotUpdateEndTimeToEarlier(uint256 _endTime) public {
         _vm.expectRevert(SimpleACLCloseResolver.InvalidEndTime.selector);
         _vm.warp(100000000);
         _vm.assume(_endTime < block.timestamp);
-        _vm.startPrank(admin);
+        _vm.startPrank(sender);
         _simpleACLCloseResolver.updateEndTime(_endTime);
     }
 
     function testNonOwnerCannotUpdateFlowSender(address _nonOwner) public {
         _vm.expectRevert("Ownable: caller is not the owner");
-        _vm.assume(_nonOwner != admin);
+        _vm.assume(_nonOwner != sender);
         _vm.prank(_nonOwner);
         _simpleACLCloseResolver.updateFlowSender(_nonOwner);
     }
 
     function testNonOwnerCannotUpdateFlowReceiver(address _nonOwner) public {
         _vm.expectRevert("Ownable: caller is not the owner");
-        _vm.assume(_nonOwner != admin);
+        _vm.assume(_nonOwner != sender);
         _vm.prank(_nonOwner);
         _simpleACLCloseResolver.updateFlowReceiver(_nonOwner);
     }
@@ -304,7 +285,7 @@ contract SimpleACLCloseResolverTest is Test {
         uint256 _endTime
     ) public {
         _vm.expectRevert("Ownable: caller is not the owner");
-        _vm.assume(_nonOwner != admin && _endTime > block.timestamp);
+        _vm.assume(_nonOwner != sender && _endTime > block.timestamp);
         _vm.prank(_nonOwner);
         _simpleACLCloseResolver.updateEndTime(_endTime);
     }
@@ -316,16 +297,16 @@ contract SimpleACLCloseResolverTest is Test {
 
     function _grantFlowOperatorPermissions(
         address _flowSuperToken,
-        address _sender,
         address _flowOperator
     ) internal {
         _host.callAgreement(
             _cfa,
             abi.encodeWithSelector(
-                _cfa.authorizeFlowOperatorWithFullControl.selector,
+                _cfa.updateFlowOperatorPermissions.selector,
                 _flowSuperToken,
-                _sender,
                 _flowOperator,
+                4,
+                0,
                 new bytes(0)
             ),
             "0x"

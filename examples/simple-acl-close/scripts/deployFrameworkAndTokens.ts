@@ -7,44 +7,30 @@ export const errorHandler = (type: string, err: any) => {
     if (err) console.error("Deploy " + type + " Error: ", err);
 };
 
-async function main() {
-    const [Deployer] = (await ethers.getSigners()).map(x => x.address);
-    await deployFramework((x: any) => errorHandler("Framework", x), {
-        web3: (global as any).web3,
-        from: Deployer,
-    });
-    await deployTestToken(
-        (x: any) => errorHandler("TestToken", x),
-        [":", "fDAI"],
-        {
+export async function deployFrameworkAndTokens() {
+    try {
+        const [Deployer] = (await ethers.getSigners()).map(x => x.address);
+        await deployFramework((x: any) => errorHandler("Framework", x), {
             web3: (global as any).web3,
             from: Deployer,
-        },
-    );
-    await deploySuperToken(
-        (x: any) => errorHandler("SuperToken", x),
-        [":", "fDAI"],
-        {
-            web3: (global as any).web3,
-            from: Deployer,
-        },
-    );
-    // deploy native asset super token
-    await deploySuperToken(
-        (x: any) => errorHandler("SuperToken", x),
-        [":", "ETH"],
-        {
-            web3: (global as any).web3,
-            from: Deployer,
-        },
-    );
+        });
+        await deployTestToken(
+            (x: any) => errorHandler("TestToken", x),
+            [":", "fDAI"],
+            {
+                web3: (global as any).web3,
+                from: Deployer,
+            },
+        );
+        await deploySuperToken(
+            (x: any) => errorHandler("SuperToken", x),
+            [":", "fDAI"],
+            {
+                web3: (global as any).web3,
+                from: Deployer,
+            },
+        );
+    } catch (err) {
+        console.error(err);
+    }
 }
-
-main()
-    .then(() => {
-        process.exit(0);
-    })
-    .catch(error => {
-        console.error(error);
-        process.exit(1);
-    });

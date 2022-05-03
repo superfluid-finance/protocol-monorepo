@@ -36,7 +36,7 @@ This runs the `all:` command which does the following:
 > NOTE: You can also run these separately, e.g. `make install`
 
 ## Deployment and Interaction w/ Hardhat Console
-Open a terminal window and start up a local hardhat node: `yarn hh-node` or `npx hardhat node`.
+Open a terminal window and start up a local hardhat node: `yarn hardhat-node` or `npx hardhat node`.
 
 Open another terminal window and deploy the contracts locally: `yarn deploy <NETWORK_NAME>` or `npx hardhat run scripts/deploy.ts --network <NETWORK_NAME>`
 
@@ -53,11 +53,29 @@ Now you can interact with the contract in the CLI.
 ## Contract Verification
 Contract verification occurs by default after deploying via Hardhat. This will require multiple retries due to the bytecode not being deployed until after a certain number of confirmations has gone through.
 
-To verify a contract manually via the CLI, we need to use a custom created Hardhat task:
+To verify a contract manually via the CLI, we need to use a custom created Hardhat task, passing in the constructor args:
 ```
 yarn hardhat-verify --address <CONTRACT_ADDRESS> --args '[<END_TIME>, "<CFA_ADDRESS>", "<SUPERTOKEN_ADDRESS>", "<SENDER_ADDRESS>", "<RECEIVER_ADDRESS>"]'
 ```
 > NOTE: You can also set the SKIP_VERIFICATION variable to true in `.env` to skip the contract verification process after contract deployment.
+
+## Tests
+To test with Hardhat:
+1. Set up a local hardhat node:
+`npx hardhat node`
+
+2. Run the tests
+`yarn hardhat-test --network localhost` or `npx hardhat test --network localhost`
+
+3. Coverage tests (optional)
+`yarn coverage`
+
+To test with Forge: `forge test`
+
+## TDD (Test Driven Development)
+To have a TDD workflow, we use nodemon to track changes to .ts/.sol files for hardhat driven test development or .sol files for forge driven test development.
+Forge driven test development command: `yarn forge-dev`
+Hardhat driven test development command: `yarn hardhat-dev`
 
 ## Steps
 To get this up and running and helping you close a stream, here is a step-by-step guide:

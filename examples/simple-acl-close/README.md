@@ -114,6 +114,8 @@ npx hardhat run scripts/authorizeControl.ts --network <NETWORK_NAME>
  - Select `checker()` as the `Function to be called at the resolver (to check task status)`
  - Give the task a name and create it. 
 
+ > Note: You will need to top up some funds in Gelato for the executor to execute transactions on your behalf.
+
 ## Next Steps
 The written example is only for closing streams, but you can easily modify the resolver to:
 

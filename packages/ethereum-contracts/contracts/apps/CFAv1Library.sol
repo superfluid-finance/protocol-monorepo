@@ -19,52 +19,14 @@ import {
  */
 library CFAv1Library {
 
+    /**
+     * @dev Initialization data
+     * @param host Superfluid host for calling agreements
+     * @param cfa Constant Flow Agreement contract
+     */
     struct InitData {
         ISuperfluid host;
         IConstantFlowAgreementV1 cfa;
-    }
-
-    /**
-     * @dev Create/update/delete flow without userData
-     * @param cfaLibrary The cfaLibrary storage variable
-     * @param receiver The receiver of the flow
-     * @param token The token to flow
-     * @param flowRate The desired flowRate
-     */
-    function flow(
-        InitData storage cfaLibrary,
-        address receiver,
-        ISuperfluidToken token,
-        int96 flowRate
-    ) internal {
-        flow(cfaLibrary, receiver, token, flowRate, new bytes(0));
-    }
-
-    /**
-     * @dev Create/update/delete flow with userData
-     * @param cfaLibrary The cfaLibrary storage variable
-     * @param receiver The receiver of the flow
-     * @param token The token to flow
-     * @param flowRate The desired flowRate
-     * @param userData The user provided data
-     */
-    function flow(
-        InitData storage cfaLibrary,
-        address receiver,
-        ISuperfluidToken token,
-        int96 flowRate,
-        bytes memory userData
-    ) internal {
-        if ( flowRate == int96(0) ) {
-            deleteFlow(cfaLibrary, address(this), receiver, token, userData);
-        } else {
-            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
-            if ( existingFlowRate == int96(0) ) {
-                createFlow(cfaLibrary, receiver, token, flowRate, userData);
-            } else {
-                updateFlow(cfaLibrary, receiver, token, flowRate, userData);
-            }
-        }
     }
 
     /**

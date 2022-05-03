@@ -314,8 +314,7 @@ describe("CFAv1 Library testing", function () {
     });
 
     describe("4. flow wrapper functions", async () => {
-        it("#4.1 - create , update and delete a flow without user data" , async () => {
-
+        it("#4.1 - create , update and delete a flow without user data", async () => {
             await CFALibraryMock.flowWithoutUserDataTest(
                 superToken.address,
                 bob,
@@ -360,11 +359,9 @@ describe("CFAv1 Library testing", function () {
             );
 
             assert.equal(flow.flowRate, "0");
-
         });
 
-        it("#4.2 - create , update and delete a flow with user data" , async () => {
-
+        it("#4.2 - create , update and delete a flow with user data", async () => {
             await CFALibraryMock.flowWithUserDataTest(
                 superToken.address,
                 TradeableCashflowMock.address,
@@ -380,7 +377,6 @@ describe("CFAv1 Library testing", function () {
             );
             assert.equal(flow.flowRate, "3858024691358");
             assert.equal(await TradeableCashflowMock.userData(), "HODL");
-
 
             //update the flow
             await CFALibraryMock.flowWithUserDataTest(
@@ -416,15 +412,14 @@ describe("CFAv1 Library testing", function () {
 
             assert.equal(flow.flowRate, "0");
             assert.equal(await TradeableCashflowMock.userData(), "KEKW");
-
         });
 
-        it.only("#4.3 - WIP Create , update and delete a flow with ctx and user data" , async () => {
+        it.skip("#4.3 - WIP Create , update and delete a flow with ctx and user data", async () => {
             await CFALibraryMock.flowWithCtxAndUserDataTest(
                 TradeableCashflowMock.address,
                 superToken.address,
                 "5858024691358",
-                web3.eth.abi.encodeParameter("string", "NGMI"),
+                web3.eth.abi.encodeParameter("string", "NGMI")
             );
 
             let flow = await cfa.getFlow(
@@ -433,7 +428,6 @@ describe("CFAv1 Library testing", function () {
                 TradeableCashflowMock.address
             );
             assert.equal(flow.flowRate, "3858024691358");
-
 
             // //update the flow
             // await CFALibraryMock.flowWithUserDataTest(
@@ -469,10 +463,8 @@ describe("CFAv1 Library testing", function () {
             //
             // assert.equal(flow.flowRate, "0");
             // assert.equal(await TradeableCashflowMock.userData(), "KEKW");
-
         });
-
-    })
+    });
 
     describe("5 - Expect revert cases", async () => {
         it("5.1 - Create should revert if flow exists", async () => {

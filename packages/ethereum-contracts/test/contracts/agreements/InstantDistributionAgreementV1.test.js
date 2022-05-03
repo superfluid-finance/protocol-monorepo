@@ -834,7 +834,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                 );
             });
 
-
             it("#1.2.15 publisher should be able to delete an approved subscription", async () => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -930,7 +929,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: toWad(0.01).toString(),
                 });
 
-                expectRevert(
+                expectRevertedWith(
                     shouldApproveSubscription({
                         testenv: t,
                         superToken,

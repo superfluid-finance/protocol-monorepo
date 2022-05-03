@@ -1405,7 +1405,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
                 assert.isTrue(period[0]);
 
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber()
                 );
 
@@ -1416,7 +1416,6 @@ describe("Using ConstantFlowAgreement v1", function () {
 
                 assert.isFalse(period[0]);
             });
-
         });
 
         describe("#1.5 multiple flow liquidations", () => {

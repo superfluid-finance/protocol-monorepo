@@ -139,6 +139,42 @@ contract CFALibraryMock {
     ) public {
         cfaV1.deleteFlowWithCtx(ctx, sender, receiver, token, userData);
     }
+
+    function flowWithUserDataTest(
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        cfaV1.flow(receiver, token, flowRate, userData);
+    }
+
+    function flowWithoutUserDataTest(
+        ISuperfluidToken token,
+        address receiver,
+        int96 flowRate
+    ) public {
+        cfaV1.flow(receiver, token, flowRate);
+    }
+
+    function flowWithCtxAndUserDataTest(
+        bytes memory ctx,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        cfaV1.flowWithCtx(ctx, receiver, token, flowRate, userData);
+    }
+
+    function flowWithCtxTest(
+        bytes memory ctx,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) public {
+        cfaV1.flowWithCtx(ctx, receiver, token, flowRate);
+    }
 }
 
 contract RedirectAllMock is SuperAppBase {

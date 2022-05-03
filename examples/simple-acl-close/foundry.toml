@@ -1,8 +1,13 @@
 [default]
 root = '../..'
-src = 'src'
+src = 'examples/simple-acl-close'
 out = 'out'
 libs = ['lib']
+remappings = [
+    'ds-test/=lib/ds-test/src/',
+    'forge-std/=lib/forge-std/src/',
+    '@superfluid-finance/=node_modules/@superfluid-finance',
+    '@openzeppelin/=node_modules/@openzeppelin']
 gas_reports = ["SimpleACLCloseResolver"]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

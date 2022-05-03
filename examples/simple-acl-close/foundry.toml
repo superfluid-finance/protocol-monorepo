@@ -1,4 +1,5 @@
 [default]
+root = '../../examples/simple-acl-close'
 src = 'src'
 out = 'out'
 libs = ['lib']

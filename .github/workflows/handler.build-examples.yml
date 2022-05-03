@@ -42,6 +42,7 @@ jobs:
           path: monorepo
 
       - name: Install Foundry
+        if: ${{ matrix.example }} == 'simple-acl-close'
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly

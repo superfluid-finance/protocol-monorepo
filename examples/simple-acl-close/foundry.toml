@@ -1,6 +1,6 @@
 [default]
 root = '../..'
-src = 'examples/simple-acl-close'
+src = 'examples/simple-acl-close/src'
 out = 'out'
 libs = ['lib']
 remappings = [

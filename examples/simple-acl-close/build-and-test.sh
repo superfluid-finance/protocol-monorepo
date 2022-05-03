@@ -3,6 +3,9 @@
 # make sure that if any step fails, the script fails
 set -xe
 
+# run make
+make
+
 # build contracts
 yarn install --frozen-lockfile
 

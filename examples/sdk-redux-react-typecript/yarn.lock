@@ -2090,7 +2090,7 @@
     lodash "^4.17.21"
     tsify "^5.0.4"
 
-"@superfluid-finance/sdk-redux@0.2.2":
+"@superfluid-finance/sdk-redux@^0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-redux/-/sdk-redux-0.2.2.tgz#f8e4f5de408e726960694144d528f20413328a01"
   integrity sha512-hB9bhEXzKg8lPUdaZ9UP2w3elW21hTnLFTatJurX4P5jqxYmFJxNDsa+WenBpf+h+fhKKlG6ERYPfyvKhEtjEg==

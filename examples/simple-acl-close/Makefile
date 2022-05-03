@@ -11,7 +11,7 @@ solc:; nix-env -f https://github.com/dapphub/dapptools/archive/master.tar.gz -iA
 clean  :; forge clean
 
 # remove modules
-remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gitmodules
+remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib
 
 # Install the Modules
 install :; 
@@ -29,6 +29,8 @@ update:; forge update
 
 # Builds
 build  :; forge clean && forge build --optimize --optimize-runs 1000000
+
+gas-report :; forge test --gas-report
 
 setup-yarn:
 	yarn 

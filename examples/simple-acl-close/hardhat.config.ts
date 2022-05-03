@@ -7,6 +7,8 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-web3";
 import { verifyContract } from "./scripts/verify";
 import "@nomiclabs/hardhat-ethers";
+import "solidity-coverage";
+import "hardhat-gas-reporter";
 
 try {
     dotenvConfig();
@@ -59,6 +61,9 @@ const config: HardhatUserConfig = {
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY || "",
     },
+    gasReporter: {
+        enabled: (process.env.REPORT_GAS) ? true : false
+    }
 };
 
 export default config;

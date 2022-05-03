@@ -19,7 +19,7 @@ chai.use(chaiEthers);
 // test test test test test test test test test test test junk
 export const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
-const END_TIME = describe("SimpleACLCloseResolver", () => {
+describe("SimpleACLCloseResolver", () => {
     let SuperfluidFramework: Framework;
     let SuperToken: SuperToken;
 
@@ -299,17 +299,17 @@ const END_TIME = describe("SimpleACLCloseResolver", () => {
 
         describe("Resolver Tests", () => {
             it("Should be able to update end time", async () => {
-                SimpleACLCloseResolver.connect(Sender).updateEndTime(
+                await SimpleACLCloseResolver.connect(Sender).updateEndTime(
                     Number(EndTime) + 1,
                 );
             });
             it("Should be able to update flow receiver", async () => {
-                SimpleACLCloseResolver.connect(Sender).updateFlowReceiver(
+                await SimpleACLCloseResolver.connect(Sender).updateFlowReceiver(
                     Misc.address,
                 );
             });
             it("Should be able to update flow sender", async () => {
-                SimpleACLCloseResolver.connect(Sender).updateFlowSender(
+                await SimpleACLCloseResolver.connect(Sender).updateFlowSender(
                     Misc.address,
                 );
             });

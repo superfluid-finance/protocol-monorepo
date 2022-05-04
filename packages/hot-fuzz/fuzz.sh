@@ -9,12 +9,21 @@ mkdir -p node_modules
 ln -sf ../../../node_modules/\@superfluid-finance node_modules/
 ln -sf ../../../node_modules/\@openzeppelin node_modules/
 
-function test_contract() {
-    TEST_CONTRACT=$1
-    "$ECHIDNA" . --config <(cat echidna.yaml contracts/$TEST_CONTRACT.yaml) --contract $TEST_CONTRACT
+function oops () {
+    echo "$@" >&2
+    exit 1
 }
 
-echo "Starting a hot fuzz on contract: $1"
+function test_contract() {
+    TEST_CONTRACT=$1
+    [ -z "$TEST_CONTRACT" ] && oops "No contract specified."
+    echo "Starting a hot fuzz on contract: $TEST_CONTRACT ..."
+    TEST_CONTRACT_CONFIG=configs/$TEST_CONTRACT.yaml
+    [ ! -f "$TEST_CONTRACT_CONFIG" ] && oops "No $TEST_CONTRACT_CONFIG provided."
+    "$ECHIDNA" . --config <(cat echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+    echo "Fizzling away."
+}
+
 #npx hardhat compile --force &&
-npx truffle compile --all && test_contract $1
-echo "Fizzles away."
+rm -rf crytic-export
+npx truffle compile && test_contract $1

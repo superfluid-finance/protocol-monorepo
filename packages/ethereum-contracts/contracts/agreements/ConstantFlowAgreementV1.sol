@@ -105,26 +105,15 @@ contract ConstantFlowAgreementV1 is
      * IConstantFlowAgreementV1 interface
      *************************************************************************/
 
-    /// @dev IConstantFlowAgreementV1.createFlow implementation
-    function getMaximumFlowRateFromDeposit(
-        ISuperfluidToken token,
-        uint256 deposit)
-        external view override
-        returns (int96 flowRate)
-    {
-        require(deposit < 2**95, "CFA: deposit number too big");
-        deposit = _clipDepositNumberRoundingDown(deposit);
-        (uint256 liquidationPeriod, ) = _decode3PsData(token);
-        flowRate = getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
-    }
-
-    /// @dev IConstantFlowAgreementV1.createFlow implementation
     function getMaximumFlowRateFromDepositPure(
         uint256 liquidationPeriod,
         uint256 deposit)
         public pure
         returns (int96 flowRate)
     {
+        require(deposit < 2**95, "CFA: deposit number too big");
+        deposit = _clipDepositNumberRoundingDown(deposit);
+
         uint256 flowrate1 = deposit / liquidationPeriod;
 
         // NOTE downcasting is safe as we constrain deposit to less than
@@ -132,22 +121,44 @@ contract ConstantFlowAgreementV1 is
         return int96(int256(flowrate1));
     }
 
+    function getDepositRequiredForFlowRatePure(
+        uint256 minimumDeposit,
+        uint256 liquidationPeriod,
+        int96 flowRate)
+        public pure
+        returns (uint256 deposit)
+    {
+        require(flowRate >= 0, "CFA: not for negative flow rate");
+        require(uint256(int256(flowRate)) * liquidationPeriod <= uint256(int256(type(int96).max)),
+            "CFA: flow rate too big");
+        uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
+        return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
+    }
+
+    /// @dev IConstantFlowAgreementV1.getMaximumFlowRateFromDeposit implementation
+    function getMaximumFlowRateFromDeposit(
+        ISuperfluidToken token,
+        uint256 deposit)
+        external view override
+        returns (int96 flowRate)
+    {
+        (uint256 liquidationPeriod, ) = _decode3PsData(token);
+        flowRate = getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
+    }
+
+    /// @dev IConstantFlowAgreementV1.getDepositRequiredForFlowRate implementation
     function getDepositRequiredForFlowRate(
         ISuperfluidToken token,
         int96 flowRate)
         external view override
         returns (uint256 deposit)
     {
-        require(flowRate >= 0, "CFA: not for negative flow rate");
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
-        require(uint256(int256(flowRate))
-            * liquidationPeriod <= uint256(int256(type(int96).max)), "CFA: flow rate too big");
-        uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
-        return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
+        return getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
     }
 
     function isPatricianPeriodNow(
@@ -692,7 +703,7 @@ contract ConstantFlowAgreementV1 is
         newCtx = ctx;
         require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with 
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
         // authorizeTokenAccess:
         require(currentContext.msgSender != flowOperator, "CFA: E_NO_SENDER_FLOW_OPERATOR");
         require(flowRateAllowance >= 0, "CFA: E_NO_NEGATIVE_ALLOWANCE");

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+ECHIDNA=${ECHIDNA:-echidna-test}
 cd "$(dirname "$0")"
 set -xe
 
@@ -10,7 +11,7 @@ ln -sf ../../../node_modules/\@openzeppelin node_modules/
 
 function test_contract() {
     TEST_CONTRACT=$1
-    echidna-test . --config <(cat echidna.yaml contracts/$TEST_CONTRACT.yaml) --contract $TEST_CONTRACT
+    "$ECHIDNA" . --config <(cat echidna.yaml contracts/$TEST_CONTRACT.yaml) --contract $TEST_CONTRACT
 }
 
 echo "Starting a hot fuzz on contract: $1"

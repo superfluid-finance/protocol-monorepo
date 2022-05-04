@@ -115,7 +115,7 @@ contract ConstantFlowAgreementV1 is
         require(deposit < 2**95, "CFA: deposit number too big");
         deposit = _clipDepositNumberRoundingDown(deposit);
         (uint256 liquidationPeriod, ) = _decode3PsData(token);
-        getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
+        flowRate = getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
     }
 
     /// @dev IConstantFlowAgreementV1.createFlow implementation

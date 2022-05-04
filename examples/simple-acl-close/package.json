@@ -45,6 +45,7 @@
         "chai-ethers": "^0.0.1",
         "dotenv": "^16.0.0",
         "ethers": "^5.6.5",
+        "graphql": "^16.4.0",
         "hardhat": "^2.9.3",
         "hardhat-gas-reporter": "^1.0.8",
         "hardhat-prettier": "^0.0.1",

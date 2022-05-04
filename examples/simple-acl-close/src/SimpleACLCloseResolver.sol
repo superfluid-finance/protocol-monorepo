@@ -23,6 +23,13 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
     error InvalidFlowReceiver();
     error InvalidFlowSender();
 
+    event EndTimeUpdated(address indexed currentOwner, uint256 endTime);
+    event FlowReceiverUpdated(
+        address indexed currentOwner,
+        address flowReceiver
+    );
+    event FlowSenderUpdated(address indexed currentOwner, address flowSender);
+
     constructor(
         uint256 _endTime,
         IConstantFlowAgreementV1 _cfa,
@@ -41,18 +48,24 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
     function updateEndTime(uint256 _endTime) external onlyOwner {
         if (_endTime < block.timestamp) revert InvalidEndTime();
         endTime = _endTime;
+
+        emit EndTimeUpdated(msg.sender, _endTime);
     }
 
     function updateFlowReceiver(address _flowReceiver) external onlyOwner {
         if (_flowReceiver == flowSender || _flowReceiver == address(0))
             revert InvalidFlowReceiver();
         flowReceiver = _flowReceiver;
+
+        emit FlowReceiverUpdated(msg.sender, _flowReceiver);
     }
 
     function updateFlowSender(address _flowSender) external onlyOwner {
         if (_flowSender == flowReceiver || _flowSender == address(0))
             revert InvalidFlowSender();
         flowSender = _flowSender;
+
+        emit FlowSenderUpdated(msg.sender, _flowSender);
     }
 
     function checker()
@@ -61,7 +74,11 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         returns (bool canExec, bytes memory execPayload)
     {
         // timestamp == 0 means the flow doesn't exist so it won't try to execute
-        (uint256 timestamp, , , ) = cfa.getFlow(superToken, flowSender, flowReceiver);
+        (uint256 timestamp, , , ) = cfa.getFlow(
+            superToken,
+            flowSender,
+            flowReceiver
+        );
         canExec = block.timestamp >= endTime && timestamp != 0;
 
         bytes memory callData = abi.encodeWithSelector(

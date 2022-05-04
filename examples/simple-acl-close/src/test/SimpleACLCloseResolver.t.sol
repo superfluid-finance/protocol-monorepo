@@ -133,10 +133,7 @@ contract SimpleACLCloseResolverTest is Test {
         _cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
-        _grantFlowOperatorPermissions(
-            address(_superToken),
-            address(ops)
-        );
+        _grantFlowOperatorPermissions(address(_superToken), address(ops));
 
         // fails because cannot execute yet
         _vm.expectRevert(OpsMock.CannotExecute.selector);
@@ -150,10 +147,7 @@ contract SimpleACLCloseResolverTest is Test {
         _cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
-        _grantFlowOperatorPermissions(
-            address(_superToken),
-            address(ops)
-        );
+        _grantFlowOperatorPermissions(address(_superToken), address(ops));
 
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);
@@ -196,10 +190,7 @@ contract SimpleACLCloseResolverTest is Test {
         _cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has delete flow operator permissions
-        _grantFlowOperatorPermissions(
-            address(_superToken),
-            address(ops)
-        );
+        _grantFlowOperatorPermissions(address(_superToken), address(ops));
 
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14400);
@@ -289,7 +280,6 @@ contract SimpleACLCloseResolverTest is Test {
         _vm.prank(_nonOwner);
         _simpleACLCloseResolver.updateEndTime(_endTime);
     }
-
 
     /**************************************************************************
      * Helper functions

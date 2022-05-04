@@ -47,14 +47,10 @@ export const beforeSetup = async (tokenAmount: number) => {
         resolverAddress: RESOLVER_ADDRESS,
     });
 
-    const resolver = (await ethers.getContractAt(
-        IResolverABI,
-        RESOLVER_ADDRESS
-    )) as Resolver;
+    const resolver = sf.contracts.resolver.connect(Deployer);
 
     console.log("\n");
-    const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
-    const fDAIx = (await sf.loadSuperToken(fDAIxAddress)) as WrapperSuperToken;
+    const fDAIx = (await sf.loadSuperToken("fDAIx")) as WrapperSuperToken;
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(

@@ -91,12 +91,17 @@ export default class Framework {
             config: this.settings.config,
         });
         this.query = new Query(this.settings);
+        const resolver = new ethers.Contract(
+            this.settings.config.resolverAddress,
+            IResolverABI.abi
+        ) as IResolver;
 
         this.contracts = {
             cfaV1: this.cfaV1.contract,
             governance: this.governance.contract,
             host: this.host.contract,
             idaV1: this.idaV1.contract,
+            resolver,
         };
     }
 

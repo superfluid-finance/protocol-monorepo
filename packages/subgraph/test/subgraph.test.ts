@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { Framework, SFError, SuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
 import {
     asleep,

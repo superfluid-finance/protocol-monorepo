@@ -1,17 +1,24 @@
-require("../test/contracts/misc.test.js");
+// Upgradability
+require("../test/contracts/upgradability/UUPS.test.js");
 
+// Libs
+require("../test/contracts/libs/CallUtils.test.js");
+require("../test/contracts/libs/Int96SafeMath.test.js");
+require("../test/contracts/libs/UInt128SafeMath.test.js");
+
+// Superfluid
 require("./superfluid-core.js");
-
 require("./superfluid-governance.js");
-
 require("./custom-tokens.js");
 
-// Library contracts
-require("./library-contracts.js");
+// App libraries
+require("./apps-contracts.js");
+
+// Scenarios
+require("../test/contracts/scenarios/scenarios.js");
 
 // Utility contracts
+require("../test/contracts/utils/Resolver.test.js");
+require("../test/contracts/utils/SuperUpgrader.test.js");
 require("../test/contracts/utils/BatchLiquidator.test.js");
 require("../test/contracts/utils/TOGA.test");
-
-// UX contracts
-require("../test/contracts/ux/SuperUpgrader.test.js");

@@ -3,8 +3,10 @@ import { ethers, Overrides } from "ethers";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
+    IResolver,
     Superfluid,
 } from "./typechain";
+import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -139,7 +141,6 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
 }
 
 export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
-    readonly sender: string;
     readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
@@ -148,7 +149,6 @@ export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
 }
 
 export interface ISuperTokenFullControlParams {
-    readonly sender: string;
     readonly flowOperator: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
@@ -217,6 +217,11 @@ export interface IGetFlowOperatorDataByIDParams {
     readonly superToken: string;
     readonly flowOperatorId: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IGetGovernanceParametersParams {
+    providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    token?: string;
 }
 export interface ISuperTokenFlowOperatorDataParams {
     readonly sender: string;
@@ -437,12 +442,15 @@ export interface IConfig {
     readonly hostAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
+    readonly governanceAddress: string;
 }
 
 export interface IContracts {
     readonly cfaV1: IConstantFlowAgreementV1;
+    readonly governance: SuperfluidGovernanceII;
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
+    readonly resolver: IResolver;
 }
 
 export interface IAgreementV1Options {
@@ -495,4 +503,11 @@ export interface IWeb3FlowOperatorData {
     readonly flowOperatorId: string;
     readonly permissions: string;
     readonly flowRateAllowance: string;
+}
+
+export interface IWeb3GovernanceParams {
+    readonly liquidationPeriod: string;
+    readonly patricianPeriod: string;
+    readonly rewardAddress: string;
+    readonly minimumDeposit: string;
 }

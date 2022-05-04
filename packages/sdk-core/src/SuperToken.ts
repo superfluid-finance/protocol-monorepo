@@ -1,7 +1,8 @@
-import { ethers, Overrides } from "ethers";
+import { BytesLike, ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import ERC20Token from "./ERC20Token";
+import Governance from "./Governance";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
@@ -33,6 +34,7 @@ import {
     ISuperTokenUpdateSubscriptionUnitsParams,
     IWeb3FlowInfo,
     IWeb3FlowOperatorData,
+    IWeb3GovernanceParams,
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
@@ -75,7 +77,9 @@ export default abstract class SuperToken extends ERC20Token {
     readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
+    readonly governance: Governance;
     readonly underlyingToken?: ERC20Token;
+    override readonly contract: ISuperToken;
 
     protected constructor(options: ITokenOptions, settings: ITokenSettings) {
         // initialize ERC20 token functions here
@@ -89,6 +93,15 @@ export default abstract class SuperToken extends ERC20Token {
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
+        this.governance = new Governance(
+            this.settings.config.governanceAddress,
+            this.settings.config.hostAddress
+        );
+
+        this.contract = new ethers.Contract(
+            this.settings.address,
+            SuperTokenABI.abi
+        ) as ISuperToken;
     }
 
     static create = async (options: ITokenOptions): Promise<SuperTokenType> => {
@@ -152,13 +165,6 @@ export default abstract class SuperToken extends ERC20Token {
         }
     };
 
-    override get contract() {
-        return new ethers.Contract(
-            this.settings.address,
-            SuperTokenABI.abi
-        ) as ISuperToken;
-    }
-
     /** ### SuperToken Contract Read Functions ### */
 
     /**
@@ -191,48 +197,6 @@ export default abstract class SuperToken extends ERC20Token {
                 errorObject: err,
             });
         }
-    };
-
-    /** ### SuperToken Contract Write Functions ### */
-
-    /**
-     * Downgrade `amount` SuperToken's.
-     * @param amount The amount to be downgraded.
-     * @param overrides ethers overrides object for more control over the transaction sent.
-     * @returns {Operation} An instance of Operation which can be executed or batched.
-     */
-    downgrade = ({
-        amount,
-        overrides,
-    }: {
-        amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
-    }): Operation => {
-        const txn = this.contract.populateTransaction.downgrade(
-            amount,
-            overrides || {}
-        );
-        return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
-    };
-
-    /**
-     * Upgrade `amount` SuperToken's.
-     * @param amount The amount to be upgraded.
-     * @param overrides ethers overrides object for more control over the transaction sent.
-     * @returns {Operation} An instance of Operation which can be executed or batched.
-     */
-    upgrade = ({
-        amount,
-        overrides,
-    }: {
-        amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
-    }): Operation => {
-        const txn = this.contract.populateTransaction.upgrade(
-            amount,
-            overrides || {}
-        );
-        return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
     /** ### CFA Read Functions ### */
@@ -642,6 +606,17 @@ export default abstract class SuperToken extends ERC20Token {
             ...params,
         });
     };
+
+    /** ### Governance Read Functions ### */
+
+    getGovernanceParameters = async (
+        providerOrSigner: ethers.providers.Provider | ethers.Signer
+    ): Promise<IWeb3GovernanceParams> => {
+        return this.governance.getGovernanceParameters({
+            providerOrSigner,
+            token: this.settings.address,
+        });
+    };
 }
 
 /**
@@ -649,6 +624,7 @@ export default abstract class SuperToken extends ERC20Token {
  */
 export class WrapperSuperToken extends SuperToken {
     override readonly underlyingToken: ERC20Token;
+
     constructor(
         options: ITokenOptions,
         settings: ITokenSettings & { underlyingTokenAddress: string }
@@ -656,6 +632,78 @@ export class WrapperSuperToken extends SuperToken {
         super(options, settings);
         this.underlyingToken = new ERC20Token(settings.underlyingTokenAddress);
     }
+
+    /** ### WrapperSuperToken Contract Write Functions ### */
+
+    /**
+     * Downgrade `amount` SuperToken's.
+     * @param amount The amount to be downgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    downgrade = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }): Operation => {
+        const txn = this.contract.populateTransaction.downgrade(
+            amount,
+            overrides || {}
+        );
+        return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
+    };
+
+    /**
+     * Upgrade `amount` SuperToken's.
+     * @param amount The amount to be upgraded.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    upgrade = ({
+        amount,
+        overrides,
+    }: {
+        amount: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }): Operation => {
+        const txn = this.contract.populateTransaction.upgrade(
+            amount,
+            overrides || {}
+        );
+        return new Operation(txn, "SUPERTOKEN_UPGRADE");
+    };
+
+    /**
+     * Upgrade `amount` of an ERC20 token to its SuperToken to `to` address.
+     * @param amount The amount to be upgraded.
+     * @param to The destination of the upgraded native asset super tokens.
+     * @param data Bytes operatorData
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    upgradeTo = ({
+        amount,
+        to,
+        data = "0x",
+        overrides,
+    }: {
+        amount: string;
+        to: string;
+        data?: BytesLike;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }) => {
+        const txn = this.contract.populateTransaction.upgradeTo(
+            to,
+            amount,
+            data,
+            {
+                ...overrides,
+            }
+        );
+        return new Operation(txn, "UNSUPPORTED");
+    };
 }
 
 /**
@@ -670,7 +718,7 @@ export class PureSuperToken extends SuperToken {
 /**
  * NativeAssetSuperToken wraps the native asset of the network.
  */
-export class NativeAssetSuperToken extends PureSuperToken {
+export class NativeAssetSuperToken extends SuperToken {
     readonly nativeTokenSymbol: string;
     constructor(
         options: ITokenOptions,
@@ -689,38 +737,12 @@ export class NativeAssetSuperToken extends PureSuperToken {
     }
 
     /**
-     * upgrade is not supported for Native Asset SuperTokens.
-     * Use upgradeNativeAsset or upgradeNativeAssetTo instead.
-     */
-    override upgrade = () => {
-        throw new SFError({
-            type: "UNSUPPORTED_FUNCTIONALITY",
-            customMessage:
-                "upgrade is not supported for native assets, use upgradeNativeAsset or upgradeNativeAssetTo.",
-            errorObject: {},
-        });
-    };
-
-    /**
-     * downgrade is not supported for Native Asset SuperTokens.
-     * Use upgradeNativeAsset or upgradeNativeAssetTo instead.
-     */
-    override downgrade = () => {
-        throw new SFError({
-            type: "UNSUPPORTED_FUNCTIONALITY",
-            customMessage:
-                "downgrade is not supported for native asset super tokens, use downgradeToNativeAsset.",
-            errorObject: {},
-        });
-    };
-
-    /**
      * Upgrade `amount` of a network's native asset to its SuperToken.
      * @param amount The amount to be upgraded.
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    upgradeNativeAsset = ({
+    upgrade = ({
         amount,
         overrides,
     }: {
@@ -741,7 +763,7 @@ export class NativeAssetSuperToken extends PureSuperToken {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    upgradeNativeAssetTo = ({
+    upgradeTo = ({
         amount,
         to,
         overrides,
@@ -766,7 +788,7 @@ export class NativeAssetSuperToken extends PureSuperToken {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    downgradeToNativeAsset = ({
+    downgrade = ({
         amount,
         overrides,
     }: {

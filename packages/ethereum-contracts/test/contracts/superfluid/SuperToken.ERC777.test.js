@@ -1,7 +1,7 @@
 const TestEnvironment = require("../../TestEnvironment");
 
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevert} = require("../../utils/expectRevert");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 const {expect} = require("chai");
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
@@ -249,14 +249,14 @@ describe("SuperToken's ERC777 implementation", function () {
             });
 
             it("reverts when self-authorizing", async function () {
-                await expectRevert(
+                await expectRevertedWith(
                     this.token.authorizeOperator(holder, {from: holder}),
                     "ERC777Operators: authorizing self as operator"
                 );
             });
 
             it("reverts when self-revoking", async function () {
-                await expectRevert(
+                await expectRevertedWith(
                     this.token.revokeOperator(holder, {from: holder}),
                     "ERC777Operators: revoking self as operator"
                 );
@@ -382,7 +382,7 @@ describe("SuperToken's ERC777 implementation", function () {
                 });
 
                 it("cannot be revoked for themselves", async function () {
-                    await expectRevert(
+                    await expectRevertedWith(
                         this.token.revokeOperator(defaultOperatorA, {
                             from: defaultOperatorA,
                         }),
@@ -463,7 +463,7 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("send reverts", async function () {
-                            await expectRevert(
+                            await expectRevertedWith(
                                 this.token.send(recipient, amount, testData, {
                                     from: holder,
                                 }),
@@ -472,7 +472,7 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("operatorSend reverts", async function () {
-                            await expectRevert(
+                            await expectRevertedWith(
                                 this.token.operatorSend(
                                     sender,
                                     recipient,
@@ -486,7 +486,7 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("mint (internal) reverts", async function () {
-                            await expectRevert(
+                            await expectRevertedWith(
                                 this.token.mintInternal(
                                     recipient,
                                     amount,
@@ -499,7 +499,7 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("mint (internal) to zero address reverts", async function () {
-                            await expectRevert(
+                            await expectRevertedWith(
                                 this.token.mintInternal(
                                     ZERO_ADDRESS,
                                     amount,

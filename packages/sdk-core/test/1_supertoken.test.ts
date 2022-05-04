@@ -84,6 +84,7 @@ describe("SuperToken Tests", () => {
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
+                        governanceAddress: "",
                     },
                 });
             } catch (err: any) {
@@ -102,6 +103,7 @@ describe("SuperToken Tests", () => {
                         hostAddress: "",
                         cfaV1Address: "",
                         idaV1Address: "",
+                        governanceAddress: "",
                     },
                 });
             } catch (err: any) {
@@ -293,6 +295,21 @@ describe("SuperToken Tests", () => {
                 .withArgs(deployer.address, amount);
         });
 
+        it("Should be able to approve + upgrade to", async () => {
+            const amount = ethers.utils.parseUnits("1000").toString();
+            await expect(
+                token.connect(alpha).approve(daix.settings.address, amount)
+            )
+                .to.emit(token, "Approval")
+                .withArgs(alpha.address, daix.settings.address, amount);
+
+            await expect(
+                daix.upgradeTo({ amount, to: deployer.address }).exec(alpha)
+            )
+                .to.emit(superToken, "TokenUpgraded")
+                .withArgs(deployer.address, amount);
+        });
+
         it("Should be able to approve + transfer", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
@@ -346,48 +363,25 @@ describe("SuperToken Tests", () => {
             )) as NativeAssetSuperToken;
         });
 
-        it("Should throw when attempting to upgrade", async () => {
-            try {
-                nativeAssetSuperToken.upgrade();
-            } catch (err: any) {
-                expect(err.message).to.contain(
-                    `Unsupported Functionality Error - upgrade is not supported for native assets, use upgradeNativeAsset or upgradeNativeAssetTo.`
-                );
-            }
-        });
-
-        it("Should throw when attempting to downgrade", async () => {
-            try {
-                nativeAssetSuperToken.downgrade();
-            } catch (err: any) {
-                expect(err.message).to.contain(
-                    `Unsupported Functionality Error - downgrade is not supported for native asset super tokens, use downgradeToNativeAsset.`
-                );
-            }
-        });
-
         it("Should be able to upgrade native asset", async () => {
-            const upgradeOperation = nativeAssetSuperToken.upgradeNativeAsset({
+            const upgradeOperation = nativeAssetSuperToken.upgrade({
                 amount: ethers.utils.parseUnits("1").toString(),
             });
             await upgradeOperation.exec(deployer);
         });
 
         it("Should be able to upgrade native asset to", async () => {
-            const upgradeOperation = nativeAssetSuperToken.upgradeNativeAssetTo(
-                {
-                    amount: ethers.utils.parseUnits("1").toString(),
-                    to: alpha.address,
-                }
-            );
+            const upgradeOperation = nativeAssetSuperToken.upgradeTo({
+                amount: ethers.utils.parseUnits("1").toString(),
+                to: alpha.address,
+            });
             await upgradeOperation.exec(deployer);
         });
 
         it("Should be able to downgrade native asset", async () => {
-            const downgradeOperation =
-                nativeAssetSuperToken.downgradeToNativeAsset({
-                    amount: ethers.utils.parseUnits("1").toString(),
-                });
+            const downgradeOperation = nativeAssetSuperToken.downgrade({
+                amount: ethers.utils.parseUnits("1").toString(),
+            });
             await downgradeOperation.exec(deployer);
         });
     });
@@ -597,7 +591,6 @@ describe("SuperToken Tests", () => {
                 const permissions = AUTHORIZE_FULL_CONTROL + 1;
                 const operation = daix.updateFlowOperatorPermissions({
                     flowRateAllowance,
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
@@ -615,7 +608,6 @@ describe("SuperToken Tests", () => {
                 const permissions = AUTHORIZE_FULL_CONTROL;
                 const operation = daix.updateFlowOperatorPermissions({
                     flowRateAllowance,
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
@@ -641,7 +633,6 @@ describe("SuperToken Tests", () => {
             const updateFlowOperatorPermissionsOperation =
                 daix.updateFlowOperatorPermissions({
                     flowRateAllowance,
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
@@ -671,7 +662,6 @@ describe("SuperToken Tests", () => {
             permissions = 0; // no permissions
             const revokeFlowOperatorWithFullControlOperation =
                 daix.revokeFlowOperatorWithFullControl({
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                 });
             await expect(
@@ -698,7 +688,6 @@ describe("SuperToken Tests", () => {
             permissions = AUTHORIZE_FULL_CONTROL; // all permissions
             const authorizeFlowOperatorWithFullControlOperation =
                 daix.authorizeFlowOperatorWithFullControl({
-                    sender: sender.address,
                     flowOperator: flowOperator.address,
                 });
             await expect(

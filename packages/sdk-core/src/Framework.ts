@@ -5,6 +5,7 @@ import Web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
@@ -66,6 +67,7 @@ export default class Framework {
     contracts: IContracts;
 
     cfaV1: ConstantFlowAgreementV1;
+    governance: Governance;
     host: Host;
     idaV1: InstantDistributionAgreementV1;
     query: Query;
@@ -80,16 +82,26 @@ export default class Framework {
         this.cfaV1 = new ConstantFlowAgreementV1({
             config: this.settings.config,
         });
+        this.governance = new Governance(
+            this.settings.config.governanceAddress,
+            this.settings.config.hostAddress
+        );
         this.host = new Host(this.settings.config.hostAddress);
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
         this.query = new Query(this.settings);
+        const resolver = new ethers.Contract(
+            this.settings.config.resolverAddress,
+            IResolverABI.abi
+        ) as IResolver;
 
         this.contracts = {
             cfaV1: this.cfaV1.contract,
-            idaV1: this.idaV1.contract,
+            governance: this.governance.contract,
             host: this.host.contract,
+            idaV1: this.idaV1.contract,
+            resolver,
         };
     }
 
@@ -178,6 +190,11 @@ export default class Framework {
             const framework = await superfluidLoader.loadFramework(
                 releaseVersion
             );
+            const governanceAddress = await new Host(
+                framework.superfluid
+            ).contract
+                .connect(provider)
+                .getGovernance();
 
             const settings: IFrameworkSettings = {
                 chainId,
@@ -191,6 +208,7 @@ export default class Framework {
                     hostAddress: framework.superfluid,
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
+                    governanceAddress,
                 },
             };
 

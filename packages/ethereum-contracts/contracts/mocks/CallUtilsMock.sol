@@ -56,7 +56,7 @@ contract CallUtilsMock {
         // This call will fail because funcPtr is still a zero-initialized function pointer
         return funcPtr(4, 5);
     }
-    
+
     // case 3: Error(string)
     function revertString() public pure {
         revert("gm");

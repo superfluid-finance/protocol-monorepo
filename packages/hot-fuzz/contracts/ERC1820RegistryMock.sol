@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: CC0
 /* ERC1820 Pseudo-introspection Registry Contract
  * This standard defines a universal registry smart contract where any address (contract or regular account) can
  * register which interface it supports and which smart contract is responsible for its implementation.

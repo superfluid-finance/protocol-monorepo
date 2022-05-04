@@ -1,5 +1,4 @@
-# cryticArgs: ["--solc", "solc-0.8.13"] # "--truffle-ignore-compile"]
 corpusDir: "corpus"
 deploy: [["0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24", "ERC1820RegistryMock"]]
-# quiet: False
+# cryticArgs: ["--solc", "solc-0.8.13"] # "--truffle-ignore-compile"]
 #solcLibs: ["@superfluid-finance/ethereum-contracts/contracts/agreements/SlotsBitmapLibrary.sol:SlotsBitmapLibrary"]

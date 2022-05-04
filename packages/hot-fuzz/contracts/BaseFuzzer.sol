@@ -3,20 +3,21 @@
 // solhint-disable func-name-mixedcase
 pragma solidity >= 0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
-
-import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
+import {
+    Superfluid,
+    ConstantFlowAgreementV1,
+    InstantDistributionAgreementV1,
+    ERC20PresetMinterPauser,
+    SuperToken,
+    SuperfluidFrameworkDeployer
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/utils/TestGovernance.sol";
 
 import "./SuperfluidTester.sol";
 
-abstract contract AbstractBaseFuzzer {
 
+abstract contract AbstractBaseFuzzer {
     function token() virtual internal view returns (IERC20);
     function superToken() virtual internal view returns (ISuperToken);
     function cfa() virtual internal view returns (IConstantFlowAgreementV1);
@@ -37,8 +38,8 @@ contract BaseFuzzer is AbstractBaseFuzzer {
     uint private constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     uint private constant N_TEST_ACCOUNTS = 5;
 
+    SuperfluidFrameworkDeployer private immutable _sfDeployer;
     Superfluid private immutable _host;
-    TestGovernance private immutable _gov;
     ConstantFlowAgreementV1 private immutable _cfa;
     InstantDistributionAgreementV1 private immutable _ida;
     ERC20PresetMinterPauser private immutable _token;
@@ -46,38 +47,19 @@ contract BaseFuzzer is AbstractBaseFuzzer {
     SuperfluidTester[N_TEST_ACCOUNTS] private _testers;
 
     // test state
-    uint256 private _expectedTotalSupply = INIT_SUPER_TOKEN_BALANCE * N_TEST_ACCOUNTS;
+    uint256 private _expectedTotalSupply = 0;
 
     constructor() {
-        _host = new Superfluid(
-            true, // nonUpgradable,
-            false // appWhiteListingEnabled
-            );
+        _sfDeployer = new SuperfluidFrameworkDeployer();
+        (_host, _cfa, _ida, ) = _sfDeployer.getFramework();
 
-        _gov = new TestGovernance();
-        _host.initialize(_gov);
-        _gov.initialize(_host, address(this), 3600, 720, new address[](0));
-
-        _cfa = new ConstantFlowAgreementV1(_host);
-        _gov.registerAgreementClass(_host, address(_cfa));
-
-        _ida = new InstantDistributionAgreementV1(_host);
-        _gov.registerAgreementClass(_host, address(_ida));
-
-        _token = new ERC20PresetMinterPauser("FTT", "FTT");
-
-        _superToken = new SuperToken(_host);
-
-        _superToken.initialize(
-            _token,
-            18,
-            "FTTx",
-            "FTTx");
+        (_token, _superToken) = _sfDeployer.deployWrapperSuperToken("HOTfuzz Token", "HOTT");
 
         for (uint i = 0; i < N_TEST_ACCOUNTS; ++i) {
             _testers[i] = new SuperfluidTester(_host, _cfa, _ida, _token, _superToken);
             _token.mint(address(_testers[i]), INIT_TOKEN_BALANCE);
             _testers[i].upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
+            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
         }
     }
 

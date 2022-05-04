@@ -23,7 +23,8 @@ contract SuperfluidTester {
         IConstantFlowAgreementV1 cfa,
         IInstantDistributionAgreementV1 ida,
         IERC20 token,
-        ISuperToken superToken) {
+        ISuperToken superToken)
+    {
         _cfaLib.host = host;
         _cfaLib.cfa = cfa;
         _idaLib.host = host;

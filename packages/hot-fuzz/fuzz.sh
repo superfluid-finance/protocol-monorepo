@@ -14,5 +14,7 @@ function test_contract() {
 }
 
 echo "Starting a hot fuzz on contract: $1"
-npx hardhat compile --force && test_contract $1
+#npx hardhat compile --force &&
+#npx truffle compile --all &&
+test_contract $1
 echo "Fizzles away."

@@ -1,2 +1,4 @@
 # cryticArgs: ["--solc", "solc-0.8.13"] # "--truffle-ignore-compile"]
 corpusDir: "corpus"
+# quiet: False
+solcLibs: ["@superfluid-finance/ethereum-contracts/contracts/agreements/SlotsBitmapLibrary.sol:SlotsBitmapLibrary"]

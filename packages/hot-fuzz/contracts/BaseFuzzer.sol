@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol"
 
 import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/test/TestGovernance.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/utils/TestGovernance.sol";
 
 import "./SuperfluidTester.sol";
 

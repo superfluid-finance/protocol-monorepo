@@ -19,6 +19,7 @@
     "@superfluid-finance/js-sdk": "^0.5.5",
     "@truffle/contract": "^4.3.42",
     "@truffle/hdwallet-provider": "^1.7.0",
+    "babel-runtime": "^6.26.0",
     "dotenv": "^10.0.0",
     "ganache-time-traveler": "^1.0.16",
     "truffle": "^5.4.21"

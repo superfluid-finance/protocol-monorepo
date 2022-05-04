@@ -2077,10 +2077,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfluid-finance/sdk-core@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.3.2.tgz#cbf4d28399cfc9c15191f6a3aec3c9dde22110eb"
-  integrity sha512-t7xsqSJifsfl+DyroKXGG5awvkESEqN4Cg0cXglD/3RtGNFOTK+73YduX0+CgsTjXY3DJPHDrnhTxrZyt0VXzw==
+"@superfluid-finance/sdk-core@^0.3.3-dev.2bc50bf.0":
+  version "0.3.3-dev.fbe38e2.0"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.3.3-dev.fbe38e2.0.tgz#443ae5bba1393152cab60a8ac0496a300df860e3"
+  integrity sha512-1NX24mTge0x0eql5GtnAiXLH4e8BqhG8cPA/2ffhUkQO4HcE9KPLHQS3qYVzkQXCY618l5ksb3JGZuIaK6E54w==
   dependencies:
     "@ethersproject/providers" "^5.5.3"
     ajv "^8.9.0"

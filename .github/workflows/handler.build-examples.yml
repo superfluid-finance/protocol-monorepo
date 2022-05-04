@@ -51,6 +51,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      
+      - name: Start hardhat node
+        if: ${{ matrix.example == 'simple-acl-close' }}
+        run: |
+          # build contracts
+          yarn install --frozen-lockfile
+          yarn hardhat-node
 
       - name: Install, build and test
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

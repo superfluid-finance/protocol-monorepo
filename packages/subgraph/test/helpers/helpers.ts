@@ -47,7 +47,7 @@ export const beforeSetup = async (tokenAmount: number) => {
         resolverAddress: RESOLVER_ADDRESS,
     });
 
-    const resolver = sf.contracts.resolver;
+    const resolver = sf.contracts.resolver.connect(Deployer);
 
     console.log("\n");
     const fDAIx = (await sf.loadSuperToken("fDAIx")) as WrapperSuperToken;

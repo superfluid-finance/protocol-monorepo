@@ -731,7 +731,7 @@
     auto-bind "^4.0.0"
     node-fetch "^2.6.7"
 
-"@superfluid-finance/sdk-core@^0.3.3-dev.2bc50bf.0":
+"@superfluid-finance/sdk-core@0.3.3-dev.2bc50bf.0":
   version "0.3.3-dev.2bc50bf.0"
   resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.3.3-dev.2bc50bf.0.tgz#5a26219e6f910c5fefa0dd05ef59b399bdb84d58"
   integrity sha512-UTk1oQxVIt7gWV+0T82Es64wRGGxd9D+mcQs2l6cHRWDH15pzbm7qTB12sBld4+lAIvoOih3hbM2D4Arf30Xzg==

@@ -6,6 +6,9 @@ set -xe
 # build contracts
 yarn install --frozen-lockfile
 
+# set up hardhat node
+yarn hardhat-node &
+
 # test contracts w/ forge
 # yarn forge-test
 

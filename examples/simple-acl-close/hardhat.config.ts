@@ -51,7 +51,7 @@ const config: HardhatUserConfig = {
     networks: {
         localhost: {
             url: "http://0.0.0.0:8545/",
-            chainId: 1337,
+            chainId: 31337,
         },
         goerli: {
             url: process.env.GOERLI_PROVIDER_URL || "",

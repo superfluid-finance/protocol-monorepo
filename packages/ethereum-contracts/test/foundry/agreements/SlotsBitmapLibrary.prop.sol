@@ -4,7 +4,15 @@ pragma solidity 0.8.13;
 import "forge-std/Test.sol";
 
 import { SlotsBitmapLibrary } from "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol";
+import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
+import {
+    ERC20PresetMinterPauser,
+    SuperToken,
+    SuperTokenFactory,
+    SuperfluidFrameworkDeployer
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 
 contract SlotsBitmapLibraryMock {
     /// @dev Subscriber state slot id for storing subs bitmap
@@ -45,27 +53,35 @@ contract SlotsBitmapLibraryMock {
 
 contract SlotsBitmapLibraryProperties is Test {
 
-    ISuperfluidToken immutable private superToken;
+    ERC20PresetMinterPauser private token;
+    SuperToken immutable private superToken;
     address constant subscriber = address(1);
     bytes32 constant fakeId = keccak256(abi.encodePacked("subscriber", subscriber));
 
-    // TODO: need to actually create a super token
     constructor() {
-        superToken = ISuperfluidToken(address(420));
+        (, , , SuperTokenFactory _superTokenFactory) = sfDeployer.getFramework();
+        token = new ERC20PresetMinterPauser("Test Token", "TST");
+        superToken = _superTokenFactory.createERC20Wrapper(
+            token,
+            18,
+            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
+            "Test Token",
+            "TSTx"
+        );
     }
     
     function testSlotsBitmapLibraryMaxSlots() public {
         assertEq(SlotsBitmapLibrary._MAX_NUM_SLOTS, 256);
     }
 
-    // function testAddOneAndList() public {
-    //     (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(fakeToken, subscriber, 0, 1 << 128);
-    //     assertEq(slotIds.length, 0);
-    //     SlotsBitmapLibrary.findEmptySlotAndFill(fakeToken, subscriber, 0, 1 << 128, fakeId);
+    function testAddOneAndList() public {
+        (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(fakeToken, subscriber, 0, 1 << 128);
+        assertEq(slotIds.length, 0);
+        SlotsBitmapLibrary.findEmptySlotAndFill(fakeToken, subscriber, 0, 1 << 128, fakeId);
 
-    //     (uint32[] memory newSlotIds, ) = SlotsBitmapLibrary.listData(fakeToken, subscriber, 0, 1 << 128);
-    //     assertEq(newSlotIds.length, 1);
-    // }
+        (uint32[] memory newSlotIds, ) = SlotsBitmapLibrary.listData(fakeToken, subscriber, 0, 1 << 128);
+        assertEq(newSlotIds.length, 1);
+    }
 
     // fuzz w/ 2 params: the number of slots to add
     // a random number which is the slot which you will clear

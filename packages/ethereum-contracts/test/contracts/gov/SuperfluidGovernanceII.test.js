@@ -460,24 +460,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.5 whiteListNewApp", async () => {
-            await expectRevertedWith(
-                governance.whiteListNewApp(
-                    superfluid.address,
-                    web3.utils.sha3("test")
-                ),
-                onlyOwnerReason
-            );
-            await governance.whiteListNewApp(
-                superfluid.address,
-                web3.utils.sha3("test"),
-                {
-                    from: alice,
-                }
-            );
-        });
-
-        it("#2.6 authorizeAppFactory", async () => {
+        it("#2.5 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );
@@ -540,7 +523,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.7 external set/clear config", async () => {
+        it("#2.6 external set/clear config", async () => {
             const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = web3.utils.keccak256(
                 "org.superfluid-finance.superfluid.rewardAddress"
             );

@@ -19,10 +19,9 @@ async function main() {
 
         console.log("CONTRACT DEPLOYED AT:", simpleACLCloseDeployTxn.address);
 
-        console.log("Awaiting 6 confirmations...");
+        console.log("Awaiting 6 confirmations before verification...");
         await simpleACLCloseDeployTxn.deployTransaction.wait(6);
 
-        // NOTE: strange issue where address property doesn't exist on contract type
         console.log(
             "SimpleACLCloseResolver Address:",
             simpleACLCloseDeployTxn.address,

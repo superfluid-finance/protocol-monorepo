@@ -14,8 +14,9 @@ import { IResolver } from "./interfaces/IResolver.sol";
  */
 contract SimpleACLCloseResolver is IResolver, Ownable {
     IConstantFlowAgreementV1 public cfa;
-    uint256 public endTime;
     ISuperfluidToken public superToken;
+
+    uint256 public endTime;
     address public flowSender;
     address public flowReceiver;
 
@@ -79,6 +80,9 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
             flowSender,
             flowReceiver
         );
+
+        // NOTE: this can be modified to execute based on different conditions
+        // e.g. supertoken balance reaches a specific amount
         canExec = block.timestamp >= endTime && timestamp != 0;
 
         bytes memory callData = abi.encodeWithSelector(
@@ -89,6 +93,9 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
             new bytes(0)
         );
 
+        // NOTE: this can be modified to execute pretty much any function
+        // given the permissions
+        // e.g. other host contract functions, supertoken upgrades/downgrades
         execPayload = abi.encodeWithSelector(
             ISuperfluid.callAgreement.selector,
             IConstantFlowAgreementV1(cfa),

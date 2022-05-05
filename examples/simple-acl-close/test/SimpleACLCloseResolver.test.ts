@@ -13,6 +13,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Provider } from "@ethersproject/providers";
 import { TestToken } from "@superfluid-finance/sdk-core/dist/module/typechain";
 import { deployFrameworkAndTokens } from "../scripts/deployFrameworkAndTokens";
+
+// use chaiEthers for things like expectRevertedWith/expectRevert
+// and .to.emit(ContractObject, "EventName").withArgs(evArg1, evArg2, ...)
 chai.use(chaiEthers);
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
@@ -47,21 +50,10 @@ describe("SimpleACLCloseResolver", () => {
     const _revertToSnapshot = async (snapshotId: string) => {
         await network.provider.send("evm_revert", [snapshotId]);
     };
-    // const _advanceTimeAndBlock = async (time: number) => {
-    //     await network.provider.send("evm_mine", [time]);
-    // };
     const _useLastEVMSnapshot = async () => {
         await _revertToSnapshot(EVMSnapshotId);
-        // const currentBlockTime = await _getCurrentBlockTime();
-        // await _advanceTimeAndBlock(currentBlockTime);
-        // await _updateEndTime();
         await _takeSnapshotAndSetId();
     };
-    // const _updateEndTime = async () => {
-    //     const currentBlockTime = await _getCurrentBlockTime();
-    //     EndTime = (currentBlockTime + 5 * 60).toString();
-    //     await SimpleACLCloseResolver.updateEndTime(EndTime);
-    // };
 
     before(async () => {
         await deployFrameworkAndTokens();

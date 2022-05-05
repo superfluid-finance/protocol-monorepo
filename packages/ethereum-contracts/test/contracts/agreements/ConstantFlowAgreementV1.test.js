@@ -2102,7 +2102,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                         `getDepositRequiredForFlowRate(${flowRate.toString()})`
                     );
                 };
-                await test(0);
                 await test(1);
                 await test("10000000000000");
                 await expectRevertedWith(

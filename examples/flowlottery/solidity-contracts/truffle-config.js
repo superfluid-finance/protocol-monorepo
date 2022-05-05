@@ -27,6 +27,11 @@ module.exports = {
         solc: {
             version: "0.8.13", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
+                // See the solidity docs for advice about optimization and evmVersion
+                optimizer: {
+                    enabled: true,
+                    runs: 200,
+                },
                 libraries: {
                     "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
                         {

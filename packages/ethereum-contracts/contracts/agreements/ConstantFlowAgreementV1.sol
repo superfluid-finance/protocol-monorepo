@@ -44,6 +44,21 @@ contract ConstantFlowAgreementV1 is
      * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
      */
 
+    /**
+     * @dev Default minimum deposit value
+     *
+     * NOTE:
+     * - It may come as a surprise that it is not 0, this is the minimum friction we have in the system for the
+     *   imperfect blockchain system we live in.
+     * - It is related to deposit clipping, and it is always rounded-up when clipping.
+     */
+    uint256 public constant DEFAULT_MINIMUM_DEPOSIT = uint256(uint96(1 << 32));
+    /// @dev Maximum deposit value
+    uint256 public constant MAXIMUM_DEPOSIT = uint256(uint96(type(int96).max));
+
+    /// @dev Maximum flow rate
+    uint256 public constant MAXIMUM_FLOW_RATE = uint256(uint96(type(int96).max));
+
     bytes32 private constant CFAV1_PPP_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
 
@@ -105,61 +120,61 @@ contract ConstantFlowAgreementV1 is
      * IConstantFlowAgreementV1 interface
      *************************************************************************/
 
-    function getMaximumFlowRateFromDepositPure(
-        uint256 liquidationPeriod,
-        uint256 deposit)
-        public pure
-        returns (int96 flowRate)
-    {
-        require(deposit < 2**95, "CFA: deposit number too big");
-        deposit = _clipDepositNumberRoundingDown(deposit);
+     function _getMaximumFlowRateFromDepositPure(
+         uint256 liquidationPeriod,
+         uint256 deposit)
+         internal pure
+         returns (int96 flowRate)
+     {
+         require(deposit <= MAXIMUM_DEPOSIT, "CFA: deposit number too big");
+         deposit = _clipDepositNumberRoundingDown(deposit);
 
-        uint256 flowrate1 = deposit / liquidationPeriod;
+         uint256 flowrate1 = deposit / liquidationPeriod;
 
-        // NOTE downcasting is safe as we constrain deposit to less than
-        // 2 ** 95 so the resulting value flowRate1 will fit into int96
-        return int96(int256(flowrate1));
-    }
+         // NOTE downcasting is safe as we constrain deposit to less than
+         // 2 ** 95 (MAXIMUM_DEPOSIT) so the resulting value flowRate1 will fit into int96
+         return int96(int256(flowrate1));
+     }
 
-    function getDepositRequiredForFlowRatePure(
-        uint256 minimumDeposit,
-        uint256 liquidationPeriod,
-        int96 flowRate)
-        public pure
-        returns (uint256 deposit)
-    {
-        require(flowRate >= 0, "CFA: not for negative flow rate");
-        require(uint256(int256(flowRate)) * liquidationPeriod <= uint256(int256(type(int96).max)),
-            "CFA: flow rate too big");
-        uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
-        return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
-    }
+     function _getDepositRequiredForFlowRatePure(
+         uint256 minimumDeposit,
+         uint256 liquidationPeriod,
+         int96 flowRate)
+         internal pure
+         returns (uint256 deposit)
+     {
+         require(flowRate > 0, "CFA: not for non-positive flow rate");
+         require(uint256(int256(flowRate)) * liquidationPeriod <= uint256(int256(type(int96).max)),
+             "CFA: flow rate too big");
+         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
+         return AgreementLibrary.max(minimumDeposit, calculatedDeposit);
+     }
 
-    /// @dev IConstantFlowAgreementV1.getMaximumFlowRateFromDeposit implementation
-    function getMaximumFlowRateFromDeposit(
-        ISuperfluidToken token,
-        uint256 deposit)
-        external view override
-        returns (int96 flowRate)
-    {
-        (uint256 liquidationPeriod, ) = _decode3PsData(token);
-        flowRate = getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
-    }
+     /// @dev IConstantFlowAgreementV1.getMaximumFlowRateFromDeposit implementation
+     function getMaximumFlowRateFromDeposit(
+         ISuperfluidToken token,
+         uint256 deposit)
+         external view override
+         returns (int96 flowRate)
+     {
+         (uint256 liquidationPeriod, ) = _decode3PsData(token);
+         flowRate = _getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
+     }
 
-    /// @dev IConstantFlowAgreementV1.getDepositRequiredForFlowRate implementation
-    function getDepositRequiredForFlowRate(
-        ISuperfluidToken token,
-        int96 flowRate)
-        external view override
-        returns (uint256 deposit)
-    {
-        ISuperfluid host = ISuperfluid(token.getHost());
-        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-        uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
-        (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
-        return getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
-    }
+     /// @dev IConstantFlowAgreementV1.getDepositRequiredForFlowRate implementation
+     function getDepositRequiredForFlowRate(
+         ISuperfluidToken token,
+         int96 flowRate)
+         external view override
+         returns (uint256 deposit)
+     {
+         ISuperfluid host = ISuperfluid(token.getHost());
+         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
+         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
+         return _getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
+     }
 
     function isPatricianPeriodNow(
         ISuperfluidToken token,

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
-// solhint-disable reason-string
-// solhint-disable func-name-mixedcase
-pragma solidity >= 0.8.0;
+pragma solidity 0.8.13;
 
-import "../HotFuzzBase.sol";
+import "forge-std/Test.sol";
+
+import {
+    ISuperfluid,
+    ConstantFlowAgreementV1
+} from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
-    // solhint-disable-next-line no-empty-blocks
     constructor() ConstantFlowAgreementV1(ISuperfluid(address(0))) {}
 
     function getMaximumFlowRateFromDepositPure(
@@ -29,8 +31,7 @@ contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
     }
 }
 
-contract CFAProperties {
-
+contract ConstantFlowAgreementV1Properties is Test {
     ConstantFlowAgreementV1Mock immutable private cfa;
 
     constructor() {
@@ -40,14 +41,15 @@ contract CFAProperties {
     function testMaximumFlowRateAllowedForDeposit(
         uint32 liquidationPeriod,
         uint96 depositAllowed)
-        public view
+        public
     {
-        require(liquidationPeriod > 0, "FOUNDRY::ASSUME");
-        require(depositAllowed >= uint96(1 << 32), "FOUNDRY::ASSUME");
-        require(uint256(liquidationPeriod) * uint256(depositAllowed)
-            <= uint256(uint96(type(int96).max)), "FOUNDRY::ASSUME");
+        depositAllowed = uint96(bound(uint256(depositAllowed), cfa.DEFAULT_MINIMUM_DEPOSIT(), cfa.MAXIMUM_DEPOSIT()));
+        vm.assume(liquidationPeriod > 0);
+
         int96 flowRate = cfa.getMaximumFlowRateFromDepositPure(liquidationPeriod, depositAllowed);
         assert(flowRate > 0);
+        // let's also assume these edge cases away
+        vm.assume(uint256(liquidationPeriod) * uint256(uint96(flowRate)) <= cfa.MAXIMUM_FLOW_RATE());
         uint256 deposit = cfa.getDepositRequiredForFlowRatePure(0, liquidationPeriod, flowRate);
         assert(uint256(depositAllowed) >= deposit);
     }
@@ -56,13 +58,13 @@ contract CFAProperties {
         uint64 minimumDeposit,
         uint32 liquidationPeriod,
         int96 flowRate)
-        public view
+        public
     {
-        require(uint96(minimumDeposit) >= uint96(1 << 32), "FOUNDRY::ASSUME");
-        require(liquidationPeriod > 0, "FOUNDRY::ASSUME");
-        require(flowRate > 0, "FOUNDRY::ASSUME");
-        require(uint256(liquidationPeriod) * uint256(uint96(flowRate))
-            <= uint256(uint96(type(int96).max)), "FOUNDRY::ASSUME");
+        minimumDeposit = uint32(bound(uint256(minimumDeposit), cfa.DEFAULT_MINIMUM_DEPOSIT(), type(uint64).max));
+        vm.assume(liquidationPeriod > 0);
+        vm.assume(flowRate > 0);
+        vm.assume(uint256(liquidationPeriod) * uint256(uint96(flowRate)) <= cfa.MAXIMUM_FLOW_RATE());
+
         uint256 deposit = cfa.getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
         assert(deposit >= minimumDeposit);
     }

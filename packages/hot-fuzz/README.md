@@ -9,13 +9,8 @@ Motivations
 ===========
 
 - Test Superfluid Protocol:
-  - Integration level
-    - CFA
-    - IDA
-  - Unit Level:
-    - Superfluid (host) as an unit
-    - CFA as an unit
-    - IDA as an unit
+    - ConstantFlowAgreementV1
+    - InstantDistributionAgreementV1
 - Test Super Apps
   - Flow Lottery?
 

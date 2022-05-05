@@ -91,7 +91,7 @@ module.exports = {
                 },
                 //evmVersion: "byzantium"
                 libraries: {
-                    "@superfluid-finance/ethereum-contracts/contracts/agreements/SlotsBitmapLibrary.sol":
+                    "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
                         {
                             SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
                         },

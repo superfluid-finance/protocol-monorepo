@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.13;
 
-import {
-    ISuperfluidToken
-} from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 /**
  * @title Slots Bitmap library

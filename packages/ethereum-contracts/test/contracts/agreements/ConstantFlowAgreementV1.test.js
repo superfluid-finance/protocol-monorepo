@@ -2110,7 +2110,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         superToken.address,
                         toBN("-100000000000000")
                     ),
-                    "CFA: not for negative flow rate"
+                    "CFA: not for non-positive flow rate"
                 );
                 const maxFlowRate = toBN(1)
                     .shln(95)

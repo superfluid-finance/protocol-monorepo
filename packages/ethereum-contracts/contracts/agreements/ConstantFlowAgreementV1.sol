@@ -143,11 +143,11 @@ contract ConstantFlowAgreementV1 is
          internal pure
          returns (uint256 deposit)
      {
-         require(flowRate >= 0, "CFA: not for negative flow rate");
+         require(flowRate > 0, "CFA: not for non-positive flow rate");
          require(uint256(int256(flowRate)) * liquidationPeriod <= uint256(int256(type(int96).max)),
              "CFA: flow rate too big");
          uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
-         return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
+         return AgreementLibrary.max(minimumDeposit, calculatedDeposit);
      }
 
      /// @dev IConstantFlowAgreementV1.getMaximumFlowRateFromDeposit implementation

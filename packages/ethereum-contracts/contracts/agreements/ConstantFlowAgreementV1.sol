@@ -105,7 +105,7 @@ contract ConstantFlowAgreementV1 is
      * IConstantFlowAgreementV1 interface
      *************************************************************************/
 
-    /// @dev IConstantFlowAgreementV1.createFlow implementation
+    /// @dev IConstantFlowAgreementV1.getMaximumFlowRateFromDeposit implementation
     function getMaximumFlowRateFromDeposit(
         ISuperfluidToken token,
         uint256 deposit)

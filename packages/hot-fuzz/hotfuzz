@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# In all seriousness, this script should be written in perl. To the dearest leader Tim Toady.
+
 ECHIDNA=${ECHIDNA:-echidna-test}
 cd "$(dirname "$0")"
 set -xe
@@ -26,4 +28,6 @@ function test_contract() {
 
 #npx hardhat compile --force &&
 rm -rf crytic-export
-npx truffle compile && test_contract $1
+test_contract $1
+
+./tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)

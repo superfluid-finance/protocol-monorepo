@@ -1,1 +1,0 @@
-../../../../examples/flowlottery/solidity-contracts/contracts/LotterySuperApp.sol

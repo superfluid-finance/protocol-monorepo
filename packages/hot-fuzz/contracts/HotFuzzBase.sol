@@ -39,7 +39,7 @@ contract HotFuzzBase {
     SuperfluidTester[N_TEST_ACCOUNTS] internal testers;
 
     // test states
-    uint256 private _expectedTotalSupply = 0;
+    uint256 internal expectedTotalSupply = 0;
 
     constructor() {
         _sfDeployer = new SuperfluidFrameworkDeployer();
@@ -51,7 +51,7 @@ contract HotFuzzBase {
             testers[i] = new SuperfluidTester(host, cfa, ida, token, superToken);
             token.mint(address(testers[i]), INIT_TOKEN_BALANCE);
             testers[i].upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
+            expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
         }
     }
 
@@ -77,42 +77,13 @@ contract HotFuzzBase {
         (avb,,,) = superToken.realtimeBalanceOfNow(a);
     }
 
-    /* function upgrade(uint8 a, uint64 amount) public {
-        require(amount > 0);
-        SuperfluidTester tester = getOneTester(a);
-
-        int256 a1 = superTokenBalanceOfNow(address(tester));
-        int256 b1 = int256(token.balanceOf(address(tester)));
-        tester.upgradeSuperToken(amount);
-        int256 a2 = superTokenBalanceOfNow(address(tester));
-        int256 b2 = int256(token.balanceOf(address(tester)));
-        assert(int256(uint256(amount)) == b1 - b2);
-        assert(b1 - b2 == a2 - a1);
-        _expectedTotalSupply += amount;
-    }
-
-    function downgrade(uint8 a, uint64 amount) public {
-        require(amount > 0);
-        SuperfluidTester tester = getOneTester(a);
-
-        int256 a1 = superTokenBalanceOfNow(address(tester));
-        require(a1 >= int256(uint256(amount)));
-        int256 b1 = int256(token.balanceOf(address(tester)));
-        tester.downgradeSuperToken(amount);
-        int256 a2 = superTokenBalanceOfNow(address(tester));
-        int256 b2 = int256(token.balanceOf(address(tester)));
-        assert(int256(uint256(amount)) == b2 - b1);
-        assert(b2 - b1 == a1 - a2);
-        _expectedTotalSupply -= amount;
-    } */
-
     /**************************************************************************
      * Invariances
      **************************************************************************/
 
     function echidna_check_total_supply() public view returns (bool) {
-        assert(superToken.totalSupply() == _expectedTotalSupply);
-        return superToken.totalSupply() == _expectedTotalSupply;
+        assert(superToken.totalSupply() == expectedTotalSupply);
+        return superToken.totalSupply() == expectedTotalSupply;
     }
 
     function echidna_check_liquiditySumInvariance() public view returns (bool) {
@@ -121,8 +92,8 @@ contract HotFuzzBase {
             (int256 avb, uint256 d, uint256 od, ) = superToken.realtimeBalanceOfNow(address(testers[i]));
             liquiditySum += avb + int256(d) - int256(od);
         }
-        assert(int256(_expectedTotalSupply) == liquiditySum);
-        return int256(_expectedTotalSupply) == liquiditySum;
+        assert(int256(expectedTotalSupply) == liquiditySum);
+        return int256(expectedTotalSupply) == liquiditySum;
     }
 
     function echidna_check_netFlowRateSumInvariant() public view returns (bool) {

@@ -12,7 +12,6 @@ Motivations
     - ConstantFlowAgreementV1
     - InstantDistributionAgreementV1
 - Test Super Apps
-  - Flow Lottery?
 
 How To Use
 ==========

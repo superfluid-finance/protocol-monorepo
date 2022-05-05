@@ -31,4 +31,4 @@ function test_contract() {
 rm -rf crytic-export
 test_contract $1
 
-./tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)
+$HOTFUZZ_DIR/tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)

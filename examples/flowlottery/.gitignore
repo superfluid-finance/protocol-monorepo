@@ -11,4 +11,5 @@
 *.env
 
 .vscode/
-/crytic-export
+crytic-export
+corpus

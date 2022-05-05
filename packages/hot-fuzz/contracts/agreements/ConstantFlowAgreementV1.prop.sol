@@ -22,7 +22,7 @@ contract CFAProperties is HotFuzzBase {
     }
 
     function testMinimumDeposit(
-        uint32 minimumDeposit,
+        uint64 minimumDeposit,
         uint32 liquidationPeriod,
         int96 flowRate)
         public view

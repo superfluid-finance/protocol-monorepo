@@ -54,7 +54,7 @@ const config: HardhatUserConfig = {
             chainId: 31337,
         },
         goerli: {
-            url: process.env.GOERLI_PROVIDER_URL || "",
+            url: process.env.PROVIDER_URL || "",
             chainId: 5,
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
         },

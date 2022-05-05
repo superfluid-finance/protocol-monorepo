@@ -39,7 +39,7 @@ local-node: setup-yarn
 	yarn hardhat node 
 
 deploy:
-	forge create --rpc-url ${GOERLI_PROVIDER_URL} \
+	forge create --rpc-url ${PROVIDER_URL} \
 	--constructor-args ${END_TIME} ${CFA_ADDRESS} ${SUPERTOKEN_ADDRESS} ${SENDER_ADDRESS} ${RECEIVER_ADDRESS} \
 	--private-key ${PRIVATE_KEY} src/SimpleACLCloseResolver.sol:SimpleACLCloseResolver
 

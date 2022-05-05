@@ -29,7 +29,7 @@ How To Use
 ## Run The Fuzzer
 
 ```
-$ ./fuzz.sh CFAFuzzer
+$ ./fuzz.sh CFAHotFuzz
 ```
 
 ## Develop New Fuzzer

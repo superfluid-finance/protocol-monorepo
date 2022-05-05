@@ -15,7 +15,6 @@ remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib
 
 # Install the Modules
 install :; 
-	forge install dapphub/ds-test 
 	forge install foundry-rs/forge-std
 
 # # Remapping

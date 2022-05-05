@@ -5,14 +5,6 @@ Testing Superfluid protocol and Super Apps like Simon Pegg.
 
 ![Hot Fuzz - Simon Pegg](hot-fuzz-simon.jpg)
 
-Motivations
-===========
-
-- Test Superfluid Protocol:
-    - ConstantFlowAgreementV1
-    - InstantDistributionAgreementV1
-- Test Super Apps
-
 How To Use
 ==========
 
@@ -20,25 +12,15 @@ How To Use
 
 - Download echidna binary from: https://github.com/crytic/echidna
 
+## Develop New Hot Fuzzer
+
+1. Create a new hot fuzz contract inheriting `HotFuzzBase`.
+2. Write its configuration `configs/NewHotFuzz.yaml`.
+3. Add possible parameterized operations.
+4. Add invariance public view functions starting with "echidna_" and returning a bool.
+
 ## Run The Fuzzer
 
 ```
-$ ./fuzz.sh CFAHotFuzz
+$ ./hotfuzz NewHotFuzz|SuperHotFuzz
 ```
-
-## Develop New Fuzzer
-
-1. Write its configuration `contracts/CFAFuzzer.yaml`.
-2. Inherit AbstractBaseFuzzer and write a new AbstractFuzzer contract.
-3. Create the actual fuzzer contract using multiple inheritance e.g.:
-    ```
-    contract CFAFuzzer is AbstractCFAFuzzer, BaseFuzzer { }
-
-    contract MultiFuzzer is
-        AbstractCFAFuzzer,
-        AbstractIDAFuzzer,
-        BaseFuzzer { }
-    ```
-
-TODOs
-=====

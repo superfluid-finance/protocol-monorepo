@@ -3,13 +3,14 @@
 # In all seriousness, this script should be written in perl. To the dearest leader Tim Toady.
 
 ECHIDNA=${ECHIDNA:-echidna-test}
-cd "$(dirname "$0")"
+HOTFUZZ_DIR="$(dirname "$0")"
+#cd "$HOTFUZZ_DIR"
 set -xe
 
 # Apply a workaround due to https://github.com/crytic/echidna/issues/738
 mkdir -p node_modules
-ln -sf ../../../node_modules/\@superfluid-finance node_modules/
-ln -sf ../../../node_modules/\@openzeppelin node_modules/
+[ -e "node_modules/@superfluid-finance" ] || ln -sf ../../../node_modules/\@superfluid-finance node_modules/
+[ -e "node_modules/@openzeppelin" ] || ln -sf ../../../node_modules/\@openzeppelin node_modules/
 
 function oops () {
     echo "$@" >&2
@@ -22,7 +23,7 @@ function test_contract() {
     echo "Starting a hot fuzz on contract: $TEST_CONTRACT ..."
     TEST_CONTRACT_CONFIG=configs/$TEST_CONTRACT.yaml
     [ ! -f "$TEST_CONTRACT_CONFIG" ] && oops "No $TEST_CONTRACT_CONFIG provided."
-    "$ECHIDNA" . --config <(cat echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+    "$ECHIDNA" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
     echo "Fizzling away."
 }
 

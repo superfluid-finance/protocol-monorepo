@@ -2525,13 +2525,19 @@ describe("Superfluid Host Contract", function () {
                     1 /* APP_TYPE_FINAL_LEVEL */,
                     "bad microsoft registration key"
                 ),
-                "SF: invalid registration key"
+                "SF: invalid or expired registration key"
             );
         });
 
         it("#40.3 app can register with a correct key", async () => {
             const appKey = createAppKey(bob, "hello world");
-            await governance.whiteListNewApp(superfluid.address, appKey);
+            const expirationTs = Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
+            await governance.setConfig(
+                superfluid.address,
+                ZERO_ADDRESS,
+                appKey,
+                expirationTs
+            );
             const app = await SuperAppMockWithRegistrationkey.new(
                 superfluid.address,
                 1 /* APP_TYPE_FINAL_LEVEL */,
@@ -2545,7 +2551,13 @@ describe("Superfluid Host Contract", function () {
 
         it("#40.4 app registration with key for different deployer should fail", async () => {
             const appKey = createAppKey(bob, "hello world");
-            await governance.whiteListNewApp(superfluid.address, appKey);
+            const expirationTs = Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
+            await governance.setConfig(
+                superfluid.address,
+                ZERO_ADDRESS,
+                appKey,
+                expirationTs
+            );
             await expectRevertedWith(
                 SuperAppMockWithRegistrationkey.new(
                     superfluid.address,
@@ -2555,20 +2567,18 @@ describe("Superfluid Host Contract", function () {
                         from: alice,
                     }
                 ),
-                "SF: invalid registration key"
+                "SF: invalid or expired registration key"
             );
         });
 
-        it("#40.5 app can register with an used key should fail", async () => {
+        it("#40.5 app can register with an expired key should fail", async () => {
             const appKey = createAppKey(bob, "hello world again");
-            await governance.whiteListNewApp(superfluid.address, appKey);
-            await SuperAppMockWithRegistrationkey.new(
+            const expirationTs = Math.floor(Date.now() / 1000) - 3600 * 24; // expired yesterday
+            await governance.setConfig(
                 superfluid.address,
-                1 /* APP_TYPE_FINAL_LEVEL */,
-                "hello world again",
-                {
-                    from: bob,
-                }
+                ZERO_ADDRESS,
+                appKey,
+                expirationTs
             );
             await expectRevertedWith(
                 SuperAppMockWithRegistrationkey.new(
@@ -2579,7 +2589,7 @@ describe("Superfluid Host Contract", function () {
                         from: bob,
                     }
                 ),
-                "SF: registration key already used"
+                "SF: invalid or expired registration key"
             );
         });
 

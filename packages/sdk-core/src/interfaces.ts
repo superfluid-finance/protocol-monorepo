@@ -3,6 +3,7 @@ import { ethers, Overrides } from "ethers";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
+    IResolver,
     Superfluid,
 } from "./typechain";
 import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
@@ -449,6 +450,7 @@ export interface IContracts {
     readonly governance: SuperfluidGovernanceII;
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
+    readonly resolver: IResolver;
 }
 
 export interface IAgreementV1Options {

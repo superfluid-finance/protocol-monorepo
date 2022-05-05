@@ -27,6 +27,32 @@ try {
     );
 }
 
+//
+// This is a hack to resolve that HDWallet doesn't work with openethereum (xdai & kovan)
+// via websocket due to an excess parameter ("skipCache")
+//
+// Related issues:
+// - https://github.com/trufflesuite/truffle/issues/3182
+// - https://github.com/openethereum/parity-ethereum/issues/11824
+// - https://github.com/MetaMask/web3-provider-engine/issues/311
+function createProviderWithOEWorkaround(url) {
+    let provider;
+    const Web3WsProvider = require("web3-providers-ws");
+    if (url.startsWith("ws:") || url.startsWith("wss:")) {
+        provider = new Web3WsProvider(url);
+        // apply the skipCache hack
+        const origSend = provider.__proto__.send;
+        provider.__proto__.send = function (payload, callback) {
+            delete payload.skipCache;
+            origSend.call(provider, payload, callback);
+        };
+    } else {
+        // let hdwallet provider handle the url directly
+        provider = url;
+    }
+    return provider;
+}
+
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
     "eth-ropsten": ["ropsten"],
@@ -79,7 +105,9 @@ function createNetworkDefaultConfiguration(networkName, chainId) {
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: getEnvValue(networkName, "PROVIDER_URL"),
+                url: createProviderWithOEWorkaround(
+                    getEnvValue(networkName, "PROVIDER_URL")
+                ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,

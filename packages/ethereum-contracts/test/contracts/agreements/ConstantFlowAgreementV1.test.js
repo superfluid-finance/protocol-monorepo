@@ -2131,7 +2131,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                         `getDepositRequiredForFlowRate(${flowRate.toString()})`
                     );
                 };
-                await test(0);
                 await test(1);
                 await test("10000000000000");
                 await expectRevertedWith(
@@ -2139,7 +2138,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         superToken.address,
                         toBN("-100000000000000")
                     ),
-                    "CFA: not for negative flow rate"
+                    "CFA: not for non-positive flow rate"
                 );
                 const maxFlowRate = toBN(1)
                     .shln(95)

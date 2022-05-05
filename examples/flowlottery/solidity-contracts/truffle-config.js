@@ -25,7 +25,15 @@ module.exports = {
     },
     compilers: {
         solc: {
-            version: "0.8.13" // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.13", // Fetch exact version from solc-bin (default: truffle's version)
+            settings: {
+                libraries: {
+                    "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
+                        {
+                            SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
+                        },
+                },
+            },
         }
     },
     mocha: {

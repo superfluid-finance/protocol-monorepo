@@ -22,5 +22,8 @@
         "@truffle/hdwallet-provider": "^1.7.0",
         "dotenv": "^10.0.0",
         "truffle": "^5.4.21"
+    },
+    "dependencies": {
+        "@superfluid-finance/hot-fuzz": "../../../packages/hot-fuzz"
     }
 }

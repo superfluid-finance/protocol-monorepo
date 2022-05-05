@@ -53,8 +53,8 @@ contract ConstantFlowAgreementV1 is
      * - It is related to deposit clipping, and it is always rounded-up when clipping.
      */
     uint256 public constant DEFAULT_MINIMUM_DEPOSIT = uint256(uint96(1 << 32));
-    /// @dev Maxim deposit value
-    uint256 public constant MAXIMUM_DEPOSIT = type(uint96).max;
+    /// @dev Maximum deposit value
+    uint256 public constant MAXIMUM_DEPOSIT = uint256(uint96(type(int96).max));
 
     /// @dev Maximum flow rate
     uint256 public constant MAXIMUM_FLOW_RATE = uint256(uint96(type(int96).max));
@@ -72,8 +72,8 @@ contract ConstantFlowAgreementV1 is
     struct FlowData {
         uint256 timestamp; // stored as uint32
         int96 flowRate; // stored also as int96
-        uint256 deposit; // stored as uint96 with lower 32 bits clipped to 0
-        uint256 owedDeposit; // stored as uint96 with lower 32 bits clipped to 0
+        uint256 deposit; // stored as int96 with lower 32 bits clipped to 0
+        uint256 owedDeposit; // stored as int96 with lower 32 bits clipped to 0
     }
 
     struct FlowParams {
@@ -126,13 +126,13 @@ contract ConstantFlowAgreementV1 is
          internal pure
          returns (int96 flowRate)
      {
-         require(deposit < 2**95, "CFA: deposit number too big");
+         require(deposit <= MAXIMUM_DEPOSIT, "CFA: deposit number too big");
          deposit = _clipDepositNumberRoundingDown(deposit);
 
          uint256 flowrate1 = deposit / liquidationPeriod;
 
          // NOTE downcasting is safe as we constrain deposit to less than
-         // 2 ** 95 so the resulting value flowRate1 will fit into int96
+         // 2 ** 95 (MAXIMUM_DEPOSIT) so the resulting value flowRate1 will fit into int96
          return int96(int256(flowrate1));
      }
 

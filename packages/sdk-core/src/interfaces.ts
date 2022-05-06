@@ -3,6 +3,7 @@ import { ethers, Overrides } from "ethers";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
+    IResolver,
     Superfluid,
 } from "./typechain";
 import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
@@ -140,7 +141,6 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
 }
 
 export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
-    readonly sender: string;
     readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
@@ -149,7 +149,6 @@ export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
 }
 
 export interface ISuperTokenFullControlParams {
-    readonly sender: string;
     readonly flowOperator: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
@@ -451,6 +450,7 @@ export interface IContracts {
     readonly governance: SuperfluidGovernanceII;
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
+    readonly resolver: IResolver;
 }
 
 export interface IAgreementV1Options {

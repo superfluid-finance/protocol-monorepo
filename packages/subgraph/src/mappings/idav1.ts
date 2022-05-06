@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexDistributionClaimed,
@@ -59,13 +59,10 @@ export function handleIndexCreated(event: IndexCreated): void {
     index.save();
 
     // update streamed until updated at field
-    updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token.toHex(),
-        event.block
-    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
     tokenStatistic.totalNumberOfIndexes =
@@ -75,8 +72,8 @@ export function handleIndexCreated(event: IndexCreated): void {
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
+        event.params.publisher,
+        event.params.token,
         event.block
     );
 
@@ -126,13 +123,10 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         previousTotalAmountDistributed.plus(distributionDelta);
     index.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(
-        event.params.token.toHex(),
-        event.block
-    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token.toHex(),
+        event.params.token,
         event.block
     );
 
@@ -151,8 +145,8 @@ export function handleIndexUpdated(event: IndexUpdated): void {
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
+        event.params.publisher,
+        event.params.token,
         event.block
     );
 
@@ -223,14 +217,12 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     subscription.approved = true;
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
-    let tokenId = event.params.token.toHex();
-
     let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // this must be done whether subscription exists or not
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber.toHex(),
-        tokenId,
+        event.params.subscriber,
+        event.params.token,
         event.block
     );
 
@@ -246,20 +238,20 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
         updateATSStreamedAndBalanceUntilUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
+            event.params.publisher,
+            event.params.token,
             event.block
         );
     }
 
     subscription.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     // we only want to increment approved here ALWAYS
     updateAggregateIDASubscriptionsData(
-        event.params.subscriber.toHex(),
-        event.params.token.toHex(),
+        event.params.subscriber,
+        event.params.token,
         hasSubscriptionWithUnits || subscription.approved,
         subscription.approved,
         false, // don't increment subWithUnits
@@ -306,13 +298,13 @@ export function handleSubscriptionDistributionClaimed(
     createSubscriptionDistributionClaimedEntity(event, subscription.id);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
+        event.params.publisher,
+        event.params.token,
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber.toHex(),
-        event.params.token.toHex(),
+        event.params.subscriber,
+        event.params.token,
         event.block
     );
 }
@@ -332,9 +324,6 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     if (!hasValidHost) {
         return;
     }
-
-    let tokenId = event.params.token.toHex();
-    let subscriberAddress = event.params.subscriber.toHex();
 
     let index = getOrInitIndex(
         event.params.publisher,
@@ -373,16 +362,16 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        subscriberAddress,
-        tokenId,
+        event.params.subscriber,
+        event.params.token,
         event.block
     );
 
-    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     updateAggregateIDASubscriptionsData(
-        subscriberAddress,
-        tokenId,
+        event.params.subscriber,
+        event.params.token,
         true,
         subscription.approved,
         false, // don't increment subWithUnits
@@ -393,8 +382,8 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     );
     // mimic ida logic more closely
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        tokenId,
+        event.params.publisher,
+        event.params.token,
         event.block
     );
 
@@ -423,7 +412,6 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
-    let tokenId = event.params.token.toHex();
 
     let subscription = getOrInitSubscription(
         event.params.subscriber,
@@ -471,13 +459,13 @@ export function handleSubscriptionUnitsUpdated(
     // We move both of these in here as we handle this in revoke or delete
     // as well, so if we put it outside it will be a duplicate call
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        tokenId,
+        event.params.publisher,
+        event.params.token,
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber.toHex(),
-        tokenId,
+        event.params.subscriber,
+        event.params.token,
         event.block
     );
 
@@ -485,11 +473,11 @@ export function handleSubscriptionUnitsUpdated(
     // and therefore subtracts the number of totalSubscriptionWithUnits and
     // totalApprovedSubscriptions
     if (units.equals(BIG_INT_ZERO)) {
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
         updateAggregateIDASubscriptionsData(
-            subscription.subscriber,
-            tokenId,
+            event.params.subscriber,
+            event.params.token,
             hasSubscriptionWithUnits,
             subscription.approved,
             false, // don't increment subWithUnits
@@ -513,11 +501,11 @@ export function handleSubscriptionUnitsUpdated(
         index.totalSubscriptionsWithUnits =
             index.totalSubscriptionsWithUnits + 1;
 
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
         updateAggregateIDASubscriptionsData(
-            event.params.subscriber.toHex(),
-            tokenId,
+            event.params.subscriber,
+            event.params.token,
             hasSubscriptionWithUnits,
             subscription.approved,
             true, // only place we increment subWithUnits

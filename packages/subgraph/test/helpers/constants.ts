@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { IEventQueryData } from "../interfaces";
 import {
     getIndexCreatedEvents,

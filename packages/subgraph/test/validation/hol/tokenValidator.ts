@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { ethers } from "ethers";
 import { fetchEntityAndEnsureExistence } from "../../helpers/helpers";
 import { IToken } from "../../interfaces";
 import { getToken } from "../../queries/holQueries";
@@ -44,7 +45,7 @@ export const validateTokenEntity = (
     );
     expect(subgraphToken.decimals).to.equal(expectedDecimals);
 
-    if (subgraphToken.underlyingAddress === "0x") {
+    if (subgraphToken.underlyingAddress === ethers.constants.AddressZero) {
         expect(subgraphToken.underlyingToken).to.equal(null);
     } else {
         // NOTE: underlyingToken should not be null here

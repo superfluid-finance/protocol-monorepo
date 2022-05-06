@@ -1,9 +1,10 @@
 import { ethers } from "hardhat";
-import { Framework, SFError, SuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
 import {
     asleep,
     beforeSetup,
+    getATSId,
     getRandomFlowRate,
     monthlyToSecondRate,
     toBN,
@@ -122,18 +123,17 @@ describe("Subgraph Tests", () => {
 
         let block = await provider.getBlock(response.blockNumber);
         // update transfer amount
-        const senderATS =
-            accountTokenSnapshots[
-                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
-            ];
+        const senderATSId = getATSId(
+            sender.address.toLowerCase(),
+            daix.address.toLowerCase()
+        );
+        const senderATS = accountTokenSnapshots[senderATSId];
 
         if (senderATS) {
             const updatedTransferAmount = toBN(
                 senderATS.totalAmountTransferredUntilUpdatedAt
             ).add(toBN(amount));
-            accountTokenSnapshots[
-                sender.address.toLowerCase() + "-" + daix.address.toLowerCase()
-            ] = {
+            accountTokenSnapshots[senderATSId] = {
                 ...senderATS,
                 totalAmountTransferredUntilUpdatedAt:
                     updatedTransferAmount.toString(),
@@ -227,7 +227,7 @@ describe("Subgraph Tests", () => {
     before(async () => {
         // NOTE: make the token symbol more customizable in the future
         let { users, sf, fDAI, fDAIx, totalSupply } = await beforeSetup(
-            10000000
+            100000000
         );
         initialTotalSupply = totalSupply;
         userAddresses = users;
@@ -682,7 +682,7 @@ describe("Subgraph Tests", () => {
                     ),
                     eventType: IDAEventType.IndexUpdated,
                     amountOrIndexValue,
-                    isDistribute: false,
+                    isDistribute: true,
                 });
                 updateGlobalObjects(data);
 

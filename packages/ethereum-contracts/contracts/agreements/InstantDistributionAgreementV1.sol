@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.13;
 
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
 import {
     IInstantDistributionAgreementV1,
     ISuperfluidToken
@@ -14,10 +16,9 @@ import {
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
+import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
-import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 /**

@@ -1387,6 +1387,35 @@ describe("Using ConstantFlowAgreement v1", function () {
                     {rewardAccount: t.aliases[agent]}
                 );
             });
+
+            it("#1.4.17 Patrician period updates when user is not solvent", async () => {
+                shouldCreateSolventLiquidationTest({
+                    titlePrefix: "#1.4.10",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                });
+
+                let period = await t.contracts.cfa.isPatricianPeriodNow(
+                    superToken.address,
+                    t.aliases[sender]
+                );
+
+                assert.isTrue(period[0]);
+
+                await t.timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber()
+                );
+
+                period = await t.contracts.cfa.isPatricianPeriodNow(
+                    superToken.address,
+                    t.aliases[sender]
+                );
+
+                assert.isFalse(period[0]);
+            });
         });
 
         describe("#1.5 multiple flow liquidations", () => {

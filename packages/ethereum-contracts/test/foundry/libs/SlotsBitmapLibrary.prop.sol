@@ -58,17 +58,37 @@ contract SlotsBitmapLibraryProperties is Test {
         assertEq(newSlotIds.length, 1);
     }
 
-    // fuzz w/ 2 params: the number of slots to add
-    // a random number which is the slot which you will clear
-    // loop through and add a bunch of slots
-    // assert number of elements with listData
-    // clear one of the slots
-    // assert number of elements is one less
-    // add another element
-    // assert number of elements is one more
-    // it will probably test adding 0 slots and trying to remove
-    //
+    function testAddOneAndListAndRemove() public {
+        (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        assertEq(slotIds.length, 0);
+        SlotsBitmapLibrary.findEmptySlotAndFill(superToken, subscriber, 0, 1 << 128, fakeId);
+
+        (slotIds, ) = SlotsBitmapLibrary.listData(superToken, subscriber, 0, 1 << 128);
+        assertEq(slotIds.length, 1);
+        
+        SlotsBitmapLibrary.clearSlot(ISuperToken(superToken), subscriber, 0, 0);
+        (slotIds, ) = SlotsBitmapLibrary.listData(superToken, subscriber, 0, 1 << 128);
+        assertEq(slotIds.length, 0);
+    }
+
     function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint8 subIdToRemove) public {
-        // assume that the actual subIdToRemove is bounded between 0 and numSlots
+        vm.assume(numSlots > 0);
+        
+        // add numSlots elements
+        (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        assertEq(slotIds.length, 0);
+        for (uint8 i = 0; i < numSlots; i++) {
+            SlotsBitmapLibrary.findEmptySlotAndFill(superToken, subscriber, 0, 1 << 128, fakeId);
+        }
+        (slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        assertEq(slotIds.length, numSlots);
+        
+        // remove one slot id
+        subIdToRemove = uint8(bound(uint256(subIdToRemove), 0, numSlots - 1));
+        SlotsBitmapLibrary.clearSlot(ISuperToken(superToken), subscriber, 0, subIdToRemove);
+        (slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+
+        // length should be numSlots - 1
+        assertEq(slotIds.length, numSlots - 1);
     }
 }

@@ -35,7 +35,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - The `SuperToken` class is now an abstract base class and no longer contains the functions `upgrade` and `downgrade`.
 - `underlyingToken` is possibly undefined on `SuperToken`: `WrapperSuperToken` has `underlyingToken`, but `PureSuperToken` and `NativeAssetSuperToken` do not.
 > NOTE: These changes are due to the split of `SuperToken` into `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes.
-  - Migration: if you are using TypeScript, you will need to specify the type of token you are attempting to load:
+  - Migration: if you are using TypeScript, you may specify the type of token you are attempting to load:
   ```
   import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
   ...
@@ -43,6 +43,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   // or
   const nativeAssetSuperToken = await framework.loadSuperToken("ETHx") as NativeAssetSuperToken;
   ```
+This will create a class so you can use `instanceof` to check the type of the created object.
 
 ## [0.3.2] - 2022-03-16
 

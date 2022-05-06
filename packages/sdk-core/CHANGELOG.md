@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.4.0] - 2022-05-06
+
 ### Added
 - Added option to specify block details when querying through a `SubgraphQueryHandler`
 - Added Subgraph's `_meta` table query
@@ -116,7 +118,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.2...HEAD
+[0.3.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...sdk-core%40v0.3.2
 [0.3.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.0...sdk-core%40v0.3.1
 [0.3.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.1...sdk-core%40v0.3.0
 [0.2.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.0...sdk-core%40v0.2.1

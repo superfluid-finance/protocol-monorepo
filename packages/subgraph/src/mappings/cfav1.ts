@@ -360,8 +360,6 @@ export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
 }
 
 export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
-    createFlowOperatorUpdatedEventEntity(event);
-
     let flowOperator = getOrInitFlowOperator(
         event.block,
         event.params.flowOperator,
@@ -374,6 +372,8 @@ export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
     flowOperator.flowRateAllowanceRemaining = event.params.flowRateAllowance;
     flowOperator.flowOperator = event.params.flowOperator;
     flowOperator.save();
+
+    createFlowOperatorUpdatedEventEntity(event);
 }
 
 export function updateFlowOperatorForFlowUpdated(

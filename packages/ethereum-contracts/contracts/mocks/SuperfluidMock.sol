@@ -44,8 +44,8 @@ contract SuperfluidUpgradabilityTester is Superfluid {
         assembly { slot:= _ctxStamp.slot offset := _ctxStamp.offset }
         require(slot == 6 && offset == 0, "_ctxStamp changed location");
 
-        assembly { slot:= _appKeysUsed.slot offset := _appKeysUsed.offset }
-        require(slot == 7 && offset == 0, "_appKeysUsed changed location");
+        assembly { slot:= _appKeysUsedDeprecated.slot offset := _appKeysUsedDeprecated.offset }
+        require(slot == 7 && offset == 0, "_appKeysUsedDeprecated changed location");
     }
 
     // @dev Make sure the context struct layout never change over the course of the development

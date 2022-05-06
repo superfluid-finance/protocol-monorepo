@@ -1,7 +1,7 @@
-import React, { FC, ReactElement, useContext } from "react";
+import { FC, ReactElement, useContext } from "react";
 import {
     TrackedTransaction,
-    transactionSelectors,
+    transactionTrackerSelectors,
 } from "@superfluid-finance/sdk-redux";
 import {
     Table,
@@ -17,9 +17,7 @@ import { useAppSelector } from "../redux/hooks";
 export const TransactionTable: FC = (): ReactElement => {
     const [networkName, signerAddress] = useContext(SignerContext);
 
-    const transactions = useAppSelector((state) =>
-        transactionSelectors.selectAll(state.superfluid_transactions)
-    );
+    const transactions = useAppSelector(transactionTrackerSelectors.selectAll);
 
     return (
         <>

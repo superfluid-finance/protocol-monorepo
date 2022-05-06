@@ -86,7 +86,7 @@ type FlowUpdatedEvent implements Event @entity {
     stream: Stream!
 }
 
-type FlowOperatorUpdatedEvent implements Event @entity {
+type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -1114,7 +1114,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID + keccak256("-") + tokenID (without the 0x)
+    ID composed of: accountID + keccak256("-") + tokenID
     """
     id: ID!
     updatedAtTimestamp: BigInt!

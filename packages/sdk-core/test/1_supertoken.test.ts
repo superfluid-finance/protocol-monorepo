@@ -67,13 +67,13 @@ describe("SuperToken Tests", () => {
         alpha = Alpha;
         bravo = Bravo;
         superToken = SuperToken;
-        daix = await framework.loadSuperToken(superToken.address);
+        daix = await framework.loadWrapperSuperToken(superToken.address);
         token = Token;
         charlie = Charlie;
         signerCount = SignerCount;
     });
 
-    describe("Pure Token Tests", () => {
+    describe("SuperToken Tests", () => {
         it("Should throw an error if SuperToken isn't initialized properly.", async () => {
             try {
                 await SuperToken.create({
@@ -347,20 +347,67 @@ describe("SuperToken Tests", () => {
         });
     });
 
-    describe("NativeSuperToken Tests", () => {
+    describe("SuperToken Initialization Tests", () => {
         let nativeAssetSuperToken: NativeAssetSuperToken;
-        it("Should be able to create a NativeSuperToken (SuperTokenWithoutUnderlying)", async () => {
-            // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
-            // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
+        it("Should load SuperToken base class for any token type", async () => {
+            // load WrapperSuperToken
+            await framework.loadSuperToken(daix.address);
+
+            // load NativeAssetSuperToken
+            await framework.loadSuperToken("ETHx");
+
+            // load PureSuperToken
             await framework.loadSuperToken(
                 "0x67d269191c92Caf3cD7723F116c85e6E9bf55933"
             );
         });
 
+        it("Should be able to create a WrapperSuperToken", async () => {
+            await framework.loadWrapperSuperToken(daix.address);
+        });
+
+        it("Should throw if trying to load a non-WrapperSuperToken", async () => {
+            try {
+                await framework.loadWrapperSuperToken("ETHx");
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "SuperToken Initialization Error - The token is not a wrapper supertoken."
+                );
+            }
+        });
+
         it("Should be able to create a NativeAssetSuperToken", async () => {
-            nativeAssetSuperToken = (await framework.loadSuperToken(
+            nativeAssetSuperToken = await framework.loadNativeAssetSuperToken(
                 "ETHx"
-            )) as NativeAssetSuperToken;
+            );
+        });
+
+        it("Should throw if trying to load a non-NativeAssetSuperToken", async () => {
+            try {
+                await framework.loadNativeAssetSuperToken(daix.address);
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "SuperToken Initialization Error - The token is not a native asset supertoken."
+                );
+            }
+        });
+
+        it("Should be able to create a PureSuperToken", async () => {
+            // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
+            // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
+            await framework.loadPureSuperToken(
+                "0x67d269191c92Caf3cD7723F116c85e6E9bf55933"
+            );
+        });
+
+        it("Should throw if trying to load a non-PureSuperToken", async () => {
+            try {
+                await framework.loadPureSuperToken(daix.address);
+            } catch (err: any) {
+                expect(err.message).to.eql(
+                    "SuperToken Initialization Error - The token is not a pure supertoken."
+                );
+            }
         });
 
         it("Should be able to upgrade native asset", async () => {

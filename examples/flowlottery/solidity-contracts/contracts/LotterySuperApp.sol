@@ -29,9 +29,9 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract LotterySuperApp is Ownable, SuperAppBase {
 
     /// @dev Entrance fee for the game (hardcoded to $1)
-    uint256 constant private _ENTRANCE_FEE = 1e18;
+    uint256 constant public ENTRANCE_FEE = 1e18;
     /// @dev Minimum flow rate to participate (hardcoded to $10 / mo)
-    int96 constant private _MINIMUM_FLOW_RATE = int96(int256(uint256(10e18) / uint256(3600 * 24 * 30)));
+    int96 constant public MINIMUM_FLOW_RATE = int96(int256(uint256(10e18) / uint256(3600 * 24 * 30)));
 
     string constant private _ERR_STR_NO_TICKET = "LotterySuperApp: need ticket to play";
     string constant private _ERR_STR_LOW_FLOW_RATE = "LotterySuperApp: flow rate too low";
@@ -66,13 +66,11 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
         //initialize InitData struct, and set equal to cfaV1
         cfaV1 = CFAv1Library.InitData(
-        host,
-        //here, we are deriving the address of the CFA using the host contract
-        IConstantFlowAgreementV1(
-            address(host.getAgreementClass(
+            host,
+            //here, we are deriving the address of the CFA using the host contract
+            IConstantFlowAgreementV1(address(host.getAgreementClass(
                     keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                ))
-            )
+            )))
         );
 
     }
@@ -92,7 +90,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
     {
         // msg sender is encoded in the Context
         address sender = _host.decodeCtx(ctx).msgSender;
-        _acceptedToken.transferFrom(sender, address(this), _ENTRANCE_FEE);
+        _acceptedToken.transferFrom(sender, address(this), ENTRANCE_FEE);
         tickets[sender]++;
         return ctx;
     }
@@ -138,7 +136,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         (address player) = abi.decode(cbdata, (address));
 
         (,int96 flowRate,,) = IConstantFlowAgreementV1(agreementClass).getFlowByID(_acceptedToken, agreementId);
-        require(flowRate >= _MINIMUM_FLOW_RATE, _ERR_STR_LOW_FLOW_RATE);
+        require(flowRate >= MINIMUM_FLOW_RATE, _ERR_STR_LOW_FLOW_RATE);
 
         _playersSet.add(player);
 

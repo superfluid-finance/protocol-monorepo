@@ -5,7 +5,7 @@ pragma solidity >= 0.8.0;
 import "../HotFuzzBase.sol";
 
 
-contract SuperTokenHotFuzz is HotFuzzBase {
+abstract contract SuperTokenHotFuzzMixin is HotFuzzBase {
     function upgrade(uint8 a, uint64 amount) public {
         require(amount > 0);
         SuperfluidTester tester = getOneTester(a);
@@ -33,5 +33,11 @@ contract SuperTokenHotFuzz is HotFuzzBase {
         assert(int256(uint256(amount)) == b2 - b1);
         assert(b2 - b1 == a1 - a2);
         expectedTotalSupply -= amount;
+    }
+}
+
+contract SuperTokenHotFuzz is SuperTokenHotFuzzMixin {
+    constructor() HotFuzzBase(10) {
+        initPlayers();
     }
 }

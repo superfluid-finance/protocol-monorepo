@@ -7,5 +7,8 @@ import "./superfluid/SuperToken.hott.sol";
 
 
 // Combine all the hot fuzzes
-// solhint-disable-next-line no-empty-blocks
-contract SuperHotFuzz is CFAHotFuzz, IDAHotFuzz, SuperTokenHotFuzz {}
+contract SuperHotFuzz is CFAHotFuzzMixin, IDAHotFuzzMixin, SuperTokenHotFuzzMixin {
+    constructor() HotFuzzBase(10) {
+        initPlayers();
+    }
+}

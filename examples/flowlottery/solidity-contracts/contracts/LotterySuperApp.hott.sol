@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: MIT
+// solhint-disable not-rely-on-time
+pragma solidity 0.8.13;
+
+import "@superfluid-finance/hot-fuzz/contracts/HotFuzzBase.sol";
+
+import "./LotterySuperApp.sol";
+
+contract LotteryPlayer is SuperfluidTester {
+
+    LotterySuperApp immutable private _app;
+    bool public inPlay;
+
+    constructor (
+        Superfluid host,
+        IConstantFlowAgreementV1 cfa,
+        IInstantDistributionAgreementV1 ida,
+        IERC20 token,
+        ISuperToken superToken,
+        LotterySuperApp app)
+        SuperfluidTester(host, cfa, ida, token, superToken)
+    {
+        _app = app;
+    }
+
+    function play(int96 flowRate) external {
+        superToken.approve(address(_app), _app.ENTRANCE_FEE());
+        host.callAppAction(
+            _app,
+            abi.encodeCall(_app.participate, (new bytes(0)))
+        );
+        flow(address(_app), flowRate);
+        inPlay = true;
+    }
+
+    function quitIfNeeded() external {
+        flow(address(_app), 0);
+        inPlay = false;
+    }
+}
+
+contract LotterySuperAppHotFuzz is HotFuzzBase {
+
+    LotterySuperApp immutable private _app;
+
+    constructor() HotFuzzBase(10 /* nPlayers */ ) {
+        _app = new LotterySuperApp(host, cfa, superToken);
+        initPlayers();
+        addAccount(address(_app));
+    }
+
+    // hot fuzz extensions
+    function createTester() override internal returns (SuperfluidTester) {
+        return new LotteryPlayer(host, cfa, ida, token, superToken, _app);
+    }
+
+    function getOnePlayer(uint8 a)
+        internal view
+        returns (LotteryPlayer testerA)
+    {
+        return LotteryPlayer(address(getOneTester(a)));
+    }
+
+    //
+    // Actions List
+    //
+    function participateLottery(uint8 a, int64 flowRate) public {
+        LotteryPlayer player = getOnePlayer(a);
+        require(flowRate >= _app.MINIMUM_FLOW_RATE());
+
+        player.play(flowRate);
+    }
+
+    function leaveLottery(uint8 a) public {
+        LotteryPlayer player = getOnePlayer(a);
+
+        player.quitIfNeeded();
+    }
+
+    //
+    // Invariances
+    //
+    function echidna_app_is_free() public view returns (bool) {
+        return host.isApp(_app) && !host.isAppJailed(_app);
+    }
+
+    function echidna_always_has_a_winner() public view returns (bool) {
+        bool someoneInPlay = false;
+        for (uint i = 0; i < nTesters; ++i) {
+            LotteryPlayer player = LotteryPlayer(address(testers[i]));
+            if (player.inPlay()) {
+                someoneInPlay = true;
+                break;
+            }
+        }
+        (,address winner,) = _app.currentWinner();
+        if (someoneInPlay) return winner != address(0);
+        else return winner == address(0);
+    }
+}

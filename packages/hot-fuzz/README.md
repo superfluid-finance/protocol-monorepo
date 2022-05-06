@@ -19,8 +19,8 @@ How To Use
 3. Add possible parameterized operations.
 4. Add invariance public view functions starting with "echidna_" and returning a bool.
 
-## Run The Fuzzer
+## Run It
 
 ```
-$ ./hotfuzz NewHotFuzz|SuperHotFuzz
+$ ./hot-fuzz NewHotFuzz|SuperHotFuzz
 ```

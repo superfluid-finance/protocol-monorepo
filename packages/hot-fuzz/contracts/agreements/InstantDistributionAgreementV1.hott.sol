@@ -5,7 +5,7 @@ pragma solidity >= 0.8.0;
 import "../HotFuzzBase.sol";
 
 
-contract IDAHotFuzz is HotFuzzBase {
+abstract contract IDAHotFuzzMixin is HotFuzzBase {
     uint32 private constant MAX_NUM_INDICES = 3;
 
     function setupIndex(uint8 a, uint8 b, uint32 indexId, uint128 units) public {
@@ -60,5 +60,11 @@ contract IDAHotFuzz is HotFuzzBase {
         //assert(exist1 == exist2);
         assert(exist == true);
         assert(approved == true);
+    }
+}
+
+contract IDAHotFuzz is IDAHotFuzzMixin {
+    constructor() HotFuzzBase(10) {
+        initPlayers();
     }
 }

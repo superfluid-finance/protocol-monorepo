@@ -15,13 +15,13 @@ module.exports = {
             gasPrice: 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
         ganache: {
             host: "127.0.0.1",
             network_id: "*",
             port: process.env.GANACHE_PORT || 8545,
-        }
+        },
     },
     compilers: {
         solc: {
@@ -33,15 +33,16 @@ module.exports = {
                     runs: 200,
                 },
                 libraries: {
+                    // FIXME: in dev branch, it's been moved to libs/
                     "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
                         {
                             SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
                         },
                 },
             },
-        }
+        },
     },
     mocha: {
-        timeout: 1000000
-    }
+        timeout: 1000000,
+    },
 };

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# In all seriousness, this script should be written in perl. To the dearest leader Tim Toady.
+
+export HOT_FUZZ_MODE=1
+
+ECHIDNA=${ECHIDNA:-echidna-test}
+HOTFUZZ_DIR="$(dirname "$(readlink -f "$0")")"
+set -xe
+
+function apply_crytic_workaround() {
+    # SEE https://github.com/crytic/echidna/issues/738
+    [ -e "node_modules" ] || mkdir -p node_modules
+    [ -d "node_modules/@superfluid-finance" ] || ln -sf ../../../node_modules/\@superfluid-finance node_modules/
+    [ -d "node_modules/@openzeppelin" ] || ln -sf ../../../node_modules/\@openzeppelin node_modules/
+}
+function cleanup_crytic_workaround() {
+    [ -L "node_modules/@superfluid-finance" ] && rm -f "node_modules/@superfluid-finance"
+    [ -L "node_modules/@openzeppelin" ] && rm -f "node_modules/@openzeppelin"
+}
+
+function cleanup() {
+    cleanup_crytic_workaround
+
+    $HOTFUZZ_DIR/tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)
+}
+trap cleanup EXIT
+
+function oops () {
+    echo "$@" >&2
+    exit 1
+}
+
+function hott() {
+    TEST_CONTRACT_CONFIG=configs/$TEST_CONTRACT.yaml
+    [ ! -f "$TEST_CONTRACT_CONFIG" ] && oops "No $TEST_CONTRACT_CONFIG provided."
+
+    rm -rf crytic-export/
+    rm -rf build/contracts/
+    npx truffle compile --all \
+    && "$ECHIDNA" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+}
+
+apply_crytic_workaround
+
+TEST_CONTRACT=$1
+[ -z "$TEST_CONTRACT" ] && oops "No contract specified."
+hott $TEST_CONTRACT

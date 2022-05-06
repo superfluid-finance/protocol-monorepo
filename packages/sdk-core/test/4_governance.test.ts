@@ -26,7 +26,7 @@ describe("Governance Tests", () => {
         framework = frameworkClass;
         deployer = Deployer;
         superToken = SuperToken;
-        daix = await framework.loadSuperToken(superToken.address);
+        daix = await framework.loadWrapperSuperToken(superToken.address);
     });
 
     it("Should get default governance parameters", async () => {

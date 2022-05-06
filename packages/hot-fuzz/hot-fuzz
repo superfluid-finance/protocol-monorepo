@@ -19,10 +19,17 @@ function cleanup_crytic_workaround() {
     [ -L "node_modules/@openzeppelin" ] && rm -f "node_modules/@openzeppelin"
 }
 
+function digest_last_corpus() {
+    $HOTFUZZ_DIR/tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)
+}
+
+function digests() {
+    digest_last_corpus
+}
+trap digests SIGINT
+
 function cleanup() {
     cleanup_crytic_workaround
-
-    $HOTFUZZ_DIR/tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)
 }
 trap cleanup EXIT
 

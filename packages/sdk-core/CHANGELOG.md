@@ -18,6 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
 - Added `nativeTokenSymbol` property to `constants.ts`
 - Split `SuperToken` class into: `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes
+- Added `loadWrapperSuperToken`, `loadNativeAssetSuperToken`, and `loadPureSuperToken` super token initialization functions
 - Support `upgrade`, `upgradeTo` and `downgrade` functions via `NativeAssetSuperToken`
 - Added `upgradeTo` to `WrapperSuperToken` class as this was missing as well
 
@@ -35,15 +36,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - The `SuperToken` class is now an abstract base class and no longer contains the functions `upgrade` and `downgrade`.
 - `underlyingToken` is possibly undefined on `SuperToken`: `WrapperSuperToken` has `underlyingToken`, but `PureSuperToken` and `NativeAssetSuperToken` do not.
 > NOTE: These changes are due to the split of `SuperToken` into `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes.
-  - Migration: if you are using TypeScript, you may specify the type of token you are attempting to load:
-  ```
-  import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-  ...
-  const nativeAssetSuperToken = await framework.loadSuperToken<NativeAssetSuperToken>("ETHx");
-  // or
-  const nativeAssetSuperToken = await framework.loadSuperToken("ETHx") as NativeAssetSuperToken;
-  ```
-This will create a class so you can use `instanceof` to check the type of the created object.
+  - Migration: 
+      - if you are unsure of the type of the super token, you can use: `await framework.loadSuperToken("0x...");`
+      - if you want to load a wrapper super token, use: `await framework.loadWrapperSuperToken("DAIx");`
+      - if you want to load a native asset super token, use: `await framework.loadNativeAssetSuperToken("ETHx");`
+      - if you want to load a pure super token, use: `await framework.loadPureSuperToken("0x...");`
 
 ## [0.3.2] - 2022-03-16
 

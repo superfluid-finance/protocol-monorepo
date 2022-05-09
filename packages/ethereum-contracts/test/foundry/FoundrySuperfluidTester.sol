@@ -9,11 +9,11 @@ import {
     InstantDistributionAgreementV1,
     ERC20PresetMinterPauser,
     SuperToken,
-    SuperfluidFrameworkDeployer
+    SuperfluidFrameworkDeployer,
+    CFAv1Library,
+    IDAv1Library
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 
 contract FoundrySuperfluidTester is Test {
@@ -39,9 +39,6 @@ contract FoundrySuperfluidTester is Test {
     ERC20PresetMinterPauser internal token;
     SuperToken internal superToken;
 
-    CFAv1Library.InitData internal cfaLib;
-    IDAv1Library.InitData internal idaLib;
-
     uint256 private _expectedTotalSupply = 0;
 
     constructor (uint8 nTesters) {
@@ -55,11 +52,6 @@ contract FoundrySuperfluidTester is Test {
 
         sfDeployer = new SuperfluidFrameworkDeployer();
         sf = sfDeployer.getFramework();
-
-        cfaLib.host = sf.host;
-        cfaLib.cfa = sf.cfa;
-        idaLib.host = sf.host;
-        idaLib.ida = sf.ida;
 
         vm.stopPrank();
     }

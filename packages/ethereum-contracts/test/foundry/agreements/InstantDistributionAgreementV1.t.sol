@@ -20,10 +20,10 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
 
         // alice creates index
         vm.startPrank(alice);
-        idaLib.createIndex(superToken, indexId);
-        idaLib.updateSubscriptionUnits(superToken, indexId, bob, units);
+        sf.idaLib.createIndex(superToken, indexId);
+        sf.idaLib.updateSubscriptionUnits(superToken, indexId, bob, units);
         vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = idaLib.getIndex(superToken, alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = sf.idaLib.getIndex(superToken, alice, indexId);
         assertTrue(exist);
         assertEq(indexValue, 0);
         assertEq(totalUnitsApproved, 0);
@@ -31,9 +31,9 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
 
         // alice distributes
         vm.startPrank(alice);
-        idaLib.updateIndexValue(superToken, indexId, newIndexValue);
+        sf.idaLib.updateIndexValue(superToken, indexId, newIndexValue);
         vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = idaLib.getIndex(superToken, alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = sf.idaLib.getIndex(superToken, alice, indexId);
         assertTrue(exist);
         assertEq(indexValue, newIndexValue);
         assertEq(totalUnitsApproved, 0);
@@ -42,11 +42,11 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
         // bob subscribes to alice
         uint256 bobBalance1 = superToken.balanceOf(bob);
         vm.startPrank(bob);
-        idaLib.approveSubscription(superToken, alice, indexId);
+        sf.idaLib.approveSubscription(superToken, alice, indexId);
         vm.stopPrank();
         uint256 bobBalance2 = superToken.balanceOf(bob);
         assertEq(bobBalance2 - bobBalance1, uint256(units) * uint256(newIndexValue));
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = idaLib.getIndex(superToken, alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = sf.idaLib.getIndex(superToken, alice, indexId);
         assertTrue(exist);
         assertEq(indexValue, newIndexValue);
         assertEq(totalUnitsApproved, units);

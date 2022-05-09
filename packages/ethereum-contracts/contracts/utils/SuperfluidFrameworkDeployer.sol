@@ -16,6 +16,8 @@ import {
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
 import {SuperToken} from "../superfluid/SuperToken.sol";
+import "../apps/CFAv1Library.sol";
+import "../apps/IDAv1Library.sol";
 
 
 /// @title Superfluid Framework Deployer
@@ -26,7 +28,9 @@ contract SuperfluidFrameworkDeployer {
         TestGovernance governance;
         Superfluid host;
         ConstantFlowAgreementV1 cfa;
+        CFAv1Library.InitData cfaLib;
         InstantDistributionAgreementV1 ida;
+        IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
     }
 
@@ -102,13 +106,16 @@ contract SuperfluidFrameworkDeployer {
         external view
         returns (Framework memory sf)
     {
-        return Framework({
+        sf = Framework({
             governance: governance,
             host: host,
             cfa: cfa,
+            cfaLib: CFAv1Library.InitData(host, cfa),
             ida: ida,
+            idaLib: IDAv1Library.InitData(host, ida),
             superTokenFactory: superTokenFactory
         });
+        return sf;
     }
 
     /// @notice Deploy new wrapper super token

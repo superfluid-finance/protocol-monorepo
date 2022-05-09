@@ -196,7 +196,8 @@ interface ISuperfluid {
     event AppRegistered(ISuperApp indexed app);
 
     /**
-     * @dev Message sender declares it as a super app, using a registration key
+     * @dev Message sender declares it as a super app, using a registration key.
+     * The key is not checked on testnets or other deployments with unrestricted app registration.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
      * @param registrationKey The registration key issued by the governance

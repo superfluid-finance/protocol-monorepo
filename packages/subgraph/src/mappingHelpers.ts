@@ -440,7 +440,7 @@ export function updateAccountUpdatedAt(
     accountAddress: Address,
     block: ethereum.Block
 ): void {
-    // if (accountAddress.equals(ZERO_ADDRESS)) return;
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
     let account = getOrInitAccount(accountAddress, block);
     account.updatedAtTimestamp = block.timestamp;
     account.updatedAtBlockNumber = block.number;
@@ -704,13 +704,13 @@ export function updateAggregateEntitiesTransferData(
     value: BigInt,
     block: ethereum.Block
 ): void {
-    let fromAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
-        fromAddress,
-        tokenAddress,
-        block
-    );
-
     if (fromAddress.notEqual(ZERO_ADDRESS)) {
+        let fromAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
+            fromAddress,
+            tokenAddress,
+            block
+        );
+
         // NOTE: fromAccountTokenSnapshot won't exist if address is ZERO_ADDRESS
         fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(

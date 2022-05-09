@@ -62,11 +62,6 @@ export interface ITokenOptions {
     readonly networkName?: string;
 }
 
-type SuperTokenType =
-    | NativeAssetSuperToken
-    | WrapperSuperToken
-    | PureSuperToken;
-
 /**
  * SuperToken Helper Class
  * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
@@ -104,7 +99,7 @@ export default abstract class SuperToken extends ERC20Token {
         ) as ISuperToken;
     }
 
-    static create = async (options: ITokenOptions): Promise<SuperTokenType> => {
+    static create = async (options: ITokenOptions): Promise<SuperToken> => {
         if (!options.chainId && !options.networkName) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",

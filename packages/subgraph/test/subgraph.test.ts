@@ -4,6 +4,7 @@ import { TestToken } from "../typechain";
 import {
     asleep,
     beforeSetup,
+    fetchEntityAndEnsureExistence,
     getATSId,
     getRandomFlowRate,
     monthlyToSecondRate,
@@ -20,6 +21,7 @@ import {
     ISubscriberDistributionTesterParams,
     IUpdateGlobalObjects,
     IFlowOperator,
+    ILightEntity,
 } from "./interfaces";
 import {
     ALLOW_CREATE,
@@ -34,6 +36,8 @@ import {
 import { BaseProvider } from "@ethersproject/providers";
 import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { getAccountTokenSnapshotIds } from "./queries/aggregateQueries";
+import { getAccountIds } from "./queries/holQueries";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
@@ -1076,6 +1080,33 @@ describe("Subgraph Tests", () => {
                     eventType: IDAEventType.SubscriptionDistributionClaimed,
                 });
                 updateGlobalObjects(data);
+            }
+        });
+    });
+
+    describe("Global Check", () => {
+        it("There should be no Account or AccountTokenSnapshot entities with the zero address", async () => {
+            const accountTokenSnapshotIds = await fetchEntityAndEnsureExistence<
+                ILightEntity[]
+            >(
+                getAccountTokenSnapshotIds,
+                ethers.constants.AddressZero,
+                "AccountTokenSnapshot"
+            );
+            const accounts = await fetchEntityAndEnsureExistence<
+                ILightEntity[]
+            >(getAccountIds, ethers.constants.AddressZero, "Account");
+
+            if (accountTokenSnapshotIds.length !== 0) {
+                throw new Error(
+                    "Invariant broken, nonzero zero address account snapshot"
+                );
+            }
+
+            if (accounts.length !== 0) {
+                throw new Error(
+                    "Invariant broken, nonzero zero address accounts"
+                );
             }
         });
     });

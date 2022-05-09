@@ -97,4 +97,19 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
         if (someoneInPlay) return winner != address(0);
         else return winner == address(0);
     }
+
+    //event DEBUG_WINNER_TAKE_ALL(int96 winnerNetFlowRate, int96 totalInputFlowRate, int96 winerPlayingFlowRate);
+    function echidna_winner_takes_all() public view returns (bool) {
+        int96 totalInputFlowRate;
+        for (uint i = 0; i < nTesters; ++i) {
+            LotteryPlayer player = LotteryPlayer(address(testers[i]));
+            (,int96 r,,) = cfa.getFlow(superToken, address(player), address(_app));
+            totalInputFlowRate += r;
+        }
+        (,address winner,) = _app.currentWinner();
+        (,int96 winerPlayingFlowRate,,) = cfa.getFlow(superToken, address(winner), address(_app));
+        int96 winnerNetFlowRate = cfa.getNetFlow(superToken, address(winner));
+        //emit DEBUG_WINNER_TAKE_ALL(winnerNetFlowRate, totalInputFlowRate, winerPlayingFlowRate);
+        return winnerNetFlowRate == totalInputFlowRate - winerPlayingFlowRate;
+    }
 }

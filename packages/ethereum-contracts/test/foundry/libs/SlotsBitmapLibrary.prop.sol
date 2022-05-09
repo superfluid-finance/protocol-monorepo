@@ -14,13 +14,19 @@ import {
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 
-
 contract SlotsBitmapLibraryProperties is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     ERC20PresetMinterPauser private token;
-    ISuperToken immutable private superToken;
+    ISuperToken private immutable superToken;
     address constant subscriber = address(1);
-    bytes32 constant fakeId = keccak256(abi.encodePacked("subscriber", subscriber));
+    bytes32 constant fakeId =
+        keccak256(abi.encodePacked("subscriber", subscriber));
+
+    /// @dev Subscriber state slot id for storing subs bitmap
+    uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
+    /// @dev Subscriber state slot id starting point for subscription data
+    uint256 private constant _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START =
+        1 << 128;
 
     constructor() {
         vm.startPrank(subscriber);
@@ -32,7 +38,8 @@ contract SlotsBitmapLibraryProperties is Test {
             )
         );
         sfDeployer = new SuperfluidFrameworkDeployer();
-        (, , , SuperTokenFactory _superTokenFactory) = sfDeployer.getFramework();
+        (, , , SuperTokenFactory _superTokenFactory) = sfDeployer
+            .getFramework();
         token = new ERC20PresetMinterPauser("Test Token", "TST");
         superToken = _superTokenFactory.createERC20Wrapper(
             token,
@@ -45,50 +52,141 @@ contract SlotsBitmapLibraryProperties is Test {
         vm.stopPrank();
     }
 
+    function _listData(ISuperToken _superToken, address _subscriber)
+        private
+        view
+        returns (uint32[] memory slotIds, bytes32[] memory dataList)
+    {
+        (slotIds, dataList) = SlotsBitmapLibrary.listData(
+            _superToken,
+            _subscriber,
+            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START
+        );
+    }
+
+    function _findEmptySlotAndFill(ISuperToken _superToken, address _subscriber, bytes32 _subId)
+        private
+        returns (uint32 slotId)
+    {
+        slotId = SlotsBitmapLibrary.findEmptySlotAndFill(
+            _superToken,
+            _subscriber,
+            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START,
+            _subId
+        );
+    }
+
+    function _clearSlot(
+        ISuperToken _superToken,
+        address _subscriber,
+        uint32 _slotId
+    ) private {
+        SlotsBitmapLibrary.clearSlot(
+            _superToken,
+            _subscriber,
+            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _slotId
+        );
+    }
+
     function testSlotsBitmapLibraryMaxSlots() public {
         assertEq(SlotsBitmapLibrary._MAX_NUM_SLOTS, 256);
     }
 
     function testAddOneAndList() public {
-        (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
-        SlotsBitmapLibrary.findEmptySlotAndFill(superToken, subscriber, 0, 1 << 128, fakeId);
+        _findEmptySlotAndFill(superToken, subscriber, fakeId);
 
-        (uint32[] memory newSlotIds, ) = SlotsBitmapLibrary.listData(superToken, subscriber, 0, 1 << 128);
+        (uint32[] memory newSlotIds, ) = _listData(superToken, subscriber);
         assertEq(newSlotIds.length, 1);
     }
 
     function testAddOneAndListAndRemove() public {
-        (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
-        SlotsBitmapLibrary.findEmptySlotAndFill(superToken, subscriber, 0, 1 << 128, fakeId);
+        _findEmptySlotAndFill(superToken, subscriber, fakeId);
 
-        (slotIds, ) = SlotsBitmapLibrary.listData(superToken, subscriber, 0, 1 << 128);
+        (slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 1);
-        
+
         SlotsBitmapLibrary.clearSlot(ISuperToken(superToken), subscriber, 0, 0);
-        (slotIds, ) = SlotsBitmapLibrary.listData(superToken, subscriber, 0, 1 << 128);
+        (slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
     }
 
-    function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint8 subIdToRemove) public {
+    function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint32 subIdToRemove)
+        public
+    {
         vm.assume(numSlots > 0);
-        
+
         // add numSlots elements
-        (uint32[] memory slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
         for (uint8 i = 0; i < numSlots; i++) {
-            SlotsBitmapLibrary.findEmptySlotAndFill(superToken, subscriber, 0, 1 << 128, fakeId);
+            _findEmptySlotAndFill(superToken, subscriber, fakeId);
         }
-        (slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        (slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, numSlots);
-        
-        // remove one slot id
+
+        // remove an arbitary slot id between 0 and numSlots - 1
         subIdToRemove = uint8(bound(uint256(subIdToRemove), 0, numSlots - 1));
-        SlotsBitmapLibrary.clearSlot(ISuperToken(superToken), subscriber, 0, subIdToRemove);
-        (slotIds, ) = SlotsBitmapLibrary.listData(ISuperToken(superToken), subscriber, 0, 1 << 128);
+        _clearSlot(superToken, subscriber, subIdToRemove);
+        (slotIds, ) = _listData(superToken, subscriber);
 
         // length should be numSlots - 1
         assertEq(slotIds.length, numSlots - 1);
+    }
+
+    // randomize the two instructions (findEmptySlotAndFill and clearSlot)
+    function testRandomSlotsBitmapLibraryBehavior(
+        uint8 numSlots,
+        int256[] memory instructions
+    ) public {
+        vm.assume(numSlots > 0);
+
+        // instructions is a random array of int256 numbers
+        for (int256 i = 0; i < int256(instructions.length); i++) {
+            (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+            uint256 currentLength = slotIds.length;
+            // find way to randomize this number
+            uint8 randomSlotIdToClear = uint8(uint256(instructions[uint256(i)]));
+            randomSlotIdToClear = uint8(bound(uint256(randomSlotIdToClear), 0, type(uint8).max));
+
+            // clearSlot when number is less than 0 AND there are slots to clear
+            if (instructions[uint256(i)] < 0 && slotIds.length > 0) {
+                bool slotExists = _slotExists(slotIds, randomSlotIdToClear);
+
+                // if the random slot we want to delete exists, we clear it
+                // and length should be one less now
+                if (slotExists) {
+                    _clearSlot(superToken, subscriber, randomSlotIdToClear);
+                    (slotIds, ) = _listData(superToken, subscriber);
+                    assertEq(slotIds.length, currentLength - 1);
+                }
+            }
+
+            // findEmptySlotAndFill when number is greater than 0 AND the slotIds isn't maxed out
+            if (
+                instructions[uint256(i)] > 0 && slotIds.length < type(uint8).max
+            ) {
+                // we find an empty slot and fill it and length should be one more now
+                _findEmptySlotAndFill(superToken, subscriber, fakeId);
+                (slotIds, ) = _listData(superToken, subscriber);
+                assertEq(slotIds.length, currentLength + 1);
+            }
+        }
+    }
+
+    function _slotExists(uint32[] memory slotIds, uint8 slotId)
+        private
+        pure
+        returns (bool slotExists)
+    {
+        for (uint8 i = 0; i < slotIds.length; i++) {
+            if (slotIds[i] == slotId) slotExists = true;
+        }
     }
 }

@@ -136,10 +136,10 @@ contract EmploymentLoan is SuperAppBase {
         require(employerFlowRate >= getPaymentFlowRate());
         
         if (collateralAmount > 0) {
-            require(collateralToken.balanceOf(address(this)) == uint256(collateralAmount));
+            require(collateralToken.balanceOf(address(this)) >= uint256(collateralAmount));
         }
         //lender must approve contract before running next line
-        borrowToken.transferFrom(msg.sender, address(this), uint256(borrowAmount));
+        borrowToken.transferFrom(msg.sender, borrower, uint256(borrowAmount));
         //want to make sure that tokens are sent successfully first before setting lender to msg.sender
         int96 netFlowRate = cfa.getNetFlow(borrowToken, address(this));
         (, int96 outFlowRate, , ) = cfa.getFlow(borrowToken, address(this), borrower);

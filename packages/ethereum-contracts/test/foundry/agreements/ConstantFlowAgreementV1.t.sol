@@ -19,8 +19,8 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         cfaLib.flow(bob, superToken, flowRate);
         vm.stopPrank();
 
-        assertEq(cfa.getNetFlow(superToken, alice), -flowRate);
-        assertEq(cfa.getNetFlow(superToken, bob), flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
 
         assertTrue(checkAllInvariants());
     }
@@ -38,8 +38,8 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         cfaLib.flow(alice, superToken, flowRate);
         vm.stopPrank();
 
-        assertEq(cfa.getNetFlow(superToken, alice), 0);
-        assertEq(cfa.getNetFlow(superToken, bob), 0);
+        assertEq(sf.cfa.getNetFlow(superToken, alice), 0);
+        assertEq(sf.cfa.getNetFlow(superToken, bob), 0);
 
         assertTrue(checkAllInvariants());
     }

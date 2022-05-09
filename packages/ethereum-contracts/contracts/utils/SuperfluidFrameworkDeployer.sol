@@ -22,11 +22,18 @@ import {SuperToken} from "../superfluid/SuperToken.sol";
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
 contract SuperfluidFrameworkDeployer {
 
+    struct Framework {
+        TestGovernance governance;
+        Superfluid host;
+        ConstantFlowAgreementV1 cfa;
+        InstantDistributionAgreementV1 ida;
+        SuperTokenFactory superTokenFactory;
+    }
+
     TestGovernance internal governance;
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfa;
     InstantDistributionAgreementV1 internal ida;
-    SuperTokenFactoryHelper internal superTokenFactoryHelper;
     SuperTokenFactory internal superTokenFactory;
 
     /// @notice Deploys everything... probably
@@ -73,7 +80,7 @@ contract SuperfluidFrameworkDeployer {
         governance.registerAgreementClass(host, address(ida));
 
         // Deploy SuperTokenFactoryHelper
-        superTokenFactoryHelper = new SuperTokenFactoryHelper();
+        SuperTokenFactoryHelper superTokenFactoryHelper = new SuperTokenFactoryHelper();
 
         // Deploy SuperTokenFactory
         superTokenFactory = new SuperTokenFactory(
@@ -93,14 +100,15 @@ contract SuperfluidFrameworkDeployer {
     /// @notice Fetches the framework contracts
     function getFramework()
         external view
-        returns (
-            Superfluid,
-            ConstantFlowAgreementV1,
-            InstantDistributionAgreementV1,
-            SuperTokenFactory
-        )
+        returns (Framework memory sf)
     {
-        return (host, cfa, ida, superTokenFactory);
+        return Framework({
+            governance: governance,
+            host: host,
+            cfa: cfa,
+            ida: ida,
+            superTokenFactory: superTokenFactory
+        });
     }
 
     /// @notice Deploy new wrapper super token

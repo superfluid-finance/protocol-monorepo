@@ -440,7 +440,7 @@ export function updateAccountUpdatedAt(
     accountAddress: Address,
     block: ethereum.Block
 ): void {
-    if (accountAddress.equals(ZERO_ADDRESS)) return;
+    // if (accountAddress.equals(ZERO_ADDRESS)) return;
     let account = getOrInitAccount(accountAddress, block);
     account.updatedAtTimestamp = block.timestamp;
     account.updatedAtBlockNumber = block.number;

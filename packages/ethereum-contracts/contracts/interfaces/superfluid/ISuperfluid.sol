@@ -184,7 +184,10 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
-     * @dev Message sender declares it as a super app
+     * @dev Message sender (must be a contract) declares itself as a super app.
+     * Can be used only on networks with unrestricted app registration (e.g. testnets).
+     * You may want to instead use `registerAppWithKey` or `registerAppByFactory` on both testnet and mainnet,
+     * in order to have the same contract code for test and production deployments.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
      */
@@ -205,7 +208,7 @@ interface ISuperfluid {
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
-     * @dev Message sender declares app as a super app
+     * @dev Message sender (must be a contracT) declares app as a super app
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
      * NOTE: only factory contracts authorized by governance can register super apps

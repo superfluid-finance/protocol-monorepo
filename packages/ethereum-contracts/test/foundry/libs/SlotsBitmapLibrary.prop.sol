@@ -117,7 +117,7 @@ contract SlotsBitmapLibraryProperties is Test {
         assertEq(slotIds.length, 0);
     }
 
-    function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint32 subIdToRemove)
+    function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint8 subIdToRemove)
         public
     {
         vm.assume(numSlots > 0);
@@ -134,13 +134,17 @@ contract SlotsBitmapLibraryProperties is Test {
         // remove an arbitary slot id between 0 and numSlots - 1
         subIdToRemove = uint8(bound(uint256(subIdToRemove), 0, numSlots - 1));
         _clearSlot(superToken, subscriber, subIdToRemove);
+        
         (slotIds, ) = _listData(superToken, subscriber);
+        // the deleted slot should no longer exist
+        bool slotExists = _slotExists(slotIds, subIdToRemove);
+        assert(!slotExists);
 
         // length should be numSlots - 1
         assertEq(slotIds.length, numSlots - 1);
     }
 
-    // randomize the two instructions (findEmptySlotAndFill and clearSlot)
+    // randomize the sequence of the two instructions (findEmptySlotAndFill and clearSlot)
     function testRandomSlotsBitmapLibraryBehavior(
         uint8 numSlots,
         int256[] memory instructions
@@ -164,7 +168,11 @@ contract SlotsBitmapLibraryProperties is Test {
                 if (slotExists) {
                     _clearSlot(superToken, subscriber, randomSlotIdToClear);
                     (slotIds, ) = _listData(superToken, subscriber);
+
                     assertEq(slotIds.length, currentLength - 1);
+                    // the deleted slot should no longer exist
+                    slotExists = _slotExists(slotIds, randomSlotIdToClear);
+                    assert(!slotExists);
                 }
             }
 
@@ -185,6 +193,10 @@ contract SlotsBitmapLibraryProperties is Test {
         pure
         returns (bool slotExists)
     {
+        // if the last element of slotIds is less than the inputted slotId, we know that
+        // slotId does not exist in the slotIds array
+        if (slotIds.length > 0 && slotIds[slotIds.length - 1] < slotId) return false;
+
         for (uint8 i = 0; i < slotIds.length; i++) {
             if (slotIds[i] == slotId) slotExists = true;
         }

@@ -188,7 +188,7 @@ jobs:
   publish-coverage-reports:
     name: Publish coverage reports
 
-    needs: [js-sdk-coverage, sdk-core-coverage]
+    needs: [ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 

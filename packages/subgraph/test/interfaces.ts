@@ -18,6 +18,15 @@ export interface IEvent {
     readonly timestamp: string;
 }
 
+export interface ISubgraphError {
+    locations: { line: number; column: number }[];
+    message: string;
+}
+
+export interface ISubgraphErrors {
+    errors?: ISubgraphError[];
+}
+
 export interface IMeta {
     readonly _meta: {
         readonly block: {

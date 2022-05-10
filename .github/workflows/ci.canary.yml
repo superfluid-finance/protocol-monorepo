@@ -76,7 +76,7 @@ jobs:
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Create coverage artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ethereum-contracts-coverage
           path: |
@@ -105,7 +105,7 @@ jobs:
           yarn workspace @superfluid-finance/js-sdk test-coverage
 
       - name: Create coverage artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: js-sdk-coverage
           path: |
@@ -134,12 +134,12 @@ jobs:
           yarn workspace @superfluid-finance/sdk-core test-coverage
 
       - name: Create coverage artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sdk-core-coverage
           path: |
             packages/sdk-core/coverage/
-            packages/sdk-core/coverage.json
+            packages/sdk-core/coverage-final.json
 
   subgraph-test:
     name: Run test of subgraph on dev branch
@@ -188,8 +188,8 @@ jobs:
       - name: "Run integration test suite"
         run: yarn workspace @superfluid-finance/subgraph test
 
-  publish-coverages:
-    name: Publish canary packages to registries
+  publish-coverage-reports:
+    name: Publish coverage reports
 
     needs: [js-sdk-coverage, sdk-core-coverage]
 
@@ -197,7 +197,7 @@ jobs:
 
     steps:
       - name: Download js-sdk-coverage
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: js-sdk-coverage
           path: js-sdk-coverage
@@ -210,7 +210,7 @@ jobs:
           fail_ci_if_error: true
 
       - name: Download sdk-core-coverage
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: sdk-core-coverage
           path: sdk-core-coverage

@@ -269,8 +269,7 @@ type SubscriptionApprovedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionDistributionClaimedEvent implements Event
-    @entity {
+type SubscriptionDistributionClaimedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -492,8 +491,7 @@ type RoleRevokedEvent implements Event @entity {
 }
 
 #     SuperfluidGovernance    #
-type CFAv1LiquidationPeriodChangedEvent implements Event
-    @entity {
+type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!

@@ -208,7 +208,7 @@ interface ISuperfluid {
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
-     * @dev Message sender (must be a contracT) declares app as a super app
+     * @dev Message sender (must be a contract) declares app as a super app
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
      * NOTE: only factory contracts authorized by governance can register super apps

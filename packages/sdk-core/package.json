@@ -65,8 +65,7 @@
         "@graphql-codegen/typescript-operations": "^2.3.5",
         "@graphql-typed-document-node/core": "^3.1.1",
         "get-graphql-schema": "^2.1.2",
-        "mocha": "^9.2.2",
-        "nyc": "^15.1.0"
+        "mocha": "^9.2.2"
     },
     "resolutions": {
         "graphql": "^16.0.0"

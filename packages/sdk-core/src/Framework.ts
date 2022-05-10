@@ -11,7 +11,11 @@ import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import Query from "./Query";
 import { SFError } from "./SFError";
-import SuperToken from "./SuperToken";
+import SuperToken, {
+    NativeAssetSuperToken,
+    PureSuperToken,
+    WrapperSuperToken,
+} from "./SuperToken";
 import IResolverABI from "./abi/IResolver.json";
 import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
@@ -282,18 +286,83 @@ export default class Framework {
     };
 
     /**
-     * Loads `SuperTokenWithUnderlying`, `SuperTokenWithoutUnderlying` or `NativeAssetSuperToken` class from the `Framework`.
+     * Loads `NativeAssetSuperToken` class from the `Framework`. Will throw if token is not NativeAssetSuperToken.
+     * @param tokenAddressOrSymbol
+     * @returns `NativeAssetSuperToken` class
+     */
+    loadNativeAssetSuperToken = async (
+        tokenAddressOrSymbol: string
+    ): Promise<NativeAssetSuperToken> => {
+        const superToken = await this.loadSuperToken(tokenAddressOrSymbol);
+
+        // The NativeAssetSuperToken class should have the nativeTokenSymbol property
+        const isNativeAssetSuperToken = !!(superToken as any).nativeTokenSymbol;
+
+        if (!isNativeAssetSuperToken) {
+            throw new SFError({
+                type: "SUPERTOKEN_INITIALIZATION",
+                customMessage: "The token is not a native asset supertoken.",
+            });
+        }
+        return superToken as NativeAssetSuperToken;
+    };
+
+    /**
+     * Loads `PureSuperToken` class from the `Framework`. Will throw if token is not PureSuperToken.
+     * @param tokenAddressOrSymbol
+     * @returns `PureSuperToken` class
+     */
+    loadPureSuperToken = async (
+        tokenAddressOrSymbol: string
+    ): Promise<PureSuperToken> => {
+        const superToken = await this.loadSuperToken(tokenAddressOrSymbol);
+
+        // The PureSuperToken class should not have the downgrade (and upgrade) function
+        // we can just check if downgrade doesn't exist
+        const isPureSuperToken = !!(superToken as any).downgrade === false;
+        if (!isPureSuperToken) {
+            throw new SFError({
+                type: "SUPERTOKEN_INITIALIZATION",
+                customMessage: "The token is not a pure supertoken.",
+            });
+        }
+        return superToken as PureSuperToken;
+    };
+
+    /**
+     * Loads `WrapperSuperToken` class from the `Framework`. Will throw if token is not WrapperSuperToken.
+     * @param tokenAddressOrSymbol
+     * @returns `WrapperSuperToken` class
+     */
+    loadWrapperSuperToken = async (
+        tokenAddressOrSymbol: string
+    ): Promise<WrapperSuperToken> => {
+        const superToken = await this.loadSuperToken(tokenAddressOrSymbol);
+
+        // The WrapperSuperToken class should have the underlyingToken property
+        const isWrapperSuperToken = !!(superToken as any).underlyingToken;
+        if (!isWrapperSuperToken) {
+            throw new SFError({
+                type: "SUPERTOKEN_INITIALIZATION",
+                customMessage: "The token is not a wrapper supertoken.",
+            });
+        }
+        return superToken as WrapperSuperToken;
+    };
+
+    /**
+     * Loads `SuperToken` class from the `Framework`. Use this when you're unsure of the token type.
      * @param tokenAddressOrSymbol the `SuperToken` address or symbol (if symbol, it must be on the resolver)
      * @returns `SuperToken` class
      */
-    loadSuperToken = async <T extends SuperToken = SuperToken>(
+    loadSuperToken = async (
         tokenAddressOrSymbol: string
-    ) => {
+    ): Promise<SuperToken> => {
         const address = await this._tryGetTokenAddress(tokenAddressOrSymbol);
-        return (await SuperToken.create({
+        return await SuperToken.create({
             ...this.settings,
             address,
-        })) as T;
+        });
     };
 
     /**

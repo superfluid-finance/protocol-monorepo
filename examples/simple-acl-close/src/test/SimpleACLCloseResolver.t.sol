@@ -7,11 +7,11 @@ import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
 import { IInstantDistributionAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import {
-    Superfluid,
+    CFAv1Library,
     ConstantFlowAgreementV1,
     ERC20PresetMinterPauser,
+    Superfluid,
     SuperToken,
     SuperTokenFactory,
     SuperfluidFrameworkDeployer

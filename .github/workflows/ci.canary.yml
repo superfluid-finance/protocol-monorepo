@@ -127,11 +127,11 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: "Run test suite"
+      - name: Run coverage test
         run: |
           yarn install --frozen-lockfile
           yarn build
-          yarn workspace @superfluid-finance/sdk-core test-covearge
+          yarn workspace @superfluid-finance/sdk-core test-coverage
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
@@ -186,7 +186,7 @@ jobs:
         working-directory: ./graph-node/docker
 
       - name: "Run integration test suite"
-        run: yarn workspace @superfluid-finance/subgraph test-covearge
+        run: yarn workspace @superfluid-finance/subgraph test
 
   publish-coverages:
     name: Publish canary packages to registries

@@ -3,6 +3,7 @@ pragma solidity 0.8.13;
 
 import "forge-std/Test.sol";
 
+import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
 import { SlotsBitmapLibrary } from "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol";
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
@@ -31,17 +32,12 @@ contract SlotsBitmapLibraryProperties is Test {
     constructor() {
         vm.startPrank(subscriber);
         // Deploy ERC1820
-        vm.etch(
-            address(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24),
-            bytes(
-                hex"608060405234801561001057600080fd5b50600436106100a5576000357c010000000000000000000000000000000000000000000000000000000090048063a41e7d5111610078578063a41e7d51146101d4578063aabbb8ca1461020a578063b705676514610236578063f712f3e814610280576100a5565b806329965a1d146100aa5780633d584063146100e25780635df8122f1461012457806365ba36c114610152575b600080fd5b6100e0600480360360608110156100c057600080fd5b50600160a060020a038135811691602081013591604090910135166102b6565b005b610108600480360360208110156100f857600080fd5b5035600160a060020a0316610570565b60408051600160a060020a039092168252519081900360200190f35b6100e06004803603604081101561013a57600080fd5b50600160a060020a03813581169160200135166105bc565b6101c26004803603602081101561016857600080fd5b81019060208101813564010000000081111561018357600080fd5b82018360208201111561019557600080fd5b803590602001918460018302840111640100000000831117156101b757600080fd5b5090925090506106b3565b60408051918252519081900360200190f35b6100e0600480360360408110156101ea57600080fd5b508035600160a060020a03169060200135600160e060020a0319166106ee565b6101086004803603604081101561022057600080fd5b50600160a060020a038135169060200135610778565b61026c6004803603604081101561024c57600080fd5b508035600160a060020a03169060200135600160e060020a0319166107ef565b604080519115158252519081900360200190f35b61026c6004803603604081101561029657600080fd5b508035600160a060020a03169060200135600160e060020a0319166108aa565b6000600160a060020a038416156102cd57836102cf565b335b9050336102db82610570565b600160a060020a031614610339576040805160e560020a62461bcd02815260206004820152600f60248201527f4e6f7420746865206d616e616765720000000000000000000000000000000000604482015290519081900360640190fd5b6103428361092a565b15610397576040805160e560020a62461bcd02815260206004820152601a60248201527f4d757374206e6f7420626520616e204552433136352068617368000000000000604482015290519081900360640190fd5b600160a060020a038216158015906103b85750600160a060020a0382163314155b156104ff5760405160200180807f455243313832305f4143434550545f4d4147494300000000000000000000000081525060140190506040516020818303038152906040528051906020012082600160a060020a031663249cb3fa85846040518363ffffffff167c01000000000000000000000000000000000000000000000000000000000281526004018083815260200182600160a060020a0316600160a060020a031681526020019250505060206040518083038186803b15801561047e57600080fd5b505afa158015610492573d6000803e3d6000fd5b505050506040513d60208110156104a857600080fd5b5051146104ff576040805160e560020a62461bcd02815260206004820181905260248201527f446f6573206e6f7420696d706c656d656e742074686520696e74657266616365604482015290519081900360640190fd5b600160a060020a03818116600081815260208181526040808320888452909152808220805473ffffffffffffffffffffffffffffffffffffffff19169487169485179055518692917f93baa6efbd2244243bfee6ce4cfdd1d04fc4c0e9a786abd3a41313bd352db15391a450505050565b600160a060020a03818116600090815260016020526040812054909116151561059a5750806105b7565b50600160a060020a03808216600090815260016020526040902054165b919050565b336105c683610570565b600160a060020a031614610624576040805160e560020a62461bcd02815260206004820152600f60248201527f4e6f7420746865206d616e616765720000000000000000000000000000000000604482015290519081900360640190fd5b81600160a060020a031681600160a060020a0316146106435780610646565b60005b600160a060020a03838116600081815260016020526040808220805473ffffffffffffffffffffffffffffffffffffffff19169585169590951790945592519184169290917f605c2dbf762e5f7d60a546d42e7205dcb1b011ebc62a61736a57c9089d3a43509190a35050565b600082826040516020018083838082843780830192505050925050506040516020818303038152906040528051906020012090505b92915050565b6106f882826107ef565b610703576000610705565b815b600160a060020a03928316600081815260208181526040808320600160e060020a031996909616808452958252808320805473ffffffffffffffffffffffffffffffffffffffff19169590971694909417909555908152600284528181209281529190925220805460ff19166001179055565b600080600160a060020a038416156107905783610792565b335b905061079d8361092a565b156107c357826107ad82826108aa565b6107b85760006107ba565b815b925050506106e8565b600160a060020a0390811660009081526020818152604080832086845290915290205416905092915050565b6000808061081d857f01ffc9a70000000000000000000000000000000000000000000000000000000061094c565b909250905081158061082d575080155b1561083d576000925050506106e8565b61084f85600160e060020a031961094c565b909250905081158061086057508015155b15610870576000925050506106e8565b61087a858561094c565b909250905060018214801561088f5750806001145b1561089f576001925050506106e8565b506000949350505050565b600160a060020a0382166000908152600260209081526040808320600160e060020a03198516845290915281205460ff1615156108f2576108eb83836107ef565b90506106e8565b50600160a060020a03808316600081815260208181526040808320600160e060020a0319871684529091529020549091161492915050565b7bffffffffffffffffffffffffffffffffffffffffffffffffffffffff161590565b6040517f01ffc9a7000000000000000000000000000000000000000000000000000000008082526004820183905260009182919060208160248189617530fa90519096909550935050505056fea165627a7a72305820377f4a2d4301ede9949f163f319021a6e9c687c292a5e2b2c4734c126b524e6c0029"
-            )
-        );
+        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();
-        (, , , SuperTokenFactory _superTokenFactory) = sfDeployer
+        SuperfluidFrameworkDeployer.Framework memory sfFramework = sfDeployer
             .getFramework();
         token = new ERC20PresetMinterPauser("Test Token", "TST");
-        superToken = _superTokenFactory.createERC20Wrapper(
+        superToken = sfFramework.superTokenFactory.createERC20Wrapper(
             token,
             18,
             ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
@@ -52,7 +48,10 @@ contract SlotsBitmapLibraryProperties is Test {
         vm.stopPrank();
     }
 
-    function _listData(ISuperToken _superToken, address _subscriber)
+    function _listData(
+        ISuperToken _superToken,
+        address _subscriber
+    )
         private
         view
         returns (uint32[] memory slotIds, bytes32[] memory dataList)
@@ -65,10 +64,16 @@ contract SlotsBitmapLibraryProperties is Test {
         );
     }
 
-    function _findEmptySlotAndFill(ISuperToken _superToken, address _subscriber, bytes32 _subId)
-        private
-        returns (uint32 slotId)
-    {
+    /**
+     * @dev Test the assertion below after the function is run once or n times
+     * 
+     * ASSERTION: There should be one more slotId than before (use _listData to check)
+     */
+    function _findEmptySlotAndFill(
+        ISuperToken _superToken,
+        address _subscriber,
+        bytes32 _subId
+    ) private returns (uint32 slotId) {
         slotId = SlotsBitmapLibrary.findEmptySlotAndFill(
             _superToken,
             _subscriber,
@@ -76,8 +81,20 @@ contract SlotsBitmapLibraryProperties is Test {
             _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START,
             _subId
         );
+
+        // NOTE: it is good to assert there is one more slot after each fill OR
+        // n more slots after n fills
+        // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL | N_MORE_SLOTS_AFTER_FILLS
+        // (uint32[] memory newSlotIds, ) = _listData(_superToken, _subscriber);
+        // assertEq(_previousSlotIdsLength + 1, newSlotIds.length);
     }
 
+    /**
+     * @dev Test the assertions below after the function is run once or n times
+     * 
+     * ASSERTION A: There should be one less slotId than before (use _listData to check)
+     * ASSERTION B: The cleared slot should no longer exist (use _slotExists to check)
+     */
     function _clearSlot(
         ISuperToken _superToken,
         address _subscriber,
@@ -89,6 +106,17 @@ contract SlotsBitmapLibraryProperties is Test {
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
             _slotId
         );
+
+        // NOTE: it is good to assert there is one less slot after each clear OR
+        // n fewer slots after n clears
+
+        // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR | N_LESS_SLOTS_AFTER_CLEARS
+        // (uint32[] memory newSlotIds, ) = _listData(_superToken, _subscriber);
+        // assertEq(_previousSlotIdsLength - 1, newSlotIds.length);
+        
+        // [ASSERT]: SLOT_NO_LONGER_EXISTS_AFTER_CLEAR
+        // bool slotExists = _slotExists(newSlotIds, uint8(_slotId));
+        // assert(!slotExists);
     }
 
     function testSlotsBitmapLibraryMaxSlots() public {
@@ -101,20 +129,29 @@ contract SlotsBitmapLibraryProperties is Test {
         _findEmptySlotAndFill(superToken, subscriber, fakeId);
 
         (uint32[] memory newSlotIds, ) = _listData(superToken, subscriber);
-        assertEq(newSlotIds.length, 1);
+        // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL
+        assertEq(newSlotIds.length, slotIds.length + 1);
     }
 
     function testAddOneAndListAndRemove() public {
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
+
         _findEmptySlotAndFill(superToken, subscriber, fakeId);
+        (uint32[] memory newSlotIds, ) = _listData(superToken, subscriber);
+        // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL
+        assertEq(newSlotIds.length, slotIds.length + 1);
 
-        (slotIds, ) = _listData(superToken, subscriber);
-        assertEq(slotIds.length, 1);
+        uint32 SLOT_ID_TO_REMOVE = 0;
 
-        SlotsBitmapLibrary.clearSlot(ISuperToken(superToken), subscriber, 0, 0);
+        _clearSlot(superToken, subscriber, SLOT_ID_TO_REMOVE);
         (slotIds, ) = _listData(superToken, subscriber);
-        assertEq(slotIds.length, 0);
+        // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR
+        assertEq(slotIds.length, newSlotIds.length - 1);
+        
+        bool slotExists = _slotExists(slotIds, uint8(SLOT_ID_TO_REMOVE));
+        // [ASSERT]: SLOT_NO_LONGER_EXISTS_AFTER_CLEAR
+        assert(!slotExists);
     }
 
     function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint8 subIdToRemove)
@@ -122,70 +159,107 @@ contract SlotsBitmapLibraryProperties is Test {
     {
         vm.assume(numSlots > 0);
 
-        // add numSlots elements
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
+
+        // add numSlots elements
         for (uint8 i = 0; i < numSlots; i++) {
             _findEmptySlotAndFill(superToken, subscriber, fakeId);
         }
-        (slotIds, ) = _listData(superToken, subscriber);
-        assertEq(slotIds.length, numSlots);
+
+        (uint32[] memory newSlotIds, ) = _listData(superToken, subscriber);
+        // [ASSERT]: N_MORE_SLOTS_AFTER_FILLS
+        assertEq(newSlotIds.length, numSlots);
 
         // remove an arbitary slot id between 0 and numSlots - 1
         subIdToRemove = uint8(bound(uint256(subIdToRemove), 0, numSlots - 1));
         _clearSlot(superToken, subscriber, subIdToRemove);
         
         (slotIds, ) = _listData(superToken, subscriber);
-        // the deleted slot should no longer exist
-        bool slotExists = _slotExists(slotIds, subIdToRemove);
-        assert(!slotExists);
+        // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR
+        assertEq(slotIds.length, newSlotIds.length - 1);
 
-        // length should be numSlots - 1
-        assertEq(slotIds.length, numSlots - 1);
+        bool slotExists = _slotExists(slotIds, subIdToRemove);
+        // [ASSERT]: SLOT_NO_LONGER_EXISTS_AFTER_CLEAR
+        assert(!slotExists);
     }
 
     // randomize the sequence of the two instructions (findEmptySlotAndFill and clearSlot)
+    // IF < 0 TRY_CLEAR_SLOT; ELSE TRY_FILL_SLOT
     function testRandomSlotsBitmapLibraryBehavior(
         uint8 numSlots,
         int256[] memory instructions
     ) public {
         vm.assume(numSlots > 0);
+        uint256 numSlotIds;
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+        assertEq(slotIds.length, 0);
 
         // instructions is a random array of int256 numbers
         for (int256 i = 0; i < int256(instructions.length); i++) {
-            (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+            (slotIds, ) = _listData(superToken, subscriber);
             uint256 currentLength = slotIds.length;
-            // find way to randomize this number
-            uint8 randomSlotIdToClear = uint8(uint256(instructions[uint256(i)]));
-            randomSlotIdToClear = uint8(bound(uint256(randomSlotIdToClear), 0, type(uint8).max));
+
+            int256 instruction = instructions[uint256(i)];
+
+            uint8 randomSlotIdToClear = uint8(uint256(instruction));
+            randomSlotIdToClear = uint8(
+                bound(uint256(randomSlotIdToClear), 0, type(uint8).max)
+            );
 
             // clearSlot when number is less than 0 AND there are slots to clear
-            if (instructions[uint256(i)] < 0 && slotIds.length > 0) {
-                bool slotExists = _slotExists(slotIds, randomSlotIdToClear);
+            if (instruction < 0 && slotIds.length > 0) {
 
-                // if the random slot we want to delete exists, we clear it
-                // and length should be one less now
-                if (slotExists) {
+                if (_slotExists(slotIds, randomSlotIdToClear)) {
                     _clearSlot(superToken, subscriber, randomSlotIdToClear);
+                    
                     (slotIds, ) = _listData(superToken, subscriber);
-
+                    // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR
                     assertEq(slotIds.length, currentLength - 1);
-                    // the deleted slot should no longer exist
-                    slotExists = _slotExists(slotIds, randomSlotIdToClear);
+
+                    bool slotExists = _slotExists(slotIds, randomSlotIdToClear);
+                    // [ASSERT]: SLOT_NO_LONGER_EXISTS_AFTER_CLEAR
                     assert(!slotExists);
+                    numSlotIds--;
                 }
             }
 
-            // findEmptySlotAndFill when number is greater than 0 AND the slotIds isn't maxed out
+            // FILL when number is greater than 0 AND the slotIds isn't maxed out
             if (
-                instructions[uint256(i)] > 0 && slotIds.length < type(uint8).max
+                instruction >= 0 && slotIds.length < type(uint8).max
             ) {
-                // we find an empty slot and fill it and length should be one more now
                 _findEmptySlotAndFill(superToken, subscriber, fakeId);
                 (slotIds, ) = _listData(superToken, subscriber);
+                // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL
                 assertEq(slotIds.length, currentLength + 1);
+                numSlotIds++;
             }
         }
+
+        (slotIds, ) = _listData(superToken, subscriber);
+        assertEq(numSlotIds, slotIds.length);
+    }
+
+    function testCreateSlotsAndClearAll(
+        uint8 numSlots
+    ) public {
+        vm.assume(numSlots > 0);
+        // fill numSlots slots
+        for (uint8 i = 0; i < numSlots; i++) {
+            _findEmptySlotAndFill(superToken, subscriber, fakeId);
+        }
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+        // [ASSERT]: N_MORE_SLOTS_AFTER_FILLS
+        assertEq(slotIds.length, numSlots);
+
+        // clear all slots
+        for (uint32 i = 0; i < slotIds.length; i++) {
+            _clearSlot(superToken, subscriber, slotIds[i]);
+        }
+
+        (slotIds, ) = _listData(superToken, subscriber);
+        // [ASSERT]: N_LESS_SLOTS_AFTER_CLEARS
+        assertEq(slotIds.length, 0);
     }
 
     function _slotExists(uint32[] memory slotIds, uint8 slotId)
@@ -195,7 +269,8 @@ contract SlotsBitmapLibraryProperties is Test {
     {
         // if the last element of slotIds is less than the inputted slotId, we know that
         // slotId does not exist in the slotIds array
-        if (slotIds.length > 0 && slotIds[slotIds.length - 1] < slotId) return false;
+        if (slotIds.length > 0 && slotIds[slotIds.length - 1] < slotId)
+            return false;
 
         for (uint8 i = 0; i < slotIds.length; i++) {
             if (slotIds[i] == slotId) slotExists = true;

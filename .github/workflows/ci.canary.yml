@@ -2,7 +2,7 @@ name: CI Canary
 
 on:
   push:
-    branches: ["dev", "js_sdk_release_0_6_pr"]
+    branches: ["dev"]
     paths:
       - 'package.json'
       - 'packages/**'
@@ -239,7 +239,6 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    if: false # FIXME
     needs: [essential-build-and-test, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
@@ -321,7 +320,6 @@ jobs:
   upgrade-contracts:
     name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
 
-    if: false # FIXME
     needs: [publish-npm-packages]
 
     runs-on: ubuntu-latest

@@ -7,11 +7,11 @@ import {
     IIndexSubscription,
     ITestUpdateFlowOperatorData,
     ITestModifyFlowData,
+    ISubgraphErrors,
 } from "../interfaces";
 import { FlowActionType } from "./constants";
-import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
-import { Resolver, TestToken } from "../../typechain";
+import { TestToken } from "../../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 
@@ -47,14 +47,10 @@ export const beforeSetup = async (tokenAmount: number) => {
         resolverAddress: RESOLVER_ADDRESS,
     });
 
-    const resolver = (await ethers.getContractAt(
-        IResolverABI,
-        RESOLVER_ADDRESS
-    )) as Resolver;
+    const resolver = sf.contracts.resolver.connect(Deployer);
 
     console.log("\n");
-    const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
-    const fDAIx = (await sf.loadSuperToken(fDAIxAddress)) as WrapperSuperToken;
+    const fDAIx = (await sf.loadSuperToken("fDAIx")) as WrapperSuperToken;
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
@@ -141,11 +137,20 @@ export const subgraphRequest = async <T>(
     variables?: { [key: string]: any }
 ): Promise<T> => {
     try {
-        const response = await request<T>(
+        const response = await request<T & ISubgraphErrors>(
             "http://localhost:8000/subgraphs/name/superfluid-test",
             query,
             variables
         );
+
+        if (response.errors) {
+            throw new Error(
+                `Failed call to subgraph with query ${query}, error thrown: ${JSON.stringify(
+                    response.errors
+                )}`
+            );
+        }
+
         return response;
     } catch (err) {
         throw new Error(
@@ -162,8 +167,10 @@ export const fetchEntityAndEnsureExistence = async <T>(
     const vars = {
         id,
     };
-    const data = await subgraphRequest<{ response: T }>(query, vars);
-
+    const data = await subgraphRequest<{ response: T } & ISubgraphErrors>(
+        query,
+        vars
+    );
     if (data.response == null) {
         throw new Error(entityName + " entity not found.");
     }
@@ -179,9 +186,11 @@ export const fetchEventAndEnsureExistence = async <T>(
     const vars = {
         transactionHash,
     };
-    const data = await subgraphRequest<{
-        response: T[];
-    }>(query, vars);
+    const data = await subgraphRequest<
+        {
+            response: T[];
+        } & ISubgraphErrors
+    >(query, vars);
     const event = data.response[0];
 
     if (!event) {

@@ -93,8 +93,7 @@ export function updateTotalSupplyForNativeSuperToken(
     tokenAddress: Address
 ): TokenStatistic {
     if (
-        token.underlyingAddress.toHex() ==
-            "0x0000000000000000000000000000000000000000" &&
+        Address.fromBytes(token.underlyingAddress).equals(ZERO_ADDRESS) &&
         tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
     ) {
         let tokenContract = SuperToken.bind(tokenAddress);

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.13;
 
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
@@ -20,10 +22,8 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { CallUtils } from "../libs/CallUtils.sol";
+import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
 
-import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
-
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /// FIXME Lots of reverts in here - can put custom errors
 
@@ -90,7 +90,7 @@ contract Superfluid is
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
     /// @dev if app whitelisting is enabled, this is to make sure the keys are used only once
-    mapping(bytes32 => bool) internal _appKeysUsed;
+    mapping(bytes32 => bool) internal _appKeysUsedDeprecated;
 
     constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
@@ -315,21 +315,16 @@ contract Superfluid is
             tx.origin,
             registrationKey
         );
-        // check if the key is enabled
+        // check if the key is valid and not expired
         require(
             _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
                 configKey
-            ) == 1,
-            "SF: invalid registration key"
+            // solhint-disable-next-line not-rely-on-time
+            ) >= block.timestamp,
+            "SF: invalid or expired registration key"
         );
-        require(
-            !_appKeysUsed[configKey],
-            "SF: registration key already used"
-        );
-        // clear the key so that it can't be reused
-        _appKeysUsed[configKey] = true;
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 

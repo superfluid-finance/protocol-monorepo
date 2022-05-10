@@ -1085,10 +1085,6 @@ describe("Subgraph Tests", () => {
     });
 
     describe("Global Check", () => {
-        // NOTE: this will be true for the current and all subsequent subgraphs deployed
-        // HOWEVER, it was possible to assign the zero address as the subscriber so this
-        // means that it is still possible Account or AccountTokenSnapshots can be created
-        // via one of the IDA events
         it("There should be no Account or AccountTokenSnapshot entities with the zero address", async () => {
             const accountTokenSnapshotIds = await fetchEntityAndEnsureExistence<
                 ILightEntity[]
@@ -1101,15 +1097,15 @@ describe("Subgraph Tests", () => {
                 ILightEntity[]
             >(getAccountIds, ethers.constants.AddressZero, "Account");
 
-            if (accountTokenSnapshotIds.length !== 0) {
+            if (accountTokenSnapshotIds.length === 0) {
                 throw new Error(
-                    "Invariant broken, nonzero zero address account snapshot"
+                    "Invariant broken, no nonzero zero address AccountTokenSnapshot's"
                 );
             }
 
-            if (accounts.length !== 0) {
+            if (accounts.length === 0) {
                 throw new Error(
-                    "Invariant broken, nonzero zero address accounts"
+                    "Invariant broken, no nonzero zero address Account's"
                 );
             }
         });

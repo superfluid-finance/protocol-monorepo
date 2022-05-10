@@ -7,6 +7,7 @@ import {
     IIndexSubscription,
     ITestUpdateFlowOperatorData,
     ITestModifyFlowData,
+    ISubgraphErrors,
 } from "../interfaces";
 import { FlowActionType } from "./constants";
 import TestTokenABI from "../../abis/TestToken.json";
@@ -136,11 +137,20 @@ export const subgraphRequest = async <T>(
     variables?: { [key: string]: any }
 ): Promise<T> => {
     try {
-        const response = await request<T>(
+        const response = await request<T & ISubgraphErrors>(
             "http://localhost:8000/subgraphs/name/superfluid-test",
             query,
             variables
         );
+
+        if (response.errors) {
+            throw new Error(
+                `Failed call to subgraph with query ${query}, error thrown: ${JSON.stringify(
+                    response.errors
+                )}`
+            );
+        }
+
         return response;
     } catch (err) {
         throw new Error(
@@ -157,8 +167,10 @@ export const fetchEntityAndEnsureExistence = async <T>(
     const vars = {
         id,
     };
-    const data = await subgraphRequest<{ response: T }>(query, vars);
-
+    const data = await subgraphRequest<{ response: T } & ISubgraphErrors>(
+        query,
+        vars
+    );
     if (data.response == null) {
         throw new Error(entityName + " entity not found.");
     }
@@ -174,9 +186,11 @@ export const fetchEventAndEnsureExistence = async <T>(
     const vars = {
         transactionHash,
     };
-    const data = await subgraphRequest<{
-        response: T[];
-    }>(query, vars);
+    const data = await subgraphRequest<
+        {
+            response: T[];
+        } & ISubgraphErrors
+    >(query, vars);
     const event = data.response[0];
 
     if (!event) {

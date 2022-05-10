@@ -13,7 +13,7 @@ jobs:
   essential-build-and-test:
     name: Build and test essential packages of dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo' && false # FIXME
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 
@@ -57,7 +57,7 @@ jobs:
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo' && false # FIXME
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 
@@ -197,18 +197,18 @@ jobs:
         with:
           path: protocol-monorepo
 
-      # - name: Download ethereum-contracts-coverage
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: ethereum-contracts-coverage
-      #     path: protocol-monorepo/packages/ethereum-contracts/coverage
-      # - name: Upload ethereum-contracts-coverage to codecov
-      #   uses: codecov/codecov-action@v2
-      #   with:
-      #     files: protocol-monorepo/packages/ethereum-contracts/coverage/lcov.info
-      #     name: ethereum-contracts-coverage
-      #     flags: ethereum-contracts
-      #     fail_ci_if_error: true
+      - name: Download ethereum-contracts-coverage
+        uses: actions/download-artifact@v3
+        with:
+          name: ethereum-contracts-coverage
+          path: protocol-monorepo/packages/ethereum-contracts/coverage
+      - name: Upload ethereum-contracts-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: protocol-monorepo/packages/ethereum-contracts/coverage/lcov.info
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+          fail_ci_if_error: true
 
       - name: Download js-sdk-coverage
         uses: actions/download-artifact@v3

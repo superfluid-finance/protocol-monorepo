@@ -1,10 +1,4 @@
 name: CI Canary
-env:
-  subgraph-working-directory: ./packages/subgraph
-  contracts-working-directory: ./packages/ethereum-contracts
-  js-sdk-working-directory: ./packages/js-sdk
-  sdk-core-working-directory: ./packages/sdk-core
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   push:
@@ -84,18 +78,10 @@ jobs:
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
         with:
-          name: coverage
+          name: ethereum-contracts-coverage
           path: |
             packages/ethereum-contracts/coverage/
             packages/ethereum-contracts/coverage.json
-
-      - name: Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: packages/ethereum-contracts/coverage/lcov.info
-          fail_ci_if_error: true
-          name: ethereum-contracts-coverage
-          flags: ethereum-contracts
 
   js-sdk-coverage:
     name: Run coverage test of js-sdk on dev branch
@@ -121,7 +107,7 @@ jobs:
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
         with:
-          name: coverage
+          name: js-sdk-coverage
           path: |
             packages/js-sdk/coverage/
             packages/js-sdk/coverage/coverage-final.json
@@ -142,31 +128,23 @@ jobs:
           node-version: 16.x
 
       - name: "Run test suite"
-        run:
+        run: |
           yarn install --frozen-lockfile
           yarn build
-          yarn workspace @superfluid-finance/sdk-core test
+          yarn workspace @superfluid-finance/sdk-core test-covearge
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
         with:
-          name: coverage
+          name: sdk-core-coverage
           path: |
             packages/sdk-core/coverage/
-            packages/sdk-core/coverage/coverage-final.json
-
-      - name: Upload SDK-Core Coverage Results to codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: packages/sdk-core/coverage/lcov.info
-          fail_ci_if_error: true
-          name: sdk-core-coverage
-          flags: sdk-core
+            packages/sdk-core/coverage.json
 
   subgraph-test:
     name: Run test of subgraph on dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo' && false # FIXME
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 
@@ -208,14 +186,47 @@ jobs:
         working-directory: ./graph-node/docker
 
       - name: "Run integration test suite"
-        run: yarn test
-        working-directory: ${{ env.subgraph-working-directory }}
+        run: yarn workspace @superfluid-finance/subgraph test-covearge
 
-  publish:
+  publish-coverages:
+    name: Publish canary packages to registries
+
+    needs: [js-sdk-coverage, sdk-core-coverage]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download js-sdk-coverage
+        uses: actions/download-artifact@v2
+        with:
+          name: js-sdk-coverage
+          path: js-sdk-coverage
+      - name: Upload js-sdk-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: js-sdk-coverage/lcov.info
+          name: js-sdk-coverage
+          flags: js-sdk
+          fail_ci_if_error: true
+
+      - name: Download sdk-core-coverage
+        uses: actions/download-artifact@v2
+        with:
+          name: sdk-core-coverage
+          path: sdk-core-coverage
+      - name: Upload sdk-core-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: sdk-core-coverage/lcov.info
+          name: sdk-core-coverage
+          flags: sdk-core
+          fail_ci_if_error: true
+
+  publish-npm-packages:
     name: Publish canary packages to registries
 
     if: false # FIXME
-    needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
+    needs: [essential-build-and-test, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, subgraph-test]
 
     runs-on: ubuntu-latest
 
@@ -293,11 +304,11 @@ jobs:
           s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_REDUX_VERSION) }}
           cloudfront_distribution_id: E3SV855CTC9UJO
 
-  deploy:
-    name: Deploy and upgrade testnets with canary ethereum-contracts build
+  upgrade-contracts:
+    name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
 
     if: false # FIXME
-    needs: [essential-build-and-test, ethereum-contracts-coverage, sdk-core-coverage, subgraph-test]
+    needs: [publish-npm-packages]
 
     runs-on: ubuntu-latest
 

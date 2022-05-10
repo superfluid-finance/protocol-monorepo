@@ -1117,73 +1117,92 @@ describe("Subgraph Tests", () => {
             // NOTE: it is possible to create an entity which points to another entity
             // but that other entity may not exist and the error will only arise once the
             // query is made
-            await subgraphRequest<{
+            let data: any = await subgraphRequest<{
                 response: ILightEntity[];
             }>(globalQueries.getEvents);
+            console.log("getEvents", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { stream: ILightEntity }[];
             }>(globalQueries.getFlowUpdatedEventsLightEntities);
+            console.log("getFlowUpdatedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { flowOperator: ILightEntity }[];
             }>(globalQueries.getFlowOperatorUpdatedEventsLightEntities);
+            console.log("getFlowOperatorUpdatedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { index: ILightEntity }[];
             }>(globalQueries.getIndexCreatedEventsLightEntities);
+            console.log("getIndexCreatedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { index: ILightEntity }[];
             }>(globalQueries.getIndexDistributionClaimedEventsLightEntities);
+            console.log("getIndexDistributionClaimedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { index: ILightEntity }[];
             }>(globalQueries.getIndexUpdatedEventsLightEntities);
+            console.log("getIndexUpdatedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { index: ILightEntity }[];
             }>(globalQueries.getIndexSubscribedEventsLightEntities);
+            console.log("getIndexSubscribedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { index: ILightEntity }[];
             }>(globalQueries.getIndexUnitsUpdatedEventsLightEntities);
+            console.log("getIndexUnitsUpdatedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { index: ILightEntity }[];
             }>(globalQueries.getIndexUnsubscribedEventsLightEntities);
+            console.log("getIndexUnsubscribedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { subscription: ILightEntity }[];
             }>(globalQueries.getSubscriptionApprovedEventsLightEntities);
+            console.log("getSubscriptionApprovedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { subscription: ILightEntity }[];
             }>(
                 globalQueries.getSubscriptionDistributionClaimedEventsLightEntities
             );
+            console.log(
+                "getSubscriptionDistributionClaimedEventsLightEntities",
+                data
+            );
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { subscription: ILightEntity }[];
             }>(globalQueries.getSubscriptionRevokedEventsLightEntities);
+            console.log("getSubscriptionRevokedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { subscription: ILightEntity }[];
             }>(globalQueries.getSubscriptionUnitsUpdatedEventsLightEntities);
+            console.log("getSubscriptionUnitsUpdatedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { from: ILightEntity; to: ILightEntity }[];
             }>(globalQueries.getTransferEventsLightEntities);
+            console.log("getTransferEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { account: ILightEntity }[];
             }>(globalQueries.getTokenDowngradedEventsLightEntities);
+            console.log("getTokenDowngradedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { account: ILightEntity }[];
             }>(globalQueries.getTokenUpgradedEventsLightEntities);
+            console.log("getTokenUpgradedEventsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     inflows: ILightEntity[];
                     outflows: ILightEntity[];
@@ -1196,8 +1215,9 @@ describe("Subgraph Tests", () => {
                     accountTokenSnapshots: ILightEntity[];
                 }[];
             }>(globalQueries.getAccountsLightEntities);
+            console.log("getAccountsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     token: ILightEntity;
                     publisher: ILightEntity;
@@ -1210,8 +1230,9 @@ describe("Subgraph Tests", () => {
                     indexUnsubscribedEvents: ILightEntity[];
                 }[];
             }>(globalQueries.getIndexesLightEntities);
+            console.log("getIndexesLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     subscriber: ILightEntity;
                     index: ILightEntity;
@@ -1221,8 +1242,9 @@ describe("Subgraph Tests", () => {
                     subscriptionUnitsUpdatedEvents: ILightEntity[];
                 }[];
             }>(globalQueries.getIndexSubscriptionsLightEntities);
+            console.log("getIndexSubscriptionsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     token: ILightEntity;
                     sender: ILightEntity;
@@ -1231,16 +1253,18 @@ describe("Subgraph Tests", () => {
                     streamPeriods: ILightEntity[];
                 }[];
             }>(globalQueries.getStreamsLightEntities);
+            console.log("getStreamsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     token: ILightEntity;
                     sender: ILightEntity;
                     flowOperatorUpdatedEvents: ILightEntity[];
                 }[];
             }>(globalQueries.getFlowOperatorsLightEntities);
+            console.log("getFlowOperatorsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     stream: ILightEntity;
                     sender: ILightEntity;
@@ -1249,18 +1273,21 @@ describe("Subgraph Tests", () => {
                     startedAtEvent: ILightEntity;
                 }[];
             }>(globalQueries.getStreamPeriodsLightEntities);
+            console.log("getStreamPeriodsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: {
                     account: ILightEntity;
                     token: ILightEntity;
                     flowOperators: ILightEntity[];
                 }[];
             }>(globalQueries.getAccountTokenSnapshotsLightEntities);
+            console.log("getAccountTokenSnapshotsLightEntities", data);
 
-            await subgraphRequest<{
+            data = await subgraphRequest<{
                 response: { token: ILightEntity }[];
             }>(globalQueries.getTokenStatisticsLightEntities);
+            console.log("getTokenStatisticsLightEntities", data);
         });
     });
 });

@@ -29,6 +29,14 @@ export const getAccountTokenSnapshot = gql`
     }
 `;
 
+export const getAccountTokenSnapshotIds = gql`
+    query getAccountTokenSnapshot($id: ID!) {
+        response: accountTokenSnapshots(where: { account: $id }) {
+            id
+        }
+    }
+`;
+
 export const getTokenStatistic = gql`
     query getTokenStatistic($id: ID!) {
         response: tokenStatistic(id: $id) {

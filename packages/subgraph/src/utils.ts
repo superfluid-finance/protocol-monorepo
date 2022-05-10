@@ -1,24 +1,13 @@
-import {
-    BigInt,
-    Bytes,
-    ethereum,
-    Address,
-    log,
-} from "@graphprotocol/graph-ts";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { Resolver } from "../generated/ResolverV1/Resolver";
-import {
-    StreamRevision,
-    IndexSubscription,
-    Token,
-    TokenStatistic,
-} from "../generated/schema";
+import {Address, BigInt, Bytes, ethereum, log,} from "@graphprotocol/graph-ts";
+import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
+import {Resolver} from "../generated/ResolverV1/Resolver";
+import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../generated/schema";
 
 /**************************************************************************
  * Constants
  *************************************************************************/
-
 export const BIG_INT_ZERO = BigInt.fromI32(0);
+export const PADDING_LEFT_LENGTH = BigInt.fromI32(6);
 export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
@@ -252,3 +241,18 @@ export function getAmountStreamedSinceLastUpdatedAt(
     let timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(previousTotalOutflowRate);
 }
+
+/**
+ * getOrder return concatenate string of block number and logIndex (padded left to 6 digit).
+ * @param blockNumber
+ * @param logIndex
+ */
+export function getOrder(
+    blockNumber: BigInt,
+    logIndex: BigInt,
+): string {
+    return blockNumber.toString() +
+        "-" +
+        logIndex.toString().padStart(PADDING_LEFT_LENGTH.toI32(), BIG_INT_ZERO.toString())
+}
+

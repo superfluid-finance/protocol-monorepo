@@ -19,11 +19,13 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@openzeppelin/test-helpers": "^0.5.15",
-        "@superfluid-finance/hot-fuzz": "../../../packages/hot-fuzz",
         "@superfluid-finance/js-sdk": "^0.5.5",
         "@truffle/contract": "4.3.42",
         "@truffle/hdwallet-provider": "1.7.0",
         "dotenv": "^10.0.0",
         "truffle": "5.4.21"
+    },
+    "optionalDependencies": {
+        "@superfluid-finance/hot-fuzz": "../../../packages/hot-fuzz"
     }
 }

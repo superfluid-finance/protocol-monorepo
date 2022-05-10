@@ -2,7 +2,7 @@ const HDWalletProvider = require("@truffle/hdwallet-provider");
 require("dotenv").config();
 const GAS_LIMIT = 8e6;
 
-module.exports = {
+const M = (module.exports = {
     networks: {
         goerli: {
             provider: () =>
@@ -32,17 +32,23 @@ module.exports = {
                     enabled: true,
                     runs: 200,
                 },
-                libraries: {
-                    // FIXME: in dev branch, it's been moved to libs/
-                    "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
-                        {
-                            SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
-                        },
-                },
             },
         },
     },
     mocha: {
         timeout: 1000000,
     },
-};
+});
+
+// hot-fuzz support
+if (process.env.HOT_FUZZ_MODE) {
+    M.compilers.solc.settings.libraries = {
+        ...M.compilers.solc.settings.libraries,
+        "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
+            {
+                SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
+            },
+    };
+}
+
+require("@superfluid-finance/hot-fuzz").hotfuzzPatchTruffleConfig(M);

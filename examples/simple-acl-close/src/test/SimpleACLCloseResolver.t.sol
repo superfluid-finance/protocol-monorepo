@@ -32,13 +32,13 @@ contract SimpleACLCloseResolverTest is Test {
     using CFAv1Library for CFAv1Library.InitData;
 
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
+    SuperfluidFrameworkDeployer.Framework internal sfFramework;
     Superfluid private _host;
     ConstantFlowAgreementV1 private _cfa;
     SuperTokenFactory private _superTokenFactory;
     ERC20PresetMinterPauser private _token;
     ISuperToken private _superToken;
     SimpleACLCloseResolver private _simpleACLCloseResolver;
-    CFAv1Library.InitData private _cfaLib;
 
     /**************************************************************************
      * Setup Function
@@ -51,14 +51,10 @@ contract SimpleACLCloseResolverTest is Test {
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
 
         sfDeployer = new SuperfluidFrameworkDeployer();
-        SuperfluidFrameworkDeployer.Framework memory sfFramework = sfDeployer
-            .getFramework();
+        sfFramework = sfDeployer.getFramework();
         _host = sfFramework.host;
         _cfa = sfFramework.cfa;
         _superTokenFactory = sfFramework.superTokenFactory;
-        // Deploy and retrieve contracts using `_vm` and `sender`. The sender deploys everything.
-        _cfaLib.host = _host;
-        _cfaLib.cfa = _cfa;
 
         _vm.stopPrank();
     }
@@ -116,7 +112,7 @@ contract SimpleACLCloseResolverTest is Test {
     function testCannotExecuteRightNow() public {
         // create a stream from sender to receiver
         _vm.startPrank(sender);
-        _cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.flow(receiver, _superToken, 100);
 
         // fails because cannot execute yet
         _vm.expectRevert(OpsMock.CannotExecute.selector);
@@ -132,7 +128,7 @@ contract SimpleACLCloseResolverTest is Test {
         // move block.timestamp to 1 because it is currently at 0
         _vm.warp(block.timestamp + 1);
 
-        _cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.flow(receiver, _superToken, 100);
 
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);
@@ -145,7 +141,7 @@ contract SimpleACLCloseResolverTest is Test {
     function testCannotCloseBeforeEndTime() public {
         // create a stream from sender to receiver
         _vm.startPrank(sender);
-        _cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
         _grantFlowOperatorPermissions(address(_superToken), address(ops));
@@ -201,7 +197,7 @@ contract SimpleACLCloseResolverTest is Test {
         // move block.timestamp to 1 because it is currently at 0
         _vm.warp(block.timestamp + 1);
 
-        _cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.flow(receiver, _superToken, 100);
 
         // grant permissions so ops has delete flow operator permissions
         _grantFlowOperatorPermissions(address(_superToken), address(ops));

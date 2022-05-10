@@ -81,7 +81,6 @@ jobs:
           name: ethereum-contracts-coverage
           path: |
             packages/ethereum-contracts/coverage/
-            packages/ethereum-contracts/coverage.json
 
   js-sdk-coverage:
     name: Run coverage test of js-sdk on dev branch
@@ -110,7 +109,6 @@ jobs:
           name: js-sdk-coverage
           path: |
             packages/js-sdk/coverage/
-            packages/js-sdk/coverage/coverage-final.json
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
@@ -139,7 +137,6 @@ jobs:
           name: sdk-core-coverage
           path: |
             packages/sdk-core/coverage/
-            packages/sdk-core/coverage-final.json
 
   subgraph-test:
     name: Run test of subgraph on dev branch

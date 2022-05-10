@@ -1085,7 +1085,7 @@ describe("Subgraph Tests", () => {
     });
 
     describe("Global Check", () => {
-        it("There should be no Account or AccountTokenSnapshot entities with the zero address", async () => {
+        it("There should be at least one Account or AccountTokenSnapshot entities with the zero address", async () => {
             const accountTokenSnapshotIds = await fetchEntityAndEnsureExistence<
                 ILightEntity[]
             >(

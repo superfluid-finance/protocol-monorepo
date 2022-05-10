@@ -48,10 +48,7 @@ contract SlotsBitmapLibraryProperties is Test {
         vm.stopPrank();
     }
 
-    function _listData(
-        ISuperToken _superToken,
-        address _subscriber
-    )
+    function _listData(ISuperToken _superToken, address _subscriber)
         private
         view
         returns (uint32[] memory slotIds, bytes32[] memory dataList)
@@ -66,7 +63,7 @@ contract SlotsBitmapLibraryProperties is Test {
 
     /**
      * @dev Test the assertion below after the function is run once or n times
-     * 
+     *
      * ASSERTION: There should be one more slotId than before (use _listData to check)
      */
     function _findEmptySlotAndFill(
@@ -91,7 +88,7 @@ contract SlotsBitmapLibraryProperties is Test {
 
     /**
      * @dev Test the assertions below after the function is run once or n times
-     * 
+     *
      * ASSERTION A: There should be one less slotId than before (use _listData to check)
      * ASSERTION B: The cleared slot should no longer exist (use _slotExists to check)
      */
@@ -113,45 +110,10 @@ contract SlotsBitmapLibraryProperties is Test {
         // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR | N_LESS_SLOTS_AFTER_CLEARS
         // (uint32[] memory newSlotIds, ) = _listData(_superToken, _subscriber);
         // assertEq(_previousSlotIdsLength - 1, newSlotIds.length);
-        
+
         // [ASSERT]: SLOT_NO_LONGER_EXISTS_AFTER_CLEAR
         // bool slotExists = _slotExists(newSlotIds, uint8(_slotId));
         // assert(!slotExists);
-    }
-
-    function testSlotsBitmapLibraryMaxSlots() public {
-        assertEq(SlotsBitmapLibrary._MAX_NUM_SLOTS, 256);
-    }
-
-    function testAddOneAndList() public {
-        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
-        assertEq(slotIds.length, 0);
-        _findEmptySlotAndFill(superToken, subscriber, fakeId);
-
-        (uint32[] memory newSlotIds, ) = _listData(superToken, subscriber);
-        // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL
-        assertEq(newSlotIds.length, slotIds.length + 1);
-    }
-
-    function testAddOneAndListAndRemove() public {
-        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
-        assertEq(slotIds.length, 0);
-
-        _findEmptySlotAndFill(superToken, subscriber, fakeId);
-        (uint32[] memory newSlotIds, ) = _listData(superToken, subscriber);
-        // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL
-        assertEq(newSlotIds.length, slotIds.length + 1);
-
-        uint32 SLOT_ID_TO_REMOVE = 0;
-
-        _clearSlot(superToken, subscriber, SLOT_ID_TO_REMOVE);
-        (slotIds, ) = _listData(superToken, subscriber);
-        // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR
-        assertEq(slotIds.length, newSlotIds.length - 1);
-        
-        bool slotExists = _slotExists(slotIds, uint8(SLOT_ID_TO_REMOVE));
-        // [ASSERT]: SLOT_NO_LONGER_EXISTS_AFTER_CLEAR
-        assert(!slotExists);
     }
 
     function testSlotsBitmapLibraryBehavior(uint8 numSlots, uint8 subIdToRemove)
@@ -174,7 +136,7 @@ contract SlotsBitmapLibraryProperties is Test {
         // remove an arbitary slot id between 0 and numSlots - 1
         subIdToRemove = uint8(bound(uint256(subIdToRemove), 0, numSlots - 1));
         _clearSlot(superToken, subscriber, subIdToRemove);
-        
+
         (slotIds, ) = _listData(superToken, subscriber);
         // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR
         assertEq(slotIds.length, newSlotIds.length - 1);
@@ -184,23 +146,66 @@ contract SlotsBitmapLibraryProperties is Test {
         assert(!slotExists);
     }
 
+    function testCreateSlotsAndClearAll(uint8 numSlots) public {
+        vm.assume(numSlots > 0);
+        // fill numSlots slots
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+        uint256 originalSlotIdsLength = slotIds.length;
+
+        for (uint8 i = 0; i < numSlots; i++) {
+            _findEmptySlotAndFill(superToken, subscriber, fakeId);
+        }
+        (slotIds, ) = _listData(superToken, subscriber);
+        // [ASSERT]: N_MORE_SLOTS_AFTER_FILLS
+        assertEq(slotIds.length, originalSlotIdsLength + numSlots);
+
+        // clear all slots
+        for (uint32 i = 0; i < slotIds.length; i++) {
+            _clearSlot(superToken, subscriber, slotIds[i]);
+        }
+
+        (slotIds, ) = _listData(superToken, subscriber);
+        // [ASSERT]: N_LESS_SLOTS_AFTER_CLEARS
+        assertEq(slotIds.length, 0);
+    }
+
+    function testCreateRandomSlotsAndCreateSlotsAndClearAll(
+        int256[] memory _instructions
+    ) public {
+        vm.assume(_instructions.length > 0);
+        _createRandomSlots(_instructions);
+
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+        uint32 remainingSlots = type(uint8).max - slotIds.length;
+        testCreateSlotsAndClearAll(remainingSlots);
+    }
+
+    function testCreateRandomSlotsAndCreateTooMany(
+        int256[] memory _instructions
+    ) public {
+        vm.expectRevert("SlotBitmap out of bound");
+        vm.assume(_instructions.length > 0);
+        _createRandomSlots(_instructions);
+
+        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
+        uint32 tooManySlots = type(uint8).max + 1;
+        testCreateSlotsAndClearAll(tooManySlots);
+    }
+
     // randomize the sequence of the two instructions (findEmptySlotAndFill and clearSlot)
     // IF < 0 TRY_CLEAR_SLOT; ELSE TRY_FILL_SLOT
-    function testRandomSlotsBitmapLibraryBehavior(
-        uint8 numSlots,
-        int256[] memory instructions
-    ) public {
-        vm.assume(numSlots > 0);
+    function _createRandomSlots(int256[] memory _instructions) private {
+        vm.assume(_instructions.length > 0);
         uint256 numSlotIds;
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);
 
-        // instructions is a random array of int256 numbers
-        for (int256 i = 0; i < int256(instructions.length); i++) {
+        // _instructions is a random array of int256 numbers
+        for (int256 i = 0; i < int256(_instructions.length); i++) {
             (slotIds, ) = _listData(superToken, subscriber);
             uint256 currentLength = slotIds.length;
 
-            int256 instruction = instructions[uint256(i)];
+            int256 instruction = _instructions[uint256(i)];
 
             uint8 randomSlotIdToClear = uint8(uint256(instruction));
             randomSlotIdToClear = uint8(
@@ -209,10 +214,9 @@ contract SlotsBitmapLibraryProperties is Test {
 
             // clearSlot when number is less than 0 AND there are slots to clear
             if (instruction < 0 && slotIds.length > 0) {
-
                 if (_slotExists(slotIds, randomSlotIdToClear)) {
                     _clearSlot(superToken, subscriber, randomSlotIdToClear);
-                    
+
                     (slotIds, ) = _listData(superToken, subscriber);
                     // [ASSERT]: ONE_LESS_SLOT_AFTER_CLEAR
                     assertEq(slotIds.length, currentLength - 1);
@@ -225,9 +229,7 @@ contract SlotsBitmapLibraryProperties is Test {
             }
 
             // FILL when number is greater than 0 AND the slotIds isn't maxed out
-            if (
-                instruction >= 0 && slotIds.length < type(uint8).max
-            ) {
+            if (instruction >= 0 && slotIds.length < type(uint8).max) {
                 _findEmptySlotAndFill(superToken, subscriber, fakeId);
                 (slotIds, ) = _listData(superToken, subscriber);
                 // [ASSERT]: ONE_MORE_SLOT_AFTER_FILL
@@ -238,28 +240,6 @@ contract SlotsBitmapLibraryProperties is Test {
 
         (slotIds, ) = _listData(superToken, subscriber);
         assertEq(numSlotIds, slotIds.length);
-    }
-
-    function testCreateSlotsAndClearAll(
-        uint8 numSlots
-    ) public {
-        vm.assume(numSlots > 0);
-        // fill numSlots slots
-        for (uint8 i = 0; i < numSlots; i++) {
-            _findEmptySlotAndFill(superToken, subscriber, fakeId);
-        }
-        (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
-        // [ASSERT]: N_MORE_SLOTS_AFTER_FILLS
-        assertEq(slotIds.length, numSlots);
-
-        // clear all slots
-        for (uint32 i = 0; i < slotIds.length; i++) {
-            _clearSlot(superToken, subscriber, slotIds[i]);
-        }
-
-        (slotIds, ) = _listData(superToken, subscriber);
-        // [ASSERT]: N_LESS_SLOTS_AFTER_CLEARS
-        assertEq(slotIds.length, 0);
     }
 
     function _slotExists(uint32[] memory slotIds, uint8 slotId)

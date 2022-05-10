@@ -30,9 +30,8 @@ contract HotFuzzBase {
 
     // immutables
     SuperfluidFrameworkDeployer private immutable _sfDeployer;
-    Superfluid internal immutable host;
-    ConstantFlowAgreementV1 internal immutable cfa;
-    InstantDistributionAgreementV1 internal immutable ida;
+    SuperfluidFrameworkDeployer.Framework internal sf;
+
     ERC20PresetMinterPauser internal immutable token;
     SuperToken internal immutable superToken;
     uint internal immutable nTesters;
@@ -44,7 +43,7 @@ contract HotFuzzBase {
 
     constructor(uint nTesters_) {
         _sfDeployer = new SuperfluidFrameworkDeployer();
-        (host, cfa, ida, ) = _sfDeployer.getFramework();
+        sf = _sfDeployer.getFramework();
 
         (token, superToken) = _sfDeployer.deployWrapperSuperToken("HOTfuzz Token", "HOTT");
         nTesters = nTesters_;
@@ -69,7 +68,7 @@ contract HotFuzzBase {
         virtual internal
         returns (SuperfluidTester)
     {
-        return new SuperfluidTester(host, cfa, ida, token, superToken);
+        return new SuperfluidTester(sf, token, superToken);
     }
 
     function addAccount(address a)
@@ -134,7 +133,7 @@ contract HotFuzzBase {
         int96 netFlowRateSum = 0;
         address[] memory accounts = listAccounts();
         for (uint i = 0; i < accounts.length; ++i) {
-            netFlowRateSum += cfa.getNetFlow(superToken, accounts[i]);
+            netFlowRateSum += sf.cfa.getNetFlow(superToken, accounts[i]);
         }
         assert(netFlowRateSum == 0);
         return netFlowRateSum == 0;

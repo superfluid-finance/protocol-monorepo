@@ -23,7 +23,7 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
-module.exports = {
+const M = (module.exports = {
     /**
      * Networks define how you connect to your ethereum client and let you set the
      * defaults web3 uses to send transactions. If you don't specify one truffle
@@ -90,12 +90,6 @@ module.exports = {
                     runs: 200,
                 },
                 //evmVersion: "byzantium"
-                libraries: {
-                    "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
-                        {
-                            SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
-                        },
-                },
             },
         },
     },
@@ -120,4 +114,15 @@ module.exports = {
     //   }
     // }
     // }
-};
+});
+
+// hot-fuzz support
+if (process.env.HOT_FUZZ_MODE) {
+    M.compilers.solc.settings.libraries = {
+        ...M.compilers.solc.settings.libraries,
+        "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
+            {
+                SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
+            },
+    };
+}

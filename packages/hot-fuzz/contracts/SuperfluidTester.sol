@@ -7,32 +7,25 @@ import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlow
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 
 contract SuperfluidTester {
 
-    Superfluid internal host;
+    SuperfluidFrameworkDeployer.Framework internal sf;
     IERC20 internal token;
     ISuperToken internal superToken;
-    CFAv1Library.InitData internal cfaLib;
-    IDAv1Library.InitData internal idaLib;
 
     using CFAv1Library for CFAv1Library.InitData;
     using IDAv1Library for IDAv1Library.InitData;
 
     constructor (
-        Superfluid host_,
-        IConstantFlowAgreementV1 cfa_,
-        IInstantDistributionAgreementV1 ida_,
+        SuperfluidFrameworkDeployer.Framework memory sf_,
         IERC20 token_,
         ISuperToken superToken_)
     {
-        host = host_;
+        sf = sf_;
         token = token_;
         superToken = superToken_;
-        cfaLib.host = host_;
-        cfaLib.cfa = cfa_;
-        idaLib.host = host_;
-        idaLib.ida = ida_;
     }
 
     function upgradeSuperToken(uint256 amount) public {
@@ -45,23 +38,23 @@ contract SuperfluidTester {
     }
 
     function flow(address receiver, int96 flowRate) public {
-        cfaLib.flow(receiver, superToken, flowRate);
+        sf.cfaLib.flow(receiver, superToken, flowRate);
     }
 
     function createIndex(uint32 indexId) public {
-        idaLib.createIndex(superToken, indexId);
+        sf.idaLib.createIndex(superToken, indexId);
     }
 
     function updateSubscriptionUnits(uint32 indexId, address subscriber, uint128 units) public {
-        idaLib.updateSubscriptionUnits(superToken, indexId, subscriber, units);
+        sf.idaLib.updateSubscriptionUnits(superToken, indexId, subscriber, units);
     }
 
     function distribute(uint32 indexId, uint256 amount) public {
-        idaLib.distribute(superToken, indexId, amount);
+        sf.idaLib.distribute(superToken, indexId, amount);
     }
 
     function approveSubscription(address publisher, uint32 indexId) public {
-        idaLib.approveSubscription(superToken, publisher, indexId);
+        sf.idaLib.approveSubscription(superToken, publisher, indexId);
     }
 
 }

@@ -20,6 +20,7 @@ function cleanup_crytic_workaround() {
 }
 
 function digest_last_corpus() {
+    sleep 2 # wait for corpus dumped, just in case
     $HOTFUZZ_DIR/tasks/digest-corpus $(ls corpus/covered.*.txt | tail -n1)
 }
 
@@ -39,17 +40,20 @@ function oops () {
 }
 
 function hott() {
-    TEST_CONTRACT_CONFIG=configs/$TEST_CONTRACT.yaml
+    TEST_CONTRACT_CONFIG=$1
+    TEST_CONTRACT=$(basename $TEST_CONTRACT_CONFIG)
+    TEST_CONTRACT=${TEST_CONTRACT%%.yaml}
     [ ! -f "$TEST_CONTRACT_CONFIG" ] && oops "No $TEST_CONTRACT_CONFIG provided."
 
     rm -rf crytic-export/
     rm -rf build/contracts/
     npx truffle compile --all \
     && "$ECHIDNA" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+    digests
 }
 
 apply_crytic_workaround
 
-TEST_CONTRACT=$1
-[ -z "$TEST_CONTRACT" ] && oops "No contract specified."
-hott $TEST_CONTRACT
+TEST_CONTRACT_CONFIG=$1
+[ -z "$TEST_CONTRACT_CONFIG" ] && oops "No contract specified."
+hott $TEST_CONTRACT_CONFIG

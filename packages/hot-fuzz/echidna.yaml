@@ -8,9 +8,4 @@ deployBytecodes: [
 
 # format: "json"
 # testLimit: 1000
-# deploy: [
-#   ["0x00000000000000000000000000000000000000ff", "SlotsBitmapLibrary"],
-#   ["0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24", "ERC1820RegistryMock"],
-# ]
 # cryticArgs: ["--solc", "solc-0.8.13"] # "--truffle-ignore-compile"]
-# solcLibs: ["@superfluid-finance/ethereum-contracts/contracts/agreements/SlotsBitmapLibrary.sol:SlotsBitmapLibrary"]

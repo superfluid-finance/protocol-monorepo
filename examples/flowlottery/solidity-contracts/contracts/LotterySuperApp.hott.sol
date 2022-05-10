@@ -12,20 +12,18 @@ contract LotteryPlayer is SuperfluidTester {
     bool public inPlay;
 
     constructor (
-        Superfluid host,
-        IConstantFlowAgreementV1 cfa,
-        IInstantDistributionAgreementV1 ida,
+        SuperfluidFrameworkDeployer.Framework memory sf,
         IERC20 token,
         ISuperToken superToken,
         LotterySuperApp app)
-        SuperfluidTester(host, cfa, ida, token, superToken)
+        SuperfluidTester(sf, token, superToken)
     {
         _app = app;
     }
 
     function play(int96 flowRate) external {
         superToken.approve(address(_app), _app.ENTRANCE_FEE());
-        host.callAppAction(
+        sf.host.callAppAction(
             _app,
             abi.encodeCall(_app.participate, (new bytes(0)))
         );
@@ -44,14 +42,14 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
     LotterySuperApp immutable private _app;
 
     constructor() HotFuzzBase(10 /* nPlayers */ ) {
-        _app = new LotterySuperApp(host, cfa, superToken);
+        _app = new LotterySuperApp(sf.host, sf.cfa, superToken);
         initPlayers();
         addAccount(address(_app));
     }
 
     // hot fuzz extensions
     function createTester() override internal returns (SuperfluidTester) {
-        return new LotteryPlayer(host, cfa, ida, token, superToken, _app);
+        return new LotteryPlayer(sf, token, superToken, _app);
     }
 
     function getOnePlayer(uint8 a)
@@ -81,7 +79,7 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
     // Invariances
     //
     function echidna_app_is_free() public view returns (bool) {
-        return host.isApp(_app) && !host.isAppJailed(_app);
+        return sf.host.isApp(_app) && !sf.host.isAppJailed(_app);
     }
 
     function echidna_always_has_a_winner() public view returns (bool) {
@@ -103,12 +101,12 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
         int96 totalInputFlowRate;
         for (uint i = 0; i < nTesters; ++i) {
             LotteryPlayer player = LotteryPlayer(address(testers[i]));
-            (,int96 r,,) = cfa.getFlow(superToken, address(player), address(_app));
+            (,int96 r,,) = sf.cfa.getFlow(superToken, address(player), address(_app));
             totalInputFlowRate += r;
         }
         (,address winner,) = _app.currentWinner();
-        (,int96 winerPlayingFlowRate,,) = cfa.getFlow(superToken, address(winner), address(_app));
-        int96 winnerNetFlowRate = cfa.getNetFlow(superToken, address(winner));
+        (,int96 winerPlayingFlowRate,,) = sf.cfa.getFlow(superToken, address(winner), address(_app));
+        int96 winnerNetFlowRate = sf.cfa.getNetFlow(superToken, address(winner));
         //emit DEBUG_WINNER_TAKE_ALL(winnerNetFlowRate, totalInputFlowRate, winerPlayingFlowRate);
         return winnerNetFlowRate == totalInputFlowRate - winerPlayingFlowRate;
     }

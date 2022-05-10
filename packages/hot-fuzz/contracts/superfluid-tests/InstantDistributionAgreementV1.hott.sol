@@ -13,7 +13,7 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
 
         (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
 
-        (bool exists,,,) = ida.getIndex(superToken, address(testerA), indexId);
+        (bool exists,,,) = sf.ida.getIndex(superToken, address(testerA), indexId);
         if (!exists) {
             testerA.createIndex(indexId);
         }
@@ -24,9 +24,9 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
         indexId = indexId % MAX_NUM_INDICES;
         (SuperfluidTester testerA) = getOneTester(a);
 
-        (bool exists,,,) = ida.getIndex(superToken, address(testerA), indexId);
+        (bool exists,,,) = sf.ida.getIndex(superToken, address(testerA), indexId);
         if (exists) {
-            (uint256 actualAmount, ) = ida.calculateDistribution(superToken, address(testerA), indexId, amount);
+            (uint256 actualAmount, ) = sf.ida.calculateDistribution(superToken, address(testerA), indexId, amount);
             testerA.distribute(indexId, amount);
             int256 a1 = superTokenBalanceOfNow(address(testerA));
             int256 a2 = superTokenBalanceOfNow(address(testerA));
@@ -43,7 +43,7 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
         testerA.updateSubscriptionUnits(indexId, address(testerB), units);
         bool exist;
         uint128 unitsActual;
-        (exist, , unitsActual, ) = ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
+        (exist, , unitsActual, ) = sf.ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
         assert(exist == true);
         assert(unitsActual == units);
     }
@@ -54,9 +54,9 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
         (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
         bool exist;
         bool approved;
-        ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
+        sf.ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
         testerB.approveSubscription(address(testerA), indexId);
-        (exist, approved, , ) = ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
+        (exist, approved, , ) = sf.ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
         //assert(exist1 == exist2);
         assert(exist == true);
         assert(approved == true);

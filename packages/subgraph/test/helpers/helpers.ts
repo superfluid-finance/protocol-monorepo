@@ -9,9 +9,8 @@ import {
     ITestModifyFlowData,
 } from "../interfaces";
 import { FlowActionType } from "./constants";
-import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
-import { Resolver, TestToken } from "../../typechain";
+import { TestToken } from "../../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 

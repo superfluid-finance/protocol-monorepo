@@ -1085,6 +1085,10 @@ describe("Subgraph Tests", () => {
     });
 
     describe("Global Check", () => {
+        // NOTE: this will be true for the current and all subsequent subgraphs deployed
+        // HOWEVER, it was possible to assign the zero address as the subscriber so this
+        // means that it is still possible Account or AccountTokenSnapshots can be created
+        // via one of the IDA events
         it("There should be no Account or AccountTokenSnapshot entities with the zero address", async () => {
             const accountTokenSnapshotIds = await fetchEntityAndEnsureExistence<
                 ILightEntity[]

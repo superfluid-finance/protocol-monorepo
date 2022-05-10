@@ -23,7 +23,7 @@ export const getAccount = gql`
 
 export const getAccountIds = gql`
     query getAccounts($id: ID!) {
-        response: account(where: { id: $id }) {
+        response: accounts(where: { id: $id }) {
             id
         }
     }

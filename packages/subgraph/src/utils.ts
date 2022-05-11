@@ -244,7 +244,7 @@ export function getAmountStreamedSinceLastUpdatedAt(
 }
 
 /**
- * getOrder return calculated order.
+ * getOrder calculate order based on {blockNumber.times(10000).plus(logIndex)}.
  * @param blockNumber
  * @param logIndex
  */

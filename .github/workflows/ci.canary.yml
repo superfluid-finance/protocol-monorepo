@@ -126,12 +126,11 @@ jobs:
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Create coverage artifact
-        working-directory: protocol-monorepo
-        uses: actions/upload-artifact@v3
+        working-directory:
         with:
           name: ethereum-contracts-coverage
           path: |
-            packages/ethereum-contracts/coverage/
+            protocol-monorepo/packages/ethereum-contracts/coverage/
 
   js-sdk-coverage:
     name: Run coverage test of js-sdk on dev branch
@@ -158,12 +157,11 @@ jobs:
           yarn workspace @superfluid-finance/js-sdk test-coverage
 
       - name: Create coverage artifact
-        working-directory: protocol-monorepo
         uses: actions/upload-artifact@v3
         with:
           name: js-sdk-coverage
           path: |
-            packages/js-sdk/coverage/
+            protocol-monorepo/packages/js-sdk/coverage/
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
@@ -190,12 +188,11 @@ jobs:
           yarn workspace @superfluid-finance/sdk-core test-coverage
 
       - name: Create coverage artifact
-        working-directory: protocol-monorepo
         uses: actions/upload-artifact@v3
         with:
           name: sdk-core-coverage
           path: |
-            packages/sdk-core/coverage/
+            protocol-monorepo/packages/sdk-core/coverage/
 
   publish-coverage-reports:
     name: Publish coverage reports

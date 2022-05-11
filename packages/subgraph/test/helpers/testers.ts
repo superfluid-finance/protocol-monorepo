@@ -770,7 +770,6 @@ async function fetchIDAEventsAndValidate(
         throw new Error("You have entered the wrong type.");
     }
 
-    console.log(eventDataToValidate)
     return {
         [eventQueryData.queryName]: await fetchEventAndValidate(
             txnResponse,

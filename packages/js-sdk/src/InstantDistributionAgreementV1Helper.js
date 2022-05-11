@@ -61,6 +61,49 @@ module.exports = class InstantDistributionAgreementV1Helper {
     }
 
     /**
+     * @dev Get details of an index
+     * @param {tokenParam} superToken SuperToken for the index
+     * @param {addressParam} publisher Publisher of the index
+     * @param {int} indexId ID of the index
+     * @return {Promise<Subscription>} Subscription data
+     */
+    async getIndex({superToken, publisher, indexId}) {
+        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
+            superToken
+        );
+        const publisherNorm = await this._sf.utils.normalizeAddressParam(
+            publisher
+        );
+        const result = await this._ida.getIndex(
+            superTokenNorm,
+            publisherNorm,
+            indexId
+        );
+        return this.constructor._sanitizeIndexData(result);
+    }
+
+    /**
+     * @dev List indices of a publisher
+     * @param {tokenParam} superToken SuperToken for the index
+     * @param {addressParam} publisher Publisher of the index
+     * @return {Promise<Subscription>} Subscription data
+     */
+    async listIndices({superToken, publisher}) {
+        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
+            superToken
+        );
+        const publisherNorm = await this._sf.utils.normalizeAddressParam(
+            publisher
+        );
+        return (
+            await this._sf.getPastEvents(this._ida, "IndexCreated", {
+                token: superTokenNorm,
+                publisher: publisherNorm,
+            })
+        ).map((e) => Number(e.indexId.toString()));
+    }
+
+    /**
      * @dev Distribute tokens to an index
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
@@ -467,49 +510,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         });
         console.debug("Claim complete.");
         return tx;
-    }
-
-    /**
-     * @dev Get details of an index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
-     */
-    async getIndex({superToken, publisher, indexId}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const result = await this._ida.getIndex(
-            superTokenNorm,
-            publisherNorm,
-            indexId
-        );
-        return this.constructor._sanitizeIndexData(result);
-    }
-
-    /**
-     * @dev List indices of a publisher
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @return {Promise<Subscription>} Subscription data
-     */
-    async listIndices({superToken, publisher}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        return (
-            await this._sf.getPastEvents(this._ida, "IndexCreated", {
-                token: superTokenNorm,
-                publisher: publisherNorm,
-            })
-        ).map((e) => Number(e.indexId.toString()));
     }
 
     /**

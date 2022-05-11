@@ -11,6 +11,7 @@ export const PADDING_LEFT_LENGTH = BigInt.fromI32(6);
 export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
+export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 
 /**************************************************************************
  * Convenience Conversions
@@ -243,16 +244,14 @@ export function getAmountStreamedSinceLastUpdatedAt(
 }
 
 /**
- * getOrder return concatenate string of block number and logIndex (padded left to 6 digit).
+ * getOrder return calculated order.
  * @param blockNumber
  * @param logIndex
  */
 export function getOrder(
     blockNumber: BigInt,
     logIndex: BigInt,
-): string {
-    return blockNumber.toString() +
-        "-" +
-        logIndex.toString().padStart(PADDING_LEFT_LENGTH.toI32(), BIG_INT_ZERO.toString())
+): BigInt {
+    return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
 }
 

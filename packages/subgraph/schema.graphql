@@ -9,7 +9,7 @@ data.
 interface Event {
     id: ID!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     name: String!
 
     """
@@ -36,7 +36,7 @@ type FlowUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -99,7 +99,7 @@ type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -130,7 +130,7 @@ type IndexCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -151,7 +151,7 @@ type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -173,7 +173,7 @@ type IndexUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -198,7 +198,7 @@ type IndexSubscribedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -220,7 +220,7 @@ type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -246,7 +246,7 @@ type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -268,7 +268,7 @@ type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -291,7 +291,7 @@ type SubscriptionDistributionClaimedEvent implements Event
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -313,7 +313,7 @@ type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -335,7 +335,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -363,7 +363,7 @@ type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
@@ -379,7 +379,7 @@ type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
@@ -395,7 +395,7 @@ type AppRegisteredEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     app: Bytes!
 }
 
@@ -406,7 +406,7 @@ type GovernanceReplacedEvent implements Event @entity(immutable: true) {
     name: String!
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
 
     """
     Empty addresses array.
@@ -426,7 +426,7 @@ type JailEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     app: Bytes!
     reason: BigInt!
 }
@@ -442,7 +442,7 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     newFactory: Bytes!
 }
 
@@ -457,7 +457,7 @@ type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     code: Bytes!
 }
@@ -474,7 +474,7 @@ type RoleAdminChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     role: Bytes!
     previousAdminRole: Bytes!
     newAdminRole: Bytes!
@@ -491,7 +491,7 @@ type RoleGrantedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
@@ -508,7 +508,7 @@ type RoleRevokedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
@@ -527,7 +527,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -545,7 +545,7 @@ type ConfigChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     key: Bytes!
@@ -564,7 +564,7 @@ type RewardAddressChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -582,7 +582,7 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -601,7 +601,7 @@ type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -621,7 +621,7 @@ type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -643,7 +643,7 @@ type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -667,7 +667,7 @@ type BurnedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     operator: Bytes!
     from: Bytes!
     amount: BigInt!
@@ -686,7 +686,7 @@ type MintedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     operator: Bytes!
     to: Bytes!
     amount: BigInt!
@@ -705,7 +705,7 @@ type SentEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     operator: Bytes!
     from: Bytes!
     to: Bytes!
@@ -725,7 +725,7 @@ type TransferEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     from: Account!
     to: Account!
     value: BigInt!
@@ -744,7 +744,7 @@ type TokenDowngradedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     amount: BigInt!
 }
@@ -761,7 +761,7 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
     amount: BigInt!
 }
@@ -779,7 +779,7 @@ type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
 }
 
@@ -794,7 +794,7 @@ type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     token: Bytes!
 }
 
@@ -809,7 +809,7 @@ type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
-    order: String!
+    order: BigInt!
     tokenLogic: Bytes!
 }
 

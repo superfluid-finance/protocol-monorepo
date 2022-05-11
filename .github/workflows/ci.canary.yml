@@ -119,6 +119,7 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -129,7 +130,7 @@ jobs:
         with:
           name: ethereum-contracts-coverage
           path: |
-            packages/ethereum-contracts/coverage/
+            protocol-monorepo/packages/ethereum-contracts/coverage/
 
   js-sdk-coverage:
     name: Run coverage test of js-sdk on dev branch
@@ -149,6 +150,7 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -159,7 +161,7 @@ jobs:
         with:
           name: js-sdk-coverage
           path: |
-            packages/js-sdk/coverage/
+            protocol-monorepo/packages/js-sdk/coverage/
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
@@ -179,6 +181,7 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -189,7 +192,7 @@ jobs:
         with:
           name: sdk-core-coverage
           path: |
-            packages/sdk-core/coverage/
+            protocol-monorepo/packages/sdk-core/coverage/
 
   publish-coverage-reports:
     name: Publish coverage reports
@@ -201,6 +204,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          # NOTE: all coverage report job should checkout the code to the same path,
+          #       otherwise reports wouldn't match the code here.
           path: protocol-monorepo
 
       - name: Download ethereum-contracts-coverage

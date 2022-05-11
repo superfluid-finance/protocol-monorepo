@@ -119,12 +119,14 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Create coverage artifact
+        working-directory: protocol-monorepo
         uses: actions/upload-artifact@v3
         with:
           name: ethereum-contracts-coverage
@@ -149,12 +151,14 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/js-sdk test-coverage
 
       - name: Create coverage artifact
+        working-directory: protocol-monorepo
         uses: actions/upload-artifact@v3
         with:
           name: js-sdk-coverage
@@ -179,12 +183,14 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/sdk-core test-coverage
 
       - name: Create coverage artifact
+        working-directory: protocol-monorepo
         uses: actions/upload-artifact@v3
         with:
           name: sdk-core-coverage

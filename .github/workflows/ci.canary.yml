@@ -54,90 +54,6 @@ jobs:
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
-  ethereum-contracts-coverage:
-    name: Run coverage test of ethereum-contracts of dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ethereum-contracts-coverage
-          path: |
-            packages/ethereum-contracts/coverage/
-
-  js-sdk-coverage:
-    name: Run coverage test of js-sdk on dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn workspace @superfluid-finance/js-sdk test-coverage
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: js-sdk-coverage
-          path: |
-            packages/js-sdk/coverage/
-
-  sdk-core-coverage:
-    name: Run coverage test of sdk-core on dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn workspace @superfluid-finance/sdk-core test-coverage
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: |
-            packages/sdk-core/coverage/
-
   subgraph-test:
     name: Run test of subgraph on dev branch
 
@@ -185,6 +101,99 @@ jobs:
       - name: "Run integration test suite"
         run: yarn workspace @superfluid-finance/subgraph test
 
+  ethereum-contracts-coverage:
+    name: Run coverage test of ethereum-contracts of dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: protocol-monorepo
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Run coverage test
+        working-directory: protocol-monorepo
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ethereum-contracts-coverage
+          path: |
+            protocol-monorepo/packages/ethereum-contracts/coverage/
+
+  js-sdk-coverage:
+    name: Run coverage test of js-sdk on dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: protocol-monorepo
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Run coverage test
+        working-directory: protocol-monorepo
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn workspace @superfluid-finance/js-sdk test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: js-sdk-coverage
+          path: |
+            protocol-monorepo/packages/js-sdk/coverage/
+
+  sdk-core-coverage:
+    name: Run coverage test of sdk-core on dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: protocol-monorepo
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Run coverage test
+        working-directory: protocol-monorepo
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn workspace @superfluid-finance/sdk-core test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdk-core-coverage
+          path: |
+            protocol-monorepo/packages/sdk-core/coverage/
+
   publish-coverage-reports:
     name: Publish coverage reports
 
@@ -195,6 +204,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          # NOTE: all coverage report job should checkout the code to the same path,
+          #       otherwise reports wouldn't match the code here.
           path: protocol-monorepo
 
       - name: Download ethereum-contracts-coverage
@@ -239,7 +250,7 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, subgraph-test]
+    needs: [essential-build-and-test, subgraph-test, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 

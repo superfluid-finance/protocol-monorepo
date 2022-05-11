@@ -1,0 +1,16 @@
+{
+    "name": "stream-in-distribute-out",
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.5.0",
+        "@superfluid-finance/ethereum-contracts": "^1.2.0"
+    },
+    "devDependencies": {
+        "ethers": "^5.5.4",
+        "hardhat": "^2.9.1",
+        "dotenv": "^10.0.0"
+    },
+    "scripts": {
+        "build": "hardhat compiile",
+        "test": "hardhat test"
+    }
+}

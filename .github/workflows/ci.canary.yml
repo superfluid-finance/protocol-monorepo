@@ -126,7 +126,7 @@ jobs:
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Create coverage artifact
-        working-directory:
+        uses: actions/upload-artifact@v3
         with:
           name: ethereum-contracts-coverage
           path: |

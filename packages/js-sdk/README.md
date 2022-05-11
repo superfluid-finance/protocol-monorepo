@@ -6,6 +6,9 @@
   <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
   </a>
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
+  </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
@@ -15,9 +18,11 @@
 </p>
 </div>
 
-<>{`\_`}</>
+Javascript SDK for building with Superfluid Protocol.
 
-> Javascript SDK for building with Superfluid Protocol
+### :warning: This repo is deprecated :warning:
+**Superfluid SDK project has been modularized, for similar functionality use [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core) instead.**
+
 
 ### 🏠 [Homepage](https://superfluid.finance)
 

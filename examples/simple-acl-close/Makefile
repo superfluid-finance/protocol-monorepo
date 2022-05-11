@@ -2,16 +2,13 @@
 # (-include to ignore error if it does not exist)
 -include .env
 
-all: clean remove install setup-yarn update build 
+all: clean install setup-yarn update build 
 
 # Install proper solc version.
 # solc:; nix-env -f https://github.com/dapphub/dapptools/archive/master.tar.gz -iA solc-static-versions.solc_0_8_13
 
 # Clean the repo
 clean  :; forge clean
-
-# remove modules
-remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib
 
 # Install the Modules
 install :; 
@@ -27,7 +24,7 @@ remappings :;
 update:; forge update
 
 # Builds
-build  :; forge clean && forge build --optimize --optimize-runs 1000000
+build  :; forge clean && forge build --optimize --optimizer-runs 1000000
 
 gas-report :; forge test --gas-report
 

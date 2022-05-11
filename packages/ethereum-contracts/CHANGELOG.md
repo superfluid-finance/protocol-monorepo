@@ -3,7 +3,29 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.3.0] - 2022-04-28
+## [v1.2.2] - 2022-05-09
+
+### Breaking
+
+- SuperfluidFrameworkDeployer.getFramework to return a Framework struct. (#789)
+
+### Fixes
+
+- Fixed a natspec typo (#773)
+- Reapply OpenEthereum provider hack (#771)
+
+### Added
+
+- ERC1820RegistryCompiled for testing frameworks: foundry, etc. (#789)
+- Add few more CFA and IDA cases (#781)
+- Test some CFA properties (#777)
+
+### Changed
+
+- App registration keys with expiration date instead of one-time use.
+
+
+## [v1.2.1] - 2022-04-28
 
 ### Breaking
 

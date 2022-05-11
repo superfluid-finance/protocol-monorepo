@@ -204,6 +204,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          # NOTE: all coverage report job should checkout the code to the same path,
+          #       otherwise reports wouldn't match the code here.
           path: protocol-monorepo
 
       - name: Download ethereum-contracts-coverage

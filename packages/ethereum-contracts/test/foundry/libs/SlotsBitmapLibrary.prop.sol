@@ -23,6 +23,7 @@ contract SlotsBitmapLibraryProperties is Test {
     bytes32 constant fakeId =
         keccak256(abi.encodePacked("subscriber", subscriber));
 
+    uint32 internal constant _MAX_NUM_SLOTS = 256;
     /// @dev Subscriber state slot id for storing subs bitmap
     uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
     /// @dev Subscriber state slot id starting point for subscription data
@@ -147,7 +148,7 @@ contract SlotsBitmapLibraryProperties is Test {
     }
 
     function testCreateSlotsAndClearAllSafe(uint16 _numSlots) public {
-        vm.assume(_numSlots < type(uint8).max);
+        vm.assume(_numSlots < _MAX_NUM_SLOTS);
         _createSlotsAndClearAll(_numSlots);
     }
 
@@ -158,7 +159,7 @@ contract SlotsBitmapLibraryProperties is Test {
         _createRandomSlots(_instructions);
 
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
-        uint32 remainingSlots = type(uint8).max - uint32(slotIds.length);
+        uint32 remainingSlots = _MAX_NUM_SLOTS - uint32(slotIds.length);
         _createSlotsAndClearAll(uint8(remainingSlots));
     }
 
@@ -168,21 +169,29 @@ contract SlotsBitmapLibraryProperties is Test {
         vm.assume(_instructions.length > 0);
         _createRandomSlots(_instructions);
 
+        _createNSlots(uint16(_MAX_NUM_SLOTS) + 1);
+    }
+
+    function _createNSlots(uint16 _slots) private {
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
-        uint32 tooManySlots = type(uint8).max + 1;
-        vm.expectRevert("SlotBitmap out of bound");
-        _createSlotsAndClearAll(uint16(tooManySlots));
+        uint256 currentSlotIdsLength = slotIds.length;
+        for (uint16 i = 0; i < _slots; i++) {
+            if (currentSlotIdsLength < uint16(_MAX_NUM_SLOTS)) {
+                currentSlotIdsLength++;
+                _findEmptySlotAndFill(superToken, subscriber, fakeId);
+            } else {
+                vm.expectRevert("SlotBitmap out of bound");
+                _findEmptySlotAndFill(superToken, subscriber, fakeId);
+            }
+        }
     }
 
     function _createSlotsAndClearAll(uint16 _numSlots) private {
-        vm.assume(_numSlots > 0);
+        vm.assume(_numSlots > 0 && _numSlots < _MAX_NUM_SLOTS);
         // fill _numSlots slots
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         uint256 originalSlotIdsLength = slotIds.length;
-
-        for (uint16 i = 0; i < _numSlots; i++) {
-            _findEmptySlotAndFill(superToken, subscriber, fakeId);
-        }
+        _createNSlots(_numSlots);
         (slotIds, ) = _listData(superToken, subscriber);
         // [ASSERT]: N_MORE_SLOTS_AFTER_FILLS
         assertEq(slotIds.length, originalSlotIdsLength + _numSlots);

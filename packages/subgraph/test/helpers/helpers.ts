@@ -1,19 +1,19 @@
-import { ethers } from "hardhat";
-import { TransactionResponse } from "@ethersproject/providers";
-import { request, gql } from "graphql-request";
-import { Framework, WrapperSuperToken } from "@superfluid-finance/sdk-core";
+import {ethers} from "hardhat";
+import {TransactionResponse} from "@ethersproject/providers";
+import {gql, request} from "graphql-request";
+import {Framework, WrapperSuperToken} from "@superfluid-finance/sdk-core";
 import {
-    IMeta,
     IIndexSubscription,
-    ITestUpdateFlowOperatorData,
-    ITestModifyFlowData,
+    IMeta,
     ISubgraphErrors,
+    ITestModifyFlowData,
+    ITestUpdateFlowOperatorData,
 } from "../interfaces";
-import { FlowActionType } from "./constants";
+import {FlowActionType} from "./constants";
 import TestTokenABI from "../../abis/TestToken.json";
-import { TestToken } from "../../typechain";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber } from "ethers";
+import {TestToken} from "../../typechain";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumber} from "ethers";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -342,26 +342,26 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         txnResponse =
             data.actionType === FlowActionType.Create
                 ? await data.framework.cfaV1
-                      .createFlowByOperator({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                          sender: data.sender,
-                      })
-                      .exec(signer)
+                    .createFlowByOperator({
+                        ...baseData,
+                        flowRate: data.newFlowRate.toString(),
+                        sender: data.sender,
+                    })
+                    .exec(signer)
                 : data.actionType === FlowActionType.Update
-                ? await data.framework.cfaV1
-                      .updateFlowByOperator({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                          sender: data.sender,
-                      })
-                      .exec(signer)
-                : await data.framework.cfaV1
-                      .deleteFlowByOperator({
-                          ...baseData,
-                          sender: data.sender,
-                      })
-                      .exec(signer);
+                    ? await data.framework.cfaV1
+                        .updateFlowByOperator({
+                            ...baseData,
+                            flowRate: data.newFlowRate.toString(),
+                            sender: data.sender,
+                        })
+                        .exec(signer)
+                    : await data.framework.cfaV1
+                        .deleteFlowByOperator({
+                            ...baseData,
+                            sender: data.sender,
+                        })
+                        .exec(signer);
     }
 
     if (!txnResponse.blockNumber) {
@@ -371,15 +371,18 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-
-    const { flowRate, deposit } = await data.framework.cfaV1.getFlow({
+    const transactionReciept = await txnResponse.wait();
+    const methodFilter = data.framework.cfaV1.contract.filters.FlowUpdated();
+    const methodSignature = methodFilter?.topics?.pop();
+    const transactionLog = transactionReciept.logs.find(log => log.topics[0] === methodSignature)
+    const {flowRate, deposit} = await data.framework.cfaV1.getFlow({
         superToken: data.superToken.address,
         sender: data.sender,
         receiver: data.receiver,
         providerOrSigner: data.provider,
     });
-
     return {
+        logIndex: transactionLog?.logIndex,
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),
@@ -426,7 +429,11 @@ export const updateFlowOperatorPermissions = async (
     const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-    return { timestamp, txnResponse };
+    const transactionReciept = await txnResponse.wait();
+    const methodFilter = data.framework.cfaV1.contract.filters.FlowOperatorUpdated();
+    const methodSignature = methodFilter?.topics?.pop();
+    const transactionLog = transactionReciept.logs.find(log => log.topics[0] === methodSignature)
+    return {timestamp, txnResponse, logIndex: transactionLog?.logIndex,};
 };
 
 export const hasSubscriptionWithUnits = (

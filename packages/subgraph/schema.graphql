@@ -1151,7 +1151,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID + keccak256("-") + tokenID
+    ID composed of: accountID-tokenID
     """
     id: ID!
     updatedAtTimestamp: BigInt!

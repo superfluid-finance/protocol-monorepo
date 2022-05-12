@@ -2,7 +2,7 @@ name: CI Canary
 
 on:
   push:
-    # branches: ["dev"]
+    branches: ["dev"]
     paths:
       - 'package.json'
       - 'packages/**'
@@ -235,117 +235,117 @@ jobs:
           flags: sdk-core
           fail_ci_if_error: true
 
-  # publish-npm-packages:
-  #   name: Publish canary packages to registries
+  publish-npm-packages:
+    name: Publish canary packages to registries
 
-  #   needs: [essential-build-and-test, subgraph-test, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
+    needs: [essential-build-and-test, subgraph-test, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         repository: superfluid-finance/build-scripts
-  #         path: build-scripts
+      - uses: actions/checkout@v3
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
 
-  #     - name: Use Node.js 16.x
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 16.x
-  #         registry-url: https://registry.npmjs.org/
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
 
-  #     - name: Install dependencies
-  #       run: yarn install --frozen-lockfile
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-  #     - name: Build
-  #       run: |
-  #         yarn --cwd packages/sdk-core set-default-subgraph-release-tag
-  #         yarn build
-  #       env:
-  #         SUBGRAPH_RELEASE_TAG: dev
+      - name: Build
+        run: |
+          yarn --cwd packages/sdk-core set-default-subgraph-release-tag
+          yarn build
+        env:
+          SUBGRAPH_RELEASE_TAG: dev
 
-  #     - name: Setup canary package versions locally
-  #       run: |
-  #         shortRev=$(git rev-parse --short ${{ github.sha }})
-  #         preId=dev.${shortRev}
-  #         yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+      - name: Setup canary package versions locally
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          preId=dev.${shortRev}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
 
-  #     - name: Publish to npm
-  #       run: |
-  #         tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
-  #         tasks/npm-publish.sh packages/js-sdk/ dev --verbose
-  #         tasks/npm-publish.sh packages/sdk-core/ dev --verbose
-  #         tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      - name: Publish to npm
+        run: |
+          tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
+          tasks/npm-publish.sh packages/js-sdk/ dev --verbose
+          tasks/npm-publish.sh packages/sdk-core/ dev --verbose
+          tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-  #     - name: Build HTML documentation of SDK-s
-  #       run: |
-  #         yarn --cwd packages/sdk-core doc:html
-  #         yarn --cwd packages/sdk-redux doc:html
+      - name: Build HTML documentation of SDK-s
+        run: |
+          yarn --cwd packages/sdk-core doc:html
+          yarn --cwd packages/sdk-redux doc:html
 
-  #     - name: Get versions for sdk-core & sdk-redux
-  #       id: sdk-versions
-  #       run: |
-  #         SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
-  #         echo "::set-output name=SDK_CORE_VERSION::$SDK_CORE_VERSION"
+      - name: Get versions for sdk-core & sdk-redux
+        id: sdk-versions
+        run: |
+          SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
+          echo "::set-output name=SDK_CORE_VERSION::$SDK_CORE_VERSION"
 
-  #         SDK_REDUX_VERSION=`jq -r .version packages/sdk-redux/package.json`
-  #         echo "::set-output name=SDK_REDUX_VERSION::$SDK_REDUX_VERSION"
+          SDK_REDUX_VERSION=`jq -r .version packages/sdk-redux/package.json`
+          echo "::set-output name=SDK_REDUX_VERSION::$SDK_REDUX_VERSION"
 
-  #     - name: Upload sdk-core HTML documentation
-  #       uses: ./build-scripts/s3cloudfront-hosting/actions/sync
-  #       with:
-  #         local_build_dir: packages/sdk-core/dist/docs
-  #         aws_region: eu-west-2
-  #         aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
-  #         aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-  #         s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_CORE_VERSION) }}
-  #         cloudfront_distribution_id: E3SV855CTC9UJO
+      - name: Upload sdk-core HTML documentation
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-core/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_CORE_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
 
-  #     - name: Upload sdk-redux HTML documentation
-  #       uses: ./build-scripts/s3cloudfront-hosting/actions/sync
-  #       with:
-  #         local_build_dir: packages/sdk-redux/dist/docs
-  #         aws_region: eu-west-2
-  #         aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
-  #         aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-  #         s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_REDUX_VERSION) }}
-  #         cloudfront_distribution_id: E3SV855CTC9UJO
+      - name: Upload sdk-redux HTML documentation
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/sdk-redux/dist/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_REDUX_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
 
-  # upgrade-contracts:
-  #   name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
+  upgrade-contracts:
+    name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
 
-  #   needs: [publish-npm-packages]
+    needs: [publish-npm-packages]
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       network: [goerli]
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [goerli]
 
-  #   steps:
-  #     - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Use Node.js 16.x
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 16.x
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
 
-  #     - name: Build
-  #       run: |
-  #         yarn install --frozen-lockfile
-  #         yarn build
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
 
-  #     - name: Deploy to ${{ matrix.network }}
-  #       run: |
-  #         cd packages/ethereum-contracts
-  #         npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
-  #       env:
-  #         RELEASE_VERSION: master
-  #         ETH_GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-  #         ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+      - name: Deploy to ${{ matrix.network }}
+        run: |
+          cd packages/ethereum-contracts
+          npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+        env:
+          RELEASE_VERSION: master
+          ETH_GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}

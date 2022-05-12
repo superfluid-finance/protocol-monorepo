@@ -195,6 +195,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      - uses: actions/checkout@v3
       # TODO: UNCOMMENT THIS
       # - name: Download ethereum-contracts-coverage
       #   uses: actions/download-artifact@v3
@@ -213,11 +214,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: js-sdk-coverage
-          path: protocol-monorepo/packages/js-sdk/coverage
+          path: packages/js-sdk/coverage
       - name: Upload js-sdk-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: protocol-monorepo/packages/js-sdk/coverage/lcov.info
+          files: packages/js-sdk/coverage/lcov.info
           name: js-sdk-coverage
           flags: js-sdk
           fail_ci_if_error: true
@@ -226,11 +227,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: sdk-core-coverage
-          path: protocol-monorepo/packages/sdk-core/coverage
+          path: packages/sdk-core/coverage
       - name: Upload sdk-core-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: protocol-monorepo/packages/sdk-core/coverage/lcov.info
+          files: packages/sdk-core/coverage/lcov.info
           name: sdk-core-coverage
           flags: sdk-core
           fail_ci_if_error: true

@@ -413,6 +413,7 @@ type AgreementClassRegisteredEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   agreementType: Bytes!
   code: Bytes!
 }
@@ -474,6 +475,14 @@ input AgreementClassRegisteredEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
   agreementType_in: [Bytes!]
@@ -495,6 +504,7 @@ enum AgreementClassRegisteredEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   agreementType
   code
 }
@@ -511,6 +521,7 @@ type AgreementClassUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   agreementType: Bytes!
   code: Bytes!
 }
@@ -572,6 +583,14 @@ input AgreementClassUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
   agreementType_in: [Bytes!]
@@ -593,6 +612,7 @@ enum AgreementClassUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   agreementType
   code
 }
@@ -609,6 +629,7 @@ type AgreementLiquidatedByEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   liquidatorAccount: Bytes!
   agreementClass: Bytes!
@@ -676,6 +697,14 @@ input AgreementLiquidatedByEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -737,6 +766,7 @@ enum AgreementLiquidatedByEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   liquidatorAccount
   agreementClass
@@ -759,6 +789,7 @@ type AgreementLiquidatedV2Event implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   liquidatorAccount: Bytes!
   agreementClass: Bytes!
@@ -828,6 +859,14 @@ input AgreementLiquidatedV2Event_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -905,6 +944,7 @@ enum AgreementLiquidatedV2Event_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   liquidatorAccount
   agreementClass
@@ -929,6 +969,7 @@ type AppRegisteredEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   app: Bytes!
 }
 
@@ -989,6 +1030,14 @@ input AppRegisteredEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
   app_in: [Bytes!]
@@ -1004,6 +1053,7 @@ enum AppRegisteredEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   app
 }
 
@@ -1041,6 +1091,7 @@ type BurnedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   operator: Bytes!
   from: Bytes!
   amount: BigInt!
@@ -1105,6 +1156,14 @@ input BurnedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
   operator_in: [Bytes!]
@@ -1146,6 +1205,7 @@ enum BurnedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   operator
   from
   amount
@@ -1167,6 +1227,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -1230,6 +1291,14 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -1263,6 +1332,7 @@ enum CFAv1LiquidationPeriodChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   host
   superToken
   isKeySet
@@ -1281,6 +1351,7 @@ type ConfigChangedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   key: Bytes!
@@ -1345,6 +1416,14 @@ input ConfigChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -1384,6 +1463,7 @@ enum ConfigChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   host
   superToken
   key
@@ -1403,6 +1483,7 @@ type CustomSuperTokenCreatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
 }
 
@@ -1463,6 +1544,14 @@ input CustomSuperTokenCreatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -1478,6 +1567,7 @@ enum CustomSuperTokenCreatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
 }
 
@@ -1490,6 +1580,7 @@ data.
 interface Event {
   id: ID!
   blockNumber: BigInt!
+  order: BigInt!
   name: String!
 
   """
@@ -1518,6 +1609,14 @@ input Event_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   name: String
   name_not: String
   name_gt: String
@@ -1563,6 +1662,7 @@ input Event_filter {
 enum Event_orderBy {
   id
   blockNumber
+  order
   name
   addresses
   timestamp
@@ -1776,6 +1876,7 @@ type FlowOperatorUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
 
   """
   The address of the `token` being streamed.
@@ -1851,6 +1952,14 @@ input FlowOperatorUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -1908,6 +2017,7 @@ enum FlowOperatorUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   sender
   permissions
@@ -1932,6 +2042,7 @@ type FlowUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
 
   """
   The address of the `token` being streamed.
@@ -2045,6 +2156,14 @@ input FlowUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2160,6 +2279,7 @@ enum FlowUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   sender
   receiver
@@ -2182,6 +2302,7 @@ type GovernanceReplacedEvent implements Event {
   name: String!
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
 
   """
   Empty addresses array.
@@ -2248,6 +2369,14 @@ input GovernanceReplacedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   oldGovernance: Bytes
   oldGovernance_not: Bytes
   oldGovernance_in: [Bytes!]
@@ -2269,6 +2398,7 @@ enum GovernanceReplacedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   oldGovernance
   newGovernance
 }
@@ -2545,6 +2675,7 @@ type IndexCreatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -2609,6 +2740,14 @@ input IndexCreatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2664,6 +2803,7 @@ enum IndexCreatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   publisher
   indexId
@@ -2683,6 +2823,7 @@ type IndexDistributionClaimedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -2748,6 +2889,14 @@ input IndexDistributionClaimedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2811,6 +2960,7 @@ enum IndexDistributionClaimedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   publisher
   indexId
@@ -2831,6 +2981,7 @@ type IndexSubscribedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -2896,6 +3047,14 @@ input IndexSubscribedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2957,6 +3116,7 @@ enum IndexSubscribedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   publisher
   indexId
@@ -3164,6 +3324,7 @@ type IndexUnitsUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3231,6 +3392,14 @@ input IndexUnitsUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3308,6 +3477,7 @@ enum IndexUnitsUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   publisher
   indexId
@@ -3330,6 +3500,7 @@ type IndexUnsubscribedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3395,6 +3566,14 @@ input IndexUnsubscribedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3456,6 +3635,7 @@ enum IndexUnsubscribedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   publisher
   indexId
@@ -3476,6 +3656,7 @@ type IndexUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3544,6 +3725,14 @@ input IndexUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3631,6 +3820,7 @@ enum IndexUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   publisher
   indexId
@@ -3654,6 +3844,7 @@ type JailEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   app: Bytes!
   reason: BigInt!
 }
@@ -3715,6 +3906,14 @@ input JailEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
   app_in: [Bytes!]
@@ -3738,6 +3937,7 @@ enum JailEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   app
   reason
 }
@@ -3754,6 +3954,7 @@ type MintedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   operator: Bytes!
   to: Bytes!
   amount: BigInt!
@@ -3818,6 +4019,14 @@ input MintedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
   operator_in: [Bytes!]
@@ -3859,6 +4068,7 @@ enum MintedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   operator
   to
   amount
@@ -3884,6 +4094,7 @@ type PPPConfigurationChangedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -3948,6 +4159,14 @@ input PPPConfigurationChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -3989,6 +4208,7 @@ enum PPPConfigurationChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   host
   superToken
   isKeySet
@@ -6014,6 +6234,7 @@ type RewardAddressChangedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -6077,6 +6298,14 @@ input RewardAddressChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -6108,6 +6337,7 @@ enum RewardAddressChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   host
   superToken
   isKeySet
@@ -6126,6 +6356,7 @@ type RoleAdminChangedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   role: Bytes!
   previousAdminRole: Bytes!
   newAdminRole: Bytes!
@@ -6188,6 +6419,14 @@ input RoleAdminChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
   role_in: [Bytes!]
@@ -6215,6 +6454,7 @@ enum RoleAdminChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   role
   previousAdminRole
   newAdminRole
@@ -6232,6 +6472,7 @@ type RoleGrantedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   role: Bytes!
   account: Bytes!
   sender: Bytes!
@@ -6294,6 +6535,14 @@ input RoleGrantedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
   role_in: [Bytes!]
@@ -6321,6 +6570,7 @@ enum RoleGrantedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   role
   account
   sender
@@ -6338,6 +6588,7 @@ type RoleRevokedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   role: Bytes!
   account: Bytes!
   sender: Bytes!
@@ -6400,6 +6651,14 @@ input RoleRevokedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
   role_in: [Bytes!]
@@ -6427,6 +6686,7 @@ enum RoleRevokedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   role
   account
   sender
@@ -6444,6 +6704,7 @@ type SentEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   operator: Bytes!
   from: Bytes!
   to: Bytes!
@@ -6509,6 +6770,14 @@ input SentEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
   operator_in: [Bytes!]
@@ -6556,6 +6825,7 @@ enum SentEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   operator
   from
   to
@@ -9130,6 +9400,7 @@ type SubscriptionApprovedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9195,6 +9466,14 @@ input SubscriptionApprovedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9256,6 +9535,7 @@ enum SubscriptionApprovedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   subscriber
   publisher
@@ -9276,6 +9556,7 @@ type SubscriptionDistributionClaimedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9341,6 +9622,14 @@ input SubscriptionDistributionClaimedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9404,6 +9693,7 @@ enum SubscriptionDistributionClaimedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   subscriber
   publisher
@@ -9424,6 +9714,7 @@ type SubscriptionRevokedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9489,6 +9780,14 @@ input SubscriptionRevokedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9550,6 +9849,7 @@ enum SubscriptionRevokedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   subscriber
   publisher
@@ -9570,6 +9870,7 @@ type SubscriptionUnitsUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9637,6 +9938,14 @@ input SubscriptionUnitsUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9714,6 +10023,7 @@ enum SubscriptionUnitsUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   subscriber
   publisher
@@ -9736,6 +10046,7 @@ type SuperTokenCreatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
 }
 
@@ -9796,6 +10107,14 @@ input SuperTokenCreatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9811,6 +10130,7 @@ enum SuperTokenCreatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
 }
 
@@ -9826,6 +10146,7 @@ type SuperTokenFactoryUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   newFactory: Bytes!
 }
 
@@ -9886,6 +10207,14 @@ input SuperTokenFactoryUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   newFactory: Bytes
   newFactory_not: Bytes
   newFactory_in: [Bytes!]
@@ -9901,6 +10230,7 @@ enum SuperTokenFactoryUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   newFactory
 }
 
@@ -9916,6 +10246,7 @@ type SuperTokenLogicCreatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   tokenLogic: Bytes!
 }
 
@@ -9976,6 +10307,14 @@ input SuperTokenLogicCreatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   tokenLogic: Bytes
   tokenLogic_not: Bytes
   tokenLogic_in: [Bytes!]
@@ -9991,6 +10330,7 @@ enum SuperTokenLogicCreatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   tokenLogic
 }
 
@@ -10006,6 +10346,7 @@ type SuperTokenLogicUpdatedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   code: Bytes!
 }
@@ -10067,6 +10408,14 @@ input SuperTokenLogicUpdatedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10088,6 +10437,7 @@ enum SuperTokenLogicUpdatedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   code
 }
@@ -10265,6 +10615,7 @@ type TokenDowngradedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   amount: BigInt!
 }
@@ -10346,6 +10697,14 @@ input TokenDowngradedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10370,6 +10729,7 @@ enum TokenDowngradedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   amount
 }
@@ -10380,7 +10740,7 @@ TokenStatistic: An aggregate entity which aggregates data of a single `token`.
 """
 type TokenStatistic {
   """
-  ID: tokenID
+  id: token address
   
   """
   id: ID!
@@ -10639,6 +10999,7 @@ type TokenUpgradedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   token: Bytes!
   amount: BigInt!
 }
@@ -10720,6 +11081,14 @@ input TokenUpgradedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10744,6 +11113,7 @@ enum TokenUpgradedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   token
   amount
 }
@@ -10760,6 +11130,7 @@ type TransferEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   from: Account!
   to: Account!
   value: BigInt!
@@ -10823,6 +11194,14 @@ input TransferEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   from: String
   from_not: String
   from_gt: String
@@ -10886,6 +11265,7 @@ enum TransferEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   from
   to
   value
@@ -10904,6 +11284,7 @@ type TrustedForwarderChangedEvent implements Event {
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -10968,6 +11349,14 @@ input TrustedForwarderChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -11003,6 +11392,7 @@ enum TrustedForwarderChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   host
   superToken
   isKeySet

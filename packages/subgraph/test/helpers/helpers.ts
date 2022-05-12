@@ -19,7 +19,7 @@ import {BigNumber} from "ethers";
 // first account retrieved by hardhat's ethers.getSigners():
 // 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
 const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-
+const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLIER in packages/subgraph/src/utils.ts
 /**************************************************************************
  * Test Helper Functions
  *************************************************************************/
@@ -382,11 +382,11 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         providerOrSigner: data.provider,
     });
     return {
-        logIndex: transactionLog?.logIndex,
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),
         deposit,
+        logIndex: transactionLog?.logIndex,
     };
 };
 
@@ -455,7 +455,11 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     const rounding = roundingDown
         ? 0
         : deposit.and(toBN(0xffffffff)).isZero()
-        ? 0
-        : 1;
+            ? 0
+            : 1;
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
+
+export const getOrder = (blockNumber?: number, logIndex?: number) => {
+    return blockNumber! * ORDER_MULTIPLIER + logIndex!
+}

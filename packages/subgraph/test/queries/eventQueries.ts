@@ -7,6 +7,7 @@ export const getFlowUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             timestamp
             name
@@ -34,6 +35,7 @@ export const getFlowOperatorUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             timestamp
             name
@@ -45,7 +47,6 @@ export const getFlowOperatorUpdatedEvents = gql`
             flowOperator
             permissions
             flowRateAllowance
-
             flowOperator {
                 id
             }
@@ -61,6 +62,7 @@ export const getIndexCreatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -83,6 +85,7 @@ export const getIndexDistributionClaimedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -106,6 +109,7 @@ export const getIndexUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -132,6 +136,7 @@ export const getIndexSubscribedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -155,6 +160,7 @@ export const getIndexUnitsUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -179,6 +185,7 @@ export const getIndexUnsubscribedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -202,6 +209,7 @@ export const getSubscriptionApprovedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -225,6 +233,7 @@ export const getSubscriptionDistributionClaimedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -248,6 +257,7 @@ export const getSubscriptionRevokedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
@@ -271,6 +281,7 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber

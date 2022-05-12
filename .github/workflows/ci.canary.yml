@@ -138,8 +138,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: ../
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -168,8 +166,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: ../
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1

@@ -27,7 +27,7 @@ type _Meta_ {
   will be null if the _meta field has a block constraint that asks for
   a block number. It will be filled if the _meta field has no block constraint
   and therefore asks for the latest  block
-  
+
   """
   block: _Block_!
 
@@ -62,7 +62,7 @@ type Account {
 
   """
   Indicates whether the address/account is a super app.
-  
+
   """
   isSuperApp: Boolean!
   inflows(skip: Int = 0, first: Int = 100, orderBy: Stream_orderBy, orderDirection: OrderDirection, where: Stream_filter): [Stream!]!
@@ -149,7 +149,7 @@ interaction with a `token`.
 type AccountTokenSnapshot {
   """
   ID composed of: accountID-tokenID
-  
+
   """
   id: ID!
   updatedAtTimestamp: BigInt!
@@ -157,68 +157,68 @@ type AccountTokenSnapshot {
 
   """
   The number of currently open streams.
-  
+
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The number of all-time closed streams.
-  
+
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
-  
+
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all currently (as of updatedAt) approved subscriptions whether or not they have units.
-  
+
   """
   totalApprovedSubscriptions: Int!
 
   """
   Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   balanceUntilUpdatedAt: BigInt!
 
   """
   The total deposit this account has held by the CFA agreement for `account` active streams.
-  
+
   """
   totalDeposit: BigInt!
 
   """
   The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   totalNetFlowRate: BigInt!
 
   """
   The total inflow rate (receive flowRate per second) of the `account`.
-  
+
   """
   totalInflowRate: BigInt!
 
   """
   The total outflow rate (send flowrate per second) of the `account`.
-  
+
   """
   totalOutflowRate: BigInt!
 
   """
   The total amount of `token` streamed to this `account` until
   the `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
 
   """
   The total amount of `token` this `account` has transferred.
-  
+
   """
   totalAmountTransferredUntilUpdatedAt: BigInt!
   account: Account!
@@ -409,11 +409,12 @@ type AgreementClassRegisteredEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   agreementType: Bytes!
   code: Bytes!
 }
@@ -483,6 +484,14 @@ input AgreementClassRegisteredEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
   agreementType_in: [Bytes!]
@@ -505,6 +514,7 @@ enum AgreementClassRegisteredEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   agreementType
   code
 }
@@ -517,11 +527,12 @@ type AgreementClassUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   agreementType: Bytes!
   code: Bytes!
 }
@@ -591,6 +602,14 @@ input AgreementClassUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
   agreementType_in: [Bytes!]
@@ -613,6 +632,7 @@ enum AgreementClassUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   agreementType
   code
 }
@@ -625,11 +645,12 @@ type AgreementLiquidatedByEvent implements Event {
 
   """
   Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   liquidatorAccount: Bytes!
   agreementClass: Bytes!
@@ -705,6 +726,14 @@ input AgreementLiquidatedByEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -767,6 +796,7 @@ enum AgreementLiquidatedByEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   liquidatorAccount
   agreementClass
@@ -785,11 +815,12 @@ type AgreementLiquidatedV2Event implements Event {
 
   """
   Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   liquidatorAccount: Bytes!
   agreementClass: Bytes!
@@ -867,6 +898,14 @@ input AgreementLiquidatedV2Event_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -945,6 +984,7 @@ enum AgreementLiquidatedV2Event_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   liquidatorAccount
   agreementClass
@@ -965,11 +1005,12 @@ type AppRegisteredEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   app: Bytes!
 }
 
@@ -1038,6 +1079,14 @@ input AppRegisteredEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
   app_in: [Bytes!]
@@ -1054,6 +1103,7 @@ enum AppRegisteredEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   app
 }
 
@@ -1070,11 +1120,11 @@ input Block_height {
   number: Int
 
   """
-  Value containing the minimum block number. 
+  Value containing the minimum block number.
   In the case of `number_gte`, the query will be executed on the latest block only if
   the subgraph has progressed to or past the minimum block number.
   Defaults to the latest block when omitted.
-  
+
   """
   number_gte: Int
 }
@@ -1087,11 +1137,12 @@ type BurnedEvent implements Event {
 
   """
   Holds the token and from addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   operator: Bytes!
   from: Bytes!
   amount: BigInt!
@@ -1164,6 +1215,14 @@ input BurnedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
   operator_in: [Bytes!]
@@ -1206,6 +1265,7 @@ enum BurnedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   operator
   from
   amount
@@ -1223,10 +1283,11 @@ type CFAv1LiquidationPeriodChangedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
+  order: BigInt!
   logIndex: BigInt!
   host: Bytes!
   superToken: Bytes!
@@ -1291,6 +1352,14 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   blockNumber_lte: BigInt
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   logIndex: BigInt
   logIndex_not: BigInt
   logIndex_gt: BigInt
@@ -1332,6 +1401,7 @@ enum CFAv1LiquidationPeriodChangedEvent_orderBy {
   name
   addresses
   blockNumber
+  order
   logIndex
   host
   superToken
@@ -1347,11 +1417,12 @@ type ConfigChangedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   key: Bytes!
@@ -1424,6 +1495,14 @@ input ConfigChangedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -1464,6 +1543,7 @@ enum ConfigChangedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   host
   superToken
   key
@@ -1479,11 +1559,12 @@ type CustomSuperTokenCreatedEvent implements Event {
 
   """
   Holds the token address.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
 }
 
@@ -1552,6 +1633,14 @@ input CustomSuperTokenCreatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -1568,6 +1657,7 @@ enum CustomSuperTokenCreatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
 }
 
@@ -1581,11 +1671,12 @@ interface Event {
   id: ID!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   name: String!
 
   """
   Holds the addresses for accounts that were impacted by the event.
-  
+
   """
   addresses: [Bytes!]!
   timestamp: BigInt!
@@ -1617,6 +1708,14 @@ input Event_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   name: String
   name_not: String
   name_gt: String
@@ -1663,6 +1762,7 @@ enum Event_orderBy {
   id
   blockNumber
   logIndex
+  order
   name
   addresses
   timestamp
@@ -1676,7 +1776,7 @@ FlowOperator: A higher order entity that of a flow operator for an `AccountToken
 type FlowOperator {
   """
   ID composed of: flowOperator - token - sender
-  
+
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -1687,7 +1787,7 @@ type FlowOperator {
   """
   The permissions granted to the `flowOperator`.
   Octo bitmask representation.
-  
+
   """
   permissions: Int!
 
@@ -1695,7 +1795,7 @@ type FlowOperator {
   The flow rate allowance granted to the `flowOperator`
   by the `sender`. This can be reset if the `sender`
   updates the `flowOperator` flow rate allowance.
-  
+
   """
   flowRateAllowanceGranted: BigInt!
 
@@ -1705,7 +1805,7 @@ type FlowOperator {
   (if they increase flowRate or create a new flow)
   and can only be reset if the `sender` updates the flow
   rate allowance.
-  
+
   """
   flowRateAllowanceRemaining: BigInt!
   flowOperator: Bytes!
@@ -1872,15 +1972,16 @@ type FlowOperatorUpdatedEvent implements Event {
 
   """
   Holds the token, sender, and flowOperator addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
 
   """
   The address of the `token` being streamed.
-  
+
   """
   token: Bytes!
   sender: Bytes!
@@ -1888,7 +1989,7 @@ type FlowOperatorUpdatedEvent implements Event {
   """
   The permissions granted to the `flowOperator`.
   Octo bitmask representation.
-  
+
   """
   permissions: Int!
   flowRateAllowance: BigInt!
@@ -1960,6 +2061,14 @@ input FlowOperatorUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2018,6 +2127,7 @@ enum FlowOperatorUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   sender
   permissions
@@ -2038,15 +2148,16 @@ type FlowUpdatedEvent implements Event {
 
   """
   Holds the token, sender and receiver addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
 
   """
   The address of the `token` being streamed.
-  
+
   """
   token: Bytes!
   sender: Bytes!
@@ -2056,13 +2167,13 @@ type FlowUpdatedEvent implements Event {
   The address that is triggering the flow update.
   This will be the zero address until the flowOperator
   feature is live.
-  
+
   """
   flowOperator: Bytes!
 
   """
   The flow rate per second.
-  
+
   """
   flowRate: BigInt!
   totalSenderFlowRate: BigInt!
@@ -2072,7 +2183,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   The previous flow rate.
-  
+
   """
   oldFlowRate: BigInt!
 
@@ -2081,20 +2192,20 @@ type FlowUpdatedEvent implements Event {
   0 = create
   1 = update
   2 = terminate
-  
+
   """
   type: Int!
 
   """
   The total amount streamed until the timestamp
   for the Stream entity linked to this event.
-  
+
   """
   totalAmountStreamedUntilTimestamp: BigInt!
 
   """
   The stream entity which is being modified.
-  
+
   """
   stream: Stream!
 }
@@ -2164,6 +2275,14 @@ input FlowUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2280,6 +2399,7 @@ enum FlowUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   sender
   receiver
@@ -2303,10 +2423,11 @@ type GovernanceReplacedEvent implements Event {
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
 
   """
   Empty addresses array.
-  
+
   """
   oldGovernance: Bytes!
   newGovernance: Bytes!
@@ -2377,6 +2498,14 @@ input GovernanceReplacedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   oldGovernance: Bytes
   oldGovernance_not: Bytes
   oldGovernance_in: [Bytes!]
@@ -2399,6 +2528,7 @@ enum GovernanceReplacedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   oldGovernance
   newGovernance
 }
@@ -2410,7 +2540,7 @@ Index: An Index higher order entity.
 type Index {
   """
   ID composed of: publisherAddress-tokenAddress-indexId
-  
+
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -2420,14 +2550,14 @@ type Index {
 
   """
   indexId is not the id of the `Index` entity.
-  
+
   """
   indexId: BigInt!
   indexValue: BigInt!
 
   """
   The number of subscriptions which have units allocated to them on the `Index`.
-  
+
   """
   totalSubscriptionsWithUnits: Int!
 
@@ -2435,7 +2565,7 @@ type Index {
   The number of units allocated by the `Index` that are pending.
   This refers to the current (as of updatedAt) `totalUnitsPending`
   - not all that has ever been pending.
-  
+
   """
   totalUnitsPending: BigInt!
 
@@ -2443,19 +2573,19 @@ type Index {
   The number of units allocated by the `Index` that are approved.
   This refers to the current (as of updatedAt) `totalUnitsApproved`
   - not all that has ever been approved.
-  
+
   """
   totalUnitsApproved: BigInt!
 
   """
   The sum of `totalUnitsPending` and `totalUnitsApproved`.
-  
+
   """
   totalUnits: BigInt!
 
   """
   The total amount distributed from this `Index`.
-  
+
   """
   totalAmountDistributedUntilUpdatedAt: BigInt!
   token: Token!
@@ -2464,13 +2594,13 @@ type Index {
   """
   The subscriptions of the index, it will include approved, unapproved
   and deleted subscriptions.
-  
+
   """
   subscriptions(skip: Int = 0, first: Int = 100, orderBy: IndexSubscription_orderBy, orderDirection: OrderDirection, where: IndexSubscription_filter): [IndexSubscription!]!
 
   """
   IndexCreated event, there will only be one.
-  
+
   """
   indexCreatedEvent: IndexCreatedEvent!
   indexDistributionClaimedEvents(skip: Int = 0, first: Int = 100, orderBy: IndexDistributionClaimedEvent_orderBy, orderDirection: OrderDirection, where: IndexDistributionClaimedEvent_filter): [IndexDistributionClaimedEvent!]!
@@ -2671,11 +2801,12 @@ type IndexCreatedEvent implements Event {
 
   """
   Holds the token and publisher addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -2748,6 +2879,14 @@ input IndexCreatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2804,6 +2943,7 @@ enum IndexCreatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   publisher
   indexId
@@ -2819,11 +2959,12 @@ type IndexDistributionClaimedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -2897,6 +3038,14 @@ input IndexDistributionClaimedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -2961,6 +3110,7 @@ enum IndexDistributionClaimedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   publisher
   indexId
@@ -2977,11 +3127,12 @@ type IndexSubscribedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3055,6 +3206,14 @@ input IndexSubscribedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3117,6 +3276,7 @@ enum IndexSubscribedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   publisher
   indexId
@@ -3133,7 +3293,7 @@ IndexSubscription: A higher order entity that contains subscription data for a `
 type IndexSubscription {
   """
   ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
-  
+
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -3145,21 +3305,21 @@ type IndexSubscription {
   """
   Approved subscriptions don't require subscribers to claim tokens that are distributed from
   the publisher.
-  
+
   """
   approved: Boolean!
 
   """
   If units is 0, it indicates that the subscription is "deleted". They are no longer
   subscribed to the index.
-  
+
   """
   units: BigInt!
 
   """
   The total amount of tokens you've received via IDA until
   `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   totalAmountReceivedUntilUpdatedAt: BigInt!
 
@@ -3168,14 +3328,14 @@ type IndexSubscription {
   `index.updatedAtTimestamp`. The formula to get this value is:
   `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue -
   indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
-  
+
   """
   indexValueUntilUpdatedAt: BigInt!
   index: Index!
 
   """
   IndexSubscription approved events on the subscription.
-  
+
   """
   subscriptionApprovedEvents(skip: Int = 0, first: Int = 100, orderBy: SubscriptionApprovedEvent_orderBy, orderDirection: OrderDirection, where: SubscriptionApprovedEvent_filter): [SubscriptionApprovedEvent!]!
   subscriptionDistributionClaimedEvents(skip: Int = 0, first: Int = 100, orderBy: SubscriptionDistributionClaimedEvent_orderBy, orderDirection: OrderDirection, where: SubscriptionDistributionClaimedEvent_filter): [SubscriptionDistributionClaimedEvent!]!
@@ -3320,11 +3480,12 @@ type IndexUnitsUpdatedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3400,6 +3561,14 @@ input IndexUnitsUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3478,6 +3647,7 @@ enum IndexUnitsUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   publisher
   indexId
@@ -3496,11 +3666,12 @@ type IndexUnsubscribedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3574,6 +3745,14 @@ input IndexUnsubscribedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3636,6 +3815,7 @@ enum IndexUnsubscribedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   publisher
   indexId
@@ -3652,11 +3832,12 @@ type IndexUpdatedEvent implements Event {
 
   """
   Holds the token and publisher addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   publisher: Bytes!
   indexId: BigInt!
@@ -3733,6 +3914,14 @@ input IndexUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -3821,6 +4010,7 @@ enum IndexUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   publisher
   indexId
@@ -3840,11 +4030,12 @@ type JailEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   app: Bytes!
   reason: BigInt!
 }
@@ -3914,6 +4105,14 @@ input JailEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
   app_in: [Bytes!]
@@ -3938,6 +4137,7 @@ enum JailEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   app
   reason
 }
@@ -3950,11 +4150,12 @@ type MintedEvent implements Event {
 
   """
   Holds the token, operator and to addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   operator: Bytes!
   to: Bytes!
   amount: BigInt!
@@ -4027,6 +4228,14 @@ input MintedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
   operator_in: [Bytes!]
@@ -4069,6 +4278,7 @@ enum MintedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   operator
   to
   amount
@@ -4090,11 +4300,12 @@ type PPPConfigurationChangedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -4167,6 +4378,14 @@ input PPPConfigurationChangedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -4209,6 +4428,7 @@ enum PPPConfigurationChangedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   host
   superToken
   isKeySet
@@ -6230,11 +6450,12 @@ type RewardAddressChangedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -6306,6 +6527,14 @@ input RewardAddressChangedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -6338,6 +6567,7 @@ enum RewardAddressChangedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   host
   superToken
   isKeySet
@@ -6352,11 +6582,12 @@ type RoleAdminChangedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   role: Bytes!
   previousAdminRole: Bytes!
   newAdminRole: Bytes!
@@ -6427,6 +6658,14 @@ input RoleAdminChangedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
   role_in: [Bytes!]
@@ -6455,6 +6694,7 @@ enum RoleAdminChangedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   role
   previousAdminRole
   newAdminRole
@@ -6468,11 +6708,12 @@ type RoleGrantedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   role: Bytes!
   account: Bytes!
   sender: Bytes!
@@ -6543,6 +6784,14 @@ input RoleGrantedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
   role_in: [Bytes!]
@@ -6571,6 +6820,7 @@ enum RoleGrantedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   role
   account
   sender
@@ -6584,11 +6834,12 @@ type RoleRevokedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   role: Bytes!
   account: Bytes!
   sender: Bytes!
@@ -6659,6 +6910,14 @@ input RoleRevokedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
   role_in: [Bytes!]
@@ -6687,6 +6946,7 @@ enum RoleRevokedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   role
   account
   sender
@@ -6700,11 +6960,12 @@ type SentEvent implements Event {
 
   """
   Holds the token, operator and from addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   operator: Bytes!
   from: Bytes!
   to: Bytes!
@@ -6778,6 +7039,14 @@ input SentEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
   operator_in: [Bytes!]
@@ -6826,6 +7095,7 @@ enum SentEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   operator
   from
   to
@@ -6837,7 +7107,7 @@ enum SentEvent_orderBy {
 type SFMeta {
   """
   The id is the commit hash.
-  
+
   """
   id: ID!
   timestamp: BigInt!
@@ -6845,13 +7115,13 @@ type SFMeta {
 
   """
   Whether the branch is feature/dev/v1.
-  
+
   """
   configuration: String!
 
   """
   The branch the current deployment is coming from.
-  
+
   """
   branch: String!
 }
@@ -6942,7 +7212,7 @@ between the same `sender` and `receiver`.
 type Stream {
   """
   ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
-  
+
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -6956,7 +7226,7 @@ type Stream {
   The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
   amount is:
   `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
-  
+
   """
   streamedUntilUpdatedAt: BigInt!
   token: Token!
@@ -7116,7 +7386,7 @@ StreamPeriod: A higher order entity that represents a period of time in a Stream
 type StreamPeriod {
   """
   ID composed of: streamId - periodRevisionIndex
-  
+
   """
   id: ID!
   stream: Stream!
@@ -7131,7 +7401,7 @@ type StreamPeriod {
 
   """
   Following values are null until the StreamPeriod is terminated
-  
+
   """
   stoppedAtTimestamp: BigInt
   stoppedAtBlockNumber: BigInt
@@ -9396,11 +9666,12 @@ type SubscriptionApprovedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9474,6 +9745,14 @@ input SubscriptionApprovedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9536,6 +9815,7 @@ enum SubscriptionApprovedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   subscriber
   publisher
@@ -9552,11 +9832,12 @@ type SubscriptionDistributionClaimedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9630,6 +9911,14 @@ input SubscriptionDistributionClaimedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9694,6 +9983,7 @@ enum SubscriptionDistributionClaimedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   subscriber
   publisher
@@ -9710,11 +10000,12 @@ type SubscriptionRevokedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9788,6 +10079,14 @@ input SubscriptionRevokedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -9850,6 +10149,7 @@ enum SubscriptionRevokedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   subscriber
   publisher
@@ -9866,11 +10166,12 @@ type SubscriptionUnitsUpdatedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   subscriber: Bytes!
   publisher: Bytes!
@@ -9946,6 +10247,14 @@ input SubscriptionUnitsUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10024,6 +10333,7 @@ enum SubscriptionUnitsUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   subscriber
   publisher
@@ -10042,11 +10352,12 @@ type SuperTokenCreatedEvent implements Event {
 
   """
   Holds the token address.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
 }
 
@@ -10115,6 +10426,14 @@ input SuperTokenCreatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10131,6 +10450,7 @@ enum SuperTokenCreatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
 }
 
@@ -10142,11 +10462,12 @@ type SuperTokenFactoryUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   newFactory: Bytes!
 }
 
@@ -10215,6 +10536,14 @@ input SuperTokenFactoryUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   newFactory: Bytes
   newFactory_not: Bytes
   newFactory_in: [Bytes!]
@@ -10231,6 +10560,7 @@ enum SuperTokenFactoryUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   newFactory
 }
 
@@ -10242,11 +10572,12 @@ type SuperTokenLogicCreatedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   tokenLogic: Bytes!
 }
 
@@ -10315,6 +10646,14 @@ input SuperTokenLogicCreatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   tokenLogic: Bytes
   tokenLogic_not: Bytes
   tokenLogic_in: [Bytes!]
@@ -10331,6 +10670,7 @@ enum SuperTokenLogicCreatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   tokenLogic
 }
 
@@ -10342,11 +10682,12 @@ type SuperTokenLogicUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   code: Bytes!
 }
@@ -10416,6 +10757,14 @@ input SuperTokenLogicUpdatedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10438,6 +10787,7 @@ enum SuperTokenLogicUpdatedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   code
 }
@@ -10450,7 +10800,7 @@ Superfluid's host contract address set as the host).
 type Token {
   """
   ID: the token address
-  
+
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -10462,20 +10812,20 @@ type Token {
 
   """
   This indicates whether the token is a part of our resolver list.
-  
+
   """
   isListed: Boolean!
 
   """
   The address of the underlying ERC20 token.
-  
+
   """
   underlyingAddress: Bytes!
 
   """
   The underlying ERC20 token for a SuperToken or
   null for a regular ERC20 token.
-  
+
   """
   underlyingToken: Token
 }
@@ -10611,11 +10961,12 @@ type TokenDowngradedEvent implements Event {
 
   """
   Holds the token and account addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   amount: BigInt!
 }
@@ -10705,6 +11056,14 @@ input TokenDowngradedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -10730,6 +11089,7 @@ enum TokenDowngradedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   amount
 }
@@ -10741,7 +11101,7 @@ TokenStatistic: An aggregate entity which aggregates data of a single `token`.
 type TokenStatistic {
   """
   id: token address
-  
+
   """
   id: ID!
   updatedAtTimestamp: BigInt!
@@ -10749,76 +11109,76 @@ type TokenStatistic {
 
   """
   The total number of currently active `token` streams.
-  
+
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The all-time number of closed streams.
-  
+
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The total number of Indexes created with `token`.
-  
+
   """
   totalNumberOfIndexes: Int!
 
   """
   The total number of "active" (has greater than 0 units and has distributed it at
   least once) Indexes created with `token`.
-  
+
   """
   totalNumberOfActiveIndexes: Int!
 
   """
   The number of subscriptions which have units allocated to them
   created with Indexes that distribute `token`.
-  
+
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all approved subscriptions whether or not they have units.
-  
+
   """
   totalApprovedSubscriptions: Int!
 
   """
   The total deposit held by the CFA agreement for this particular `token`.
-  
+
   """
   totalDeposit: BigInt!
 
   """
   The total outflow rate of the `token` (how much value is being moved).
-  
+
   """
   totalOutflowRate: BigInt!
 
   """
   The all-time total amount streamed until the `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
 
   """
   The all-time total amount transferred until the `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   totalAmountTransferredUntilUpdatedAt: BigInt!
 
   """
   The all-time total amount distributed until the `updatedAtTimestamp`/`updatedAtBlock`.
-  
+
   """
   totalAmountDistributedUntilUpdatedAt: BigInt!
 
   """
   The total supply of the token - this is impacted by users upgrading/downgrading their
   tokens.
-  
+
   """
   totalSupply: BigInt!
   token: Token!
@@ -10995,11 +11355,12 @@ type TokenUpgradedEvent implements Event {
 
   """
   Holds the token and account addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   token: Bytes!
   amount: BigInt!
 }
@@ -11089,6 +11450,14 @@ input TokenUpgradedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
   token_in: [Bytes!]
@@ -11114,6 +11483,7 @@ enum TokenUpgradedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   token
   amount
 }
@@ -11126,11 +11496,12 @@ type TransferEvent implements Event {
 
   """
   Holds the token, from and to addresses.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   from: Account!
   to: Account!
   value: BigInt!
@@ -11202,6 +11573,14 @@ input TransferEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   from: String
   from_not: String
   from_gt: String
@@ -11266,6 +11645,7 @@ enum TransferEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   from
   to
   value
@@ -11280,11 +11660,12 @@ type TrustedForwarderChangedEvent implements Event {
 
   """
   Empty addresses array.
-  
+
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
   logIndex: BigInt!
+  order: BigInt!
   host: Bytes!
   superToken: Bytes!
   isKeySet: Boolean!
@@ -11357,6 +11738,14 @@ input TrustedForwarderChangedEvent_filter {
   logIndex_lte: BigInt
   logIndex_in: [BigInt!]
   logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
   host_in: [Bytes!]
@@ -11393,6 +11782,7 @@ enum TrustedForwarderChangedEvent_orderBy {
   addresses
   blockNumber
   logIndex
+  order
   host
   superToken
   isKeySet

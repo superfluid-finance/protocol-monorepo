@@ -34,6 +34,7 @@ import {
     fetchEntityAndEnsureExistence,
     getFlowOperatorId,
     getIndexId,
+    getOrder,
     getSubscriptionId,
     modifyFlowAndReturnCreatedFlowData,
     toBN,
@@ -140,6 +141,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     const streamedAmountUntilTimestamp = toBN(
         initData.pastStreamData.streamedUntilUpdatedAt
     ).add(streamedAmountSinceUpdatedAt);
+
     const flowUpdatedEvent = await fetchEventAndValidate<
         IFlowUpdatedEvent,
         IExpectedFlowUpdateEvent
@@ -164,6 +166,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             totalReceiverFlowRate: receiverNetFlow,
             totalSenderFlowRate: senderNetFlow,
             type: data.actionType,
+            order: getOrder(txnResponse?.blockNumber, logIndex),
             logIndex: logIndex,
         },
         getFlowUpdatedEvents,
@@ -273,6 +276,7 @@ export async function testUpdateFlowOperatorPermissions(
             permissions: expectedPermissions,
             flowRateAllowance: expectedFlowRateAllowance,
             logIndex: logIndex,
+            order: getOrder(txnResponse?.blockNumber, logIndex),
         },
         getFlowOperatorUpdatedEvents,
         "FlowOperatorUpdatedEvents"
@@ -393,6 +397,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         totalUnitsPending: indexTotalUnitsPending,
         distributionDelta,
         logIndex: logIndex,
+        order: getOrder(txnResponse?.blockNumber, logIndex),
     };
 
     // Claim is tested quite differently as no event is emitted for it (currently)
@@ -570,7 +575,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 })
                 .exec(signer);
         }
-        methodFilter = ida.contract.filters.IndexCreated();
+        methodFilter = ida.contract.filters.IndexUpdated();
     } else if (type === IDAEventType.SubscriptionApproved) {
         signer = await ethers.getSigner(subscriber);
         txnResponse = await ida

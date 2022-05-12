@@ -335,4 +335,5 @@ fragment eventFields on Event {
     blockNumber
     transactionHash
     timestamp
+    logIndex
 }

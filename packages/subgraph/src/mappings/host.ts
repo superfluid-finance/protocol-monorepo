@@ -32,6 +32,7 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     ev.blockNumber = event.block.number;
     ev.oldGovernance = event.params.oldGov;
     ev.newGovernance = event.params.newGov;
+    ev.logIndex = event.logIndex;
     ev.save();
 }
 
@@ -46,6 +47,7 @@ export function handleAgreementClassRegistered(
     ev.name = "AgreementClassRegistered";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
@@ -64,6 +66,7 @@ export function handleAgreementClassUpdated(
     ev.name = "AgreementClassUpdated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
@@ -83,6 +86,7 @@ export function handleSuperTokenFactoryUpdated(
     ev.name = "SuperTokenFactoryUpdated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.newFactory = event.params.newFactory;
     ev.save();
 }
@@ -98,6 +102,7 @@ export function handleSuperTokenLogicUpdated(
     ev.name = "SuperTokenLogicUpdated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.code = event.params.code;
     ev.save();
@@ -110,6 +115,7 @@ export function handleAppRegistered(event: AppRegistered): void {
     ev.name = "AppRegistered";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.app = event.params.app;
     ev.save();
 }
@@ -121,6 +127,7 @@ export function handleJail(event: Jail): void {
     ev.name = "Jail";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.app = event.params.app;
     ev.reason = event.params.reason;
     ev.save();

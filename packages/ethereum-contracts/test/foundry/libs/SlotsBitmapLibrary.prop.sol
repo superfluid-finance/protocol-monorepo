@@ -117,7 +117,7 @@ contract SlotsBitmapLibraryProperties is Test {
         // assert(!slotExists);
     }
 
-    function testSlotsBitmapLibraryBehavior(uint8 _numSlots, uint8 _subIdToRemove)
+    function testCreateConsequtiveSlotsAndRemoveOneSlot(uint8 _numSlots, uint8 _subIdToRemove)
         public
     {
         vm.assume(_numSlots > 0);
@@ -147,12 +147,12 @@ contract SlotsBitmapLibraryProperties is Test {
         assert(!slotExists);
     }
 
-    function testCreateSlotsAndClearAllSafe(uint16 _numSlots) public {
+    function testCreateConsequtiveSlotsAndClearAll(uint16 _numSlots) public {
         vm.assume(_numSlots < _MAX_NUM_SLOTS);
-        _createSlotsAndClearAll(_numSlots);
+        _createConsequtiveSlotsAndClearAll(_numSlots);
     }
 
-    function testCreateRandomSlotsAndCreateSlotsAndClearAll(
+    function testCreateRandomSlotsThenCreateConsequtiveSlotsAndClearAll(
         int256[] memory _instructions
     ) public {
         vm.assume(_instructions.length > 0);
@@ -160,10 +160,10 @@ contract SlotsBitmapLibraryProperties is Test {
 
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         uint32 remainingSlots = _MAX_NUM_SLOTS - uint32(slotIds.length);
-        _createSlotsAndClearAll(uint8(remainingSlots));
+        _createConsequtiveSlotsAndClearAll(uint8(remainingSlots));
     }
 
-    function testCreateRandomSlotsAndCreateTooMany(
+    function testCreateRandomSlotsThenCreateTooMany(
         int256[] memory _instructions
     ) public {
         vm.assume(_instructions.length > 0);
@@ -186,7 +186,7 @@ contract SlotsBitmapLibraryProperties is Test {
         }
     }
 
-    function _createSlotsAndClearAll(uint16 _numSlots) private {
+    function _createConsequtiveSlotsAndClearAll(uint16 _numSlots) private {
         vm.assume(_numSlots > 0 && _numSlots < _MAX_NUM_SLOTS);
         // fill _numSlots slots
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
@@ -210,6 +210,7 @@ contract SlotsBitmapLibraryProperties is Test {
     // IF < 0 TRY_CLEAR_SLOT; ELSE TRY_FILL_SLOT
     function _createRandomSlots(int256[] memory _instructions) private {
         vm.assume(_instructions.length > 0);
+        vm.assume(_instructions.length < 42);
         uint256 numSlotIds;
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         assertEq(slotIds.length, 0);

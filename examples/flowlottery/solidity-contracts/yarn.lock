@@ -1065,14 +1065,14 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/ethereum-contracts@dev":
-  version "1.2.3-dev.d435096.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.2.3-dev.d435096.0.tgz#8732501915e9df88870c1a0f9b791d8677b52b78"
-  integrity sha512-+Ps7vZtdQAihvBI/SWjHw7zqnQFBKYJv7dXGSvcwddJ+absbs9F57ODshHA5Aj686FPhzYPvPbBA4zkRQncIJg==
+"@superfluid-finance/ethereum-contracts@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.2.2.tgz#888a3b25219de6916eb28d643e8bf02aad26b852"
+  integrity sha512-5dJLUC08F3kMFCmepwr/uRwOcaGzR/SpDl/v3fsKXZ5x89NCBlJzHRYD7BJHY6ZJY8t3dL/CXpovW9+b+nIxTw==
   dependencies:
     "@decentral.ee/web3-helpers" "0.5.3"
     "@openzeppelin/contracts" "4.5.0"
-    "@superfluid-finance/js-sdk" "^0.6.1-dev.d435096.0"
+    "@superfluid-finance/js-sdk" "0.5.13"
     "@truffle/contract" "4.5.5"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.1.4"
@@ -1085,21 +1085,10 @@
   dependencies:
     "@openzeppelin/contracts" "4.5.0"
 
-"@superfluid-finance/js-sdk@^0.5.5":
+"@superfluid-finance/js-sdk@0.5.13", "@superfluid-finance/js-sdk@^0.5.5":
   version "0.5.13"
   resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.13.tgz#eed9f610508705e6a806fd1356b53945ebd6fd32"
   integrity sha512-bkRYFD7aZIVnlxTwJUlViYBq7mXilNvDdBcJhBQ3vFlTPZPrNg+zL319u5C+vQGlkDwtvAD6J6nR0CnuQ0TR6w==
-  dependencies:
-    "@ethersproject/abi" "^5.6.0"
-    "@ethersproject/hash" "^5.6.0"
-    "@truffle/contract" "4.5.5"
-    auto-bind "^4.0.0"
-    node-fetch "^2.6.7"
-
-"@superfluid-finance/js-sdk@^0.6.1-dev.d435096.0":
-  version "0.6.1-dev.d435096.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.6.1-dev.d435096.0.tgz#f3da063a33f790bbda056aee63e2cbd974ed3604"
-  integrity sha512-jIrUqF0l0VE2Q8YYFYZ42+g1dJKUzHf4L222EiDFDDRCXQx+0H1eUiDzmZWrb4sh9lwHMzjgm9JXg7RV8+wNig==
   dependencies:
     "@ethersproject/abi" "^5.6.0"
     "@ethersproject/hash" "^5.6.0"

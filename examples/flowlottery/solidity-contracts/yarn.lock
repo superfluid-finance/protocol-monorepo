@@ -1082,6 +1082,7 @@
 "@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?echidna_fuzzing_integration":
   version "0.1.0"
   resolved "https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?echidna_fuzzing_integration#0c2d84cab915527a30893e49f37bc935a3258f57"
+  integrity sha512-3dTamILZnE8y+Ho6z/ZDIgXHDt+CZduhaSq2W/aQU5aYFss2CncfSq9XgWjni+lSKg52pZB+MwcxoKk31ZRkpA==
   dependencies:
     "@openzeppelin/contracts" "4.5.0"
 

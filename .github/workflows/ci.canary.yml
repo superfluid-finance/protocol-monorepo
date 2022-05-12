@@ -235,7 +235,7 @@ jobs:
           name: sdk-core-coverage
           flags: sdk-core
           fail_ci_if_error: true
-  
+
   publish-npm-packages:
     name: Publish canary packages to registries
 

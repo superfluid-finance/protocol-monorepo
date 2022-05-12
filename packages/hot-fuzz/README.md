@@ -21,12 +21,13 @@ How To Use
 1. Download the latest echidna binary from: https://github.com/crytic/echidna
 
 > :warning: Temporary Workaround needed
-> The hot-fuzz currently needs a fix in echidna to support contract deployment to specific address.
+>
+> Hot fuzz currently needs a fix in echidna to support contract deployment to specific address.
 >
 > The fix can be found at https://github.com/crytic/echidna/pull/758.
 >
-> To download, open the link above -> click "Checks" tab -> click "CI" -> Download an artifact suitable for your
-> operating system.
+> To download, open the link above -> click "Checks" tab -> click "CI" -> Download the artifact
+> for your perating system.
 
 2. Add `@superfluid-finance/hot-fuzz` to your project `devDependencies`.
 
@@ -102,8 +103,8 @@ function echidna_app_is_free() public view returns (bool) {
 $ npx hot-fuzz contracts/YourAppHotFuzz.yaml
 ```
 
-What's happening now is that, your list of actions in addition to a preset of actions defined in `HotFuzzBase` are
-randomized as as many sequences of instructions as you configured for, are being executed.
+Once it is running, what is going on is that your list of actions in addition to a preset of actions defined in
+`HotFuzzBase` are randomized as as many sequences of instructions as you configured for, are being executed.
 
 While executing these sequences of instructions, all echidna invariances are checked each time a transaction is made.
 Any violation of these invariances are considered a bug somewhere in the app.
@@ -115,6 +116,6 @@ Contribution ✨
 
 The tool is still in early development, many breaking changes may still come.
 
-All contributions are welcome through issue report or pull requests.
+All contributions are welcome through new issue reports or pull requests.
 
 Let's make smart contracts development safer by testing more.

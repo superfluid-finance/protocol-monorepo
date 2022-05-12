@@ -532,6 +532,7 @@ function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
     ev.name = "IndexCreated";
     ev.addresses = [event.params.token, event.params.publisher];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -556,6 +557,7 @@ function createIndexDistributionClaimedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -572,6 +574,7 @@ function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
     ev.name = "IndexUpdated";
     ev.addresses = [event.params.token, event.params.publisher];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -597,6 +600,7 @@ function createIndexSubscribedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -623,6 +627,7 @@ function createIndexUnitsUpdatedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -650,6 +655,7 @@ function createIndexUnsubscribedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -675,6 +681,7 @@ function createSubscriptionApprovedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -700,6 +707,7 @@ function createSubscriptionDistributionClaimedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -725,6 +733,7 @@ function createSubscriptionRevokedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -751,6 +760,7 @@ function createSubscriptionUnitsUpdatedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;

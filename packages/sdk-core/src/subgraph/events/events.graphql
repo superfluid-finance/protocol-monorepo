@@ -861,6 +861,7 @@ fragment eventFields on Event {
     blockNumber
     transactionHash
     timestamp
+    logIndex
 }
 
 fragment flowUpdatedEvent on FlowUpdatedEvent {

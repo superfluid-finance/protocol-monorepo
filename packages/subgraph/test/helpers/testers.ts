@@ -26,16 +26,9 @@ import {
     ITestModifyIDAData,
     ITestUpdateFlowOperatorData,
 } from "../interfaces";
-import {
-    getFlowOperatorUpdatedEvents,
-    getFlowUpdatedEvents,
-} from "../queries/eventQueries";
-import { fetchEventAndValidate } from "../validation/eventValidators";
-import {
-    validateFlowUpdated,
-    validateModifyIDA,
-    validateUpdateFlowOperatorPermissions,
-} from "../validation/validators";
+import {getFlowOperatorUpdatedEvents, getFlowUpdatedEvents,} from "../queries/eventQueries";
+import {fetchEventAndValidate} from "../validation/eventValidators";
+import {validateFlowUpdated, validateModifyIDA, validateUpdateFlowOperatorPermissions,} from "../validation/validators";
 import {
     clipDepositNumber,
     fetchEntityAndEnsureExistence,
@@ -70,13 +63,13 @@ import {
     MAX_FLOW_RATE,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
-import { Framework } from "@superfluid-finance/sdk-core";
-import { BigNumber } from "@ethersproject/bignumber";
-import { BaseProvider, TransactionResponse } from "@ethersproject/providers";
-import { getSubscription } from "../queries/holQueries";
-import { ethers } from "hardhat";
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {Framework} from "@superfluid-finance/sdk-core";
+import {BigNumber} from "@ethersproject/bignumber";
+import {BaseProvider, TransactionResponse} from "@ethersproject/providers";
+import {getSubscription} from "../queries/holQueries";
+import {ethers} from "hardhat";
+import {expect} from "chai";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -96,6 +89,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         timestamp,
         flowRate: newFlowRate,
         deposit,
+        logIndex,
     } = await modifyFlowAndReturnCreatedFlowData(data);
     const lastUpdatedAtTimestamp = timestamp.toString();
 
@@ -170,6 +164,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             totalReceiverFlowRate: receiverNetFlow,
             totalSenderFlowRate: senderNetFlow,
             type: data.actionType,
+            logIndex: logIndex,
         },
         getFlowUpdatedEvents,
         "FlowUpdatedEvents"
@@ -209,7 +204,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
 export async function testUpdateFlowOperatorPermissions(
     data: ITestUpdateFlowOperatorData
 ) {
-    let { timestamp, txnResponse } = await updateFlowOperatorPermissions(data);
+    let {timestamp, txnResponse, logIndex} = await updateFlowOperatorPermissions(data);
 
     const lastUpdatedAtTimestamp = timestamp.toString();
     const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
@@ -277,6 +272,7 @@ export async function testUpdateFlowOperatorPermissions(
             sender: senderId,
             permissions: expectedPermissions,
             flowRateAllowance: expectedFlowRateAllowance,
+            logIndex: logIndex,
         },
         getFlowOperatorUpdatedEvents,
         "FlowOperatorUpdatedEvents"
@@ -326,8 +322,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
 
     const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
         localData;
-    const { token, publisher, indexId, subscriber } = baseParams;
-    const { txnResponse, timestamp, updatedAtBlockNumber } =
+    const {token, publisher, indexId, subscriber} = baseParams;
+    const {txnResponse, timestamp, updatedAtBlockNumber, logIndex} =
         await executeIDATransactionByTypeAndWaitForIndexer(
             framework,
             provider,
@@ -396,6 +392,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         totalUnitsApproved: indexTotalUnitsApproved,
         totalUnitsPending: indexTotalUnitsPending,
         distributionDelta,
+        logIndex: logIndex,
     };
 
     // Claim is tested quite differently as no event is emitted for it (currently)
@@ -531,6 +528,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     let updatedAtBlockNumber: string = "";
     let txnResponse: TransactionResponse;
     const ida = sf.idaV1;
+    let methodFilter;
 
     const { token, publisher, indexId, userData, subscriber } = baseParams;
     const baseData = {
@@ -549,15 +547,14 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 ...baseData,
             })
             .exec(signer);
+        methodFilter = ida.contract.filters.IndexCreated();
     } else if (type === IDAEventType.IndexUpdated) {
         if (amountOrIndexValue == null || isDistribute == null) {
             throw new Error(
                 "You must pass isDistribute and amountOrIndexValue for index updated."
             );
         }
-
         signer = await ethers.getSigner(publisher);
-
         if (isDistribute) {
             txnResponse = await ida
                 .distribute({
@@ -573,6 +570,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 })
                 .exec(signer);
         }
+        methodFilter = ida.contract.filters.IndexCreated();
     } else if (type === IDAEventType.SubscriptionApproved) {
         signer = await ethers.getSigner(subscriber);
         txnResponse = await ida
@@ -580,13 +578,13 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 ...baseSubscriberData,
             })
             .exec(signer);
+        methodFilter = ida.contract.filters.SubscriptionApproved();
     } else if (type === IDAEventType.SubscriptionRevoked) {
         if (isRevoke == null || sender == null) {
             throw new Error(
                 "You must pass isRevoke and sender for subscription revoked."
             );
         }
-
         if (isRevoke) {
             signer = await ethers.getSigner(subscriber);
             txnResponse = await ida
@@ -602,6 +600,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 })
                 .exec(signer);
         }
+        methodFilter = ida.contract.filters.SubscriptionRevoked();
     } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
         signer = await ethers.getSigner(subscriber);
         txnResponse = await ida
@@ -609,6 +608,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 ...baseSubscriberData,
             })
             .exec(signer);
+        methodFilter = ida.contract.filters.SubscriptionDistributionClaimed();
     } else {
         // type === IDAEventType.SubscriptionUnitsUpdated
         if (units == null) {
@@ -617,26 +617,30 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
             );
         }
         signer = await ethers.getSigner(publisher);
-
         txnResponse = await ida
             .updateSubscriptionUnits({
                 ...baseSubscriberData,
                 units: units.toString(),
             })
             .exec(signer);
+        methodFilter = ida.contract.filters.SubscriptionUnitsUpdated();
     }
-
     if (!txnResponse.blockNumber) {
         throw new Error("No block number");
     }
-
     const block = await provider.getBlock(txnResponse.blockNumber);
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-
+    const transactionReceipt = await txnResponse.wait();
+    const methodSignature = methodFilter?.topics?.pop();
+    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
     timestamp = block.timestamp.toString();
     updatedAtBlockNumber = txnResponse.blockNumber.toString();
-
-    return { txnResponse, timestamp, updatedAtBlockNumber };
+    return {
+        txnResponse,
+        timestamp,
+        updatedAtBlockNumber,
+        logIndex: transactionLog?.logIndex
+    };
 }
 
 function getIDAEventDataForValidation(

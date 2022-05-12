@@ -1116,9 +1116,9 @@
     hardhat "^2.9.3"
     stack-trace "0.0.10"
 
-"@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?echidna_fuzzing_integration":
+"@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=echidna_fuzzing_integration":
   version "0.1.0"
-  resolved "https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?echidna_fuzzing_integration#0c2d84cab915527a30893e49f37bc935a3258f57"
+  resolved "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=echidna_fuzzing_integration#307084e430ac2f0103bf90c98c8433c8b9e2a8d7"
   dependencies:
     "@openzeppelin/contracts" "4.5.0"
 

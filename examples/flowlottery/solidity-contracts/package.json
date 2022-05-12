@@ -19,7 +19,7 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@openzeppelin/test-helpers": "^0.5.15",
-        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?echidna_fuzzing_integration",
+        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=echidna_fuzzing_integration",
         "@superfluid-finance/js-sdk": "^0.6.0",
         "@truffle/contract": "4.5.9",
         "@truffle/hdwallet-provider": "2.0.8",

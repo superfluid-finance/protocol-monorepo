@@ -638,9 +638,9 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
 
     const block = await provider.getBlock(txnResponse.blockNumber);
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-    const transactionReciept = await txnResponse.wait();
+    const transactionReceipt = await txnResponse.wait();
     const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReciept.logs.find(log => log.topics[0] === methodSignature)
+    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
     timestamp = block.timestamp.toString();
     updatedAtBlockNumber = txnResponse.blockNumber.toString();
 

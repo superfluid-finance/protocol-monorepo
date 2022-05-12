@@ -7,7 +7,6 @@ import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../gene
  * Constants
  *************************************************************************/
 export const BIG_INT_ZERO = BigInt.fromI32(0);
-export const PADDING_LEFT_LENGTH = BigInt.fromI32(6);
 export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));

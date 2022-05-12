@@ -371,10 +371,10 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-    const transactionReciept = await txnResponse.wait();
+    const transactionReceipt = await txnResponse.wait();
     const methodFilter = data.framework.cfaV1.contract.filters.FlowUpdated();
     const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReciept.logs.find(log => log.topics[0] === methodSignature)
+    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
     const {flowRate, deposit} = await data.framework.cfaV1.getFlow({
         superToken: data.superToken.address,
         sender: data.sender,
@@ -430,10 +430,10 @@ export const updateFlowOperatorPermissions = async (
     const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-    const transactionReciept = await txnResponse.wait();
+    const transactionReceipt = await txnResponse.wait();
     const methodFilter = data.framework.cfaV1.contract.filters.FlowOperatorUpdated();
     const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReciept.logs.find(log => log.topics[0] === methodSignature)
+    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
     return {timestamp, txnResponse, logIndex: transactionLog?.logIndex,};
 };
 

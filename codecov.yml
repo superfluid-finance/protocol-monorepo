@@ -26,3 +26,6 @@ flags:
     paths: packages/js-sdk
   sdk-core:
     paths: packages/sdk-core
+
+fixes:
+  - "/home/runner/work/protocol-monorepo/::"

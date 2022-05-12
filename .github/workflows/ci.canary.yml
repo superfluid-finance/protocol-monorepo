@@ -117,7 +117,6 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
-        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build

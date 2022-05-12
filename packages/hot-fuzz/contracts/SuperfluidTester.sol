@@ -38,7 +38,14 @@ contract SuperfluidTester {
     }
 
     function flow(address receiver, int96 flowRate) public {
-        sf.cfaLib.flow(receiver, superToken, flowRate);
+        (, int96 currentFlowRate,,) = sf.cfa.getFlow(superToken, address(this), receiver);
+        if (flowRate == 0) {
+            sf.cfaLib.deleteFlow(address(this), receiver, superToken);
+        } else if (currentFlowRate == 0) {
+            sf.cfaLib.createFlow(receiver, superToken, flowRate);
+        } else {
+            sf.cfaLib.updateFlow(receiver, superToken, flowRate);
+        }
     }
 
     function createIndex(uint32 indexId) public {

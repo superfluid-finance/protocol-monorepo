@@ -1,5 +1,5 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
+import {Address, BigInt, ethereum} from "@graphprotocol/graph-ts";
+import {ISuperfluid as Superfluid} from "../generated/Host/ISuperfluid";
 import {
     Account,
     AccountTokenSnapshot,
@@ -13,23 +13,24 @@ import {
 } from "../generated/schema";
 import {
     BIG_INT_ZERO,
+    calculateMaybeCriticalAtTimestamp,
     getAccountTokenSnapshotID,
     getAmountStreamedSinceLastUpdatedAt,
+    getFlowOperatorID,
     getIndexID,
     getIsListedToken,
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
     getTokenInfoAndReturn,
-    updateTotalSupplyForNativeSuperToken,
     streamRevisionExists,
+    updateTotalSupplyForNativeSuperToken,
     ZERO_ADDRESS,
-    getFlowOperatorID,
 } from "./utils";
-import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { getHostAddress, getResolverAddress } from "./addresses";
-import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {SuperToken as SuperTokenTemplate} from "../generated/templates";
+import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
+import {getHostAddress, getResolverAddress} from "./addresses";
+import {FlowUpdated} from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 /**************************************************************************
  * HOL initializer functions
@@ -394,6 +395,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
+        accountTokenSnapshot.maybeCriticalAtTimestamp = BIG_INT_ZERO;
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
         accountTokenSnapshot.save();
@@ -530,6 +532,14 @@ function updateATSBalanceAndUpdatedAt(
     }
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
+
+
+    accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
+        accountTokenSnapshot.updatedAtTimestamp,
+        accountTokenSnapshot.balanceUntilUpdatedAt,
+        accountTokenSnapshot.totalNetFlowRate
+    );
+
     accountTokenSnapshot.save();
     return accountTokenSnapshot as AccountTokenSnapshot;
 }

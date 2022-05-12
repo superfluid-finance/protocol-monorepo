@@ -1,18 +1,7 @@
-import {
-    BigInt,
-    Bytes,
-    ethereum,
-    Address,
-    log,
-} from "@graphprotocol/graph-ts";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { Resolver } from "../generated/ResolverV1/Resolver";
-import {
-    StreamRevision,
-    IndexSubscription,
-    Token,
-    TokenStatistic,
-} from "../generated/schema";
+import {Address, BigInt, Bytes, ethereum, log,} from "@graphprotocol/graph-ts";
+import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
+import {Resolver} from "../generated/ResolverV1/Resolver";
+import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../generated/schema";
 
 /**************************************************************************
  * Constants
@@ -250,4 +239,27 @@ export function getAmountStreamedSinceLastUpdatedAt(
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(previousTotalOutflowRate);
+}
+
+/**
+ *
+ * @param updatedAtTimestamp
+ * @param balanceUntilUpdatedAt
+ * @param totalNetFlowRate
+ */
+
+export function calculateMaybeCriticalAtTimestamp(
+    updatedAtTimestamp: BigInt,
+    balanceUntilUpdatedAt: BigInt,
+    totalNetFlowRate: BigInt
+): BigInt {
+    if (totalNetFlowRate.isZero()) return BIG_INT_ZERO;
+    if(totalNetFlowRate.gt(BIG_INT_ZERO)) return BIG_INT_ZERO;
+    const calculatedDelta = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
+    if (calculatedDelta.isZero()) {
+        return BIG_INT_ZERO;
+    }
+
+
+    return calculatedDelta.plus(updatedAtTimestamp);
 }

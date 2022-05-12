@@ -1121,6 +1121,11 @@ type AccountTokenSnapshot @entity {
     """
     The number of currently open streams.
     """
+    maybeCriticalAtTimestamp: BigInt!
+
+    """
+    The number of currently open streams.
+    """
     totalNumberOfActiveStreams: Int!
 
     """

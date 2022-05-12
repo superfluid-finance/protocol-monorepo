@@ -54,6 +54,7 @@ function createFlowUpdatedEntity(
     ];
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.receiver = event.params.receiver;
@@ -88,6 +89,7 @@ function createFlowOperatorUpdatedEventEntity(
     ];
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.permissions = event.params.permissions;

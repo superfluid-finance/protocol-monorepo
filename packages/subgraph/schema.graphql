@@ -9,6 +9,7 @@ data.
 interface Event {
     id: ID!
     blockNumber: BigInt!
+    logIndex: BigInt!
     name: String!
 
     """
@@ -35,6 +36,7 @@ type FlowUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -97,6 +99,7 @@ type FlowOperatorUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -127,6 +130,7 @@ type IndexCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -147,6 +151,7 @@ type IndexDistributionClaimedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -168,6 +173,7 @@ type IndexUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -192,6 +198,7 @@ type IndexSubscribedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -213,6 +220,7 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -238,6 +246,7 @@ type IndexUnsubscribedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -259,6 +268,7 @@ type SubscriptionApprovedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -280,6 +290,7 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -301,6 +312,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -322,6 +334,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -349,6 +362,7 @@ type AgreementClassRegisteredEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
@@ -364,6 +378,7 @@ type AgreementClassUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
@@ -379,6 +394,7 @@ type AppRegisteredEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     app: Bytes!
 }
 
@@ -389,6 +405,7 @@ type GovernanceReplacedEvent implements Event @entity {
     name: String!
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
 
     """
     Empty addresses array.
@@ -408,6 +425,7 @@ type JailEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     app: Bytes!
     reason: BigInt!
 }
@@ -423,6 +441,7 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     newFactory: Bytes!
 }
 
@@ -437,6 +456,7 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     code: Bytes!
 }
@@ -453,6 +473,7 @@ type RoleAdminChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     role: Bytes!
     previousAdminRole: Bytes!
     newAdminRole: Bytes!
@@ -469,6 +490,7 @@ type RoleGrantedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
@@ -485,6 +507,7 @@ type RoleRevokedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
@@ -502,6 +525,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -519,6 +543,7 @@ type ConfigChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     key: Bytes!
@@ -537,6 +562,7 @@ type RewardAddressChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -554,6 +580,7 @@ type PPPConfigurationChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -572,6 +599,7 @@ type TrustedForwarderChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -591,6 +619,7 @@ type AgreementLiquidatedByEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -612,6 +641,7 @@ type AgreementLiquidatedV2Event implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -635,6 +665,7 @@ type BurnedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     operator: Bytes!
     from: Bytes!
     amount: BigInt!
@@ -653,6 +684,7 @@ type MintedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     operator: Bytes!
     to: Bytes!
     amount: BigInt!
@@ -671,6 +703,7 @@ type SentEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     operator: Bytes!
     from: Bytes!
     to: Bytes!
@@ -690,6 +723,7 @@ type TransferEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     from: Account!
     to: Account!
     value: BigInt!
@@ -708,6 +742,7 @@ type TokenDowngradedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     amount: BigInt!
 }
@@ -724,6 +759,7 @@ type TokenUpgradedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
     amount: BigInt!
 }
@@ -741,6 +777,7 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
 }
 
@@ -755,6 +792,7 @@ type SuperTokenCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     token: Bytes!
 }
 
@@ -769,6 +807,7 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
     tokenLogic: Bytes!
 }
 
@@ -1112,7 +1151,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID + keccak256("-") + tokenID
+    ID composed of: accountID-tokenID
     """
     id: ID!
     updatedAtTimestamp: BigInt!

@@ -1,4 +1,4 @@
-import { gql } from "graphql-request";
+import {gql} from "graphql-request";
 
 // CFA Event Queries
 export const getFlowUpdatedEvents = gql`
@@ -11,6 +11,7 @@ export const getFlowUpdatedEvents = gql`
             timestamp
             name
             blockNumber
+            logIndex
             addresses
             token
             sender
@@ -37,6 +38,7 @@ export const getFlowOperatorUpdatedEvents = gql`
             timestamp
             name
             blockNumber
+            logIndex
             addresses
             token
             sender
@@ -62,6 +64,7 @@ export const getIndexCreatedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -83,6 +86,7 @@ export const getIndexDistributionClaimedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -105,6 +109,7 @@ export const getIndexUpdatedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -130,6 +135,7 @@ export const getIndexSubscribedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -152,6 +158,7 @@ export const getIndexUnitsUpdatedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -175,6 +182,7 @@ export const getIndexUnsubscribedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -197,6 +205,7 @@ export const getSubscriptionApprovedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber
@@ -219,6 +228,7 @@ export const getSubscriptionDistributionClaimedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber
@@ -241,6 +251,7 @@ export const getSubscriptionRevokedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber
@@ -263,6 +274,7 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber

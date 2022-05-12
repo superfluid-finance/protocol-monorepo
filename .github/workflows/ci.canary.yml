@@ -110,6 +110,10 @@ jobs:
   #   runs-on: ubuntu-latest
 
   #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         path: protocol-monorepo
+
   #     - name: Use Node.js 16.x
   #       uses: actions/setup-node@v1
   #       with:
@@ -138,6 +142,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: protocol-monorepo
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -145,6 +151,7 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -155,7 +162,7 @@ jobs:
         with:
           name: js-sdk-coverage
           path: |
-            packages/js-sdk/coverage/
+            protocol-monorepo/packages/js-sdk/coverage/
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
@@ -166,6 +173,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: protocol-monorepo
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -173,6 +182,7 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
+        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -183,7 +193,7 @@ jobs:
         with:
           name: sdk-core-coverage
           path: |
-            packages/sdk-core/coverage/
+            protocol-monorepo/packages/sdk-core/coverage/
 
   publish-coverage-reports:
     name: Publish coverage reports
@@ -196,7 +206,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      # TODO: UNCOMMENT THIS
+        with:
+          # NOTE: all coverage report job should checkout the code to the same path,
+          #       otherwise reports wouldn't match the code here.
+          path: protocol-monorepo
+
       # - name: Download ethereum-contracts-coverage
       #   uses: actions/download-artifact@v3
       #   with:
@@ -214,11 +228,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: js-sdk-coverage
-          path: packages/js-sdk/coverage
+          path: protocol-monorepo/packages/js-sdk/coverage
       - name: Upload js-sdk-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: packages/js-sdk/coverage/lcov.info
+          files: protocol-monorepo/packages/js-sdk/coverage/lcov.info
           name: js-sdk-coverage
           flags: js-sdk
           fail_ci_if_error: true
@@ -227,11 +241,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: sdk-core-coverage
-          path: packages/sdk-core/coverage
+          path: protocol-monorepo/packages/sdk-core/coverage
       - name: Upload sdk-core-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: packages/sdk-core/coverage/lcov.info
+          files: protocol-monorepo/packages/sdk-core/coverage/lcov.info
           name: sdk-core-coverage
           flags: sdk-core
           fail_ci_if_error: true

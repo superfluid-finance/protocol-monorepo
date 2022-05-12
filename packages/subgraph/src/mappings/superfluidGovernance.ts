@@ -22,6 +22,7 @@ export function handleConfigChanged(event: ConfigChanged): void {
     ev.addresses = [];
     ev.blockNumber = event.block.number;
     ev.order = getOrder(event.block.number, event.logIndex);
+    ev.logIndex = event.logIndex;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.key = event.params.key;
@@ -39,6 +40,7 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     ev.name = "RewardAddressChanged";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -58,6 +60,7 @@ export function handleCFAv1LiquidationPeriodChanged(
     ev.name = "CFAv1LiquidationPeriodChanged";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -77,6 +80,7 @@ export function handlePPPConfigurationChanged(
     ev.name = "TrustedForwarderChanged";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -98,6 +102,7 @@ export function handleTrustedForwarderChanged(
     ev.name = "TrustedForwarderChanged";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;

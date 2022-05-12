@@ -4,6 +4,7 @@ export type EventBase = {
     transactionHash: string;
     order: number;
     timestamp: number;
+    logIndex: number;
 };
 
 export interface IEventFilter {

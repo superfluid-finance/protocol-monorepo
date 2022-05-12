@@ -342,11 +342,11 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         txnResponse =
             data.actionType === FlowActionType.Create
                 ? await data.framework.cfaV1
-                      .createFlowByOperator({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                          sender: data.sender,
-                      })
+                    .createFlowByOperator({
+                        ...baseData,
+                        flowRate: data.newFlowRate.toString(),
+                        sender: data.sender,
+                    })
                     .exec(signer)
                 : data.actionType === FlowActionType.Update
                     ? await data.framework.cfaV1
@@ -381,8 +381,8 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         receiver: data.receiver,
         providerOrSigner: data.provider,
     });
-
     return {
+        logIndex: transactionLog?.logIndex,
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),

@@ -27,6 +27,7 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     ev.name = "SuperTokenCreated";
     ev.addresses = [event.params.token];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.save();
@@ -51,6 +52,7 @@ export function handleCustomSuperTokenCreated(
     ev.name = "CustomSuperTokenCreated";
     ev.addresses = [event.params.token];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.save();
@@ -75,6 +77,7 @@ export function handleSuperTokenLogicCreated(
     ev.name = "SuperTokenLogicCreated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.tokenLogic = event.params.tokenLogic;
     ev.save();

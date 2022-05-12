@@ -16,7 +16,7 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         int96 flowRate = int96(int32(a));
 
         vm.startPrank(alice);
-        sf.cfaLib.flow(bob, superToken, flowRate);
+        sf.cfaLib.createFlow(bob, superToken, flowRate);
         vm.stopPrank();
 
         assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
@@ -31,11 +31,11 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         int96 flowRate = int96(int32(a));
 
         vm.startPrank(alice);
-        sf.cfaLib.flow(bob, superToken, flowRate);
+        sf.cfaLib.createFlow(bob, superToken, flowRate);
         vm.stopPrank();
 
         vm.startPrank(bob);
-        sf.cfaLib.flow(alice, superToken, flowRate);
+        sf.cfaLib.createFlow(alice, superToken, flowRate);
         vm.stopPrank();
 
         assertEq(sf.cfa.getNetFlow(superToken, alice), 0);
@@ -44,4 +44,19 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         assertTrue(checkAllInvariants());
     }
 
+    
+    function _flow(address sender, address receiver, int96 flowRate) public {
+        (, int96 currentFlowRate,,) = sf.cfa.getFlow(superToken, sender, receiver);
+
+        vm.startPrank(sender);
+
+        if (flowRate == 0)
+            sf.cfaLib.deleteFlow(sender, receiver, superToken);
+        else if (currentFlowRate == 0)
+            sf.cfaLib.createFlow(receiver, superToken, flowRate);
+        else
+            sf.cfaLib.updateFlow(receiver, superToken, flowRate);
+
+        vm.stopPrank();
+    }
 }

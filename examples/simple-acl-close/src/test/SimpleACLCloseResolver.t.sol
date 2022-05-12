@@ -112,7 +112,7 @@ contract SimpleACLCloseResolverTest is Test {
     function testCannotExecuteRightNow() public {
         // create a stream from sender to receiver
         _vm.startPrank(sender);
-        sfFramework.cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.createFlow(receiver, _superToken, 100);
 
         // fails because cannot execute yet
         _vm.expectRevert(OpsMock.CannotExecute.selector);
@@ -128,7 +128,7 @@ contract SimpleACLCloseResolverTest is Test {
         // move block.timestamp to 1 because it is currently at 0
         _vm.warp(block.timestamp + 1);
 
-        sfFramework.cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.createFlow(receiver, _superToken, 100);
 
         // warp to a time when it's acceptable to execute
         _vm.warp(block.timestamp + 14401);
@@ -141,7 +141,7 @@ contract SimpleACLCloseResolverTest is Test {
     function testCannotCloseBeforeEndTime() public {
         // create a stream from sender to receiver
         _vm.startPrank(sender);
-        sfFramework.cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.createFlow(receiver, _superToken, 100);
 
         // grant permissions so ops has full flow operator permissions
         _grantFlowOperatorPermissions(address(_superToken), address(ops));
@@ -197,7 +197,7 @@ contract SimpleACLCloseResolverTest is Test {
         // move block.timestamp to 1 because it is currently at 0
         _vm.warp(block.timestamp + 1);
 
-        sfFramework.cfaLib.flow(receiver, _superToken, 100);
+        sfFramework.cfaLib.createFlow(receiver, _superToken, 100);
 
         // grant permissions so ops has delete flow operator permissions
         _grantFlowOperatorPermissions(address(_superToken), address(ops));

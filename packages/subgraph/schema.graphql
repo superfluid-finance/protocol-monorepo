@@ -90,7 +90,7 @@ type FlowUpdatedEvent implements Event @entity {
     stream: Stream!
 }
 
-type FlowOperatorUpdatedEvent implements Event @entity {
+type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!

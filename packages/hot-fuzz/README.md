@@ -1,5 +1,8 @@
-Hot Fuzz
-========
+<h1 align="center">Welcome to Superfluid Hot Fuzz 👋
+</h1>
+<div align="center">
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
+</div>
 
 > Testing Superfluid protocol and Super Apps like Simon Pegg.
 
@@ -7,7 +10,7 @@ Hot Fuzz
     <img src="hot-fuzz-simon.jpg" width="61.803%" />
 </center>
 
-Hot-fuzz is a wrapper of [Echidna documentation](https://github.com/crytic/echidna/) with additional helper for fuzzing
+Hot-fuzz is a wrapper of [Echidna](https://github.com/crytic/echidna/) with additional helper for fuzzing
 your Superfluid smart contracts applications, including [Super Apps](https://docs.superfluid.finance/superfluid/protocol-developers/super-apps).
 
 How To Use
@@ -30,7 +33,7 @@ How To Use
 `hot-fuzz` does not have a package yet, you should install it through:
 
 ```
-yarn add https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?echidna_fuzzing_integratio
+yarn add https://gitpkg.now.sh/superfluid-finance/protocol-monorepo/packages/hot-fuzz?dev
 ```
 
 > Check out how this works:

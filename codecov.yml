@@ -28,4 +28,4 @@ flags:
     paths: packages/sdk-core
 
 fixes:
-  - "/home/runner/work/protocol-monorepo/protocol-monorepo/::"
+  - "/home/runner/work/protocol-monorepo/protocol-monorepo/protocol-monorepo/::"

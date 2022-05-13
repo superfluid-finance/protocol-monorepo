@@ -52,6 +52,8 @@ For technical document, references and tutorials, etc, refer to the
   </a>
 </p>
 
+EVM contracts implementation for the Superfluid Protocol.
+
 If you're interest in peeking under the hood, then check out the contracts package.
 
 #### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk)
@@ -68,6 +70,10 @@ If you're interest in peeking under the hood, then check out the contracts packa
   </a>
 </p>
 
+Javascript SDK for building with Superfluid Protocol.
+
+:warning: This repo is deprecated :warning: (use sdk-core)
+
 #### [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core)
 
 <p>
@@ -82,8 +88,7 @@ If you're interest in peeking under the hood, then check out the contracts packa
   </a>
 </p>
 
-To build with Superfluid, you can use the Javascript SDK package or the SDK core package.
-
+SDK-Core is an application framework for interacting with the Superfluid Protocol without Solidity knowledge.
 
 #### [`@superfluid-finance/sdk-redux`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-redux)
 
@@ -97,6 +102,17 @@ To build with Superfluid, you can use the Javascript SDK package or the SDK core
 </p>
 
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
+
+#### [`@superfluid-finance/hot-fuzz`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hot-fuzz)
+
+<p>
+  <a href="#" target="_blank">
+    <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
+  </a>
+</p>
+
+Hot-fuzz is a wrapper of [Echidna](https://github.com/crytic/echidna/) with additional helper for fuzzing
+your Superfluid smart contracts applications, including [Super Apps](https://docs.superfluid.finance/superfluid/protocol-developers/super-apps).
 
 ## Bug Bounty
 Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/bug-bounty.md) for more information regarding our Bug Bounty.

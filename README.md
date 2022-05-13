@@ -76,7 +76,7 @@ If you're interest in peeking under the hood, then check out the contracts packa
 
 Javascript SDK for building with Superfluid Protocol.
 
-:warning: This repo is deprecated :warning: (use sdk-core)
+:warning: This repo is deprecated, use sdk-core instead :warning:
 
 #### [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core)
 

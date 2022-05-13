@@ -34,7 +34,7 @@ How To Use
 `hot-fuzz` does not have a package yet, you should install it through:
 
 ```
-yarn add 'https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=dev'
+yarn add --dev 'https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=dev'
 ```
 
 > Check out how this works:

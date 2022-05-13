@@ -13,6 +13,10 @@
   <a href="#superfluid-financesdk-redux" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux?label=sdk-redux">
   </a>
+  <a href="#superfluid-hot-fuzz" target="_blank">
+    <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/ethereum-contracts?filename=packages%2Fhot-fuzz%2Fpackage.json"> 
+  </a>
+  <br>
   <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>

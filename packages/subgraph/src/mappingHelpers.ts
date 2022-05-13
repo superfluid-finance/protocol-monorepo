@@ -46,6 +46,8 @@ export function getOrInitAccount(
     let account = Account.load(accountAddress.toHex());
     let hostAddress = getHostAddress();
 
+    if (accountAddress.equals(ZERO_ADDRESS)) return account as Account;
+
     let currentTimestamp = block.timestamp;
     if (account == null) {
         let hostContract = Superfluid.bind(hostAddress);

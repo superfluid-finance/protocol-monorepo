@@ -26,7 +26,7 @@ interface Event {
 FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
-type FlowUpdatedEvent implements Event @entity {
+type FlowUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!

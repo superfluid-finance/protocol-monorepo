@@ -1116,9 +1116,9 @@
     hardhat "^2.9.3"
     stack-trace "0.0.10"
 
-"@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=da8234b58cf614922936e15c1befe3944e008c12":
+"@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=90b879cb5dda258caa0883ca73d7befc4c5446f0":
   version "0.1.0"
-  resolved "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=da8234b58cf614922936e15c1befe3944e008c12#a39dbf9d9e37580c826203dcc3d4cadfb25f84e9"
+  resolved "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=90b879cb5dda258caa0883ca73d7befc4c5446f0#00de1cfd7c58f0e84073fae3167f25020b50bfdc"
   dependencies:
     "@openzeppelin/contracts" "4.5.0"
 

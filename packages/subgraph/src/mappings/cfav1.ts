@@ -1,16 +1,11 @@
-import { BigInt, store } from "@graphprotocol/graph-ts";
+import {BigInt} from "@graphprotocol/graph-ts";
 import {
     FlowOperatorUpdated,
     FlowUpdated,
     FlowUpdatedExtension,
     IConstantFlowAgreementV1,
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import {
-    FlowOperatorUpdatedEvent,
-    FlowUpdatedEvent,
-    StreamPeriod,
-    StreamRevision,
-} from "../../generated/schema";
+import {FlowOperatorUpdatedEvent, FlowUpdatedEvent, StreamPeriod, StreamRevision,} from "../../generated/schema";
 import {
     BIG_INT_ONE,
     BIG_INT_ZERO,
@@ -30,7 +25,7 @@ import {
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
+import {getHostAddress} from "../addresses";
 
 enum FlowActionType {
     create,
@@ -341,17 +336,13 @@ export function handleStreamUpdated(event: FlowUpdated): void {
 // we have the neccesary information to load the FlowUpdated entity to update it.
 export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
     let previousLogIndex = event.logIndex.minus(BIG_INT_ONE);
-    let eventId =
+    let flowUpdatedEvent = FlowUpdatedEvent.load(
         "FlowUpdated-" +
-        event.transaction.hash.toHexString() +
-        "-" +
-        previousLogIndex.toString();
-    let flowUpdatedEvent = FlowUpdatedEvent.load(eventId);
+            event.transaction.hash.toHexString() +
+            "-" +
+            previousLogIndex.toString()
+    );
     if (flowUpdatedEvent != null) {
-        // delete old entity
-        store.remove("FlowUpdatedEvent", flowUpdatedEvent.id);
-        // add back entity
-        flowUpdatedEvent = new FlowUpdatedEvent(eventId);
         flowUpdatedEvent.flowOperator = event.params.flowOperator;
         flowUpdatedEvent.deposit = event.params.deposit;
         flowUpdatedEvent.addresses = flowUpdatedEvent.addresses.concat([
@@ -422,3 +413,5 @@ export function updateFlowOperatorForFlowUpdated(
     }
     flowOperator.save();
 }
+
+

@@ -13,7 +13,8 @@ jobs:
         run: |
           xkcd_url=https://xkcd.com/${{ github.event.pull_request.number }}
           xkcd_img_url=$(curl -sL $xkcd_url | \
-                grep -o 'https://imgs.xkcd.com/comics/\w\+.png' | \
+                grep -oe '"https://imgs.xkcd.com/comics/[^"]\+"' | \
+                sed 's/"//g' | \
                 head -n1)
           echo "::set-output name=xkcd_url::$xkcd_url"
           echo "::set-output name=xkcd_img_url::$xkcd_img_url"

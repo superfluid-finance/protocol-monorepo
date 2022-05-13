@@ -2,7 +2,7 @@ name: XKCD Comic Relief
 
 on:
   pull_request:
-    types: [merged]
+    types: [synchronize, merged]
 
 jobs:
   post-xkcd:
@@ -26,4 +26,4 @@ jobs:
               ## XKCD Comic Relif
               Link: ${{ steps.search.outputs.xkcd_url }}
               ![${{ steps.search.outputs.xkcd_url }}](${{ steps.search.outputs.xkcd_img_url }})
-          reactions: laugh,cry,confused
+          reactions: laugh

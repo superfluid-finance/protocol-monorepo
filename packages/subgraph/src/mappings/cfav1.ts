@@ -347,11 +347,11 @@ export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
         "-" +
         previousLogIndex.toString();
     let flowUpdatedEvent = FlowUpdatedEvent.load(eventId);
-    // delete old entity
-    store.remove("FlowUpdatedEvent", flowUpdatedEvent.id);
-    // add back entity
-    flowUpdatedEvent = new FlowUpdatedEvent(eventId);
     if (flowUpdatedEvent != null) {
+        // delete old entity
+        store.remove("FlowUpdatedEvent", flowUpdatedEvent.id);
+        // add back entity
+        flowUpdatedEvent = new FlowUpdatedEvent(eventId);
         flowUpdatedEvent.flowOperator = event.params.flowOperator;
         flowUpdatedEvent.deposit = event.params.deposit;
         flowUpdatedEvent.addresses = flowUpdatedEvent.addresses.concat([

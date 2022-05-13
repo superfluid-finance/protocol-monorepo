@@ -399,4 +399,56 @@ describe("split and merge NFTs", async function () {
     //burn NFT created in this test
     await budgetNFT.burnNFT(5);
   });
+
+  it("Case #3 - NFT is issued to Alice, then split and one of the NFTs is transferred to bob", async () => {
+    let alice = accounts[1];
+    let bob = accounts[2];
+
+    //key action - NFT is issued to alice w flowrate
+    await budgetNFT.issueNFT(
+      alice.address,
+      toWad(0.001).toString(),
+    );
+
+    //key action #2 - NFT is split at a ratio of 25/75
+    await budgetNFT.connect(alice).splitStream(
+      7,
+      toWad(0.00075).toString(),
+    );
+
+    const aliceFlow = await netFlowRate(alice);
+    const bobFlow = await netFlowRate(bob);
+
+    //As alice is the owner of both the NFTs, flow rate should be the the sum of flowrate in both NFTs
+    assert.equal(
+      aliceFlow,
+      toWad(0.001),
+      "Alice flow rate is inaccurate, should be the same at first"
+    );
+    assert.equal(
+      bobFlow,
+      toWad(0),
+      "Bob flow rate is inaccurate, should be zero"
+    );
+
+    //key action #3 - NFT created in the split is transferred to bob
+    await budgetNFT.connect(alice).transferFrom(alice.address, bob.address, 7);
+
+    const aliceUpdatedFlow = await netFlowRate(alice);
+    const bobUpdatedFlow = await netFlowRate(bob);
+    assert.equal(
+      aliceUpdatedFlow,
+      toWad(0.00075).toString(),
+      "Alice flow rate is inaccurate, should be 1/2 original"
+    );
+    assert.equal(
+      bobUpdatedFlow,
+      toWad(0.00025).toString(),
+      "Bob flow rate is inaccurate, should be 1/2 original"
+    );
+
+    //burn the original NFT and the one created in the split
+    await budgetNFT.burnNFT(7);
+    await budgetNFT.burnNFT(8);
+  });
 })

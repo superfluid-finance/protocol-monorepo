@@ -18,7 +18,7 @@ import {
     SentEvent,
     AgreementLiquidatedV2Event,
 } from "../../generated/schema";
-import { createEventID, tokenHasValidHost } from "../utils";
+import {createEventID, getOrder, tokenHasValidHost} from "../utils";
 import {
     getOrInitAccount,
     getOrInitSuperToken,
@@ -221,6 +221,8 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
         event.params.bondAccount,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -246,6 +248,8 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
         event.params.rewardAccount,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -280,6 +284,8 @@ function createBurnedEntity(event: Burned): void {
     ev.name = "Burned";
     ev.addresses = [event.address, event.params.from];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.operator = event.params.operator;
     ev.from = event.params.from;
     ev.amount = event.params.amount;
@@ -295,6 +301,8 @@ function createMintedEntity(event: Minted): void {
     ev.name = "Minted";
     ev.addresses = [event.address, event.params.operator, event.params.to];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.operator = event.params.operator;
     ev.to = event.params.to;
     ev.amount = event.params.amount;
@@ -310,6 +318,8 @@ function createSentEntity(event: Sent): void {
     ev.name = "Sent";
     ev.addresses = [event.address, event.params.operator, event.params.to];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.amount = event.params.amount;
     ev.data = event.params.data;
     ev.operator = event.params.operator;
@@ -327,6 +337,8 @@ function createTokenUpgradedEntity(event: TokenUpgraded): void {
     ev.name = "TokenUpgraded";
     ev.addresses = [event.address, event.params.account];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.address;
     ev.amount = event.params.amount;
     ev.save();
@@ -340,6 +352,8 @@ function createTokenDowngradedEntity(event: TokenDowngraded): void {
     ev.name = "TokenDowngraded";
     ev.addresses = [event.address, event.params.account];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.address;
     ev.amount = event.params.amount;
     ev.save();
@@ -353,6 +367,8 @@ function createTransferEntity(event: Transfer): void {
     ev.name = "Transfer";
     ev.addresses = [event.address, event.params.from, event.params.to];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.from = event.params.from.toHex();
     ev.to = event.params.to.toHex();
     ev.value = value;

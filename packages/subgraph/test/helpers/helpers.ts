@@ -1,25 +1,25 @@
-import { ethers } from "hardhat";
-import { TransactionResponse } from "@ethersproject/providers";
-import { request, gql } from "graphql-request";
-import { Framework, WrapperSuperToken } from "@superfluid-finance/sdk-core";
+import {ethers} from "hardhat";
+import {TransactionResponse} from "@ethersproject/providers";
+import {gql, request} from "graphql-request";
+import {Framework, WrapperSuperToken} from "@superfluid-finance/sdk-core";
 import {
-    IMeta,
     IIndexSubscription,
-    ITestUpdateFlowOperatorData,
-    ITestModifyFlowData,
+    IMeta,
     ISubgraphErrors,
+    ITestModifyFlowData,
+    ITestUpdateFlowOperatorData,
 } from "../interfaces";
-import { FlowActionType } from "./constants";
+import {FlowActionType} from "./constants";
 import TestTokenABI from "../../abis/TestToken.json";
-import { TestToken } from "../../typechain";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber } from "ethers";
+import {TestToken} from "../../typechain";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumber} from "ethers";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
 // 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
 const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-
+const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLIER in packages/subgraph/src/utils.ts
 /**************************************************************************
  * Test Helper Functions
  *************************************************************************/
@@ -342,26 +342,26 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         txnResponse =
             data.actionType === FlowActionType.Create
                 ? await data.framework.cfaV1
-                      .createFlowByOperator({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                          sender: data.sender,
-                      })
-                      .exec(signer)
+                    .createFlowByOperator({
+                        ...baseData,
+                        flowRate: data.newFlowRate.toString(),
+                        sender: data.sender,
+                    })
+                    .exec(signer)
                 : data.actionType === FlowActionType.Update
-                ? await data.framework.cfaV1
-                      .updateFlowByOperator({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                          sender: data.sender,
-                      })
-                      .exec(signer)
-                : await data.framework.cfaV1
-                      .deleteFlowByOperator({
-                          ...baseData,
-                          sender: data.sender,
-                      })
-                      .exec(signer);
+                    ? await data.framework.cfaV1
+                        .updateFlowByOperator({
+                            ...baseData,
+                            flowRate: data.newFlowRate.toString(),
+                            sender: data.sender,
+                        })
+                        .exec(signer)
+                    : await data.framework.cfaV1
+                        .deleteFlowByOperator({
+                            ...baseData,
+                            sender: data.sender,
+                        })
+                        .exec(signer);
     }
 
     if (!txnResponse.blockNumber) {
@@ -371,19 +371,22 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-
-    const { flowRate, deposit } = await data.framework.cfaV1.getFlow({
+    const transactionReceipt = await txnResponse.wait();
+    const methodFilter = data.framework.cfaV1.contract.filters.FlowUpdated();
+    const methodSignature = methodFilter?.topics?.pop();
+    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
+    const {flowRate, deposit} = await data.framework.cfaV1.getFlow({
         superToken: data.superToken.address,
         sender: data.sender,
         receiver: data.receiver,
         providerOrSigner: data.provider,
     });
-
     return {
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),
         deposit,
+        logIndex: transactionLog?.logIndex,
     };
 };
 
@@ -426,7 +429,11 @@ export const updateFlowOperatorPermissions = async (
     const block = await data.provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-    return { timestamp, txnResponse };
+    const transactionReceipt = await txnResponse.wait();
+    const methodFilter = data.framework.cfaV1.contract.filters.FlowOperatorUpdated();
+    const methodSignature = methodFilter?.topics?.pop();
+    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
+    return {timestamp, txnResponse, logIndex: transactionLog?.logIndex,};
 };
 
 export const hasSubscriptionWithUnits = (
@@ -448,7 +455,11 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     const rounding = roundingDown
         ? 0
         : deposit.and(toBN(0xffffffff)).isZero()
-        ? 0
-        : 1;
+            ? 0
+            : 1;
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
+
+export const getOrder = (blockNumber?: number, logIndex?: number) => {
+    return blockNumber! * ORDER_MULTIPLIER + logIndex!
+}

@@ -1111,183 +1111,192 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it("Should properly make queries for all events with a LightEntity", async () => {
+        // it("Should properly make queries for all events with a LightEntity", async () => {
             // if any of the requests fails, it will return an object containing a property:
             // errors, and we check and throw inside subgraphRequest if this is the case
             // NOTE: it is possible to create an entity which points to another entity
             // but that other entity may not exist and the error will only arise once the
             // query is made
-            let data: any = await subgraphRequest<{
-                response: ILightEntity[];
-            }>(globalQueries.getEvents);
-            console.log("getEvents", data);
+            // It should break when attempting to do a reverse lookup query if the reverse lookup
+            // entity is null, but it doesn't for whatever reason
 
-            data = await subgraphRequest<{
-                response: { stream: ILightEntity }[];
-            }>(globalQueries.getFlowUpdatedEventsLightEntities);
-            console.log("getFlowUpdatedEventsLightEntities", data);
+            // NOTE: the getEvents query doesn't catch the issue of c.block_range not existing
+            // as a column when there is a mix and match of immutable/mutable entities which
+            // implement an interface
+            // this is a bug: https://github.com/graphprotocol/graph-node/issues/3553
+            // for now, it is important to ensure that ALL Event entities are immutable before
+            // deploying
+            // let data: any = await subgraphRequest<{
+            //     response: ILightEntity[];
+            // }>(globalQueries.getEvents);
+            // console.log("getEvents", data);
 
-            data = await subgraphRequest<{
-                response: { flowOperator: ILightEntity }[];
-            }>(globalQueries.getFlowOperatorUpdatedEventsLightEntities);
-            console.log("getFlowOperatorUpdatedEventsLightEntities", data);
+        //     let data: any = await subgraphRequest<{
+        //         response: { stream: ILightEntity }[];
+        //     }>(globalQueries.getFlowUpdatedEventsLightEntities);
+        //     console.log("getFlowUpdatedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { index: ILightEntity }[];
-            }>(globalQueries.getIndexCreatedEventsLightEntities);
-            console.log("getIndexCreatedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { flowOperator: ILightEntity }[];
+        //     }>(globalQueries.getFlowOperatorUpdatedEventsLightEntities);
+        //     console.log("getFlowOperatorUpdatedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { index: ILightEntity }[];
-            }>(globalQueries.getIndexDistributionClaimedEventsLightEntities);
-            console.log("getIndexDistributionClaimedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { index: ILightEntity }[];
+        //     }>(globalQueries.getIndexCreatedEventsLightEntities);
+        //     console.log("getIndexCreatedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { index: ILightEntity }[];
-            }>(globalQueries.getIndexUpdatedEventsLightEntities);
-            console.log("getIndexUpdatedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { index: ILightEntity }[];
+        //     }>(globalQueries.getIndexDistributionClaimedEventsLightEntities);
+        //     console.log("getIndexDistributionClaimedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { index: ILightEntity }[];
-            }>(globalQueries.getIndexSubscribedEventsLightEntities);
-            console.log("getIndexSubscribedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { index: ILightEntity }[];
+        //     }>(globalQueries.getIndexUpdatedEventsLightEntities);
+        //     console.log("getIndexUpdatedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { index: ILightEntity }[];
-            }>(globalQueries.getIndexUnitsUpdatedEventsLightEntities);
-            console.log("getIndexUnitsUpdatedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { index: ILightEntity }[];
+        //     }>(globalQueries.getIndexSubscribedEventsLightEntities);
+        //     console.log("getIndexSubscribedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { index: ILightEntity }[];
-            }>(globalQueries.getIndexUnsubscribedEventsLightEntities);
-            console.log("getIndexUnsubscribedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { index: ILightEntity }[];
+        //     }>(globalQueries.getIndexUnitsUpdatedEventsLightEntities);
+        //     console.log("getIndexUnitsUpdatedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { subscription: ILightEntity }[];
-            }>(globalQueries.getSubscriptionApprovedEventsLightEntities);
-            console.log("getSubscriptionApprovedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { index: ILightEntity }[];
+        //     }>(globalQueries.getIndexUnsubscribedEventsLightEntities);
+        //     console.log("getIndexUnsubscribedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { subscription: ILightEntity }[];
-            }>(
-                globalQueries.getSubscriptionDistributionClaimedEventsLightEntities
-            );
-            console.log(
-                "getSubscriptionDistributionClaimedEventsLightEntities",
-                data
-            );
+        //     data = await subgraphRequest<{
+        //         response: { subscription: ILightEntity }[];
+        //     }>(globalQueries.getSubscriptionApprovedEventsLightEntities);
+        //     console.log("getSubscriptionApprovedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { subscription: ILightEntity }[];
-            }>(globalQueries.getSubscriptionRevokedEventsLightEntities);
-            console.log("getSubscriptionRevokedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { subscription: ILightEntity }[];
+        //     }>(
+        //         globalQueries.getSubscriptionDistributionClaimedEventsLightEntities
+        //     );
+        //     console.log(
+        //         "getSubscriptionDistributionClaimedEventsLightEntities",
+        //         data
+        //     );
 
-            data = await subgraphRequest<{
-                response: { subscription: ILightEntity }[];
-            }>(globalQueries.getSubscriptionUnitsUpdatedEventsLightEntities);
-            console.log("getSubscriptionUnitsUpdatedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { subscription: ILightEntity }[];
+        //     }>(globalQueries.getSubscriptionRevokedEventsLightEntities);
+        //     console.log("getSubscriptionRevokedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { from: ILightEntity; to: ILightEntity }[];
-            }>(globalQueries.getTransferEventsLightEntities);
-            console.log("getTransferEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { subscription: ILightEntity }[];
+        //     }>(globalQueries.getSubscriptionUnitsUpdatedEventsLightEntities);
+        //     console.log("getSubscriptionUnitsUpdatedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { account: ILightEntity }[];
-            }>(globalQueries.getTokenDowngradedEventsLightEntities);
-            console.log("getTokenDowngradedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { from: ILightEntity; to: ILightEntity }[];
+        //     }>(globalQueries.getTransferEventsLightEntities);
+        //     console.log("getTransferEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { account: ILightEntity }[];
-            }>(globalQueries.getTokenUpgradedEventsLightEntities);
-            console.log("getTokenUpgradedEventsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { account: ILightEntity }[];
+        //     }>(globalQueries.getTokenDowngradedEventsLightEntities);
+        //     console.log("getTokenDowngradedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    inflows: ILightEntity[];
-                    outflows: ILightEntity[];
-                    subscriptions: ILightEntity[];
-                    publishedIndexes: ILightEntity[];
-                    sentTransferEvents: ILightEntity[];
-                    receivedTransferEvents: ILightEntity[];
-                    tokenUpgradedEvents: ILightEntity[];
-                    tokenDowngradedEvents: ILightEntity[];
-                    accountTokenSnapshots: ILightEntity[];
-                }[];
-            }>(globalQueries.getAccountsLightEntities);
-            console.log("getAccountsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: { account: ILightEntity }[];
+        //     }>(globalQueries.getTokenUpgradedEventsLightEntities);
+        //     console.log("getTokenUpgradedEventsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    token: ILightEntity;
-                    publisher: ILightEntity;
-                    subscriptions: ILightEntity[];
-                    indexCreatedEvent: ILightEntity[];
-                    indexDistributionClaimedEvents: ILightEntity[];
-                    indexUpdatedEvents: ILightEntity[];
-                    indexSubscribedEvents: ILightEntity[];
-                    indexUnitsUpdatedEvents: ILightEntity[];
-                    indexUnsubscribedEvents: ILightEntity[];
-                }[];
-            }>(globalQueries.getIndexesLightEntities);
-            console.log("getIndexesLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             inflows: ILightEntity[];
+        //             outflows: ILightEntity[];
+        //             subscriptions: ILightEntity[];
+        //             publishedIndexes: ILightEntity[];
+        //             sentTransferEvents: ILightEntity[];
+        //             receivedTransferEvents: ILightEntity[];
+        //             tokenUpgradedEvents: ILightEntity[];
+        //             tokenDowngradedEvents: ILightEntity[];
+        //             accountTokenSnapshots: ILightEntity[];
+        //         }[];
+        //     }>(globalQueries.getAccountsLightEntities);
+        //     console.log("getAccountsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    subscriber: ILightEntity;
-                    index: ILightEntity;
-                    subscriptionApprovedEvents: ILightEntity[];
-                    subscriptionDistributionClaimedEvents: ILightEntity[];
-                    subscriptionRevokedEvents: ILightEntity[];
-                    subscriptionUnitsUpdatedEvents: ILightEntity[];
-                }[];
-            }>(globalQueries.getIndexSubscriptionsLightEntities);
-            console.log("getIndexSubscriptionsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             token: ILightEntity;
+        //             publisher: ILightEntity;
+        //             subscriptions: ILightEntity[];
+        //             indexCreatedEvent: ILightEntity[];
+        //             indexDistributionClaimedEvents: ILightEntity[];
+        //             indexUpdatedEvents: ILightEntity[];
+        //             indexSubscribedEvents: ILightEntity[];
+        //             indexUnitsUpdatedEvents: ILightEntity[];
+        //             indexUnsubscribedEvents: ILightEntity[];
+        //         }[];
+        //     }>(globalQueries.getIndexesLightEntities);
+        //     console.log("getIndexesLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    token: ILightEntity;
-                    sender: ILightEntity;
-                    receiver: ILightEntity;
-                    flowUpdatedEvents: ILightEntity[];
-                    streamPeriods: ILightEntity[];
-                }[];
-            }>(globalQueries.getStreamsLightEntities);
-            console.log("getStreamsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             subscriber: ILightEntity;
+        //             index: ILightEntity;
+        //             subscriptionApprovedEvents: ILightEntity[];
+        //             subscriptionDistributionClaimedEvents: ILightEntity[];
+        //             subscriptionRevokedEvents: ILightEntity[];
+        //             subscriptionUnitsUpdatedEvents: ILightEntity[];
+        //         }[];
+        //     }>(globalQueries.getIndexSubscriptionsLightEntities);
+        //     console.log("getIndexSubscriptionsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    token: ILightEntity;
-                    sender: ILightEntity;
-                    flowOperatorUpdatedEvents: ILightEntity[];
-                }[];
-            }>(globalQueries.getFlowOperatorsLightEntities);
-            console.log("getFlowOperatorsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             token: ILightEntity;
+        //             sender: ILightEntity;
+        //             receiver: ILightEntity;
+        //             flowUpdatedEvents: ILightEntity[];
+        //             streamPeriods: ILightEntity[];
+        //         }[];
+        //     }>(globalQueries.getStreamsLightEntities);
+        //     console.log("getStreamsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    stream: ILightEntity;
-                    sender: ILightEntity;
-                    receiver: ILightEntity;
-                    token: ILightEntity;
-                    startedAtEvent: ILightEntity;
-                }[];
-            }>(globalQueries.getStreamPeriodsLightEntities);
-            console.log("getStreamPeriodsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             token: ILightEntity;
+        //             sender: ILightEntity;
+        //             flowOperatorUpdatedEvents: ILightEntity[];
+        //         }[];
+        //     }>(globalQueries.getFlowOperatorsLightEntities);
+        //     console.log("getFlowOperatorsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: {
-                    account: ILightEntity;
-                    token: ILightEntity;
-                    flowOperators: ILightEntity[];
-                }[];
-            }>(globalQueries.getAccountTokenSnapshotsLightEntities);
-            console.log("getAccountTokenSnapshotsLightEntities", data);
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             stream: ILightEntity;
+        //             sender: ILightEntity;
+        //             receiver: ILightEntity;
+        //             token: ILightEntity;
+        //             startedAtEvent: ILightEntity;
+        //         }[];
+        //     }>(globalQueries.getStreamPeriodsLightEntities);
+        //     console.log("getStreamPeriodsLightEntities", data);
 
-            data = await subgraphRequest<{
-                response: { token: ILightEntity }[];
-            }>(globalQueries.getTokenStatisticsLightEntities);
-            console.log("getTokenStatisticsLightEntities", data);
-        });
+        //     data = await subgraphRequest<{
+        //         response: {
+        //             account: ILightEntity;
+        //             token: ILightEntity;
+        //             flowOperators: ILightEntity[];
+        //         }[];
+        //     }>(globalQueries.getAccountTokenSnapshotsLightEntities);
+        //     console.log("getAccountTokenSnapshotsLightEntities", data);
+
+        //     data = await subgraphRequest<{
+        //         response: { token: ILightEntity }[];
+        //     }>(globalQueries.getTokenStatisticsLightEntities);
+        //     console.log("getTokenStatisticsLightEntities", data);
+        // });
     });
 });

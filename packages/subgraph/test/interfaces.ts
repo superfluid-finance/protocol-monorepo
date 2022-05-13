@@ -17,6 +17,7 @@ export interface IEvent {
     readonly name: string;
     readonly addresses: string[];
     readonly timestamp: string;
+    readonly order: string;
 }
 
 export interface ISubgraphError {
@@ -50,6 +51,7 @@ export interface IFlowUpdatedEvent extends IEvent {
     readonly oldFlowRate: string;
     readonly type: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface IFlowOperatorUpdatedEvent extends IEvent {
@@ -58,6 +60,7 @@ export interface IFlowOperatorUpdatedEvent extends IEvent {
     readonly permissions: number;
     readonly flowRateAllowance: string;
     readonly flowOperator: ILightEntity;
+    readonly order: string;
     readonly logIndex: string;
 }
 
@@ -68,6 +71,7 @@ export interface IIndexCreatedEvent extends IEvent {
     readonly indexId: string;
     readonly userData: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface IIndexUpdatedEvent extends IEvent {
@@ -79,6 +83,7 @@ export interface IIndexUpdatedEvent extends IEvent {
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly userData: string;
+    readonly order: string;
     readonly logIndex: string;
 }
 
@@ -89,6 +94,7 @@ export interface IIndexSubscribedEvent extends IEvent {
     readonly subscriber: string;
     readonly userData: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface IIndexUnitsUpdatedEvent extends IEvent {
@@ -98,6 +104,7 @@ export interface IIndexUnitsUpdatedEvent extends IEvent {
     readonly subscriber: string;
     readonly units: string;
     readonly userData: string;
+    readonly order: string;
     readonly logIndex: string;
 }
 
@@ -108,6 +115,7 @@ export interface IIndexUnsubscribedEvent extends IEvent {
     readonly subscriber: string;
     readonly userData: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface ISubscriptionApprovedEvent extends IEvent {
@@ -118,6 +126,7 @@ export interface ISubscriptionApprovedEvent extends IEvent {
     readonly indexId: string;
     readonly userData: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface ISubscriptionRevokedEvent extends IEvent {
@@ -126,6 +135,7 @@ export interface ISubscriptionRevokedEvent extends IEvent {
     readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
+    readonly order: string;
     readonly userData: string;
     readonly logIndex: string;
 }
@@ -138,6 +148,7 @@ export interface ISubscriptionUnitsUpdatedEvent extends IEvent {
     readonly indexId: string;
     readonly units: string;
     readonly userData: string;
+    readonly order: string;
     readonly logIndex: string;
 }
 
@@ -151,6 +162,7 @@ export interface ITokenUpgradedEvent extends IEvent {
     readonly token: string;
     readonly amount: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface ITokenDowngradedEvent extends IEvent {
@@ -162,6 +174,7 @@ export interface ITokenDowngradedEvent extends IEvent {
     readonly token: string;
     readonly amount: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 export interface ITransferEvent extends IEvent {
@@ -174,6 +187,7 @@ export interface ITransferEvent extends IEvent {
     readonly value: string;
     readonly token: string;
     readonly logIndex: string;
+    readonly order: string;
 }
 
 /**
@@ -519,6 +533,7 @@ export interface IExtraEventData {
     readonly totalUnitsPending?: BigNumber;
     readonly distributionDelta?: BigNumber;
     readonly logIndex?: number;
+    readonly order?: number;
 }
 
 export interface IExtraExpectedData extends IExtraEventData {
@@ -589,6 +604,7 @@ export interface IExpectedFlowUpdateEvent {
     readonly oldFlowRate: string;
     readonly type: FlowActionType;
     readonly logIndex?: number;
+    readonly order?: number;
 }
 
 export interface IExpectedFlowOperatorUpdatedEvent {
@@ -598,6 +614,7 @@ export interface IExpectedFlowOperatorUpdatedEvent {
     readonly permissions: number;
     readonly flowRateAllowance: string;
     readonly logIndex?: number;
+    readonly order?: number;
 }
 
 export interface IGetExpectedIDADataParams {

@@ -6,11 +6,11 @@ import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../gene
 /**************************************************************************
  * Constants
  *************************************************************************/
-
 export const BIG_INT_ZERO = BigInt.fromI32(0);
 export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
+export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 
 /**************************************************************************
  * Convenience Conversions
@@ -263,3 +263,16 @@ export function calculateMaybeCriticalAtTimestamp(
 
     return calculatedDelta.plus(updatedAtTimestamp);
 }
+
+/**
+ * getOrder calculate order based on {blockNumber.times(10000).plus(logIndex)}.
+ * @param blockNumber
+ * @param logIndex
+ */
+export function getOrder(
+    blockNumber: BigInt,
+    logIndex: BigInt,
+): BigInt {
+    return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
+}
+

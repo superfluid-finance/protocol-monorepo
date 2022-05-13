@@ -1,0 +1,29 @@
+name: XKCD Comic Relief
+
+on:
+  pull_request:
+    types: [synchronize, merged]
+
+
+jobs:
+  post-xkcd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Search relif
+        id: search
+        run: |
+          xkcd_url=https://xkcd.com/${{ steps.pr.outputs.pr_number }} | \
+          xkcd_img_url=curl -sL $xkcd_url | \
+                grep -o 'https://imgs.xkcd.com/comics/\w\+.png' | \
+                head -n1
+          echo "::set-output name=xkcd_url::$xkcd_url"
+          echo "::set-output name=xkcd_img_url::$xkcd_img_url"
+
+      - name: Create relif
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          body: |
+              ## XKCD Comic Relif
+              Link: ${{ steps.search.outputs.xkcd_url }}
+              ![${{ steps.search.outputs.xkcd_url }}](${{ steps.search.outputs.xkcd_img_url }})
+          reactions: laugh,cry,confused

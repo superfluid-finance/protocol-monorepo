@@ -55,7 +55,7 @@ jobs:
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         run: |
           cp -R monorepo/examples/${{ matrix.example }} .
-          cd ${{ matrix.example }}
+          cd "$(basename ${{ matrix.example }})"
           # cleanup all yarn.lock file and force updating dependencies per
           # package.json semver semantic
           if [ "${{ matrix.install }}" == clean-install ];then

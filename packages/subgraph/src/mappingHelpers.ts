@@ -441,6 +441,7 @@ export function updateAccountUpdatedAt(
     block: ethereum.Block
 ): void {
     let account = getOrInitAccount(accountAddress, block);
+    if (accountAddress.equals(ZERO_ADDRESS)) return;
     account.updatedAtTimestamp = block.timestamp;
     account.updatedAtBlockNumber = block.number;
     account.save();
@@ -703,7 +704,6 @@ export function updateAggregateEntitiesTransferData(
         block
     );
 
-    // NOTE: fromAccountTokenSnapshot won't exist if address is ZERO_ADDRESS
     fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
         fromAccountTokenSnapshot.totalAmountTransferredUntilUpdatedAt.plus(
             value

@@ -5,7 +5,7 @@
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts?label=ethereum-contracts">
   </a>
   <a href="#superfluid-financesubgraph" target="_blank">
-    <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/ethereum-contracts?filename=packages%2Fsubgraph%2Fpackage.json&label=subgraph"> 
+    <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/subgraph?filename=packages%2Fsubgraph%2Fpackage.json&label=subgraph"> 
   </a>
   <a href="#superfluid-financejs-sdk" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk?label=js-sdk">
@@ -17,7 +17,7 @@
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux?label=sdk-redux">
   </a>
   <a href="#superfluid-financehot-fuzz" target="_blank">
-    <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/ethereum-contracts?filename=packages%2Fhot-fuzz%2Fpackage.json&label=hot-fuzz"> 
+    <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/hot-fuzz?filename=packages%2Fhot-fuzz%2Fpackage.json&label=hot-fuzz"> 
   </a>
   <br>
   <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
@@ -123,7 +123,7 @@ SDK-Redux is an application framework for building front-end applications that i
 #### [`@superfluid-finance/hot-fuzz`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hot-fuzz)
 
 <p>
-  <a href="#" target="_blank">
+  <a href="https://www.npmjs.com/package/@superfluid-finance/hot-fuzz" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
   </a>
 </p>

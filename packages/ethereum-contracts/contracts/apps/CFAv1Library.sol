@@ -19,61 +19,14 @@ import {
  */
 library CFAv1Library {
 
+    /**
+     * @dev Initialization data
+     * @param host Superfluid host for calling agreements
+     * @param cfa Constant Flow Agreement contract
+     */
     struct InitData {
         ISuperfluid host;
         IConstantFlowAgreementV1 cfa;
-    }
-
-    /**
-     * @dev Create/update/delete flow without userData
-     * @param cfaLibrary The cfaLibrary storage variable
-     * @param receiver The receiver of the flow
-     * @param token The token to flow
-     * @param flowRate The desired flowRate
-     */
-    function flow(
-        InitData storage cfaLibrary,
-        address receiver,
-        ISuperfluidToken token,
-        int96 flowRate
-    ) internal {
-        if ( flowRate == int96(0) ) {
-            deleteFlow(cfaLibrary, address(this), receiver, token);
-        } else {
-            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
-            if ( existingFlowRate == int96(0) ) {
-                createFlow(cfaLibrary, receiver, token, flowRate);
-            } else {
-                updateFlow(cfaLibrary, receiver, token, flowRate);
-            }
-        }
-    }
-
-    /**
-     * @dev Create/update/delete flow with userData
-     * @param cfaLibrary The cfaLibrary storage variable
-     * @param receiver The receiver of the flow
-     * @param token The token to flow
-     * @param flowRate The desired flowRate
-     * @param userData The user provided data
-     */
-    function flow(
-        InitData storage cfaLibrary,
-        address receiver,
-        ISuperfluidToken token,
-        int96 flowRate,
-        bytes memory userData
-    ) internal {
-        if ( flowRate == int96(0) ) {
-            deleteFlow(cfaLibrary, address(this), receiver, token, userData);
-        } else {
-            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
-            if ( existingFlowRate == int96(0) ) {
-                createFlow(cfaLibrary, receiver, token, flowRate, userData);
-            } else {
-                updateFlow(cfaLibrary, receiver, token, flowRate, userData);
-            }
-        }
     }
 
     /**
@@ -89,19 +42,9 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal {
-        cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.createFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
-            ),
-            "0x" // empty user data
-        );
+        createFlow(cfaLibrary, receiver, token, flowRate, new bytes(0));
     }
-    
+
     /**
      * @dev Create flow with userData
      * @param cfaLibrary The cfaLibrary storage variable
@@ -143,19 +86,8 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal {
-        cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
-            ),
-            "0x" // empty user data
-        );
+        updateFlow(cfaLibrary, receiver, token, flowRate, new bytes(0));
     }
-    
 
     /**
      * @dev Update flow with userData
@@ -198,19 +130,8 @@ library CFAv1Library {
         address receiver,
         ISuperfluidToken token
     ) internal {
-        cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.deleteFlow.selector,
-                token,
-                sender,
-                receiver,
-                new bytes(0) // placeholder
-            ),
-            "0x" // empty user data
-        );
+        deleteFlow(cfaLibrary, sender, receiver, token, new bytes(0));
     }
-    
 
     /**
      * @dev Delete flow with userData
@@ -241,62 +162,6 @@ library CFAv1Library {
     }
 
     /**
-     * @dev Create/update/delete flow with context
-     * @param cfaLibrary The cfaLibrary storage variable
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     * @param receiver The receiver of the flow
-     * @param token The token to flow
-     * @param flowRate The desired flowRate
-     */
-    function flowWithCtx(
-        InitData storage cfaLibrary,
-        bytes memory ctx,
-        address receiver,
-        ISuperfluidToken token,
-        int96 flowRate
-    ) internal returns (bytes memory newCtx) {
-        if ( flowRate == int96(0) ) {
-            return deleteFlowWithCtx(cfaLibrary, ctx, address(this), receiver, token);
-        } else {
-            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
-            if ( existingFlowRate == int96(0) ) {
-                return createFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate);
-            } else {
-                return updateFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate);
-            }
-        }
-    }
-
-    /**
-     * @dev Create/update/delete flow with context and userData
-     * @param cfaLibrary The cfaLibrary storage variable
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     * @param receiver The receiver of the flow
-     * @param token The token to flow
-     * @param flowRate The desired flowRate
-     * @param userData The user provided data
-     */
-    function flowWithCtx(
-        InitData storage cfaLibrary,
-        bytes memory ctx,
-        address receiver,
-        ISuperfluidToken token,
-        int96 flowRate,
-        bytes memory userData
-    ) internal returns (bytes memory newCtx) {
-        if ( flowRate == int96(0) ) {
-            return deleteFlowWithCtx(cfaLibrary, ctx, address(this), receiver, token, userData);
-        } else {
-            (,int96 existingFlowRate,,) = cfaLibrary.cfa.getFlow(token, address(this), receiver);
-            if ( existingFlowRate == int96(0) ) {
-                return createFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, userData);
-            } else {
-                return updateFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, userData);
-            }
-        }
-    }
-
-    /**
      * @dev Create flow with context and userData
      * @param cfaLibrary The cfaLibrary storage variable
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
@@ -311,18 +176,7 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.createFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
-            ),
-            "0x", // empty user data
-            ctx
-        );
+        return createFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, new bytes(0));
     }
 
     /**
@@ -371,18 +225,7 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
-            ),
-            "0x", // empty user data
-            ctx
-        );
+        return updateFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, new bytes(0));
     }
 
     /**
@@ -431,18 +274,7 @@ library CFAv1Library {
         address receiver,
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
-        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
-            cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.deleteFlow.selector,
-                token,
-                sender,
-                receiver,
-                new bytes(0) // placeholder
-            ),
-            "0x", //empty user data
-            ctx
-        );
+        return deleteFlowWithCtx(cfaLibrary, ctx, sender, receiver, token, new bytes(0));
     }
 
     /**
@@ -472,6 +304,482 @@ library CFAv1Library {
                 new bytes(0) // placeholder
             ),
             userData,
+            ctx
+        );
+    }
+
+    /**
+     * @dev Creates flow as an operator without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
+    function createFlowByOperator(
+        InitData storage cfaLibrary,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) internal returns (bytes memory newCtx) {
+        return createFlowByOperator(cfaLibrary, sender, receiver, token, flowRate, new bytes(0));
+    }
+
+    /**
+     * @dev Creates flow as an operator with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
+    function createFlowByOperator(
+        InitData storage cfaLibrary,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        return cfaLibrary.host.callAgreement(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.createFlowByOperator.selector,
+                token,
+                sender,
+                receiver,
+                flowRate,
+                new bytes(0) // placeholder
+            ),
+            userData
+        );
+    }
+
+    /**
+     * @dev Creates flow as an operator without userData with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
+    function createFlowByOperatorWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) internal returns (bytes memory newCtx) {
+        return createFlowByOperatorWithCtx(
+            cfaLibrary,
+            ctx,
+            sender,
+            receiver,
+            token,
+            flowRate,
+            new bytes(0)
+        );
+    }
+
+    /**
+     * @dev Creates flow as an operator with userData and context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
+    function createFlowByOperatorWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.createFlowByOperator.selector,
+                token,
+                sender,
+                receiver,
+                flowRate,
+                new bytes(0) // placeholder
+            ),
+            userData,
+            ctx
+        );
+    }
+
+    /**
+     * @dev Updates a flow as an operator without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
+    function updateFlowByOperator(
+        InitData storage cfaLibrary,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) internal returns (bytes memory newCtx) {
+        return updateFlowByOperator(cfaLibrary, sender, receiver, token, flowRate, new bytes(0));
+    }
+
+    /**
+     * @dev Updates flow as an operator with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
+    function updateFlowByOperator(
+        InitData storage cfaLibrary,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        return cfaLibrary.host.callAgreement(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.updateFlowByOperator.selector,
+                token,
+                sender,
+                receiver,
+                flowRate,
+                new bytes(0)
+            ),
+            userData
+        );
+    }
+
+    /**
+     * @dev Updates a flow as an operator without userData with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     */
+    function updateFlowByOperatorWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate
+    ) internal returns (bytes memory newCtx) {
+        return updateFlowByOperatorWithCtx(
+            cfaLibrary,
+            ctx,
+            sender,
+            receiver,
+            token,
+            flowRate,
+            new bytes(0)
+        );
+    }
+
+    /**
+     * @dev Updates flow as an operator with userData and context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param flowRate The desired flowRate
+     * @param userData The user provided data
+     */
+    function updateFlowByOperatorWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        int96 flowRate,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.updateFlowByOperator.selector,
+                token,
+                sender,
+                receiver,
+                flowRate,
+                new bytes(0)
+            ),
+            userData,
+            ctx
+        );
+    }
+
+    /**
+     * @dev Deletes a flow as an operator without userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     */
+    function deleteFlowByOperator(
+        InitData storage cfaLibrary,
+        address sender,
+        address receiver,
+        ISuperfluidToken token
+    ) internal returns (bytes memory newCtx) {
+        return deleteFlowByOperator(cfaLibrary, sender, receiver, token, new bytes(0));
+    }
+
+    /**
+     * @dev Deletes a flow as an operator with userData
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param userData The user provided data
+     */
+    function deleteFlowByOperator(
+        InitData storage cfaLibrary,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        return cfaLibrary.host.callAgreement(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.deleteFlowByOperator.selector,
+                token,
+                sender,
+                receiver,
+                new bytes(0)
+            ),
+            userData
+        );
+    }
+
+    /**
+     * @dev Deletes a flow as an operator without userData with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     */
+    function deleteFlowByOperatorWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address sender,
+        address receiver,
+        ISuperfluidToken token
+    ) internal returns (bytes memory newCtx) {
+        return deleteFlowByOperatorWithCtx(cfaLibrary, ctx, sender, receiver, token, new bytes(0));
+    }
+
+    /**
+     * @dev Deletes a flow as an operator with userData and context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param sender The sender of the flow
+     * @param receiver The receiver of the flow
+     * @param token The token to flow
+     * @param userData The user provided data
+     */
+    function deleteFlowByOperatorWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address sender,
+        address receiver,
+        ISuperfluidToken token,
+        bytes memory userData
+    ) internal returns (bytes memory newCtx) {
+        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.deleteFlowByOperator.selector,
+                token,
+                sender,
+                receiver,
+                new bytes(0)
+            ),
+            userData,
+            ctx
+        );
+    }
+
+    /**
+     * @dev Updates the permissions of a flow operator
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param flowOperator The operator that can create/update/delete flows
+     * @param token The token of flows handled by the operator
+     * @param permissions The number of the permissions: create = 1; update = 2; delete = 4;
+     * To give multiple permissions, sum the above. create_delete = 5; create_update_delete = 7; etc
+     * @param flowRateAllowance The allowance for flow creation. Decremented as flowRate increases
+     */
+    function updateFlowOperatorPermissions(
+        InitData storage cfaLibrary,
+        address flowOperator,
+        ISuperfluidToken token,
+        uint8 permissions,
+        int96 flowRateAllowance
+    ) internal returns (bytes memory newCtx) {
+        return cfaLibrary.host.callAgreement(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.updateFlowOperatorPermissions.selector,
+                token,
+                flowOperator,
+                permissions,
+                flowRateAllowance,
+                new bytes(0)
+            ),
+            new bytes(0)
+        );
+    }
+
+    /**
+     * @dev Updates the permissions of a flow operator with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param flowOperator The operator that can create/update/delete flows
+     * @param token The token of flows handled by the operator
+     * @param permissions The number of the permissions: create = 1; update = 2; delete = 4;
+     * To give multiple permissions, sum the above. create_delete = 5; create_update_delete = 7; etc
+     * @param flowRateAllowance The allowance for flow creation. Decremented as flowRate increases
+     */
+    function updateFlowOperatorPermissionsWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address flowOperator,
+        ISuperfluidToken token,
+        uint8 permissions,
+        int96 flowRateAllowance
+    ) internal returns (bytes memory newCtx) {
+        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.updateFlowOperatorPermissions.selector,
+                token,
+                flowOperator,
+                permissions,
+                flowRateAllowance,
+                new bytes(0)
+            ),
+            new bytes(0),
+            ctx
+        );
+    }
+
+    /**
+     * @dev Grants full, unlimited permission to a flow operator
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param flowOperator The operator that can create/update/delete flows
+     * @param token The token of flows handled by the operator
+     */
+    function authorizeFlowOperatorWithFullControl(
+        InitData storage cfaLibrary,
+        address flowOperator,
+        ISuperfluidToken token
+    ) internal returns (bytes memory newCtx) {
+        return cfaLibrary.host.callAgreement(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl.selector,
+                token,
+                flowOperator,
+                new bytes(0)
+            ),
+            new bytes(0)
+        );
+    }
+
+    /**
+     * @dev Grants full, unlimited permission to a flow operator with context
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param flowOperator The operator that can create/update/delete flows
+     * @param token The token of flows handled by the operator
+     */
+    function authorizeFlowOperatorWithFullControlWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address flowOperator,
+        ISuperfluidToken token
+    ) internal returns (bytes memory newCtx) {
+        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl.selector,
+                token,
+                flowOperator,
+                new bytes(0)
+            ),
+            new bytes(0),
+            ctx
+        );
+    }
+
+    /**
+     * @dev Revokes all permissions from a flow operator
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param flowOperator The operator that can create/update/delete flows
+     * @param token The token of flows handled by the operator
+     */
+    function revokeFlowOperatorWithFullControl(
+        InitData storage cfaLibrary,
+        address flowOperator,
+        ISuperfluidToken token
+    ) internal returns (bytes memory newCtx) {
+        return cfaLibrary.host.callAgreement(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.revokeFlowOperatorWithFullControl.selector,
+                token,
+                flowOperator,
+                new bytes(0)
+            ),
+            new bytes(0)
+        );
+    }
+
+    /**
+     * @dev Revokes all permissions from a flow operator
+     * @param cfaLibrary The cfaLibrary storage variable
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @param flowOperator The operator that can create/update/delete flows
+     * @param token The token of flows handled by the operator
+     */
+    function revokeFlowOperatorWithFullControlWithCtx(
+        InitData storage cfaLibrary,
+        bytes memory ctx,
+        address flowOperator,
+        ISuperfluidToken token
+    ) internal returns (bytes memory newCtx) {
+        (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
+            cfaLibrary.cfa,
+            abi.encodeWithSelector(
+                cfaLibrary.cfa.revokeFlowOperatorWithFullControl.selector,
+                token,
+                flowOperator,
+                new bytes(0)
+            ),
+            new bytes(0),
             ctx
         );
     }

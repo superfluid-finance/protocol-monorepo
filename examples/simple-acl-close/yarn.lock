@@ -155,7 +155,7 @@
     "@ethersproject/properties" "^5.0.3"
     "@ethersproject/strings" "^5.0.4"
 
-"@ethersproject/abi@5.6.1", "@ethersproject/abi@^5.0.0-beta.146", "@ethersproject/abi@^5.1.2", "@ethersproject/abi@^5.5.0", "@ethersproject/abi@^5.6.0":
+"@ethersproject/abi@5.6.1", "@ethersproject/abi@^5.0.0-beta.146", "@ethersproject/abi@^5.1.2", "@ethersproject/abi@^5.6.0":
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/abi/-/abi-5.6.1.tgz#f7de888edeb56b0a657b672bdd1b3a1135cd14f7"
   integrity sha512-0cqssYh6FXjlwKWBmLm3+zH2BNARoS5u/hxbz+LpQmcDB3w0W553h2btWui1/uZp2GBM/SI3KniTuMcYyHpA5w==
@@ -259,7 +259,7 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/transactions" "^5.6.0"
 
-"@ethersproject/hash@5.6.0", "@ethersproject/hash@^5.0.4", "@ethersproject/hash@^5.5.0", "@ethersproject/hash@^5.6.0":
+"@ethersproject/hash@5.6.0", "@ethersproject/hash@^5.0.4", "@ethersproject/hash@^5.6.0":
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/hash/-/hash-5.6.0.tgz#d24446a5263e02492f9808baa99b6e2b4c3429a2"
   integrity sha512-fFd+k9gtczqlr0/BruWLAu7UAOas1uRRJvOR84uDf4lNZ+bTkGl366qvniUZHKtlqxBRU65MkOobkmvmpHU+jA==
@@ -706,28 +706,28 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/ethereum-contracts@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.2.1.tgz#130360883e98b19b6f7c525df0f6235e6d871173"
-  integrity sha512-oDsT1E9seOarri+cG+2TwfFiGXeNf4hz8RKrzwfz6J7C/YGnls+yJotGKpoCurypMXvmMS7/0VvdES1or+aSlw==
+"@superfluid-finance/ethereum-contracts@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.2.2.tgz#888a3b25219de6916eb28d643e8bf02aad26b852"
+  integrity sha512-5dJLUC08F3kMFCmepwr/uRwOcaGzR/SpDl/v3fsKXZ5x89NCBlJzHRYD7BJHY6ZJY8t3dL/CXpovW9+b+nIxTw==
   dependencies:
     "@decentral.ee/web3-helpers" "0.5.3"
     "@openzeppelin/contracts" "4.5.0"
-    "@superfluid-finance/js-sdk" "0.5.12"
+    "@superfluid-finance/js-sdk" "0.5.13"
     "@truffle/contract" "4.5.5"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.1.4"
     hardhat "^2.9.3"
     stack-trace "0.0.10"
 
-"@superfluid-finance/js-sdk@0.5.12":
-  version "0.5.12"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.12.tgz#6e2e1dc948b40b9f0e82019e7c0cc32d91ec7175"
-  integrity sha512-2HU5TUMtoZXw0/J+56pZS3rjlxSdduXA8qw/nvzDbX6WU6OuxH1MLDIX8d5QQW92PGYY7qwW+6Jq26FbM8HLng==
+"@superfluid-finance/js-sdk@0.5.13":
+  version "0.5.13"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.13.tgz#eed9f610508705e6a806fd1356b53945ebd6fd32"
+  integrity sha512-bkRYFD7aZIVnlxTwJUlViYBq7mXilNvDdBcJhBQ3vFlTPZPrNg+zL319u5C+vQGlkDwtvAD6J6nR0CnuQ0TR6w==
   dependencies:
-    "@ethersproject/abi" "^5.5.0"
-    "@ethersproject/hash" "^5.5.0"
-    "@truffle/contract" "4.4.6"
+    "@ethersproject/abi" "^5.6.0"
+    "@ethersproject/hash" "^5.6.0"
+    "@truffle/contract" "4.5.5"
     auto-bind "^4.0.0"
     node-fetch "^2.6.7"
 
@@ -759,11 +759,6 @@
     faker "5.5.3"
     fast-check "^2.12.1"
 
-"@truffle/blockchain-utils@^0.0.32":
-  version "0.0.32"
-  resolved "https://registry.yarnpkg.com/@truffle/blockchain-utils/-/blockchain-utils-0.0.32.tgz#2bc92adbec26372ce0edc254068f6f407017f839"
-  integrity sha512-/4aNqvO3DbGIF5UzHE4UJ7qAr5fNcx5wNa+c/f+JCpimQ3fyO7r7YVBTar5tj24+0In6e92LEDdstR+m+c7qzw==
-
 "@truffle/blockchain-utils@^0.1.2":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@truffle/blockchain-utils/-/blockchain-utils-0.1.3.tgz#846b64314fc105d1d4af0996f0294111bf17911c"
@@ -793,33 +788,13 @@
     "@truffle/error" "^0.1.0"
     colors "1.4.0"
 
-"@truffle/contract-schema@^3.4.4", "@truffle/contract-schema@^3.4.7":
+"@truffle/contract-schema@^3.4.7":
   version "3.4.7"
   resolved "https://registry.yarnpkg.com/@truffle/contract-schema/-/contract-schema-3.4.7.tgz#8706e3a9f763891b1cfad5cde771e7f6175fa301"
   integrity sha512-vbOHMq/a8rVPh+cFMBDDGPqqiKrXXOc+f1kB4znfh3ewOX8rJxZhGJvdMm3WNMJHR5RstqDV7ZIZ7ePwtSXH8Q==
   dependencies:
     ajv "^6.10.0"
     debug "^4.3.1"
-
-"@truffle/contract@4.4.6":
-  version "4.4.6"
-  resolved "https://registry.yarnpkg.com/@truffle/contract/-/contract-4.4.6.tgz#c9e1cc70dce107fe0d5a575cf3fb698e849a9568"
-  integrity sha512-gNTBDCJx0dF4S/HsIw8Ec7pXYbhKCZP1D2MGzx29/DoeFFp3NqCt3N8upvFHmKkyD9lvASGC2cmCQF9AJ3Tw7w==
-  dependencies:
-    "@ensdomains/ensjs" "^2.0.1"
-    "@truffle/blockchain-utils" "^0.0.32"
-    "@truffle/contract-schema" "^3.4.4"
-    "@truffle/debug-utils" "^6.0.6"
-    "@truffle/error" "^0.0.15"
-    "@truffle/interface-adapter" "^0.5.10"
-    bignumber.js "^7.2.1"
-    debug "^4.3.1"
-    ethers "^4.0.32"
-    web3 "1.5.3"
-    web3-core-helpers "1.5.3"
-    web3-core-promievent "1.5.3"
-    web3-eth-abi "1.5.3"
-    web3-utils "1.5.3"
 
 "@truffle/contract@4.5.5":
   version "4.5.5"
@@ -841,7 +816,7 @@
     web3-eth-abi "1.5.3"
     web3-utils "1.5.3"
 
-"@truffle/debug-utils@^6.0.17", "@truffle/debug-utils@^6.0.6":
+"@truffle/debug-utils@^6.0.17":
   version "6.0.19"
   resolved "https://registry.yarnpkg.com/@truffle/debug-utils/-/debug-utils-6.0.19.tgz#bf0cd1a3ff9c369bb66a4c2c3f32bb3c1176c843"
   integrity sha512-EUrsCLF/+olOF8a0r0GOVpscNRbvLEhIHKTcHlpgQXoH46LcCbrxH2q5Lwwqmz7qDRTwp6f1UmSN37Rl5Ag5mQ==
@@ -853,17 +828,12 @@
     debug "^4.3.1"
     highlightjs-solidity "^2.0.5"
 
-"@truffle/error@^0.0.15":
-  version "0.0.15"
-  resolved "https://registry.yarnpkg.com/@truffle/error/-/error-0.0.15.tgz#fa24de95c7eb37dd8ee71161e1a876320ddb41e6"
-  integrity sha512-keiYGlVAH7GLggqMpB+XorT7NkOlr3qeBc56thI2WP0eas3qstlyrc0WvckXJ2LXrOfcR2uH6f0Nk6FIxaKXSA==
-
 "@truffle/error@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@truffle/error/-/error-0.1.0.tgz#5e9fed79e6cda624c926d314b280a576f8b22a36"
   integrity sha512-RbUfp5VreNhsa2Q4YbBjz18rOQI909pG32bghl1hulO7IpvcqTS+C3Ge5cNbiWQ1WGzy1wIeKLW0tmQtHFB7qg==
 
-"@truffle/interface-adapter@^0.5.10", "@truffle/interface-adapter@^0.5.13":
+"@truffle/interface-adapter@^0.5.13":
   version "0.5.15"
   resolved "https://registry.yarnpkg.com/@truffle/interface-adapter/-/interface-adapter-0.5.15.tgz#8d006a7f79daf59f3bf996ee93047e4662895a5f"
   integrity sha512-e6kSlSfn7XovKrrQ4lLUjog/cvwAelRNZLk7sfJ9pigZ+NRTlFmtrcWGUYgNIGuhAb48wYiRBEnkFIpqKGTtBw==

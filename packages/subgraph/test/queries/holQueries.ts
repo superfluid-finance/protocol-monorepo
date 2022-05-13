@@ -21,14 +21,6 @@ export const getAccount = gql`
     }
 `;
 
-export const getAccountIds = gql`
-    query getAccounts($id: ID!) {
-        response: accounts(where: { id: $id }) {
-            id
-        }
-    }
-`;
-
 export const getToken = gql`
     query getToken($id: ID!) {
         response: token(id: $id) {

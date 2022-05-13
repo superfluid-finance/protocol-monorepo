@@ -1,4 +1,6 @@
-// eslint-disable-next-line no-global-assign
+/* eslint-disable no-global-assign */
+
+/* istanbul ignore next */
 if (typeof module === "undefined") module = {};
 
 // eslint-disable-next-line no-undef

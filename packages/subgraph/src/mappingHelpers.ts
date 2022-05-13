@@ -46,8 +46,6 @@ export function getOrInitAccount(
     let account = Account.load(accountAddress.toHex());
     let hostAddress = getHostAddress();
 
-    if (accountAddress.equals(ZERO_ADDRESS)) return account as Account;
-
     let currentTimestamp = block.timestamp;
     if (account == null) {
         let hostContract = Superfluid.bind(hostAddress);
@@ -188,8 +186,12 @@ export function getOrInitStreamRevision(
  */
 export function getOrInitStream(event: FlowUpdated): Stream {
     // Create accounts if they do not exist
-    getOrInitAccount(event.params.sender, event.block);
-    getOrInitAccount(event.params.receiver, event.block);
+    if (event.params.sender.notEqual(ZERO_ADDRESS)) {
+        getOrInitAccount(event.params.sender, event.block);
+    }
+    if (event.params.receiver.notEqual(ZERO_ADDRESS)) {
+        getOrInitAccount(event.params.receiver, event.block);
+    }
 
     // Create a streamRevision entity for this stream if one doesn't exist.
     let streamRevision = getOrInitStreamRevision(
@@ -308,7 +310,9 @@ export function getOrInitIndex(
         index.indexCreatedEvent = indexCreatedId;
         index.save();
 
-        getOrInitAccount(publisherAddress, block);
+        if (publisherAddress.notEqual(ZERO_ADDRESS)) {
+            getOrInitAccount(publisherAddress, block);
+        }
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
@@ -361,8 +365,9 @@ export function getOrInitSubscription(
         subscription.updatedAtTimestamp = currentTimestamp;
         subscription.updatedAtBlockNumber = block.number;
         subscription.save();
-
-        getOrInitAccount(subscriberAddress, block);
+        if (subscriberAddress.notEqual(ZERO_ADDRESS)) {
+            getOrInitAccount(subscriberAddress, block);
+        }
     }
     subscription.updatedAtTimestamp = currentTimestamp;
     subscription.updatedAtBlockNumber = block.number;

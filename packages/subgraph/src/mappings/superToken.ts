@@ -18,7 +18,7 @@ import {
     SentEvent,
     AgreementLiquidatedV2Event,
 } from "../../generated/schema";
-import {createEventID, getOrder, tokenHasValidHost} from "../utils";
+import {createEventID, getOrder, tokenHasValidHost, ZERO_ADDRESS} from "../utils";
 import {
     getOrInitAccount,
     getOrInitSuperToken,
@@ -101,8 +101,9 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
     }
 
     createTokenUpgradedEntity(event);
-
-    getOrInitAccount(event.params.account, event.block);
+    if (event.params.account.notEqual(ZERO_ADDRESS)) {
+        getOrInitAccount(event.params.account, event.block);
+    }
 
     getOrInitSuperToken(event.address, event.block);
 
@@ -122,7 +123,9 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
 
     createTokenDowngradedEntity(event);
 
-    getOrInitAccount(event.params.account, event.block);
+    if (event.params.account.notEqual(ZERO_ADDRESS)) {
+        getOrInitAccount(event.params.account, event.block);
+    }
 
     getOrInitSuperToken(event.address, event.block);
 

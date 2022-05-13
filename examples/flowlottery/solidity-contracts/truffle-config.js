@@ -41,14 +41,4 @@ const M = (module.exports = {
 });
 
 // hot-fuzz support
-if (process.env.HOT_FUZZ_MODE) {
-    M.compilers.solc.settings.libraries = {
-        ...M.compilers.solc.settings.libraries,
-        "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol":
-            {
-                SlotsBitmapLibrary: "0x" + "0".repeat(38) + "ff",
-            },
-    };
-}
-
 require("@superfluid-finance/hot-fuzz").hotfuzzPatchTruffleConfig(M);

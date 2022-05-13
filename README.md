@@ -2,7 +2,7 @@
 
 <p>
   <a href="#superfluid-financeethereum-contracts" target="_blank">
-    <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/protocol-monorepo?label=ethereum-contracts">
+    <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts?label=ethereum-contracts">
   </a>
   <a href="#superfluid-financesubgraph" target="_blank">
     <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/protocol-monorepo?filename=packages%2Fsubgraph%2Fpackage.json&label=subgraph"> 

@@ -4,8 +4,11 @@
 
 export HOT_FUZZ_MODE=1
 
-ECHIDNA=${ECHIDNA:-echidna-test}
-HOTFUZZ_DIR="$(dirname "$(readlink -f "$0")")"
+D="$(dirname "$0")"
+L="$(readlink "$0")" # do not use -f since mac BSD coreutils does not like it
+
+ECHIDNA_TEST=${ECHIDNA_TEST:-echidna-test}
+HOTFUZZ_DIR=$D/"$(dirname "$L")"
 set -xe
 
 function apply_crytic_workaround() {
@@ -48,7 +51,7 @@ function hott() {
     rm -rf crytic-export/
     rm -rf build/contracts/
     npx truffle compile --all \
-    && "$ECHIDNA" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+    && "$ECHIDNA_TEST" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
     digests
 }
 

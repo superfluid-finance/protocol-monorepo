@@ -11,7 +11,7 @@ jobs:
       - name: Search relif
         id: search
         run: |
-          xkcd_url=https://xkcd.com/${{ github.event.pull_request.number }} | \
+          xkcd_url=https://xkcd.com/${{ github.event.pull_request.number }}
           xkcd_img_url=$(curl -sL $xkcd_url | \
                 grep -o 'https://imgs.xkcd.com/comics/\w\+.png' | \
                 head -n1)

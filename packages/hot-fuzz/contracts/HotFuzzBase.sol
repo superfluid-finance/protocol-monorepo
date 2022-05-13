@@ -50,7 +50,7 @@ contract HotFuzzBase {
         otherAccounts = new address[](0);
     }
 
-    function initPlayers() virtual internal {
+    function initTesters() virtual internal {
         testers = new SuperfluidTester[](nTesters);
         for (uint i = 0; i < nTesters; ++i) {
             testers[i] = createTester();

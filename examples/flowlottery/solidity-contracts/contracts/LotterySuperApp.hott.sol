@@ -43,7 +43,7 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
 
     constructor() HotFuzzBase(10 /* nPlayers */ ) {
         _app = new LotterySuperApp(sf.host, sf.cfa, superToken);
-        initPlayers();
+        initTesters();
         addAccount(address(_app));
     }
 

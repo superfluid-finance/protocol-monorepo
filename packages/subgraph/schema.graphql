@@ -9,6 +9,8 @@ data.
 interface Event {
     id: ID!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     name: String!
 
     """
@@ -35,6 +37,8 @@ type FlowUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -86,7 +90,7 @@ type FlowUpdatedEvent implements Event @entity {
     stream: Stream!
 }
 
-type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
+type FlowOperatorUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -97,6 +101,8 @@ type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -116,7 +122,7 @@ type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
 }
 
 #  InstantDistributionAgreementV1 #
-type IndexCreatedEvent implements Event @entity(immutable: true) {
+type IndexCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -127,6 +133,8 @@ type IndexCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -136,7 +144,7 @@ type IndexCreatedEvent implements Event @entity(immutable: true) {
     index: Index!
 }
 
-type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
+type IndexDistributionClaimedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -147,6 +155,8 @@ type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -157,7 +167,7 @@ type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
     index: Index!
 }
 
-type IndexUpdatedEvent implements Event @entity(immutable: true) {
+type IndexUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -168,6 +178,8 @@ type IndexUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -181,7 +193,7 @@ type IndexUpdatedEvent implements Event @entity(immutable: true) {
     index: Index!
 }
 
-type IndexSubscribedEvent implements Event @entity(immutable: true) {
+type IndexSubscribedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -192,6 +204,8 @@ type IndexSubscribedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -202,7 +216,7 @@ type IndexSubscribedEvent implements Event @entity(immutable: true) {
     index: Index!
 }
 
-type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
+type IndexUnitsUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -213,6 +227,8 @@ type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -227,7 +243,7 @@ type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
     index: Index!
 }
 
-type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
+type IndexUnsubscribedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -238,6 +254,8 @@ type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -248,7 +266,7 @@ type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
     index: Index!
 }
 
-type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
+type SubscriptionApprovedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -259,6 +277,8 @@ type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -269,8 +289,7 @@ type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
     subscription: IndexSubscription!
 }
 
-type SubscriptionDistributionClaimedEvent implements Event
-    @entity(immutable: true) {
+type SubscriptionDistributionClaimedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -281,6 +300,8 @@ type SubscriptionDistributionClaimedEvent implements Event
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -291,7 +312,7 @@ type SubscriptionDistributionClaimedEvent implements Event
     subscription: IndexSubscription!
 }
 
-type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
+type SubscriptionRevokedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -302,6 +323,8 @@ type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -312,7 +335,7 @@ type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
     subscription: IndexSubscription!
 }
 
-type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
+type SubscriptionUnitsUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -323,6 +346,8 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -339,7 +364,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
 
 #     Host    #
 
-type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
+type AgreementClassRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -350,11 +375,13 @@ type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
 
-type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
+type AgreementClassUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -365,11 +392,13 @@ type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
 
-type AppRegisteredEvent implements Event @entity(immutable: true) {
+type AppRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -380,16 +409,20 @@ type AppRegisteredEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     app: Bytes!
 }
 
-type GovernanceReplacedEvent implements Event @entity(immutable: true) {
+type GovernanceReplacedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
 
     """
     Empty addresses array.
@@ -398,7 +431,7 @@ type GovernanceReplacedEvent implements Event @entity(immutable: true) {
     newGovernance: Bytes!
 }
 
-type JailEvent implements Event @entity(immutable: true) {
+type JailEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -409,11 +442,13 @@ type JailEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     app: Bytes!
     reason: BigInt!
 }
 
-type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
+type SuperTokenFactoryUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -424,10 +459,12 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     newFactory: Bytes!
 }
 
-type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
+type SuperTokenLogicUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -438,12 +475,14 @@ type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     code: Bytes!
 }
 
 #     Resolver    #
-type RoleAdminChangedEvent implements Event @entity(immutable: true) {
+type RoleAdminChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -454,12 +493,14 @@ type RoleAdminChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     role: Bytes!
     previousAdminRole: Bytes!
     newAdminRole: Bytes!
 }
 
-type RoleGrantedEvent implements Event @entity(immutable: true) {
+type RoleGrantedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -470,12 +511,14 @@ type RoleGrantedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
 }
 
-type RoleRevokedEvent implements Event @entity(immutable: true) {
+type RoleRevokedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -486,14 +529,15 @@ type RoleRevokedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
 }
 
 #     SuperfluidGovernance    #
-type CFAv1LiquidationPeriodChangedEvent implements Event
-    @entity(immutable: true) {
+type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -504,13 +548,15 @@ type CFAv1LiquidationPeriodChangedEvent implements Event
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    order: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
     liquidationPeriod: BigInt!
 }
 
-type ConfigChangedEvent implements Event @entity(immutable: true) {
+type ConfigChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -521,6 +567,8 @@ type ConfigChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     key: Bytes!
@@ -528,7 +576,7 @@ type ConfigChangedEvent implements Event @entity(immutable: true) {
     value: BigInt!
 }
 
-type RewardAddressChangedEvent implements Event @entity(immutable: true) {
+type RewardAddressChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -539,13 +587,15 @@ type RewardAddressChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
     rewardAddress: Bytes!
 }
 
-type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
+type PPPConfigurationChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -556,6 +606,8 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -563,7 +615,7 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     patricianPeriod: BigInt!
 }
 
-type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
+type TrustedForwarderChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -574,6 +626,8 @@ type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -582,7 +636,7 @@ type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
 }
 
 #     SuperToken    #
-type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
+type AgreementLiquidatedByEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -593,6 +647,8 @@ type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -603,7 +659,7 @@ type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
     bailoutAmount: BigInt!
 }
 
-type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
+type AgreementLiquidatedV2Event implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -614,6 +670,8 @@ type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -626,7 +684,7 @@ type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
     liquidationType: Int!
 }
 
-type BurnedEvent implements Event @entity(immutable: true) {
+type BurnedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -637,6 +695,8 @@ type BurnedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     operator: Bytes!
     from: Bytes!
     amount: BigInt!
@@ -644,7 +704,7 @@ type BurnedEvent implements Event @entity(immutable: true) {
     operatorData: Bytes!
 }
 
-type MintedEvent implements Event @entity(immutable: true) {
+type MintedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -655,6 +715,8 @@ type MintedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     operator: Bytes!
     to: Bytes!
     amount: BigInt!
@@ -662,7 +724,7 @@ type MintedEvent implements Event @entity(immutable: true) {
     operatorData: Bytes!
 }
 
-type SentEvent implements Event @entity(immutable: true) {
+type SentEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -673,6 +735,8 @@ type SentEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     operator: Bytes!
     from: Bytes!
     to: Bytes!
@@ -681,7 +745,7 @@ type SentEvent implements Event @entity(immutable: true) {
     operatorData: Bytes!
 }
 
-type TransferEvent implements Event @entity(immutable: true) {
+type TransferEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -692,13 +756,15 @@ type TransferEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     from: Account!
     to: Account!
     value: BigInt!
     token: Bytes!
 }
 
-type TokenDowngradedEvent implements Event @entity(immutable: true) {
+type TokenDowngradedEvent implements Event @entity {
     id: ID!
     account: Account!
     transactionHash: Bytes!
@@ -710,11 +776,13 @@ type TokenDowngradedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     amount: BigInt!
 }
 
-type TokenUpgradedEvent implements Event @entity(immutable: true) {
+type TokenUpgradedEvent implements Event @entity {
     id: ID!
     account: Account!
     transactionHash: Bytes!
@@ -726,13 +794,15 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     amount: BigInt!
 }
 
 #     SuperTokenFactory    #
 
-type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
+type CustomSuperTokenCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -743,10 +813,12 @@ type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
 }
 
-type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
+type SuperTokenCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -757,10 +829,12 @@ type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
 }
 
-type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
+type SuperTokenLogicCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
@@ -771,6 +845,8 @@ type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     tokenLogic: Bytes!
 }
 
@@ -1114,7 +1190,7 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID + keccak256("-") + tokenID
+    ID composed of: accountID-tokenID
     """
     id: ID!
     updatedAtTimestamp: BigInt!

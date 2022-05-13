@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.5.13",
+    "version": "0.6.0",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
     "repository": {
@@ -29,6 +29,7 @@
         "testenv:stop": "../ethereum-contracts/test/testenv-ctl.sh stop",
         "pretest": "{ run-s testenv:start > /dev/null& } && sleep 5",
         "test": "truffle test",
+        "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
         "posttest": "yarn testenv:stop",
         "watch": "webpack --watch",
         "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
@@ -54,7 +55,7 @@
     },
     "devDependencies": {
         "@ethersproject/contracts": "^5.6.0",
-        "@superfluid-finance/ethereum-contracts": "1.2.1",
+        "@superfluid-finance/ethereum-contracts": "1.2.2",
         "chai-as-promised": "^7.1.1",
         "webpack": "^5.72.0",
         "webpack-bundle-analyzer": "^4.5.0",

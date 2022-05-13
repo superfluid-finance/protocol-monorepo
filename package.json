@@ -9,7 +9,7 @@
     "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
-        "first-time-after-git-clone": "yarn install && yarn build",
+        "first-time-after-git-clone": "yarn install && yarn build && git submodule update --init --recursive",
         "lint": "yarn workspaces run lint",
         "build": "yarn build-essentials #synonym of build-essentials",
         "build-essentials": "set -e;for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
@@ -70,7 +70,8 @@
             "packages/js-sdk",
             "packages/sdk-core",
             "packages/sdk-redux",
-            "packages/subgraph"
+            "packages/subgraph",
+            "packages/hot-fuzz"
         ],
         "nohoist": [
             "**/webpack",

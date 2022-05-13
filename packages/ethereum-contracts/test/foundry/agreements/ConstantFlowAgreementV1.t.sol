@@ -5,7 +5,6 @@ import "../FoundrySuperfluidTester.sol";
 
 
 contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
-
     using CFAv1Library for CFAv1Library.InitData;
 
     constructor () FoundrySuperfluidTester(3) { }
@@ -42,21 +41,5 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         assertEq(sf.cfa.getNetFlow(superToken, bob), 0);
 
         assertTrue(checkAllInvariants());
-    }
-
-    
-    function _flow(address sender, address receiver, int96 flowRate) public {
-        (, int96 currentFlowRate,,) = sf.cfa.getFlow(superToken, sender, receiver);
-
-        vm.startPrank(sender);
-
-        if (flowRate == 0)
-            sf.cfaLib.deleteFlow(sender, receiver, superToken);
-        else if (currentFlowRate == 0)
-            sf.cfaLib.createFlow(receiver, superToken, flowRate);
-        else
-            sf.cfaLib.updateFlow(receiver, superToken, flowRate);
-
-        vm.stopPrank();
     }
 }

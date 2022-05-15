@@ -30,35 +30,36 @@ All subgraphs are available via The Graph's hosted service:
 **V1 Endpoints**
 | Network | URL |
 | --- | --- |
-| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-matic |
-| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-mumbai |
+| Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
+| Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
+| Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
+| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
 | Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-rinkeby |
-
-**Legacy Endpoints**
-| Network | URL |
-| --- | --- |
-| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-xdai |
-| Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-matic |
-| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-mumbai |
-| Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-goerli |
-| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-ropsten |
-| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-kovan |
-| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-rinkeby |
+| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-mumbai |
+| Optimism Kovan| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-kovan |
+| Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-rinkeby |
+| Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-fuji |
 
 **Development Endpoints**
 | Network | URL |
 | --- | --- |
-| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-matic |
+| Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
+| Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
+| Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
+| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-kovan |
 | Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-rinkeby |
+| Optimism Kovan| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-kovan |
+| Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-rinkeby |
+| Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-fuji |
 
 *Note: Development endpoints will include features that are still in progress. Documentation will not reflect new features yet to be released in V1
 
@@ -396,10 +397,9 @@ If the subgraph has not been created yet, you must create it first using the das
 ## Developer Notes
 
 When adding new networks, we must do the following:
-- Add the new network to `networks.json` and add a new file to `/config` with the same name as the network e.g. adding network `avalanche-fuji` to the array in `networks.json` and then adding `avalanche-fuji.json` to `/config`. The name of the network here is dicated by and must match how we name the network for our subgraph endpoint, e.g. `protocol-dev-avalanche-fuji`
-- The name of the network in the `/config` json file should match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks)
-- Therefore, the `network` we are comparing in the `addresses.template.test` file should also match the official naming.
-- We also need to add the host and resolver addresses to the `addresses.template.ts` file.
+- The name of the network in the `/config` json file must match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks)
+- Add the new network to `./networks.json` and add a new file to `./config` with the same name as the network e.g. adding network `avalanche-fuji` to the array in `./networks.json` and then adding `avalanche-fuji.json` to `/config`. The name of the network here is dicated by and must match how we name the network for our subgraph endpoint, e.g. `protocol-dev-avalanche-fuji`.
+- We also need to add the host and resolver addresses to the `addresses.template.ts` file. NOTE: the `network` we are comparing in the `addresses.template.test` file should also equal the official naming.
 
 # Contributing
 

@@ -14,6 +14,11 @@ export const MONTH_IN_SECONDS = DAY_IN_SECONDS * DAYS_PER_MONTH;
 export const YEAR_IN_SECONDS = MONTH_IN_SECONDS * MONTHS_PER_YEAR; // NOTE: Is 360 days (misses 5-6 days)
 export const BASE_18 = 1e18;
 
+export const MATIC = "matic";
+export const GNOSIS = "gnosis";
+export const OPTIMISM_MAINNET = "optimism-mainnet";
+export const ARBITRUM_ONE = "arbitrum-one";
+export const AVALANCHE = "avalanche";
 export const ROPSTEN = "ropsten";
 export const RINKEBY = "rinkeby";
 export const GOERLI = "goerli";
@@ -22,10 +27,6 @@ export const MUMBAI = "mumbai";
 export const OPTIMISM_KOVAN = "optimism-kovan";
 export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
 export const AVALANCHE_FUJI = "avalanche-fuji";
-export const GNOSIS = "gnosis";
-export const MATIC = "matic";
-export const OPTIMISM_MAINNET = "optimism-mainnet";
-export const ARBITRUM_ONE = "arbitrum-one";
 
 export const AUTHORIZE_FLOW_OPERATOR_CREATE = 1 << 0;
 export const AUTHORIZE_FLOW_OPERATOR_UPDATE = 1 << 1;
@@ -46,6 +47,7 @@ export const chainIds = [
     137, // MATIC
     42161, // ARBITRUM ONE
     43113, // AVALANCHE FUJI
+    43114, // AVALANCHE C-CHAIN
     80001, // MUMBAI
     421611, // ARBITRUM RINKEBY
 ];
@@ -57,6 +59,7 @@ export const networkNames: string[] = [
     KOVAN,
     MUMBAI,
     OPTIMISM_KOVAN,
+    AVALANCHE,
     ARBITRUM_RINKEBY,
     AVALANCHE_FUJI,
     GNOSIS,
@@ -156,6 +159,15 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche-fuji`,
             networkName: AVALANCHE_FUJI,
             resolverAddress: "0x141920741bC45b962B59c833cd849bA617F7ef38",
+            nativeTokenSymbol: "AVAX",
+        },
+    ],
+    [
+        43114,
+        {
+            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche`,
+            networkName: AVALANCHE,
+            resolverAddress: "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
             nativeTokenSymbol: "AVAX",
         },
     ],

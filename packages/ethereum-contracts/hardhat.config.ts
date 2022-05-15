@@ -36,6 +36,10 @@ const config: HardhatUserConfig = {
             url: "http://0.0.0.0:8545/",
             chainId: 1337,
         },
+        avalanche: {
+            url: process.env.AVALANCHE_PROVIDER_URL || "",
+            chainId: 43114
+        },
         matic: {
             url: process.env.MATIC_PROVIDER_URL || "",
             chainId: 137,

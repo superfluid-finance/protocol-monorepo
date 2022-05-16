@@ -218,4 +218,5 @@ export const networkNameToChainIdMap = new Map<string, number>([
     [MATIC, MATIC_CHAIN_ID],
     [OPTIMISM_MAINNET, OPTIMISM_MAINNET_CHAIN_ID],
     [ARBITRUM_ONE, ARBITRUM_ONE_CHAIN_ID],
+    [AVALANCHE, AVALANCHE_CHAIN_ID],
 ]);

@@ -102,7 +102,7 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
             data: {
                 initialBlockNumber: 5000000,
                 getLogsRange: 5000,
@@ -177,7 +177,7 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
             data: {
                 initialBlockNumber: 11950000,
                 getLogsRange: 50000,
@@ -202,7 +202,7 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
         },
     };
 

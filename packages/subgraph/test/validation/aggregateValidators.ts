@@ -1,10 +1,7 @@
-import { expect } from "chai";
-import { fetchEntityAndEnsureExistence } from "../helpers/helpers";
-import { IAccountTokenSnapshot, ITokenStatistic } from "../interfaces";
-import {
-    getAccountTokenSnapshot,
-    getTokenStatistic,
-} from "../queries/aggregateQueries";
+import {expect} from "chai";
+import {calculateMaybeCriticalAtTimestamp, fetchEntityAndEnsureExistence} from "../helpers/helpers";
+import {IAccountTokenSnapshot, ITokenStatistic} from "../interfaces";
+import {getAccountTokenSnapshot, getTokenStatistic,} from "../queries/aggregateQueries";
 
 export const fetchATSAndValidate = async (
     expectedATSData: IAccountTokenSnapshot
@@ -54,8 +51,9 @@ export const validateATSEntity = (
         totalDeposit: expectedTotalDeposit,
     } = expectedATSData;
 
-    expect(
-        graphATSData.totalNumberOfActiveStreams,
+    const calculatedCriticalTimestamp = calculateMaybeCriticalAtTimestamp(expectedATSData.updatedAtTimestamp, expectedBalanceUntilUpdatedAt, expectedTotalDeposit, expectedTotalNetFlowRate);
+    expect(graphATSData.maybeCriticalAtTimestamp, "ATS: maybeCriticalAtTimestamp error").to.equal(calculatedCriticalTimestamp)
+    expect(graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"
     ).to.equal(expectedTotalNumberOfActiveStreams);
     expect(

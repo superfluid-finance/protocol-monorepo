@@ -317,6 +317,7 @@ export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly totalDeposit: string;
+    readonly maybeCriticalAtTimestamp: string;
     readonly totalInflowRate: string;
     readonly totalNetFlowRate: string;
     readonly totalOutflowRate: string;

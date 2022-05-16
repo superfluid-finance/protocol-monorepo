@@ -28,6 +28,20 @@ export const OPTIMISM_KOVAN = "optimism-kovan";
 export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
 export const AVALANCHE_FUJI = "avalanche-fuji";
 
+export const ROPSTEN_CHAIN_ID = 3;
+export const RINKEBY_CHAIN_ID = 4;
+export const GOERLI_CHAIN_ID = 5;
+export const OPTIMISM_MAINNET_CHAIN_ID = 10;
+export const KOVAN_CHAIN_ID = 42;
+export const OPTIMISM_KOVAN_CHAIN_ID = 69;
+export const GNOSIS_CHAIN_ID = 100;
+export const MATIC_CHAIN_ID = 137;
+export const ARBITRUM_ONE_CHAIN_ID = 42161;
+export const AVALANCHE_FUJI_CHAIN_ID = 43113;
+export const AVALANCHE_CHAIN_ID = 43114;
+export const MUMBAI_CHAIN_ID = 80001;
+export const ARBITRUM_RINKEBY_CHAIN_ID = 421611;
+
 export const AUTHORIZE_FLOW_OPERATOR_CREATE = 1 << 0;
 export const AUTHORIZE_FLOW_OPERATOR_UPDATE = 1 << 1;
 export const AUTHORIZE_FLOW_OPERATOR_DELETE = 1 << 2;
@@ -37,19 +51,19 @@ export const AUTHORIZE_FULL_CONTROL =
     AUTHORIZE_FLOW_OPERATOR_DELETE;
 
 export const chainIds = [
-    3, // ROPSTEN
-    4, // RINKEBY
-    5, // GOERLI
-    10, // OPTIMISM MAINNET
-    42, // KOVAN
-    69, // OPTIMISM KOVAN
-    100, // GNOSIS
-    137, // MATIC
-    42161, // ARBITRUM ONE
-    43113, // AVALANCHE FUJI
-    43114, // AVALANCHE C-CHAIN
-    80001, // MUMBAI
-    421611, // ARBITRUM RINKEBY
+    ROPSTEN_CHAIN_ID, // ROPSTEN
+    RINKEBY_CHAIN_ID, // RINKEBY
+    GOERLI_CHAIN_ID, // GOERLI
+    OPTIMISM_MAINNET_CHAIN_ID, // OPTIMISM MAINNET
+    KOVAN_CHAIN_ID, // KOVAN
+    OPTIMISM_KOVAN_CHAIN_ID, // OPTIMISM KOVAN
+    GNOSIS_CHAIN_ID, // GNOSIS
+    MATIC_CHAIN_ID, // MATIC
+    ARBITRUM_ONE_CHAIN_ID, // ARBITRUM ONE
+    AVALANCHE_FUJI_CHAIN_ID, // AVALANCHE FUJI
+    AVALANCHE_CHAIN_ID, // AVALANCHE C-CHAIN
+    MUMBAI_CHAIN_ID, // MUMBAI
+    ARBITRUM_RINKEBY_CHAIN_ID, // ARBITRUM RINKEBY
 ];
 
 export const networkNames: string[] = [
@@ -73,7 +87,7 @@ const subgraphReleaseTag =
 
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
-        3,
+        ROPSTEN_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-ropsten`,
             networkName: ROPSTEN,
@@ -82,7 +96,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        4,
+        RINKEBY_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-rinkeby`,
             networkName: RINKEBY,
@@ -91,7 +105,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        5,
+        GOERLI_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-goerli`,
             networkName: GOERLI,
@@ -100,7 +114,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        10,
+        OPTIMISM_MAINNET_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-optimism-mainnet`,
             networkName: OPTIMISM_MAINNET,
@@ -109,7 +123,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        42,
+        KOVAN_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-kovan`,
             networkName: KOVAN,
@@ -118,7 +132,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        69,
+        OPTIMISM_KOVAN_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-optimism-kovan`,
             networkName: OPTIMISM_KOVAN,
@@ -127,7 +141,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        100,
+        GNOSIS_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-xdai`,
             networkName: GNOSIS,
@@ -136,7 +150,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        137,
+        MATIC_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-matic`,
             networkName: MATIC,
@@ -145,7 +159,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        42161,
+        ARBITRUM_ONE_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-arbitrum-one`,
             networkName: ARBITRUM_ONE,
@@ -154,7 +168,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        43113,
+        AVALANCHE_FUJI_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche-fuji`,
             networkName: AVALANCHE_FUJI,
@@ -163,7 +177,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        43114,
+        AVALANCHE_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche`,
             networkName: AVALANCHE,
@@ -172,7 +186,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        80001,
+        MUMBAI_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-mumbai`,
             networkName: MUMBAI,
@@ -181,7 +195,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        421611,
+        ARBITRUM_RINKEBY_CHAIN_ID,
         {
             subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-arbitrum-rinkeby`,
             networkName: ARBITRUM_RINKEBY,
@@ -192,16 +206,16 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
 ]);
 
 export const networkNameToChainIdMap = new Map<string, number>([
-    [ROPSTEN, 3],
-    [RINKEBY, 4],
-    [GOERLI, 5],
-    [KOVAN, 42],
-    [OPTIMISM_KOVAN, 69],
-    [AVALANCHE_FUJI, 43113],
-    [MUMBAI, 80001],
-    [ARBITRUM_RINKEBY, 421611],
-    [GNOSIS, 100],
-    [MATIC, 137],
-    [OPTIMISM_MAINNET, 10],
-    [ARBITRUM_ONE, 42161],
+    [ROPSTEN, ROPSTEN_CHAIN_ID],
+    [RINKEBY, RINKEBY_CHAIN_ID],
+    [GOERLI, GOERLI_CHAIN_ID],
+    [KOVAN, KOVAN_CHAIN_ID],
+    [OPTIMISM_KOVAN, OPTIMISM_KOVAN_CHAIN_ID],
+    [AVALANCHE_FUJI, AVALANCHE_FUJI_CHAIN_ID],
+    [MUMBAI, MUMBAI_CHAIN_ID],
+    [ARBITRUM_RINKEBY, ARBITRUM_RINKEBY_CHAIN_ID],
+    [GNOSIS, GNOSIS_CHAIN_ID],
+    [MATIC, MATIC_CHAIN_ID],
+    [OPTIMISM_MAINNET, OPTIMISM_MAINNET_CHAIN_ID],
+    [ARBITRUM_ONE, ARBITRUM_ONE_CHAIN_ID],
 ]);

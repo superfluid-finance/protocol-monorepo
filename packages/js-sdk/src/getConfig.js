@@ -183,7 +183,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             versions: {
                 v1: {
                     subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche",
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c",
                 },
             },
         },

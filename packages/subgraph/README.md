@@ -34,7 +34,7 @@ All subgraphs are available via The Graph's hosted service:
 | Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
 | Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
 | Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
-| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche |
+| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-c |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
@@ -51,7 +51,7 @@ All subgraphs are available via The Graph's hosted service:
 | Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
 | Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
 | Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
-| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche |
+| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-c |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |
@@ -178,7 +178,7 @@ Open your third terminal window and navigate to the **root of the repo** and run
 yarn build
 ```
 
-This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call: 
+This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call:
 ```bash
 yarn install
 yarn run generate-ethers-types
@@ -246,7 +246,7 @@ Navigate to the url in the console output, and let's try a test query so we know
 
 ## Running Tests
 
-If you are continuing from the previous steps, you can immediately run the tests with the following command: 
+If you are continuing from the previous steps, you can immediately run the tests with the following command:
 
 ```bash
 npx hardhat test --network localhost
@@ -357,7 +357,7 @@ Aggregate entities are exactly what the name suggests - they are entities that s
 ### Test Structure
 
 This section is intended for those who are interested in understanding the structure of the test suite.
-The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break. 
+The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break.
 
 The entry point of the tests is the `subgraph.test.ts` file, this is where you specify the parameters and what you want to test. For example, you want to test indexing a newly created flow. There are helper functions for all the different things you may want to do and examples of everything in the test, but you must follow the pattern of modify then update global state as stated above.
 

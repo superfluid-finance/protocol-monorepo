@@ -18,7 +18,7 @@ export const MATIC = "matic";
 export const GNOSIS = "gnosis";
 export const OPTIMISM_MAINNET = "optimism-mainnet";
 export const ARBITRUM_ONE = "arbitrum-one";
-export const AVALANCHE = "avalanche";
+export const AVALANCHE_C = "avalanche-c";
 export const ROPSTEN = "ropsten";
 export const RINKEBY = "rinkeby";
 export const GOERLI = "goerli";
@@ -38,7 +38,7 @@ export const GNOSIS_CHAIN_ID = 100;
 export const MATIC_CHAIN_ID = 137;
 export const ARBITRUM_ONE_CHAIN_ID = 42161;
 export const AVALANCHE_FUJI_CHAIN_ID = 43113;
-export const AVALANCHE_CHAIN_ID = 43114;
+export const AVALANCHE_C_CHAIN_ID = 43114;
 export const MUMBAI_CHAIN_ID = 80001;
 export const ARBITRUM_RINKEBY_CHAIN_ID = 421611;
 
@@ -61,7 +61,7 @@ export const chainIds = [
     MATIC_CHAIN_ID, // MATIC
     ARBITRUM_ONE_CHAIN_ID, // ARBITRUM ONE
     AVALANCHE_FUJI_CHAIN_ID, // AVALANCHE FUJI
-    AVALANCHE_CHAIN_ID, // AVALANCHE C-CHAIN
+    AVALANCHE_C_CHAIN_ID, // AVALANCHE C-CHAIN
     MUMBAI_CHAIN_ID, // MUMBAI
     ARBITRUM_RINKEBY_CHAIN_ID, // ARBITRUM RINKEBY
 ];
@@ -73,7 +73,7 @@ export const networkNames: string[] = [
     KOVAN,
     MUMBAI,
     OPTIMISM_KOVAN,
-    AVALANCHE,
+    AVALANCHE_C,
     ARBITRUM_RINKEBY,
     AVALANCHE_FUJI,
     GNOSIS,
@@ -177,10 +177,10 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        AVALANCHE_CHAIN_ID,
+        AVALANCHE_C_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche`,
-            networkName: AVALANCHE,
+            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche-c`,
+            networkName: AVALANCHE_C,
             resolverAddress: "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
             nativeTokenSymbol: "AVAX",
         },
@@ -218,5 +218,5 @@ export const networkNameToChainIdMap = new Map<string, number>([
     [MATIC, MATIC_CHAIN_ID],
     [OPTIMISM_MAINNET, OPTIMISM_MAINNET_CHAIN_ID],
     [ARBITRUM_ONE, ARBITRUM_ONE_CHAIN_ID],
-    [AVALANCHE, AVALANCHE_CHAIN_ID],
+    [AVALANCHE_C, AVALANCHE_C_CHAIN_ID],
 ]);

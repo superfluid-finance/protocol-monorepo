@@ -10,5 +10,6 @@
     "ropsten",
     "xdai",
     "optimism-mainnet",
-    "arbitrum-one"
+    "arbitrum-one",
+    "avalanche-c"
 ]

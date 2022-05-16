@@ -156,8 +156,7 @@ type AccountTokenSnapshot {
   updatedAtBlockNumber: BigInt!
 
   """
-  The optimistic liquidation estimation date
-
+  Optimistic liquidation estimation property.
   """
   maybeCriticalAtTimestamp: BigInt!
 

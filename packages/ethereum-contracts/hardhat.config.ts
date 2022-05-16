@@ -52,7 +52,7 @@ function createNetworkConfig(
     network: keyof typeof chainIds
 ): NetworkUserConfig {
     return {
-        accounts: [process.env.PRIVATE_KEY || ""],
+        accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
         chainId: chainIds[network],
     };
 }

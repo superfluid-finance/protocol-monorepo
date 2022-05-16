@@ -43,7 +43,7 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
 
     constructor() HotFuzzBase(10 /* nPlayers */ ) {
         _app = new LotterySuperApp(sf.host, sf.cfa, superToken);
-        initPlayers();
+        initTesters();
         addAccount(address(_app));
     }
 
@@ -105,9 +105,9 @@ contract LotterySuperAppHotFuzz is HotFuzzBase {
             totalInputFlowRate += r;
         }
         (,address winner,) = _app.currentWinner();
-        (,int96 winerPlayingFlowRate,,) = sf.cfa.getFlow(superToken, address(winner), address(_app));
+        (,int96 winnerPlayingFlowRate,,) = sf.cfa.getFlow(superToken, address(winner), address(_app));
         int96 winnerNetFlowRate = sf.cfa.getNetFlow(superToken, address(winner));
         //emit DEBUG_WINNER_TAKE_ALL(winnerNetFlowRate, totalInputFlowRate, winerPlayingFlowRate);
-        return winnerNetFlowRate == totalInputFlowRate - winerPlayingFlowRate;
+        return winnerNetFlowRate == totalInputFlowRate - winnerPlayingFlowRate;
     }
 }

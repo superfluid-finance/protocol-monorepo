@@ -49,9 +49,10 @@ function hott() {
     [ ! -f "$TEST_CONTRACT_CONFIG" ] && oops "No $TEST_CONTRACT_CONFIG provided."
 
     rm -rf crytic-export/
-    rm -rf build/contracts/
+    rm -rf build/hot-fuzz-contracts/
     npx truffle compile --all \
-    && "$ECHIDNA_TEST" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+        && "$ECHIDNA_TEST" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
+
     digests
 }
 

@@ -1255,6 +1255,82 @@ type AccountTokenSnapshot @entity {
     account: Account!
     token: Token!
     flowOperators: [FlowOperator!]! @derivedFrom(field: "accountTokenSnapshot")
+    accountTokenSnapshotLogs: [AccountTokenSnapshotLog!]! @derivedFrom(field: "accountTokenSnapshot")
+}
+
+"""
+AccountTokenSnapshotLog: An aggregate entity which aggregates data on an account's
+interaction with a `token`.
+"""
+type AccountTokenSnapshotLog @entity {
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+
+    transactionHash: Bytes!
+    logIndex: BigInt!
+    order: BigInt!
+
+    # ---------------------------------- state ----------------------------------
+    """
+    The number of currently open streams.
+    """
+    totalNumberOfActiveStreamsSoFar: Int!
+
+    """
+    The number of all-time closed streams.
+    """
+    totalNumberOfClosedStreamsSoFar: Int!
+
+    """
+    The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
+    """
+    totalSubscriptionsWithUnitsSoFar: Int!
+
+    """
+    Counts all currently (as of updatedAt) approved subscriptions whether or not they have units.
+    """
+    totalApprovedSubscriptionsSoFar: Int!
+
+    """
+    Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
+    """
+    balanceSoFar: BigInt!
+
+    """
+    The total deposit this account has held by the CFA agreement for `account` active streams.
+    """
+    totalDepositSoFar: BigInt!
+
+    """
+    The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
+    """
+    totalNetFlowRateSoFar: BigInt!
+
+    """
+    The total inflow rate (receive flowRate per second) of the `account`.
+    """
+    totalInflowRateSoFar: BigInt!
+
+    """
+    The total outflow rate (send flowrate per second) of the `account`.
+    """
+    totalOutflowRateSoFar: BigInt!
+
+    """
+    The total amount of `token` streamed to this `account` until
+    the `updatedAtTimestamp`/`updatedAtBlock`.
+    """
+    totalAmountStreamedSoFar: BigInt!
+
+    """
+    The total amount of `token` this `account` has transferred.
+    """
+    totalAmountTransferredSoFar: BigInt!
+    # ---------------------------------- links ----------------------------------
+    account: Account!
+    token: Token!
+    accountTokenSnapshot: AccountTokenSnapshot!
 }
 
 """

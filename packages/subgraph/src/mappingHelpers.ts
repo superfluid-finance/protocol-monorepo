@@ -1,8 +1,9 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
+import {Address, BigInt, ethereum} from "@graphprotocol/graph-ts";
+import {ISuperfluid as Superfluid} from "../generated/Host/ISuperfluid";
 import {
     Account,
     AccountTokenSnapshot,
+    AccountTokenSnapshotLog,
     FlowOperator,
     Index,
     IndexSubscription,
@@ -13,23 +14,25 @@ import {
 } from "../generated/schema";
 import {
     BIG_INT_ZERO,
+    createLogID,
     getAccountTokenSnapshotID,
     getAmountStreamedSinceLastUpdatedAt,
+    getFlowOperatorID,
     getIndexID,
     getIsListedToken,
+    getOrder,
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
     getTokenInfoAndReturn,
-    updateTotalSupplyForNativeSuperToken,
     streamRevisionExists,
+    updateTotalSupplyForNativeSuperToken,
     ZERO_ADDRESS,
-    getFlowOperatorID,
 } from "./utils";
-import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { getHostAddress, getResolverAddress } from "./addresses";
-import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {SuperToken as SuperTokenTemplate} from "../generated/templates";
+import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
+import {getHostAddress, getResolverAddress} from "./addresses";
+import {FlowUpdated} from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 /**************************************************************************
  * HOL initializer functions
@@ -716,4 +719,35 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();
+}
+
+function createAccountTokenSnapshotLogEntity(
+    event: FlowUpdated,
+    accountTokenSnapshot: AccountTokenSnapshot,
+): void {
+    if (accountTokenSnapshot == null) return;
+    // Transaction
+    let ev = new AccountTokenSnapshotLog(createLogID("AccountTokenSnapshotLog", accountTokenSnapshot.id, event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.order = getOrder(event.block.number, event.logIndex);
+    ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+
+    // Account token snapshot state
+    ev.totalNumberOfActiveStreamsSoFar = accountTokenSnapshot.totalNumberOfActiveStreams;
+    ev.totalNumberOfClosedStreamsSoFar = accountTokenSnapshot.totalNumberOfClosedStreams;
+    ev.totalSubscriptionsWithUnitsSoFar = accountTokenSnapshot.totalSubscriptionsWithUnits;
+    ev.totalApprovedSubscriptionsSoFar = accountTokenSnapshot.totalApprovedSubscriptions;
+    ev.balanceSoFar = accountTokenSnapshot.balanceUntilUpdatedAt;
+    ev.totalNetFlowRateSoFar = accountTokenSnapshot.totalNetFlowRate;
+    ev.totalInflowRateSoFar = accountTokenSnapshot.totalInflowRate;
+    ev.totalOutflowRateSoFar = accountTokenSnapshot.totalOutflowRate;
+    ev.totalAmountStreamedSoFar = accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt;
+    ev.totalAmountTransferredSoFar = accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt;
+    ev.totalDepositSoFar = accountTokenSnapshot.totalDeposit;
+    ev.account = accountTokenSnapshot.account;
+    ev.token = accountTokenSnapshot.token;
+    ev.accountTokenSnapshot = accountTokenSnapshot;
+    ev.save();
 }

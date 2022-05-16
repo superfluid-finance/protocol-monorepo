@@ -61,7 +61,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if network and chainId don't match", async () => {
             try {
                 await Framework.create({
-                    networkName: "matic",
+                    networkName: "polygon-mainnet",
                     chainId: 4,
                     provider: deployer.provider!,
                 });
@@ -93,7 +93,7 @@ describe("Framework Tests", () => {
             try {
                 // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
-                    networkName: "matic",
+                    networkName: "polygon-mainnet",
                 } as any);
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -155,7 +155,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
                 await Framework.create({
-                    networkName: "matic",
+                    networkName: "polygon-mainnet",
                     provider: customProvider,
                     customSubgraphQueriesEndpoint: "",
                     resolverAddress:

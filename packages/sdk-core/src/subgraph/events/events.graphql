@@ -860,9 +860,7 @@ fragment eventFields on Event {
     id
     blockNumber
     transactionHash
-    order
     timestamp
-    logIndex
 }
 
 fragment flowUpdatedEvent on FlowUpdatedEvent {

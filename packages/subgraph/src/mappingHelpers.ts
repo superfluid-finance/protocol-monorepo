@@ -721,10 +721,16 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.save();
 }
 
-function createAccountTokenSnapshotLogEntity(
-    event: FlowUpdated,
-    accountTokenSnapshot: AccountTokenSnapshot,
+export function createAccountTokenSnapshotLogEntity(
+    event: ethereum.Event,
+    accountAddress: Address,
+    tokenAddress: Address,
 ): void {
+    if (accountAddress.equals(ZERO_ADDRESS)) {
+        return;
+    }
+    let atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
+    let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
     if (accountTokenSnapshot == null) return;
     // Transaction
     let ev = new AccountTokenSnapshotLog(createLogID("AccountTokenSnapshotLog", accountTokenSnapshot.id, event));
@@ -748,6 +754,6 @@ function createAccountTokenSnapshotLogEntity(
     ev.totalDepositSoFar = accountTokenSnapshot.totalDeposit;
     ev.account = accountTokenSnapshot.account;
     ev.token = accountTokenSnapshot.token;
-    ev.accountTokenSnapshot = accountTokenSnapshot;
+    ev.accountTokenSnapshot = accountTokenSnapshot.id;
     ev.save();
 }

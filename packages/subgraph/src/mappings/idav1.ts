@@ -31,6 +31,7 @@ import {
     tokenHasValidHost,
 } from "../utils";
 import {
+    createAccountTokenSnapshotLogEntity,
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
@@ -77,6 +78,7 @@ export function handleIndexCreated(event: IndexCreated): void {
         event.block
     );
 
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token);
     createIndexCreatedEntity(event, index.id);
 }
 
@@ -149,7 +151,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.params.token,
         event.block
     );
-
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token);
     createIndexUpdatedEntity(event, index.id);
 }
 
@@ -242,6 +244,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             event.params.token,
             event.block
         );
+        createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token);
     }
 
     subscription.save();
@@ -263,6 +266,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     index.save();
 
     createSubscriptionApprovedEntity(event, subscription.id);
+    createAccountTokenSnapshotLogEntity(event,event.params.subscriber, event.params.token)
 }
 
 export function handleSubscriptionDistributionClaimed(
@@ -307,6 +311,8 @@ export function handleSubscriptionDistributionClaimed(
         event.params.token,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token);
+    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token);
 }
 
 /**
@@ -396,6 +402,8 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     subscription.save();
 
     createSubscriptionRevokedEntity(event, subscription.id);
+    createAccountTokenSnapshotLogEntity(event,event.params.subscriber, event.params.token)
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token);
 }
 
 /**
@@ -520,6 +528,8 @@ export function handleSubscriptionUnitsUpdated(
     subscription.save();
 
     createSubscriptionUnitsUpdatedEntity(event, subscription.id, oldUnits);
+    createAccountTokenSnapshotLogEntity(event,event.params.subscriber, event.params.token);
+    createAccountTokenSnapshotLogEntity(event,event.params.subscriber, event.params.token);
 }
 
 /**************************************************************************

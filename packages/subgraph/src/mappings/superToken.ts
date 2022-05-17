@@ -18,8 +18,9 @@ import {
     SentEvent,
     AgreementLiquidatedV2Event,
 } from "../../generated/schema";
-import {createEventID, getOrder, tokenHasValidHost} from "../utils";
+import {createEventID, getOrder, tokenHasValidHost, ZERO_ADDRESS} from "../utils";
 import {
+    createAccountTokenSnapshotLogEntity,
     getOrInitAccount,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
@@ -53,6 +54,9 @@ function updateHOLEntitiesForLiquidation(
         event.address,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, targetAccount, event.address);
+    createAccountTokenSnapshotLogEntity(event, liquidatorAccount, event.address);
+    createAccountTokenSnapshotLogEntity(event, bondAccount, event.address);
 }
 
 export function handleAgreementLiquidatedBy(
@@ -111,6 +115,7 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
         event.address,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, event.params.account, event.address);
 }
 
 export function handleTokenDowngraded(event: TokenDowngraded): void {
@@ -131,6 +136,7 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
         event.address,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, event.params.account, event.address);
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -164,6 +170,11 @@ export function handleTransfer(event: Transfer): void {
         event.params.value,
         event.block
     );
+
+    if(event.params.to.equals(ZERO_ADDRESS)) return;
+    if(event.params.from.equals(ZERO_ADDRESS)) return; // Ignoring downgrade and upgrade transfer event logs.
+    createAccountTokenSnapshotLogEntity(event, event.params.to, event.address);
+    createAccountTokenSnapshotLogEntity(event, event.params.from, event.address);
 }
 
 export function handleSent(event: Sent): void {

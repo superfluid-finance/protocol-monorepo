@@ -2,7 +2,9 @@ export type EventBase = {
     id: string;
     blockNumber: number;
     transactionHash: string;
+    order: number;
     timestamp: number;
+    logIndex: number;
 };
 
 export interface IEventFilter {
@@ -12,6 +14,7 @@ export interface IEventFilter {
 
 export type AccountEvents =
     | FlowUpdatedEvent
+    | FlowOperatorUpdatedEvent
     | IndexCreatedEvent
     | IndexDistributionClaimedEvent
     | IndexSubscribedEvent
@@ -49,7 +52,8 @@ export type OtherEvents =
     | SuperTokenLogicCreatedEvent
     | SuperTokenLogicUpdatedEvent
     | PPPConfigurationChangedEvent
-    | TrustedForwarderChangedEvent;
+    | TrustedForwarderChangedEvent
+    | UnknownEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
 
@@ -59,6 +63,16 @@ export interface FlowUpdatedEvent extends EventBase {
     sender: string;
     receiver: string;
     flowRate: string;
+    flowOperator: string;
+    deposit: string;
+}
+
+export interface FlowOperatorUpdatedEvent extends EventBase {
+    name: "FlowOperatorUpdated";
+    token: string;
+    sender: string;
+    permissions: number;
+    flowRateAllowance: string;
 }
 
 export interface IndexCreatedEvent extends EventBase {
@@ -351,4 +365,8 @@ export interface TrustedForwarderChangedEvent extends EventBase {
     isKeySet: boolean;
     forwarder: string;
     enabled: boolean;
+}
+
+export interface UnknownEvent extends EventBase {
+    name: "_Unknown";
 }

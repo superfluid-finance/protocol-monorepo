@@ -1,10 +1,9 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
 const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
-
+const {expectRevertedWith} = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
 
 describe("Superfluid Ownable Governance Contract", function () {
@@ -48,15 +47,15 @@ describe("Superfluid Ownable Governance Contract", function () {
     });
 
     it("#0.1 authorization checks", async () => {
-        await expectRevert(
+        await expectRevertedWith(
             governance.replaceGovernance(superfluid.address, ZERO_ADDRESS),
             onlyOwnerReason
         );
-        await expectRevert(
+        await expectRevertedWith(
             governance.registerAgreementClass(superfluid.address, ZERO_ADDRESS),
             onlyOwnerReason
         );
-        await expectRevert(
+        await expectRevertedWith(
             governance.updateContracts(
                 superfluid.address,
                 ZERO_ADDRESS,
@@ -65,14 +64,14 @@ describe("Superfluid Ownable Governance Contract", function () {
             ),
             onlyOwnerReason
         );
-        await expectRevert(
+        await expectRevertedWith(
             governance.batchUpdateSuperTokenLogic(superfluid.address, [
                 ZERO_ADDRESS,
             ]),
             onlyOwnerReason
         );
 
-        await expectRevert(
+        await expectRevertedWith(
             governance.updateCode(FAKE_ADDRESS1),
             onlyOwnerReason
         );
@@ -111,7 +110,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 governance.address
             );
             const newGovLogic = await SuperfluidGovernanceII.new();
-            await expectRevert(
+            await expectRevertedWith(
                 govProxy.initializeProxy(newGovLogic.address),
                 "UUPSProxy: already initialized"
             );
@@ -120,7 +119,7 @@ describe("Superfluid Ownable Governance Contract", function () {
 
     describe("#2 configurations", () => {
         it("#2.1 RewardAddress", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 governance.setRewardAddress(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -128,7 +127,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 ),
                 onlyOwnerReason
             );
-            await expectRevert(
+            await expectRevertedWith(
                 governance.clearRewardAddress(superfluid.address, ZERO_ADDRESS),
                 onlyOwnerReason
             );
@@ -172,7 +171,7 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#2.2 TrustedForwarders", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 governance.enableTrustedForwarder(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -180,7 +179,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 ),
                 onlyOwnerReason
             );
-            await expectRevert(
+            await expectRevertedWith(
                 governance.clearTrustedForwarder(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -298,7 +297,7 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#2.3 PPPConfig", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 governance.setPPPConfig(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -308,7 +307,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 onlyOwnerReason
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 governance.clearPPPConfig(superfluid.address, ZERO_ADDRESS),
                 onlyOwnerReason
             );
@@ -365,7 +364,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
         it("#2.4 SuperTokenMinimumDeposit", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 governance.setSuperTokenMinimumDeposit(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -373,7 +372,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 ),
                 onlyOwnerReason
             );
-            await expectRevert(
+            await expectRevertedWith(
                 governance.clearSuperTokenMinimumDeposit(
                     superfluid.address,
                     ZERO_ADDRESS
@@ -423,7 +422,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 "42069"
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 governance.batchUpdateSuperTokenMinimumDeposit(
                     superfluid.address,
                     [FAKE_TOKEN_ADDRESS1, FAKE_TOKEN_ADDRESS2],
@@ -461,31 +460,14 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.5 whiteListNewApp", async () => {
-            await expectRevert(
-                governance.whiteListNewApp(
-                    superfluid.address,
-                    web3.utils.sha3("test")
-                ),
-                onlyOwnerReason
-            );
-            await governance.whiteListNewApp(
-                superfluid.address,
-                web3.utils.sha3("test"),
-                {
-                    from: alice,
-                }
-            );
-        });
-
-        it("#2.6 authorizeAppFactory", async () => {
+        it("#2.5 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );
             const appFactory = await SuperAppFactoryMock.new();
 
             // checks for authorize
-            await expectRevert(
+            await expectRevertedWith(
                 governance.authorizeAppFactory(
                     superfluid.address,
                     appFactory.address
@@ -493,7 +475,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 onlyOwnerReason
             );
 
-            await expectRevert(
+            await expectRevertedWith(
                 governance.authorizeAppFactory(
                     superfluid.address,
                     FAKE_ADDRESS1,
@@ -521,7 +503,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             // checks for unauthorize
-            await expectRevert(
+            await expectRevertedWith(
                 governance.unauthorizeAppFactory(
                     superfluid.address,
                     appFactory.address
@@ -541,7 +523,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.7 external set/clear config", async () => {
+        it("#2.6 external set/clear config", async () => {
             const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = web3.utils.keccak256(
                 "org.superfluid-finance.superfluid.rewardAddress"
             );
@@ -550,7 +532,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             // only owner can set config
-            await expectRevert(
+            await expectRevertedWith(
                 governance.setConfig(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -561,7 +543,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             // only owner can clear config
-            await expectRevert(
+            await expectRevertedWith(
                 governance.clearConfig(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -630,7 +612,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             // only owner can set config
-            await expectRevert(
+            await expectRevertedWith(
                 governance.setConfig(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -641,7 +623,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             // only owner can clear config
-            await expectRevert(
+            await expectRevertedWith(
                 governance.clearConfig(
                     superfluid.address,
                     ZERO_ADDRESS,

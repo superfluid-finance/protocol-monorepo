@@ -1,0 +1,10 @@
+query meta($block: Block_height) {
+  _meta(block: $block) {
+    block {
+      number
+      hash
+    }
+    deployment
+    hasIndexingErrors
+  }
+}

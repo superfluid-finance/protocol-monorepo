@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import {
     ISuperfluid,
@@ -175,7 +175,7 @@ contract IDASuperAppTester is ISuperApp {
         bytes calldata ctx
     )
         external view
-        validCtx(ctx)
+        requireValidCtx(ctx)
         onlyExpected(superToken, agreementClass)
         virtual override
         returns (bytes memory cbdata)
@@ -196,7 +196,7 @@ contract IDASuperAppTester is ISuperApp {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         onlyExpected(superToken, agreementClass)
         virtual override
         returns (bytes memory newCtx)
@@ -214,7 +214,7 @@ contract IDASuperAppTester is ISuperApp {
         bytes calldata ctx
     )
         external view
-        validCtx(ctx)
+        requireValidCtx(ctx)
         onlyExpected(superToken, agreementClass)
         virtual override
         returns (bytes memory /*cbdata*/)
@@ -232,7 +232,7 @@ contract IDASuperAppTester is ISuperApp {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         onlyExpected(superToken, agreementClass)
         virtual override
         returns (bytes memory newCtx)
@@ -250,7 +250,7 @@ contract IDASuperAppTester is ISuperApp {
         bytes calldata ctx
     )
         external view
-        validCtx(ctx)
+        requireValidCtx(ctx)
         onlyExpected(superToken, agreementClass)
         virtual override
         returns (bytes memory /*cbdata*/)
@@ -268,7 +268,7 @@ contract IDASuperAppTester is ISuperApp {
         bytes calldata ctx
     )
         external
-        validCtx(ctx)
+        requireValidCtx(ctx)
         onlyExpected(superToken, agreementClass)
         virtual override
         returns (bytes memory newCtx)
@@ -278,7 +278,7 @@ contract IDASuperAppTester is ISuperApp {
         return ctx;
     }
 
-    modifier validCtx(bytes calldata ctx) {
+    modifier requireValidCtx(bytes calldata ctx) {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "IDASuperAppTester: ctx not valid before");
         _;
     }

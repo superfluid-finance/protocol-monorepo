@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
+
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {
     IInstantDistributionAgreementV1,
@@ -14,10 +16,9 @@ import {
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
+import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
-import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 /**
@@ -41,6 +42,7 @@ contract InstantDistributionAgreementV1 is
         E_SUBS_NOT_APPROVED subscription not approved
         E_NO_SUBS - subscription does not exist
         E_NOT_ALLOWED - operation not allowed
+        E_NO_ZERO_SUBS - no zero address subscribers
      */
 
     using SafeCast for uint256;
@@ -489,6 +491,7 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         bytes memory userData;
@@ -713,8 +716,11 @@ contract InstantDistributionAgreementV1 is
             sender = context.msgSender;
             userData = context.userData;
         }
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
 
-        // both publisher and subscriber can delete a subscription
+        // only publisher can delete a subscription
+        // follows from the invariant that only the publisher
+        // has the ability to modify the units a subscriber has
         require(sender == publisher, "IDA: E_NOT_ALLOWED");
 
         (
@@ -727,7 +733,7 @@ contract InstantDistributionAgreementV1 is
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
-            sender == subscriber ? publisher : subscriber,
+            subscriber,
             vars.sId,
             "");
         newCtx = ctx;
@@ -783,6 +789,9 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
+        AgreementLibrary.authorizeTokenAccess(token, ctx);
+        require(subscriber != address(0), "IDA: E_NO_ZERO_SUBS");
+
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
 

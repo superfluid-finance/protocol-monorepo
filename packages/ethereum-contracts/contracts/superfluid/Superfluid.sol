@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
+
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -20,10 +22,8 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { CallUtils } from "../libs/CallUtils.sol";
+import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
 
-import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
-
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /// FIXME Lots of reverts in here - can put custom errors
 
@@ -90,7 +90,7 @@ contract Superfluid is
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
     /// @dev if app whitelisting is enabled, this is to make sure the keys are used only once
-    mapping(bytes32 => bool) internal _appKeysUsed;
+    mapping(bytes32 => bool) internal _appKeysUsedDeprecated;
 
     constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
@@ -118,6 +118,15 @@ contract Superfluid is
         require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
         require(!Superfluid(newAddress).NON_UPGRADABLE_DEPLOYMENT(), "SF: cannot downgrade to non upgradable");
         _updateCodeAddress(newAddress);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Time
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function getNow() public view  returns (uint256) {
+        // solhint-disable-next-line not-rely-on-time
+        return block.timestamp;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,21 +315,16 @@ contract Superfluid is
             tx.origin,
             registrationKey
         );
-        // check if the key is enabled
+        // check if the key is valid and not expired
         require(
             _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
                 configKey
-            ) == 1,
-            "SF: invalid registration key"
+            // solhint-disable-next-line not-rely-on-time
+            ) >= block.timestamp,
+            "SF: invalid or expired registration key"
         );
-        require(
-            !_appKeysUsed[configKey],
-            "SF: registration key already used"
-        );
-        // clear the key so that it can't be reused
-        _appKeysUsed[configKey] = true;
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
@@ -441,6 +445,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns(bytes memory cbdata)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
@@ -465,6 +470,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns(bytes memory newCtx)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
@@ -502,6 +508,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -539,6 +546,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
@@ -556,6 +564,7 @@ contract Superfluid is
     )
         external override
         onlyAgreement
+        assertValidCtx(ctx)
         returns (bytes memory newCtx)
     {
         _jailApp(app, reason);
@@ -584,8 +593,7 @@ contract Superfluid is
         bytes memory  ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: agreementSelector,
             userData: userData,
@@ -630,8 +638,7 @@ contract Superfluid is
         bytes memory ctx = _updateContext(Context({
             appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
-            /* solhint-disable-next-line not-rely-on-time */
-            timestamp: block.timestamp,
+            timestamp: getNow(),
             msgSender: msgSender,
             agreementSelector: 0,
             userData: "",
@@ -657,9 +664,7 @@ contract Superfluid is
         ISuperApp app,
         bytes memory callData
     )
-        external override
-        cleanCtx
-        isAppActive(app)
+        external override // NOTE: modifiers are called in _callAppAction
         returns(bytes memory returnedData)
     {
         return _callAppAction(msg.sender, app, callData);
@@ -676,7 +681,7 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        validCtx(ctx)
+        requireValidCtx(ctx)
         isAgreement(agreementClass)
         returns (bytes memory newCtx, bytes memory returnedData)
     {
@@ -709,7 +714,7 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        validCtx(ctx)
+        requireValidCtx(ctx)
         isAppActive(app)
         isValidAppAction(callData)
         returns(bytes memory newCtx)
@@ -1027,8 +1032,13 @@ contract Superfluid is
         // outside
     }
 
-    modifier validCtx(bytes memory ctx) {
+    modifier requireValidCtx(bytes memory ctx) {
         require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_NOT_VALID");
+        _;
+    }
+
+    modifier assertValidCtx(bytes memory ctx) {
+        assert(_isCtxValid(ctx));
         _;
     }
 

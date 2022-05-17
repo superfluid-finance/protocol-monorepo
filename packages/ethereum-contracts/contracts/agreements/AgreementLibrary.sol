@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import {
     ISuperfluidGovernance,
@@ -101,6 +101,7 @@ library AgreementLibrary {
                     inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                     appCtx);
             }
+            // [SECURITY] NOTE: ctx should be const, do not modify it ever to ensure callback stack correctness
             _popCallbackStack(ctx, 0);
         }
     }
@@ -108,7 +109,7 @@ library AgreementLibrary {
     function callAppAfterCallback(
         CallbackInputs memory inputs,
         bytes memory cbdata,
-        bytes memory ctx
+        bytes /* const */ memory ctx
     )
         internal
         returns (ISuperfluid.Context memory appContext, bytes memory newCtx)
@@ -118,8 +119,9 @@ library AgreementLibrary {
         uint256 noopMask;
         (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(ISuperApp(inputs.account));
 
+        newCtx = ctx;
         if (isSuperApp && !isJailed) {
-            newCtx = _pushCallbackStack(ctx, inputs);
+            newCtx = _pushCallbackStack(newCtx, inputs);
             if ((noopMask & inputs.noopBit) == 0) {
                 bytes memory callData = abi.encodeWithSelector(
                     _selectorFromNoopBit(inputs.noopBit),
@@ -144,6 +146,7 @@ library AgreementLibrary {
                     max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
 
             }
+            // [SECURITY] NOTE: ctx should be const, do not modify it ever to ensure callback stack correctness
             newCtx = _popCallbackStack(ctx, appContext.appAllowanceUsed);
         }
     }
@@ -200,6 +203,7 @@ library AgreementLibrary {
      *************************************************************************/
 
     function max(int256 a, int256 b) internal pure returns (int256) { return a > b ? a : b; }
+    function max(uint256 a, uint256 b) internal pure returns (uint256) { return a > b ? a : b; }
 
     function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
 }

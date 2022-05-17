@@ -1,25 +1,32 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {BN, expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
+const {BN, expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevertedWith} = require("../../utils/expectRevert");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
+    shouldUpdateFlowOperatorPermissionsAndValidateEvent,
+    shouldRevertUpdateFlowOperatorPermissions,
+    shouldRevertChangeFlowByOperator,
+    shouldCreateFlowByOperator,
+    shouldUpdateFlowByOperator,
+    shouldDeleteFlowByOperator,
+    expectNetFlow,
 } = require("./ConstantFlowAgreementV1.behavior.js");
-
-const traveler = require("ganache-time-traveler");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 
-const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
-
-const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
+// TODO: when doing the hardhat refactor, make the input of users just addresses
+// not addresses OR aliases - should be consistent throughout - aliases should
+// solely be used for output, but we should be using addresses in the code
+// we should have one file dedicated to different constants/enums as well
 
 describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    const {ZERO_ADDRESS} = t.constants;
+    const {ZERO_ADDRESS, MAXIMUM_FLOW_RATE} = t.constants;
     const {LIQUIDATION_PERIOD, FLOW_RATE1, MINIMUM_DEPOSIT} = t.configs;
 
     let admin, alice, bob, dan;
@@ -49,9 +56,9 @@ describe("Using ConstantFlowAgreement v1", function () {
         await t.beforeEachTestCase();
     });
 
-    // TODO: regex from # until the end
     afterEach(() => {
         if (t.plotData.enabled) {
+            // TODO: regex from # until the end
             t.writePlotDataIntoCSVFile(
                 this.ctx.test.title
                     .split("#")[1]
@@ -63,15 +70,6 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
         }
     });
-
-    async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
-        const block1 = await web3.eth.getBlock("latest");
-        console.log("current block time", block1.timestamp);
-        console.log(`time traveler going to the future +${time}...`);
-        await traveler.advanceTimeAndBlock(time);
-        const block2 = await web3.eth.getBlock("latest");
-        console.log("new block time", block2.timestamp);
-    }
 
     async function verifyAll(opts) {
         const cfaDataModel = new CFADataModel(t, superToken);
@@ -87,30 +85,13 @@ describe("Using ConstantFlowAgreement v1", function () {
     }
 
     async function timeTravelOnceAndVerifyAll(opts = {}) {
-        const time = opts.time || TEST_TRAVEL_TIME;
-        await timeTravelOnce(time);
+        await t.timeTravelOnce(opts.time);
         await verifyAll(opts);
     }
 
     async function timeTravelOnceAndValidateSystemInvariance(opts = {}) {
-        const time = opts.time || TEST_TRAVEL_TIME;
-        await timeTravelOnce(time);
+        await t.timeTravelOnce(opts.time);
         await t.validateSystemInvariance(opts);
-    }
-
-    async function expectNetFlow(alias, expectedNetFlowRate) {
-        const actualNetFlowRate = await cfa.getNetFlow(
-            superToken.address,
-            t.getAddress(alias)
-        );
-        console.log(
-            `expected net flow for ${alias}: ${expectedNetFlowRate.toString()}`
-        );
-        assert.equal(
-            actualNetFlowRate.toString(),
-            expectedNetFlowRate.toString(),
-            `Unexpected net flow for ${alias}`
-        );
     }
 
     async function expectJailed(appAddress, reasonCode) {
@@ -299,7 +280,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.2 should reject when there is not enough balance", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -311,7 +292,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.3 should reject when zero flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -323,7 +304,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.4 should reject when negative flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -335,7 +316,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.5 should reject when self flow", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -356,7 +337,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver,
                     flowRate: FLOW_RATE1,
                 });
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -368,7 +349,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.7 should reject when overflow flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -380,7 +361,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.8 should reject when receiver is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -442,7 +423,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.4 should not update with zero flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -454,7 +435,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.5 should not update with negative flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -466,7 +447,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.6 should not update non existing flow", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -478,7 +459,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.7 should not update non existing flow (self flow)", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -490,7 +471,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.8 should reject when there is not enough balance", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -504,7 +485,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.9 should reject when overflow flow rate", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -516,7 +497,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.10 should reject when receiver is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -587,7 +568,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.3.3 should not delete non-existing flow", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -598,7 +579,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.3.4 should reject when receiver is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -609,7 +590,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.3.5 should reject when sender is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: ZERO_ADDRESS,
@@ -638,7 +619,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.4.1 should reject when sender account is not critical", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -650,7 +631,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.4.2 should reject when sender is zero address", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: ZERO_ADDRESS,
@@ -662,7 +643,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.4.3 should reject when sender account is not critical", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -944,7 +925,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             it("#1.4.13 allow liquidation with sender positive net flowrate", async () => {
                 // drain the sender into criticality
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber()
                 );
                 assert.isTrue(
@@ -989,7 +970,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into patrician territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
                         t.configs.LIQUIDATION_PERIOD +
                         1
@@ -1035,7 +1016,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into patrician territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
                         t.configs.LIQUIDATION_PERIOD +
                         1
@@ -1097,7 +1078,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into patrician territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(
                         FLOW_RATE1.mul(toBN(6))
                     ).toNumber() -
@@ -1153,7 +1134,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into plebs territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
                         t.configs.LIQUIDATION_PERIOD +
                         t.configs.PATRICIAN_PERIOD +
@@ -1206,7 +1187,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into plebs territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
                         t.configs.LIQUIDATION_PERIOD +
                         t.configs.PATRICIAN_PERIOD +
@@ -1275,7 +1256,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into plebs territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(
                         FLOW_RATE1.mul(toBN(6))
                     ).toNumber() -
@@ -1330,7 +1311,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).availableBalance;
 
                 // drain the sender into pirate territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
                 );
 
@@ -1374,7 +1355,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             it("#1.4.16b correct reward attribution for pirate period with two-way flows", async () => {
                 // drain the sender into pirate territory
-                await timeTravelOnce(
+                await t.timeTravelOnce(
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 1
                 );
 
@@ -1405,6 +1386,35 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "AgreementLiquidatedV2",
                     {rewardAccount: t.aliases[agent]}
                 );
+            });
+
+            it("#1.4.17 Patrician period updates when user is not solvent", async () => {
+                shouldCreateSolventLiquidationTest({
+                    titlePrefix: "#1.4.10",
+                    superToken,
+                    sender,
+                    receiver,
+                    by: agent,
+                    seconds: t.configs.PATRICIAN_PERIOD + 1,
+                });
+
+                let period = await t.contracts.cfa.isPatricianPeriodNow(
+                    superToken.address,
+                    t.aliases[sender]
+                );
+
+                assert.isTrue(period[0]);
+
+                await t.timeTravelOnce(
+                    t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber()
+                );
+
+                period = await t.contracts.cfa.isPatricianPeriodNow(
+                    superToken.address,
+                    t.aliases[sender]
+                );
+
+                assert.isFalse(period[0]);
             });
         });
 
@@ -1874,7 +1884,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.6.6 should reject when account is not critical", async () => {
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -1884,7 +1894,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "CFA: sender account is not critical"
                 );
 
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -1894,7 +1904,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     "CFA: sender account is not critical"
                 );
 
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[agent],
@@ -1949,7 +1959,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     allowCriticalAccount: true,
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -2003,7 +2013,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     allowCriticalAccount: true,
                 });
 
-                await expectRevert(
+                await expectRevertedWith(
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
@@ -2031,8 +2041,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver: "bob",
                     flowRate: FLOW_RATE1,
                 });
-                await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
-                await expectNetFlow("bob", FLOW_RATE1);
+                await expectNetFlow({
+                    testenv: t,
+                    superToken,
+                    account: "alice",
+                    value: FLOW_RATE1.mul(toBN(-1)),
+                });
+                await expectNetFlow({
+                    testenv: t,
+                    superToken,
+                    account: "bob",
+                    value: FLOW_RATE1,
+                });
 
                 const flowRate2 = FLOW_RATE1.divn(3);
                 await shouldCreateFlow({
@@ -2042,11 +2062,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                     receiver: "alice",
                     flowRate: flowRate2,
                 });
-                await expectNetFlow(
-                    "alice",
-                    FLOW_RATE1.mul(toBN(-1)).add(flowRate2)
-                );
-                await expectNetFlow("bob", FLOW_RATE1.sub(flowRate2));
+                await expectNetFlow({
+                    testenv: t,
+                    superToken,
+                    account: "alice",
+                    value: FLOW_RATE1.mul(toBN(-1)).add(flowRate2),
+                });
+                await expectNetFlow({
+                    testenv: t,
+                    superToken,
+                    account: "bob",
+                    value: FLOW_RATE1.sub(flowRate2),
+                });
             });
 
             it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
@@ -2074,7 +2101,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await test("10000000000000");
                 const maxDeposit = toBN(1).shln(95).subn(1);
                 await test(maxDeposit);
-                expectRevert(
+                expectRevertedWith(
                     test(maxDeposit.addn(1)),
                     "CFA: deposit number too big"
                 );
@@ -2104,21 +2131,20 @@ describe("Using ConstantFlowAgreement v1", function () {
                         `getDepositRequiredForFlowRate(${flowRate.toString()})`
                     );
                 };
-                await test(0);
                 await test(1);
                 await test("10000000000000");
-                await expectRevert(
+                await expectRevertedWith(
                     cfa.getDepositRequiredForFlowRate.call(
                         superToken.address,
                         toBN("-100000000000000")
                     ),
-                    "CFA: not for negative flow rate"
+                    "CFA: not for non-positive flow rate"
                 );
                 const maxFlowRate = toBN(1)
                     .shln(95)
                     .div(toBN(LIQUIDATION_PERIOD));
                 await test(maxFlowRate);
-                await expectRevert(
+                await expectRevertedWith(
                     test(maxFlowRate.addn(1)),
                     "CFA: flow rate too big"
                 );
@@ -2128,7 +2154,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 const FakeSuperfluidMock =
                     artifacts.require("FakeSuperfluidMock");
                 const fakeHost = await FakeSuperfluidMock.new();
-                await expectRevert(
+                await expectRevertedWith(
                     fakeHost.callAgreement(
                         cfa.address,
                         cfa.contract.methods
@@ -2138,7 +2164,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     ),
                     "unauthorized host"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     fakeHost.callAgreement(
                         cfa.address,
                         cfa.contract.methods
@@ -2148,7 +2174,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     ),
                     "unauthorized host"
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     fakeHost.callAgreement(
                         cfa.address,
                         cfa.contract.methods
@@ -2157,6 +2183,121 @@ describe("Using ConstantFlowAgreement v1", function () {
                         {from: alice}
                     ),
                     "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .updateFlowOperatorPermissions(
+                                superToken.address,
+                                bob,
+                                1,
+                                1,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .authorizeFlowOperatorWithFullControl(
+                                superToken.address,
+                                bob,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .revokeFlowOperatorWithFullControl(
+                                superToken.address,
+                                bob,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .createFlowByOperator(
+                                superToken.address,
+                                bob,
+                                dan,
+                                1,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .updateFlowByOperator(
+                                superToken.address,
+                                bob,
+                                dan,
+                                1,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+                await expectRevertedWith(
+                    fakeHost.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .deleteFlowByOperator(
+                                superToken.address,
+                                bob,
+                                dan,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        {from: alice}
+                    ),
+                    "unauthorized host"
+                );
+            });
+
+            it("#1.8.5 ctx should not be exploited", async () => {
+                await expectRevertedWith(
+                    superfluid.callAgreement(
+                        cfa.address,
+                        cfa.contract.methods
+                            .createFlow(
+                                superToken.address,
+                                alice,
+                                FLOW_RATE1,
+                                web3.eth.abi.encodeParameters(
+                                    ["bytes", "bytes"],
+                                    ["0xdeadbeef", "0x"]
+                                )
+                            )
+                            .encodeABI(),
+                        "0x",
+                        {
+                            from: alice,
+                        }
+                    ),
+                    "invalid ctx"
                 );
             });
         });
@@ -2361,7 +2502,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         t.configs.MINIMUM_DEPOSIT.add(toBN(1))
                     )
                 );
-                await expectRevert(
+                await expectRevertedWith(
                     shouldCreateFlow({
                         testenv: t,
                         superToken,
@@ -2376,7 +2517,7 @@ describe("Using ConstantFlowAgreement v1", function () {
     });
 
     context("#2 multi flows super app scenarios", () => {
-        const MultiFlowApp = artifacts.require("MultiFlowApp");
+        const MultiFlowTesterApp = artifacts.require("MultiFlowTesterApp");
 
         const sender = "alice";
         const receiver1 = "bob";
@@ -2388,7 +2529,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         let app;
 
         beforeEach(async () => {
-            app = await web3tx(MultiFlowApp.new, "MultiApp.new")(
+            app = await web3tx(MultiFlowTesterApp.new, "MultiApp.new")(
                 cfa.address,
                 superfluid.address
             );
@@ -2428,9 +2569,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2441,12 +2597,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: lowFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
-            await expectNetFlow(
-                "mfa",
-                lowFlowRate.sub(mfaFlowRate(lowFlowRate))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(lowFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: lowFlowRate.sub(mfaFlowRate(lowFlowRate)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(lowFlowRate),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2457,12 +2625,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: highFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
-            await expectNetFlow(
-                "mfa",
-                highFlowRate.sub(mfaFlowRate(highFlowRate))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(highFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: highFlowRate.sub(mfaFlowRate(highFlowRate)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(highFlowRate),
+            });
             await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
@@ -2474,9 +2654,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 by: sender,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -2497,8 +2692,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow("mfa", FLOW_RATE1);
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1,
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2509,8 +2714,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: lowFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
-            await expectNetFlow("mfa", lowFlowRate);
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(lowFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: lowFlowRate,
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2521,8 +2736,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: highFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
-            await expectNetFlow("mfa", highFlowRate);
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(highFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: highFlowRate,
+            });
             await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
@@ -2534,8 +2759,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 by: sender,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -2563,13 +2798,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2580,13 +2832,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: lowFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
-            await expectNetFlow(
-                "mfa",
-                lowFlowRate.sub(mfaFlowRate(lowFlowRate, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(lowFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: lowFlowRate.sub(mfaFlowRate(lowFlowRate, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(lowFlowRate, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(lowFlowRate, 50),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2597,13 +2866,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: highFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
-            await expectNetFlow(
-                "mfa",
-                highFlowRate.sub(mfaFlowRate(highFlowRate, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(highFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: highFlowRate.sub(mfaFlowRate(highFlowRate, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(highFlowRate, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(highFlowRate, 50),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldDeleteFlow({
@@ -2614,10 +2900,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 by: sender,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -2645,13 +2951,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 25).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 25));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 25));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 25).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 25),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 25),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2662,13 +2985,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: lowFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
-            await expectNetFlow(
-                "mfa",
-                lowFlowRate.sub(mfaFlowRate(lowFlowRate, 25).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 25));
-            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 25));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(lowFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: lowFlowRate.sub(mfaFlowRate(lowFlowRate, 25).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(lowFlowRate, 25),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(lowFlowRate, 25),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2679,13 +3019,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: highFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
-            await expectNetFlow(
-                "mfa",
-                highFlowRate.sub(mfaFlowRate(highFlowRate, 25).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 25));
-            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 25));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(highFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: highFlowRate.sub(mfaFlowRate(highFlowRate, 25).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(highFlowRate, 25),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(highFlowRate, 25),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldDeleteFlow({
@@ -2696,10 +3053,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 by: sender,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -2729,13 +3106,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 75));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 75));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 75),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 75),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2746,13 +3140,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: lowFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
-            await expectNetFlow(
-                "mfa",
-                lowFlowRate.sub(mfaFlowRate(lowFlowRate, 75).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 75));
-            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 75));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(lowFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: lowFlowRate.sub(mfaFlowRate(lowFlowRate, 75).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(lowFlowRate, 75),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(lowFlowRate, 75),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldUpdateFlow({
@@ -2763,13 +3174,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: highFlowRate,
             });
-            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
-            await expectNetFlow(
-                "mfa",
-                highFlowRate.sub(mfaFlowRate(highFlowRate, 75).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 75));
-            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 75));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(highFlowRate),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: highFlowRate.sub(mfaFlowRate(highFlowRate, 75).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(highFlowRate, 75),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(highFlowRate, 75),
+            });
             await timeTravelOnceAndVerifyAll();
 
             await shouldDeleteFlow({
@@ -2780,10 +3208,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 by: sender,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -2798,7 +3246,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 },
             };
 
-            await expectRevert(
+            await expectRevertedWith(
                 shouldCreateFlow({
                     testenv: t,
                     superToken,
@@ -2837,13 +3285,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
             await timeTravelOnceAndVerifyAll();
 
             // delete flow of receiver 1
@@ -2867,13 +3332,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 by: sender,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow(
-                "mfa",
-                toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50))
-            );
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
         });
 
         it("#2.8 mfa-loopback-100pct", async () => {
@@ -2897,11 +3379,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(
-                sender,
-                mfaFlowRate(FLOW_RATE1).sub(FLOW_RATE1)
-            );
-            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: mfaFlowRate(FLOW_RATE1).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)),
+            });
             await timeTravelOnceAndVerifyAll();
 
             // shouldDeleteFlow doesn't support loopback mode for now, let's use the sf directly
@@ -2926,8 +3415,18 @@ describe("Using ConstantFlowAgreement v1", function () {
             assert.isFalse(
                 await t.contracts.superfluid.isAppJailed(app.address)
             );
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
         });
 
         it("#2.9 mfa-1to2[50,50]_100pct_create_full_delete_by_receiver", async () => {
@@ -2954,13 +3453,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
             await timeTravelOnceAndVerifyAll();
 
             // fully delete everything by receiver1
@@ -2972,10 +3488,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 by: receiver1,
                 mfa,
             });
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -3003,15 +3539,32 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
 
-            await expectRevert(
+            await expectRevertedWith(
                 t.sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: t.aliases[sender],
@@ -3051,10 +3604,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 accountFlowInfo,
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
             await timeTravelOnceAndVerifyAll();
             t.writePlotDataIntoCSVFile(
                 this.ctx.test.title.split(" ").join("_"),
@@ -3091,12 +3664,32 @@ describe("Using ConstantFlowAgreement v1", function () {
             const mfaNetFlowRate = FLOW_RATE1.sub(
                 mfaFlowRate(FLOW_RATE1, 75).muln(2)
             );
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow("mfa", mfaNetFlowRate);
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 75));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 75));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: mfaNetFlowRate,
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 75),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 75),
+            });
 
-            await expectRevert(
+            await expectRevertedWith(
                 t.sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: app.address,
@@ -3127,13 +3720,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 app.address,
                 11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */
             );
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75))
-            );
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 75));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 75),
+            });
 
             // try to rescue the app, but it's already in jail
             await t.transferBalance(sender, "mfa", toWad(10));
@@ -3152,10 +3762,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 app.address,
                 11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */
             );
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow("mfa", FLOW_RATE1);
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1,
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
 
             await web3tx(
                 t.sf.cfa.deleteFlow,
@@ -3170,10 +3800,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 app.address,
                 11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */
             );
-            await expectNetFlow(sender, "0");
-            await expectNetFlow("mfa", "0");
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: "0",
+            });
             await t.validateSystemInvariance();
             t.writePlotDataIntoCSVFile(
                 this.ctx.test.title.split(" ").join("_"),
@@ -3205,13 +3855,30 @@ describe("Using ConstantFlowAgreement v1", function () {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow(
-                "mfa",
-                FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2))
-            );
-            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
 
             // delete flow of receiver 1
             await web3tx(
@@ -3236,17 +3903,34 @@ describe("Using ConstantFlowAgreement v1", function () {
                 12 /* APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT */
             );
             await t.validateSystemInvariance();
-            await expectNetFlow(sender, "0");
-            await expectNetFlow(
-                "mfa",
-                toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50))
-            );
-            await expectNetFlow(receiver1, "0");
-            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: sender,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "mfa",
+                value: toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50)),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver1,
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: receiver2,
+                value: mfaFlowRate(FLOW_RATE1, 50),
+            });
         });
 
         it("#2.20 createFlow via app action should respect deposit rule", async () => {
-            await expectRevert(
+            await expectRevertedWith(
                 t.sf.host.callAppAction(
                     app.address,
                     app.contract.methods
@@ -3279,7 +3963,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 },
             };
 
-            await expectRevert(
+            await expectRevertedWith(
                 shouldCreateFlow({
                     testenv: t,
                     superToken,
@@ -3293,7 +3977,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
     });
 
-    context("#3 callbacks", () => {
+    context("#3 more callback cases", () => {
         it("#3.1 ExclusiveInflowTestApp", async () => {
             const ExclusiveInflowTestApp = artifacts.require(
                 "ExclusiveInflowTestApp"
@@ -3316,9 +4000,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: app.address,
                 flowRate: FLOW_RATE1.toString(),
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1).toString());
-            await expectNetFlow("bob", "0");
-            await expectNetFlow("app", FLOW_RATE1.toString());
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0).sub(FLOW_RATE1).toString(),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: FLOW_RATE1.toString(),
+            });
             await timeTravelOnceAndValidateSystemInvariance();
 
             await web3tx(
@@ -3330,12 +4029,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: app.address,
                 flowRate: FLOW_RATE1.muln(2).toString(),
             });
-            await expectNetFlow("alice", "0");
-            await expectNetFlow(
-                "bob",
-                toBN(0).sub(FLOW_RATE1.muln(2)).toString()
-            );
-            await expectNetFlow("app", FLOW_RATE1.muln(2)).toString();
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: toBN(0).sub(FLOW_RATE1.muln(2)).toString(),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: FLOW_RATE1.muln(2).toString(),
+            });
             await timeTravelOnceAndValidateSystemInvariance();
 
             await web3tx(
@@ -3346,9 +4057,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 sender: bob,
                 receiver: app.address,
             });
-            await expectNetFlow("alice", "0");
-            await expectNetFlow("bob", "0");
-            await expectNetFlow("app", "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: "0",
+            });
             await timeTravelOnceAndValidateSystemInvariance();
         });
 
@@ -3380,8 +4106,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).flowRate,
                 FLOW_RATE1.toString()
             );
-            await expectNetFlow("alice", FLOW_RATE1.toString());
-            await expectNetFlow("app", toBN(0).sub(FLOW_RATE1).toString());
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: FLOW_RATE1.toString(),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: toBN(0).sub(FLOW_RATE1).toString(),
+            });
             await timeTravelOnceAndValidateSystemInvariance();
 
             await web3tx(
@@ -3403,8 +4139,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).flowRate,
                 FLOW_RATE1.toString()
             );
-            await expectNetFlow("alice", FLOW_RATE1.toString());
-            await expectNetFlow("app", toBN(0).sub(FLOW_RATE1).toString());
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: FLOW_RATE1.toString(),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: toBN(0).sub(FLOW_RATE1).toString(),
+            });
             await timeTravelOnceAndValidateSystemInvariance();
         });
 
@@ -3439,8 +4185,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).flowRate,
                 "0"
             );
-            await expectNetFlow("alice", "0");
-            await expectNetFlow("app", "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: "0",
+            });
             await timeTravelOnceAndValidateSystemInvariance();
         });
 
@@ -3465,9 +4221,24 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: app.address,
                 flowRate: FLOW_RATE1.toString(),
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1).toString());
-            await expectNetFlow("bob", "0");
-            await expectNetFlow("app", FLOW_RATE1.toString());
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0).sub(FLOW_RATE1).toString(),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: FLOW_RATE1.toString(),
+            });
             await timeTravelOnceAndValidateSystemInvariance();
 
             await web3tx(
@@ -3489,8 +4260,18 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ).flowRate,
                 "0"
             );
-            await expectNetFlow("alice", "0");
-            await expectNetFlow("app", "0");
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: "0",
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "app",
+                value: "0",
+            });
             await timeTravelOnceAndValidateSystemInvariance();
         });
 
@@ -3510,7 +4291,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             )(cfa.address, superfluid.address, superToken2.address);
             t.addAlias("app", app.address);
 
-            await expectRevert(
+            await expectRevertedWith(
                 web3tx(
                     t.sf.cfa.createFlow,
                     "alice -> app"
@@ -3616,84 +4397,248 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
     });
 
-    context("#10 scenarios", () => {
-        it("#10.1 two accounts sending to each other with the same flow rate", async () => {
+    context("#4 Access Control List", () => {
+        const ALLOW_CREATE = 1 << 0;
+        const ALLOW_UPDATE = 1 << 1;
+        const ALLOW_DELETE = 1 << 2;
+
+        let aliceSenderBaseData;
+        let aliceSenderAdminFlowOperator;
+
+        beforeEach(async () => {
+            await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+            await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
+            await t.upgradeBalance("dan", t.configs.INIT_BALANCE);
 
-            await shouldCreateFlow({
+            aliceSenderBaseData = {
                 testenv: t,
-                superToken,
-                sender: "alice",
-                receiver: "bob",
-                flowRate: FLOW_RATE1,
-            });
-            await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
-            await expectNetFlow("bob", FLOW_RATE1);
-            await timeTravelOnceAndVerifyAll();
-
-            await shouldCreateFlow({
-                testenv: t,
-                superToken,
-                sender: "bob",
-                receiver: "alice",
-                flowRate: FLOW_RATE1,
-            });
-            await expectNetFlow("alice", "0");
-            await expectNetFlow("bob", "0");
-            await timeTravelOnceAndVerifyAll();
+                token: superToken.address,
+                sender: alice,
+                ctx: "0x",
+            };
+            aliceSenderAdminFlowOperator = {
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                from: alice,
+            };
         });
 
-        it("#10.2 three accounts forming a flow loop", async () => {
-            // alice -> bob -> carol
-            //   ^---------------|
-            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
-
-            const flowRateBC = FLOW_RATE1.muln(2).divn(3);
-            const flowRateCA = FLOW_RATE1.divn(3);
-
-            await shouldCreateFlow({
-                testenv: t,
-                superToken,
-                sender: "alice",
-                receiver: "bob",
-                flowRate: FLOW_RATE1,
+        it("#4.1 should revert if attempting to encode unclean permissions", async () => {
+            /// anything greater than 7 (1 1 1)
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "69",
+                flowRateAllowance: "42069",
+                expectedErrorString: "CFA: Unclean permissions",
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow("bob", FLOW_RATE1);
-            await expectNetFlow("carol", "0");
-            await timeTravelOnceAndVerifyAll();
-
-            await shouldCreateFlow({
-                testenv: t,
-                superToken,
-                sender: "bob",
-                receiver: "carol",
-                flowRate: flowRateBC,
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "8",
+                flowRateAllowance: "42069",
+                expectedErrorString: "CFA: Unclean permissions",
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
-            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
-            await expectNetFlow("carol", flowRateBC);
-            await timeTravelOnceAndVerifyAll();
-
-            await shouldCreateFlow({
-                testenv: t,
-                superToken,
-                sender: "carol",
-                receiver: "alice",
-                flowRate: flowRateCA,
-            });
-            await expectNetFlow("alice", toBN(flowRateCA).sub(FLOW_RATE1));
-            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
-            await expectNetFlow("carol", flowRateBC.sub(flowRateCA));
-            await timeTravelOnceAndVerifyAll();
         });
 
-        it("#10.3 a slight complex flow map", async () => {
-            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.muln(2));
+        it("#4.2 You should not be able to set yourself as a flowOperator", async () => {
+            // admin trying to set themselves as flow operator
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                permissions: "7",
+                flowRateAllowance: "99999999999999",
+                from: admin,
+                expectedErrorString: "CFA: E_NO_SENDER_FLOW_OPERATOR",
+            });
+        });
 
-            const flowRateBD = FLOW_RATE1.muln(2).divn(3);
-            const flowRateDC = FLOW_RATE1.divn(3);
-            //const flowRate;
+        it("#4.3 should properly update flow operator permissions with same flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            // allow create
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            // allow update
+            permissions = ALLOW_UPDATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            // allow delete
+            // can set flowRateAllowance with just delete as well
+            permissions = ALLOW_DELETE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+        });
+
+        it("#4.4 should properly update one flow operator permission with different flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "3388",
+            });
+        });
+
+        it("#4.5 should properly update flow operator permissions with different flowRateAllowance", async () => {
+            // stack the permissions
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+
+            permissions = permissions | ALLOW_UPDATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "3388",
+            });
+
+            permissions = permissions | ALLOW_DELETE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "123456",
+            });
+        });
+
+        it("#4.6 should properly update one flow operator permission with same flowRateAllowance", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+        });
+
+        it("#4.7 should be able to set permissions whilst setting flowRateAllowance as 0", async () => {
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions.toString(),
+                flowRateAllowance: "0",
+            });
+        });
+
+        it("#4.8 should be able to set flowRateAllowance whilst not settings permissions", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "0",
+                flowRateAllowance: "42069",
+            });
+        });
+
+        it("#4.9 should be able to authorize flow operator with full control", async () => {
+            // authorize a flow operator with full control from scratch
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: "0",
+                flowRateAllowance: "0",
+                isFullControl: true,
+            });
+            // authorize a flow operator with full control after authorizing some permissions
+            let permissions = ALLOW_CREATE;
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                testenv: t,
+                token: superToken.address,
+                sender: bob,
+                flowOperator: admin,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+                ctx: "0x",
+                from: bob,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                testenv: t,
+                token: superToken.address,
+                sender: bob,
+                flowOperator: admin,
+                ctx: "0x",
+                from: bob,
+                isFullControl: true,
+            });
+        });
+
+        it("#4.10 should be able to revoke flow operator with full control", async () => {
+            const sharedData = {
+                testenv: t,
+                token: superToken.address,
+                sender: bob,
+                flowOperator: admin,
+                ctx: "0x",
+                from: bob,
+                permissions: "0",
+                flowRateAllowance: "0",
+            };
+
+            // should be able to revoke a flow operator with full control even though none exists
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControlRevoke: true,
+            });
+
+            let permissions = ALLOW_CREATE;
+            // should be able to revoke a flow operator with full control after authorizing some
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                permissions: permissions.toString(),
+                flowRateAllowance: "42069",
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControlRevoke: true,
+            });
+
+            // should be able to revoke after authorizing full control
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControl: true,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...sharedData,
+                isFullControlRevoke: true,
+            });
+        });
+
+        it("#4.11 should revert if attempting to create/update/delete without permissions to do so", async () => {
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: "1738",
+                expectedErrorString: "CFA: E_NO_OPERATOR_CREATE_FLOW",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: "1738",
+                expectedErrorString: "E_NO_OPERATOR_UPDATE_FLOW",
+            });
 
             await shouldCreateFlow({
                 testenv: t,
@@ -3702,55 +4647,888 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: "bob",
                 flowRate: FLOW_RATE1,
             });
-            await shouldCreateFlow({
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: "0",
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+        });
+
+        it("#4.12 should revert if attempting to call create/update/delete flowByOperator as the sender", async () => {
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: "1738",
+                expectedErrorString: "CFA: E_NO_SENDER_CREATE",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: "1738",
+                expectedErrorString: "CFA: E_NO_SENDER_UPDATE",
+            });
+
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: alice,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+        });
+
+        it("#4.13 should revert if create/update with flow rate exceeding flowRateAllowance", async () => {
+            const flowRateAllowance = FLOW_RATE1.mul(toBN(3));
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: flowRateAllowance,
+            });
+
+            // should revert when attempting to create one big flow
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: dan,
+                flowOperator: admin,
+                flowRate: flowRateAllowance.add(toBN(1)),
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
+            });
+
+            // should revert when attempting to create flows where allowance is exceeded
+            // (SUM OF FLOWS > flowRateAllowance)
+            await shouldCreateFlowByOperator({
                 testenv: t,
                 superToken,
                 sender: "alice",
-                receiver: "carol",
+                receiver: "bob",
                 flowRate: FLOW_RATE1,
+                flowOperator: "admin",
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
-            await expectNetFlow("bob", FLOW_RATE1);
-            await expectNetFlow("carol", FLOW_RATE1);
-            await expectNetFlow("dan", "0");
-            await timeTravelOnceAndVerifyAll();
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "createFlowByOperator",
+                receiver: dan,
+                flowOperator: admin,
+                flowRate: flowRateAllowance,
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
+            });
 
-            await shouldCreateFlow({
+            // should be able to update to the max
+            await shouldUpdateFlowByOperator({
                 testenv: t,
                 superToken,
-                sender: "bob",
+                sender: "alice",
+                receiver: "bob",
+                flowRate: flowRateAllowance,
+                flowOperator: "admin",
+            });
+
+            // should revert when attempting to updating when allowance is out
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: flowRateAllowance.add(toBN(1)),
+                expectedErrorString: "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE",
+            });
+        });
+
+        it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            // attempts to update/delete should revert (only create allowed)
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "updateFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_UPDATE_FLOW",
+            });
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
+            });
+            // should be able to update flow now
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            await shouldRevertChangeFlowByOperator({
+                ...aliceSenderBaseData,
+                methodSignature: "deleteFlowByOperator",
+                receiver: bob,
+                flowOperator: admin,
+                flowRate: FLOW_RATE1,
+                expectedErrorString: "E_NO_OPERATOR_DELETE_FLOW",
+            });
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            // should be able to delete flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.15 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                isFullControl: true,
+            });
+
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // should be able to update flow now
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+
+            // should be able to update flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.16 shouldn't decrease flowRateAllowance if it is type(int96).max", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: MAXIMUM_FLOW_RATE,
+                from: alice,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+            // flowRateAllowance should still equal MAXIMUM_FLOW_RATE
+            const flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                MAXIMUM_FLOW_RATE.toString()
+            );
+        });
+
+        it("#4.17 shouldn't decrease flowRateAllowance if the user updates to an equal or lower flowRate", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(8)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(8))).toString()
+            );
+            let updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+
+            let lowerSameFlowRate = FLOW_RATE1.div(toBN(10));
+
+            // update flow to lower flow rate
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: lowerSameFlowRate,
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                updatedFlowRateAllowance.toString()
+            );
+
+            // update flow to same flow rate
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: lowerSameFlowRate,
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                updatedFlowRateAllowance.toString()
+            );
+        });
+
+        it("#4.18 should reset flowRateAllowance properly if the user updates the flowOperatorData", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(8)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(8))).toString()
+            );
+
+            // we validate that the flowRateAllowance is FLOW_RATE1 in this function
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+        });
+
+        it("#4.19 flowRateAllowance should remain unchanged if operator deletes a flow", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            const lowerSameFlowRateAllowance = FLOW_RATE1.sub(
+                FLOW_RATE1.div(toBN(10))
+            ).toString();
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                lowerSameFlowRateAllowance
+            );
+
+            // should be able to delete flow now
+            await shouldDeleteFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+
+            // flowRateAllowance should remain unchanged
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                lowerSameFlowRateAllowance
+            );
+        });
+
+        it("#4.20 should decrease flowRateAllowance if operator updates to a higher flowRate", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            // should be able to create flow now
+            await shouldCreateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // we check that flowRateAllowance is lower now
+            // flowRateAllowance should be lower now (FLOW_RATE1 - FLOW_RATE1.div(toBN(10)))
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.sub(FLOW_RATE1.div(toBN(10))).toString()
+            );
+            let updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+
+            // update flow to higher flow rate and properly update flowRateAllowance
+            await shouldUpdateFlowByOperator({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(8)),
+                flowOperator: "admin",
+            });
+            flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                updatedFlowRateAllowance
+                    .sub(FLOW_RATE1.div(toBN(8)).sub(FLOW_RATE1.div(toBN(10))))
+                    .toString()
+            );
+            updatedFlowRateAllowance = flowOperatorData.flowRateAllowance;
+        });
+
+        it("#4.21 flowRateAllowance should remain unchanged if sender creates/updates/deletes flow", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            let flowOperatorData = await cfa.getFlowOperatorData(
+                superToken.address,
+                alice,
+                admin
+            );
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+
+            const sharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+            };
+
+            await shouldCreateFlow({
+                ...sharedData,
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+            });
+
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+
+            await shouldUpdateFlow({
+                ...sharedData,
+                flowRate: FLOW_RATE1.mul(toBN(4)),
+            });
+
+            assert.equal(
+                flowOperatorData.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+
+            await shouldDeleteFlow({
+                ...sharedData,
+                by: "alice",
+            });
+        });
+
+        it("#4.22 should be able to set multiple flow operators", async () => {
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: bob,
+                permissions: ALLOW_UPDATE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+                from: alice,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: dan,
+                permissions: ALLOW_DELETE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+                from: alice,
+            });
+        });
+
+        it("#4.23 Should allow multiple flowOperators to create/update/delete", async () => {
+            const ALL_PERMISSIONS = ALLOW_CREATE | ALLOW_UPDATE | ALLOW_DELETE;
+            const permissionsSharedData = {
+                ...aliceSenderBaseData,
+                permissions: ALL_PERMISSIONS.toString(),
+                from: alice,
+            };
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...permissionsSharedData,
+                flowOperator: admin,
+                flowRateAllowance: FLOW_RATE1,
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...permissionsSharedData,
+                flowOperator: bob,
+                flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
+            });
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...permissionsSharedData,
+                flowOperator: dan,
+                flowRateAllowance: FLOW_RATE1.div(toBN(2)),
+            });
+
+            const changeFlowSharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+            };
+
+            // create alice -> bob by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "admin",
+            });
+
+            // update alice -> bob by dan
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.div(toBN(4)),
+                flowOperator: "dan",
+            });
+
+            // create alice -> dan by bob
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
                 receiver: "dan",
-                flowRate: flowRateBD,
+                flowRate: FLOW_RATE1.div(toBN(10)),
+                flowOperator: "bob",
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
-            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
-            await expectNetFlow("carol", FLOW_RATE1);
-            await expectNetFlow("dan", flowRateBD);
-            await timeTravelOnceAndVerifyAll();
 
-            await shouldCreateFlow({
-                testenv: t,
-                superToken,
-                sender: "dan",
-                receiver: "carol",
-                flowRate: flowRateDC,
+            // delete alice -> dan by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowOperator: "admin",
             });
-            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
-            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
-            await expectNetFlow("carol", FLOW_RATE1.add(flowRateDC));
-            await expectNetFlow("dan", flowRateBD.sub(flowRateDC));
-            await timeTravelOnceAndVerifyAll();
         });
 
-        it("#10.4 ctx should not be exploited", async () => {
-            await expectRevert(
+        it("#4.24 Should allow flowOperator to update/delete a flow they didn't create", async () => {
+            const sharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "bob",
+            };
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            // alice -> bob by alice
+            await shouldCreateFlow({
+                ...sharedData,
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+            });
+
+            // update alice -> bob by admin
+            await shouldUpdateFlowByOperator({
+                ...sharedData,
+                flowRate: FLOW_RATE1.div(toBN(4)),
+                flowOperator: "admin",
+            });
+
+            // delete alice -> bob by admin
+            await shouldDeleteFlowByOperator({
+                ...sharedData,
+                flowOperator: "admin",
+            });
+        });
+
+        it("#4.25 Should getFlowOperatorDataByID", async () => {
+            const permissions = (
+                ALLOW_CREATE |
+                ALLOW_UPDATE |
+                ALLOW_DELETE
+            ).toString();
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: permissions,
+                flowRateAllowance: FLOW_RATE1,
+            });
+            const flowOperatorId = t.getFlowOperatorId(alice, admin);
+
+            const data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+
+            assert.equal(data.permissions.toString(), permissions);
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+        });
+
+        it("#4.26 Should allow a flowOperator to create/update multiple flows", async () => {
+            const changeFlowSharedData = {
+                testenv: t,
+                superToken,
+                sender: "alice",
+            };
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderAdminFlowOperator,
+                permissions: (
+                    ALLOW_CREATE |
+                    ALLOW_UPDATE |
+                    ALLOW_DELETE
+                ).toString(),
+                flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
+            });
+
+            // create alice -> bob by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+
+            const flowOperatorId = t.getFlowOperatorId(alice, admin);
+
+            let data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(5)).sub(FLOW_RATE1).toString()
+            );
+
+            // create alice -> dan by admin
+            await shouldCreateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1,
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(4)).sub(FLOW_RATE1).toString()
+            );
+
+            // update alice -> bob by admin
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(3)).sub(FLOW_RATE1).toString()
+            );
+
+            // update alice -> dan by admin
+            await shouldUpdateFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowRate: FLOW_RATE1.mul(toBN(2)),
+                flowOperator: "admin",
+            });
+            data = await cfa.getFlowOperatorDataByID(
+                superToken.address,
+                flowOperatorId
+            );
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.mul(toBN(2)).sub(FLOW_RATE1).toString()
+            );
+            // delete alice -> bob by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "bob",
+                flowOperator: "admin",
+            });
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+            // delete alice -> dan by admin
+            await shouldDeleteFlowByOperator({
+                ...changeFlowSharedData,
+                receiver: "dan",
+                flowOperator: "admin",
+            });
+            assert.equal(
+                data.flowRateAllowance.toString(),
+                FLOW_RATE1.toString()
+            );
+        });
+
+        it("#4.27 Should revert when trying to upate flow operator permissions with negative allowance", async () => {
+            await shouldRevertUpdateFlowOperatorPermissions({
+                ...aliceSenderAdminFlowOperator,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: "-1",
+                expectedErrorString: "CFA: E_NO_NEGATIVE_ALLOWANCE",
+            });
+        });
+
+        // NOTE: I think it will be good practice to do this for any future additions to
+        // agreement functions that are called via callAgreement - yes, repetitive and maybe
+        // redundant, but a sanity check nonetheless to ensure that we are calling
+        // authorizeTokenAccess in our new agreement functions
+        it("#4.28 Should revert when trying to pass in dirty context", async () => {
+            await expectRevertedWith(
                 superfluid.callAgreement(
                     cfa.address,
                     cfa.contract.methods
-                        .createFlow(
+                        .updateFlowOperatorPermissions(
                             superToken.address,
-                            alice,
+                            bob,
+                            1,
                             FLOW_RATE1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .authorizeFlowOperatorWithFullControl(
+                            superToken.address,
+                            bob,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .revokeFlowOperatorWithFullControl(
+                            superToken.address,
+                            bob,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .createFlowByOperator(
+                            superToken.address,
+                            bob,
+                            dan,
+                            1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .updateFlowByOperator(
+                            superToken.address,
+                            bob,
+                            dan,
+                            1,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                ["0xdeadbeef", "0x"]
+                            )
+                        )
+                        .encodeABI(),
+                    "0x",
+                    {
+                        from: alice,
+                    }
+                ),
+                "invalid ctx"
+            );
+            await expectRevertedWith(
+                superfluid.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods
+                        .deleteFlowByOperator(
+                            superToken.address,
+                            bob,
+                            dan,
                             web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 ["0xdeadbeef", "0x"]

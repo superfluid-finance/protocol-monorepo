@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const fs = require("fs");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const traveler = require("ganache-time-traveler");
@@ -23,6 +24,8 @@ const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data.js");
 
 let _singleton;
+
+const DEFAULT_TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
 /**
  * @dev Test environment for test cases
@@ -76,10 +79,13 @@ module.exports = class TestEnvironment {
             MINIMUM_DEPOSIT: CFADataModel.clipDepositNumber(toWad(0.25), false),
         };
 
-        this.constants = Object.assign(
-            {},
-            require("@openzeppelin/test-helpers").constants
-        );
+        this.constants = {
+            ...Object.assign(
+                {},
+                require("@openzeppelin/test-helpers").constants
+            ),
+            MAXIMUM_FLOW_RATE: toBN(2).pow(toBN(95)).sub(toBN(1)),
+        };
 
         this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
     }
@@ -176,6 +182,15 @@ module.exports = class TestEnvironment {
             oldEvmSnapshotId,
             JSON.stringify(this._evmSnapshots)
         );
+    }
+
+    async timeTravelOnce(time = DEFAULT_TEST_TRAVEL_TIME) {
+        const block1 = await web3.eth.getBlock("latest");
+        console.log("current block time", block1.timestamp);
+        console.log(`time traveler going to the future +${time}...`);
+        await traveler.advanceTimeAndBlock(time);
+        const block2 = await web3.eth.getBlock("latest");
+        console.log("new block time", block2.timestamp);
     }
 
     /**************************************************************************
@@ -480,6 +495,19 @@ module.exports = class TestEnvironment {
     }
 
     /**************************************************************************
+     * Agreement Util functions
+     *************************************************************************/
+
+    getFlowOperatorId(sender, flowOperator) {
+        return web3.utils.keccak256(
+            web3.eth.abi.encodeParameters(
+                ["string", "address", "address"],
+                ["flowOperator", sender, flowOperator]
+            )
+        );
+    }
+
+    /**************************************************************************
      * Test data functions
      *************************************************************************/
 
@@ -743,10 +771,12 @@ module.exports = class TestEnvironment {
      * @param superToken
      */
     writePlotDataIntoCSVFile(path, superToken) {
+        const outputDir = "./build/test_output";
+        fs.mkdirSync(outputDir, {recursive: true});
         const csvFormatPlotData =
             this.formatPlotDataIntoProcessableFormat(superToken);
         const csvWriter = createCsvWriter({
-            path: "test/output/" + path + ".csv",
+            path: outputDir + "/" + path + ".csv",
             header: [
                 {id: "alias", title: "alias"},
                 {id: "timestamp", title: "timestamp"},

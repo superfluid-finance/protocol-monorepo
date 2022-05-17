@@ -29,6 +29,7 @@ To run the frontend using the deployed goerli contracts, skip the "Install Contr
 ## Install Contracts
 
 ```bash
+cd solidity-contracts
 yarn install
 yarn build
 ```
@@ -37,6 +38,16 @@ yarn build
 
 ```bash
 yarn test
+```
+
+## Run property tests
+
+This project includes property tests based on [Hot Fuzz](../../packages/hot-fuzz/), which is itself an [Echidna](https://github.com/crytic/echidna) wrapper.  
+
+You can run it with
+
+```bash
+npx hot-fuzz contracts/LotterySuperAppHotFuzz.yaml
 ```
 
 ## Deployment

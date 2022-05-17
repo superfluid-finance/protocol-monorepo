@@ -116,6 +116,7 @@ module.exports = function getConfig(chainId) {
             // optimism mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
@@ -140,7 +141,7 @@ module.exports = function getConfig(chainId) {
             // arbitrum one mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["ETHx"],
+            tokenList: ["DAIx", "USDCx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
@@ -172,13 +173,13 @@ module.exports = function getConfig(chainId) {
             // avalanche mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["AVAXx"],
+            tokenList: [],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
             disableTestGovernance: true,
             data: {
-                initialBlockNumber: 11950000,
+                initialBlockNumber: 14700000,
                 getLogsRange: 50000,
             },
         },
@@ -197,7 +198,7 @@ module.exports = function getConfig(chainId) {
             // celo mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["CELOx"],
+            tokenList: [],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc

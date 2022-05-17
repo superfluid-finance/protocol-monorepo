@@ -1,4 +1,4 @@
-import { gql } from "graphql-request";
+import {gql} from "graphql-request";
 
 // CFA Event Queries
 export const getFlowUpdatedEvents = gql`
@@ -7,20 +7,49 @@ export const getFlowUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
-            timestamp
+            order
             transactionHash
+            timestamp
             name
             blockNumber
+            logIndex
             addresses
             token
             sender
             receiver
+            flowOperator
             flowRate
             totalAmountStreamedUntilTimestamp
             totalSenderFlowRate
             totalReceiverFlowRate
+            deposit
             oldFlowRate
             type
+        }
+    }
+`;
+
+export const getFlowOperatorUpdatedEvents = gql`
+    query getFlowOperatorUpdatedEvents($transactionHash: Bytes!) {
+        response: flowOperatorUpdatedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            order
+            transactionHash
+            timestamp
+            name
+            blockNumber
+            logIndex
+            addresses
+            token
+            sender
+            flowOperator
+            permissions
+            flowRateAllowance
+            flowOperator {
+                id
+            }
         }
     }
 `;
@@ -33,9 +62,11 @@ export const getIndexCreatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -54,9 +85,11 @@ export const getIndexDistributionClaimedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -76,9 +109,11 @@ export const getIndexUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -101,9 +136,11 @@ export const getIndexSubscribedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -123,9 +160,11 @@ export const getIndexUnitsUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -146,9 +185,11 @@ export const getIndexUnsubscribedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             publisher
@@ -168,9 +209,11 @@ export const getSubscriptionApprovedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber
@@ -190,9 +233,11 @@ export const getSubscriptionDistributionClaimedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber
@@ -212,9 +257,11 @@ export const getSubscriptionRevokedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber
@@ -234,9 +281,11 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            order
             transactionHash
             name
             blockNumber
+            logIndex
             addresses
             token
             subscriber

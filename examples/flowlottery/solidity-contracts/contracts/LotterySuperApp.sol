@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.6;
-pragma abicoder v2;
+// solhint-disable not-rely-on-time
+pragma solidity 0.8.13;
 
 import {
     ISuperfluid,
@@ -14,20 +14,24 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {
+    CFAv1Library
+} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+
+import {
     SuperAppBase
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 
 contract LotterySuperApp is Ownable, SuperAppBase {
 
     /// @dev Entrance fee for the game (hardcoded to $1)
-    uint256 constant private _ENTRANCE_FEE = 1e18;
+    uint256 constant public ENTRANCE_FEE = 1e18;
     /// @dev Minimum flow rate to participate (hardcoded to $10 / mo)
-    int96 constant private _MINIMUM_FLOW_RATE = int96(uint256(10e18) / uint256(3600 * 24 * 30));
+    int96 constant public MINIMUM_FLOW_RATE = int96(int256(uint256(10e18) / uint256(3600 * 24 * 30)));
 
     string constant private _ERR_STR_NO_TICKET = "LotterySuperApp: need ticket to play";
     string constant private _ERR_STR_LOW_FLOW_RATE = "LotterySuperApp: flow rate too low";
@@ -35,6 +39,9 @@ contract LotterySuperApp is Ownable, SuperAppBase {
     ISuperfluid private _host; // host
     IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
     ISuperToken private _acceptedToken; // accepted token
+
+    using CFAv1Library for CFAv1Library.InitData;
+    CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
 
     EnumerableSet.AddressSet private _playersSet;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -56,6 +63,16 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL;
 
         _host.registerApp(configWord);
+
+        //initialize InitData struct, and set equal to cfaV1
+        cfaV1 = CFAv1Library.InitData(
+            host,
+            //here, we are deriving the address of the CFA using the host contract
+            IConstantFlowAgreementV1(address(host.getAgreementClass(
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+            )))
+        );
+
     }
 
     /// @dev Tickets by users
@@ -73,7 +90,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
     {
         // msg sender is encoded in the Context
         address sender = _host.decodeCtx(ctx).msgSender;
-        _acceptedToken.transferFrom(sender, address(this), _ENTRANCE_FEE);
+        _acceptedToken.transferFrom(sender, address(this), ENTRANCE_FEE);
         tickets[sender]++;
         return ctx;
     }
@@ -119,7 +136,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         (address player) = abi.decode(cbdata, (address));
 
         (,int96 flowRate,,) = IConstantFlowAgreementV1(agreementClass).getFlowByID(_acceptedToken, agreementId);
-        require(flowRate >= _MINIMUM_FLOW_RATE, _ERR_STR_LOW_FLOW_RATE);
+        require(flowRate >= MINIMUM_FLOW_RATE, _ERR_STR_LOW_FLOW_RATE);
 
         _playersSet.add(player);
 
@@ -174,34 +191,20 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
         // delete flow to old winner
         if (oldWinner != address(0)) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    _acceptedToken,
-                    address(this),
-                    oldWinner,
-                    new bytes(0)
-                ), // call data
-                new bytes(0), // user data
-                newCtx // ctx
-            );
+            newCtx = cfaV1.deleteFlowWithCtx(
+                newCtx,
+                address(this),
+                oldWinner,
+                _acceptedToken);
         }
 
         // create flow to new winner
         if (_winner != address(0)) {
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
-                    _cfa.createFlow.selector,
-                    _acceptedToken,
-                    _winner,
-                    _cfa.getNetFlow(_acceptedToken, address(this)),
-                    new bytes(0)
-                ), // call data
-                new bytes(0), // user data
-                newCtx // ctx
-            );
+            newCtx = cfaV1.createFlowWithCtx(newCtx,
+                _winner,
+                _acceptedToken,
+                _cfa.getNetFlow(_acceptedToken, address(this))
+                );
         }
 
         emit WinnerChanged(_winner);

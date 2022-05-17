@@ -4,11 +4,8 @@ import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import { Framework } from "@superfluid-finance/sdk-core";
 import { Loader } from "./Loader";
 import { SignerContext } from "./SignerContext";
-import { ListStreams } from "./features/ListStreams";
 import { TransactionTable } from "./features/TransactionTable";
 import { Web3Provider } from "@ethersproject/providers";
-import { ListEvents } from "./features/ListEvents";
-import { ListIndexes } from "./features/ListIndexes";
 import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -17,22 +14,18 @@ import ListItemText from "@mui/material/ListItemText";
 import Collapse from "@mui/material/Collapse";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { ListIndexSubscriptions } from "./features/ListIndexSubscriptions";
-import { ListUserInteractedSuperTokens } from "./features/ListUserInteractedSuperTokens";
-import { ListSuperTokens } from "./features/ListSuperTokens";
-import { GetRealtimeBalance } from "./features/GetRealtimeBalance";
-import { CreateStream } from "./features/CreateStream";
-import { UpgradeToSuperToken } from "./features/UpgradeToSuperToken";
-import { UpdateStream } from "./features/UpdateStream";
+import { FlowCreate } from "./features/FlowCreate";
+import { SuperTokenUpgrade } from "./features/SuperTokenUpgrade";
+import { FlowUpdate } from "./features/FlowUpdate";
 import { DeleteStream } from "./features/DeleteStream";
-import { DowngradeFromSuperToken } from "./features/DowngradeFromSuperToken";
-import { CreateIndex } from "./features/CreateIndex";
+import { SuperTokenDowngrade } from "./features/SuperTokenDowngrade";
+import { IndexCreate } from "./features/IndexCreate";
 import { DistributeToIndex } from "./features/DistributeToIndex";
-import { ApproveIndexSubscription } from "./features/ApproveIndexSubscription";
-import { UpdateIndexSubscriptionUnits } from "./features/UpdateIndexSubscriptionUnits";
-import { ClaimFromIndexSubscription } from "./features/ClaimFromIndexSubscription";
-import { DeleteIndexSubscription } from "./features/DeleteIndexSubscription";
-import { RevokeIndexSubscription } from "./features/RevokeIndexSubscription";
+import { IndexSubscriptionApprove } from "./features/IndexSubscriptionApprove";
+import { IndexUpdateSubscriptionUnits } from "./features/IndexUpdateSubscriptionUnits";
+import { IndexSubscriptionClaim } from "./features/IndexSubscriptionClaim";
+import { IndexDeleteSubscription } from "./features/IndexDeleteSubscription";
+import { IndexSubscriptionRevoke } from "./features/IndexSubscriptionRevoke";
 import { MonitorForEventsToInvalidateCache } from "./features/MonitorForEventsToInvalidateCache";
 import { Account } from "./features/generic-entity-queries/Account";
 import { Accounts } from "./features/generic-entity-queries/Accounts";
@@ -147,27 +140,6 @@ function App() {
                                 </ListSubheader>
                             }
                         >
-                            <SdkListItem title="Real-Time Balance">
-                                <GetRealtimeBalance />
-                            </SdkListItem>
-                            <SdkListItem title="List Streams">
-                                <ListStreams />
-                            </SdkListItem>
-                            <SdkListItem title="List SuperTokens">
-                                <ListSuperTokens />
-                            </SdkListItem>
-                            <SdkListItem title="List User-Interacted SuperTokens">
-                                <ListUserInteractedSuperTokens />
-                            </SdkListItem>
-                            <SdkListItem title="List Indexes">
-                                <ListIndexes />
-                            </SdkListItem>
-                            <SdkListItem title="List Index Subscriptions">
-                                <ListIndexSubscriptions />
-                            </SdkListItem>
-                            <SdkListItem title="List Events">
-                                <ListEvents />
-                            </SdkListItem>
                             <SdkListItem title="Monitor For Events To Invalidate Cache">
                                 <MonitorForEventsToInvalidateCache />
                             </SdkListItem>
@@ -192,37 +164,37 @@ function App() {
                                 <TransactionTable />
                             </SdkListItem>
                             <SdkListItem title="Upgrade To SuperToken">
-                                <UpgradeToSuperToken />
+                                <SuperTokenUpgrade />
                             </SdkListItem>
                             <SdkListItem title="Downgrade From SuperToken">
-                                <DowngradeFromSuperToken />
+                                <SuperTokenDowngrade />
                             </SdkListItem>
                             <SdkListItem title="Create Index">
-                                <CreateIndex />
+                                <IndexCreate />
                             </SdkListItem>
                             <SdkListItem title="Update Index Subscription Units">
-                                <UpdateIndexSubscriptionUnits />
+                                <IndexUpdateSubscriptionUnits />
                             </SdkListItem>
                             <SdkListItem title="Distribute To Index">
                                 <DistributeToIndex />
                             </SdkListItem>
                             <SdkListItem title="Approve Index Subscription">
-                                <ApproveIndexSubscription />
+                                <IndexSubscriptionApprove />
                             </SdkListItem>
                             <SdkListItem title="Claim From Index Subscription">
-                                <ClaimFromIndexSubscription />
+                                <IndexSubscriptionClaim />
                             </SdkListItem>
                             <SdkListItem title="Delete Index Subscription">
-                                <DeleteIndexSubscription />
+                                <IndexDeleteSubscription />
                             </SdkListItem>
                             <SdkListItem title="Revoke Index Subscription">
-                                <RevokeIndexSubscription />
+                                <IndexSubscriptionRevoke />
                             </SdkListItem>
                             <SdkListItem title="Create Stream">
-                                <CreateStream />
+                                <FlowCreate />
                             </SdkListItem>
                             <SdkListItem title="Update Stream">
-                                <UpdateStream />
+                                <FlowUpdate />
                             </SdkListItem>
                             <SdkListItem title="Delete Stream">
                                 <DeleteStream />

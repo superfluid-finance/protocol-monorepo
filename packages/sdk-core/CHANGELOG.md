@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.4.2] - 2022-05-17
+
+### Fixed
+- Patched SDK-Core Subgraph files to be in sync with V1 Subgraph endpoint
+
 ## [0.4.1] - 2022-05-14
 
 ### Added

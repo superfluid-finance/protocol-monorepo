@@ -42,7 +42,11 @@ jobs:
       - name: Build package
         run: |
           yarn install --frozen-lockfile
+          yarn --cwd packages/sdk-core set-default-subgraph-release-tag
+          yarn --cwd packages/sdk-core generate-graphql-schema:v1
           yarn build
+        env:
+          SUBGRAPH_RELEASE_TAG: v1
 
       - name: Publish ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1

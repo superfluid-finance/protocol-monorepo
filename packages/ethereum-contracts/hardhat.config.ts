@@ -2,9 +2,10 @@ import {HardhatUserConfig, subtask} from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
-import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names"
+import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names";
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
+import {NetworkUserConfig} from "hardhat/types";
 
 try {
     dotenvConfig();
@@ -16,11 +17,45 @@ try {
 
 // hardhat mixin magic: https://github.com/NomicFoundation/hardhat/issues/2306#issuecomment-1039452928
 // filter out foundry test codes
-subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
-    const paths = await runSuper();
-    return paths.filter((p: string) => !p.includes("test/foundry"));
-});
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
+    async (_, __, runSuper) => {
+        const paths = await runSuper();
+        return paths.filter((p: string) => !p.includes("test/foundry"));
+    }
+);
 
+const chainIds = {
+    "eth-mainnet": 1,
+    "eth-ropsten": 3,
+    "eth-rinkeby": 4,
+    "eth-kovan": 42,
+    "eth-goerli": 5,
+
+    "xdai-mainnet": 100,
+
+    "optimism-mainnet": 10,
+    "optimism-kovan": 69,
+
+    "arbitrum-one": 42161,
+    "arbitrum-rinkeby": 421611,
+
+    "polygon-mainnet": 137,
+    "polygon-mumbai": 80001,
+
+    "avalanche-c": 43114,
+    "avalanche-fuji": 43113,
+
+    localhost: 1337,
+    hardhat: 31337,
+};
+function createNetworkConfig(
+    network: keyof typeof chainIds
+): NetworkUserConfig {
+    return {
+        accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        chainId: chainIds[network],
+    };
+}
 const config: HardhatUserConfig = {
     solidity: {
         version: "0.8.13",
@@ -33,36 +68,56 @@ const config: HardhatUserConfig = {
     },
     networks: {
         localhost: {
+            ...createNetworkConfig("localhost"),
             url: "http://0.0.0.0:8545/",
-            chainId: 1337,
         },
-        matic: {
-            url: process.env.MATIC_PROVIDER_URL || "",
-            chainId: 137,
-        },
-        mumbai: {
-            url: process.env.MUMBAI_PROVIDER_URL || "",
-            chainId: 80001,
-        },
-        ropsten: {
+        "eth-ropsten": {
+            ...createNetworkConfig("eth-ropsten"),
             url: process.env.ROPSTEN_PROVIDER_URL || "",
-            chainId: 3,
         },
-        rinkeby: {
+        "eth-rinkeby": {
+            ...createNetworkConfig("eth-rinkeby"),
             url: process.env.RINKEBY_PROVIDER_URL || "",
-            chainId: 4,
         },
-        goerli: {
+        "eth-goerli": {
+            ...createNetworkConfig("eth-goerli"),
             url: process.env.GOERLI_PROVIDER_URL || "",
-            chainId: 5,
         },
-        opkovan: {
+        "xdai-mainnet": {
+            ...createNetworkConfig("xdai-mainnet"),
+            url: process.env.XDAI_MAINNET_PROVIDER_URL || "",
+        },
+        "optimism-mainnet": {
+            ...createNetworkConfig("optimism-mainnet"),
             url: process.env.OPKOVAN_PROVIDER_URL || "",
-            chainId: 69,
         },
-        arbrinkeby: {
+        "optimism-kovan": {
+            ...createNetworkConfig("optimism-kovan"),
+            url: process.env.OPKOVAN_PROVIDER_URL || "",
+        },
+        "arbitrum-one": {
+            ...createNetworkConfig("arbitrum-one"),
             url: process.env.ARBRINKEBY_PROVIDER_URL || "",
-            chainId: 69,
+        },
+        "arbitrum-rinkeby": {
+            ...createNetworkConfig("arbitrum-rinkeby"),
+            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
+        },
+        "polygon-mainnet": {
+            ...createNetworkConfig("polygon-mainnet"),
+            url: process.env.MATIC_PROVIDER_URL || "",
+        },
+        "polygon-mumbai": {
+            ...createNetworkConfig("polygon-mumbai"),
+            url: process.env.MUMBAI_PROVIDER_URL || "",
+        },
+        "avalanche-c": {
+            ...createNetworkConfig("avalanche-c"),
+            url: process.env.AVALANCHE_PROVIDER_URL || "",
+        },
+        "avalanche-fuji": {
+            ...createNetworkConfig("avalanche-fuji"),
+            url: process.env.AVALANCHE_PROVIDER_URL || "",
         },
         coverage: {
             url: "http://127.0.0.1:8555",

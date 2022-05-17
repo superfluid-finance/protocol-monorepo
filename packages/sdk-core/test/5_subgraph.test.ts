@@ -4,7 +4,7 @@ import { Framework, WrapperSuperToken } from "../src";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { setup } from "../scripts/setup";
 
-describe.only("Subgraph Tests", () => {
+describe("Subgraph Tests", () => {
     let framework: Framework;
     let deployer: SignerWithAddress;
     let superToken: SuperTokenType;

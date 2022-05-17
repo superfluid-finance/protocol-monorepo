@@ -19,7 +19,7 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@openzeppelin/test-helpers": "^0.5.15",
-        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=90b879cb5dda258caa0883ca73d7befc4c5446f0",
+        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=d28e17d888e25b45b08fb8e7b01b1fe60eba4766",
         "@superfluid-finance/js-sdk": "^0.6.0",
         "@truffle/contract": "4.5.10",
         "@truffle/hdwallet-provider": "2.0.8",

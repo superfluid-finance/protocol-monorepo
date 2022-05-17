@@ -13,50 +13,38 @@ contract RedirectAll is SuperAppBase {
 
     using CFAv1Library for CFAv1Library.InitData;
 
-    //initialize cfaV1 variable
-    CFAv1Library.InitData public cfaV1;
+    CFAv1Library.InitData public cfaV1Lib;
+    bytes32 constant public CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
 
-    ISuperfluid private _host; // host
-    IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
     ISuperToken private _acceptedToken; // accepted token
-    address private _receiver;
+    address public _receiver;
 
-    constructor(
+   constructor(
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken,
         address receiver
     ) {
-        require(address(host) != address(0), "host is zero address");
-        require(address(cfa) != address(0), "cfa is zero address");
-        require(
-            address(acceptedToken) != address(0),
-            "acceptedToken is zero address"
-        );
-        require(address(receiver) != address(0), "receiver is zero address");
-        require(!host.isApp(ISuperApp(receiver)), "receiver is an app");
+        assert(address(host) != address(0));
+        assert(address(acceptedToken) != address(0));
+        assert(address(receiver) != address(0));
 
-        _host = host;
-        _cfa = IConstantFlowAgreementV1(
-            address(
-                host.getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
-                )
-            )
-        );
         _acceptedToken = acceptedToken;
         _receiver = receiver;
 
-        cfaV1 = CFAv1Library.InitData(_host, _cfa);
+        cfaV1Lib = CFAv1Library.InitData(
+            host,
+            IConstantFlowAgreementV1(
+                address(host.getAgreementClass(CFA_ID))
+            )
+        );
 
         uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            // change from 'before agreement stuff to after agreement
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
-        _host.registerApp(configWord);
+        host.registerApp(configWord);
     }
 
     /**************************************************************************
@@ -73,7 +61,7 @@ contract RedirectAll is SuperAppBase {
         )
     {
         if (_receiver != address(0)) {
-            (startTime, flowRate, , ) = _cfa.getFlow(
+            (startTime, flowRate, , ) = cfaV1Lib.cfa.getFlow(
                 _acceptedToken,
                 address(this),
                 _receiver
@@ -91,8 +79,8 @@ contract RedirectAll is SuperAppBase {
     {
         newCtx = ctx;
         // @dev This will give me the new flowRate, as it is called in after callbacks
-        int96 netFlowRate = _cfa.getNetFlow(_acceptedToken, address(this));
-        (, int96 outFlowRate, , ) = _cfa.getFlow(
+        int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
+        (, int96 outFlowRate, , ) = cfaV1Lib.cfa.getFlow(
             _acceptedToken,
             address(this),
             _receiver
@@ -102,14 +90,14 @@ contract RedirectAll is SuperAppBase {
         // @dev If inFlowRate === 0, then delete existing flow.
         if (inFlowRate == int96(0)) {
             // @dev if inFlowRate is zero, delete outflow.
-            newCtx = cfaV1.deleteFlowWithCtx(
+            newCtx = cfaV1Lib.deleteFlowWithCtx(
                 newCtx,
                 address(this),
                 _receiver,
                 _acceptedToken
             );
         } else if (outFlowRate != int96(0)) {
-            newCtx = cfaV1.updateFlowWithCtx(
+            newCtx = cfaV1Lib.updateFlowWithCtx(
                 newCtx,
                 _receiver,
                 _acceptedToken,
@@ -117,7 +105,7 @@ contract RedirectAll is SuperAppBase {
             );
         } else {
             // @dev If there is no existing outflow, then create new flow to equal inflow
-            newCtx = cfaV1.createFlowWithCtx(
+            newCtx = cfaV1Lib.createFlowWithCtx(
                 newCtx,
                 _receiver,
                 _acceptedToken,
@@ -131,23 +119,23 @@ contract RedirectAll is SuperAppBase {
         require(newReceiver != address(0), "New receiver is zero address");
         // @dev because our app is registered as final, we can't take downstream apps
         require(
-            !_host.isApp(ISuperApp(newReceiver)),
+            !cfaV1Lib.host.isApp(ISuperApp(newReceiver)),
             "New receiver can not be a superApp"
         );
         if (newReceiver == _receiver) return;
         // @dev delete flow to old receiver
-        (, int96 outFlowRate, , ) = _cfa.getFlow(
+        (, int96 outFlowRate, , ) = cfaV1Lib.cfa.getFlow(
             _acceptedToken,
             address(this),
             _receiver
         ); //CHECK: unclear what happens if flow doesn't exist.
         if (outFlowRate > 0) {
-            cfaV1.deleteFlow(address(this), _receiver, _acceptedToken);
+            cfaV1Lib.deleteFlow(address(this), _receiver, _acceptedToken);
             // @dev create flow to new receiver
-            cfaV1.createFlow(
+            cfaV1Lib.createFlow(
                 newReceiver,
                 _acceptedToken,
-                _cfa.getNetFlow(_acceptedToken, address(this))
+                cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this))
             );
         }
         // @dev set global receiver to new receiver
@@ -163,9 +151,9 @@ contract RedirectAll is SuperAppBase {
     function afterAgreementCreated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, // _agreementId,
-        bytes calldata, /*_agreementData*/
-        bytes calldata, // _cbdata,
+        bytes32, //_agreementId
+        bytes calldata, //_agreementData
+        bytes calldata, //_cbdata
         bytes calldata _ctx
     )
         external
@@ -180,9 +168,9 @@ contract RedirectAll is SuperAppBase {
     function afterAgreementUpdated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, //_agreementId,
-        bytes calldata, //agreementData,
-        bytes calldata, //_cbdata,
+        bytes32, // _agreementId,
+        bytes calldata, // _agreementData,
+        bytes calldata, // _cbdata,
         bytes calldata _ctx
     )
         external
@@ -197,9 +185,9 @@ contract RedirectAll is SuperAppBase {
     function afterAgreementTerminated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, //_agreementId,
-        bytes calldata, /*_agreementData*/
-        bytes calldata, //_cbdata,
+        bytes32, // _agreementId,
+        bytes calldata, // _agreementData
+        bytes calldata, // _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
         // According to the app basic law, we should never revert in a termination callback
@@ -213,16 +201,12 @@ contract RedirectAll is SuperAppBase {
     }
 
     function _isCFAv1(address agreementClass) private view returns (bool) {
-        return
-            ISuperAgreement(agreementClass).agreementType() ==
-            keccak256(
-                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-            );
+        return ISuperAgreement(agreementClass).agreementType() == CFA_ID;
     }
 
     modifier onlyHost() {
         require(
-            msg.sender == address(_host),
+            msg.sender == address(cfaV1Lib.host),
             "RedirectAll: support only one host"
         );
         _;

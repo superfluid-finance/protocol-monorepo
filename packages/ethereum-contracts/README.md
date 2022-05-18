@@ -1,7 +1,7 @@
-<h1 align="center">Welcome to @superfluid-finance/ethereum-contracts 👋
+<h1 align="center">Welcome to Superfluid EVM Contracts (v1) 👋
 </h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">

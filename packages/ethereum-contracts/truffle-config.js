@@ -71,7 +71,7 @@ const ALIASES = {
     "arbitrum-one": ["arbone"],
     "arbitrum-rinkeby": ["arbrinkeby"],
 
-    "avalanche-C": ["avalanche"],
+    "avalanche-c": ["avalanche"],
     "avalanche-fuji": ["avafuji"],
 
     "bsc-mainnet": ["bsc"],
@@ -256,8 +256,8 @@ const E = (module.exports = {
         //
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
         //
-        "avalanche-C": {
-            ...createNetworkDefaultConfiguration("avalanche-C"),
+        "avalanche-c": {
+            ...createNetworkDefaultConfiguration("avalanche-c"),
             network_id: 43114,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )

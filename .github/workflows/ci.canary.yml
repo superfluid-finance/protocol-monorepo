@@ -8,6 +8,7 @@ on:
       - 'packages/**'
       # - '**.md' commented-out because README updates should go to the packages
       - '.github/workflows/ci.canary.yml'
+      - 'codecov.yml'
 
 jobs:
   essential-build-and-test:
@@ -34,7 +35,6 @@ jobs:
           echo github.ref: ${{ github.ref }}
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
@@ -110,8 +110,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: protocol-monorepo
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -119,7 +117,6 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
-        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -130,7 +127,7 @@ jobs:
         with:
           name: ethereum-contracts-coverage
           path: |
-            protocol-monorepo/packages/ethereum-contracts/coverage/
+            packages/ethereum-contracts/coverage/
 
   js-sdk-coverage:
     name: Run coverage test of js-sdk on dev branch
@@ -141,8 +138,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: protocol-monorepo
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -150,7 +145,6 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
-        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -161,7 +155,7 @@ jobs:
         with:
           name: js-sdk-coverage
           path: |
-            protocol-monorepo/packages/js-sdk/coverage/
+            packages/js-sdk/coverage/
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
@@ -172,8 +166,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: protocol-monorepo
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -181,7 +173,6 @@ jobs:
           node-version: 16.x
 
       - name: Run coverage test
-        working-directory: protocol-monorepo
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -192,31 +183,28 @@ jobs:
         with:
           name: sdk-core-coverage
           path: |
-            protocol-monorepo/packages/sdk-core/coverage/
+            packages/sdk-core/coverage/
 
   publish-coverage-reports:
     name: Publish coverage reports
-
     needs: [ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          # NOTE: all coverage report job should checkout the code to the same path,
-          #       otherwise reports wouldn't match the code here.
-          path: protocol-monorepo
 
       - name: Download ethereum-contracts-coverage
         uses: actions/download-artifact@v3
         with:
           name: ethereum-contracts-coverage
-          path: protocol-monorepo/packages/ethereum-contracts/coverage
+          path: packages/ethereum-contracts/coverage
       - name: Upload ethereum-contracts-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: protocol-monorepo/packages/ethereum-contracts/coverage/lcov.info
+          files: packages/ethereum-contracts/coverage/lcov.info
           name: ethereum-contracts-coverage
           flags: ethereum-contracts
           fail_ci_if_error: true
@@ -225,11 +213,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: js-sdk-coverage
-          path: protocol-monorepo/packages/js-sdk/coverage
+          path: packages/js-sdk/coverage
       - name: Upload js-sdk-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: protocol-monorepo/packages/js-sdk/coverage/lcov.info
+          files: packages/js-sdk/coverage/lcov.info
           name: js-sdk-coverage
           flags: js-sdk
           fail_ci_if_error: true
@@ -238,11 +226,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: sdk-core-coverage
-          path: protocol-monorepo/packages/sdk-core/coverage
+          path: packages/sdk-core/coverage
       - name: Upload sdk-core-coverage to codecov
         uses: codecov/codecov-action@v2
         with:
-          files: protocol-monorepo/packages/sdk-core/coverage/lcov.info
+          files: packages/sdk-core/coverage/lcov.info
           name: sdk-core-coverage
           flags: sdk-core
           fail_ci_if_error: true

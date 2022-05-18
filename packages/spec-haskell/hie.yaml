@@ -1,0 +1,30 @@
+cradle:
+  multi:
+    - path: "./dist-test"
+      config:
+        cradle:
+          none:
+    - path: "./dist-docs"
+      config:
+        cradle:
+          none:
+    - path: "./dist-coverage"
+      config:
+        cradle:
+          none:
+    - path: "./Setup.hs"
+      config:
+        cradle:
+          none:
+    - path: "./packages"
+      config:
+        cradle:
+          cabal:
+            - path: "./packages/core/src"
+              component: "lib:superfluid-protocol-spec-core"
+            - path: "packages/simple/src"
+              component: "lib:superfluid-protocol-system-simple"
+            - path: "packages/simple/test"
+              component: "superfluid-protocol-system-simple:test:tests"
+            - path: "packages/validator/src"
+              component: "superfluid-protocol-spec-validator:exe:superfluid-validator"

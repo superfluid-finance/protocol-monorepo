@@ -68,6 +68,7 @@ contract YouSuperAppHotFuzz is HotFuzzBase {
     constructor() HotFuzzBase(10 /* nTesters */ ) {
         // ... setup your app
         _app = new YourApp(sf.host, sf.cfa, superToken);
+        initTesters();
         ...
         addAccount(address(_app));
     }

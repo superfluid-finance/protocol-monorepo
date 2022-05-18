@@ -140,16 +140,17 @@ contract RedirectAll is SuperAppBase {
             _acceptedToken,
             address(this),
             _receiver
-        ); //CHECK: unclear what happens if flow doesn't exist.
-        if (outFlowRate > 0) {
+        );
+        //CHECK: unclear what happens if flow doesn't exist.
+        //if (outFlowRate > 0) {
             cfaV1.deleteFlow(address(this), _receiver, _acceptedToken);
             // @dev create flow to new receiver
             cfaV1.createFlow(
                 newReceiver,
                 _acceptedToken,
-                _cfa.getNetFlow(_acceptedToken, address(this))
+                1//_cfa.getNetFlow(_acceptedToken, address(this))
             );
-        }
+        //}
         // @dev set global receiver to new receiver
         _receiver = newReceiver;
 

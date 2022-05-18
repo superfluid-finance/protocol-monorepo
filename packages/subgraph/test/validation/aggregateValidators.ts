@@ -4,7 +4,8 @@ import {IAccountTokenSnapshot, IAccountTokenSnapshotLog, ITokenStatistic} from "
 import {getAccountTokenSnapshot, getTokenStatistic,} from "../queries/aggregateQueries";
 
 export const fetchATSAndValidate = async (
-    expectedATSData: IAccountTokenSnapshot
+    expectedATSData: IAccountTokenSnapshot,
+    skipLogEntryValidation: Boolean
 ) => {
     const graphATS = await fetchEntityAndEnsureExistence<IAccountTokenSnapshot>(
         getAccountTokenSnapshot,
@@ -12,7 +13,7 @@ export const fetchATSAndValidate = async (
         "AccountTokenSnapshot"
     );
     validateATSEntity(graphATS, expectedATSData);
-    validateASTEntityAndItsLogEntries(graphATS);
+   if(!skipLogEntryValidation) validateASTEntityAndItsLogEntry(graphATS);
 };
 
 export const fetchTokenStatsAndValidate = async (
@@ -96,13 +97,11 @@ export const validateATSEntity = (
     ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
 };
 
-export const validateASTEntityAndItsLogEntries = (
+export const validateASTEntityAndItsLogEntry = (
     graphATSData: IAccountTokenSnapshot
 ) => {
     const accountTokenSnapshotLogs: IAccountTokenSnapshotLog[] = graphATSData.accountTokenSnapshotLogs;
     const accountTokenSnapshotLog: IAccountTokenSnapshotLog = accountTokenSnapshotLogs[0];
-    console.log(accountTokenSnapshotLog, graphATSData)
-    console.log();
     expect(
         graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"
@@ -112,7 +111,7 @@ export const validateASTEntityAndItsLogEntries = (
         "ATS: totalNumberOfClosedStreams error"
     ).to.equal(accountTokenSnapshotLog.totalNumberOfClosedStreamsSoFar);
     expect(
-        graphATSData.totalSubscriptionWithUnits,
+        graphATSData.totalSubscriptionsWithUnits,
         "ATS: totalSubscriptionWithUnits error"
     ).to.equal(accountTokenSnapshotLog.totalSubscriptionsWithUnitsSoFar);
     expect(
@@ -127,6 +126,7 @@ export const validateASTEntityAndItsLogEntries = (
         graphATSData.totalNetFlowRate,
         "ATS: totalNetFlowRate error"
     ).to.equal(accountTokenSnapshotLog.totalNetFlowRateSoFar);
+
     expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
         accountTokenSnapshotLog.totalInflowRateSoFar
     );
@@ -144,8 +144,7 @@ export const validateASTEntityAndItsLogEntries = (
     expect(
         graphATSData.totalAmountTransferredUntilUpdatedAt,
         "ATS: totalAmountTransferredUntilUpdatedAt error"
-    ).to.equal(accountTokenSnapshotLog.totalAmountStreamedSoFar);
-
+    ).to.equal(accountTokenSnapshotLog.totalAmountTransferredSoFar);
     expect(
         graphATSData.updatedAtTimestamp,
         "ATS: updatedAtTimestamp error"

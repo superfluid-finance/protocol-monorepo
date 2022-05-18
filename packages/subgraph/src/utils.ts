@@ -277,3 +277,22 @@ export function getOrder(
     return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
 }
 
+/**************************************************************************
+ * Log entities util functions
+ *************************************************************************/
+
+export function createLogID(
+    logPrefix: string,
+    accountTokenSnapshotId: string,
+    event: ethereum.Event,
+): string {
+    return (
+        logPrefix
+        + "-" +
+        accountTokenSnapshotId
+        + "-" +
+        event.transaction.hash.toHexString()
+        + "-" +
+        event.logIndex.toString()
+    );
+}

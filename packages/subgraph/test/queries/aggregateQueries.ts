@@ -6,7 +6,6 @@ export const getAccountTokenSnapshot = gql`
             updatedAtTimestamp
             updatedAtBlockNumber
             totalNumberOfActiveStreams
-            maybeCriticalAtTimestamp
             totalNumberOfClosedStreams
             totalSubscriptionsWithUnits
             totalApprovedSubscriptions
@@ -26,6 +25,30 @@ export const getAccountTokenSnapshot = gql`
             }
             token {
                 id
+            }
+            accountTokenSnapshotLogs(
+                first: 1
+                orderBy: order
+                orderDirection: desc
+            ) {
+                blockNumber
+                transactionHash
+                balance
+                logIndex
+                order
+                timestamp
+                totalAmountStreamed
+                totalAmountTransferred
+                maybeCriticalAtTimestamp
+                totalApprovedSubscriptions
+                totalDeposit
+                totalInflowRate
+                totalNetFlowRate
+                totalNumberOfActiveStreams
+                totalNumberOfClosedStreams
+                totalOutflowRate
+                totalSubscriptionsWithUnits
+                triggeredByEventName
             }
         }
     }

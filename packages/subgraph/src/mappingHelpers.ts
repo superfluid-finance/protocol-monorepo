@@ -3,6 +3,7 @@ import {ISuperfluid as Superfluid} from "../generated/Host/ISuperfluid";
 import {
     Account,
     AccountTokenSnapshot,
+    AccountTokenSnapshotLog,
     FlowOperator,
     Index,
     IndexSubscription,
@@ -13,12 +14,14 @@ import {
 } from "../generated/schema";
 import {
     BIG_INT_ZERO,
+    createLogID,
     calculateMaybeCriticalAtTimestamp,
     getAccountTokenSnapshotID,
     getAmountStreamedSinceLastUpdatedAt,
     getFlowOperatorID,
     getIndexID,
     getIsListedToken,
+    getOrder,
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
@@ -386,6 +389,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
+        accountTokenSnapshot.isLiquidationEstimateOptimistic = false;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
@@ -489,6 +493,7 @@ export function updateAggregateIDASubscriptionsData(
     accountTokenSnapshot.totalSubscriptionsWithUnits =
         accountTokenSnapshot.totalSubscriptionsWithUnits +
         totalSubscriptionWithUnitsDelta;
+    accountTokenSnapshot.isLiquidationEstimateOptimistic = accountTokenSnapshot.totalSubscriptionsWithUnits > 0;
     accountTokenSnapshot.totalApprovedSubscriptions =
         accountTokenSnapshot.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
@@ -501,6 +506,7 @@ export function updateAggregateIDASubscriptionsData(
     tokenStatistic.totalSubscriptionsWithUnits =
         tokenStatistic.totalSubscriptionsWithUnits +
         totalSubscriptionWithUnitsDelta;
+    accountTokenSnapshot.isLiquidationEstimateOptimistic = accountTokenSnapshot.totalSubscriptionsWithUnits > 0;
     tokenStatistic.totalApprovedSubscriptions =
         tokenStatistic.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
@@ -739,4 +745,41 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();
+}
+
+export function createAccountTokenSnapshotLogEntity(
+    event: ethereum.Event,
+    accountAddress: Address,
+    tokenAddress: Address,
+    eventName: string,
+): void {
+    if (accountAddress.equals(ZERO_ADDRESS)) {
+        return;
+    }
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(accountAddress, tokenAddress, event.block);
+    // Transaction
+    let atsLog = new AccountTokenSnapshotLog(createLogID("ATSLog", accountTokenSnapshot.id, event));
+    atsLog.transactionHash = event.transaction.hash;
+    atsLog.timestamp = event.block.timestamp;
+    atsLog.order = getOrder(event.block.number, event.logIndex);
+    atsLog.blockNumber = event.block.number;
+    atsLog.logIndex = event.logIndex;
+    atsLog.triggeredByEventName = eventName;
+    // Account token snapshot state
+    atsLog.totalNumberOfActiveStreams = accountTokenSnapshot.totalNumberOfActiveStreams;
+    atsLog.totalNumberOfClosedStreams = accountTokenSnapshot.totalNumberOfClosedStreams;
+    atsLog.totalSubscriptionsWithUnits = accountTokenSnapshot.totalSubscriptionsWithUnits;
+    atsLog.totalApprovedSubscriptions = accountTokenSnapshot.totalApprovedSubscriptions;
+    atsLog.balance = accountTokenSnapshot.balanceUntilUpdatedAt;
+    atsLog.totalNetFlowRate = accountTokenSnapshot.totalNetFlowRate;
+    atsLog.totalInflowRate = accountTokenSnapshot.totalInflowRate;
+    atsLog.totalOutflowRate = accountTokenSnapshot.totalOutflowRate;
+    atsLog.totalAmountStreamed = accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt;
+    atsLog.totalAmountTransferred = accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt;
+    atsLog.totalDeposit = accountTokenSnapshot.totalDeposit;
+    atsLog.maybeCriticalAtTimestamp = accountTokenSnapshot.maybeCriticalAtTimestamp;
+    atsLog.account = accountTokenSnapshot.account;
+    atsLog.token = accountTokenSnapshot.token;
+    atsLog.accountTokenSnapshot = accountTokenSnapshot.id;
+    atsLog.save();
 }

@@ -15,6 +15,7 @@ import {
 import {
     BIG_INT_ZERO,
     createLogID,
+    calculateMaybeCriticalAtTimestamp,
     getAccountTokenSnapshotID,
     getAmountStreamedSinceLastUpdatedAt,
     getFlowOperatorID,
@@ -397,6 +398,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
+        accountTokenSnapshot.maybeCriticalAtTimestamp = BIG_INT_ZERO;
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
         accountTokenSnapshot.save();
@@ -533,6 +535,14 @@ function updateATSBalanceAndUpdatedAt(
     }
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
+
+    accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
+        accountTokenSnapshot.updatedAtTimestamp,
+        accountTokenSnapshot.balanceUntilUpdatedAt,
+        accountTokenSnapshot.totalDeposit,
+        accountTokenSnapshot.totalNetFlowRate
+    );
+
     accountTokenSnapshot.save();
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
@@ -665,6 +675,12 @@ export function updateAggregateEntitiesStreamData(
     senderATS.totalNumberOfClosedStreams =
         senderATS.totalNumberOfClosedStreams + totalNumberOfClosedStreamsDelta;
     senderATS.totalDeposit = senderATS.totalDeposit.plus(depositDelta);
+    senderATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
+        senderATS.updatedAtTimestamp,
+        senderATS.balanceUntilUpdatedAt,
+        senderATS.totalDeposit,
+        senderATS.totalNetFlowRate
+    );
 
     let receiverATS = getOrInitAccountTokenSnapshot(
         receiverAddress,
@@ -688,6 +704,13 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.totalNumberOfClosedStreams =
         receiverATS.totalNumberOfClosedStreams +
         totalNumberOfClosedStreamsDelta;
+
+    receiverATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
+        receiverATS.updatedAtTimestamp,
+        receiverATS.balanceUntilUpdatedAt,
+        receiverATS.totalDeposit,
+        receiverATS.totalNetFlowRate
+    );
     receiverATS.save();
 
     tokenStatistic.save();

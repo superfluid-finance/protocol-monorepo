@@ -1197,6 +1197,11 @@ type AccountTokenSnapshot @entity {
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
     """
+    Optimistic liquidation estimation property.
+    """
+    maybeCriticalAtTimestamp: BigInt!
+
+    """
     The number of currently open streams.
     """
     totalNumberOfActiveStreams: Int!

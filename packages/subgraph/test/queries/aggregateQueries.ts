@@ -6,6 +6,7 @@ export const getAccountTokenSnapshot = gql`
             updatedAtTimestamp
             updatedAtBlockNumber
             totalNumberOfActiveStreams
+            maybeCriticalAtTimestamp
             totalNumberOfClosedStreams
             totalSubscriptionsWithUnits
             totalApprovedSubscriptions
@@ -16,6 +17,7 @@ export const getAccountTokenSnapshot = gql`
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt
             totalDeposit
+            maybeCriticalAtTimestamp
             flowOperators(orderBy: createdAtTimestamp, orderDirection: asc) {
                 id
             }

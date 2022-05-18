@@ -50,10 +50,10 @@ export async function validateFlowUpdated(
     );
 
     // validate sender ATS
-    await fetchATSAndValidate(updatedSenderATS, false);
+    await fetchATSAndValidate(updatedSenderATS, false); // Boolean flag to decide, whether to check log entries or not.
 
     // validate receiver ATS
-    await fetchATSAndValidate(updatedReceiverATS, false);
+    await fetchATSAndValidate(updatedReceiverATS, false); // Boolean flag to decide, whether to check log entries or not.
 
     // validate token stats
     await fetchTokenStatsAndValidate(updatedTokenStats);
@@ -99,7 +99,7 @@ export async function validateModifyIDA(
             events,
             subscriptionExists
         );
-        await fetchATSAndValidate(updatedSubscriberATS, true);
+        await fetchATSAndValidate(updatedSubscriberATS, true); // Boolean flag to decide, whether to check log entries or not.
     }
     await fetchIndexAndValidate(
         framework,
@@ -109,7 +109,7 @@ export async function validateModifyIDA(
         updatedSubscription.id,
         subscriptionExists
     );
-    await fetchATSAndValidate(updatedPublisherATS, true);
+    await fetchATSAndValidate(updatedPublisherATS, true); // Boolean flag to decide, whether to check log entries or not.
     await fetchTokenStatsAndValidate(updatedTokenStats);
 }
 

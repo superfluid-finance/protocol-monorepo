@@ -5,7 +5,7 @@ import {getAccountTokenSnapshot, getTokenStatistic,} from "../queries/aggregateQ
 
 export const fetchATSAndValidate = async (
     expectedATSData: IAccountTokenSnapshot,
-    skipLogEntryValidation: Boolean
+    skipLogEntryValidation: Boolean // Boolean flag to decide, whether to check log entries or not. Ignore IDA claim/distribute case
 ) => {
     const graphATS = await fetchEntityAndEnsureExistence<IAccountTokenSnapshot>(
         getAccountTokenSnapshot,

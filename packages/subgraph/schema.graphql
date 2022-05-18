@@ -1259,8 +1259,7 @@ type AccountTokenSnapshot @entity {
 }
 
 """
-AccountTokenSnapshotLog: An aggregate entity which aggregates data on an account's
-interaction with a `token`.
+AccountTokenSnapshotLog: Historical entries of AccountTokenSnapshot updates.
 """
 type AccountTokenSnapshotLog @entity {
     id: ID!

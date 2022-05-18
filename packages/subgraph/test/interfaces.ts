@@ -301,7 +301,6 @@ export interface IIndex extends IBaseEntity {
 /**
  * Aggregate Entities
  */
-
 export interface IBaseAggregateEntity {
     readonly id: string;
     readonly updatedAtTimestamp: string;
@@ -323,6 +322,28 @@ export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
     readonly account: ILightEntity;
     readonly token: ILightEntity;
     readonly flowOperators: ILightEntity[];
+    readonly accountTokenSnapshotLogs: IAccountTokenSnapshotLog[];
+}
+
+export interface IAccountTokenSnapshotLog {
+    readonly transactionHash: string;
+    readonly blockNumber: string;
+    readonly logIndex: string;
+    readonly timestamp: string;
+    readonly order: string;
+    readonly balanceSoFar: string;
+    readonly totalApprovedSubscriptionsSoFar: number;
+    readonly totalNumberOfActiveStreamsSoFar: number;
+    readonly totalNumberOfClosedStreamsSoFar: number;
+    readonly totalSubscriptionsWithUnitsSoFar: number;
+    readonly totalAmountStreamedSoFar: string;
+    readonly totalAmountTransferredSoFar: string;
+    readonly totalDepositSoFar: string;
+    readonly totalInflowRateSoFar: string;
+    readonly totalNetFlowRateSoFar: string;
+    readonly totalOutflowRateSoFar: string;
+    readonly  account: ILightEntity;
+    readonly  token: ILightEntity;
 }
 
 export interface ITokenStatistic extends IBaseAggregateEntity {

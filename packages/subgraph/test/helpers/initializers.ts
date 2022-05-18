@@ -9,23 +9,16 @@
 
 import {
     IAccountTokenSnapshot,
+    IFlowOperator,
+    IFlowOperatorUpdatedInitTestData,
     IFlowUpdatedInitTestData,
     IIndex,
+    IIndexSubscription,
     IInstantDistributionTestData,
     IStreamData,
-    IIndexSubscription,
     ITokenStatistic,
-    IFlowOperatorUpdatedInitTestData,
-    IFlowOperator,
 } from "../interfaces";
-import {
-    getATSId,
-    getFlowOperatorId,
-    getIndexId,
-    getRevisionIndexId,
-    getStreamId,
-    getSubscriptionId,
-} from "./helpers";
+import {getATSId, getFlowOperatorId, getIndexId, getRevisionIndexId, getStreamId, getSubscriptionId,} from "./helpers";
 
 export const getOrInitRevisionIndex = (
     revisionIndexes: { [id: string]: number | undefined },
@@ -181,9 +174,10 @@ export const getOrInitAccountTokenSnapshot = (
             totalNetFlowRate: "0",
             totalInflowRate: "0",
             totalOutflowRate: "0",
-            account: { id: accountId },
-            token: { id: tokenId },
+            account: {id: accountId},
+            token: {id: tokenId},
             flowOperators: [],
+            accountTokenSnapshotLogs: [],
         };
     }
     return existingATS;

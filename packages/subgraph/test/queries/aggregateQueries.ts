@@ -25,6 +25,28 @@ export const getAccountTokenSnapshot = gql`
             token {
                 id
             }
+            accountTokenSnapshotLogs(
+                first: 1
+                orderBy: order
+                orderDirection: desc
+            ) {
+                blockNumber
+                transactionHash
+                balanceSoFar
+                logIndex
+                order
+                timestamp
+                totalAmountStreamedSoFar
+                totalAmountTransferredSoFar
+                totalApprovedSubscriptionsSoFar
+                totalDepositSoFar
+                totalInflowRateSoFar
+                totalNetFlowRateSoFar
+                totalNumberOfActiveStreamsSoFar
+                totalNumberOfClosedStreamsSoFar
+                totalOutflowRateSoFar
+                totalSubscriptionsWithUnitsSoFar
+            }
         }
     }
 `;
@@ -47,6 +69,40 @@ export const getTokenStatistic = gql`
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt
             totalAmountDistributedUntilUpdatedAt
+            token {
+                id
+            }
+        }
+    }
+`;
+
+export const getAccountTokenSnapshotLogs = gql`
+    query getAccountTokenSnapshotLogs($id: ID!) {
+        response: accountTokenSnapshots(
+            where: { account: $id }
+            first: 1
+            orderBy: order
+            orderDirection: desc
+        ) {
+            blockNumber
+            transactionHash
+            balanceSoFar
+            logIndex
+            order
+            timestamp
+            totalAmountStreamedSoFar
+            totalAmountTransferredSoFar
+            totalApprovedSubscriptionsSoFar
+            totalDepositSoFar
+            totalInflowRateSoFar
+            totalNetFlowRateSoFar
+            totalNumberOfActiveStreamsSoFar
+            totalNumberOfClosedStreamsSoFar
+            totalOutflowRateSoFar
+            totalSubscriptionsWithUnitsSoFar
+            account {
+                id
+            }
             token {
                 id
             }

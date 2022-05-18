@@ -1196,9 +1196,9 @@ type AccountTokenSnapshot @entity {
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
-
     """
-    isLiquidationEstimateOptimistic, If they have `0` subcription with no units it return true or else false.
+    isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
+    Optimistic means that it is the earliest time the user will be liquidated as they may receive ongoing distributions which aren't tracked by the subgraph
     """
     isLiquidationEstimateOptimistic: Boolean!
 
@@ -1286,62 +1286,62 @@ type AccountTokenSnapshotLog @entity {
     """
     Optimistic liquidation estimation property.
     """
-    maybeCriticalAtTimestampSoFar: BigInt!
+    maybeCriticalAtTimestamp: BigInt!
     """
-    The number of currently open streams.
+    The current (as of timestamp) number of currently open streams.
     """
-    totalNumberOfActiveStreamsSoFar: Int!
+    totalNumberOfActiveStreams: Int!
 
     """
-    The number of all-time closed streams.
+    The current (as of timestamp) number of all-time closed streams.
     """
-    totalNumberOfClosedStreamsSoFar: Int!
+    totalNumberOfClosedStreams: Int!
 
     """
-    The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
+    The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
     """
-    totalSubscriptionsWithUnitsSoFar: Int!
+    totalSubscriptionsWithUnits: Int!
 
     """
-    Counts all currently (as of updatedAt) approved subscriptions whether or not they have units.
+    Counts all currently (as of timestamp) approved subscriptions whether or not they have units.
     """
-    totalApprovedSubscriptionsSoFar: Int!
+    totalApprovedSubscriptions: Int!
 
     """
-    Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
+    Balance of `account` as of `timestamp`/`block`.
     """
-    balanceSoFar: BigInt!
+    balance: BigInt!
 
     """
-    The total deposit this account has held by the CFA agreement for `account` active streams.
+    The total (as of timestamp) deposit this account has held by the CFA agreement for `account` active streams.
     """
-    totalDepositSoFar: BigInt!
+    totalDeposit: BigInt!
 
     """
-    The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
+    The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
     """
-    totalNetFlowRateSoFar: BigInt!
+    totalNetFlowRate: BigInt!
 
     """
-    The total inflow rate (receive flowRate per second) of the `account`.
+    The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
     """
-    totalInflowRateSoFar: BigInt!
+    totalInflowRate: BigInt!
 
     """
-    The total outflow rate (send flowrate per second) of the `account`.
+    The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
     """
-    totalOutflowRateSoFar: BigInt!
+    totalOutflowRate: BigInt!
 
     """
-    The total amount of `token` streamed to this `account` until
-    the `updatedAtTimestamp`/`updatedAtBlock`.
+    The total (as of timestamp) amount of `token` streamed to this `account` until
+    the `timestamp`/`block`.
     """
-    totalAmountStreamedSoFar: BigInt!
+    totalAmountStreamed: BigInt!
 
     """
-    The total amount of `token` this `account` has transferred.
+    The total (as of timestamp) amount of `token` this `account` has transferred.
     """
-    totalAmountTransferredSoFar: BigInt!
+    totalAmountTransferred: BigInt!
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!

@@ -33,21 +33,21 @@ export const getAccountTokenSnapshot = gql`
             ) {
                 blockNumber
                 transactionHash
-                balanceSoFar
+                balance
                 logIndex
                 order
                 timestamp
-                totalAmountStreamedSoFar
-                totalAmountTransferredSoFar
-                maybeCriticalAtTimestampSoFar
-                totalApprovedSubscriptionsSoFar
-                totalDepositSoFar
-                totalInflowRateSoFar
-                totalNetFlowRateSoFar
-                totalNumberOfActiveStreamsSoFar
-                totalNumberOfClosedStreamsSoFar
-                totalOutflowRateSoFar
-                totalSubscriptionsWithUnitsSoFar
+                totalAmountStreamed
+                totalAmountTransferred
+                maybeCriticalAtTimestamp
+                totalApprovedSubscriptions
+                totalDeposit
+                totalInflowRate
+                totalNetFlowRate
+                totalNumberOfActiveStreams
+                totalNumberOfClosedStreams
+                totalOutflowRate
+                totalSubscriptionsWithUnits
                 triggeredByEventName
             }
         }

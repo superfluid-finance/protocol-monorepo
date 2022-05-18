@@ -283,13 +283,13 @@ export function getOrder(
 
 export function createLogID(
     logPrefix: string,
-    aggregateId: string,
+    accountTokenSnapshotId: string,
     event: ethereum.Event,
 ): string {
     return (
         logPrefix
         + "-" +
-        aggregateId
+        accountTokenSnapshotId
         + "-" +
         event.transaction.hash.toHexString()
         + "-" +

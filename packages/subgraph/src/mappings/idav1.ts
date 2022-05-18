@@ -529,7 +529,7 @@ export function handleSubscriptionUnitsUpdated(
     subscription.save();
 
     createSubscriptionUnitsUpdatedEntity(event, subscription.id, oldUnits);
-    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionUnitsUpdated");
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionUnitsUpdated");
     createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionUnitsUpdated");
 }
 

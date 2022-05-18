@@ -333,20 +333,20 @@ export interface IAccountTokenSnapshotLog {
     readonly timestamp: string;
     readonly order: string;
     readonly triggeredByEventName: string;
-    readonly balanceSoFar: string;
-    readonly totalApprovedSubscriptionsSoFar: number;
-    readonly totalNumberOfActiveStreamsSoFar: number;
-    readonly totalNumberOfClosedStreamsSoFar: number;
-    readonly totalSubscriptionsWithUnitsSoFar: number;
-    readonly totalAmountStreamedSoFar: string;
-    readonly totalAmountTransferredSoFar: string;
-    readonly totalDepositSoFar: string;
-    readonly totalInflowRateSoFar: string;
-    readonly totalNetFlowRateSoFar: string;
-    readonly totalOutflowRateSoFar: string;
-    readonly maybeCriticalAtTimestampSoFar: string;
-    readonly  account: ILightEntity;
-    readonly  token: ILightEntity;
+    readonly balance: string;
+    readonly totalApprovedSubscriptions: number;
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
+    readonly totalSubscriptionsWithUnits: number;
+    readonly totalAmountStreamed: string;
+    readonly totalAmountTransferred: string;
+    readonly totalDeposit: string;
+    readonly totalInflowRate: string;
+    readonly totalNetFlowRate: string;
+    readonly totalOutflowRate: string;
+    readonly maybeCriticalAtTimestamp: string;
+    readonly account: ILightEntity;
+    readonly token: ILightEntity;
 }
 
 export interface ITokenStatistic extends IBaseAggregateEntity {

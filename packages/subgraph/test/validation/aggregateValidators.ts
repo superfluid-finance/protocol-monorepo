@@ -101,54 +101,52 @@ export const validateATSEntity = (
 export const validateASTEntityAndItsLogEntry = (
     graphATSData: IAccountTokenSnapshot
 ) => {
-    const accountTokenSnapshotLogs: IAccountTokenSnapshotLog[] = graphATSData.accountTokenSnapshotLogs;
-    const accountTokenSnapshotLog: IAccountTokenSnapshotLog = accountTokenSnapshotLogs[0];
-
+    const accountTokenSnapshotLog: IAccountTokenSnapshotLog = graphATSData.accountTokenSnapshotLogs[0];
     expect(graphATSData.maybeCriticalAtTimestamp, "ATS: maybeCriticalAtTimestamp error")
-        .to.equal(accountTokenSnapshotLog.maybeCriticalAtTimestampSoFar)
+        .to.equal(accountTokenSnapshotLog.maybeCriticalAtTimestamp)
     expect(
         graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"
-    ).to.equal(accountTokenSnapshotLog.totalNumberOfActiveStreamsSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalNumberOfActiveStreams);
     expect(
         graphATSData.totalNumberOfClosedStreams,
         "ATS: totalNumberOfClosedStreams error"
-    ).to.equal(accountTokenSnapshotLog.totalNumberOfClosedStreamsSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalNumberOfClosedStreams);
     expect(
         graphATSData.totalSubscriptionsWithUnits,
         "ATS: totalSubscriptionWithUnits error"
-    ).to.equal(accountTokenSnapshotLog.totalSubscriptionsWithUnitsSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalSubscriptionsWithUnits);
     expect(
         graphATSData.totalApprovedSubscriptions,
         "ATS: totalApprovedSubscriptions error"
-    ).to.equal(accountTokenSnapshotLog.totalApprovedSubscriptionsSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalApprovedSubscriptions);
     expect(
         graphATSData.balanceUntilUpdatedAt,
         "ATS: balanceUntilUpdatedAt error"
-    ).to.equal(accountTokenSnapshotLog.balanceSoFar);
+    ).to.equal(accountTokenSnapshotLog.balance);
     expect(
         graphATSData.totalNetFlowRate,
         "ATS: totalNetFlowRate error"
-    ).to.equal(accountTokenSnapshotLog.totalNetFlowRateSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalNetFlowRate);
 
     expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
-        accountTokenSnapshotLog.totalInflowRateSoFar
+        accountTokenSnapshotLog.totalInflowRate
     );
     expect(graphATSData.totalDeposit, "ATS: totalDeposit error").to.equal(
-        accountTokenSnapshotLog.totalDepositSoFar
+        accountTokenSnapshotLog.totalDeposit
     );
     expect(
         graphATSData.totalOutflowRate,
         "ATS: totalOutflowRate error"
-    ).to.equal(accountTokenSnapshotLog.totalOutflowRateSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalOutflowRate);
     expect(
         graphATSData.totalAmountStreamedUntilUpdatedAt,
         "ATS: totalAmountStreamedUntilUpdatedAt error"
-    ).to.equal(accountTokenSnapshotLog.totalAmountStreamedSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalAmountStreamed);
     expect(
         graphATSData.totalAmountTransferredUntilUpdatedAt,
         "ATS: totalAmountTransferredUntilUpdatedAt error"
-    ).to.equal(accountTokenSnapshotLog.totalAmountTransferredSoFar);
+    ).to.equal(accountTokenSnapshotLog.totalAmountTransferred);
     expect(
         graphATSData.updatedAtTimestamp,
         "ATS: updatedAtTimestamp error"

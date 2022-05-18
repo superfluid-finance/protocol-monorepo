@@ -20,6 +20,7 @@ import {BigNumber} from "ethers";
 // 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
 const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLIER in packages/subgraph/src/utils.ts
+const MAX_SAFE_SECONDS = BigNumber.from("8640000000000") // This number is also defined as MAX_SAFE_SECONDS in packages/subgraph/src/utils.ts
 /**************************************************************************
  * Test Helper Functions
  *************************************************************************/
@@ -462,4 +463,20 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
 
 export const getOrder = (blockNumber?: number, logIndex?: number) => {
     return blockNumber! * ORDER_MULTIPLIER + logIndex!
+}
+
+export function calculateMaybeCriticalAtTimestamp(
+    updatedAtTimestamp: string,
+    balanceUntilUpdatedAt: string,
+    totalDeposit: string,
+    totalNetFlowRate: string
+) {
+    if (BigNumber.from(balanceUntilUpdatedAt).lte(BigNumber.from("0"))) return "0";
+    if (BigNumber.from(totalNetFlowRate).gte(BigNumber.from("0"))) return "0";
+    const criticalTimestamp = BigNumber.from(balanceUntilUpdatedAt).add(BigNumber.from(totalDeposit)).div(BigNumber.from(totalNetFlowRate).abs());
+    const calculatedCriticalTimestamp = criticalTimestamp.add(BigNumber.from(updatedAtTimestamp));
+    if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
+        return MAX_SAFE_SECONDS.toString();
+    }
+    return calculatedCriticalTimestamp.toString();
 }

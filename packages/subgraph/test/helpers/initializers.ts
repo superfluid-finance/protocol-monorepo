@@ -178,6 +178,7 @@ export const getOrInitAccountTokenSnapshot = (
             totalAmountStreamedUntilUpdatedAt: "0",
             totalAmountTransferredUntilUpdatedAt: "0",
             totalDeposit: "0",
+            maybeCriticalAtTimestamp: "0",
             totalNetFlowRate: "0",
             totalInflowRate: "0",
             totalOutflowRate: "0",

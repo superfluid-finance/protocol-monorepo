@@ -748,35 +748,35 @@ export function createAccountTokenSnapshotLogEntity(
     event: ethereum.Event,
     accountAddress: Address,
     tokenAddress: Address,
+    eventName: string,
 ): void {
     if (accountAddress.equals(ZERO_ADDRESS)) {
         return;
     }
-    let atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
-    let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
-    if (accountTokenSnapshot == null) return;
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(accountAddress, tokenAddress, event.block);
     // Transaction
-    let ev = new AccountTokenSnapshotLog(createLogID("AccountTokenSnapshotLog", accountTokenSnapshot.id, event));
-    ev.transactionHash = event.transaction.hash;
-    ev.timestamp = event.block.timestamp;
-    ev.order = getOrder(event.block.number, event.logIndex);
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-
+    let atsLog = new AccountTokenSnapshotLog(createLogID("ATSLog", accountTokenSnapshot.id, event));
+    atsLog.transactionHash = event.transaction.hash;
+    atsLog.timestamp = event.block.timestamp;
+    atsLog.order = getOrder(event.block.number, event.logIndex);
+    atsLog.blockNumber = event.block.number;
+    atsLog.logIndex = event.logIndex;
+    atsLog.triggeredByEventName = eventName;
     // Account token snapshot state
-    ev.totalNumberOfActiveStreamsSoFar = accountTokenSnapshot.totalNumberOfActiveStreams;
-    ev.totalNumberOfClosedStreamsSoFar = accountTokenSnapshot.totalNumberOfClosedStreams;
-    ev.totalSubscriptionsWithUnitsSoFar = accountTokenSnapshot.totalSubscriptionsWithUnits;
-    ev.totalApprovedSubscriptionsSoFar = accountTokenSnapshot.totalApprovedSubscriptions;
-    ev.balanceSoFar = accountTokenSnapshot.balanceUntilUpdatedAt;
-    ev.totalNetFlowRateSoFar = accountTokenSnapshot.totalNetFlowRate;
-    ev.totalInflowRateSoFar = accountTokenSnapshot.totalInflowRate;
-    ev.totalOutflowRateSoFar = accountTokenSnapshot.totalOutflowRate;
-    ev.totalAmountStreamedSoFar = accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt;
-    ev.totalAmountTransferredSoFar = accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt;
-    ev.totalDepositSoFar = accountTokenSnapshot.totalDeposit;
-    ev.account = accountTokenSnapshot.account;
-    ev.token = accountTokenSnapshot.token;
-    ev.accountTokenSnapshot = accountTokenSnapshot.id;
-    ev.save();
+    atsLog.totalNumberOfActiveStreamsSoFar = accountTokenSnapshot.totalNumberOfActiveStreams;
+    atsLog.totalNumberOfClosedStreamsSoFar = accountTokenSnapshot.totalNumberOfClosedStreams;
+    atsLog.totalSubscriptionsWithUnitsSoFar = accountTokenSnapshot.totalSubscriptionsWithUnits;
+    atsLog.totalApprovedSubscriptionsSoFar = accountTokenSnapshot.totalApprovedSubscriptions;
+    atsLog.balanceSoFar = accountTokenSnapshot.balanceUntilUpdatedAt;
+    atsLog.totalNetFlowRateSoFar = accountTokenSnapshot.totalNetFlowRate;
+    atsLog.totalInflowRateSoFar = accountTokenSnapshot.totalInflowRate;
+    atsLog.totalOutflowRateSoFar = accountTokenSnapshot.totalOutflowRate;
+    atsLog.totalAmountStreamedSoFar = accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt;
+    atsLog.totalAmountTransferredSoFar = accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt;
+    atsLog.totalDepositSoFar = accountTokenSnapshot.totalDeposit;
+    atsLog.maybeCriticalAtTimestampSoFar = accountTokenSnapshot.maybeCriticalAtTimestamp;
+    atsLog.account = accountTokenSnapshot.account;
+    atsLog.token = accountTokenSnapshot.token;
+    atsLog.accountTokenSnapshot = accountTokenSnapshot.id;
+    atsLog.save();
 }

@@ -103,6 +103,9 @@ export const validateASTEntityAndItsLogEntry = (
 ) => {
     const accountTokenSnapshotLogs: IAccountTokenSnapshotLog[] = graphATSData.accountTokenSnapshotLogs;
     const accountTokenSnapshotLog: IAccountTokenSnapshotLog = accountTokenSnapshotLogs[0];
+
+    expect(graphATSData.maybeCriticalAtTimestamp, "ATS: maybeCriticalAtTimestamp error")
+        .to.equal(accountTokenSnapshotLog.maybeCriticalAtTimestampSoFar)
     expect(
         graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"

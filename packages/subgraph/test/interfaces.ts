@@ -332,6 +332,7 @@ export interface IAccountTokenSnapshotLog {
     readonly logIndex: string;
     readonly timestamp: string;
     readonly order: string;
+    readonly triggeredByEventName: string;
     readonly balanceSoFar: string;
     readonly totalApprovedSubscriptionsSoFar: number;
     readonly totalNumberOfActiveStreamsSoFar: number;
@@ -343,6 +344,7 @@ export interface IAccountTokenSnapshotLog {
     readonly totalInflowRateSoFar: string;
     readonly totalNetFlowRateSoFar: string;
     readonly totalOutflowRateSoFar: string;
+    readonly maybeCriticalAtTimestampSoFar: string;
     readonly  account: ILightEntity;
     readonly  token: ILightEntity;
 }

@@ -328,8 +328,8 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         isDelete,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event,senderAddress, tokenAddress);
-    createAccountTokenSnapshotLogEntity(event,receiverAddress, tokenAddress);
+    createAccountTokenSnapshotLogEntity(event, senderAddress, tokenAddress, "FlowUpdated");
+    createAccountTokenSnapshotLogEntity(event, receiverAddress, tokenAddress, "FlowUpdated");
 }
 
 // NOTE: This handler is run right after handleStreamUpdated as the FlowUpdatedExtension

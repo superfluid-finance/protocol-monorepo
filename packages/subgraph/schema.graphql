@@ -1274,8 +1274,13 @@ type AccountTokenSnapshotLog @entity {
     transactionHash: Bytes!
     logIndex: BigInt!
     order: BigInt!
+    triggeredByEventName: String!
 
     # ---------------------------------- state ----------------------------------
+    """
+    Optimistic liquidation estimation property.
+    """
+    maybeCriticalAtTimestampSoFar: BigInt!
     """
     The number of currently open streams.
     """

@@ -6,7 +6,6 @@ export const getAccountTokenSnapshot = gql`
             updatedAtTimestamp
             updatedAtBlockNumber
             totalNumberOfActiveStreams
-            maybeCriticalAtTimestamp
             totalNumberOfClosedStreams
             totalSubscriptionsWithUnits
             totalApprovedSubscriptions
@@ -40,6 +39,7 @@ export const getAccountTokenSnapshot = gql`
                 timestamp
                 totalAmountStreamedSoFar
                 totalAmountTransferredSoFar
+                maybeCriticalAtTimestampSoFar
                 totalApprovedSubscriptionsSoFar
                 totalDepositSoFar
                 totalInflowRateSoFar
@@ -48,6 +48,7 @@ export const getAccountTokenSnapshot = gql`
                 totalNumberOfClosedStreamsSoFar
                 totalOutflowRateSoFar
                 totalSubscriptionsWithUnitsSoFar
+                triggeredByEventName
             }
         }
     }
@@ -71,40 +72,6 @@ export const getTokenStatistic = gql`
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt
             totalAmountDistributedUntilUpdatedAt
-            token {
-                id
-            }
-        }
-    }
-`;
-
-export const getAccountTokenSnapshotLogs = gql`
-    query getAccountTokenSnapshotLogs($id: ID!) {
-        response: accountTokenSnapshots(
-            where: { account: $id }
-            first: 1
-            orderBy: order
-            orderDirection: desc
-        ) {
-            blockNumber
-            transactionHash
-            balanceSoFar
-            logIndex
-            order
-            timestamp
-            totalAmountStreamedSoFar
-            totalAmountTransferredSoFar
-            totalApprovedSubscriptionsSoFar
-            totalDepositSoFar
-            totalInflowRateSoFar
-            totalNetFlowRateSoFar
-            totalNumberOfActiveStreamsSoFar
-            totalNumberOfClosedStreamsSoFar
-            totalOutflowRateSoFar
-            totalSubscriptionsWithUnitsSoFar
-            account {
-                id
-            }
             token {
                 id
             }

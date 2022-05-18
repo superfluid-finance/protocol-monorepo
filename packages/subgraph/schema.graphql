@@ -1196,6 +1196,12 @@ type AccountTokenSnapshot @entity {
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
+
+    """
+    isLiquidationEstimateOptimistic, If they have `0` subcription with no units it return true or else false.
+    """
+    isLiquidationEstimateOptimistic: Boolean!
+
     """
     Optimistic liquidation estimation property.
     """

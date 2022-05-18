@@ -389,6 +389,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
+        accountTokenSnapshot.isLiquidationEstimateOptimistic = false;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
@@ -492,6 +493,7 @@ export function updateAggregateIDASubscriptionsData(
     accountTokenSnapshot.totalSubscriptionsWithUnits =
         accountTokenSnapshot.totalSubscriptionsWithUnits +
         totalSubscriptionWithUnitsDelta;
+    accountTokenSnapshot.isLiquidationEstimateOptimistic = accountTokenSnapshot.totalSubscriptionsWithUnits > 0;
     accountTokenSnapshot.totalApprovedSubscriptions =
         accountTokenSnapshot.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
@@ -504,6 +506,7 @@ export function updateAggregateIDASubscriptionsData(
     tokenStatistic.totalSubscriptionsWithUnits =
         tokenStatistic.totalSubscriptionsWithUnits +
         totalSubscriptionWithUnitsDelta;
+    accountTokenSnapshot.isLiquidationEstimateOptimistic = accountTokenSnapshot.totalSubscriptionsWithUnits > 0;
     tokenStatistic.totalApprovedSubscriptions =
         tokenStatistic.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;

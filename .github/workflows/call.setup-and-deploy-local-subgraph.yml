@@ -5,6 +5,10 @@ on:
 
 jobs:
   setup-subgraph:
+    name: Build and test subgraph
+
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
@@ -37,3 +41,7 @@ jobs:
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ./graph-node/docker
+
+      - name: "Run integration test suite"
+        run: yarn test
+        working-directory: ./packages/subgraph

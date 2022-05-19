@@ -143,16 +143,10 @@ jobs:
     name: Build and test subgraph (Feature Branch)
 
     runs-on: ubuntu-latest
-
-    needs: [check]
-    if: needs.check.outputs.build_subgraph
     
-    steps: 
-      - uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@sdk-core-subgraph-query-test
-
-      - name: "Run integration test suite"
-        run: yarn test
-        working-directory: ./packages/subgraph
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@github.head_ref
+      needs: [check]
+      if: needs.check.outputs.build_subgraph
 
   test-sdk-core:
     name: Build and test sdk-core (feature branch)

@@ -156,6 +156,11 @@ type AccountTokenSnapshot {
   updatedAtBlockNumber: BigInt!
 
   """
+  Optimistic liquidation estimation property.
+  """
+  maybeCriticalAtTimestamp: BigInt!
+
+  """
   The number of currently open streams.
 
   """
@@ -251,6 +256,14 @@ input AccountTokenSnapshot_filter {
   updatedAtBlockNumber_lte: BigInt
   updatedAtBlockNumber_in: [BigInt!]
   updatedAtBlockNumber_not_in: [BigInt!]
+  maybeCriticalAtTimestamp: BigInt
+  maybeCriticalAtTimestamp_not: BigInt
+  maybeCriticalAtTimestamp_gt: BigInt
+  maybeCriticalAtTimestamp_lt: BigInt
+  maybeCriticalAtTimestamp_gte: BigInt
+  maybeCriticalAtTimestamp_lte: BigInt
+  maybeCriticalAtTimestamp_in: [BigInt!]
+  maybeCriticalAtTimestamp_not_in: [BigInt!]
   totalNumberOfActiveStreams: Int
   totalNumberOfActiveStreams_not: Int
   totalNumberOfActiveStreams_gt: Int
@@ -385,6 +398,7 @@ enum AccountTokenSnapshot_orderBy {
   id
   updatedAtTimestamp
   updatedAtBlockNumber
+  maybeCriticalAtTimestamp
   totalNumberOfActiveStreams
   totalNumberOfClosedStreams
   totalSubscriptionsWithUnits

@@ -1,0 +1,37 @@
+query accountTokenSnapshotLogs($first: Int = 10, $skip: Int = 0, $orderBy: AccountTokenSnapshotLog_orderBy = id, $orderDirection: OrderDirection = asc, $where: AccountTokenSnapshotLog_filter = {}, $block: Block_height) {
+    accountTokenSnapshotLogs(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        id
+        order
+        logIndex
+        timestamp
+        blockNumber
+        balance
+        maybeCriticalAtTimestamp
+        totalAmountStreamed
+        totalAmountTransferred
+        totalApprovedSubscriptions
+        totalDeposit
+        totalInflowRate
+        totalNetFlowRate
+        totalNumberOfActiveStreams
+        totalNumberOfClosedStreams
+        totalSubscriptionsWithUnits
+        totalOutflowRate
+        transactionHash
+        triggeredByEventName
+        account {
+            id
+        }
+        token {
+            id
+            symbol
+        }
+    }
+}

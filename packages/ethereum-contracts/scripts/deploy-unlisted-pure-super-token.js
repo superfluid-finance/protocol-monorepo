@@ -7,20 +7,20 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev Deploy unlisted native super token to the network.
+ * @dev Deploy unlisted pure super token to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/deploy-unlisted-native-super-token.js : {NAME} {SYMBOL} {INITIAL SUPPLY}
+ * Usage: npx truffle exec scripts/deploy-unlisted-pure-super-token.js : {NAME} {SYMBOL} {INITIAL SUPPLY}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("======== Deploying unlisted native super token ========");
+    console.log("======== Deploying unlisted pure super token ========");
     let {protocolReleaseVersion} = options;
 
     if (args.length !== 3) {
@@ -62,7 +62,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("Invoking initializeCustomSuperToken...");
     await superTokenFactory.initializeCustomSuperToken(token.address);
 
-    console.log(`Native SuperToken deployed at ${token.address}`);
+    console.log(`Pure SuperToken deployed at ${token.address}`);
 
     return token.address;
 });

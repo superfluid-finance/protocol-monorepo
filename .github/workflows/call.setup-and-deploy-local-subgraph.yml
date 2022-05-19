@@ -1,13 +1,23 @@
-name: Set up and deploy local subgraph
+name: Set up, deploy and test local subgraph
 
 on:
   workflow_call:
+    inputs:
+      is-subgraph-package-tests:
+        required: true
+        type: boolean
+      subgraph-release:
+        required: false
+        type: string
 
 jobs:
-  setup-subgraph:
+  setup-and-test-subgraph:
     name: Build and test subgraph
 
     runs-on: ubuntu-latest
+
+    env:
+      contracts-working-directory: ./packages/ethereum-contracts
 
     steps:
       - uses: actions/checkout@v3
@@ -42,6 +52,28 @@ jobs:
         run: docker-compose up &
         working-directory: ./graph-node/docker
 
-      - name: "Run integration test suite"
+      - name: "Run subgraph integration test suite"
+        if: ${{ inputs.is-subgraph-package-tests }}
         run: yarn test
         working-directory: ./packages/subgraph
+
+      # test local subgraph w/ SDK-core
+      - name: "Install contract dependencies"
+        if: ${{ !inputs.is-subgraph-package-tests }}
+        run: yarn install
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Build contracts"
+        if: ${{ !inputs.is-subgraph-package-tests }}
+        run: yarn run build:contracts
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Run SDK-Core tests and test subgraph query with local subgraph"
+        if: ${{ !inputs.is-subgraph-package-tests }}
+        run: |
+          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          ./tasks/setupTestEnvironment.sh
+          npx hardhat test
+        working-directory: ./packages/sdk-core
+        env: 
+          LOCAL_SUBGRAPH_URL: http://localhost:8000/subgraphs/name/superfluid-test

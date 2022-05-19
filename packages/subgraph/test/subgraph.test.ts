@@ -453,23 +453,21 @@ describe("Subgraph Tests", () => {
             );
 
             // get balance of sender
-            const balanceOfSender = await daix.realtimeBalanceOf({
+            const balanceOfSender = await daix.balanceOf({
                 account: sender,
                 providerOrSigner: provider,
             });
             const senderSigner = await ethers.getSigner(sender);
             const liquidatorSigner = await ethers.getSigner(liquidator);
-            const transferAmount = toBN(balanceOfSender.availableBalance)
+            const transferAmount = toBN(balanceOfSender)
                 // transfer total - 5 seconds of flow
-                .sub(toBN((flowRate * 10).toString()))
+                .sub(toBN((flowRate * 5).toString()))
                 .toString();
-            console.log("PRE FIRST TRANSFER");
             await transferAndUpdate(
                 transferAmount,
                 senderSigner,
                 liquidator
             );
-            console.log("POST FIRST TRANSFER");
             // wait for flow to get drained
             // cannot use time traveler due to
             // subgraph constraints
@@ -501,15 +499,12 @@ describe("Subgraph Tests", () => {
                 balanceOfLiquidator.availableBalance
             ).div(toBN(2));
 
-            console.log("PRE SECOND TRANSFER");
             // transfer balance back to sender
             await transferAndUpdate(
                 returnAmount.toString(),
                 liquidatorSigner,
                 sender
             );
-            console.log("PRE SECOND TRANSFER");
-            console.log("POST SECOND TRANSFER");
         });
 
         it("Should be able to update flow operator permissions", async () => {

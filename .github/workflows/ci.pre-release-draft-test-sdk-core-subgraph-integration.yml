@@ -87,9 +87,11 @@ jobs:
 
   # build and test live subgraph with release sdk-core
   build-and-test-live-subgraph-current-release:
-    name: Build and test live subgraph with current release
+    name: Build and test live subgraph with current sdk-core release
 
     runs-on: ubuntu-latest
+
+    if: github.base_ref == "release-sdk-core-stable"
 
     env:
       env.contracts-working-directory: ./packages/ethereum-contracts
@@ -124,6 +126,8 @@ jobs:
     name: Build and test live subgraph with current release
 
     runs-on: ubuntu-latest
+
+    if: github.base_ref == "release-subgraph-v1"
 
     matrix:
       version: [0.3.2, 0.4.0, 0.4.1]

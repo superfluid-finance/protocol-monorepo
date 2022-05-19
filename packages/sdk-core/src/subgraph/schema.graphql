@@ -156,7 +156,16 @@ type AccountTokenSnapshot {
   updatedAtBlockNumber: BigInt!
 
   """
+  isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
+  Optimistic means that it is the earliest time the user will be liquidated as
+  they may receive ongoing distributions which aren't tracked by the subgraph
+
+  """
+  isLiquidationEstimateOptimistic: Boolean!
+
+  """
   Optimistic liquidation estimation property.
+
   """
   maybeCriticalAtTimestamp: BigInt!
 
@@ -229,6 +238,7 @@ type AccountTokenSnapshot {
   account: Account!
   token: Token!
   flowOperators(skip: Int = 0, first: Int = 100, orderBy: FlowOperator_orderBy, orderDirection: OrderDirection, where: FlowOperator_filter): [FlowOperator!]!
+  accountTokenSnapshotLogs(skip: Int = 0, first: Int = 100, orderBy: AccountTokenSnapshotLog_orderBy, orderDirection: OrderDirection, where: AccountTokenSnapshotLog_filter): [AccountTokenSnapshotLog!]!
 }
 
 input AccountTokenSnapshot_filter {
@@ -256,6 +266,10 @@ input AccountTokenSnapshot_filter {
   updatedAtBlockNumber_lte: BigInt
   updatedAtBlockNumber_in: [BigInt!]
   updatedAtBlockNumber_not_in: [BigInt!]
+  isLiquidationEstimateOptimistic: Boolean
+  isLiquidationEstimateOptimistic_not: Boolean
+  isLiquidationEstimateOptimistic_in: [Boolean!]
+  isLiquidationEstimateOptimistic_not_in: [Boolean!]
   maybeCriticalAtTimestamp: BigInt
   maybeCriticalAtTimestamp_not: BigInt
   maybeCriticalAtTimestamp_gt: BigInt
@@ -398,6 +412,7 @@ enum AccountTokenSnapshot_orderBy {
   id
   updatedAtTimestamp
   updatedAtBlockNumber
+  isLiquidationEstimateOptimistic
   maybeCriticalAtTimestamp
   totalNumberOfActiveStreams
   totalNumberOfClosedStreams
@@ -413,6 +428,347 @@ enum AccountTokenSnapshot_orderBy {
   account
   token
   flowOperators
+  accountTokenSnapshotLogs
+}
+
+"""
+AccountTokenSnapshotLog: Historical entries of AccountTokenSnapshot updates.
+
+"""
+type AccountTokenSnapshotLog {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  order: BigInt!
+  triggeredByEventName: String!
+
+  """
+  Optimistic liquidation estimation property.
+
+  """
+  maybeCriticalAtTimestamp: BigInt!
+
+  """
+  The current (as of timestamp) number of currently open streams.
+
+  """
+  totalNumberOfActiveStreams: Int!
+
+  """
+  The current (as of timestamp) number of all-time closed streams.
+
+  """
+  totalNumberOfClosedStreams: Int!
+
+  """
+  The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
+
+  """
+  totalSubscriptionsWithUnits: Int!
+
+  """
+  Counts all currently (as of timestamp) approved subscriptions whether or not they have units.
+
+  """
+  totalApprovedSubscriptions: Int!
+
+  """
+  Balance of `account` as of `timestamp`/`block`.
+
+  """
+  balance: BigInt!
+
+  """
+  The total (as of timestamp) deposit this account has held by the CFA agreement for `account` active streams.
+
+  """
+  totalDeposit: BigInt!
+
+  """
+  The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
+
+  """
+  totalNetFlowRate: BigInt!
+
+  """
+  The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
+
+  """
+  totalInflowRate: BigInt!
+
+  """
+  The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
+
+  """
+  totalOutflowRate: BigInt!
+
+  """
+  The total (as of timestamp) amount of `token` streamed to this `account` until
+  the `timestamp`/`block`.
+
+  """
+  totalAmountStreamed: BigInt!
+
+  """
+  The total (as of timestamp) amount of `token` this `account` has transferred.
+
+  """
+  totalAmountTransferred: BigInt!
+  account: Account!
+  token: Token!
+  accountTokenSnapshot: AccountTokenSnapshot!
+}
+
+input AccountTokenSnapshotLog_filter {
+  id: ID
+  id_not: ID
+  id_gt: ID
+  id_lt: ID
+  id_gte: ID
+  id_lte: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+  timestamp_in: [BigInt!]
+  timestamp_not_in: [BigInt!]
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  blockNumber_in: [BigInt!]
+  blockNumber_not_in: [BigInt!]
+  transactionHash: Bytes
+  transactionHash_not: Bytes
+  transactionHash_in: [Bytes!]
+  transactionHash_not_in: [Bytes!]
+  transactionHash_contains: Bytes
+  transactionHash_not_contains: Bytes
+  logIndex: BigInt
+  logIndex_not: BigInt
+  logIndex_gt: BigInt
+  logIndex_lt: BigInt
+  logIndex_gte: BigInt
+  logIndex_lte: BigInt
+  logIndex_in: [BigInt!]
+  logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
+  triggeredByEventName: String
+  triggeredByEventName_not: String
+  triggeredByEventName_gt: String
+  triggeredByEventName_lt: String
+  triggeredByEventName_gte: String
+  triggeredByEventName_lte: String
+  triggeredByEventName_in: [String!]
+  triggeredByEventName_not_in: [String!]
+  triggeredByEventName_contains: String
+  triggeredByEventName_contains_nocase: String
+  triggeredByEventName_not_contains: String
+  triggeredByEventName_not_contains_nocase: String
+  triggeredByEventName_starts_with: String
+  triggeredByEventName_starts_with_nocase: String
+  triggeredByEventName_not_starts_with: String
+  triggeredByEventName_not_starts_with_nocase: String
+  triggeredByEventName_ends_with: String
+  triggeredByEventName_ends_with_nocase: String
+  triggeredByEventName_not_ends_with: String
+  triggeredByEventName_not_ends_with_nocase: String
+  maybeCriticalAtTimestamp: BigInt
+  maybeCriticalAtTimestamp_not: BigInt
+  maybeCriticalAtTimestamp_gt: BigInt
+  maybeCriticalAtTimestamp_lt: BigInt
+  maybeCriticalAtTimestamp_gte: BigInt
+  maybeCriticalAtTimestamp_lte: BigInt
+  maybeCriticalAtTimestamp_in: [BigInt!]
+  maybeCriticalAtTimestamp_not_in: [BigInt!]
+  totalNumberOfActiveStreams: Int
+  totalNumberOfActiveStreams_not: Int
+  totalNumberOfActiveStreams_gt: Int
+  totalNumberOfActiveStreams_lt: Int
+  totalNumberOfActiveStreams_gte: Int
+  totalNumberOfActiveStreams_lte: Int
+  totalNumberOfActiveStreams_in: [Int!]
+  totalNumberOfActiveStreams_not_in: [Int!]
+  totalNumberOfClosedStreams: Int
+  totalNumberOfClosedStreams_not: Int
+  totalNumberOfClosedStreams_gt: Int
+  totalNumberOfClosedStreams_lt: Int
+  totalNumberOfClosedStreams_gte: Int
+  totalNumberOfClosedStreams_lte: Int
+  totalNumberOfClosedStreams_in: [Int!]
+  totalNumberOfClosedStreams_not_in: [Int!]
+  totalSubscriptionsWithUnits: Int
+  totalSubscriptionsWithUnits_not: Int
+  totalSubscriptionsWithUnits_gt: Int
+  totalSubscriptionsWithUnits_lt: Int
+  totalSubscriptionsWithUnits_gte: Int
+  totalSubscriptionsWithUnits_lte: Int
+  totalSubscriptionsWithUnits_in: [Int!]
+  totalSubscriptionsWithUnits_not_in: [Int!]
+  totalApprovedSubscriptions: Int
+  totalApprovedSubscriptions_not: Int
+  totalApprovedSubscriptions_gt: Int
+  totalApprovedSubscriptions_lt: Int
+  totalApprovedSubscriptions_gte: Int
+  totalApprovedSubscriptions_lte: Int
+  totalApprovedSubscriptions_in: [Int!]
+  totalApprovedSubscriptions_not_in: [Int!]
+  balance: BigInt
+  balance_not: BigInt
+  balance_gt: BigInt
+  balance_lt: BigInt
+  balance_gte: BigInt
+  balance_lte: BigInt
+  balance_in: [BigInt!]
+  balance_not_in: [BigInt!]
+  totalDeposit: BigInt
+  totalDeposit_not: BigInt
+  totalDeposit_gt: BigInt
+  totalDeposit_lt: BigInt
+  totalDeposit_gte: BigInt
+  totalDeposit_lte: BigInt
+  totalDeposit_in: [BigInt!]
+  totalDeposit_not_in: [BigInt!]
+  totalNetFlowRate: BigInt
+  totalNetFlowRate_not: BigInt
+  totalNetFlowRate_gt: BigInt
+  totalNetFlowRate_lt: BigInt
+  totalNetFlowRate_gte: BigInt
+  totalNetFlowRate_lte: BigInt
+  totalNetFlowRate_in: [BigInt!]
+  totalNetFlowRate_not_in: [BigInt!]
+  totalInflowRate: BigInt
+  totalInflowRate_not: BigInt
+  totalInflowRate_gt: BigInt
+  totalInflowRate_lt: BigInt
+  totalInflowRate_gte: BigInt
+  totalInflowRate_lte: BigInt
+  totalInflowRate_in: [BigInt!]
+  totalInflowRate_not_in: [BigInt!]
+  totalOutflowRate: BigInt
+  totalOutflowRate_not: BigInt
+  totalOutflowRate_gt: BigInt
+  totalOutflowRate_lt: BigInt
+  totalOutflowRate_gte: BigInt
+  totalOutflowRate_lte: BigInt
+  totalOutflowRate_in: [BigInt!]
+  totalOutflowRate_not_in: [BigInt!]
+  totalAmountStreamed: BigInt
+  totalAmountStreamed_not: BigInt
+  totalAmountStreamed_gt: BigInt
+  totalAmountStreamed_lt: BigInt
+  totalAmountStreamed_gte: BigInt
+  totalAmountStreamed_lte: BigInt
+  totalAmountStreamed_in: [BigInt!]
+  totalAmountStreamed_not_in: [BigInt!]
+  totalAmountTransferred: BigInt
+  totalAmountTransferred_not: BigInt
+  totalAmountTransferred_gt: BigInt
+  totalAmountTransferred_lt: BigInt
+  totalAmountTransferred_gte: BigInt
+  totalAmountTransferred_lte: BigInt
+  totalAmountTransferred_in: [BigInt!]
+  totalAmountTransferred_not_in: [BigInt!]
+  account: String
+  account_not: String
+  account_gt: String
+  account_lt: String
+  account_gte: String
+  account_lte: String
+  account_in: [String!]
+  account_not_in: [String!]
+  account_contains: String
+  account_contains_nocase: String
+  account_not_contains: String
+  account_not_contains_nocase: String
+  account_starts_with: String
+  account_starts_with_nocase: String
+  account_not_starts_with: String
+  account_not_starts_with_nocase: String
+  account_ends_with: String
+  account_ends_with_nocase: String
+  account_not_ends_with: String
+  account_not_ends_with_nocase: String
+  token: String
+  token_not: String
+  token_gt: String
+  token_lt: String
+  token_gte: String
+  token_lte: String
+  token_in: [String!]
+  token_not_in: [String!]
+  token_contains: String
+  token_contains_nocase: String
+  token_not_contains: String
+  token_not_contains_nocase: String
+  token_starts_with: String
+  token_starts_with_nocase: String
+  token_not_starts_with: String
+  token_not_starts_with_nocase: String
+  token_ends_with: String
+  token_ends_with_nocase: String
+  token_not_ends_with: String
+  token_not_ends_with_nocase: String
+  accountTokenSnapshot: String
+  accountTokenSnapshot_not: String
+  accountTokenSnapshot_gt: String
+  accountTokenSnapshot_lt: String
+  accountTokenSnapshot_gte: String
+  accountTokenSnapshot_lte: String
+  accountTokenSnapshot_in: [String!]
+  accountTokenSnapshot_not_in: [String!]
+  accountTokenSnapshot_contains: String
+  accountTokenSnapshot_contains_nocase: String
+  accountTokenSnapshot_not_contains: String
+  accountTokenSnapshot_not_contains_nocase: String
+  accountTokenSnapshot_starts_with: String
+  accountTokenSnapshot_starts_with_nocase: String
+  accountTokenSnapshot_not_starts_with: String
+  accountTokenSnapshot_not_starts_with_nocase: String
+  accountTokenSnapshot_ends_with: String
+  accountTokenSnapshot_ends_with_nocase: String
+  accountTokenSnapshot_not_ends_with: String
+  accountTokenSnapshot_not_ends_with_nocase: String
+}
+
+enum AccountTokenSnapshotLog_orderBy {
+  id
+  timestamp
+  blockNumber
+  transactionHash
+  logIndex
+  order
+  triggeredByEventName
+  maybeCriticalAtTimestamp
+  totalNumberOfActiveStreams
+  totalNumberOfClosedStreams
+  totalSubscriptionsWithUnits
+  totalApprovedSubscriptions
+  balance
+  totalDeposit
+  totalNetFlowRate
+  totalInflowRate
+  totalOutflowRate
+  totalAmountStreamed
+  totalAmountTransferred
+  account
+  token
+  accountTokenSnapshot
 }
 
 type AgreementClassRegisteredEvent implements Event {
@@ -6331,6 +6687,46 @@ type Query {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [AccountTokenSnapshot!]!
+  accountTokenSnapshotLog(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): AccountTokenSnapshotLog
+  accountTokenSnapshotLogs(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: AccountTokenSnapshotLog_orderBy
+    orderDirection: OrderDirection
+    where: AccountTokenSnapshotLog_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [AccountTokenSnapshotLog!]!
   tokenStatistic(
     id: ID!
 
@@ -9547,6 +9943,46 @@ type Subscription {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [AccountTokenSnapshot!]!
+  accountTokenSnapshotLog(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): AccountTokenSnapshotLog
+  accountTokenSnapshotLogs(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: AccountTokenSnapshotLog_orderBy
+    orderDirection: OrderDirection
+    where: AccountTokenSnapshotLog_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [AccountTokenSnapshotLog!]!
   tokenStatistic(
     id: ID!
 

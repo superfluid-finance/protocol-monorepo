@@ -2,7 +2,7 @@ import {ethers} from "hardhat";
 import deployFramework from "@superfluid-finance/ethereum-contracts/scripts/deploy-framework";
 import deployTestToken from "@superfluid-finance/ethereum-contracts/scripts/deploy-test-token";
 import deploySuperToken from "@superfluid-finance/ethereum-contracts/scripts/deploy-super-token";
-import deployNativeSuperToken from "@superfluid-finance/ethereum-contracts/scripts/deploy-unlisted-native-super-token";
+import deployNativeSuperToken from "@superfluid-finance/ethereum-contracts/scripts/deploy-unlisted-pure-super-token";
 // import resolverListSuperToken from "@superfluid-finance/ethereum-contracts/scripts/resolver-list-super-token";
 import set3PsConfig from "@superfluid-finance/ethereum-contracts/scripts/gov-set-3Ps-config";
 

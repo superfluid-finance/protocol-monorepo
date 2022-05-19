@@ -315,16 +315,18 @@ contract Superfluid is
             tx.origin,
             registrationKey
         );
-        // check if the key is valid and not expired
-        require(
-            _gov.getConfigAsUint256(
-                this,
-                ISuperfluidToken(address(0)),
-                configKey
-            // solhint-disable-next-line not-rely-on-time
-            ) >= block.timestamp,
-            "SF: invalid or expired registration key"
-        );
+        if (APP_WHITE_LISTING_ENABLED) {
+            // check if the key is valid and not expired
+            require(
+                _gov.getConfigAsUint256(
+                    this,
+                    ISuperfluidToken(address(0)),
+                    configKey
+                // solhint-disable-next-line not-rely-on-time
+                ) >= block.timestamp,
+                "SF: invalid or expired registration key"
+            );
+        }
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 

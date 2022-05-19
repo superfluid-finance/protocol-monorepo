@@ -9,14 +9,12 @@ etc.
 \ignore{
 \begin{code}
 module Money.Distribution.Concepts where
-
-import Data.Default ( Default )
 \end{code}
 }
 
 \begin{code}
 -- | Liquidity
-class Integral => Liquidity lq
+class Integral lq => Liquidity lq
 \end{code}
 
 \begin{code}

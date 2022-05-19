@@ -4,8 +4,7 @@ Communism comes in various forms, and all have its own money distribution "syste
 \begin{code}
 module Money.Distribution.Communism where
 
-import Control.Monad
-import Money.Distribution.Concepts
+import Money.Distribution.Concepts ( MoneyDistribution )
 \end{code}
 }
 
@@ -38,8 +37,6 @@ In a more realistic form, the one that determines the liquidity amount of each m
 effect of the monadic autocrat.
 
 \begin{code}
-instance Monad MonadicAutocrat
-
 data (Monad autocrat) => AutocraticCommunism autocrat
 
 instance (Monad autocrat) => MoneyDistribution (AutocraticCommunism autocrat)

@@ -109,7 +109,7 @@ module.exports = function getConfig(chainId) {
             },
         },
         97: {
-            // BSC testnet
+            // BSC chapel testnet
             data: {
                 initialBlockNumber: 19437500,
                 getLogsRange: 10000,

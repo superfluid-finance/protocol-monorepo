@@ -207,7 +207,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             nativeTokenSymbol: "BNB",
         },
         97: {
-            // BSC testnet
+            // BSC chapel testnet
             nativeTokenSymbol: "BNB",
         },
 

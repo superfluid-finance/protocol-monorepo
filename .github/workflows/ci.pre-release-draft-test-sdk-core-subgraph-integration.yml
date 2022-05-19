@@ -123,7 +123,7 @@ jobs:
 
   # build and test live subgraph with previous sdk-core releases
   build-and-test-live-subgraph-previous-releases:
-    name: Build and test live subgraph with current release
+    name: Build and test previous sdk-core versions with current subgraph release
 
     runs-on: ubuntu-latest
 

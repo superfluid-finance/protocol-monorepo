@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@github.head_ref
-      needs: [check]
+      needs: check
       if: needs.check.outputs.build_subgraph
 
   test-sdk-core:

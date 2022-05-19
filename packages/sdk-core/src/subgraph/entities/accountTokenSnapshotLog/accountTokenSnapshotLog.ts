@@ -6,8 +6,8 @@ import {
     Timestamp,
 } from "../../mappedSubgraphTypes";
 import {
-    AccountTokenSnapshot_Filter,
-    AccountTokenSnapshot_OrderBy,
+    AccountTokenSnapshotLog_Filter,
+    AccountTokenSnapshotLog_OrderBy,
 } from "../../schema.generated";
 import {
     RelevantAddressesIntermediate,
@@ -16,10 +16,10 @@ import {
 } from "../../subgraphQueryHandler";
 
 import {
-    AccountTokenSnapshotsDocument,
-    AccountTokenSnapshotsQuery,
-    AccountTokenSnapshotsQueryVariables,
-} from "./accountTokenSnapshots.generated";
+    AccountTokenSnapshotLogsDocument,
+    AccountTokenSnapshotLogsQuery,
+    AccountTokenSnapshotLogsQueryVariables,
+} from "./accountTokenSnapshotLogs.generated";
 
 export interface AccountTokenSnapshotLog {
     id: SubgraphId;
@@ -75,13 +75,15 @@ export class AccountTokenSnapshotLogQueryHandler extends SubgraphQueryHandler<
     mapFromSubgraphResponse = (
         response: AccountTokenSnapshotLogsQuery
     ): AccountTokenSnapshotLog[] =>
-        response.AccountTokenSnapshotLogs.map((x) => ({
+        response.accountTokenSnapshotLogs.map((x) => ({
             ...x,
             account: x.account.id,
             token: x.token.id,
             tokenSymbol: x.token.symbol,
-            updatedAtBlockNumber: Number(x.blockNumber),
-            updatedAtTimestamp: Number(x.timestamp),
+            blockNumber: Number(x.blockNumber),
+            timestamp: Number(x.timestamp),
+            order: Number(x.order),
+            logIndex: Number(x.logIndex),
         }));
 
     requestDocument = AccountTokenSnapshotLogsDocument;

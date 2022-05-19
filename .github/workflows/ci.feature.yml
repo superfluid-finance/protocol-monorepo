@@ -149,13 +149,6 @@ jobs:
     
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@github.head_ref
 
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: "Run integration test suite"
-        run: yarn test
-        working-directory: ./packages/subgraph
-
   test-sdk-core:
     name: Build and test sdk-core (feature branch)
 

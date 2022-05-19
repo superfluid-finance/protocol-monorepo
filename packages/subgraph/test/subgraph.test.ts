@@ -454,7 +454,7 @@ describe("Subgraph Tests", () => {
                 );
 
                 // get balance of sender
-                let balanceOfSender = await daix.realtimeBalanceOf({
+                const balanceOfSender = await daix.realtimeBalanceOf({
                     account: sender,
                     providerOrSigner: provider,
                 });
@@ -462,7 +462,7 @@ describe("Subgraph Tests", () => {
                 const liquidatorSigner = await ethers.getSigner(liquidator);
                 const transferAmount = toBN(balanceOfSender.availableBalance)
                     // transfer total - 5 seconds of flow
-                    .sub(toBN((flowRate * 5).toString()))
+                    .sub(toBN((flowRate * 10).toString()))
                     .toString();
 
                 await transferAndUpdate(
@@ -493,10 +493,17 @@ describe("Subgraph Tests", () => {
                         liquidator,
                     })
                 );
+                const balanceOfLiquidator = await daix.realtimeBalanceOf({
+                    account: liquidator,
+                    providerOrSigner: provider,
+                });
+                const returnAmount = toBN(
+                    balanceOfLiquidator.availableBalance
+                ).div(toBN(2));
 
                 // transfer balance back to sender
                 await transferAndUpdate(
-                    transferAmount,
+                    returnAmount.toString(),
                     liquidatorSigner,
                     sender
                 );
@@ -569,7 +576,7 @@ describe("Subgraph Tests", () => {
                 await testFlowUpdated({
                     ...getBaseCFAData(provider, daix.address),
                     actionType: FlowActionType.Create,
-                    newFlowRate: monthlyToSecondRate(10),
+                    newFlowRate: monthlyToSecondRate(1000),
                     sender: userAddresses[0],
                     flowOperator: userAddresses[2],
                     receiver: userAddresses[1],
@@ -581,7 +588,7 @@ describe("Subgraph Tests", () => {
                 await testFlowUpdated({
                     ...getBaseCFAData(provider, daix.address),
                     actionType: FlowActionType.Update,
-                    newFlowRate: monthlyToSecondRate(20),
+                    newFlowRate: monthlyToSecondRate(2000),
                     sender: userAddresses[0],
                     flowOperator: userAddresses[2],
                     receiver: userAddresses[1],

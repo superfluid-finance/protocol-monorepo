@@ -73,11 +73,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
-
-      - name: "Run ganache-cli node"
-        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+      - name: "Install packages and start hardhat node"
+        run: |
+          yarn install
+          ./tasks/startHardhatNode.sh start
+        working-directory: ./packages/sdk-core
 
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v3

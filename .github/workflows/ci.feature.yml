@@ -146,43 +146,11 @@ jobs:
 
     needs: [check]
     if: needs.check.outputs.build_subgraph
-
-    strategy:
-      matrix:
-        node-version: [16.x]
+    
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: "Install packages and start hardhat node"
-        run: |
-          yarn install
-          ./tasks/startHardhatNode.sh start
-        working-directory: ./packages/sdk-core
-
-      - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v3
-        with:
-          repository: graphprotocol/graph-node
-          path: graph-node
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Run setup because linux and docker-compose"
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          chmod +x setup.sh
-          ./setup.sh
-        working-directory: ./graph-node/docker
-
-      - name: "Docker compose"
-        run: docker-compose up &
-        working-directory: ./graph-node/docker
 
       - name: "Run integration test suite"
         run: yarn test

@@ -115,7 +115,7 @@ jobs:
       - name: "Install packages and test"
         run: |
           yarn install
-          yarn generate-graphql-schema:feature
+          yarn generate-graphql-schema:v1
           yarn test
         working-directory: ./packages/sdk-core
         env:

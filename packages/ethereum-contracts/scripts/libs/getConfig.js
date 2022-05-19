@@ -108,6 +108,13 @@ module.exports = function getConfig(chainId) {
                 getLogsRange: 5000,
             },
         },
+        97: {
+            // BSC testnet
+            data: {
+                initialBlockNumber: 19437500,
+                getLogsRange: 10000,
+            },
+        },
 
         //
         // Optimistic Ethereum: https://community.optimism.io/docs/
@@ -203,6 +210,17 @@ module.exports = function getConfig(chainId) {
             gov_enableAppWhiteListing: true,
             // misc
             // disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 13075000,
+                getLogsRange: 50000,
+            },
+        },
+        44787: {
+            // Celo alfajores testnet
+            data: {
+                initialBlockNumber: 11519000,
+                getLogsRange: 50000,
+            },
         },
     };
 

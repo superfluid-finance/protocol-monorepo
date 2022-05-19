@@ -1,8 +1,10 @@
 let { ethers, web3 } = require("hardhat");
 let { artifacts } = require("hardhat");
 let { assert } = require("chai");
-let { toWad, web3tx } = require("@decentral.ee/web3-helpers");
+let { toWad  } = require("@decentral.ee/web3-helpers");
 let daiABI = require("./abis/fDAIABI");
+
+import { SuperToken } from "@superfluid-finance/sdk-core";
 
 let { Framework } = require("@superfluid-finance/sdk-core");
 let SuperfluidSDK = require("@superfluid-finance/js-sdk");
@@ -50,10 +52,7 @@ before(async function () {
     from: accounts[0].address
  });
  //deploy a fake erc20 wrapper super token around the fDAI token
- let fDAIxAddress = await deploySuperToken(errorHandler, [":", "fDAI"], {
-     web3,
-     from: accounts[0].address
- });
+ let fDAIxAddress = await await sf.loadSuperToken("fDAIx");
  
  console.log("fDAIxAddress: ", fDAIxAddress);
  console.log("fDAIAddress: ", fDAIAddress);
@@ -64,17 +63,17 @@ before(async function () {
     const daiAddress = await sf.tokens.fDAI.address;
     dai = await sf.contracts.TestToken.at(daiAddress);
     for (let i = 0; i < accounts.length; ++i) {
-        await web3tx(dai.mint, `Account ${i} mints many dai`)(
-            accounts[i],
-            toWad(10000000),
-            { from: accounts[i] }
+        await sf(dai.mint, `Accounts ${i} mints manydai `) (
+              accounts[i],
+              toWad(10000000),
+              { from: accounts[i] }
         );
     }
  };
 
  daix = sf.token.fDAIX;
 
- let app = await web3tx(
+ let app = await sf(
     DividendRightsToken.new,
     "DividendRightsToken.new by alice" 
 )(
@@ -91,20 +90,20 @@ before(async function () {
     await daix.upgrade(INIT_BALANCE, { from: alice });
 
     // setup the app
-    await web3tx(daix.approve, "Alice approve the app")(
+    await sf(daix.approve, "Alice approve the app")(
         app.address,
         MAX_UINT256,
         { from: alice }
     );
 
     // alice issue rights to bob then got approved
-    await web3tx(app.issue, "Alice issue 100 rights to bob")(bob, "100", {
+    await sf(app.issue, "Alice issue 100 rights to bob")(bob, "100", {
         from: alice
     });
     assert.equal((await app.balanceOf.call(bob)).toString(), "100");
     assert.isFalse(await app.isSubscribing.call(bob));
-    await web3tx(
-        sf.host.callAgreement,
+    await sf(
+        sf.idaV1.approveSubscription(),
         "Bob approves subscription to the app"
     )(
         sf.agreements.ida.address,
@@ -120,8 +119,8 @@ before(async function () {
 
     // alice issue rights to carol after approval
     assert.isFalse(await app.isSubscribing.call(carol));
-    await web3tx(
-        sf.host.callAgreement,
+    await sf(
+        sf.idaV1.approveSubscription(),
         "Carol approves subscription to the app"
     )(
         sf.agreements.ida.address,
@@ -134,7 +133,7 @@ before(async function () {
         }
     );
     assert.isTrue(await app.isSubscribing.call(carol));
-    await web3tx(app.issue, "Alice issue 200 rights to carol")(
+    await sf(app.issue, "Alice issue 200 rights to carol")(
         carol,
         "200",
         { from: alice }
@@ -151,7 +150,7 @@ before(async function () {
     //     (await daix.balanceOf.call(carol)).toString());
 
     // alice distribute 3 tokens
-    await web3tx(
+    await sf(
         app.distribute,
         "Alice distribute 3 tokens to everyone"
     )(toWad("3"), { from: alice });
@@ -169,7 +168,7 @@ before(async function () {
     );
 
     // carol transfer 100 tokens to bob
-    await web3tx(app.transfer, "Carol transfers 100 rights to bob")(
+    await sf(app.transfer, "Carol transfers 100 rights to bob")(
         bob,
         "100",
         { from: carol }
@@ -187,7 +186,7 @@ before(async function () {
     //     (await daix.balanceOf.call(carol)).toString());
 
     // alice distribute 3 tokens
-    await web3tx(
+    await sf(
         app.distribute,
         "Alice distribute 3 tokens to everyone again"
     )(toWad("3"), { from: alice });

@@ -30,35 +30,36 @@ All subgraphs are available via The Graph's hosted service:
 **V1 Endpoints**
 | Network | URL |
 | --- | --- |
-| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-matic |
-| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-mumbai |
+| Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
+| Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
+| Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
+| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-c |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
 | Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-rinkeby |
-
-**Legacy Endpoints**
-| Network | URL |
-| --- | --- |
-| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-xdai |
-| Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-matic |
-| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-mumbai |
-| Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-goerli |
-| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-ropsten |
-| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-kovan |
-| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-rinkeby |
+| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-mumbai |
+| Optimism Kovan| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-kovan |
+| Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-rinkeby |
+| Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-fuji |
 
 **Development Endpoints**
 | Network | URL |
 | --- | --- |
-| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-matic |
+| Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
+| Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
+| Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
+| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-c |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-kovan |
 | Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-rinkeby |
+| Optimism Kovan| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-kovan |
+| Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-rinkeby |
+| Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-fuji |
 
 *Note: Development endpoints will include features that are still in progress. Documentation will not reflect new features yet to be released in V1
 
@@ -177,7 +178,7 @@ Open your third terminal window and navigate to the **root of the repo** and run
 yarn build
 ```
 
-This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call: 
+This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call:
 ```bash
 yarn install
 yarn run generate-ethers-types
@@ -245,7 +246,7 @@ Navigate to the url in the console output, and let's try a test query so we know
 
 ## Running Tests
 
-If you are continuing from the previous steps, you can immediately run the tests with the following command: 
+If you are continuing from the previous steps, you can immediately run the tests with the following command:
 
 ```bash
 npx hardhat test --network localhost
@@ -356,7 +357,7 @@ Aggregate entities are exactly what the name suggests - they are entities that s
 ### Test Structure
 
 This section is intended for those who are interested in understanding the structure of the test suite.
-The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break. 
+The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break.
 
 The entry point of the tests is the `subgraph.test.ts` file, this is where you specify the parameters and what you want to test. For example, you want to test indexing a newly created flow. There are helper functions for all the different things you may want to do and examples of everything in the test, but you must follow the pattern of modify then update global state as stated above.
 
@@ -396,10 +397,9 @@ If the subgraph has not been created yet, you must create it first using the das
 ## Developer Notes
 
 When adding new networks, we must do the following:
-- Add the new network to `networks.json` and add a new file to `/config` with the same name as the network e.g. adding network `avalanche-fuji` to the array in `networks.json` and then adding `avalanche-fuji.json` to `/config`. The name of the network here is dicated by and must match how we name the network for our subgraph endpoint, e.g. `protocol-dev-avalanche-fuji`
-- The name of the network in the `/config` json file should match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks)
-- Therefore, the `network` we are comparing in the `addresses.template.test` file should also match the official naming.
-- We also need to add the host and resolver addresses to the `addresses.template.ts` file.
+- NOTE: The `network` field in the `/config/*.json` file must match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks). This name can deviate from the name of the file itself. e.g. `avalanche-c.json` must have field: `"network": "avalanche"`.
+- Add a new file to `./config`, the name of the file should be derived from the canonical network name in `packages/ethereum-contracts/truffle-config.js`. e.g. adding network `avalanche-c` to the array in `./networks.json` and then adding `avalanche-c.json` to `/config`. The name of the network specific file in `/config` will dictate our subgraph endpoint, e.g. `protocol-dev-avalanche-c`.
+- We also need to add the host and resolver addresses to the `addresses.template.ts` file. NOTE: the `network` we are comparing in the `addresses.template.test` file should match the `"network"` field in `/config/*.json`.
 
 # Contributing
 

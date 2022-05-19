@@ -194,7 +194,7 @@ export declare class InstantDistributionAgreementV1Helper {
         indexId,
         userData,
         onTransaction,
-        gasOptions?: GasOptions,
+        gasOptions,
     }: CreateIndexOptions): Promise<Transaction>;
 /**
  * @dev Distribute tokens to an index
@@ -213,7 +213,7 @@ export declare class InstantDistributionAgreementV1Helper {
         amount,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: DistributeOptions): Promise<Transaction>;
 /**
  * @dev Update the value of a index
@@ -235,7 +235,7 @@ export declare class InstantDistributionAgreementV1Helper {
         indexValue,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: UpdateIndexOptions): Promise<Transaction>;
 /**
  * @dev Update number of units of a subscription by the publisher of the index
@@ -256,7 +256,7 @@ export declare class InstantDistributionAgreementV1Helper {
         units,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: UpdateSubscriptionOptions): Promise<Transaction>;
 /**
  * @dev Approve the subscription by a subscriber of the index
@@ -279,7 +279,7 @@ export declare class InstantDistributionAgreementV1Helper {
         subscriber,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: ApproveSubscriptionOptions): Promise<Transaction>;
 /**
  * @dev Revoke the subscription by a subscriber of the index
@@ -301,7 +301,7 @@ export declare class InstantDistributionAgreementV1Helper {
         subscriber,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: RevokeSubscriptionOptions): Promise<Transaction>;
 /**
  * @dev Delete the subscription by the publisher or a subscriber of the index
@@ -325,7 +325,7 @@ export declare class InstantDistributionAgreementV1Helper {
         sender,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: DeleteSubscriptionOptions): Promise<Transaction>;
     /**
      * @dev Get details of a subscription
@@ -363,7 +363,7 @@ export declare class InstantDistributionAgreementV1Helper {
         sender,
         userData,
         onTransaction,
-        gasOptions? : GasOptions,
+        gasOptions,
     }: ClaimOptions): Promise<Transaction>;
     /**
      * @dev Get details of an index

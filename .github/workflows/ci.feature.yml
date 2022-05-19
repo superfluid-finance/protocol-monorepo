@@ -147,7 +147,7 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_subgraph
     
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@${{ github.head_ref }}
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@github.head_ref
 
     steps:
       - uses: actions/checkout@v3

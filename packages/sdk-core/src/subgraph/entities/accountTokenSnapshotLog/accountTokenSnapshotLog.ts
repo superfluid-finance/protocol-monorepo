@@ -21,64 +21,68 @@ import {
     AccountTokenSnapshotsQueryVariables,
 } from "./accountTokenSnapshots.generated";
 
-export interface AccountTokenSnapshot {
-    balanceUntilUpdatedAt: BigNumber;
+export interface AccountTokenSnapshotLog {
     id: SubgraphId;
-    totalAmountStreamedUntilUpdatedAt: BigNumber;
-    totalAmountTransferredUntilUpdatedAt: BigNumber;
-    totalInflowRate: BigNumber;
+    transactionHash: string;
+    order: number;
+    logIndex: number;
+    timestamp: Timestamp;
+    blockNumber: BlockNumber;
+    balance: BigNumber;
+    maybeCriticalAtTimestamp: BigNumber;
+    totalAmountStreamed: BigNumber;
+    totalAmountTransferred: BigNumber;
     totalApprovedSubscriptions: number;
+    totalDeposit: BigNumber;
+    totalInflowRate: BigNumber;
     totalNetFlowRate: BigNumber;
     totalNumberOfActiveStreams: number;
-    totalOutflowRate: BigNumber;
-    maybeCriticalAtTimestamp: BigNumber;
-    isLiquidationEstimateOptimistic: boolean;
     totalNumberOfClosedStreams: number;
     totalSubscriptionsWithUnits: number;
-    updatedAtBlockNumber: BlockNumber;
-    updatedAtTimestamp: Timestamp;
+    totalOutflowRate: BigNumber;
+    triggeredByEventName: string;
     account: Address;
     token: Address;
     tokenSymbol: string;
 }
 
-export type AccountTokenSnapshotListQuery = SubgraphListQuery<
-    AccountTokenSnapshot_Filter,
-    AccountTokenSnapshot_OrderBy
+export type AccountTokenSnapshotLogListQuery = SubgraphListQuery<
+    AccountTokenSnapshotLog_Filter,
+    AccountTokenSnapshotLog_OrderBy
 >;
 
-export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
-    AccountTokenSnapshot,
-    AccountTokenSnapshotListQuery,
-    AccountTokenSnapshotsQuery,
-    AccountTokenSnapshotsQueryVariables
+export class AccountTokenSnapshotLogQueryHandler extends SubgraphQueryHandler<
+    AccountTokenSnapshotLog,
+    AccountTokenSnapshotLogListQuery,
+    AccountTokenSnapshotLogsQuery,
+    AccountTokenSnapshotLogsQueryVariables
 > {
     getAddressFieldKeysFromFilter = (): {
-        accountKeys: (keyof AccountTokenSnapshot_Filter)[];
-        tokenKeys: (keyof AccountTokenSnapshot_Filter)[];
+        accountKeys: (keyof AccountTokenSnapshotLog_Filter)[];
+        tokenKeys: (keyof AccountTokenSnapshotLog_Filter)[];
     } => ({
         accountKeys: ["account"],
         tokenKeys: ["token"],
     });
 
     getRelevantAddressesFromResultCore = (
-        result: AccountTokenSnapshot
+        result: AccountTokenSnapshotLog
     ): RelevantAddressesIntermediate => ({
         tokens: [result.token],
         accounts: [result.account],
     });
 
     mapFromSubgraphResponse = (
-        response: AccountTokenSnapshotsQuery
-    ): AccountTokenSnapshot[] =>
-        response.accountTokenSnapshots.map((x) => ({
+        response: AccountTokenSnapshotLogsQuery
+    ): AccountTokenSnapshotLog[] =>
+        response.AccountTokenSnapshotLogs.map((x) => ({
             ...x,
             account: x.account.id,
             token: x.token.id,
             tokenSymbol: x.token.symbol,
-            updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
-            updatedAtTimestamp: Number(x.updatedAtTimestamp),
+            updatedAtBlockNumber: Number(x.blockNumber),
+            updatedAtTimestamp: Number(x.timestamp),
         }));
 
-    requestDocument = AccountTokenSnapshotsDocument;
+    requestDocument = AccountTokenSnapshotLogsDocument;
 }

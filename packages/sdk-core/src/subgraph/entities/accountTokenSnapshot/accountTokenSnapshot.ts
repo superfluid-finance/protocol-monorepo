@@ -31,6 +31,7 @@ export interface AccountTokenSnapshot {
     totalNetFlowRate: BigNumber;
     totalNumberOfActiveStreams: number;
     totalOutflowRate: BigNumber;
+    maybeCriticalAtTimestamp: BigNumber;
     totalNumberOfClosedStreams: number;
     totalSubscriptionsWithUnits: number;
     updatedAtBlockNumber: BlockNumber;

@@ -1,0 +1,30 @@
+{
+    "name": "tradeable-cashflow",
+    "version": "1.0.0",
+    "description": "SuperApp demo - a simple money stream lottery",
+    "main": "scripts/demo.js",
+    "scripts": {
+        "build": "truffle compile --all",
+        "test": "truffle test",
+        "deploy": "npm run build && RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js",
+        "copy-watch": "nodemon --watch \"../../packages\" --ext \"js,ts,tsx,sol\" --exec rsync --archive --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
+    },
+    "author": "Superfluid",
+    "license": "MIT",
+    "devDependencies": {
+        "@decentral.ee/web3-helpers": "^0.5.3",
+        "@openzeppelin/contracts": "^4.5.0",
+        "@openzeppelin/test-helpers": "^0.5.15",
+        "@superfluid-finance/ethereum-contracts": "^1.1.0",
+        "@superfluid-finance/js-sdk": "^0.5.5",
+        "@truffle/contract": "4.3.42",
+        "@truffle/hdwallet-provider": "1.7.0",
+        "dotenv": "^10.0.0",
+        "ganache-time-traveler": "^1.0.16",
+        "truffle": "5.4.21"
+    },
+    "dependencies": {
+        "@superfluid-finance/sdk-core": "^0.4.2",
+        "ethers": "^5.6.6"
+    }
+}

@@ -20,11 +20,6 @@ DividendRightsToken_ABI = [
         "internalType": "contract ISuperfluid",
         "name": "host",
         "type": "address"
-      },
-      {
-        "internalType": "contract IInstantDistributionAgreementV1",
-        "name": "ida",
-        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -263,19 +258,6 @@ DividendRightsToken_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "decimals",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -297,6 +279,24 @@ DividendRightsToken_ABI = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "idaV1",
+    "outputs": [
+      {
+        "internalType": "contract ISuperfluid",
+        "name": "host",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IInstantDistributionAgreementV1",
+        "name": "ida",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -405,7 +405,7 @@ DividendRightsToken_ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "recipient",
+        "name": "to",
         "type": "address"
       },
       {
@@ -429,12 +429,12 @@ DividendRightsToken_ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "sender",
+        "name": "from",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "recipient",
+        "name": "to",
         "type": "address"
       },
       {
@@ -465,6 +465,19 @@ DividendRightsToken_ABI = [
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

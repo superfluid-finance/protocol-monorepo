@@ -16,6 +16,7 @@ export const getAccountTokenSnapshot = gql`
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt
             totalDeposit
+            maybeCriticalAtTimestamp
             flowOperators(orderBy: createdAtTimestamp, orderDirection: asc) {
                 id
             }
@@ -24,6 +25,30 @@ export const getAccountTokenSnapshot = gql`
             }
             token {
                 id
+            }
+            accountTokenSnapshotLogs(
+                first: 1
+                orderBy: order
+                orderDirection: desc
+            ) {
+                blockNumber
+                transactionHash
+                balance
+                logIndex
+                order
+                timestamp
+                totalAmountStreamed
+                totalAmountTransferred
+                maybeCriticalAtTimestamp
+                totalApprovedSubscriptions
+                totalDeposit
+                totalInflowRate
+                totalNetFlowRate
+                totalNumberOfActiveStreams
+                totalNumberOfClosedStreams
+                totalOutflowRate
+                totalSubscriptionsWithUnits
+                triggeredByEventName
             }
         }
     }

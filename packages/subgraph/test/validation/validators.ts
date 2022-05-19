@@ -1,28 +1,24 @@
 import {
     IAccountTokenSnapshot,
-    IIndex,
-    IStreamData,
-    IIndexSubscription,
-    ITokenStatistic,
     IEvent,
-    ILightEntity,
-    IIDAEvents,
-    IFlowOperator,
     IExpectedFlowOperatorData,
+    IIDAEvents,
+    IIndex,
+    IIndexSubscription,
+    ILightEntity,
+    IStreamData,
+    ITokenStatistic,
 } from "../interfaces";
-import { fetchStreamPeriodAndValidate } from "./hol/streamPeriodValidator";
-import { fetchIndexAndValidate } from "./hol/indexValidator";
-import { fetchStreamAndValidate } from "./hol/streamValidator";
-import { fetchSubscriptionAndValidate } from "./hol/subscriptionValidator";
-import {
-    fetchATSAndValidate,
-    fetchTokenStatsAndValidate,
-} from "./aggregateValidators";
-import { Framework } from "@superfluid-finance/sdk-core";
-import { BigNumber } from "@ethersproject/bignumber";
-import { expect } from "chai";
-import { FlowActionType, IDAEventType } from "../helpers/constants";
-import { fetchFlowOperatorAndValidate } from "./hol/flowOperatorValidator";
+import {fetchStreamPeriodAndValidate} from "./hol/streamPeriodValidator";
+import {fetchIndexAndValidate} from "./hol/indexValidator";
+import {fetchStreamAndValidate} from "./hol/streamValidator";
+import {fetchSubscriptionAndValidate} from "./hol/subscriptionValidator";
+import {fetchATSAndValidate, fetchTokenStatsAndValidate,} from "./aggregateValidators";
+import {Framework} from "@superfluid-finance/sdk-core";
+import {BigNumber} from "@ethersproject/bignumber";
+import {expect} from "chai";
+import {FlowActionType, IDAEventType} from "../helpers/constants";
+import {fetchFlowOperatorAndValidate} from "./hol/flowOperatorValidator";
 
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
@@ -54,10 +50,10 @@ export async function validateFlowUpdated(
     );
 
     // validate sender ATS
-    await fetchATSAndValidate(updatedSenderATS);
+    await fetchATSAndValidate(updatedSenderATS, false); // Boolean flag to decide, whether to check log entries or not.
 
     // validate receiver ATS
-    await fetchATSAndValidate(updatedReceiverATS);
+    await fetchATSAndValidate(updatedReceiverATS, false); // Boolean flag to decide, whether to check log entries or not.
 
     // validate token stats
     await fetchTokenStatsAndValidate(updatedTokenStats);
@@ -103,7 +99,7 @@ export async function validateModifyIDA(
             events,
             subscriptionExists
         );
-        await fetchATSAndValidate(updatedSubscriberATS);
+        await fetchATSAndValidate(updatedSubscriberATS, true); // Boolean flag to decide, whether to check log entries or not.
     }
     await fetchIndexAndValidate(
         framework,
@@ -113,7 +109,7 @@ export async function validateModifyIDA(
         updatedSubscription.id,
         subscriptionExists
     );
-    await fetchATSAndValidate(updatedPublisherATS);
+    await fetchATSAndValidate(updatedPublisherATS, true); // Boolean flag to decide, whether to check log entries or not.
     await fetchTokenStatsAndValidate(updatedTokenStats);
 }
 

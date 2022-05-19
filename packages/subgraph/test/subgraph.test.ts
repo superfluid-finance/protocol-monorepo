@@ -569,7 +569,7 @@ describe("Subgraph Tests", () => {
                 await testFlowUpdated({
                     ...getBaseCFAData(provider, daix.address),
                     actionType: FlowActionType.Create,
-                    newFlowRate: monthlyToSecondRate(1000),
+                    newFlowRate: monthlyToSecondRate(10),
                     sender: userAddresses[0],
                     flowOperator: userAddresses[2],
                     receiver: userAddresses[1],
@@ -581,7 +581,7 @@ describe("Subgraph Tests", () => {
                 await testFlowUpdated({
                     ...getBaseCFAData(provider, daix.address),
                     actionType: FlowActionType.Update,
-                    newFlowRate: monthlyToSecondRate(2000),
+                    newFlowRate: monthlyToSecondRate(20),
                     sender: userAddresses[0],
                     flowOperator: userAddresses[2],
                     receiver: userAddresses[1],

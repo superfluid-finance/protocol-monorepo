@@ -175,8 +175,11 @@ jobs:
       - name: Run coverage test
         run: |
           yarn install --frozen-lockfile
+          yarn workspace @superfluid-finance/sdk-core generate-graphql-schema:dev
           yarn build
           yarn workspace @superfluid-finance/sdk-core test-coverage
+        env:
+          SUBGRAPH_RELEASE_TAG: dev
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3
@@ -262,6 +265,7 @@ jobs:
       - name: Build
         run: |
           yarn --cwd packages/sdk-core set-default-subgraph-release-tag
+          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev

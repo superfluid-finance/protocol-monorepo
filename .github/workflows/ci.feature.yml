@@ -144,11 +144,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      subgraph-working-directory: ./packages/subgraph
-      contracts-working-directory: ./packages/ethereum-contracts
-      js-sdk-working-directory: ./packages/js-sdk
-
     needs: [check]
     if: needs.check.outputs.build_subgraph
 
@@ -163,12 +158,12 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
 
-      - name: "Run ganache-cli node"
-        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+      - name: "Install packages and start hardhat node"
+        run: |
+          yarn install
+          ./tasks/startHardhatNode start
+        working-directory: ./packages/sdk-core
 
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v3
@@ -191,7 +186,7 @@ jobs:
 
       - name: "Run integration test suite"
         run: yarn test
-        working-directory: ${{ env.subgraph-working-directory }}
+        working-directory: ./packages/subgraph
 
   test-sdk-core:
     name: Build and test sdk-core (feature branch)
@@ -199,10 +194,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      subgraph-working-directory: ./packages/subgraph
       contracts-working-directory: ./packages/ethereum-contracts
-      js-sdk-working-directory: ./packages/js-sdk
-      sdk-core-working-directory: ./packages/sdk-core
 
     needs: [check]
     if: needs.check.outputs.build_sdk_core
@@ -219,9 +211,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
-
       - name: "Install contract dependencies"
         run: yarn install
         working-directory: ${{ env.contracts-working-directory }}
@@ -232,8 +221,11 @@ jobs:
 
       - name: "Run test suite"
         run:
+          yarn generate-graphql-schema:feature
           yarn test
-        working-directory: ${{ env.sdk-core-working-directory }}
+        working-directory: ./packages/sdk-core
+        env:
+          SUBGRAPH_RELEASE_TAG: feature
 
   test-spec-haskell:
     name: Build and test spec-haskell (Feature Branch) - Linux - ${{ matrix.compiler }}

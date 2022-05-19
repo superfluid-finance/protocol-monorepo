@@ -146,7 +146,6 @@ jobs:
     
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@github.head_ref
       needs: check
-      if: needs.check.outputs.build_subgraph
 
   test-sdk-core:
     name: Build and test sdk-core (feature branch)

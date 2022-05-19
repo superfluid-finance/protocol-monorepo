@@ -8,11 +8,10 @@ import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Query from "./Query";
-import SuperToken, {
-    NativeAssetSuperToken,
-    PureSuperToken,
-    WrapperSuperToken,
-} from "./SuperToken";
+import SuperToken from "./SuperToken";
+import { WrapperSuperToken } from "./SuperToken";
+import { PureSuperToken } from "./SuperToken";
+import { NativeAssetSuperToken } from "./SuperToken";
 
 export * from "./interfaces";
 export * from "./utils";

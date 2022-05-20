@@ -34,10 +34,11 @@ jobs:
       local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
       subgraph-release: v1
 
+  # ensure subgraph indexing is complete on all v1 endpoints before allowing sdk-core release
   check-subgraph-indexing-completeness:
     uses: ./.github/workflows/call.check-subgraph-indexing-statuses.yml
     name: Check Subgraph Indexing Status for v1 Endpoints
-    # if: github.base_ref == 'release-sdk-core-stable'
+    if: github.base_ref == 'release-sdk-core-stable'
     with:
       subgraph-release: v1
 

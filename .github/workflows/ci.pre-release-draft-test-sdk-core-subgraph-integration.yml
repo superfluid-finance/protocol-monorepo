@@ -55,7 +55,7 @@ jobs:
         version: [0.3.2, 0.4.0, 0.4.1]
 
     env:
-      env.contracts-working-directory: ./packages/ethereum-contracts
+      contracts-working-directory: ./packages/ethereum-contracts
     
     steps:
       - uses: actions/checkout@v3

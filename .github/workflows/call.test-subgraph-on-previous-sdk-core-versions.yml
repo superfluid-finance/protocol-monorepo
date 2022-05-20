@@ -44,7 +44,7 @@ jobs:
         run: |
           yarn install
           ./tasks/startHardhatNode.sh start
-        working-directory: ${{ sdk-core-working-directory }}
+        working-directory: ${{ env.sdk-core-working-directory }}
 
       # duplicated in call.setup-deploy-and-test-local-subgraph.yml #
       - name: "Checkout graph node repo and set up local graph node"
@@ -72,7 +72,7 @@ jobs:
 
       - name: "Set up test environment"
         run: ./tasks/setupTestEnvironment.sh
-        working-directory: ${{ sdk-core-working-directory }}
+        working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
         run: |

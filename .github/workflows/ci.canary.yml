@@ -55,11 +55,16 @@ jobs:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@sdk-core-subgraph-query-test
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
     if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+  test-subgraph-on-previous-sdk-versions:
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml@dev
+    name: Build and Test Subgraph on Previous SDK-Core Versions (Development Branch)
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
     with:
-      is-subgraph-package-tests: true
+      subgraph-release: dev
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch

@@ -140,15 +140,13 @@ jobs:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-and-deploy-local-subgraph.yml@sdk-core-subgraph-query-test
+    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
-    with:
-      is-subgraph-package-tests: true
 
   test-sdk-core:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@sdk-core-subgraph-query-test
+    uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core

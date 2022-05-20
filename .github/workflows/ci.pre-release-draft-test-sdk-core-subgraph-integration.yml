@@ -38,7 +38,7 @@ jobs:
 
   check-subgraph-indexing-completeness:
     uses: ./.github/workflows/call.check-subgraph-indexing-statuses.yml
-    name: Check Subgraph Indexing Status for Development Endpoints
+    name: Check Subgraph Indexing Status for v1 Endpoints
     # if: github.base_ref == 'release-sdk-core-stable'
     with:
       subgraph-release: v1

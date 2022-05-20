@@ -22,7 +22,9 @@ jobs:
           node-version: 16.x
 
       - name: Run indexing statuses check
-        run: yarn check-indexing-completeness
+        run: |
+          yarn install
+          yarn check-indexing-completeness
         working-directory: ./packages/subgraph
         env:
           SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}

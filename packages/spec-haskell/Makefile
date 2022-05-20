@@ -83,6 +83,10 @@ docs-haddock:
 $(DOCS_BUILDDIR)/tex:
 	mkdir -p "$@"
 
+$(DOCS_BUILDDIR)/tex/YellowPaper.tex: yellowpaper/Paper.tex
+	cp "$<" "$@"
+$(DOCS_BUILDDIR)/tex/Biblio.bib: yellowpaper/Biblio.bib
+	cp "$<" "$@"
 $(DOCS_BUILDDIR)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Distribution/Concepts.lhs
 	./tasks/lhs2tex.sh "$<" > "$@"
 $(DOCS_BUILDDIR)/tex/Communism.tex: packages/core/src/Money/Distribution/Communism.lhs
@@ -95,14 +99,16 @@ YELLOWPAPER_INPUTS=$(DOCS_BUILDDIR)/tex \
 	$(DOCS_BUILDDIR)/tex/MoneyDistributionConcepts.tex \
 	$(DOCS_BUILDDIR)/tex/Communism.tex \
 	$(DOCS_BUILDDIR)/tex/lhsfmt.tex \
-	yellowpaper/Paper.tex
+	$(DOCS_BUILDDIR)/tex/lhsfmt.tex \
+	$(DOCS_BUILDDIR)/tex/Biblio.bib \
+	$(DOCS_BUILDDIR)/tex/YellowPaper.tex
 $(DOCS_BUILDDIR)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)
 	rm -rf dist-docs/pdflatex
 	mkdir -p dist-docs/pdflatex
 	cd dist-docs/pdflatex; { \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../../yellowpaper/Paper.tex; \
+		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/YellowPaper.tex; \
 		biber superfluid-yellowpaper.bcf; \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../../yellowpaper/Paper.tex; \
+		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/YellowPaper.tex; \
 	}
 
 docs-yellowpaper: dist-docs/pdflatex/superfluid-yellowpaper.pdf

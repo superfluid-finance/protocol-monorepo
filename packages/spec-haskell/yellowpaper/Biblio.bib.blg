@@ -1,5 +1,0 @@
-[0] Config.pm:304> INFO - This is Biber 2.14 (beta)
-[0] Config.pm:307> INFO - Logfile is 'yellowpaper/Biblio.bib.blg'
-[67] biber:322> INFO - === Wed May 18, 2022, 15:37:06
-[127] Utils.pm:309> ERROR - Cannot find 'yellowpaper/Biblio.bib.bcf'!
-[127] Biber.pm:132> INFO - ERRORS: 1

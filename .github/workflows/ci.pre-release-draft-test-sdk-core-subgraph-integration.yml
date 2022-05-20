@@ -1,8 +1,6 @@
 name: Pre-Release Draft SDK Core-Subgraph Integration Test
 
 on:
-  push:
-
   pull_request:
     branches:
       - "release-subgraph-v1"

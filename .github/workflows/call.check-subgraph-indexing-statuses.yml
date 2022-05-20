@@ -24,7 +24,6 @@ jobs:
       - name: Run indexing statuses check
         run: yarn check-indexing-completeness
         working-directory: ./packages/subgraph
-        with:
-          env:
-            SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
+        env:
+          SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
                     

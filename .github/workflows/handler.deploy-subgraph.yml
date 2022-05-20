@@ -23,6 +23,8 @@ jobs:
   deploy-subgraph:
     name: Deploy Subgraph
 
+    needs: [build-and-test-tbd-subgraph-with-previous-release]
+
     runs-on: ubuntu-latest
 
     env:

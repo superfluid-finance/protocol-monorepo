@@ -1,6 +1,8 @@
 name: Pre-Release Draft SDK Core-Subgraph Integration Test
 
 on:
+  push:
+
   pull_request:
     branches:
       - "release-subgraph-v1"
@@ -37,7 +39,7 @@ jobs:
   build-and-test-live-subgraph-current-release:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@sdk-core-subgraph-query-test
     name: Build and Test SDK-Core (Release branch)
-    if: github.base_ref == "release-sdk-core-stable"
+    # if: github.base_ref == "release-sdk-core-stable"
     with:
       subgraph-release: v1
 
@@ -47,7 +49,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: github.base_ref == "release-subgraph-v1"
+    # if: github.base_ref == "release-subgraph-v1"
 
     matrix:
       version: [0.3.2, 0.4.0, 0.4.1]

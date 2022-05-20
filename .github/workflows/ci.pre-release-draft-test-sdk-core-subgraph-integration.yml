@@ -50,9 +50,9 @@ jobs:
     runs-on: ubuntu-latest
 
     # if: github.base_ref == "release-subgraph-v1"
-
-    matrix:
-      version: [0.3.2, 0.4.0, 0.4.1]
+    strategy:
+      matrix:
+        version: [0.3.2, 0.4.0, 0.4.1]
 
     env:
       env.contracts-working-directory: ./packages/ethereum-contracts

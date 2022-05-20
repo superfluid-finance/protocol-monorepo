@@ -80,38 +80,40 @@ demo-dfa: build
 docs-haddock:
 	$(CABAL_DOCS) haddock all
 
-$(DOCS_BUILDDIR)/tex:
+YELLOWPAPER_ROOT=$(DOCS_BUILDDIR)/yellowpaper
+
+$(YELLOWPAPER_ROOT)/tex:
 	mkdir -p "$@"
-
-$(DOCS_BUILDDIR)/tex/YellowPaper.tex: yellowpaper/Paper.tex
+$(YELLOWPAPER_ROOT)/tex/Paper.tex: yellowpaper/Paper.tex
 	cp "$<" "$@"
-$(DOCS_BUILDDIR)/tex/Biblio.bib: yellowpaper/Biblio.bib
+$(YELLOWPAPER_ROOT)/tex/Biblio.bib: yellowpaper/Biblio.bib
 	cp "$<" "$@"
-$(DOCS_BUILDDIR)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Distribution/Concepts.lhs
+$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Distribution/Concepts.lhs
 	./tasks/lhs2tex.sh "$<" > "$@"
-$(DOCS_BUILDDIR)/tex/Communism.tex: packages/core/src/Money/Distribution/Communism.lhs
+$(YELLOWPAPER_ROOT)/tex/Communism.tex: packages/core/src/Money/Distribution/Communism.lhs
 	./tasks/lhs2tex.sh "$<" > "$@"
 
-$(DOCS_BUILDDIR)/tex/lhsfmt.tex:
+$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 	echo '%include lhs2TeX.fmt' | lhs2TeX > "$@"
 
-YELLOWPAPER_INPUTS=$(DOCS_BUILDDIR)/tex \
-	$(DOCS_BUILDDIR)/tex/MoneyDistributionConcepts.tex \
-	$(DOCS_BUILDDIR)/tex/Communism.tex \
-	$(DOCS_BUILDDIR)/tex/lhsfmt.tex \
-	$(DOCS_BUILDDIR)/tex/lhsfmt.tex \
-	$(DOCS_BUILDDIR)/tex/Biblio.bib \
-	$(DOCS_BUILDDIR)/tex/YellowPaper.tex
-$(DOCS_BUILDDIR)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)
-	rm -rf dist-docs/pdflatex
-	mkdir -p dist-docs/pdflatex
-	cd dist-docs/pdflatex; { \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/YellowPaper.tex; \
+YELLOWPAPER_INPUTS=$(YELLOWPAPER_ROOT)/tex \
+	$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex \
+	$(YELLOWPAPER_ROOT)/tex/Communism.tex \
+	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
+	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
+	$(YELLOWPAPER_ROOT)/tex/Biblio.bib \
+	$(YELLOWPAPER_ROOT)/tex/Paper.tex
+$(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)
+	ls $(YELLOWPAPER_ROOT)/tex
+	rm -rf $(YELLOWPAPER_ROOT)/pdflatex
+	mkdir -p $(YELLOWPAPER_ROOT)/pdflatex
+	cd $(YELLOWPAPER_ROOT)/pdflatex; { \
+		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex; \
 		biber superfluid-yellowpaper.bcf; \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/YellowPaper.tex; \
+		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex; \
 	}
 
-docs-yellowpaper: dist-docs/pdflatex/superfluid-yellowpaper.pdf
+docs-yellowpaper: $(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf
 
 docs: docs-haddock docs-yellowpaper
 

@@ -1,13 +1,9 @@
-/data
-/node_modules
-/build
-/coverage.json
-/coverage
+node_modules
 /.env
-/data
-*.ignore.*
-.DS_Store
+coverage
+coverage.json
+typechain
 
-*.env
-
-.vscode/
+#Hardhat files
+cache
+artifacts 

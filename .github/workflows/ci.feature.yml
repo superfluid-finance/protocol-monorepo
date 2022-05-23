@@ -148,10 +148,6 @@ jobs:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Feature Branch)
     needs: [check]
-    # DELETE with: after
-    with:
-      subgraph-release: dev
-      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
     # UNCOMMENT AFTER
     # if: needs.check.outputs.build_subgraph
   
@@ -161,7 +157,6 @@ jobs:
     name: Build and Test Subgraph on Previous SDK-Core Versions (Development Branch)
     with:
       subgraph-release: dev
-      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
 
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml

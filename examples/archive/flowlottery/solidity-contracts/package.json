@@ -1,0 +1,29 @@
+{
+    "name": "flowlottery-superapp",
+    "version": "1.0.0",
+    "description": "Flow lottery - a superfluid SuperApp demo",
+    "main": "scripts/demo.js",
+    "scripts": {
+        "build": "truffle compile --all && cp build/contracts/LotterySuperApp.json ../ui/src/",
+        "test": "truffle test",
+        "deploy": "npm run build && RELEASE_VERSION=v1 npx truffle --network ganache exec scripts/deploy.js",
+        "deploy:goerli": "npm run build && RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js",
+        "copy-watch": "nodemon --watch \"../../packages\" --ext \"js,ts,tsx,sol\" --exec rsync --archive --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
+    },
+    "author": "Superfluid",
+    "license": "MIT",
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.6.0",
+        "@superfluid-finance/ethereum-contracts": "^1.2.2"
+    },
+    "devDependencies": {
+        "@decentral.ee/web3-helpers": "^0.5.3",
+        "@openzeppelin/test-helpers": "^0.5.15",
+        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=d28e17d888e25b45b08fb8e7b01b1fe60eba4766",
+        "@superfluid-finance/js-sdk": "^0.6.0",
+        "@truffle/contract": "4.5.10",
+        "@truffle/hdwallet-provider": "2.0.8",
+        "dotenv": "^16.0.1",
+        "truffle": "5.5.14"
+    }
+}

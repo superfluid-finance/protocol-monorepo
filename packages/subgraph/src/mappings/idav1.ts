@@ -1,11 +1,11 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import {BigInt} from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexDistributionClaimed,
-    IndexUpdated,
     IndexSubscribed,
     IndexUnitsUpdated,
     IndexUnsubscribed,
+    IndexUpdated,
     SubscriptionApproved,
     SubscriptionDistributionClaimed,
     SubscriptionRevoked,
@@ -14,31 +14,33 @@ import {
 import {
     IndexCreatedEvent,
     IndexDistributionClaimedEvent,
-    IndexUpdatedEvent,
     IndexSubscribedEvent,
     IndexUnitsUpdatedEvent,
     IndexUnsubscribedEvent,
+    IndexUpdatedEvent,
     SubscriptionApprovedEvent,
     SubscriptionDistributionClaimedEvent,
     SubscriptionRevokedEvent,
     SubscriptionUnitsUpdatedEvent,
 } from "../../generated/schema";
 import {
-    createEventID,
     BIG_INT_ZERO,
+    createEventID,
+    getIndexID,
+    getOrder,
     subscriptionExists as subscriptionWithUnitsExists,
     tokenHasValidHost,
-    getIndexID,
 } from "../utils";
 import {
+    createAccountTokenSnapshotLogEntity,
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
     updateAggregateIDASubscriptionsData,
-    updateTokenStatsStreamedUntilUpdatedAt,
     updateATSStreamedAndBalanceUntilUpdatedAt,
+    updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
+import {getHostAddress} from "../addresses";
 
 export function handleIndexCreated(event: IndexCreated): void {
     let hostAddress = getHostAddress();
@@ -77,6 +79,7 @@ export function handleIndexCreated(event: IndexCreated): void {
         event.block
     );
 
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "IndexCreated");
     createIndexCreatedEntity(event, index.id);
 }
 
@@ -149,7 +152,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.params.token,
         event.block
     );
-
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "IndexUpdated");
     createIndexUpdatedEntity(event, index.id);
 }
 
@@ -242,6 +245,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             event.params.token,
             event.block
         );
+        createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionApproved");
     }
 
     subscription.save();
@@ -263,6 +267,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     index.save();
 
     createSubscriptionApprovedEntity(event, subscription.id);
+    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionApproved")
 }
 
 export function handleSubscriptionDistributionClaimed(
@@ -307,6 +312,8 @@ export function handleSubscriptionDistributionClaimed(
         event.params.token,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionDistributionClaimed");
+    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionDistributionClaimed");
 }
 
 /**
@@ -396,6 +403,8 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     subscription.save();
 
     createSubscriptionRevokedEntity(event, subscription.id);
+    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionRevoked")
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionRevoked");
 }
 
 /**
@@ -520,6 +529,8 @@ export function handleSubscriptionUnitsUpdated(
     subscription.save();
 
     createSubscriptionUnitsUpdatedEntity(event, subscription.id, oldUnits);
+    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionUnitsUpdated");
+    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionUnitsUpdated");
 }
 
 /**************************************************************************
@@ -532,6 +543,8 @@ function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
     ev.name = "IndexCreated";
     ev.addresses = [event.params.token, event.params.publisher];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -556,6 +569,8 @@ function createIndexDistributionClaimedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -572,6 +587,8 @@ function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
     ev.name = "IndexUpdated";
     ev.addresses = [event.params.token, event.params.publisher];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -597,6 +614,8 @@ function createIndexSubscribedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -623,6 +642,8 @@ function createIndexUnitsUpdatedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -650,6 +671,8 @@ function createIndexUnsubscribedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -675,6 +698,8 @@ function createSubscriptionApprovedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -700,6 +725,8 @@ function createSubscriptionDistributionClaimedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -725,6 +752,8 @@ function createSubscriptionRevokedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -751,6 +780,8 @@ function createSubscriptionUnitsUpdatedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;

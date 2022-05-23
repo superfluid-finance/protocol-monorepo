@@ -1,4 +1,4 @@
-name: Create sdk-redux Stable Release Draft
+name: CD | Create SDK-Redux Stable Release Draft
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -8,8 +8,8 @@ on:
     branches:
       - "release-sdk-redux-stable"
     paths:
-      - 'packages/sdk-redux/**'
-      - '.github/workflows/cd.sdk-redux-stable.create-release-drafts.yml'
+      - "packages/sdk-redux/**"
+      - ".github/workflows/cd.sdk-redux-stable.create-release-drafts.yml"
 
 jobs:
 

@@ -1,35 +1,32 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import {BigInt} from "@graphprotocol/graph-ts";
 import {
     FlowOperatorUpdated,
     FlowUpdated,
     FlowUpdatedExtension,
     IConstantFlowAgreementV1,
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {FlowOperatorUpdatedEvent, FlowUpdatedEvent, StreamPeriod, StreamRevision,} from "../../generated/schema";
 import {
-    FlowUpdatedEvent,
-    StreamPeriod,
-    StreamRevision,
-    FlowOperatorUpdatedEvent,
-} from "../../generated/schema";
-import {
-    createEventID,
-    BIG_INT_ZERO,
-    tokenHasValidHost,
-    getStreamPeriodID,
     BIG_INT_ONE,
-    getFlowOperatorID,
-    MAX_FLOW_RATE,
-    ZERO_ADDRESS,
+    BIG_INT_ZERO,
     bytesToAddress,
+    createEventID,
+    getFlowOperatorID,
+    getOrder,
+    getStreamPeriodID,
+    MAX_FLOW_RATE,
+    tokenHasValidHost,
+    ZERO_ADDRESS,
 } from "../utils";
 import {
+    createAccountTokenSnapshotLogEntity,
     getOrInitFlowOperator,
     getOrInitStream,
     getOrInitStreamRevision,
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import { getHostAddress } from "../addresses";
+import {getHostAddress} from "../addresses";
 
 enum FlowActionType {
     create,
@@ -53,7 +50,9 @@ function createFlowUpdatedEntity(
         event.params.receiver,
     ];
     ev.timestamp = event.block.timestamp;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.receiver = event.params.receiver;
@@ -88,6 +87,8 @@ function createFlowOperatorUpdatedEventEntity(
     ];
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.permissions = event.params.permissions;
@@ -327,6 +328,8 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         isDelete,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, senderAddress, tokenAddress, "FlowUpdated");
+    createAccountTokenSnapshotLogEntity(event, receiverAddress, tokenAddress, "FlowUpdated");
 }
 
 // NOTE: This handler is run right after handleStreamUpdated as the FlowUpdatedExtension
@@ -413,3 +416,5 @@ export function updateFlowOperatorForFlowUpdated(
     }
     flowOperator.save();
 }
+
+

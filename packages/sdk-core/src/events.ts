@@ -2,7 +2,9 @@ export type EventBase = {
     id: string;
     blockNumber: number;
     transactionHash: string;
+    order: number;
     timestamp: number;
+    logIndex: number;
 };
 
 export interface IEventFilter {

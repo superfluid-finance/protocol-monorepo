@@ -10,11 +10,21 @@ on:
         required: true
         default: 'feature'
       network:
+        required: false
         description: 'Network to deploy to (matic/xdai/kovan...)'
 
 jobs:
+  build-and-test-tbd-subgraph-with-previous-release:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Build and Test to be deployed Subgraph with previous SDK-Core Versions
+    with:
+      subgraph-release: ${{ github.events.inputs.release_branch }}
+      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
+
   deploy-subgraph:
     name: Deploy Subgraph
+
+    needs: [build-and-test-tbd-subgraph-with-previous-release]
 
     runs-on: ubuntu-latest
 

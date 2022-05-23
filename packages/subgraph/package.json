@@ -18,6 +18,7 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test --network localhost",
         "posttest": "yarn testenv:stop",
+        "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
         "deploy-contracts-local": "npx hardhat run scripts/deployContractsAndToken.ts --network localhost",
         "prepare-local": "mustache config/ganache.json test-subgraph.template.yaml > subgraph.yaml",
         "set-network-local": "mustache config/ganache.json src/addresses.template.ts > src/addresses.ts",
@@ -51,7 +52,7 @@
     "dependencies": {
         "@graphprotocol/graph-cli": "0.29.0",
         "@graphprotocol/graph-ts": "0.26.0",
-        "@superfluid-finance/sdk-core": "0.4.0",
+        "@superfluid-finance/sdk-core": "0.4.1",
         "mustache": "^4.2.0"
     },
     "devDependencies": {

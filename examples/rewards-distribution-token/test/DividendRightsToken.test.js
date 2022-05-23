@@ -68,7 +68,6 @@ contract("DividendRightsToken", accounts => {
             "DRT",
             daix.address,
             sf.host.address,
-            sf.agreements.ida.address,
             { from: alice }
         );
     });

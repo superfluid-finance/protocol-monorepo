@@ -26,7 +26,6 @@ module.exports = async function(callback) {
             "DRT",
             sf.tokens.fDAIx.address,
             sf.host.address,
-            sf.agreements.ida.address
         );
         console.log("App deployed at", app.address);
         callback();

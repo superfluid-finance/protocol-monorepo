@@ -23,10 +23,10 @@ describe("Query Tests", () => {
         let customSubgraphQueriesEndpoint =
             process.env.LOCAL_SUBGRAPH_URL ||
             getSubgraphEndpoint(MATIC_CHAIN_ID);
-        if (
-            process.env.SUBGRAPH_RELEASE_TAG &&
-            !process.env.LOCAL_SUBGRAPH_URL
-        ) {
+        
+        // this will work fine given the assumption that
+        // LOCAL_SUBGRAPH_URL doesn't have "v1"
+        if (process.env.SUBGRAPH_RELEASE_TAG) {
             customSubgraphQueriesEndpoint =
                 customSubgraphQueriesEndpoint.replace(
                     "v1",

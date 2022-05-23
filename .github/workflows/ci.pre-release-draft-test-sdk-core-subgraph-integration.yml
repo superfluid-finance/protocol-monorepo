@@ -36,7 +36,9 @@ jobs:
     name: Build and Test Subgraph (Release Branch)
     with:
       local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
-      subgraph-release: v1
+      # we must use dev endpoint here because v1 endpoints won't be deployed yet
+      # we want to test what is to be deployed
+      subgraph-release: dev
 
   # ensure subgraph indexing is complete on all v1 endpoints before allowing sdk-core release
   check-subgraph-indexing-completeness:

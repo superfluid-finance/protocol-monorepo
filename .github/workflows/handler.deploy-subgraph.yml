@@ -10,6 +10,7 @@ on:
         required: true
         default: 'feature'
       network:
+        required: false
         description: 'Network to deploy to (matic/xdai/kovan...)'
 
 jobs:

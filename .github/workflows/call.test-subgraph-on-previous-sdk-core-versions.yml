@@ -81,5 +81,5 @@ jobs:
           ./tasks/startHardhatNode.sh stop
         working-directory: ./packages/sdk-core/previous-versions-testing
         env:
-          LOCAL_SUBGRAPH_URL: ${{ github.events.inputs.local-subgraph-url }}
-          SUBGRAPH_RELEASE_TAG: ${{ github.events.inputs.subgraph-release }}
+          LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}
+          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}

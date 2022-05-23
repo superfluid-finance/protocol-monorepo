@@ -156,6 +156,7 @@ jobs:
     name: Build and Test Subgraph on Previous SDK-Core Versions (Development Branch)
     with:
       subgraph-release: dev
+      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
 
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml

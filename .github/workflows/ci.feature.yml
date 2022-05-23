@@ -150,14 +150,6 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_subgraph
 
-  test-subgraph-on-previous-sdk-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Build and Test Subgraph on Previous SDK-Core Versions (Feature Branch)
-    needs: [check]
-    if: needs.check.outputs.build_subgraph
-    with:
-      subgraph-release: feature
-
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Feature Branch)

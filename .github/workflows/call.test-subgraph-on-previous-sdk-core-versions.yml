@@ -70,16 +70,34 @@ jobs:
         working-directory: ./graph-node/docker
       #
 
-      - name: "Set up test environment"
-        run: ./tasks/setupTestEnvironment.sh
+      - name: "Setup subgraph test environment"
+        if: inputs.local-subgraph-url != ''
+        run: ./tasks/testenv-ctl.sh start
+        working-directory: ./packages/subgraph
+
+      - name: "Set up SDK-Core test environment"
+        run: |
+          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          yarn generate
         working-directory: ${{ env.sdk-core-working-directory }}
+
+      # If we use a local endpoint for testing, we need to generate data in the graph to query
+      - name: "Run SDK-Core tests"
+        if: inputs.local-subgraph-url != ''
+        run: npx hardhat test --network localhost
+        working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}
 
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
         run: |
           yarn add -D @superfluid-finance/sdk-core@v${{ matrix.version }}
           yarn run-query-tests
-          ./tasks/startHardhatNode.sh stop
         working-directory: ./packages/sdk-core/previous-versions-testing
         env:
-          LOCAL_SUBGRAPH_URL: ${{ github.events.inputs.local-subgraph-url }}
-          SUBGRAPH_RELEASE_TAG: ${{ github.events.inputs.subgraph-release }}
+          LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}
+          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+
+      - name: "Stop Hardhat node"
+        run: ./tasks/startHardhatNode.sh stop
+        working-directory: ${{ env.sdk-core-working-directory }}

@@ -34,10 +34,10 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const myAccount = (await web3.eth.getAccounts())[0];
     console.log("My account", myAccount);
-    console.log("Transfering ownership of the framework to", newGovOwner);
+    console.log("Transferring ownership of the framework to", newGovOwner);
     if (newResolverAdmin !== undefined) {
         console.log(
-            "Transfering admin role of the resolver to",
+            "Transferring admin role of the resolver to",
             newResolverAdmin
         );
     }
@@ -62,7 +62,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             console.log("ERR: I am not owner of the governance.");
         }
     } else {
-        console.log("I remain the owned of the governance.");
+        console.log("I remain the owner of the governance.");
     }
 
     if (

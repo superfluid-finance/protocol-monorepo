@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity ^0.8.4;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
@@ -9,16 +9,11 @@ import {ISuperfluid, ISuperToken, ISuperApp} from "@superfluid-finance/ethereum-
 
 import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-import {CFAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-
 // Simple contract which allows users to create NFTs with attached streams
 
 contract BudgetNFT is ERC721, Ownable {
     ISuperfluid private _host; // host
     IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
-
-    using CFAv1Library for CFAv1Library.InitData;
-    CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
 
     ISuperToken public _acceptedToken; // accepted token
 
@@ -42,18 +37,6 @@ contract BudgetNFT is ERC721, Ownable {
         assert(address(_host) != address(0));
         assert(address(_cfa) != address(0));
         assert(address(_acceptedToken) != address(0));
-
-        //initialize InitData struct, and set equal to cfaV1
-        cfaV1 = CFAv1Library.InitData(
-        host,
-        //here, we are deriving the address of the CFA using the host contract
-        IConstantFlowAgreementV1(
-            address(host.getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                ))
-            )
-        );
-
     }
 
     event NFTIssued(uint256 tokenId, address receiver, int96 flowRate);
@@ -75,7 +58,11 @@ contract BudgetNFT is ERC721, Ownable {
     }
 
     // @dev owner can edit the NFT as long as it hasn't been issued (transferred out) yet
-    function editNFT(uint256 tokenId, int96 flowRate) external onlyOwner exists(tokenId) {
+    function editNFT(uint256 tokenId, int96 flowRate)
+        external
+        onlyOwner
+        exists(tokenId)
+    {
         require(flowRate >= 0, "flowRate must be positive!");
 
         address receiver = ownerOf(tokenId);
@@ -188,30 +175,71 @@ contract BudgetNFT is ERC721, Ownable {
         );
 
         if (outFlowRate == flowRate) {
-            cfaV1.deleteFlow(address(this), to, _acceptedToken);
+            _deleteFlow(address(this), to);
         } else if (outFlowRate > flowRate) {
             // reduce the outflow by flowRate;
             // shouldn't overflow, because we just checked that it was bigger.
-            cfaV1.updateFlow(to, _acceptedToken, outFlowRate - flowRate);
+            _updateFlow(to, outFlowRate - flowRate);
         }
         // won't do anything if outFlowRate < flowRate
     }
 
     //this will increase the flow or create it
     function _increaseFlow(address to, int96 flowRate) internal {
-        if (to == address(0)) return;
-
         (, int96 outFlowRate, , ) = _cfa.getFlow(
             _acceptedToken,
             address(this),
             to
         ); //returns 0 if stream doesn't exist
         if (outFlowRate == 0) {
-            cfaV1.createFlow(to, _acceptedToken, flowRate);
+            _createFlow(to, flowRate);
         } else {
             // increase the outflow by flowRates[tokenId]
-            cfaV1.updateFlow(to, _acceptedToken, outFlowRate + flowRate);
+            _updateFlow(to, outFlowRate + flowRate);
         }
     }
 
+    function _createFlow(address to, int96 flowRate) internal {
+        if (to == address(this) || to == address(0)) return;
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.createFlow.selector,
+                _acceptedToken,
+                to,
+                flowRate,
+                new bytes(0) // placeholder
+            ),
+            "0x"
+        );
+    }
+
+    function _updateFlow(address to, int96 flowRate) internal {
+        if (to == address(this) || to == address(0)) return;
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.updateFlow.selector,
+                _acceptedToken,
+                to,
+                flowRate,
+                new bytes(0) // placeholder
+            ),
+            "0x"
+        );
+    }
+
+    function _deleteFlow(address from, address to) internal {
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.deleteFlow.selector,
+                _acceptedToken,
+                from,
+                to,
+                new bytes(0) // placeholder
+            ),
+            "0x"
+        );
+    }
 }

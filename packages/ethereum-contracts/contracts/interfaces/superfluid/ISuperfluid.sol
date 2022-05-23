@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
@@ -184,7 +184,9 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
-     * @dev Message sender declares it as a super app
+     * @dev Message sender (must be a contract) declares itself as a super app.
+     * @custom:deprecated you should use `registerAppWithKey` or `registerAppByFactory` instead,
+     * because app registration is currently governance permissioned on mainnets.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
      */
@@ -196,18 +198,24 @@ interface ISuperfluid {
     event AppRegistered(ISuperApp indexed app);
 
     /**
-     * @dev Message sender declares it as a super app, using a registration key
+     * @dev Message sender declares itself as a super app.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
-     * @param registrationKey The registration key issued by the governance
+     * @param registrationKey The registration key issued by the governance, needed to
+     * register on a mainnet.
+     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     * On testnets or in dev environment, a placeholder (e.g. empty string) can be used.
+     * @notice While the message sender must be the super app itself, the transaction sender (tx.origin)
+     * must be the deployer account the registration key was issued for.
      */
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
-     * @dev Message sender declares app as a super app
+     * @dev Message sender (must be a contract) declares app as a super app
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
-     * NOTE: only factory contracts authorized by governance can register super apps
+     * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
+     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
     function registerAppByFactory(ISuperApp app, uint256 configWord) external;
 

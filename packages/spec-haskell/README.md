@@ -1,5 +1,4 @@
-The formal specification of the Superfluid protocol is written in Haskell, namely in Haskell 2010 with GHC extensions
-notably MultiParamTypeClasses, FunctionalDependencies, GADTs and TypeFamilies.
+The formal specification of the Superfluid protocol is written in Haskell, namely GHC2021 with GADTs and TypeFamilies.
 
 This package is managed using [cabal](https://www.haskell.org/cabal/) to manage multiple haskell packages:
 

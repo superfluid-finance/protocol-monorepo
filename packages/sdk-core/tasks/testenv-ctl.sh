@@ -6,12 +6,8 @@ set -xe
 CMD=$1
 
 if [ "$CMD" == "start" ];then
-    ./tasks/startGanacheAndDeployContracts.sh $CMD
-    # Come back to sdk-core after going to subgraph folder
-    cd ../sdk-core
-    yarn generate:graphql-types
-    yarn generate:abi-files
-    yarn generate:web3-types
+    ./tasks/startHardhatNode.sh $CMD
+    ./tasks/setupTestEnvironment.sh
 elif [ "$CMD" == "stop" ];then
-    ./tasks/startGanacheAndDeployContracts.sh $CMD
+    ./tasks/startHardhatNode.sh $CMD
 fi

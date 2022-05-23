@@ -3,3 +3,5 @@
 /dist-*
 /.ghc.environment.*
 /cabal.project.local
+*.bbl
+*.blg

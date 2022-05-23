@@ -10,7 +10,7 @@ on:
       - ".github/workflows/ci.canary.yml"
       - "codecov.yml"
       - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
-      - ".github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml'
+      - ".github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml"
 
 jobs:
   essential-build-and-test:

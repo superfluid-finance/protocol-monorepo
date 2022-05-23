@@ -1,18 +1,16 @@
-name: CI | Pre-Release Draft SDK Core-Subgraph Integration Test
+name: CI | Pre-Release Draft SDK Core Integration Test
 
 on:
   pull_request:
     branches:
-      - "release-subgraph-v1"
       - "release-sdk-core-stable"
     paths:
-      - "packages/subgraph/**"
       - "packages/sdk-core/**"
-      - ".github/workflows/ci.pre-release-draft-test-sdk-core-subgraph-integration.yml"
+      - "packages/subgraph/**"
+      - ".github/workflows/ci.pre-release-sdk-core.yml"
       - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
       - ".github/workflows/call.check-subgraph-indexing-statuses.yml"
       - ".github/workflows/call.test-sdk-core.yml"
-      - ".github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml"
 
 jobs:
   show-contexts:
@@ -36,6 +34,8 @@ jobs:
     name: Build and Test Subgraph (Release Branch)
     with:
       local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
+      # we can use v1 endpoint here because v1 endpoints must be deployed if
+      # we want to merge 
       subgraph-release: v1
 
   # ensure subgraph indexing is complete on all v1 endpoints before allowing sdk-core release
@@ -51,13 +51,5 @@ jobs:
     uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Release branch)
     if: github.base_ref == 'release-sdk-core-stable'
-    with:
-      subgraph-release: v1
-
-  # build and test live subgraph with previous sdk-core releases
-  build-and-test-live-subgraph-previous-releases:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Build and test current subgraph release with previous sdk-core versions
-    if: github.base_ref == 'release-subgraph-v1'
     with:
       subgraph-release: v1

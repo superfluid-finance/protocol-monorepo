@@ -1,0 +1,11 @@
+{
+    "name": "@superfluid-finance/sdk-core-previous-versions-testing",
+    "version": "0.0.1",
+    "license": "MIT",
+    "scripts": {
+        "run-query-tests": "npx hardhat test ./runQueryTests.ts"
+    },
+    "devDependencies": {
+        "@superfluid-finance/sdk-core": "0.4.1"
+    }
+}

@@ -73,7 +73,7 @@ jobs:
       - name: "Setup subgraph test environment"
         if: inputs.local-subgraph-url != ''
         run: ./tasks/testenv-ctl.sh start
-        working-directory: ${{ env.subgraph-working-directory }}
+        working-directory: ./packages/subgraph
 
       - name: "Set up SDK-Core test environment"
         run: |

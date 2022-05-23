@@ -61,13 +61,6 @@ jobs:
     name: Build and Test Subgraph (Development Branch)
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
-  test-subgraph-on-previous-sdk-versions:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml@dev
-    name: Build and Test Subgraph on Previous SDK-Core Versions (Development Branch)
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-    with:
-      subgraph-release: dev
-
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
 
@@ -208,7 +201,7 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, test-subgraph, test-subgraph-on-previous-sdk-versions, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
+    needs: [essential-build-and-test, test-subgraph, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 

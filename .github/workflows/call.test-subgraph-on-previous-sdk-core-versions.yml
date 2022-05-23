@@ -81,6 +81,8 @@ jobs:
         if: inputs.local-subgraph-url != ''
         run: npx hardhat test --network localhost
         working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}
 
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
         run: |

@@ -20,13 +20,24 @@ const getSubgraphEndpoint = (chainId: number) => {
 describe("Query Tests", () => {
     let query: Query;
     before(async () => {
-        const customSubgraphQueriesEndpoint =
+        let customSubgraphQueriesEndpoint =
             process.env.LOCAL_SUBGRAPH_URL ||
             getSubgraphEndpoint(MATIC_CHAIN_ID);
+        if (
+            process.env.SUBGRAPH_RELEASE_TAG &&
+            !process.env.LOCAL_SUBGRAPH_URL
+        ) {
+            customSubgraphQueriesEndpoint =
+                customSubgraphQueriesEndpoint.replace(
+                    "v1",
+                    process.env.SUBGRAPH_RELEASE_TAG
+                );
+        }
         query = new Query({
             dataMode: "SUBGRAPH_ONLY",
             customSubgraphQueriesEndpoint,
         });
+        console.log("Testing with endpoint:", customSubgraphQueriesEndpoint);
     });
 
     describe("Query Class Tests", () => {

@@ -6,6 +6,7 @@ on:
       local-subgraph-url:
         required: false
         type: string
+      # only required when local-subgraph-url is inputted
       subgraph-release:
         required: false
         type: string

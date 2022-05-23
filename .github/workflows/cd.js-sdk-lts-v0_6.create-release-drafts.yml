@@ -1,4 +1,4 @@
-name: Create js-sdk v0.6 LTS Release Draft
+name: CD | Create JS-SDK v0.6 LTS Release Draft
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -8,8 +8,8 @@ on:
     branches:
       - "release-js-sdk-lts-v0.6"
     paths:
-      - 'packages/js-sdk/**'
-      - '.github/workflows/cd.js-sdk-v0_6.create-release-drafts.yml'
+      - "packages/js-sdk/**"
+      - ".github/workflows/cd.js-sdk-v0_6.create-release-drafts.yml"
 
 jobs:
 

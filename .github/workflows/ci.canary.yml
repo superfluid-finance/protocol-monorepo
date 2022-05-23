@@ -208,7 +208,7 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, test-subgraph, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
+    needs: [essential-build-and-test, test-subgraph, test-subgraph-on-previous-sdk-versions, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 

@@ -60,4 +60,7 @@ jobs:
     name: Build and test current subgraph release with previous sdk-core versions
     if: github.base_ref == 'release-subgraph-v1'
     with:
-      subgraph-release: v1
+      # we check with dev endpoint here because v1 endpoints won't be deployed yet
+      # we want to check here if it's safe to merge what we have in dev 
+      # endpoints to v1 (backwards compatible)
+      subgraph-release: dev

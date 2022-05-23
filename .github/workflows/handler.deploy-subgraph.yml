@@ -17,14 +17,25 @@ jobs:
   build-and-test-tbd-subgraph-with-previous-release:
     uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
     name: Build and Test to be deployed Subgraph with previous SDK-Core Versions
+    # we only run this job when deploying to dev because we test this for v1
+    # in ci.pre-release-draft-test-sdk-core-subgraph-integration.yml
+    if: ${{ github.event.inputs.release_branch == "dev" }}
     with:
-      subgraph-release: ${{ github.events.inputs.release_branch }}
+      subgraph-release: feature
       local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
+
+  require-correct-branch-for-v1-release:
+    if: ${{ github.event.inputs.release_branch == "v1" }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Can only deploy to v1 from release-subgraph-v1"
+        if: ${{ github.ref_name != "release-subgraph-v1" }}
+        run: exit 1
 
   deploy-subgraph:
     name: Deploy Subgraph
 
-    needs: [build-and-test-tbd-subgraph-with-previous-release]
+    needs: [require-correct-branch-for-v1-release, build-and-test-tbd-subgraph-with-previous-release]
 
     runs-on: ubuntu-latest
 

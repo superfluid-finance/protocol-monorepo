@@ -1,4 +1,4 @@
-name: Create subgraph Stable Release Draft
+name: CD | Create Subgraph Stable Release Draft
 
 on:
   workflow_dispatch:

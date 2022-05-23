@@ -1,4 +1,4 @@
-name: Set up, deploy and test local subgraph
+name: Reusable Workflow | Setup, Deploy and Test Local Subgraph
 
 on:
   workflow_call:

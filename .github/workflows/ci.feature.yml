@@ -1,4 +1,4 @@
-name: CI Feature Branches
+name: CI | Feature Branches
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -13,6 +13,9 @@ on:
   ## if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
 
   pull_request:
+    paths:
+      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
+      - ".github/workflows/call.test-sdk-core.yml"
 
 jobs:
   check:

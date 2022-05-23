@@ -1,4 +1,4 @@
-name: Check Subgraph Indexing Statuses on all Networks
+name: Reusable Workflow | Check Subgraph Indexing Statuses on All Networks
 
 on:
   workflow_call:

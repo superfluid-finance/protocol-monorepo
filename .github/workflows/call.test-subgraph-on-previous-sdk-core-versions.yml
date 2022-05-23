@@ -1,4 +1,4 @@
-name: Test Subgraph on Previous SDK-Core Versions
+name: Reusable Workflow | Test Subgraph on Previous SDK-Core Versions
 
 on:
   workflow_call:

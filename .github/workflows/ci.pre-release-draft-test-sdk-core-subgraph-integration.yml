@@ -1,4 +1,4 @@
-name: Pre-Release Draft SDK Core-Subgraph Integration Test
+name: CI | Pre-Release Draft SDK Core-Subgraph Integration Test
 
 on:
   pull_request:
@@ -9,6 +9,10 @@ on:
       - "packages/subgraph/**"
       - "packages/sdk-core/**"
       - ".github/workflows/ci.pre-release-draft-test-sdk-core-subgraph-integration.yml"
+      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
+      - ".github/workflows/call.check-subgraph-indexing-statuses.yml"
+      - ".github/workflows/call.test-sdk-core.yml"
+      - ".github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml"
 
 jobs:
   show-contexts:

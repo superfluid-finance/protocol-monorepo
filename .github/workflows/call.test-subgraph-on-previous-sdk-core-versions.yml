@@ -86,8 +86,11 @@ jobs:
         run: |
           yarn add -D @superfluid-finance/sdk-core@v${{ matrix.version }}
           yarn run-query-tests
-          ./tasks/startHardhatNode.sh stop
         working-directory: ./packages/sdk-core/previous-versions-testing
         env:
           LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+
+      - name: "Stop Hardhat node"
+        run: ./tasks/startHardhatNode.sh stop
+        working-directory: ${{ env.sdk-core-working-directory }}

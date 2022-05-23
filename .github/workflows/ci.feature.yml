@@ -15,9 +15,7 @@ on:
   pull_request:
     paths:
       - "packages/**"
-      - ".github/workflows/ci.feature.yml"
-      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
-      - ".github/workflows/call.test-sdk-core.yml"
+      - ".github/workflows/**"
 
 jobs:
   check:

@@ -149,6 +149,13 @@ jobs:
     name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
+  
+  # REMOVE - JUST TO TEST workflow call
+  test-subgraph-on-previous-sdk-versions:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Build and Test Subgraph on Previous SDK-Core Versions (Development Branch)
+    with:
+      subgraph-release: dev
 
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml

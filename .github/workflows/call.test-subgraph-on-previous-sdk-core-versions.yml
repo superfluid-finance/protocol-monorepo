@@ -79,7 +79,7 @@ jobs:
       # If we use a local endpoint for testing, we need to generate data in the graph to query
       - name: "Run SDK-Core Tests"
         if: inputs.local-subgraph-url != ''
-        run: npx hardhat test
+        run: npx hardhat test --network localhost
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"

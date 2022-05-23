@@ -76,7 +76,7 @@ jobs:
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           ./tasks/setupTestEnvironment.sh
-          npx hardhat test
+          npx hardhat test --network localhost
         working-directory: ./packages/sdk-core
         env: 
           LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}

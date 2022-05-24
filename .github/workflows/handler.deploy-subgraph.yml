@@ -19,7 +19,7 @@ jobs:
     name: Build and Test to be deployed Subgraph with previous SDK-Core Versions
     # we will run this job again when deploying to v1 endpoints just in case
     # it is repetitive, but more important here than for dev endpoints
-    if: ${{ github.event.inputs.release_branch == "v1" }}
+    if: ${{ github.event.inputs.release_branch == 'v1' }}
     with:
       subgraph-release: dev
       local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test

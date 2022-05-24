@@ -13,9 +13,6 @@ on:
   ## if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
 
   pull_request:
-    paths:
-      - "packages/**"
-      - ".github/workflows/**"
 
 jobs:
   check:

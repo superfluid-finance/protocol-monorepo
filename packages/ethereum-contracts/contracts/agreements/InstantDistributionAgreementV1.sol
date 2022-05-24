@@ -241,13 +241,12 @@ contract InstantDistributionAgreementV1 is
         ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
         (bytes32 iId, IndexData memory idata) = _loadIndexData(token, publisher, indexId);
+        uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
 
-        uint128 indexDelta = (
-            amount /
-            uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
-        ).toUint128();
-        _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
-
+        if (totalUnits > 0) {
+            uint128 indexDelta = (amount / totalUnits).toUint128();
+            _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
+        }
         // nothing to be recorded so far
         newCtx = ctx;
     }
@@ -380,7 +379,7 @@ contract InstantDistributionAgreementV1 is
             token.createAgreement(vars.sId, _encodeSubscriptionData(vars.sdata));
 
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         } else {
             cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
@@ -403,7 +402,7 @@ contract InstantDistributionAgreementV1 is
             token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
 
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
         // can index up to three words, hence splitting into two events from publisher or subscriber's view.
@@ -472,7 +471,7 @@ contract InstantDistributionAgreementV1 is
         token.settleBalance(subscriber, balanceDelta);
 
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber, userData);
         emit SubscriptionRevoked(token, subscriber, publisher, indexId, userData);
@@ -585,10 +584,10 @@ contract InstantDistributionAgreementV1 is
         // after-hook callback
         if (vars.subscriptionExists) {
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         } else {
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
         emit IndexUnitsUpdated(token, publisher, indexId, subscriber, units, userData);
@@ -769,7 +768,7 @@ contract InstantDistributionAgreementV1 is
         token.settleBalance(subscriber, balanceDelta);
 
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber, userData);
         emit SubscriptionRevoked(token, subscriber, publisher, indexId, userData);
@@ -831,7 +830,7 @@ contract InstantDistributionAgreementV1 is
             emit SubscriptionDistributionClaimed(token, subscriber, publisher, indexId, pendingDistribution);
 
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         } else {
             // nothing to be recorded in this case
             newCtx = ctx;

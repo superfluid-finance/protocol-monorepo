@@ -243,13 +243,12 @@ contract InstantDistributionAgreementV1 is
         ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
         (bytes32 iId, IndexData memory idata) = _loadIndexData(token, publisher, indexId);
+        uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
 
-        uint128 indexDelta = (
-            amount /
-            uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
-        ).toUint128();
-        _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
-
+        if (totalUnits > 0) {
+            uint128 indexDelta = (amount / totalUnits).toUint128();
+            _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
+        }
         // nothing to be recorded so far
         newCtx = ctx;
     }

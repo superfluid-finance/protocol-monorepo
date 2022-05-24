@@ -23,6 +23,18 @@ contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
         return _decodeFlowData(wordA);
     }
 
+    function encodeFlowOperatorData(FlowOperatorData memory flowOperatorData) external pure
+        returns (uint256 wordA)
+    {
+        return uint256(_encodeFlowOperatorData(flowOperatorData)[0]);
+    }
+
+    function decodeFlowOperatorData(uint256 wordA) external pure
+        returns (bool exist, FlowOperatorData memory flowOperatorData)
+    {
+        return _decodeFlowOperatorData(wordA);
+    }
+
     function getMaximumFlowRateFromDepositPure(
         uint256 liquidationPeriod,
         uint256 deposit)
@@ -97,5 +109,19 @@ contract ConstantFlowAgreementV1Properties is Test {
         assert(a.flowRate == b.flowRate);
         assert(a.deposit == b.deposit);
         assert(a.owedDeposit == b.owedDeposit);
+    }
+
+    function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
+        vm.assume(flowRateAllowance > 0);
+        ConstantFlowAgreementV1.FlowOperatorData memory a = ConstantFlowAgreementV1.FlowOperatorData({
+            permissions: permissions,
+            flowRateAllowance: flowRateAllowance
+        });
+        uint256 wordA = cfa.encodeFlowOperatorData(a);
+        bool exist;
+        ConstantFlowAgreementV1.FlowOperatorData memory b;
+        (exist, b) = cfa.decodeFlowOperatorData(wordA);
+        assert(a.permissions == b.permissions);
+        assert(a.flowRateAllowance == b.flowRateAllowance);
     }
 }

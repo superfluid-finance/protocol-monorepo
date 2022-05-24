@@ -344,7 +344,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(1).toString()
+                    amount: toWad(1).toString(),
                 });
             });
         });

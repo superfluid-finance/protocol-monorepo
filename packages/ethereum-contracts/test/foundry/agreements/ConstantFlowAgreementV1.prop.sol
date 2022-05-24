@@ -11,6 +11,18 @@ import {
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
     constructor() ConstantFlowAgreementV1(ISuperfluid(address(0))) {}
 
+    function encodeFlowData(FlowData memory flowData) external pure
+        returns (uint256 wordA)
+    {
+        return uint256(_encodeFlowData(flowData)[0]);
+    }
+
+    function decodeFlowData(uint256 wordA) external pure
+        returns (bool exist, FlowData memory flowData)
+    {
+        return _decodeFlowData(wordA);
+    }
+
     function getMaximumFlowRateFromDepositPure(
         uint256 liquidationPeriod,
         uint256 deposit)
@@ -67,5 +79,23 @@ contract ConstantFlowAgreementV1Properties is Test {
 
         uint256 deposit = cfa.getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
         assert(deposit >= minimumDeposit);
+    }
+
+    function testFlowDataEncoding(uint32 timestamp, int96 flowRate, uint64 depositClipped, uint64 owedDepositClipped)
+        public view
+    {
+        ConstantFlowAgreementV1.FlowData memory a = ConstantFlowAgreementV1.FlowData({
+            timestamp: uint256(timestamp),
+                    flowRate: flowRate,
+                    deposit: uint256(uint64(depositClipped << 32)),
+                    owedDeposit: uint256(uint64(owedDepositClipped << 32))});
+        uint256 wordA = cfa.encodeFlowData(a);
+        bool exist;
+        ConstantFlowAgreementV1.FlowData memory b;
+        (exist, b) = cfa.decodeFlowData(wordA);
+        assert(a.timestamp == b.timestamp);
+        assert(a.flowRate == b.flowRate);
+        assert(a.deposit == b.deposit);
+        assert(a.owedDeposit == b.owedDeposit);
     }
 }

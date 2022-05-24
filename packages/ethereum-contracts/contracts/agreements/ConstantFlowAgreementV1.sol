@@ -1458,7 +1458,8 @@ contract ConstantFlowAgreementV1 is
     {
         exist = wordA > 0;
         if (exist) {
-            flowOperatorData.flowRateAllowance = int96(int256(wordA));
+            // NOTE: For safecast, doing extra bitmasking to not to have any trust assumption of token storage
+            flowOperatorData.flowRateAllowance = int96(int256(wordA & uint256(int256(type(int96).max))));
             flowOperatorData.permissions = uint8(wordA >> 128) & type(uint8).max;
         }
     }

@@ -17,7 +17,6 @@ import {
 import { AgreementBase } from "./AgreementBase.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
@@ -67,7 +66,6 @@ contract ConstantFlowAgreementV1 is
 
     using SafeCast for uint256;
     using SafeCast for int256;
-    using Int96SafeMath for int96;
 
     struct FlowData {
         uint256 timestamp; // stored as uint32
@@ -869,7 +867,7 @@ contract ConstantFlowAgreementV1 is
         if (dynamicBalance != 0) {
             token.settleBalance(account, dynamicBalance);
         }
-        state.flowRate = state.flowRate.add(flowRateDelta, "CFA: flowrate overflow");
+        state.flowRate = state.flowRate + flowRateDelta;
         state.timestamp = currentTimestamp;
         state.deposit = (state.deposit.toInt256() + depositDelta).toUint256();
         state.owedDeposit = (state.owedDeposit.toInt256() + owedDepositDelta).toUint256();
@@ -1167,7 +1165,7 @@ contract ConstantFlowAgreementV1 is
             vars.totalSenderFlowRate = _updateAccountFlowState(
                 token,
                 flowParams.sender,
-                oldFlowData.flowRate.sub(flowParams.flowRate, "CFA: flowrate overflow"),
+                oldFlowData.flowRate - flowParams.flowRate,
                 depositDelta,
                 0,
                 currentTimestamp
@@ -1175,7 +1173,7 @@ contract ConstantFlowAgreementV1 is
             vars.totalReceiverFlowRate = _updateAccountFlowState(
                 token,
                 flowParams.receiver,
-                flowParams.flowRate.sub(oldFlowData.flowRate, "CFA: flowrate overflow"),
+                flowParams.flowRate - oldFlowData.flowRate,
                 0,
                 0, // leaving owed deposit unchanged for later adjustment
                 currentTimestamp
@@ -1316,8 +1314,9 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
 
+        // NOTE: safecast for int96 with extra assertion
         assert(liquidationPeriod <= uint256(int256(type(int96).max)));
-        deposit = uint256(int256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow")));
+        deposit = uint256(int256(flowRate * int96(uint96(liquidationPeriod))));
         return _clipDepositNumber(deposit);
     }
 

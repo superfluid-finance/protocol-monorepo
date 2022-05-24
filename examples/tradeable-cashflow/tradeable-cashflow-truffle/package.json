@@ -16,7 +16,7 @@
         "@openzeppelin/contracts": "^4.6.0",
         "@openzeppelin/test-helpers": "^0.5.15",
         "@superfluid-finance/ethereum-contracts": "^1.2.2",
-        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=dev",
+        "@superfluid-finance/hot-fuzz": "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=e59d524eb31ee6cb2fa610de74219cbc837cdadb",
         "@superfluid-finance/js-sdk": "^0.6.1",
         "@truffle/contract": "4.5.10",
         "@truffle/hdwallet-provider": "2.0.8",

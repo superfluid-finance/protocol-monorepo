@@ -1130,9 +1130,9 @@
     hardhat "^2.9.3"
     stack-trace "0.0.10"
 
-"@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=dev":
+"@superfluid-finance/hot-fuzz@https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=e59d524eb31ee6cb2fa610de74219cbc837cdadb":
   version "0.1.0"
-  resolved "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=dev#20cb86f40fc83ae8ae3c25a5d2417b7b47d7f6ef"
+  resolved "https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-monorepo/packages/hot-fuzz&commit=e59d524eb31ee6cb2fa610de74219cbc837cdadb#f6134bbfa0ac80b8da3f3c674674c36e7c873e58"
   dependencies:
     "@openzeppelin/contracts" "4.5.0"
 
@@ -1934,7 +1934,7 @@
   version "0.2.0"
   resolved "https://codeload.github.com/trufflesuite/filecoin-signing-tools-js/tar.gz/2786fdb8a2b71bd1c7789c0701da41bb644a098f"
   dependencies:
-    axios "0.26.1"
+    axios "^0.20.0"
     base32-decode "^1.0.0"
     base32-encode "^1.1.1"
     bip32 "^2.0.5"

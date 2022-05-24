@@ -27,7 +27,7 @@ How To Use
 > The fix can be found at https://github.com/crytic/echidna/pull/758.
 >
 > To download, open the link above -> click "Checks" tab -> click "CI" -> Download the artifact
-> for your perating system.
+> for your operating system.
 
 2. Add `@superfluid-finance/hot-fuzz` to your project `devDependencies`.
 
@@ -42,16 +42,21 @@ yarn add --dev 'https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-mo
 > - https://github.com/yarnpkg/yarn/issues/4725
 > - https://gitpkg.vercel.app/
 
+Also make sure the dependency `@superfluid-finance/ethereum-contracts` is at least version 1.2.2.
+
 3. Extend your `truffle-config.js`
 
 It is required to link external libraries correctly during the testing. The workaround is provided, all you need to do
-is to add this line to your `truffle-config.js`:
+is to slightly change your `truffle-config.js`:
 
 ```js
+const M = (module.exports = {
+    // networks, compilers, ...
+}
 require("@superfluid-finance/hot-fuzz").hotfuzzPatchTruffleConfig(M);
 ```
 
-> :warning: hardhat-config support is currently missing, pull request please!
+> :warning: hardhat-config support is currently missing, pull request appreciated!
 >
 > Note that there is no harm just to create a minimal truffle-config.js in your project if that helps for now!
 
@@ -59,7 +64,7 @@ require("@superfluid-finance/hot-fuzz").hotfuzzPatchTruffleConfig(M);
 
 ## Develop A New Hot Fuzzer
 
-1. Create a new hot fuzz contract ending inheriting `HotFuzzBase`.
+1. Create a new hot fuzz contract inheriting `HotFuzzBase`.
 ```solidity
 contract YouSuperAppHotFuzz is HotFuzzBase {
 
@@ -73,13 +78,15 @@ contract YouSuperAppHotFuzz is HotFuzzBase {
         addAccount(address(_app));
     }
 ```
-2. As a convention, the new file name should be `YourApp.hott.sol`.
-3. Write additional Echidna yaml configuration, minimally:
+As a convention, the contract file name should be `YourApp.hott.sol`.
+
+2. Create an Echidna yaml configuration file with at least this content:
 ```
 testMode: "property"
 ```
-Check [Echidna documentation](https://github.com/crytic/echidna/) for more details what you can configure more.
-4. Write a list of possible actions how the testers can interact with your app:
+Check the [Echidna documentation](https://github.com/crytic/echidna/) for more configuration options.
+
+3. Write a list of possible actions how the testers can interact with your app, for example:
 ```
 function participateLottery(uint8 a, int64 flowRate) public {
     LotteryPlayer player = getOnePlayer(a);
@@ -88,15 +95,17 @@ function participateLottery(uint8 a, int64 flowRate) public {
     player.play(flowRate);
 }
 ```
-5. Write additional echidna invariances so that they are checked against through out the hot fuzzing.
-Typically you at least don't want your app jailed:
+When run, Echidna will call this functions with random values set for its parameters.
+
+4. Write additional [Echidna invariants](https://github.com/crytic/echidna#writing-invariants) which need to be true at all times, regardless of the order and parametrization of actions during the fuzzing.
+A typical invariant for Super Apps is that you don't want your App jailed:
 ```
 function echidna_app_is_free() public view returns (bool) {
     return sf.host.isApp(_app) && !sf.host.isAppJailed(_app);
 }
 ```
 
-> :bulb: Checkout the [flowlottery example](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples/flowlottery/solidity-contracts).
+> :bulb: Checkout the [flowlottery example](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples/archive/flowlottery/solidity-contracts) and the [tradeable cashflow example](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples/tradeable-cashflow/tradeable-cashflow-truffle).
 
 ## Hot Fuzz It
 
@@ -107,15 +116,15 @@ $ npx hot-fuzz contracts/YourAppHotFuzz.yaml
 Once it is running, what is going on is that your list of actions in addition to a preset of actions defined in
 `HotFuzzBase` are randomized as as many sequences of instructions as you configured for, are being executed.
 
-While executing these sequences of instructions, all echidna invariances are checked each time a transaction is made.
-Any violation of these invariances are considered a bug somewhere in the app.
+While executing these sequences of instructions, all echidna invariants are checked each time a transaction is made.
+Any violation of these invariants is considered a bug somewhere in the app.
 
 That's it, let the tool discover cases for you, have fun hot-fuzzing!
 
 Contribution ✨
 ===============
 
-The tool is still in early development, many breaking changes may still come.
+The tool is still in early development, there may be breaking changes.
 
 All contributions are welcome through new issue reports or pull requests.
 

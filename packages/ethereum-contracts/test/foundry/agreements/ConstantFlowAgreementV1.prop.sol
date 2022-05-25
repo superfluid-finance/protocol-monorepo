@@ -112,7 +112,7 @@ contract ConstantFlowAgreementV1Properties is Test {
     }
 
     function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
-        vm.assume(flowRateAllowance > 0);
+        vm.assume(flowRateAllowance >= 0);
         ConstantFlowAgreementV1.FlowOperatorData memory a = ConstantFlowAgreementV1.FlowOperatorData({
             permissions: permissions,
             flowRateAllowance: flowRateAllowance

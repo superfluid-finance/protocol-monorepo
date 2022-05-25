@@ -436,73 +436,75 @@ describe("Subgraph Tests", () => {
         });
 
         it("Should liquidate a stream", async () => {
-            try {
-                const flowRate = monthlyToSecondRate(5000);
-                const sender = userAddresses[0];
-                const receiver = userAddresses[1];
-                const liquidator = userAddresses[2];
-                // update the global environment objects
-                updateGlobalObjects(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Update,
-                        newFlowRate: flowRate,
-                        sender,
-                        flowOperator: sender,
-                        receiver,
-                    })
-                );
+            const flowRate = monthlyToSecondRate(5000);
+            const sender = userAddresses[0];
+            const receiver = userAddresses[1];
+            const liquidator = userAddresses[2];
+            // update the global environment objects
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Update,
+                    newFlowRate: flowRate,
+                    sender,
+                    flowOperator: sender,
+                    receiver,
+                })
+            );
 
-                // get balance of sender
-                let balanceOfSender = await daix.realtimeBalanceOf({
+            // get balance of sender
+            const balanceOfSender = await daix.balanceOf({
+                account: sender,
+                providerOrSigner: provider,
+            });
+            const senderSigner = await ethers.getSigner(sender);
+            const liquidatorSigner = await ethers.getSigner(liquidator);
+            const transferAmount = toBN(balanceOfSender)
+                // transfer total - 5 seconds of flow
+                .sub(toBN((flowRate * 5).toString()))
+                .toString();
+            await transferAndUpdate(
+                transferAmount,
+                senderSigner,
+                liquidator
+            );
+            // wait for flow to get drained
+            // cannot use time traveler due to
+            // subgraph constraints
+            let balanceOf;
+            do {
+                balanceOf = await daix.realtimeBalanceOf({
                     account: sender,
                     providerOrSigner: provider,
                 });
-                const senderSigner = await ethers.getSigner(sender);
-                const liquidatorSigner = await ethers.getSigner(liquidator);
-                const transferAmount = toBN(balanceOfSender.availableBalance)
-                    // transfer total - 5 seconds of flow
-                    .sub(toBN((flowRate * 5).toString()))
-                    .toString();
+                await asleep(1000);
+            } while (Number(balanceOf.availableBalance) >= 0);
 
-                await transferAndUpdate(
-                    transferAmount,
-                    senderSigner,
-                    liquidator
-                );
-                // wait for flow to get drained
-                // cannot use time traveler due to
-                // subgraph constraints
-                let balanceOf;
-                do {
-                    balanceOf = await daix.realtimeBalanceOf({
-                        account: sender,
-                        providerOrSigner: provider,
-                    });
-                    await asleep(1000);
-                } while (Number(balanceOf.availableBalance) >= 0);
+            updateGlobalObjects(
+                await testFlowUpdated({
+                    ...getBaseCFAData(provider, daix.address),
+                    actionType: FlowActionType.Delete,
+                    newFlowRate: 0,
+                    sender,
+                    flowOperator: liquidator,
+                    receiver,
+                    liquidator,
+                })
+            );
+            const balanceOfLiquidator = await daix.realtimeBalanceOf({
+                account: liquidator,
+                providerOrSigner: provider,
+            });
+            const returnAmount = toBN(
+                balanceOfLiquidator.availableBalance
+            ).div(toBN(2));
 
-                updateGlobalObjects(
-                    await testFlowUpdated({
-                        ...getBaseCFAData(provider, daix.address),
-                        actionType: FlowActionType.Delete,
-                        newFlowRate: 0,
-                        sender,
-                        flowOperator: liquidator,
-                        receiver,
-                        liquidator,
-                    })
-                );
-
-                // transfer balance back to sender
-                await transferAndUpdate(
-                    transferAmount,
-                    liquidatorSigner,
-                    sender
-                );
-            } catch (err) {
-                console.error(err);
-            }
+            // transfer balance back to sender
+            await transferAndUpdate(
+                returnAmount.toString(),
+                liquidatorSigner,
+                sender
+            );
         });
 
         it("Should be able to update flow operator permissions", async () => {

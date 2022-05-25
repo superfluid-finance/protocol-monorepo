@@ -5,7 +5,7 @@ Here, you'll find examples that can help you get started with Superfluid.
 To add an example, you can open a PR and contact the Superfluid team in the #developers channel of our [Discord](http://discord.superfluid.finance).
 
 ### A Note on Testing and Best Practices
-We recommend that all testing is done using the Superflui SDK Core, as the JS-SDK is no longer being actively maintained. Our team is in the process of re-writing several examples within this repository using the SDK Core instead of the JS SDK. If you'd like to involve yourself in this process, you may do so [here](https://github.com/superfluid-finance/protocol-monorepo/issues/651)
+We recommend that all testing is done using the Superfluid SDK Core, as the JS-SDK is no longer being actively maintained. Our team is in the process of re-writing several examples within this repository using the SDK Core instead of the JS SDK. If you'd like to involve yourself in this process, you may do so [here](https://github.com/superfluid-finance/protocol-monorepo/issues/651)
 
 ##### Here's a brief overview of each example:
 

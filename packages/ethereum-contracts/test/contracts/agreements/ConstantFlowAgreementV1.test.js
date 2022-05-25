@@ -1,7 +1,10 @@
 const TestEnvironment = require("../../TestEnvironment");
 
 const {BN, expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectReverted,
+    expectRevertedWith,
+} = require("../../utils/expectRevert");
 const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateFlow,
@@ -349,14 +352,13 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.1.7 should reject when overflow flow rate", async () => {
-                await expectRevertedWith(
+                await expectReverted(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases.carol,
                         flowRate: MAXIMUM_FLOW_RATE.toString(),
-                    }),
-                    "CFA: deposit overflow"
+                    })
                 );
             });
 
@@ -485,14 +487,13 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.2.9 should reject when overflow flow rate", async () => {
-                await expectRevertedWith(
+                await expectReverted(
                     t.sf.cfa.updateFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
                         flowRate: MAXIMUM_FLOW_RATE.toString(),
-                    }),
-                    "CFA: deposit overflow"
+                    })
                 );
             });
 

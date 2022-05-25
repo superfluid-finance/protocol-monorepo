@@ -336,6 +336,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         if (useDefaultRewardAccount) {
             _balances[rewardAccount] = _balances[rewardAccount]
                 + rewardAmount.toInt256();
+            _assemblyEmitTransfer();
         } else {
             _balances[liquidatorAccount] = _balances[liquidatorAccount]
                 + rewardAmount.toInt256();
@@ -363,6 +364,37 @@ abstract contract SuperfluidToken is ISuperfluidToken
             liquidationTypeData
         );
     }
+
+    function _assemblyEmitTransfer() internal {
+            assembly {
+                function decodeAsAddress(offset) -> v {
+                    v := decodeAsUint(offset)
+                    if iszero(iszero(and(v, not(0xffffffffffffffffffffffffffffffffffffffff)))) {
+                        revert(0, 0)
+                    }
+                }
+                function decodeAsUint(offset) -> v {
+                    let pos := add(4, mul(offset, 0x20))
+                    if lt(calldatasize(), add(pos, 0x20)) {
+                        revert(0, 0)
+                    }
+                    v := calldataload(pos)
+                }
+                function emitTransfer(from, to, amount) {
+                    // keccak256(Transfer(address,address,uint256))
+                    let signatureHash := 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
+                    emitEvent(signatureHash, from, to, amount)
+                }
+
+                function emitEvent(signatureHash, indexed1, indexed2, nonIndexed) {
+                    mstore(0, nonIndexed)
+                    log3(0, 0x20, signatureHash, indexed1, indexed2)
+                }
+
+                emitTransfer(decodeAsAddress(0), decodeAsAddress(1), decodeAsUint(0))
+            }
+    }
+
     /**************************************************************************
     * Modifiers
     *************************************************************************/

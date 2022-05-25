@@ -17,3 +17,13 @@ yarn install
 yarn build
 yarn test
 ```
+
+**Run property tests with Hot Fuzz**
+
+This project includes property tests based on [Hot Fuzz](../../../packages/hot-fuzz/), which is itself an [Echidna](https://github.com/crytic/echidna) wrapper.  
+
+You can run it with
+
+```bash
+npx hot-fuzz contracts/TradeableCashFlowHotFuzz.yaml
+```

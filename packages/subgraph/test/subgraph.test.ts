@@ -146,22 +146,18 @@ describe("Subgraph Tests", () => {
             const timeDelta = toBN(block.timestamp.toString()).sub(
                 toBN(tokenStats.updatedAtTimestamp)
             );
-            // TODO: This seems a little strange, I don't see why we need to
-            // add the streamedAmountDiff into the amountStreamed total
-            // investigate this further when we refactor these tests
-            const amountStreamed = toBN(
+            const streamedAmountSinceUpdatedAt = toBN(
+                tokenStats.totalOutflowRate
+            ).mul(timeDelta);
+            const totalAmountStreamedUntilUpdatedAt = toBN(
                 tokenStats.totalAmountStreamedUntilUpdatedAt
-            ).add(toBN(tokenStats.totalOutflowRate).mul(timeDelta));
-            const streamedAmountDiff = amountStreamed.sub(
-                toBN(tokenStats.totalAmountStreamedUntilUpdatedAt)
-            );
+            ).add(streamedAmountSinceUpdatedAt);
             tokenStatistics[daix.address.toLowerCase()] = {
                 ...tokenStats,
                 updatedAtBlockNumber: response.blockNumber!.toString(),
                 updatedAtTimestamp: block.timestamp.toString(),
-                totalAmountStreamedUntilUpdatedAt: amountStreamed
-                    .add(streamedAmountDiff)
-                    .toString(),
+                totalAmountStreamedUntilUpdatedAt:
+                    totalAmountStreamedUntilUpdatedAt.toString(),
             };
         }
     }
@@ -463,11 +459,7 @@ describe("Subgraph Tests", () => {
                 // transfer total - 5 seconds of flow
                 .sub(toBN((flowRate * 5).toString()))
                 .toString();
-            await transferAndUpdate(
-                transferAmount,
-                senderSigner,
-                liquidator
-            );
+            await transferAndUpdate(transferAmount, senderSigner, liquidator);
             // wait for flow to get drained
             // cannot use time traveler due to
             // subgraph constraints
@@ -495,9 +487,9 @@ describe("Subgraph Tests", () => {
                 account: liquidator,
                 providerOrSigner: provider,
             });
-            const returnAmount = toBN(
-                balanceOfLiquidator.availableBalance
-            ).div(toBN(2));
+            const returnAmount = toBN(balanceOfLiquidator.availableBalance).div(
+                toBN(2)
+            );
 
             // transfer balance back to sender
             await transferAndUpdate(

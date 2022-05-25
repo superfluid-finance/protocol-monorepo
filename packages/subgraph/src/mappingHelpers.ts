@@ -603,6 +603,8 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
         tokenStats.totalAmountStreamedUntilUpdatedAt.plus(
             amountStreamedSinceLastUpdatedAt
         );
+    tokenStats.updatedAtTimestamp = block.timestamp;
+    tokenStats.updatedAtBlockNumber = block.number;
     tokenStats.save();
 }
 

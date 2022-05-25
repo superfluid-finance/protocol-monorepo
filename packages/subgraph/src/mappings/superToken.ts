@@ -36,7 +36,7 @@ function updateHOLEntitiesForLiquidation(
     liquidatorAccount: Address,
     targetAccount: Address,
     bondAccount: Address,
-    eventName: String,
+    eventName: string,
 ): void {
     getOrInitSuperToken(event.address, event.block);
 

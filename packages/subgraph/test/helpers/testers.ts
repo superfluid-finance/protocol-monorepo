@@ -191,8 +191,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
                 txnResponse.hash,
                 "TransferEvents"
             );
-
-        // regardless of period, sender is transferring
+        
         expectedData.updatedSenderATS = {
             ...expectedData.updatedSenderATS,
             totalAmountTransferredUntilUpdatedAt: toBN(

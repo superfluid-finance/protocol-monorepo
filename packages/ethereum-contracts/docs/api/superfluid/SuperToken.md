@@ -1,179 +1,99 @@
-# Solidity API
+# SuperToken
 
-## SuperToken
-
-### _STANDARD_DECIMALS
-
-```solidity
-uint8 _STANDARD_DECIMALS
-```
-
-### _underlyingToken
-
-```solidity
-contract IERC20 _underlyingToken
-```
-
-_The underlying ERC20 token_
-
-### _underlyingDecimals
-
-```solidity
-uint8 _underlyingDecimals
-```
-
-_Decimals of the underlying token_
-
-### _name
-
-```solidity
-string _name
-```
-
-_TokenInfo Name property_
-
-### _symbol
-
-```solidity
-string _symbol
-```
-
-_TokenInfo Symbol property_
-
-### _allowances
-
-```solidity
-mapping(address &#x3D;&gt; mapping(address &#x3D;&gt; uint256)) _allowances
-```
-
-_ERC20 Allowances Storage_
-
-### _operators
-
-```solidity
-struct ERC777Helper.Operators _operators
-```
-
-_ERC777 operators support data_
-
-### _reserve22
-
-```solidity
-uint256 _reserve22
-```
-
-### _reserve23
-
-```solidity
-uint256 _reserve23
-```
-
-### _reserve24
-
-```solidity
-uint256 _reserve24
-```
-
-### _reserve25
-
-```solidity
-uint256 _reserve25
-```
-
-### _reserve26
-
-```solidity
-uint256 _reserve26
-```
-
-### _reserve27
-
-```solidity
-uint256 _reserve27
-```
-
-### _reserve28
-
-```solidity
-uint256 _reserve28
-```
-
-### _reserve29
-
-```solidity
-uint256 _reserve29
-```
-
-### _reserve30
-
-```solidity
-uint256 _reserve30
-```
-
-### _reserve31
-
-```solidity
-uint256 _reserve31
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host) public
+function constructor(
+    contract ISuperfluid host
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 
 ### initialize
 
 ```solidity
-function initialize(contract IERC20 underlyingToken, uint8 underlyingDecimals, string n, string s) external
+function initialize(
+    contract IERC20 underlyingToken,
+    uint8 underlyingDecimals,
+    string n,
+    string s
+) external
 ```
 
-_Initialize the contract_
+Initialize the contract
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `underlyingToken` | contract IERC20 |  |
+| `underlyingDecimals` | uint8 |  |
+| `n` | string |  |
+| `s` | string |  |
 
 ### proxiableUUID
 
 ```solidity
-function proxiableUUID() public pure returns (bytes32)
+function proxiableUUID(
+) public returns (bytes32)
 ```
 
-_Proxiable UUID marker function, this would help to avoid wrong logic
+Proxiable UUID marker function, this would help to avoid wrong logic
      contract to be used for upgrading.
 
 NOTE: The semantics of the UUID deviates from the actual UUPS standard,
-      where it is equivalent of _IMPLEMENTATION_SLOT._
+      where it is equivalent of _IMPLEMENTATION_SLOT.
 
 ### updateCode
 
 ```solidity
-function updateCode(address newAddress) external
+function updateCode(
+    address newAddress
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `newAddress` | address |  |
 
 ### name
 
 ```solidity
-function name() external view returns (string)
+function name(
+) external returns (string)
 ```
 
-_Returns the name of the token._
+Returns the name of the token.
 
 ### symbol
 
 ```solidity
-function symbol() external view returns (string)
+function symbol(
+) external returns (string)
 ```
 
-_Returns the symbol of the token, usually a shorter version of the
-name._
+Returns the symbol of the token, usually a shorter version of the
+name.
 
 ### decimals
 
 ```solidity
-function decimals() external pure returns (uint8)
+function decimals(
+) external returns (uint8)
 ```
 
-_Returns the number of decimals used to get its user representation.
-For example, if &#x60;decimals&#x60; equals &#x60;2&#x60;, a balance of &#x60;505&#x60; tokens should
-be displayed to a user as &#x60;5,05&#x60; (&#x60;505 / 10 ** 2&#x60;).
+Returns the number of decimals used to get its user representation.
+For example, if `decimals` equals `2`, a balance of `505` tokens should
+be displayed to a user as `5,05` (`505 / 10 ** 2`).
 
 Tokens usually opt for a value of 18, imitating the relationship between
 Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
@@ -183,56 +103,105 @@ NOTE: SuperToken always uses 18 decimals.
 
 Note: This information is only used for _display_ purposes: it in
 no way affects any of the arithmetic of the contract, including
-{IERC20-balanceOf} and {IERC20-transfer}._
+{IERC20-balanceOf} and {IERC20-transfer}.
 
 ### _transferFrom
 
 ```solidity
-function _transferFrom(address spender, address holder, address recipient, uint256 amount) internal returns (bool)
+function _transferFrom(
+    address spender,
+    address holder,
+    address recipient,
+    uint256 amount
+) internal returns (bool)
 ```
 
 in the original openzeppelin implementation, transfer() and transferFrom()
 did invoke the send and receive hooks, as required by ERC777.
 This hooks were removed from super tokens for ERC20 transfers in order to protect
-interfacing contracts which don&#x27;t expect invocations of ERC20 transfers to potentially reenter.
+interfacing contracts which don't expect invocations of ERC20 transfers to potentially reenter.
 Interactions relying on ERC777 hooks need to use the ERC777 interface.
 For more context, see https://github.com/superfluid-finance/protocol-monorepo/wiki/About-ERC-777
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `spender` | address |  |
+| `holder` | address |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
 
 ### _send
 
 ```solidity
-function _send(address operator, address from, address to, uint256 amount, bytes userData, bytes operatorData, bool requireReceptionAck) private
+function _send(
+    address operator,
+    address from,
+    address to,
+    uint256 amount,
+    bytes userData,
+    bytes operatorData,
+    bool requireReceptionAck
+) private
 ```
 
-_Send tokens_
+Send tokens
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| operator | address | address operator address |
-| from | address | address token holder address |
-| to | address | address recipient address |
-| amount | uint256 | uint256 amount of tokens to transfer |
-| userData | bytes | bytes extra information provided by the token holder (if any) |
-| operatorData | bytes | bytes extra information provided by the operator (if any) |
-| requireReceptionAck | bool | if true, contract recipients are required to implement ERC777TokensRecipient |
+| :--- | :--- | :---------- |
+| `operator` | address | address operator address |
+| `from` | address | address token holder address |
+| `to` | address | address recipient address |
+| `amount` | uint256 | uint256 amount of tokens to transfer |
+| `userData` | bytes | bytes extra information provided by the token holder (if any) |
+| `operatorData` | bytes | bytes extra information provided by the operator (if any) |
+| `requireReceptionAck` | bool | if true, contract recipients are required to implement ERC777TokensRecipient |
 
 ### _move
 
 ```solidity
-function _move(address operator, address from, address to, uint256 amount, bytes userData, bytes operatorData) private
+function _move(
+    address operator,
+    address from,
+    address to,
+    uint256 amount,
+    bytes userData,
+    bytes operatorData
+) private
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
+| `from` | address |  |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
+| `operatorData` | bytes |  |
 
 ### _mint
 
 ```solidity
-function _mint(address operator, address account, uint256 amount, bool requireReceptionAck, bytes userData, bytes operatorData) internal
+function _mint(
+    address operator,
+    address account,
+    uint256 amount,
+    bool requireReceptionAck,
+    bytes userData,
+    bytes operatorData
+) internal
 ```
 
-_Creates &#x60;amount&#x60; tokens and assigns them to &#x60;account&#x60;, increasing
+Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
 
-If a send hook is registered for &#x60;account&#x60;, the corresponding function
-will be called with &#x60;operator&#x60;, &#x60;data&#x60; and &#x60;operatorData&#x60;.
+If a send hook is registered for `account`, the corresponding function
+will be called with `operator`, `data` and `operatorData`.
 
 See {IERC777Sender} and {IERC777Recipient}.
 
@@ -240,139 +209,258 @@ Emits {Minted} and {IERC20-Transfer} events.
 
 Requirements
 
-- &#x60;account&#x60; cannot be the zero address.
-- if &#x60;account&#x60; is a contract, it must implement the {IERC777Recipient}
-interface._
+- `account` cannot be the zero address.
+- if `account` is a contract, it must implement the {IERC777Recipient}
+interface.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
+| `account` | address |  |
+| `amount` | uint256 |  |
+| `requireReceptionAck` | bool |  |
+| `userData` | bytes |  |
+| `operatorData` | bytes |  |
 
 ### _burn
 
 ```solidity
-function _burn(address operator, address from, uint256 amount, bytes userData, bytes operatorData) internal
+function _burn(
+    address operator,
+    address from,
+    uint256 amount,
+    bytes userData,
+    bytes operatorData
+) internal
 ```
 
-_Burn tokens_
+Burn tokens
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| operator | address |  |
-| from | address | address token holder address |
-| amount | uint256 | uint256 amount of tokens to burn |
-| userData | bytes | bytes extra information provided by the token holder |
-| operatorData | bytes | bytes extra information provided by the operator (if any) |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
+| `from` | address | address token holder address |
+| `amount` | uint256 | uint256 amount of tokens to burn |
+| `userData` | bytes | bytes extra information provided by the token holder |
+| `operatorData` | bytes | bytes extra information provided by the operator (if any) |
 
 ### _approve
 
 ```solidity
-function _approve(address account, address spender, uint256 amount) internal
+function _approve(
+    address account,
+    address spender,
+    uint256 amount
+) internal
 ```
 
-Sets &#x60;amount&#x60; as the allowance of &#x60;spender&#x60; over the &#x60;account&#x60;s tokens.
+Sets `amount` as the allowance of `spender` over the `account`s tokens.
 
-This is internal function is equivalent to &#x60;approve&#x60;, and can be used to
+This is internal function is equivalent to `approve`, and can be used to
 e.g. set automatic allowances for certain subsystems, etc.
 
 Emits an {Approval} event.
 
 Requirements:
 
-- &#x60;account&#x60; cannot be the zero address.
-- &#x60;spender&#x60; cannot be the zero address.
+- `account` cannot be the zero address.
+- `spender` cannot be the zero address.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `spender` | address |  |
+| `amount` | uint256 |  |
 
 ### _callTokensToSend
 
 ```solidity
-function _callTokensToSend(address operator, address from, address to, uint256 amount, bytes userData, bytes operatorData) private
+function _callTokensToSend(
+    address operator,
+    address from,
+    address to,
+    uint256 amount,
+    bytes userData,
+    bytes operatorData
+) private
 ```
 
-_Call from.tokensToSend() if the interface is registered_
+Call from.tokensToSend() if the interface is registered
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| operator | address | address operator requesting the transfer |
-| from | address | address token holder address |
-| to | address | address recipient address |
-| amount | uint256 | uint256 amount of tokens to transfer |
-| userData | bytes | bytes extra information provided by the token holder (if any) |
-| operatorData | bytes | bytes extra information provided by the operator (if any) |
+| :--- | :--- | :---------- |
+| `operator` | address | address operator requesting the transfer |
+| `from` | address | address token holder address |
+| `to` | address | address recipient address |
+| `amount` | uint256 | uint256 amount of tokens to transfer |
+| `userData` | bytes | bytes extra information provided by the token holder (if any) |
+| `operatorData` | bytes | bytes extra information provided by the operator (if any) |
 
 ### _callTokensReceived
 
 ```solidity
-function _callTokensReceived(address operator, address from, address to, uint256 amount, bytes userData, bytes operatorData, bool requireReceptionAck) private
+function _callTokensReceived(
+    address operator,
+    address from,
+    address to,
+    uint256 amount,
+    bytes userData,
+    bytes operatorData,
+    bool requireReceptionAck
+) private
 ```
 
-_Call to.tokensReceived() if the interface is registered. Reverts if the recipient is a contract but
-tokensReceived() was not registered for the recipient_
+Call to.tokensReceived() if the interface is registered. Reverts if the recipient is a contract but
+tokensReceived() was not registered for the recipient
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| operator | address | address operator requesting the transfer |
-| from | address | address token holder address |
-| to | address | address recipient address |
-| amount | uint256 | uint256 amount of tokens to transfer |
-| userData | bytes | bytes extra information provided by the token holder (if any) |
-| operatorData | bytes | bytes extra information provided by the operator (if any) |
-| requireReceptionAck | bool | if true, contract recipients are required to implement ERC777TokensRecipient |
+| :--- | :--- | :---------- |
+| `operator` | address | address operator requesting the transfer |
+| `from` | address | address token holder address |
+| `to` | address | address recipient address |
+| `amount` | uint256 | uint256 amount of tokens to transfer |
+| `userData` | bytes | bytes extra information provided by the token holder (if any) |
+| `operatorData` | bytes | bytes extra information provided by the operator (if any) |
+| `requireReceptionAck` | bool | if true, contract recipients are required to implement ERC777TokensRecipient |
 
 ### totalSupply
 
 ```solidity
-function totalSupply() public view returns (uint256)
+function totalSupply(
+) public returns (uint256)
 ```
 
-_See {IERC20-totalSupply}._
+See {IERC20-totalSupply}.
 
 ### balanceOf
 
 ```solidity
-function balanceOf(address account) public view returns (uint256 balance)
+function balanceOf(
+    address account
+) public returns (uint256 balance)
 ```
 
-_Returns the amount of tokens owned by an account (&#x60;owner&#x60;)._
+Returns the amount of tokens owned by an account (`owner`).
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 
 ### transfer
 
 ```solidity
-function transfer(address recipient, uint256 amount) public returns (bool)
+function transfer(
+    address recipient,
+    uint256 amount
+) public returns (bool)
 ```
 
-_Moves &#x60;amount&#x60; tokens from the caller&#x27;s account to &#x60;recipient&#x60;._
+Moves `amount` tokens from the caller's account to `recipient`.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | Returns Success a boolean value indicating whether the operation succeeded. Emits a {Transfer} event. |
+| :--- | :--- | :---------- |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
+
+#### Return Values
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `[0]` | bool | Returns Success a boolean value indicating whether the operation succeeded.
+
+Emits a {Transfer} event. |
 
 ### allowance
 
 ```solidity
-function allowance(address account, address spender) public view returns (uint256)
+function allowance(
+    address account,
+    address spender
+) public returns (uint256)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `spender` | address |  |
 
 ### approve
 
 ```solidity
-function approve(address spender, uint256 amount) public returns (bool)
+function approve(
+    address spender,
+    uint256 amount
+) public returns (bool)
 ```
 
-_Sets &#x60;amount&#x60; as the allowance of &#x60;spender&#x60; over the caller&#x27;s tokens._
+Sets `amount` as the allowance of `spender` over the caller's tokens.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | Returns Success a boolean value indicating whether the operation succeeded. IMPORTANT: Beware that changing an allowance with this method brings the risk that someone may use both the old and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition is to first reduce the spender&#x27;s allowance to 0 and set the desired value afterwards: https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729 Emits an {Approval} event. |
+| :--- | :--- | :---------- |
+| `spender` | address |  |
+| `amount` | uint256 |  |
+
+#### Return Values
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `[0]` | bool | Returns Success a boolean value indicating whether the operation succeeded.
+
+IMPORTANT: Beware that changing an allowance with this method brings the risk
+that someone may use both the old and the new allowance by unfortunate
+transaction ordering. One possible solution to mitigate this race
+condition is to first reduce the spender's allowance to 0 and set the
+desired value afterwards:
+https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+
+Emits an {Approval} event. |
 
 ### transferFrom
 
 ```solidity
-function transferFrom(address holder, address recipient, uint256 amount) public returns (bool)
+function transferFrom(
+    address holder,
+    address recipient,
+    uint256 amount
+) public returns (bool)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `holder` | address |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
 
 ### increaseAllowance
 
 ```solidity
-function increaseAllowance(address spender, uint256 addedValue) public returns (bool)
+function increaseAllowance(
+    address spender,
+    uint256 addedValue
+) public returns (bool)
 ```
 
-_Atomically increases the allowance granted to &#x60;spender&#x60; by the caller.
+Atomically increases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -381,15 +469,25 @@ Emits an {Approval} event indicating the updated allowance.
 
 Requirements:
 
-- &#x60;spender&#x60; cannot be the zero address._
+- `spender` cannot be the zero address.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `spender` | address |  |
+| `addedValue` | uint256 |  |
 
 ### decreaseAllowance
 
 ```solidity
-function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool)
+function decreaseAllowance(
+    address spender,
+    uint256 subtractedValue
+) public returns (bool)
 ```
 
-_Atomically decreases the allowance granted to &#x60;spender&#x60; by the caller.
+Atomically decreases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -398,80 +496,122 @@ Emits an {Approval} event indicating the updated allowance.
 
 Requirements:
 
-- &#x60;spender&#x60; cannot be the zero address.
-- &#x60;spender&#x60; must have allowance for the caller of at least
-&#x60;subtractedValue&#x60;._
+- `spender` cannot be the zero address.
+- `spender` must have allowance for the caller of at least
+`subtractedValue`.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `spender` | address |  |
+| `subtractedValue` | uint256 |  |
 
 ### granularity
 
 ```solidity
-function granularity() external pure returns (uint256)
+function granularity(
+) external returns (uint256)
 ```
 
-_Returns the smallest part of the token that is not divisible. This
+Returns the smallest part of the token that is not divisible. This
         means all token operations (creation, movement and destruction) must have
         amounts that are a multiple of this number.
 
-For super token contracts, this value is 1 always_
+For super token contracts, this value is 1 always
 
 ### send
 
 ```solidity
-function send(address recipient, uint256 amount, bytes data) external
+function send(
+    address recipient,
+    uint256 amount,
+    bytes data
+) external
 ```
 
-_Moves &#x60;amount&#x60; tokens from the caller&#x27;s account to &#x60;recipient&#x60;.
+Moves `amount` tokens from the caller's account to `recipient`.
 
-If send or receive hooks are registered for the caller and &#x60;recipient&#x60;,
-     the corresponding functions will be called with &#x60;data&#x60; and empty
-     &#x60;operatorData&#x60;. See {IERC777Sender} and {IERC777Recipient}.
+If send or receive hooks are registered for the caller and `recipient`,
+     the corresponding functions will be called with `data` and empty
+     `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
 
 Emits a {Sent} event.
 
 Requirements
 
-- the caller must have at least &#x60;amount&#x60; tokens.
-- &#x60;recipient&#x60; cannot be the zero address.
-- if &#x60;recipient&#x60; is a contract, it must implement the {IERC777Recipient}
-interface._
+- the caller must have at least `amount` tokens.
+- `recipient` cannot be the zero address.
+- if `recipient` is a contract, it must implement the {IERC777Recipient}
+interface.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
+| `data` | bytes |  |
 
 ### burn
 
 ```solidity
-function burn(uint256 amount, bytes data) external
+function burn(
+    uint256 amount,
+    bytes data
+) external
 ```
 
-_Destroys &#x60;amount&#x60; tokens from the caller&#x27;s account, reducing the
+Destroys `amount` tokens from the caller's account, reducing the
 total supply.
 
 If a send hook is registered for the caller, the corresponding function
-will be called with &#x60;data&#x60; and empty &#x60;operatorData&#x60;. See {IERC777Sender}.
+will be called with `data` and empty `operatorData`. See {IERC777Sender}.
 
 Emits a {Burned} event.
 
 Requirements
 
-- the caller must have at least &#x60;amount&#x60; tokens._
+- the caller must have at least `amount` tokens.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `amount` | uint256 |  |
+| `data` | bytes |  |
 
 ### isOperatorFor
 
 ```solidity
-function isOperatorFor(address operator, address tokenHolder) external view returns (bool)
+function isOperatorFor(
+    address operator,
+    address tokenHolder
+) external returns (bool)
 ```
 
-_Returns true if an account is an operator of &#x60;tokenHolder&#x60;.
+Returns true if an account is an operator of `tokenHolder`.
 Operators can send and burn tokens on behalf of their owners. All
 accounts are their own operator.
 
-See {operatorSend} and {operatorBurn}._
+See {operatorSend} and {operatorBurn}.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
+| `tokenHolder` | address |  |
 
 ### authorizeOperator
 
 ```solidity
-function authorizeOperator(address operator) external
+function authorizeOperator(
+    address operator
+) external
 ```
 
-_Make an account an operator of the caller.
+Make an account an operator of the caller.
 
 See {isOperatorFor}.
 
@@ -479,15 +619,23 @@ Emits an {AuthorizedOperator} event.
 
 Requirements
 
-- &#x60;operator&#x60; cannot be calling address._
+- `operator` cannot be calling address.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
 
 ### revokeOperator
 
 ```solidity
-function revokeOperator(address operator) external
+function revokeOperator(
+    address operator
+) external
 ```
 
-_Revoke an account&#x27;s operator status for the caller.
+Revoke an account's operator status for the caller.
 
 See {isOperatorFor} and {defaultOperators}.
 
@@ -495,229 +643,440 @@ Emits a {RevokedOperator} event.
 
 Requirements
 
-- &#x60;operator&#x60; cannot be calling address._
+- `operator` cannot be calling address.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
 
 ### defaultOperators
 
 ```solidity
-function defaultOperators() external view returns (address[])
+function defaultOperators(
+) external returns (address[])
 ```
 
-_Returns the list of default operators. These accounts are operators
+Returns the list of default operators. These accounts are operators
 for all token holders, even if {authorizeOperator} was never called on
 them.
 
 This list is immutable, but individual holders may revoke these via
-{revokeOperator}, in which case {isOperatorFor} will return false._
+{revokeOperator}, in which case {isOperatorFor} will return false.
 
 ### operatorSend
 
 ```solidity
-function operatorSend(address sender, address recipient, uint256 amount, bytes data, bytes operatorData) external
+function operatorSend(
+    address sender,
+    address recipient,
+    uint256 amount,
+    bytes data,
+    bytes operatorData
+) external
 ```
 
-_Moves &#x60;amount&#x60; tokens from &#x60;sender&#x60; to &#x60;recipient&#x60;. The caller must
-be an operator of &#x60;sender&#x60;.
+Moves `amount` tokens from `sender` to `recipient`. The caller must
+be an operator of `sender`.
 
-If send or receive hooks are registered for &#x60;sender&#x60; and &#x60;recipient&#x60;,
-the corresponding functions will be called with &#x60;data&#x60; and
-&#x60;operatorData&#x60;. See {IERC777Sender} and {IERC777Recipient}.
+If send or receive hooks are registered for `sender` and `recipient`,
+the corresponding functions will be called with `data` and
+`operatorData`. See {IERC777Sender} and {IERC777Recipient}.
 
 Emits a {Sent} event.
 
 Requirements
 
-- &#x60;sender&#x60; cannot be the zero address.
-- &#x60;sender&#x60; must have at least &#x60;amount&#x60; tokens.
-- the caller must be an operator for &#x60;sender&#x60;.
-- &#x60;recipient&#x60; cannot be the zero address.
-- if &#x60;recipient&#x60; is a contract, it must implement the {IERC777Recipient}
-interface._
+- `sender` cannot be the zero address.
+- `sender` must have at least `amount` tokens.
+- the caller must be an operator for `sender`.
+- `recipient` cannot be the zero address.
+- if `recipient` is a contract, it must implement the {IERC777Recipient}
+interface.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `sender` | address |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
+| `data` | bytes |  |
+| `operatorData` | bytes |  |
 
 ### operatorBurn
 
 ```solidity
-function operatorBurn(address account, uint256 amount, bytes data, bytes operatorData) external
+function operatorBurn(
+    address account,
+    uint256 amount,
+    bytes data,
+    bytes operatorData
+) external
 ```
 
-_Destroys &#x60;amount&#x60; tokens from &#x60;account&#x60;, reducing the total supply.
-The caller must be an operator of &#x60;account&#x60;.
+Destroys `amount` tokens from `account`, reducing the total supply.
+The caller must be an operator of `account`.
 
-If a send hook is registered for &#x60;account&#x60;, the corresponding function
-will be called with &#x60;data&#x60; and &#x60;operatorData&#x60;. See {IERC777Sender}.
+If a send hook is registered for `account`, the corresponding function
+will be called with `data` and `operatorData`. See {IERC777Sender}.
 
 Emits a {Burned} event.
 
 Requirements
 
-- &#x60;account&#x60; cannot be the zero address.
-- &#x60;account&#x60; must have at least &#x60;amount&#x60; tokens.
-- the caller must be an operator for &#x60;account&#x60;._
+- `account` cannot be the zero address.
+- `account` must have at least `amount` tokens.
+- the caller must be an operator for `account`.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `amount` | uint256 |  |
+| `data` | bytes |  |
+| `operatorData` | bytes |  |
 
 ### _setupDefaultOperators
 
 ```solidity
-function _setupDefaultOperators(address[] operators) internal
+function _setupDefaultOperators(
+    address[] operators
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operators` | address[] |  |
 
 ### selfMint
 
 ```solidity
-function selfMint(address account, uint256 amount, bytes userData) external
+function selfMint(
+    address account,
+    uint256 amount,
+    bytes userData
+) external
 ```
 
-_Mint new tokens for the account
+Mint new tokens for the account
 
 Modifiers:
- - onlySelf_
+ - onlySelf
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
 
 ### selfBurn
 
 ```solidity
-function selfBurn(address account, uint256 amount, bytes userData) external
+function selfBurn(
+    address account,
+    uint256 amount,
+    bytes userData
+) external
 ```
 
-_Burn existing tokens for the account
+Burn existing tokens for the account
 
 Modifiers:
- - onlySelf_
+ - onlySelf
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
 
 ### selfApproveFor
 
 ```solidity
-function selfApproveFor(address account, address spender, uint256 amount) external
+function selfApproveFor(
+    address account,
+    address spender,
+    uint256 amount
+) external
 ```
 
-_Give &#x60;spender&#x60;, &#x60;amount&#x60; allowance to spend the tokens of
-&#x60;account&#x60;.
+Give `spender`, `amount` allowance to spend the tokens of
+`account`.
 
 Modifiers:
- - onlySelf_
+ - onlySelf
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `spender` | address |  |
+| `amount` | uint256 |  |
 
 ### selfTransferFrom
 
 ```solidity
-function selfTransferFrom(address holder, address spender, address recipient, uint256 amount) external
+function selfTransferFrom(
+    address holder,
+    address spender,
+    address recipient,
+    uint256 amount
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `holder` | address |  |
+| `spender` | address |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
 
 ### transferAll
 
 ```solidity
-function transferAll(address recipient) external
+function transferAll(
+    address recipient
+) external
 ```
 
-_Transfer all available balance from &#x60;msg.sender&#x60; to &#x60;recipient&#x60;_
+Transfer all available balance from `msg.sender` to `recipient`
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `recipient` | address |  |
 
 ### getUnderlyingToken
 
 ```solidity
-function getUnderlyingToken() external view returns (address)
+function getUnderlyingToken(
+) external returns (address)
 ```
 
-_ISuperfluidGovernance.getUnderlyingToken implementation_
+ISuperfluidGovernance.getUnderlyingToken implementation
 
 ### upgrade
 
 ```solidity
-function upgrade(uint256 amount) external
+function upgrade(
+    uint256 amount
+) external
 ```
 
-_ISuperToken.upgrade implementation_
+ISuperToken.upgrade implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `amount` | uint256 |  |
 
 ### upgradeTo
 
 ```solidity
-function upgradeTo(address to, uint256 amount, bytes data) external
+function upgradeTo(
+    address to,
+    uint256 amount,
+    bytes data
+) external
 ```
 
-_ISuperToken.upgradeTo implementation_
+ISuperToken.upgradeTo implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `data` | bytes |  |
 
 ### downgrade
 
 ```solidity
-function downgrade(uint256 amount) external
+function downgrade(
+    uint256 amount
+) external
 ```
 
-_ISuperToken.downgrade implementation_
+ISuperToken.downgrade implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `amount` | uint256 |  |
 
 ### _upgrade
 
 ```solidity
-function _upgrade(address operator, address account, address to, uint256 amount, bytes userData, bytes operatorData) private
+function _upgrade(
+    address operator,
+    address account,
+    address to,
+    uint256 amount,
+    bytes userData,
+    bytes operatorData
+) private
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
+| `account` | address |  |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
+| `operatorData` | bytes |  |
 
 ### _downgrade
 
 ```solidity
-function _downgrade(address operator, address account, uint256 amount, bytes data, bytes operatorData) private
+function _downgrade(
+    address operator,
+    address account,
+    uint256 amount,
+    bytes data,
+    bytes operatorData
+) private
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `operator` | address |  |
+| `account` | address |  |
+| `amount` | uint256 |  |
+| `data` | bytes |  |
+| `operatorData` | bytes |  |
 
 ### _toUnderlyingAmount
 
 ```solidity
-function _toUnderlyingAmount(uint256 amount) private view returns (uint256 underlyingAmount, uint256 adjustedAmount)
+function _toUnderlyingAmount(
+    uint256 amount
+) private returns (uint256 underlyingAmount, uint256 adjustedAmount)
 ```
 
-_Handle decimal differences between underlying token and super token_
+Handle decimal differences between underlying token and super token
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `amount` | uint256 |  |
 
 ### operationApprove
 
 ```solidity
-function operationApprove(address account, address spender, uint256 amount) external
+function operationApprove(
+    address account,
+    address spender,
+    uint256 amount
+) external
 ```
 
-_Perform ERC20 approve by host contract._
+Perform ERC20 approve by host contract.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account owner to be approved. |
-| spender | address | The spender of account owner&#x27;s funds. |
-| amount | uint256 | Number of tokens to be approved. Modifiers:  - onlyHost /     fun |
+| :--- | :--- | :---------- |
+| `account` | address | The account owner to be approved. |
+| `spender` | address | The spender of account owner's funds. |
+| `amount` | uint256 | Number of tokens to be approved.
+
+Modifiers:
+ - onlyHost
+/
+    fun |
 
 ### operationTransferFrom
 
 ```solidity
-function operationTransferFrom(address account, address spender, address recipient, uint256 amount) external
+function operationTransferFrom(
+    address account,
+    address spender,
+    address recipient,
+    uint256 amount
+) external
 ```
 
-_Perform ERC20 transfer from by host contract._
+Perform ERC20 transfer from by host contract.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to spend sender&#x27;s funds. |
-| spender | address | The account where the funds is sent from. |
-| recipient | address | The recipient of thefunds. |
-| amount | uint256 | Number of tokens to be transferred. Modifiers:  - onlyHost /     fun |
+| :--- | :--- | :---------- |
+| `account` | address | The account to spend sender's funds. |
+| `spender` | address | The account where the funds is sent from. |
+| `recipient` | address | The recipient of thefunds. |
+| `amount` | uint256 | Number of tokens to be transferred.
+
+Modifiers:
+ - onlyHost
+/
+    fun |
 
 ### operationUpgrade
 
 ```solidity
-function operationUpgrade(address account, uint256 amount) external
+function operationUpgrade(
+    address account,
+    uint256 amount
+) external
 ```
 
-_Upgrade ERC20 to SuperToken by host contract._
+Upgrade ERC20 to SuperToken by host contract.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to be changed. |
-| amount | uint256 | Number of tokens to be upgraded (in 18 decimals) Modifiers:  - onlyHost /     fun |
+| :--- | :--- | :---------- |
+| `account` | address | The account to be changed. |
+| `amount` | uint256 | Number of tokens to be upgraded (in 18 decimals)
+
+Modifiers:
+ - onlyHost
+/
+    fun |
 
 ### operationDowngrade
 
 ```solidity
-function operationDowngrade(address account, uint256 amount) external
+function operationDowngrade(
+    address account,
+    uint256 amount
+) external
 ```
 
-_Downgrade ERC20 to SuperToken by host contract._
+Downgrade ERC20 to SuperToken by host contract.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to be changed. |
-| amount | uint256 | Number of tokens to be downgraded (in 18 decimals) Modifiers:  - onlyHost /     fun |
+| :--- | :--- | :---------- |
+| `account` | address | The account to be changed. |
+| `amount` | uint256 | Number of tokens to be downgraded (in 18 decimals)
 
-### onlySelf
-
-```solidity
-modifier onlySelf()
-```
+Modifiers:
+ - onlyHost
+/
+    fun |
 

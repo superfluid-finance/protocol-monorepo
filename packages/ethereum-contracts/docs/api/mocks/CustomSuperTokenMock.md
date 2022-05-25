@@ -1,74 +1,172 @@
-# Solidity API
+# CustomSuperTokenBaseMock
 
-## CustomSuperTokenBaseMock
+## Functions
 
 ### getFirstCustomTokenStorageSlot
 
 ```solidity
-function getFirstCustomTokenStorageSlot() external pure virtual returns (uint256 slot)
+function getFirstCustomTokenStorageSlot(
+) external returns (uint256 slot)
 ```
 
 ### callSelfBurn
 
 ```solidity
-function callSelfBurn(address to, uint256 amount, bytes userData) external virtual
+function callSelfBurn(
+    address to,
+    uint256 amount,
+    bytes userData
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
 
 ### callSelfTransferFrom
 
 ```solidity
-function callSelfTransferFrom(address holder, address spender, address recipient, uint256 amount) external virtual
+function callSelfTransferFrom(
+    address holder,
+    address spender,
+    address recipient,
+    uint256 amount
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `holder` | address |  |
+| `spender` | address |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
 
 ### callSelfApproveFor
 
 ```solidity
-function callSelfApproveFor(address account, address spender, uint256 amount) external virtual
+function callSelfApproveFor(
+    address account,
+    address spender,
+    uint256 amount
+) external
 ```
 
-## CustomSuperTokenMock
+#### Parameters
 
-## CustomSuperTokenProxyMock
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `spender` | address |  |
+| `amount` | uint256 |  |
 
-### _firstStorageSlot
+# CustomSuperTokenMock
 
-```solidity
-uint256 _firstStorageSlot
-```
+# CustomSuperTokenProxyMock
+
+## Functions
 
 ### getFirstCustomTokenStorageSlot
 
 ```solidity
-function getFirstCustomTokenStorageSlot() external pure returns (uint256 slot)
+function getFirstCustomTokenStorageSlot(
+) external returns (uint256 slot)
 ```
 
 ### selfMint
 
 ```solidity
-function selfMint(address to, uint256 amount, bytes userData) external
+function selfMint(
+    address to,
+    uint256 amount,
+    bytes userData
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
 
 ### delegatecallSelfMint
 
 ```solidity
-function delegatecallSelfMint(address to, uint256 amount, bytes userData) external
+function delegatecallSelfMint(
+    address to,
+    uint256 amount,
+    bytes userData
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
 
 ### callSelfBurn
 
 ```solidity
-function callSelfBurn(address to, uint256 amount, bytes userData) external
+function callSelfBurn(
+    address to,
+    uint256 amount,
+    bytes userData
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `to` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
 
 ### callSelfTransferFrom
 
 ```solidity
-function callSelfTransferFrom(address holder, address spender, address recipient, uint256 amount) external
+function callSelfTransferFrom(
+    address holder,
+    address spender,
+    address recipient,
+    uint256 amount
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `holder` | address |  |
+| `spender` | address |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
 
 ### callSelfApproveFor
 
 ```solidity
-function callSelfApproveFor(address account, address spender, uint256 amount) external
+function callSelfApproveFor(
+    address account,
+    address spender,
+    uint256 amount
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `spender` | address |  |
+| `amount` | uint256 |  |
 

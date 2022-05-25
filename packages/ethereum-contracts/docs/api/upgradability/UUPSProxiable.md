@@ -1,45 +1,75 @@
-# Solidity API
+# UUPSProxiable
 
-## UUPSProxiable
+## Functions
 
 ### getCodeAddress
 
 ```solidity
-function getCodeAddress() public view returns (address codeAddress)
+function getCodeAddress(
+) public returns (address codeAddress)
 ```
 
-_Get current implementation code address._
+Get current implementation code address.
 
 ### updateCode
 
 ```solidity
-function updateCode(address newAddress) external virtual
+function updateCode(
+    address newAddress
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `newAddress` | address |  |
 
 ### proxiableUUID
 
 ```solidity
-function proxiableUUID() public view virtual returns (bytes32)
+function proxiableUUID(
+) public returns (bytes32)
 ```
 
-_Proxiable UUID marker function, this would help to avoid wrong logic
+Proxiable UUID marker function, this would help to avoid wrong logic
      contract to be used for upgrading.
 
 NOTE: The semantics of the UUID deviates from the actual UUPS standard,
-      where it is equivalent of _IMPLEMENTATION_SLOT._
+      where it is equivalent of _IMPLEMENTATION_SLOT.
 
 ### _updateCodeAddress
 
 ```solidity
-function _updateCodeAddress(address newAddress) internal
+function _updateCodeAddress(
+    address newAddress
+) internal
 ```
 
-_Update code address function.
-     It is internal, so the derived contract could setup its own permission logic._
+Update code address function.
+     It is internal, so the derived contract could setup its own permission logic.
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `newAddress` | address |  |
+
+## Events
 
 ### CodeUpdated
 
 ```solidity
-event CodeUpdated(bytes32 uuid, address codeAddress)
+event CodeUpdated(
+    bytes32 uuid,
+    address codeAddress
+)
 ```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `uuid` | bytes32 |  |
+| `codeAddress` | address |  |
 

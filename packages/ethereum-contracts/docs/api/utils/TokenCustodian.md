@@ -1,48 +1,90 @@
-# Solidity API
+# TokenCustodian
 
-## TokenCustodian
+Contract which takes custody of funds which couldn't be sent to the designated recipient
 
-_Contract which takes custody of funds which couldn&#x27;t be sent to the designated recipient_
-
-### _ERC1820_REGISTRY
-
-```solidity
-contract IERC1820Registry _ERC1820_REGISTRY
-```
-
-### balances
-
-```solidity
-mapping(contract IERC777 &#x3D;&gt; mapping(address &#x3D;&gt; uint256)) balances
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor() public
-```
-
-### CustodianDeposit
-
-```solidity
-event CustodianDeposit(contract IERC777 token, address recipient, uint256 amount)
-```
-
-### CustodianWithdrawal
-
-```solidity
-event CustodianWithdrawal(contract IERC777 token, address recipient, uint256 amount)
+function constructor(
+) public
 ```
 
 ### flush
 
 ```solidity
-function flush(contract IERC777 token, address recipient) public
+function flush(
+    contract IERC777 token,
+    address recipient
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract IERC777 |  |
+| `recipient` | address |  |
 
 ### tokensReceived
 
 ```solidity
-function tokensReceived(address, address, address, uint256 amount, bytes userData, bytes) external
+function tokensReceived(
+    address ,
+    address ,
+    address ,
+    uint256 amount,
+    bytes userData,
+    bytes 
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | address |  |
+| `` | address |  |
+| `` | address |  |
+| `amount` | uint256 |  |
+| `userData` | bytes |  |
+| `` | bytes |  |
+
+## Events
+
+### CustodianDeposit
+
+```solidity
+event CustodianDeposit(
+    contract IERC777 token,
+    address recipient,
+    uint256 amount
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract IERC777 |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
+### CustodianWithdrawal
+
+```solidity
+event CustodianWithdrawal(
+    contract IERC777 token,
+    address recipient,
+    uint256 amount
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract IERC777 |  |
+| `recipient` | address |  |
+| `amount` | uint256 |  |
 

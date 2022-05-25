@@ -1,98 +1,146 @@
-# Solidity API
+# SuperUpgrader
 
-## SuperUpgrader
-
-### BACKEND_ROLE
-
-```solidity
-bytes32 BACKEND_ROLE
-```
-
-### OptoutAutoUpgrade
-
-```solidity
-event OptoutAutoUpgrade(address account)
-```
-
-### OptinAutoUpgrade
-
-```solidity
-event OptinAutoUpgrade(address account)
-```
-
-### _optout
-
-```solidity
-mapping(address &#x3D;&gt; bool) _optout
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(address adminRole, address[] backendAddr) public
+function constructor(
+    address adminRole,
+    address[] backendAddr
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `adminRole` | address |  |
+| `backendAddr` | address[] |  |
 
 ### upgrade
 
 ```solidity
-function upgrade(address superTokenAddr, address account, uint256 amount) external
+function upgrade(
+    address superTokenAddr,
+    address account,
+    uint256 amount
+) external
 ```
 
 The user should ERC20.approve this contract.
 
-_Execute upgrade function in the name of the user_
+Execute upgrade function in the name of the user
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| superTokenAddr | address | Super Token Address to upgrade |
-| account | address | User address that previous approved this contract. |
-| amount | uint256 | Amount value to be upgraded. |
+| :--- | :--- | :---------- |
+| `superTokenAddr` | address | Super Token Address to upgrade |
+| `account` | address | User address that previous approved this contract. |
+| `amount` | uint256 | Amount value to be upgraded. |
 
 ### isBackendAgent
 
 ```solidity
-function isBackendAgent(address account) external view returns (bool yes)
+function isBackendAgent(
+    address account
+) external returns (bool yes)
 ```
 
-_Test if account is member BACKEND_ROLE_
+Test if account is member BACKEND_ROLE
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 
 ### grantBackendAgent
 
 ```solidity
-function grantBackendAgent(address account) external
+function grantBackendAgent(
+    address account
+) external
 ```
 
-_Add account to BACKEND_ROLE_
+Add account to BACKEND_ROLE
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 
 ### revokeBackendAgent
 
 ```solidity
-function revokeBackendAgent(address account) external
+function revokeBackendAgent(
+    address account
+) external
 ```
 
-_Remove account to BACKEND_ROLE_
+Remove account to BACKEND_ROLE
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 
 ### getBackendAgents
 
 ```solidity
-function getBackendAgents() external view returns (address[])
+function getBackendAgents(
+) external returns (address[])
 ```
 
-_Get list of all members of BACKEND_ROLE_
+Get list of all members of BACKEND_ROLE
 
 ### optoutAutoUpgrades
 
 ```solidity
-function optoutAutoUpgrades() external
+function optoutAutoUpgrades(
+) external
 ```
 
-_User signal that opt-out from backend upgrades_
+User signal that opt-out from backend upgrades
 
 ### optinAutoUpgrades
 
 ```solidity
-function optinAutoUpgrades() external
+function optinAutoUpgrades(
+) external
 ```
 
-_User signal that revoke opt-out from backend upgrades_
+User signal that revoke opt-out from backend upgrades
+
+## Events
+
+### OptoutAutoUpgrade
+
+```solidity
+event OptoutAutoUpgrade(
+    address account
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+### OptinAutoUpgrade
+
+```solidity
+event OptinAutoUpgrade(
+    address account
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 

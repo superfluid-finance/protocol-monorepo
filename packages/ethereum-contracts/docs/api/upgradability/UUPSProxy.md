@@ -1,25 +1,30 @@
-# Solidity API
+# UUPSProxy
 
-## UUPSProxy
+## Functions
 
 ### initializeProxy
 
 ```solidity
-function initializeProxy(address initialAddress) external
+function initializeProxy(
+    address initialAddress
+) external
 ```
 
-_Proxy initialization function.
-     This should only be called once and it is permission-less._
+Proxy initialization function.
+     This should only be called once and it is permission-less.
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| initialAddress | address | Initial logic contract code address to be used. |
+| :--- | :--- | :---------- |
+| `initialAddress` | address | Initial logic contract code address to be used. |
 
 ### _implementation
 
 ```solidity
-function _implementation() internal view virtual returns (address)
+function _implementation(
+) internal returns (address)
 ```
 
-_Proxy._implementation implementation_
+Proxy._implementation implementation
 

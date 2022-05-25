@@ -1,10 +1,11 @@
-# Solidity API
+# SuperfluidGovernanceIIUpgradabilityTester
 
-## SuperfluidGovernanceIIUpgradabilityTester
+## Functions
 
 ### validateStorageLayout
 
 ```solidity
-function validateStorageLayout() external pure
+function validateStorageLayout(
+) external
 ```
 

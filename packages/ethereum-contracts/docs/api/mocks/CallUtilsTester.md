@@ -1,10 +1,11 @@
-# Solidity API
+# CallUtilsTester
 
-## CallUtilsTester
+## Functions
 
 ### testIsValidAbiEncodedBytes
 
 ```solidity
-function testIsValidAbiEncodedBytes() external pure
+function testIsValidAbiEncodedBytes(
+) external
 ```
 

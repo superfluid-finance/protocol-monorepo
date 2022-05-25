@@ -1,25 +1,21 @@
-# Solidity API
+# FullUpgradableSuperTokenProxy
 
-## FullUpgradableSuperTokenProxy
-
-### _FACTORY_SLOT
-
-```solidity
-bytes32 _FACTORY_SLOT
-```
+## Functions
 
 ### initialize
 
 ```solidity
-function initialize() external
+function initialize(
+) external
 ```
 
 ### _implementation
 
 ```solidity
-function _implementation() internal view returns (address impl)
+function _implementation(
+) internal returns (address impl)
 ```
 
-_This is a virtual function that should be overriden so it returns the address to which the fallback function
-and {_fallback} should delegate._
+This is a virtual function that should be overriden so it returns the address to which the fallback function
+and {_fallback} should delegate.
 

@@ -1,0 +1,35 @@
+{{h}} {{name}}
+
+{{{natspec.notice}}}
+
+{{{natspec.dev}}}
+
+{{#if functions}}
+{{h 2}} Functions
+{{/if}}
+
+{{#each functions}}
+{{#hsection 2}}
+{{>item}}
+{{/hsection}}
+{{/each}}
+
+{{#if events}}
+{{h 2}} Events
+{{/if}}
+
+{{#each events}}
+{{#hsection 2}}
+{{>item}}
+{{/hsection}}
+{{/each}}
+
+{{#if errors}}
+{{h 2}} Errors
+{{/if}}
+
+{{#each errors}}
+{{#hsection 2}}
+{{>item}}
+{{/hsection}}
+{{/each}}

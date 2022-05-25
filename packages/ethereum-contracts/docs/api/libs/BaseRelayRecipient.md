@@ -1,28 +1,37 @@
-# Solidity API
+# BaseRelayRecipient
 
-## BaseRelayRecipient
+A base contract to be inherited by any contract that want to receive relayed transactions
+     A subclass must use "_msgSender()" instead of "msg.sender"
+     MODIFIED FROM: https://github.com/opengsn/forwarder/blob/master/contracts/BaseRelayRecipient.sol
 
-_A base contract to be inherited by any contract that want to receive relayed transactions
-     A subclass must use &quot;_msgSender()&quot; instead of &quot;msg.sender&quot;
-     MODIFIED FROM: https://github.com/opengsn/forwarder/blob/master/contracts/BaseRelayRecipient.sol_
+## Functions
 
 ### isTrustedForwarder
 
 ```solidity
-function isTrustedForwarder(address forwarder) public view virtual returns (bool)
+function isTrustedForwarder(
+    address forwarder
+) public returns (bool)
 ```
 
-_Check if the forwarder is trusted_
+Check if the forwarder is trusted
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `forwarder` | address |  |
 
 ### _getTransactionSigner
 
 ```solidity
-function _getTransactionSigner() internal view virtual returns (address payable ret)
+function _getTransactionSigner(
+) internal returns (address payable ret)
 ```
 
-_Return the transaction signer of this call
+Return the transaction signer of this call
 
 if the call came through our trusted forwarder, return the original sender.
-otherwise, return &#x60;msg.sender&#x60;.
-should be used in the contract anywhere instead of msg.sender_
+otherwise, return `msg.sender`.
+should be used in the contract anywhere instead of msg.sender
 

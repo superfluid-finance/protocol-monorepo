@@ -1,274 +1,679 @@
-# Solidity API
+# SuperfluidGovernanceBase
 
-## SuperfluidGovernanceBase
-
-### Value
-
-```solidity
-struct Value {
-  bool set;
-  uint256 value;
-}
-```
-
-### _configs
-
-```solidity
-mapping(address &#x3D;&gt; mapping(address &#x3D;&gt; mapping(bytes32 &#x3D;&gt; struct SuperfluidGovernanceBase.Value))) _configs
-```
+## Functions
 
 ### replaceGovernance
 
 ```solidity
-function replaceGovernance(contract ISuperfluid host, address newGov) external
+function replaceGovernance(
+    contract ISuperfluid host,
+    address newGov
+) external
 ```
 
-_Replace the current governance with a new governance_
+Replace the current governance with a new governance
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `newGov` | address |  |
 
 ### registerAgreementClass
 
 ```solidity
-function registerAgreementClass(contract ISuperfluid host, address agreementClass) external
+function registerAgreementClass(
+    contract ISuperfluid host,
+    address agreementClass
+) external
 ```
 
-_Register a new agreement class_
+Register a new agreement class
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `agreementClass` | address |  |
 
 ### updateContracts
 
 ```solidity
-function updateContracts(contract ISuperfluid host, address hostNewLogic, address[] agreementClassNewLogics, address superTokenFactoryNewLogic) external
+function updateContracts(
+    contract ISuperfluid host,
+    address hostNewLogic,
+    address[] agreementClassNewLogics,
+    address superTokenFactoryNewLogic
+) external
 ```
 
-_Update logics of the contracts
+Update logics of the contracts
 
 NOTE:
-- Because they might have inter-dependencies, it is good to have one single function to update them all_
+- Because they might have inter-dependencies, it is good to have one single function to update them all
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `hostNewLogic` | address |  |
+| `agreementClassNewLogics` | address[] |  |
+| `superTokenFactoryNewLogic` | address |  |
 
 ### batchUpdateSuperTokenLogic
 
 ```solidity
-function batchUpdateSuperTokenLogic(contract ISuperfluid host, contract ISuperToken[] tokens) external
+function batchUpdateSuperTokenLogic(
+    contract ISuperfluid host,
+    contract ISuperToken[] tokens
+) external
 ```
 
-_Update supertoken logic contract to the latest that is managed by the super token factory_
+Update supertoken logic contract to the latest that is managed by the super token factory
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `tokens` | contract ISuperToken[] |  |
 
 ### batchUpdateSuperTokenMinimumDeposit
 
 ```solidity
-function batchUpdateSuperTokenMinimumDeposit(contract ISuperfluid host, contract ISuperToken[] tokens, uint256[] minimumDeposits) external
+function batchUpdateSuperTokenMinimumDeposit(
+    contract ISuperfluid host,
+    contract ISuperToken[] tokens,
+    uint256[] minimumDeposits
+) external
 ```
 
-### ConfigChanged
+#### Parameters
 
-```solidity
-event ConfigChanged(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key, bool isKeySet, uint256 value)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `tokens` | contract ISuperToken[] |  |
+| `minimumDeposits` | uint256[] |  |
 
 ### setConfig
 
 ```solidity
-function setConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key, address value) external
+function setConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key,
+    address value
+) external
 ```
 
-_Set configuration as address value_
+Set configuration as address value
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
+| `value` | address |  |
 
 ### setConfig
 
 ```solidity
-function setConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key, uint256 value) external
+function setConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key,
+    uint256 value
+) external
 ```
 
-_Set configuration as uint256 value_
+Set configuration as uint256 value
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
+| `value` | uint256 |  |
 
 ### clearConfig
 
 ```solidity
-function clearConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key) external
+function clearConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key
+) external
 ```
 
-_Clear configuration_
+Clear configuration
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
 
 ### _setConfig
 
 ```solidity
-function _setConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key, address value) internal
+function _setConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key,
+    address value
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
+| `value` | address |  |
 
 ### _setConfig
 
 ```solidity
-function _setConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key, uint256 value) internal
+function _setConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key,
+    uint256 value
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
+| `value` | uint256 |  |
 
 ### _clearConfig
 
 ```solidity
-function _clearConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key) internal
+function _clearConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
 
 ### getConfigAsAddress
 
 ```solidity
-function getConfigAsAddress(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key) public view returns (address value)
+function getConfigAsAddress(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key
+) public returns (address value)
 ```
 
-_Get configuration as address value_
+Get configuration as address value
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
 
 ### getConfigAsUint256
 
 ```solidity
-function getConfigAsUint256(contract ISuperfluid host, contract ISuperfluidToken superToken, bytes32 key) public view returns (uint256 period)
+function getConfigAsUint256(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key
+) public returns (uint256 period)
 ```
 
-_Get configuration as uint256 value_
+Get configuration as uint256 value
 
-### RewardAddressChanged
+#### Parameters
 
-```solidity
-event RewardAddressChanged(contract ISuperfluid host, contract ISuperfluidToken superToken, bool isKeySet, address rewardAddress)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
 
 ### getRewardAddress
 
 ```solidity
-function getRewardAddress(contract ISuperfluid host, contract ISuperfluidToken superToken) public view returns (address)
+function getRewardAddress(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken
+) public returns (address)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
 
 ### setRewardAddress
 
 ```solidity
-function setRewardAddress(contract ISuperfluid host, contract ISuperfluidToken superToken, address rewardAddress) public
+function setRewardAddress(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    address rewardAddress
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `rewardAddress` | address |  |
 
 ### clearRewardAddress
 
 ```solidity
-function clearRewardAddress(contract ISuperfluid host, contract ISuperfluidToken superToken) public
+function clearRewardAddress(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken
+) public
 ```
 
-### CFAv1LiquidationPeriodChanged
+#### Parameters
 
-```solidity
-event CFAv1LiquidationPeriodChanged(contract ISuperfluid host, contract ISuperfluidToken superToken, bool isKeySet, uint256 liquidationPeriod)
-```
-
-### PPPConfigurationChanged
-
-```solidity
-event PPPConfigurationChanged(contract ISuperfluid host, contract ISuperfluidToken superToken, bool isKeySet, uint256 liquidationPeriod, uint256 patricianPeriod)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
 
 ### getPPPConfig
 
 ```solidity
-function getPPPConfig(contract ISuperfluid host, contract ISuperfluidToken superToken) public view returns (uint256 liquidationPeriod, uint256 patricianPeriod)
+function getPPPConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken
+) public returns (uint256 liquidationPeriod, uint256 patricianPeriod)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
 
 ### setPPPConfig
 
 ```solidity
-function setPPPConfig(contract ISuperfluid host, contract ISuperfluidToken superToken, uint256 liquidationPeriod, uint256 patricianPeriod) public
+function setPPPConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    uint256 liquidationPeriod,
+    uint256 patricianPeriod
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `liquidationPeriod` | uint256 |  |
+| `patricianPeriod` | uint256 |  |
 
 ### clearPPPConfig
 
 ```solidity
-function clearPPPConfig(contract ISuperfluid host, contract ISuperfluidToken superToken) public
+function clearPPPConfig(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken
+) public
 ```
 
-### SuperTokenMinimumDepositChanged
+#### Parameters
 
-```solidity
-event SuperTokenMinimumDepositChanged(contract ISuperfluid host, contract ISuperfluidToken superToken, bool isKeySet, uint256 minimumDeposit)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
 
 ### getSuperTokenMinimumDeposit
 
 ```solidity
-function getSuperTokenMinimumDeposit(contract ISuperfluid host, contract ISuperfluidToken superToken) public view returns (uint256 value)
+function getSuperTokenMinimumDeposit(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken
+) public returns (uint256 value)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
 
 ### setSuperTokenMinimumDeposit
 
 ```solidity
-function setSuperTokenMinimumDeposit(contract ISuperfluid host, contract ISuperfluidToken superToken, uint256 value) public
+function setSuperTokenMinimumDeposit(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    uint256 value
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `value` | uint256 |  |
 
 ### clearSuperTokenMinimumDeposit
 
 ```solidity
-function clearSuperTokenMinimumDeposit(contract ISuperfluid host, contract ISuperToken superToken) public
+function clearSuperTokenMinimumDeposit(
+    contract ISuperfluid host,
+    contract ISuperToken superToken
+) public
 ```
 
-### TrustedForwarderChanged
+#### Parameters
 
-```solidity
-event TrustedForwarderChanged(contract ISuperfluid host, contract ISuperfluidToken superToken, bool isKeySet, address forwarder, bool enabled)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperToken |  |
 
 ### isTrustedForwarder
 
 ```solidity
-function isTrustedForwarder(contract ISuperfluid host, contract ISuperfluidToken superToken, address forwarder) public view returns (bool)
+function isTrustedForwarder(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    address forwarder
+) public returns (bool)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `forwarder` | address |  |
 
 ### enableTrustedForwarder
 
 ```solidity
-function enableTrustedForwarder(contract ISuperfluid host, contract ISuperfluidToken superToken, address forwarder) public
+function enableTrustedForwarder(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    address forwarder
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `forwarder` | address |  |
 
 ### disableTrustedForwarder
 
 ```solidity
-function disableTrustedForwarder(contract ISuperfluid host, contract ISuperfluidToken superToken, address forwarder) public
+function disableTrustedForwarder(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    address forwarder
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `forwarder` | address |  |
 
 ### clearTrustedForwarder
 
 ```solidity
-function clearTrustedForwarder(contract ISuperfluid host, contract ISuperfluidToken superToken, address forwarder) public
+function clearTrustedForwarder(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    address forwarder
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `forwarder` | address |  |
 
 ### isAuthorizedAppFactory
 
 ```solidity
-function isAuthorizedAppFactory(contract ISuperfluid host, address factory) public view returns (bool)
+function isAuthorizedAppFactory(
+    contract ISuperfluid host,
+    address factory
+) public returns (bool)
 ```
 
-_tells if the given factory is authorized to register apps_
+tells if the given factory is authorized to register apps
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `factory` | address |  |
 
 ### authorizeAppFactory
 
 ```solidity
-function authorizeAppFactory(contract ISuperfluid host, address factory) public
+function authorizeAppFactory(
+    contract ISuperfluid host,
+    address factory
+) public
 ```
 
-_allows the given factory to register new apps without requiring onetime keys_
+allows the given factory to register new apps without requiring onetime keys
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| host | contract ISuperfluid |  |
-| factory | address | must be an initialized contract |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `factory` | address | must be an initialized contract |
 
 ### unauthorizeAppFactory
 
 ```solidity
-function unauthorizeAppFactory(contract ISuperfluid host, address factory) public
+function unauthorizeAppFactory(
+    contract ISuperfluid host,
+    address factory
+) public
 ```
 
-_withdraws authorization from a factory to register new apps.
-Doesn&#x27;t affect apps previously registered by the factory._
+withdraws authorization from a factory to register new apps.
+Doesn't affect apps previously registered by the factory.
 
-### onlyAuthorized
+#### Parameters
 
-```solidity
-modifier onlyAuthorized(contract ISuperfluid host)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `factory` | address |  |
 
 ### _requireAuthorised
 
 ```solidity
-function _requireAuthorised(contract ISuperfluid host) internal view virtual
+function _requireAuthorised(
+    contract ISuperfluid host
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+
+## Events
+
+### ConfigChanged
+
+```solidity
+event ConfigChanged(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bytes32 key,
+    bool isKeySet,
+    uint256 value
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `key` | bytes32 |  |
+| `isKeySet` | bool |  |
+| `value` | uint256 |  |
+### RewardAddressChanged
+
+```solidity
+event RewardAddressChanged(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bool isKeySet,
+    address rewardAddress
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `isKeySet` | bool |  |
+| `rewardAddress` | address |  |
+### CFAv1LiquidationPeriodChanged
+
+```solidity
+event CFAv1LiquidationPeriodChanged(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bool isKeySet,
+    uint256 liquidationPeriod
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `isKeySet` | bool |  |
+| `liquidationPeriod` | uint256 |  |
+### PPPConfigurationChanged
+
+```solidity
+event PPPConfigurationChanged(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bool isKeySet,
+    uint256 liquidationPeriod,
+    uint256 patricianPeriod
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `isKeySet` | bool |  |
+| `liquidationPeriod` | uint256 |  |
+| `patricianPeriod` | uint256 |  |
+### SuperTokenMinimumDepositChanged
+
+```solidity
+event SuperTokenMinimumDepositChanged(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bool isKeySet,
+    uint256 minimumDeposit
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `isKeySet` | bool |  |
+| `minimumDeposit` | uint256 |  |
+### TrustedForwarderChanged
+
+```solidity
+event TrustedForwarderChanged(
+    contract ISuperfluid host,
+    contract ISuperfluidToken superToken,
+    bool isKeySet,
+    address forwarder,
+    bool enabled
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `superToken` | contract ISuperfluidToken |  |
+| `isKeySet` | bool |  |
+| `forwarder` | address |  |
+| `enabled` | bool |  |
 

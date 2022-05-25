@@ -1,383 +1,850 @@
-# Solidity API
+# SuperAppMockAux
 
-## SuperAppMockAux
+## Functions
 
 ### actionPingAgreement
 
 ```solidity
-function actionPingAgreement(contract ISuperfluid host, contract AgreementMock agreement, uint256 ping, bytes ctx) external
+function actionPingAgreement(
+    contract ISuperfluid host,
+    contract AgreementMock agreement,
+    uint256 ping,
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `agreement` | contract AgreementMock |  |
+| `ping` | uint256 |  |
+| `ctx` | bytes |  |
 
 ### actionCallActionNoop
 
 ```solidity
-function actionCallActionNoop(contract ISuperfluid host, contract SuperAppMock app, bytes ctx) external
+function actionCallActionNoop(
+    contract ISuperfluid host,
+    contract SuperAppMock app,
+    bytes ctx
+) external
 ```
 
-## SuperAppMock
+#### Parameters
 
-### _host
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `app` | contract SuperAppMock |  |
+| `ctx` | bytes |  |
 
-```solidity
-contract ISuperfluid _host
-```
+# SuperAppMock
 
-### _aux
-
-```solidity
-contract SuperAppMockAux _aux
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host, uint256 configWord, bool doubleRegistration) public
+function constructor(
+    contract ISuperfluid host,
+    uint256 configWord,
+    bool doubleRegistration
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `configWord` | uint256 |  |
+| `doubleRegistration` | bool |  |
 
 ### tryRegisterApp
 
 ```solidity
-function tryRegisterApp(uint256 configWord) external
+function tryRegisterApp(
+    uint256 configWord
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `configWord` | uint256 |  |
 
 ### allowCompositeApp
 
 ```solidity
-function allowCompositeApp(contract ISuperApp target) external
+function allowCompositeApp(
+    contract ISuperApp target
+) external
 ```
 
-### NoopEvent
+#### Parameters
 
-```solidity
-event NoopEvent(uint8 appLevel, uint8 callType, bytes4 agreementSelector)
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `target` | contract ISuperApp |  |
 
 ### actionNoop
 
 ```solidity
-function actionNoop(bytes ctx) external returns (bytes newCtx)
+function actionNoop(
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionExpectMsgSender
 
 ```solidity
-function actionExpectMsgSender(address expectedMsgSender, bytes ctx) external returns (bytes newCtx)
+function actionExpectMsgSender(
+    address expectedMsgSender,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `expectedMsgSender` | address |  |
+| `ctx` | bytes |  |
 
 ### actionAssert
 
 ```solidity
-function actionAssert(bytes ctx) external view
+function actionAssert(
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionRevert
 
 ```solidity
-function actionRevert(bytes ctx) external view
+function actionRevert(
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionRevertWithReason
 
 ```solidity
-function actionRevertWithReason(string reason, bytes ctx) external view
+function actionRevertWithReason(
+    string reason,
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `reason` | string |  |
+| `ctx` | bytes |  |
 
 ### actionCallAgreementWithoutCtx
 
 ```solidity
-function actionCallAgreementWithoutCtx(bytes ctx) external
+function actionCallAgreementWithoutCtx(
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionCallAppActionWithoutCtx
 
 ```solidity
-function actionCallAppActionWithoutCtx(bytes ctx) external
+function actionCallAppActionWithoutCtx(
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionAlteringCtx
 
 ```solidity
-function actionAlteringCtx(bytes ctx) external view returns (bytes newCtx)
+function actionAlteringCtx(
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionReturnEmptyCtx
 
 ```solidity
-function actionReturnEmptyCtx(bytes ctx) external view
+function actionReturnEmptyCtx(
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionPingAgreementThroughAux
 
 ```solidity
-function actionPingAgreementThroughAux(contract AgreementMock agreement, uint256 ping, bytes ctx) external
+function actionPingAgreementThroughAux(
+    contract AgreementMock agreement,
+    uint256 ping,
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `agreement` | contract AgreementMock |  |
+| `ping` | uint256 |  |
+| `ctx` | bytes |  |
 
 ### actionCallActionNoopThroughAux
 
 ```solidity
-function actionCallActionNoopThroughAux(bytes ctx) external
+function actionCallActionNoopThroughAux(
+    bytes ctx
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionPingAgreement
 
 ```solidity
-function actionPingAgreement(contract AgreementMock agreement, uint256 ping, bytes ctx) external returns (bytes newCtx)
+function actionPingAgreement(
+    contract AgreementMock agreement,
+    uint256 ping,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `agreement` | contract AgreementMock |  |
+| `ping` | uint256 |  |
+| `ctx` | bytes |  |
 
 ### actionAgreementRevert
 
 ```solidity
-function actionAgreementRevert(contract AgreementMock agreement, string reason, bytes ctx) external returns (bytes newCtx)
+function actionAgreementRevert(
+    contract AgreementMock agreement,
+    string reason,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `agreement` | contract AgreementMock |  |
+| `reason` | string |  |
+| `ctx` | bytes |  |
 
 ### actionCallActionNoop
 
 ```solidity
-function actionCallActionNoop(bytes ctx) external returns (bytes newCtx)
+function actionCallActionNoop(
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### actionCallActionRevert
 
 ```solidity
-function actionCallActionRevert(string reason, bytes ctx) external returns (bytes newCtx)
+function actionCallActionRevert(
+    string reason,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `reason` | string |  |
+| `ctx` | bytes |  |
 
 ### actionCallAgreementWithInvalidCtx
 
 ```solidity
-function actionCallAgreementWithInvalidCtx(contract AgreementMock agreement, bytes ctx) external returns (bytes newCtx)
+function actionCallAgreementWithInvalidCtx(
+    contract AgreementMock agreement,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `agreement` | contract AgreementMock |  |
+| `ctx` | bytes |  |
 
 ### actionCallActionWithInvalidCtx
 
 ```solidity
-function actionCallActionWithInvalidCtx(string reason, bytes ctx) external returns (bytes newCtx)
+function actionCallActionWithInvalidCtx(
+    string reason,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `reason` | string |  |
+| `ctx` | bytes |  |
 
 ### actionCallBadAction
 
 ```solidity
-function actionCallBadAction(bytes ctx) external
+function actionCallBadAction(
+    bytes ctx
+) external
 ```
 
-### NextCallbackActionType
+#### Parameters
 
-```solidity
-enum NextCallbackActionType {
-  Noop,
-  Assert,
-  Revert,
-  RevertWithReason,
-  AlteringCtx,
-  BurnGas,
-  ReturnEmptyCtx
-}
-```
-
-### NextCallbackAction
-
-```solidity
-struct NextCallbackAction {
-  enum SuperAppMock.NextCallbackActionType actionType;
-  bytes data;
-}
-```
-
-### _nextCallbackAction
-
-```solidity
-struct SuperAppMock.NextCallbackAction _nextCallbackAction
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### setNextCallbackAction
 
 ```solidity
-function setNextCallbackAction(enum SuperAppMock.NextCallbackActionType actionType, bytes data) external
+function setNextCallbackAction(
+    enum SuperAppMock.NextCallbackActionType actionType,
+    bytes data
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `actionType` | enum SuperAppMock.NextCallbackActionType |  |
+| `data` | bytes |  |
 
 ### _executeBeforeCallbackAction
 
 ```solidity
-function _executeBeforeCallbackAction() private view returns (bytes cbdata)
+function _executeBeforeCallbackAction(
+) private returns (bytes cbdata)
 ```
 
 ### _executeAfterCallbackAction
 
 ```solidity
-function _executeAfterCallbackAction(bytes ctx) private returns (bytes newCtx)
+function _executeAfterCallbackAction(
+    bytes ctx
+) private returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `ctx` | bytes |  |
 
 ### beforeAgreementCreated
 
 ```solidity
-function beforeAgreementCreated(contract ISuperToken, address, bytes32, bytes, bytes ctx) external view virtual returns (bytes)
+function beforeAgreementCreated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ctx
+) external returns (bytes)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
 ### afterAgreementCreated
 
 ```solidity
-function afterAgreementCreated(contract ISuperToken, address, bytes32, bytes, bytes, bytes ctx) external virtual returns (bytes newCtx)
+function afterAgreementCreated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
 ### beforeAgreementUpdated
 
 ```solidity
-function beforeAgreementUpdated(contract ISuperToken, address, bytes32, bytes, bytes ctx) external view virtual returns (bytes)
+function beforeAgreementUpdated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ctx
+) external returns (bytes)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
 ### afterAgreementUpdated
 
 ```solidity
-function afterAgreementUpdated(contract ISuperToken, address, bytes32, bytes, bytes, bytes ctx) external virtual returns (bytes newCtx)
+function afterAgreementUpdated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
 ### beforeAgreementTerminated
 
 ```solidity
-function beforeAgreementTerminated(contract ISuperToken, address, bytes32, bytes, bytes ctx) external view virtual returns (bytes)
+function beforeAgreementTerminated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ctx
+) external returns (bytes)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
 ### afterAgreementTerminated
 
 ```solidity
-function afterAgreementTerminated(contract ISuperToken, address, bytes32, bytes, bytes, bytes ctx) external virtual returns (bytes newCtx)
+function afterAgreementTerminated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
 ### _burnGas
 
 ```solidity
-function _burnGas(uint256 gasToBurn) private view
+function _burnGas(
+    uint256 gasToBurn
+) private
 ```
 
-### requireValidCtx
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `gasToBurn` | uint256 |  |
+
+## Events
+
+### NoopEvent
 
 ```solidity
-modifier requireValidCtx(bytes ctx)
+event NoopEvent(
+    uint8 appLevel,
+    uint8 callType,
+    bytes4 agreementSelector
+)
 ```
 
-## SuperAppMockReturningEmptyCtx
+#### Parameters:
 
-### _host
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `appLevel` | uint8 |  |
+| `callType` | uint8 |  |
+| `agreementSelector` | bytes4 |  |
 
-```solidity
-contract ISuperfluid _host
-```
+# SuperAppMockReturningEmptyCtx
+
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host) public
+function constructor(
+    contract ISuperfluid host
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 
 ### beforeAgreementCreated
 
 ```solidity
-function beforeAgreementCreated(contract ISuperToken, address, bytes32, bytes, bytes) external pure
+function beforeAgreementCreated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes 
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
 
 ### afterAgreementCreated
 
 ```solidity
-function afterAgreementCreated(contract ISuperToken, address, bytes32, bytes, bytes, bytes) external pure
+function afterAgreementCreated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes 
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `` | bytes |  |
 
 ### beforeAgreementTerminated
 
 ```solidity
-function beforeAgreementTerminated(contract ISuperToken, address, bytes32, bytes, bytes) external pure
+function beforeAgreementTerminated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes 
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
 
 ### afterAgreementTerminated
 
 ```solidity
-function afterAgreementTerminated(contract ISuperToken, address, bytes32, bytes, bytes, bytes) external pure
+function afterAgreementTerminated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes 
+) external
 ```
 
-## SuperAppMockReturningInvalidCtx
+#### Parameters
 
-### _host
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `` | bytes |  |
 
-```solidity
-contract ISuperfluid _host
-```
+# SuperAppMockReturningInvalidCtx
+
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host) public
+function constructor(
+    contract ISuperfluid host
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 
 ### afterAgreementCreated
 
 ```solidity
-function afterAgreementCreated(contract ISuperToken, address, bytes32, bytes, bytes, bytes) external pure returns (uint256)
+function afterAgreementCreated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes 
+) external returns (uint256)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `` | bytes |  |
 
 ### afterAgreementTerminated
 
 ```solidity
-function afterAgreementTerminated(contract ISuperToken, address, bytes32, bytes, bytes, bytes) external pure returns (uint256)
+function afterAgreementTerminated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes 
+) external returns (uint256)
 ```
 
-## SuperAppMock2ndLevel
+#### Parameters
 
-### _host
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `` | bytes |  |
 
-```solidity
-contract ISuperfluid _host
-```
+# SuperAppMock2ndLevel
 
-### _app
-
-```solidity
-contract SuperAppMock _app
-```
-
-### _agreement
-
-```solidity
-contract AgreementMock _agreement
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host, contract SuperAppMock app, contract AgreementMock agreement) public
+function constructor(
+    contract ISuperfluid host,
+    contract SuperAppMock app,
+    contract AgreementMock agreement
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `app` | contract SuperAppMock |  |
+| `agreement` | contract AgreementMock |  |
 
 ### allowCompositeApp
 
 ```solidity
-function allowCompositeApp() external
+function allowCompositeApp(
+) external
 ```
 
 ### afterAgreementCreated
 
 ```solidity
-function afterAgreementCreated(contract ISuperToken, address, bytes32, bytes, bytes, bytes ctx) external returns (bytes newCtx)
+function afterAgreementCreated(
+    contract ISuperToken ,
+    address ,
+    bytes32 ,
+    bytes ,
+    bytes ,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-## SuperAppMockWithRegistrationkey
+#### Parameters
 
-### _host
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperToken |  |
+| `` | address |  |
+| `` | bytes32 |  |
+| `` | bytes |  |
+| `` | bytes |  |
+| `ctx` | bytes |  |
 
-```solidity
-contract ISuperfluid _host
-```
+# SuperAppMockWithRegistrationkey
+
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host, uint256 configWord, string registrationKey) public
+function constructor(
+    contract ISuperfluid host,
+    uint256 configWord,
+    string registrationKey
+) public
 ```
 
-## SuperAppMockNotSelfRegistering
+#### Parameters
 
-## SuperAppFactoryMock
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `configWord` | uint256 |  |
+| `registrationKey` | string |  |
+
+# SuperAppMockNotSelfRegistering
+
+# SuperAppFactoryMock
+
+## Functions
 
 ### registerAppWithHost
 
 ```solidity
-function registerAppWithHost(contract ISuperfluid host, contract ISuperApp app, uint256 configWord) external
+function registerAppWithHost(
+    contract ISuperfluid host,
+    contract ISuperApp app,
+    uint256 configWord
+) external
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `app` | contract ISuperApp |  |
+| `configWord` | uint256 |  |
 

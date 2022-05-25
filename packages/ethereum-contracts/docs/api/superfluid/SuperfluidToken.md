@@ -1,308 +1,389 @@
-# Solidity API
+# SuperfluidToken
 
-## SuperfluidToken
-
-### _REWARD_ADDRESS_CONFIG_KEY
-
-```solidity
-bytes32 _REWARD_ADDRESS_CONFIG_KEY
-```
-
-### _host
-
-```solidity
-contract ISuperfluid _host
-```
-
-_Superfluid contract_
-
-### _inactiveAgreementBitmap
-
-```solidity
-mapping(address &#x3D;&gt; uint256) _inactiveAgreementBitmap
-```
-
-_Active agreement bitmap_
-
-### _balances
-
-```solidity
-mapping(address &#x3D;&gt; int256) _balances
-```
-
-_Settled balance for the account_
-
-### _totalSupply
-
-```solidity
-uint256 _totalSupply
-```
-
-_Total supply_
-
-### _reserve4
-
-```solidity
-uint256 _reserve4
-```
-
-### _reserve5
-
-```solidity
-uint256 _reserve5
-```
-
-### _reserve6
-
-```solidity
-uint256 _reserve6
-```
-
-### _reserve7
-
-```solidity
-uint256 _reserve7
-```
-
-### _reserve8
-
-```solidity
-uint256 _reserve8
-```
-
-### _reserve9
-
-```solidity
-uint256 _reserve9
-```
-
-### _reserve10
-
-```solidity
-uint256 _reserve10
-```
-
-### _reserve11
-
-```solidity
-uint256 _reserve11
-```
-
-### _reserve12
-
-```solidity
-uint256 _reserve12
-```
-
-### _reserve13
-
-```solidity
-uint256 _reserve13
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host) internal
+function constructor(
+    contract ISuperfluid host
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 
 ### getHost
 
 ```solidity
-function getHost() external view returns (address host)
+function getHost(
+) external returns (address host)
 ```
 
-_ISuperfluidToken.getHost implementation_
+ISuperfluidToken.getHost implementation
 
 ### realtimeBalanceOf
 
 ```solidity
-function realtimeBalanceOf(address account, uint256 timestamp) public view returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
+function realtimeBalanceOf(
+    address account,
+    uint256 timestamp
+) public returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
 ```
 
-_ISuperfluidToken.realtimeBalanceOf implementation_
+ISuperfluidToken.realtimeBalanceOf implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `timestamp` | uint256 |  |
 
 ### realtimeBalanceOfNow
 
 ```solidity
-function realtimeBalanceOfNow(address account) public view returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit, uint256 timestamp)
+function realtimeBalanceOfNow(
+    address account
+) public returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit, uint256 timestamp)
 ```
 
-_ISuperfluidToken.realtimeBalanceOfNow implementation_
+ISuperfluidToken.realtimeBalanceOfNow implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 
 ### isAccountCritical
 
 ```solidity
-function isAccountCritical(address account, uint256 timestamp) public view returns (bool isCritical)
+function isAccountCritical(
+    address account,
+    uint256 timestamp
+) public returns (bool isCritical)
 ```
 
 Check if account is critical
 
-_A critical account is when availableBalance &lt; 0_
+A critical account is when availableBalance < 0
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to check |
-| timestamp | uint256 | The time we&#x27;d like to check if the account is critical (should use future) |
+| :--- | :--- | :---------- |
+| `account` | address | The account to check |
+| `timestamp` | uint256 | The time we'd like to check if the account is critical (should use future) |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| isCritical | bool | Whether the account is critical |
+| :--- | :--- | :---------- |
+| `isCritical` | bool | Whether the account is critical |
 
 ### isAccountCriticalNow
 
 ```solidity
-function isAccountCriticalNow(address account) external view returns (bool isCritical)
+function isAccountCriticalNow(
+    address account
+) external returns (bool isCritical)
 ```
 
 Check if account is critical now (current host.getNow())
 
-_A critical account is when availableBalance &lt; 0_
+A critical account is when availableBalance < 0
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to check |
+| :--- | :--- | :---------- |
+| `account` | address | The account to check |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| isCritical | bool | Whether the account is critical |
+| :--- | :--- | :---------- |
+| `isCritical` | bool | Whether the account is critical |
 
 ### isAccountSolvent
 
 ```solidity
-function isAccountSolvent(address account, uint256 timestamp) public view returns (bool isSolvent)
+function isAccountSolvent(
+    address account,
+    uint256 timestamp
+) public returns (bool isSolvent)
 ```
 
 Check if account is solvent
 
-_An account is insolvent when the sum of deposits for a token can&#x27;t cover the negative availableBalance_
+An account is insolvent when the sum of deposits for a token can't cover the negative availableBalance
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to check |
-| timestamp | uint256 | The time we&#x27;d like to check if the account is solvent (should use future) |
+| :--- | :--- | :---------- |
+| `account` | address | The account to check |
+| `timestamp` | uint256 | The time we'd like to check if the account is solvent (should use future) |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| isSolvent | bool | True if the account is solvent, false otherwise |
+| :--- | :--- | :---------- |
+| `isSolvent` | bool | True if the account is solvent, false otherwise |
 
 ### isAccountSolventNow
 
 ```solidity
-function isAccountSolventNow(address account) external view returns (bool isSolvent)
+function isAccountSolventNow(
+    address account
+) external returns (bool isSolvent)
 ```
 
 Check if account is solvent now
 
-_An account is insolvent when the sum of deposits for a token can&#x27;t cover the negative availableBalance_
+An account is insolvent when the sum of deposits for a token can't cover the negative availableBalance
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| account | address | The account to check |
+| :--- | :--- | :---------- |
+| `account` | address | The account to check |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| isSolvent | bool | True if the account is solvent, false otherwise |
+| :--- | :--- | :---------- |
+| `isSolvent` | bool | True if the account is solvent, false otherwise |
 
 ### getAccountActiveAgreements
 
 ```solidity
-function getAccountActiveAgreements(address account) public view returns (contract ISuperAgreement[])
+function getAccountActiveAgreements(
+    address account
+) public returns (contract ISuperAgreement[])
 ```
 
-_ISuperfluidToken.getAccountActiveAgreements implementation_
+ISuperfluidToken.getAccountActiveAgreements implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
 
 ### _mint
 
 ```solidity
-function _mint(address account, uint256 amount) internal
+function _mint(
+    address account,
+    uint256 amount
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `amount` | uint256 |  |
 
 ### _burn
 
 ```solidity
-function _burn(address account, uint256 amount) internal
+function _burn(
+    address account,
+    uint256 amount
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `amount` | uint256 |  |
 
 ### _move
 
 ```solidity
-function _move(address from, address to, int256 amount) internal
+function _move(
+    address from,
+    address to,
+    int256 amount
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `from` | address |  |
+| `to` | address |  |
+| `amount` | int256 |  |
 
 ### createAgreement
 
 ```solidity
-function createAgreement(bytes32 id, bytes32[] data) external
+function createAgreement(
+    bytes32 id,
+    bytes32[] data
+) external
 ```
 
-_ISuperfluidToken.createAgreement implementation_
+ISuperfluidToken.createAgreement implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `id` | bytes32 |  |
+| `data` | bytes32[] |  |
 
 ### getAgreementData
 
 ```solidity
-function getAgreementData(address agreementClass, bytes32 id, uint256 dataLength) external view returns (bytes32[] data)
+function getAgreementData(
+    address agreementClass,
+    bytes32 id,
+    uint256 dataLength
+) external returns (bytes32[] data)
 ```
 
-_ISuperfluidToken.getAgreementData implementation_
+ISuperfluidToken.getAgreementData implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `agreementClass` | address |  |
+| `id` | bytes32 |  |
+| `dataLength` | uint256 |  |
 
 ### updateAgreementData
 
 ```solidity
-function updateAgreementData(bytes32 id, bytes32[] data) external
+function updateAgreementData(
+    bytes32 id,
+    bytes32[] data
+) external
 ```
 
-_ISuperfluidToken.updateAgreementData implementation_
+ISuperfluidToken.updateAgreementData implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `id` | bytes32 |  |
+| `data` | bytes32[] |  |
 
 ### terminateAgreement
 
 ```solidity
-function terminateAgreement(bytes32 id, uint256 dataLength) external
+function terminateAgreement(
+    bytes32 id,
+    uint256 dataLength
+) external
 ```
 
-_ISuperfluidToken.terminateAgreement implementation_
+ISuperfluidToken.terminateAgreement implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `id` | bytes32 |  |
+| `dataLength` | uint256 |  |
 
 ### updateAgreementStateSlot
 
 ```solidity
-function updateAgreementStateSlot(address account, uint256 slotId, bytes32[] slotData) external
+function updateAgreementStateSlot(
+    address account,
+    uint256 slotId,
+    bytes32[] slotData
+) external
 ```
 
-_ISuperfluidToken.updateAgreementState implementation_
+ISuperfluidToken.updateAgreementState implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `slotId` | uint256 |  |
+| `slotData` | bytes32[] |  |
 
 ### getAgreementStateSlot
 
 ```solidity
-function getAgreementStateSlot(address agreementClass, address account, uint256 slotId, uint256 dataLength) external view returns (bytes32[] slotData)
+function getAgreementStateSlot(
+    address agreementClass,
+    address account,
+    uint256 slotId,
+    uint256 dataLength
+) external returns (bytes32[] slotData)
 ```
 
-_ISuperfluidToken.getAgreementState implementation_
+ISuperfluidToken.getAgreementState implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `agreementClass` | address |  |
+| `account` | address |  |
+| `slotId` | uint256 |  |
+| `dataLength` | uint256 |  |
 
 ### settleBalance
 
 ```solidity
-function settleBalance(address account, int256 delta) external
+function settleBalance(
+    address account,
+    int256 delta
+) external
 ```
 
-_ISuperfluidToken.settleBalance implementation_
+ISuperfluidToken.settleBalance implementation
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `account` | address |  |
+| `delta` | int256 |  |
 
 ### makeLiquidationPayoutsV2
 
 ```solidity
-function makeLiquidationPayoutsV2(bytes32 id, bytes liquidationTypeData, address liquidatorAccount, bool useDefaultRewardAccount, address targetAccount, uint256 rewardAmount, int256 targetAccountBalanceDelta) external
+function makeLiquidationPayoutsV2(
+    bytes32 id,
+    bytes liquidationTypeData,
+    address liquidatorAccount,
+    bool useDefaultRewardAccount,
+    address targetAccount,
+    uint256 rewardAmount,
+    int256 targetAccountBalanceDelta
+) external
 ```
 
-_ISuperfluidToken.makeLiquidationPayoutsV2 implementation_
+ISuperfluidToken.makeLiquidationPayoutsV2 implementation
 
-### onlyAgreement
+#### Parameters
 
-```solidity
-modifier onlyAgreement()
-```
-
-### onlyHost
-
-```solidity
-modifier onlyHost()
-```
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `id` | bytes32 |  |
+| `liquidationTypeData` | bytes |  |
+| `liquidatorAccount` | address |  |
+| `useDefaultRewardAccount` | bool |  |
+| `targetAccount` | address |  |
+| `rewardAmount` | uint256 |  |
+| `targetAccountBalanceDelta` | int256 |  |
 

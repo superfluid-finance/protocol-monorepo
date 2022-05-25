@@ -1,69 +1,102 @@
-# Solidity API
+# ERC777Helper
 
-## ERC777Helper
-
-### _ERC1820_REGISTRY
-
-```solidity
-contract IERC1820Registry _ERC1820_REGISTRY
-```
-
-### _TOKENS_SENDER_INTERFACE_HASH
-
-```solidity
-bytes32 _TOKENS_SENDER_INTERFACE_HASH
-```
-
-### _TOKENS_RECIPIENT_INTERFACE_HASH
-
-```solidity
-bytes32 _TOKENS_RECIPIENT_INTERFACE_HASH
-```
-
-### Operators
-
-```solidity
-struct Operators {
-  address[] defaultOperatorsArray;
-  mapping(address &#x3D;&gt; bool) defaultOperators;
-  mapping(address &#x3D;&gt; mapping(address &#x3D;&gt; bool)) operators;
-  mapping(address &#x3D;&gt; mapping(address &#x3D;&gt; bool)) revokedDefaultOperators;
-}
-```
+## Functions
 
 ### register
 
 ```solidity
-function register(address token) internal
+function register(
+    address token
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | address |  |
 
 ### isOperatorFor
 
 ```solidity
-function isOperatorFor(struct ERC777Helper.Operators self, address operator, address tokenHolder) internal view returns (bool)
+function isOperatorFor(
+    struct ERC777Helper.Operators self,
+    address operator,
+    address tokenHolder
+) internal returns (bool)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `self` | struct ERC777Helper.Operators |  |
+| `operator` | address |  |
+| `tokenHolder` | address |  |
 
 ### authorizeOperator
 
 ```solidity
-function authorizeOperator(struct ERC777Helper.Operators self, address holder, address operator) internal
+function authorizeOperator(
+    struct ERC777Helper.Operators self,
+    address holder,
+    address operator
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `self` | struct ERC777Helper.Operators |  |
+| `holder` | address |  |
+| `operator` | address |  |
 
 ### revokeOperator
 
 ```solidity
-function revokeOperator(struct ERC777Helper.Operators self, address holder, address operator) internal
+function revokeOperator(
+    struct ERC777Helper.Operators self,
+    address holder,
+    address operator
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `self` | struct ERC777Helper.Operators |  |
+| `holder` | address |  |
+| `operator` | address |  |
 
 ### defaultOperators
 
 ```solidity
-function defaultOperators(struct ERC777Helper.Operators self) internal view returns (address[])
+function defaultOperators(
+    struct ERC777Helper.Operators self
+) internal returns (address[])
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `self` | struct ERC777Helper.Operators |  |
 
 ### setupDefaultOperators
 
 ```solidity
-function setupDefaultOperators(struct ERC777Helper.Operators self, address[] operators) internal
+function setupDefaultOperators(
+    struct ERC777Helper.Operators self,
+    address[] operators
+) internal
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `self` | struct ERC777Helper.Operators |  |
+| `operators` | address[] |  |
 

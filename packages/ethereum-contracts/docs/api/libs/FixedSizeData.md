@@ -1,34 +1,74 @@
-# Solidity API
+# FixedSizeData
 
-## FixedSizeData
+## Functions
 
 ### storeData
 
 ```solidity
-function storeData(bytes32 slot, bytes32[] data) internal
+function storeData(
+    bytes32 slot,
+    bytes32[] data
+) internal
 ```
 
-_Store data to the slot at &#x60;slot&#x60;_
+Store data to the slot at `slot`
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `slot` | bytes32 |  |
+| `data` | bytes32[] |  |
 
 ### hasData
 
 ```solidity
-function hasData(bytes32 slot, uint256 dataLength) internal view returns (bool)
+function hasData(
+    bytes32 slot,
+    uint256 dataLength
+) internal returns (bool)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `slot` | bytes32 |  |
+| `dataLength` | uint256 |  |
 
 ### loadData
 
 ```solidity
-function loadData(bytes32 slot, uint256 dataLength) internal view returns (bytes32[] data)
+function loadData(
+    bytes32 slot,
+    uint256 dataLength
+) internal returns (bytes32[] data)
 ```
 
-_Load data of size &#x60;dataLength&#x60; from the slot at &#x60;slot&#x60;_
+Load data of size `dataLength` from the slot at `slot`
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `slot` | bytes32 |  |
+| `dataLength` | uint256 |  |
 
 ### eraseData
 
 ```solidity
-function eraseData(bytes32 slot, uint256 dataLength) internal
+function eraseData(
+    bytes32 slot,
+    uint256 dataLength
+) internal
 ```
 
-_Erase data of size &#x60;dataLength&#x60; from the slot at &#x60;slot&#x60;_
+Erase data of size `dataLength` from the slot at `slot`
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `slot` | bytes32 |  |
+| `dataLength` | uint256 |  |
 

@@ -1,39 +1,52 @@
-# Solidity API
+# Resolver
 
-## Resolver
-
-_A simple implementation of IResolver using OZ AccessControl
+A simple implementation of IResolver using OZ AccessControl
 
 NOTE:
 Relevant events for indexing:
-- OZ Access Control events &#x60;RoleGranted&#x60;/&#x60;RoleRevoked&#x60;: admin add/remove
-- IResolver event &#x60;Set&#x60;: resolver name updates_
+- OZ Access Control events `RoleGranted`/`RoleRevoked`: admin add/remove
+- IResolver event `Set`: resolver name updates
 
-### _registry
-
-```solidity
-mapping(string &#x3D;&gt; address) _registry
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor() public
+function constructor(
+) public
 ```
 
 ### set
 
 ```solidity
-function set(string name, address target) external
+function set(
+    string name,
+    address target
+) external
 ```
 
-_Set resolver address name_
+Set resolver address name
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `name` | string |  |
+| `target` | address |  |
 
 ### get
 
 ```solidity
-function get(string name) external view returns (address)
+function get(
+    string name
+) external returns (address)
 ```
 
-_Get address by name_
+Get address by name
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `name` | string |  |
 

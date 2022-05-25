@@ -1,16 +1,11 @@
-# Solidity API
+# SuperfluidDestructorMock
 
-## SuperfluidDestructorMock
-
-### NON_UPGRADABLE_DEPLOYMENT
-
-```solidity
-bool NON_UPGRADABLE_DEPLOYMENT
-```
+## Functions
 
 ### fallback
 
 ```solidity
-fallback() external
+function fallback(
+) external
 ```
 

@@ -1,405 +1,638 @@
-# Solidity API
+# IInstantDistributionAgreementV1
 
-## IInstantDistributionAgreementV1
+## Functions
 
 ### agreementType
 
 ```solidity
-function agreementType() external pure returns (bytes32)
+function agreementType(
+) external returns (bytes32)
 ```
 
-_ISuperAgreement.agreementType implementation_
+ISuperAgreement.agreementType implementation
 
 ### createIndex
 
 ```solidity
-function createIndex(contract ISuperfluidToken token, uint32 indexId, bytes ctx) external virtual returns (bytes newCtx)
+function createIndex(
+    contract ISuperfluidToken token,
+    uint32 indexId,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Create a new index for the publisher_
+Create a new index for the publisher
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| indexId | uint32 | Id of the index |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) # App callbacks None |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `indexId` | uint32 | Id of the index |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
 
-### IndexCreated
+# App callbacks
 
-```solidity
-event IndexCreated(contract ISuperfluidToken token, address publisher, uint32 indexId, bytes userData)
-```
-
-_Index created event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | Index creator and publisher |
-| indexId | uint32 | The specified indexId of the newly created index |
-| userData | bytes | The user provided data |
+None |
 
 ### getIndex
 
 ```solidity
-function getIndex(contract ISuperfluidToken token, address publisher, uint32 indexId) external view virtual returns (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending)
+function getIndex(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId
+) external returns (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending)
 ```
 
-_Query the data of a index_
+Query the data of a index
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| exist | bool | Does the index exist |
-| indexValue | uint128 | Value of the current index |
-| totalUnitsApproved | uint128 | Total units approved for the index |
-| totalUnitsPending | uint128 | Total units pending approval for the index |
+| :--- | :--- | :---------- |
+| `exist` | bool | Does the index exist |
+| `indexValue` | uint128 | Value of the current index |
+| `totalUnitsApproved` | uint128 | Total units approved for the index |
+| `totalUnitsPending` | uint128 | Total units pending approval for the index |
 
 ### calculateDistribution
 
 ```solidity
-function calculateDistribution(contract ISuperfluidToken token, address publisher, uint32 indexId, uint256 amount) external view virtual returns (uint256 actualAmount, uint128 newIndexValue)
+function calculateDistribution(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    uint256 amount
+) external returns (uint256 actualAmount, uint128 newIndexValue)
 ```
 
-_Calculate actual distribution amount_
+Calculate actual distribution amount
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| amount | uint256 | The amount of tokens desired to be distributed |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `amount` | uint256 | The amount of tokens desired to be distributed |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| actualAmount | uint256 | The amount to be distributed after ensuring no rounding errors |
-| newIndexValue | uint128 | The index value given the desired amount of tokens to be distributed |
+| :--- | :--- | :---------- |
+| `actualAmount` | uint256 | The amount to be distributed after ensuring no rounding errors |
+| `newIndexValue` | uint128 | The index value given the desired amount of tokens to be distributed |
 
 ### updateIndex
 
 ```solidity
-function updateIndex(contract ISuperfluidToken token, uint32 indexId, uint128 indexValue, bytes ctx) external virtual returns (bytes newCtx)
+function updateIndex(
+    contract ISuperfluidToken token,
+    uint32 indexId,
+    uint128 indexValue,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Update index value of an index_
+Update index value of an index
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| indexId | uint32 | Id of the index |
-| indexValue | uint128 | Value of the index |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) # App callbacks None |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `indexId` | uint32 | Id of the index |
+| `indexValue` | uint128 | Value of the index |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
 
-### IndexUpdated
+# App callbacks
 
-```solidity
-event IndexUpdated(contract ISuperfluidToken token, address publisher, uint32 indexId, uint128 oldIndexValue, uint128 newIndexValue, uint128 totalUnitsPending, uint128 totalUnitsApproved, bytes userData)
-```
-
-_Index updated event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | Index updater and publisher |
-| indexId | uint32 | The specified indexId of the updated index |
-| oldIndexValue | uint128 | The previous index value |
-| newIndexValue | uint128 | The updated index value |
-| totalUnitsPending | uint128 | The total units pending when the indexValue was updated |
-| totalUnitsApproved | uint128 | The total units approved when the indexValue was updated |
-| userData | bytes | The user provided data |
+None |
 
 ### distribute
 
 ```solidity
-function distribute(contract ISuperfluidToken token, uint32 indexId, uint256 amount, bytes ctx) external virtual returns (bytes newCtx)
+function distribute(
+    contract ISuperfluidToken token,
+    uint32 indexId,
+    uint256 amount,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Distribute tokens through the index_
+Distribute tokens through the index
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| indexId | uint32 | Id of the index |
-| amount | uint256 | The amount of tokens desired to be distributed |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) NOTE: - This is a convenient version of updateIndex. It adds to the index   a delta that equals to &#x60;amount / totalUnits&#x60; - The actual amount distributed could be obtained via   &#x60;calculateDistribution&#x60;. This is due to precision error with index   value and units data range # App callbacks None |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `indexId` | uint32 | Id of the index |
+| `amount` | uint256 | The amount of tokens desired to be distributed |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
+
+NOTE:
+- This is a convenient version of updateIndex. It adds to the index
+  a delta that equals to `amount / totalUnits`
+- The actual amount distributed could be obtained via
+  `calculateDistribution`. This is due to precision error with index
+  value and units data range
+
+# App callbacks
+
+None |
 
 ### approveSubscription
 
 ```solidity
-function approveSubscription(contract ISuperfluidToken token, address publisher, uint32 indexId, bytes ctx) external virtual returns (bytes newCtx)
+function approveSubscription(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Approve the subscription of an index_
+Approve the subscription of an index
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) # App callbacks - if subscription exist   - AgreementCreated callback to the publisher:      - agreementId is for the subscription - if subscription does not exist   - AgreementUpdated callback to the publisher:      - agreementId is for the subscription |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
 
-### IndexSubscribed
+# App callbacks
 
-```solidity
-event IndexSubscribed(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber, bytes userData)
-```
-
-_Index subscribed event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| subscriber | address | The approved subscriber |
-| userData | bytes | The user provided data |
-
-### SubscriptionApproved
-
-```solidity
-event SubscriptionApproved(contract ISuperfluidToken token, address subscriber, address publisher, uint32 indexId, bytes userData)
-```
-
-_Subscription approved event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| subscriber | address | The approved subscriber |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| userData | bytes | The user provided data |
+- if subscription exist
+  - AgreementCreated callback to the publisher:
+     - agreementId is for the subscription
+- if subscription does not exist
+  - AgreementUpdated callback to the publisher:
+     - agreementId is for the subscription |
 
 ### revokeSubscription
 
 ```solidity
-function revokeSubscription(contract ISuperfluidToken token, address publisher, uint32 indexId, bytes ctx) external virtual returns (bytes newCtx)
+function revokeSubscription(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
 Revoke the subscription of an index
 
-_&quot;Unapproves&quot; the subscription and moves approved units to pending_
+"Unapproves" the subscription and moves approved units to pending
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) # App callbacks - AgreementUpdated callback to the publisher:    - agreementId is for the subscription |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
 
-### IndexUnsubscribed
-
-```solidity
-event IndexUnsubscribed(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber, bytes userData)
-```
-
-_Index unsubscribed event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| subscriber | address | The unsubscribed subscriber |
-| userData | bytes | The user provided data |
-
-### SubscriptionRevoked
-
-```solidity
-event SubscriptionRevoked(contract ISuperfluidToken token, address subscriber, address publisher, uint32 indexId, bytes userData)
-```
-
-_Subscription approved event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| subscriber | address | The approved subscriber |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| userData | bytes | The user provided data |
+# App callbacks
+- AgreementUpdated callback to the publisher:
+   - agreementId is for the subscription |
 
 ### updateSubscription
 
 ```solidity
-function updateSubscription(contract ISuperfluidToken token, uint32 indexId, address subscriber, uint128 units, bytes ctx) external virtual returns (bytes newCtx)
+function updateSubscription(
+    contract ISuperfluidToken token,
+    uint32 indexId,
+    address subscriber,
+    uint128 units,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Update the nuber of units of a subscription_
+Update the nuber of units of a subscription
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| indexId | uint32 | Id of the index |
-| subscriber | address | The subscriber of the index |
-| units | uint128 | Number of units of the subscription |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) # App callbacks - if subscription exist   - AgreementCreated callback to the subscriber:      - agreementId is for the subscription - if subscription does not exist   - AgreementUpdated callback to the subscriber:      - agreementId is for the subscription |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `indexId` | uint32 | Id of the index |
+| `subscriber` | address | The subscriber of the index |
+| `units` | uint128 | Number of units of the subscription |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
 
-### IndexUnitsUpdated
+# App callbacks
 
-```solidity
-event IndexUnitsUpdated(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber, uint128 units, bytes userData)
-```
-
-_Index units updated event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| subscriber | address | The subscriber units updated |
-| units | uint128 | The new units amount |
-| userData | bytes | The user provided data |
-
-### SubscriptionUnitsUpdated
-
-```solidity
-event SubscriptionUnitsUpdated(contract ISuperfluidToken token, address subscriber, address publisher, uint32 indexId, uint128 units, bytes userData)
-```
-
-_Subscription units updated event_
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| subscriber | address | The subscriber units updated |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| units | uint128 | The new units amount |
-| userData | bytes | The user provided data |
+- if subscription exist
+  - AgreementCreated callback to the subscriber:
+     - agreementId is for the subscription
+- if subscription does not exist
+  - AgreementUpdated callback to the subscriber:
+     - agreementId is for the subscription |
 
 ### getSubscription
 
 ```solidity
-function getSubscription(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber) external view virtual returns (bool exist, bool approved, uint128 units, uint256 pendingDistribution)
+function getSubscription(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber
+) external returns (bool exist, bool approved, uint128 units, uint256 pendingDistribution)
 ```
 
-_Get data of a subscription_
+Get data of a subscription
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| subscriber | address | The subscriber of the index |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `subscriber` | address | The subscriber of the index |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| exist | bool | Does the subscription exist? |
-| approved | bool | Is the subscription approved? |
-| units | uint128 | Units of the suscription |
-| pendingDistribution | uint256 | Pending amount of tokens to be distributed for unapproved subscription |
+| :--- | :--- | :---------- |
+| `exist` | bool | Does the subscription exist? |
+| `approved` | bool | Is the subscription approved? |
+| `units` | uint128 | Units of the suscription |
+| `pendingDistribution` | uint256 | Pending amount of tokens to be distributed for unapproved subscription |
 
 ### getSubscriptionByID
 
 ```solidity
-function getSubscriptionByID(contract ISuperfluidToken token, bytes32 agreementId) external view virtual returns (address publisher, uint32 indexId, bool approved, uint128 units, uint256 pendingDistribution)
+function getSubscriptionByID(
+    contract ISuperfluidToken token,
+    bytes32 agreementId
+) external returns (address publisher, uint32 indexId, bool approved, uint128 units, uint256 pendingDistribution)
 ```
 
 Get data of a subscription by agreement ID
 
-_indexId (agreementId) is the keccak256 hash of encodePacked(&quot;publisher&quot;, publisher, indexId)_
+indexId (agreementId) is the keccak256 hash of encodePacked("publisher", publisher, indexId)
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| agreementId | bytes32 | The agreement ID |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `agreementId` | bytes32 | The agreement ID |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| approved | bool | Is the subscription approved? |
-| units | uint128 | Units of the suscription |
-| pendingDistribution | uint256 | Pending amount of tokens to be distributed for unapproved subscription |
+| :--- | :--- | :---------- |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `approved` | bool | Is the subscription approved? |
+| `units` | uint128 | Units of the suscription |
+| `pendingDistribution` | uint256 | Pending amount of tokens to be distributed for unapproved subscription |
 
 ### listSubscriptions
 
 ```solidity
-function listSubscriptions(contract ISuperfluidToken token, address subscriber) external view virtual returns (address[] publishers, uint32[] indexIds, uint128[] unitsList)
+function listSubscriptions(
+    contract ISuperfluidToken token,
+    address subscriber
+) external returns (address[] publishers, uint32[] indexIds, uint128[] unitsList)
 ```
 
-_List subscriptions of an user_
+List subscriptions of an user
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| subscriber | address | The subscriber&#x27;s address |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `subscriber` | address | The subscriber's address |
+
+#### Return Values
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| publishers | address[] | Publishers of the subcriptions |
-| indexIds | uint32[] | Indexes of the subscriptions |
-| unitsList | uint128[] | Units of the subscriptions |
+| :--- | :--- | :---------- |
+| `publishers` | address[] | Publishers of the subcriptions |
+| `indexIds` | uint32[] | Indexes of the subscriptions |
+| `unitsList` | uint128[] | Units of the subscriptions |
 
 ### deleteSubscription
 
 ```solidity
-function deleteSubscription(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber, bytes ctx) external virtual returns (bytes newCtx)
+function deleteSubscription(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Delete the subscription of an user_
+Delete the subscription of an user
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| subscriber | address | The subscriber&#x27;s address |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) # App callbacks - if the subscriber called it   - AgreementTerminated callback to the publsiher:      - agreementId is for the subscription - if the publisher called it   - AgreementTerminated callback to the subscriber:      - agreementId is for the subscription |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `subscriber` | address | The subscriber's address |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
+
+# App callbacks
+
+- if the subscriber called it
+  - AgreementTerminated callback to the publsiher:
+     - agreementId is for the subscription
+- if the publisher called it
+  - AgreementTerminated callback to the subscriber:
+     - agreementId is for the subscription |
 
 ### claim
 
 ```solidity
-function claim(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber, bytes ctx) external virtual returns (bytes newCtx)
+function claim(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber,
+    bytes ctx
+) external returns (bytes newCtx)
 ```
 
-_Claim pending distributions_
+Claim pending distributions
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | The publisher of the index |
-| indexId | uint32 | Id of the index |
-| subscriber | address | The subscriber&#x27;s address |
-| ctx | bytes | Context bytes (see ISuperfluid.sol for Context struct) The subscription should not be approved yet # App callbacks - AgreementUpdated callback to the publisher:    - agreementId is for the subscription |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | The publisher of the index |
+| `indexId` | uint32 | Id of the index |
+| `subscriber` | address | The subscriber's address |
+| `ctx` | bytes | Context bytes (see ISuperfluid.sol for Context struct)
 
+The subscription should not be approved yet
+
+# App callbacks
+
+- AgreementUpdated callback to the publisher:
+   - agreementId is for the subscription |
+
+## Events
+
+### IndexCreated
+
+```solidity
+event IndexCreated(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    bytes userData
+)
+```
+
+Index created event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | Index creator and publisher |
+| `indexId` | uint32 | The specified indexId of the newly created index |
+| `userData` | bytes | The user provided data |
+### IndexUpdated
+
+```solidity
+event IndexUpdated(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    uint128 oldIndexValue,
+    uint128 newIndexValue,
+    uint128 totalUnitsPending,
+    uint128 totalUnitsApproved,
+    bytes userData
+)
+```
+
+Index updated event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | Index updater and publisher |
+| `indexId` | uint32 | The specified indexId of the updated index |
+| `oldIndexValue` | uint128 | The previous index value |
+| `newIndexValue` | uint128 | The updated index value |
+| `totalUnitsPending` | uint128 | The total units pending when the indexValue was updated |
+| `totalUnitsApproved` | uint128 | The total units approved when the indexValue was updated |
+| `userData` | bytes | The user provided data |
+### IndexSubscribed
+
+```solidity
+event IndexSubscribed(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber,
+    bytes userData
+)
+```
+
+Index subscribed event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `subscriber` | address | The approved subscriber |
+| `userData` | bytes | The user provided data |
+### SubscriptionApproved
+
+```solidity
+event SubscriptionApproved(
+    contract ISuperfluidToken token,
+    address subscriber,
+    address publisher,
+    uint32 indexId,
+    bytes userData
+)
+```
+
+Subscription approved event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `subscriber` | address | The approved subscriber |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `userData` | bytes | The user provided data |
+### IndexUnsubscribed
+
+```solidity
+event IndexUnsubscribed(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber,
+    bytes userData
+)
+```
+
+Index unsubscribed event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `subscriber` | address | The unsubscribed subscriber |
+| `userData` | bytes | The user provided data |
+### SubscriptionRevoked
+
+```solidity
+event SubscriptionRevoked(
+    contract ISuperfluidToken token,
+    address subscriber,
+    address publisher,
+    uint32 indexId,
+    bytes userData
+)
+```
+
+Subscription approved event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `subscriber` | address | The approved subscriber |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `userData` | bytes | The user provided data |
+### IndexUnitsUpdated
+
+```solidity
+event IndexUnitsUpdated(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber,
+    uint128 units,
+    bytes userData
+)
+```
+
+Index units updated event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `subscriber` | address | The subscriber units updated |
+| `units` | uint128 | The new units amount |
+| `userData` | bytes | The user provided data |
+### SubscriptionUnitsUpdated
+
+```solidity
+event SubscriptionUnitsUpdated(
+    contract ISuperfluidToken token,
+    address subscriber,
+    address publisher,
+    uint32 indexId,
+    uint128 units,
+    bytes userData
+)
+```
+
+Subscription units updated event
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `subscriber` | address | The subscriber units updated |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `units` | uint128 | The new units amount |
+| `userData` | bytes | The user provided data |
 ### IndexDistributionClaimed
 
 ```solidity
-event IndexDistributionClaimed(contract ISuperfluidToken token, address publisher, uint32 indexId, address subscriber, uint256 amount)
+event IndexDistributionClaimed(
+    contract ISuperfluidToken token,
+    address publisher,
+    uint32 indexId,
+    address subscriber,
+    uint256 amount
+)
 ```
 
-_Index distribution claimed event_
+Index distribution claimed event
+
+#### Parameters:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| subscriber | address | The subscriber units updated |
-| amount | uint256 | The pending amount claimed |
-
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `subscriber` | address | The subscriber units updated |
+| `amount` | uint256 | The pending amount claimed |
 ### SubscriptionDistributionClaimed
 
 ```solidity
-event SubscriptionDistributionClaimed(contract ISuperfluidToken token, address subscriber, address publisher, uint32 indexId, uint256 amount)
+event SubscriptionDistributionClaimed(
+    contract ISuperfluidToken token,
+    address subscriber,
+    address publisher,
+    uint32 indexId,
+    uint256 amount
+)
 ```
 
-_Subscription distribution claimed event_
+Subscription distribution claimed event
+
+#### Parameters:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| token | contract ISuperfluidToken | Super token address |
-| subscriber | address | The subscriber units updated |
-| publisher | address | Index publisher |
-| indexId | uint32 | The specified indexId |
-| amount | uint256 | The pending amount claimed |
+| :--- | :--- | :---------- |
+| `token` | contract ISuperfluidToken | Super token address |
+| `subscriber` | address | The subscriber units updated |
+| `publisher` | address | Index publisher |
+| `indexId` | uint32 | The specified indexId |
+| `amount` | uint256 | The pending amount claimed |
 

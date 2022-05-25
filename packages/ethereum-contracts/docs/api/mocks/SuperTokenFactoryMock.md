@@ -1,70 +1,127 @@
-# Solidity API
+# SuperTokenFactoryStorageLayoutTester
 
-## SuperTokenFactoryStorageLayoutTester
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host) public
+function constructor(
+    contract ISuperfluid host
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 
 ### validateStorageLayout
 
 ```solidity
-function validateStorageLayout() external pure
+function validateStorageLayout(
+) external
 ```
 
 ### createSuperTokenLogic
 
 ```solidity
-function createSuperTokenLogic(contract ISuperfluid) external pure returns (address)
+function createSuperTokenLogic(
+    contract ISuperfluid 
+) external returns (address)
 ```
 
-## SuperTokenFactoryMockHelper
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `` | contract ISuperfluid |  |
+
+# SuperTokenFactoryMockHelper
+
+## Functions
 
 ### create
 
 ```solidity
-function create(contract ISuperfluid host, uint256 waterMark) external returns (address logic)
+function create(
+    contract ISuperfluid host,
+    uint256 waterMark
+) external returns (address logic)
 ```
 
-## SuperTokenFactoryMock
+#### Parameters
 
-### _helper
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `waterMark` | uint256 |  |
 
-```solidity
-contract SuperTokenFactoryMockHelper _helper
-```
+# SuperTokenFactoryMock
+
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host, contract SuperTokenFactoryMockHelper helper) public
+function constructor(
+    contract ISuperfluid host,
+    contract SuperTokenFactoryMockHelper helper
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `helper` | contract SuperTokenFactoryMockHelper |  |
 
 ### createSuperTokenLogic
 
 ```solidity
-function createSuperTokenLogic(contract ISuperfluid host) external returns (address logic)
+function createSuperTokenLogic(
+    contract ISuperfluid host
+) external returns (address logic)
 ```
 
-## SuperTokenFactoryMock42
+#### Parameters
 
-### _helper
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 
-```solidity
-contract SuperTokenFactoryMockHelper _helper
-```
+# SuperTokenFactoryMock42
+
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract ISuperfluid host, contract SuperTokenFactoryMockHelper helper) public
+function constructor(
+    contract ISuperfluid host,
+    contract SuperTokenFactoryMockHelper helper
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
+| `helper` | contract SuperTokenFactoryMockHelper |  |
 
 ### createSuperTokenLogic
 
 ```solidity
-function createSuperTokenLogic(contract ISuperfluid host) external returns (address logic)
+function createSuperTokenLogic(
+    contract ISuperfluid host
+) external returns (address logic)
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `host` | contract ISuperfluid |  |
 

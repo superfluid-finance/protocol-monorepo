@@ -1,42 +1,78 @@
-# Solidity API
+# IMaticBridgedNativeSuperTokenCustom
 
-## IMaticBridgedNativeSuperTokenCustom
+Functionality specific for Matic Bridged Native Super Tokens
 
-_Functionality specific for Matic Bridged Native Super Tokens_
+## Functions
 
 ### deposit
 
 ```solidity
-function deposit(address user, bytes depositData) external
+function deposit(
+    address user,
+    bytes depositData
+) external
 ```
 
-_triggers minting of tokens to the given user, called by the child chain manager_
+triggers minting of tokens to the given user, called by the child chain manager
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `user` | address |  |
+| `depositData` | bytes |  |
 
 ### withdraw
 
 ```solidity
-function withdraw(uint256 amount) external
+function withdraw(
+    uint256 amount
+) external
 ```
 
-_triggers burning of tokens on the child chain and unlocking on L1_
+triggers burning of tokens on the child chain and unlocking on L1
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `amount` | uint256 |  |
 
 ### updateChildChainManager
 
 ```solidity
-function updateChildChainManager(address newChildChainManager) external
+function updateChildChainManager(
+    address newChildChainManager
+) external
 ```
 
-_governance can change the child chain manager_
+governance can change the child chain manager
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `newChildChainManager` | address |  |
+
+## Events
 
 ### ChildChainManagerChanged
 
 ```solidity
-event ChildChainManagerChanged(address newAddress)
+event ChildChainManagerChanged(
+    address newAddress
+)
 ```
 
-_emitted when the child chain manager changes_
+emitted when the child chain manager changes
 
-## IMaticBridgedNativeSuperToken
+#### Parameters:
 
-_Matic Bridged Native SuperToken full interface_
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `newAddress` | address |  |
+
+# IMaticBridgedNativeSuperToken
+
+Matic Bridged Native SuperToken full interface
 

@@ -1,26 +1,56 @@
-# Solidity API
+# IResolver
 
-## IResolver
-
-### Set
-
-```solidity
-event Set(string name, address target)
-```
+## Functions
 
 ### set
 
 ```solidity
-function set(string name, address target) external
+function set(
+    string name,
+    address target
+) external
 ```
 
-_Set resolver address name_
+Set resolver address name
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `name` | string |  |
+| `target` | address |  |
 
 ### get
 
 ```solidity
-function get(string name) external view returns (address)
+function get(
+    string name
+) external returns (address)
 ```
 
-_Get address by name_
+Get address by name
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `name` | string |  |
+
+## Events
+
+### Set
+
+```solidity
+event Set(
+    string name,
+    address target
+)
+```
+
+#### Parameters:
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `name` | string |  |
+| `target` | address |  |
 

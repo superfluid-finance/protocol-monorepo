@@ -1,45 +1,40 @@
-# Solidity API
+# SuperfluidLoader
 
-## SuperfluidLoader
-
-_A on-chain utility contract for loading framework objects in one view function.
+A on-chain utility contract for loading framework objects in one view function.
 
 NOTE:
-Q: Why don&#x27;t we just use https://www.npmjs.com/package/ethereum-multicall?
-A: Well, no strong reason other than also allowing on-chain one view function loading._
+Q: Why don't we just use https://www.npmjs.com/package/ethereum-multicall?
+A: Well, no strong reason other than also allowing on-chain one view function loading.
 
-### _resolver
-
-```solidity
-contract IResolver _resolver
-```
-
-### Framework
-
-```solidity
-struct Framework {
-  contract ISuperfluid superfluid;
-  contract ISuperTokenFactory superTokenFactory;
-  contract ISuperAgreement agreementCFAv1;
-  contract ISuperAgreement agreementIDAv1;
-}
-```
+## Functions
 
 ### constructor
 
 ```solidity
-constructor(contract IResolver resolver) public
+function constructor(
+    contract IResolver resolver
+) public
 ```
+
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| `resolver` | contract IResolver |  |
 
 ### loadFramework
 
 ```solidity
-function loadFramework(string releaseVersion) external view returns (struct SuperfluidLoader.Framework result)
+function loadFramework(
+    string releaseVersion
+) external returns (struct SuperfluidLoader.Framework result)
 ```
 
-_Load framework objects_
+Load framework objects
+
+#### Parameters
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
-| releaseVersion | string | Protocol release version of the deployment |
+| :--- | :--- | :---------- |
+| `releaseVersion` | string | Protocol release version of the deployment |
 

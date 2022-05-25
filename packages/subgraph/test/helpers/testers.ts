@@ -25,13 +25,23 @@ import {
     ITestModifyFlowData,
     ITestModifyIDAData,
     ITestUpdateFlowOperatorData,
+    ITransferEvent,
 } from "../interfaces";
-import {getFlowOperatorUpdatedEvents, getFlowUpdatedEvents,} from "../queries/eventQueries";
-import {fetchEventAndValidate} from "../validation/eventValidators";
-import {validateFlowUpdated, validateModifyIDA, validateUpdateFlowOperatorPermissions,} from "../validation/validators";
+import {
+    getFlowOperatorUpdatedEvents,
+    getFlowUpdatedEvents,
+    getTransferEvents,
+} from "../queries/eventQueries";
+import { fetchEventAndValidate } from "../validation/eventValidators";
+import {
+    validateFlowUpdated,
+    validateModifyIDA,
+    validateUpdateFlowOperatorPermissions,
+} from "../validation/validators";
 import {
     clipDepositNumber,
     fetchEntityAndEnsureExistence,
+    fetchEventAndEnsureExistence,
     getFlowOperatorId,
     getIndexId,
     getOrder,
@@ -64,13 +74,13 @@ import {
     MAX_FLOW_RATE,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
-import {Framework} from "@superfluid-finance/sdk-core";
-import {BigNumber} from "@ethersproject/bignumber";
-import {BaseProvider, TransactionResponse} from "@ethersproject/providers";
-import {getSubscription} from "../queries/holQueries";
-import {ethers} from "hardhat";
-import {expect} from "chai";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import { Framework } from "@superfluid-finance/sdk-core";
+import { BigNumber } from "@ethersproject/bignumber";
+import { BaseProvider, TransactionResponse } from "@ethersproject/providers";
+import { getSubscription } from "../queries/holQueries";
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -173,6 +183,27 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         "FlowUpdatedEvents"
     );
 
+    // if it is a PIC period liquidation
+    if (data.liquidator) {
+        const transferEvent =
+            await fetchEventAndEnsureExistence<ITransferEvent>(
+                getTransferEvents,
+                txnResponse.hash,
+                "TransferEvents"
+            );
+        
+        // regardless of period, sender is transferring
+        expectedData.updatedSenderATS = {
+            ...expectedData.updatedSenderATS,
+            totalAmountTransferredUntilUpdatedAt: toBN(
+                expectedData.updatedSenderATS
+                    .totalAmountTransferredUntilUpdatedAt
+            )
+                .add(toBN(transferEvent.value))
+                .toString(),
+        };
+    }
+
     await validateFlowUpdated(
         initData.pastStreamData,
         streamedAmountUntilTimestamp,
@@ -207,7 +238,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
 export async function testUpdateFlowOperatorPermissions(
     data: ITestUpdateFlowOperatorData
 ) {
-    let {timestamp, txnResponse, logIndex} = await updateFlowOperatorPermissions(data);
+    let { timestamp, txnResponse, logIndex } =
+        await updateFlowOperatorPermissions(data);
 
     const lastUpdatedAtTimestamp = timestamp.toString();
     const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
@@ -326,8 +358,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
 
     const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
         localData;
-    const {token, publisher, indexId, subscriber} = baseParams;
-    const {txnResponse, timestamp, updatedAtBlockNumber, logIndex} =
+    const { token, publisher, indexId, subscriber } = baseParams;
+    const { txnResponse, timestamp, updatedAtBlockNumber, logIndex } =
         await executeIDATransactionByTypeAndWaitForIndexer(
             framework,
             provider,
@@ -637,14 +669,16 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     await waitUntilBlockIndexed(txnResponse.blockNumber);
     const transactionReceipt = await txnResponse.wait();
     const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
+    const transactionLog = transactionReceipt.logs.find(
+        (log) => log.topics[0] === methodSignature
+    );
     timestamp = block.timestamp.toString();
     updatedAtBlockNumber = txnResponse.blockNumber.toString();
     return {
         txnResponse,
         timestamp,
         updatedAtBlockNumber,
-        logIndex: transactionLog?.logIndex
+        logIndex: transactionLog?.logIndex,
     };
 }
 

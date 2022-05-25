@@ -50,8 +50,11 @@ export interface IFlowUpdatedEvent extends IEvent {
     readonly deposit: string;
     readonly oldFlowRate: string;
     readonly type: string;
-    readonly logIndex: string;
-    readonly order: string;
+}
+export interface ITransferEvent extends IEvent {
+    readonly from: string;
+    readonly to: string;
+    readonly value: string;
 }
 
 export interface IFlowOperatorUpdatedEvent extends IEvent {
@@ -70,8 +73,6 @@ export interface IIndexCreatedEvent extends IEvent {
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 export interface IIndexUpdatedEvent extends IEvent {
@@ -93,8 +94,6 @@ export interface IIndexSubscribedEvent extends IEvent {
     readonly indexId: string;
     readonly subscriber: string;
     readonly userData: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 export interface IIndexUnitsUpdatedEvent extends IEvent {
@@ -114,8 +113,6 @@ export interface IIndexUnsubscribedEvent extends IEvent {
     readonly indexId: string;
     readonly subscriber: string;
     readonly userData: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 export interface ISubscriptionApprovedEvent extends IEvent {
@@ -125,8 +122,6 @@ export interface ISubscriptionApprovedEvent extends IEvent {
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 export interface ISubscriptionRevokedEvent extends IEvent {
@@ -161,8 +156,6 @@ export interface ITokenUpgradedEvent extends IEvent {
     readonly blockNumber: string;
     readonly token: string;
     readonly amount: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 export interface ITokenDowngradedEvent extends IEvent {
@@ -173,8 +166,6 @@ export interface ITokenDowngradedEvent extends IEvent {
     readonly blockNumber: string;
     readonly token: string;
     readonly amount: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 export interface ITransferEvent extends IEvent {
@@ -186,8 +177,6 @@ export interface ITransferEvent extends IEvent {
     readonly to: string;
     readonly value: string;
     readonly token: string;
-    readonly logIndex: string;
-    readonly order: string;
 }
 
 /**

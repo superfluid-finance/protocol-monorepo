@@ -303,7 +303,7 @@ interface ISuperfluid {
      * @param  callData          The call data sending to the super app.
      * @param  isTermination     Is it a termination callback?
      * @param  ctx               Current ctx, it will be validated.
-     * @return newCtx
+     * @return newCtx            The current context of the transaction.
      */
     function callAppAfterCallback(
         ISuperApp app,
@@ -322,7 +322,7 @@ interface ISuperfluid {
      * @param  app                     The super app.
      * @param  appAllowanceGranted     App allowance granted so far.
      * @param  appAllowanceUsed        App allowance used so far.
-     * @return newCtx
+     * @return newCtx                  The current context of the transaction.
      */
     function appCallbackPush(
         bytes calldata ctx,
@@ -340,7 +340,7 @@ interface ISuperfluid {
      * @dev (For agreements) Pop from the current app callback stack
      * @param  ctx                     The ctx that was pushed before the callback stack.
      * @param  appAllowanceUsedDelta   App allowance used by the app.
-     * @return newCtx
+     * @return newCtx                  The current context of the transaction.
      *
      * [SECURITY] NOTE:
      * - Here we cannot do assertValidCtx(ctx), since we do not really save the stack in memory.
@@ -359,7 +359,7 @@ interface ISuperfluid {
      * @param  ctx                      The current ctx, it will be validated.
      * @param  appAllowanceWantedMore   See app allowance for more details.
      * @param  appAllowanceUsedDelta    See app allowance for more details.
-     * @return newCtx
+     * @return newCtx                   The current context of the transaction.
      */
     function ctxUseAllowance(
         bytes calldata ctx,
@@ -375,7 +375,7 @@ interface ISuperfluid {
      * @dev (For agreements) Jail the app.
      * @param  app                     The super app.
      * @param  reason                  Jail reason code.
-     * @return newCtx
+     * @return newCtx                  The current context of the transaction.
      */
     function jailApp(
         bytes calldata ctx,

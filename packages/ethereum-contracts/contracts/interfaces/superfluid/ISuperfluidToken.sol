@@ -105,7 +105,7 @@ interface ISuperfluidToken {
      * @dev An account is insolvent when the sum of deposits for a token can't cover the negative availableBalance
      * @param account The account to check
      * @param timestamp The time we'd like to check if the account is solvent (should use future)
-     * @return isSolvent
+     * @return isSolvent True if the account is solvent, false otherwise
      */
     function isAccountSolvent(
         address account,
@@ -118,7 +118,7 @@ interface ISuperfluidToken {
      * @notice Check if account is solvent now
      * @dev An account is insolvent when the sum of deposits for a token can't cover the negative availableBalance
      * @param account The account to check
-     * @return isSolvent
+     * @return isSolvent True if the account is solvent, false otherwise
      */
     function isAccountSolventNow(
         address account

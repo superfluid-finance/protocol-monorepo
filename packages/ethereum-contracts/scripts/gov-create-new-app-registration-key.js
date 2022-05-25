@@ -19,7 +19,8 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
  * Note: the key itself doesn't have much meaning, it could be "stolen" from a broadcast tx anyway.
  * But since it's bound to a deployer address, that doesn't really matter.
  *
- * Usage: npx truffle exec scripts/create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY} [EXPIRATION_TS]
+ * Usage:
+ * npx truffle exec scripts/gov-create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY} [EXPIRATION_TS]
  *        EXPIRATION_TS is a Unix timestamp in seconds for when the key should expire.
  *        If not set, we default to 90 days in the future.
  *        Hint: you may use https://www.unixtimestamp.com/ to calculate a timestamp

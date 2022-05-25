@@ -13,7 +13,9 @@
         "dotenv": "^10.0.0",
         "ethereum-waffle": "^3.4.4",
         "ethers": "^5.6.5",
-        "hardhat": "^2.9.1"
+        "hardhat": "^2.9.1",
+        "hardhat-dependency-compiler": "^1.1.2",
+        "hardhat-erc1820": "^0.1.0"
     },
     "scripts": {
         "build": "hardhat compiile",

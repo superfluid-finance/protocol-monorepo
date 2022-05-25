@@ -20,9 +20,6 @@ import {
 /// @dev Thrown when the wrong token is streamed to the contract.
 error InvalidToken();
 
-/// @dev Thrown when the agreement triggering the app callbacks is not the Constant Flow Agreement.
-error InvalidAgreement();
-
 /// @dev Thrown when the `msg.sender` of the app callbacks is not the Superfluid host.
 error Unauthorized();
 
@@ -78,7 +75,6 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @param agreementClass The agreement address being called. MUST be the cfa.
     /// @param token The Super Token streamed in. MUST be the in-token.
     modifier validCallback(address agreementClass, ISuperToken token) {
-        if (agreementClass != address(_cfa)) revert InvalidAgreement();
         if (token != _inToken) revert InvalidToken();
         if (msg.sender != address(_host)) revert Unauthorized();
         _;
@@ -104,7 +100,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
                 | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
         );
 
-        _idaLib.createIndex(_outToken, INDEX_ID);
+        _idaLib.createIndex(outToken, INDEX_ID);
     }
 
     // //////////////////////////////////////////////////////////////
@@ -114,6 +110,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @notice Executes dev-defined action and distributes the out-token.
     /// @dev DO NOT override this function, override `_beforeDistribution` instead.
     function executeAction() public {
+        if (!_shouldDistributeHax()) return;
+
         uint256 distributionAmount = _beforeDistribution();
 
         _idaLib.distribute(_outToken, INDEX_ID, distributionAmount);
@@ -127,6 +125,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @param ctx Super app callback context byte string.
     /// @return newCtx New context returned from IDA distribution.
     function executeActionInCallback(bytes calldata ctx) public returns (bytes memory newCtx) {
+        if (!_shouldDistributeHax()) return ctx;
+
         uint256 distributionAmount = _beforeDistribution();
 
         newCtx = _idaLib.distributeWithCtx(ctx, _outToken, INDEX_ID, distributionAmount);
@@ -153,18 +153,20 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         ISuperToken token,
         address agreementClass, 
         bytes32 agreementId,
-        bytes calldata,
+        bytes calldata agreementData,
         bytes calldata,
         bytes calldata ctx
     ) external override validCallback(agreementClass, token) returns (bytes memory newCtx) {
+        if (agreementClass != address(_cfa)) return ctx;
+
         newCtx = executeActionInCallback(ctx);
 
-        address sender = _host.decodeCtx(ctx).msgSender;
+        (address sender, ) = abi.decode(agreementData, (address, address));
 
         (,int96 flowRate,,) = _cfa.getFlowByID(token, agreementId);
 
         return _idaLib.updateSubscriptionUnitsWithCtx(
-            ctx,
+            newCtx,
             _outToken,
             INDEX_ID,
             sender,
@@ -181,13 +183,15 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         ISuperToken token,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata,
+        bytes calldata agreementData,
         bytes calldata,
         bytes calldata ctx
     ) external override validCallback(agreementClass, token) returns (bytes memory newCtx) {
+        if (agreementClass != address(_cfa)) return ctx;
+
         newCtx = executeActionInCallback(ctx);
 
-        address sender = _host.decodeCtx(ctx).msgSender;
+        (address sender, ) = abi.decode(agreementData, (address, address));
 
         (,int96 flowRate,,) = _cfa.getFlowByID(token, agreementId);
 
@@ -205,11 +209,13 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @param agreementId Unique stream ID for fetchign the flowRate and timestamp.
     function beforeAgreementTerminated(
         ISuperToken token,
-        address,
+        address agreementClass,
         bytes32 agreementId,
         bytes calldata,
         bytes calldata
     ) external override view returns (bytes memory) {
+        if (agreementClass != address(_cfa)) return new bytes(0);
+
         (uint256 timestamp, int96 flowRate, , ) = _cfa.getFlowByID(token, agreementId);
 
         return abi.encode(timestamp, flowRate);
@@ -227,6 +233,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         bytes calldata cbdata,
         bytes calldata ctx
     ) external override validCallback(agreementClass, token) returns (bytes memory) {
+        if (agreementClass != address(_cfa)) return ctx;
+
         address sender = _host.decodeCtx(ctx).msgSender;
 
         // Try to execute the action. On success, continue to `deleteSubscriptionWithCtx`
@@ -272,5 +280,21 @@ abstract contract StreamInDistributeOut is SuperAppBase {
                 sender
             );
         }
+    }
+
+    // Hey, this is me. You're probably wondering how I got here.
+    // It all starts with the InstantDistributionAgreementV1 having a bug where `updateIndex` does
+    // not break when there are no issued units, however `distribute` throws an 0x12 divide by zero
+    // panic. so to avoid this, we check if the units would break. This has been updated in dev and
+    // should be in prod soon:tm:. Until this gets updated in prod, though, the hack stays.
+    function _shouldDistributeHax() internal view returns (bool) {
+        (
+            ,
+            ,
+            uint128 approved,
+            uint128 pending
+        ) = _idaLib.ida.getIndex(_outToken, address(this), INDEX_ID);
+
+        return pending + approved > 0;
     }
 }

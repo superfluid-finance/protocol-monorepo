@@ -5,9 +5,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-### Added
-- `QueryHandler` for transfer events
-
 ## [0.4.1] - 2022-05-14
 
 ### Added

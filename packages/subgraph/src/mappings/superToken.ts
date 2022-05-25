@@ -18,7 +18,12 @@ import {
     TokenUpgradedEvent,
     TransferEvent,
 } from "../../generated/schema";
-import {createEventID, getOrder, tokenHasValidHost, ZERO_ADDRESS} from "../utils";
+import {
+    createEventID,
+    getOrder,
+    tokenHasValidHost,
+    ZERO_ADDRESS,
+} from "../utils";
 import {
     createAccountTokenSnapshotLogEntity,
     getOrInitAccount,
@@ -28,15 +33,15 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
-import {Address, BigInt, ethereum, log} from "@graphprotocol/graph-ts";
+import { getHostAddress } from "../addresses";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
     liquidatorAccount: Address,
     targetAccount: Address,
     bondAccount: Address,
-    eventName: string,
+    eventName: string
 ): void {
     getOrInitSuperToken(event.address, event.block);
 
@@ -55,9 +60,25 @@ function updateHOLEntitiesForLiquidation(
         event.address,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event, targetAccount, event.address, eventName);
-    createAccountTokenSnapshotLogEntity(event, liquidatorAccount, event.address, eventName);
-    createAccountTokenSnapshotLogEntity(event, bondAccount, event.address, eventName);
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    createAccountTokenSnapshotLogEntity(
+        event,
+        targetAccount,
+        event.address,
+        eventName
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        liquidatorAccount,
+        event.address,
+        eventName
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        bondAccount,
+        event.address,
+        eventName
+    );
 }
 
 export function handleAgreementLiquidatedBy(
@@ -118,7 +139,13 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
         event.address,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event, event.params.account, event.address, "TokenUpgraded");
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.address,
+        "TokenUpgraded"
+    );
 }
 
 export function handleTokenDowngraded(event: TokenDowngraded): void {
@@ -139,7 +166,13 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
         event.address,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event, event.params.account, event.address, "TokenDowngraded");
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.address,
+        "TokenDowngraded"
+    );
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -176,8 +209,18 @@ export function handleTransfer(event: Transfer): void {
 
     if (event.params.to.equals(ZERO_ADDRESS)) return;
     if (event.params.from.equals(ZERO_ADDRESS)) return; // Ignoring downgrade and upgrade transfer event logs.
-    createAccountTokenSnapshotLogEntity(event, event.params.to, event.address, "Transfer");
-    createAccountTokenSnapshotLogEntity(event, event.params.from, event.address, "Transfer");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.to,
+        event.address,
+        "Transfer"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.from,
+        event.address,
+        "Transfer"
+    );
 }
 
 export function handleSent(event: Sent): void {

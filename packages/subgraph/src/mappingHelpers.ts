@@ -553,7 +553,8 @@ function updateATSBalanceAndUpdatedAt(
 /**
  * Updates the amount streamed, balance until updated at for the AccountTokenSnapshot
  * entity and also updates the updatedAt property on the account entity.
- * @dev Must call before updatedAt is updated.
+ * NOTE: call before the `updatedAt` property is updated otherwise you get incorrect data;
+ * NOTE: you should be calling updateTokenStatsStreamedUntilUpdatedAt whenever you call this
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountAddress: Address,
@@ -589,6 +590,11 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     updateAccountUpdatedAt(accountAddress, block);
 }
 
+/**
+ * This function should always be called with updateATSStreamedAndBalanceUntilUpdatedAt
+ * @param tokenAddress 
+ * @param block 
+ */
 export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenAddress: Address,
     block: ethereum.Block

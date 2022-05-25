@@ -641,4 +641,5 @@ export interface IGetExpectedIDADataParams {
     readonly updatedAtBlockNumber: string;
     readonly timestamp: string;
     readonly provider: BaseProvider;
+    readonly isEventEmitted: boolean;
 }

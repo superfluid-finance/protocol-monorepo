@@ -191,7 +191,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
                 txnResponse.hash,
                 "TransferEvents"
             );
-        
+
         // regardless of period, sender is transferring
         expectedData.updatedSenderATS = {
             ...expectedData.updatedSenderATS,
@@ -431,75 +431,63 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         logIndex: logIndex,
         order: getOrder(txnResponse?.blockNumber, logIndex),
     };
-
-    // Claim is tested quite differently as no event is emitted for it (currently)
-    // in the future we can write some logic which handles the event in this block
-    // as it will require special logic to accurately do so.
-    // NOTE: we are keeping this here too cause right now claim event isn't being
-    // mapped.
+    let pendingDistribution: BigNumber = toBN(0);
     if (eventType === IDAEventType.SubscriptionDistributionClaimed) {
-        const indexSubscription =
-            await fetchEntityAndEnsureExistence<IIndexSubscription>(
-                getSubscription,
-                initData.currentSubscription.id,
-                "Subscription"
-            );
-
-        const subscriberAddress = ethers.utils.getAddress(
-            indexSubscription.subscriber.id
-        );
-
-        const subscription = await framework.idaV1.getSubscription({
-            superToken: token,
+        const pendingUnits = await framework.idaV1.getSubscription({
+            superToken: data.superToken.address,
             publisher,
-            indexId: indexSubscription.index.indexId,
-            subscriber: subscriberAddress,
+            subscriber,
+            indexId: indexId.toString(),
             providerOrSigner: provider,
         });
-
-        expect(subscription.pendingDistribution).to.equal("0");
-
-        return {
-            updatedIndex: initData.currentIndex,
-            updatedSubscription: initData.currentSubscription,
-            updatedPublisherATS: initData.currentPublisherATS,
-            updatedSubscriberATS: initData.currentSubscriberATS,
-            updatedTokenStats: initData.currentTokenStats,
-        };
+        pendingDistribution = toBN(pendingUnits.pendingDistribution);
     }
 
-    let events: IIDAEvents = await fetchIDAEventsAndValidate(
-        eventType,
-        txnResponse,
-        baseParams,
-        extraEventData
-    );
+    // TODO [FUTURE]: if you want to test an empty distribute (0 units), be wary
+    // that no event will be emitted because it will not trigger the code
+    // which eimts the event
 
-    // handles IndexSubscribed, IndexDistributionClaimed, IndexUnitsUpdated, IndexUnsubscribed
-    // which also occur on the three events below, respectively
-    if (
-        [
-            IDAEventType.SubscriptionApproved,
-            IDAEventType.SubscriptionUnitsUpdated,
-            IDAEventType.SubscriptionRevoked,
-            IDAEventType.SubscriptionDistributionClaimed,
-        ].includes(eventType)
-    ) {
-        const otherEventType =
-            subscriptionEventTypeToIndexEventType.get(eventType);
-        if (!otherEventType) {
-            throw new Error("Incorrect event type.");
+    // NOTE: when a user does an empty claim, no event is emitted and we have to handle this case
+    // throughout
+    const isEventEmitted =
+        eventType !== IDAEventType.SubscriptionDistributionClaimed ||
+        pendingDistribution.gt(toBN(0));
+    let events: IIDAEvents = {};
+
+    if (isEventEmitted) {
+        events = await fetchIDAEventsAndValidate(
+            eventType,
+            txnResponse,
+            baseParams,
+            extraEventData
+        );
+
+        // handles IndexSubscribed, IndexDistributionClaimed, IndexUnitsUpdated, IndexUnsubscribed
+        // which also occur on the three events below, respectively
+        if (
+            [
+                IDAEventType.SubscriptionApproved,
+                IDAEventType.SubscriptionUnitsUpdated,
+                IDAEventType.SubscriptionRevoked,
+                IDAEventType.SubscriptionDistributionClaimed,
+            ].includes(eventType)
+        ) {
+            const otherEventType =
+                subscriptionEventTypeToIndexEventType.get(eventType);
+            if (!otherEventType) {
+                throw new Error("Incorrect event type.");
+            }
+
+            events = {
+                ...events,
+                ...(await fetchIDAEventsAndValidate(
+                    otherEventType,
+                    txnResponse,
+                    baseParams,
+                    extraEventData
+                )),
+            };
         }
-
-        events = {
-            ...events,
-            ...(await fetchIDAEventsAndValidate(
-                otherEventType,
-                txnResponse,
-                baseParams,
-                extraEventData
-            )),
-        };
     }
 
     const expectedDataParams = {
@@ -513,6 +501,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         updatedAtBlockNumber,
         timestamp,
         provider,
+        isEventEmitted,
     };
 
     const extraData: IExtraExpectedData = {

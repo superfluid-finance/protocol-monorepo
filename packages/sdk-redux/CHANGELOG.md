@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to the SDK-redux will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Query for transfer events
+
 ## [0.3.0] - 2022-04-13
 
 ### Many changes and additions

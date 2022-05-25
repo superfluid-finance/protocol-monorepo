@@ -334,6 +334,21 @@ async function _shouldChangeFlow({
                         liquidationTypeData,
                     }
                 );
+
+                // targetAccount (sender) transferring remaining deposit to
+                // rewardAccount / liquidatorAccount depending on isPatricianPeriod
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.sender,
+                        to: isPatricianPeriod
+                            ? cfaDataModel.roles.reward
+                            : cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
+                    }
+                );
             } else {
                 const expectedRewardAmount = toBN(
                     cfaDataModel.flows.main.flowInfoBefore.deposit
@@ -390,6 +405,31 @@ async function _shouldChangeFlow({
                         targetAccountBalanceDelta:
                             expectedBailoutAmount.toString(),
                         liquidationTypeData,
+                    }
+                );
+
+                // reward account transferring the single flow deposit to the
+                // liquidator (agent)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
+                    }
+                );
+
+                // reward account bailing out the targetAccount (sender)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.sender,
+                        value: expectedBailoutAmount.toString(),
                     }
                 );
             }

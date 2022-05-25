@@ -16,7 +16,6 @@ import {
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
-import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
 import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
@@ -46,7 +45,6 @@ contract InstantDistributionAgreementV1 is
      */
 
     using SafeCast for uint256;
-    using UInt128SafeMath for uint128;
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
@@ -205,7 +203,7 @@ contract InstantDistributionAgreementV1 is
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
         uint128 indexDelta = (amount / totalUnits).toUint128();
-        newIndexValue = idata.indexValue.add(indexDelta, "IDA: E_OVERFLOW");
+        newIndexValue = idata.indexValue + indexDelta;
         actualAmount = uint256(indexDelta) * totalUnits;
     }
 
@@ -457,8 +455,8 @@ contract InstantDistributionAgreementV1 is
         int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
             * int256(uint256(vars.sdata.units));
 
-        vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units, "IDA: E_OVERFLOW");
-        vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(vars.sdata.units, "IDA: E_OVERFLOW");
+        vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved - vars.sdata.units;
+        vars.idata.totalUnitsPending = vars.idata.totalUnitsPending + vars.sdata.units;
         token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 
         // remove subscription from subscriber's bitmap
@@ -559,7 +557,7 @@ contract InstantDistributionAgreementV1 is
             });
             token.createAgreement(vars.sId, _encodeSubscriptionData(vars.sdata));
 
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units, "IDA: E_OVERFLOW");
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending + units;
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         }
         // NOTE casting these values to int256 is okay because the original values
@@ -746,9 +744,9 @@ contract InstantDistributionAgreementV1 is
 
         // update publisher index agreement data
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
-            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units, "IDA: E_OVERFLOW");
+            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved - vars.sdata.units;
         } else {
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.sub(vars.sdata.units, "IDA: E_OVERFLOW");
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending - vars.sdata.units;
         }
         token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 

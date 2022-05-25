@@ -31,7 +31,7 @@ export class FlowUpdatedEventQueryHandler extends SubgraphQueryHandler<
         accountKeys: (keyof FlowUpdatedEvent_Filter)[];
         tokenKeys: (keyof FlowUpdatedEvent_Filter)[];
     } => ({
-        accountKeys: ["sender", "receiver"],
+        accountKeys: ["sender", "receiver", "flowOperator"],
         tokenKeys: ["token"],
     });
 

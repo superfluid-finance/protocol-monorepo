@@ -43,10 +43,10 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - name: Use Node.js 16.x
-          uses: actions/setup-node@v1
-          with:
-            node-version: 16.x
+#      - name: Use Node.js 16.x
+#          uses: actions/setup-node@v1
+#          with:
+#            node-version: 16.x
 
       - name: create the docs
         run: |

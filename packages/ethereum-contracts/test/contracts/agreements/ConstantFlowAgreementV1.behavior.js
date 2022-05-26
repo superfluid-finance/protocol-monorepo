@@ -267,8 +267,8 @@ async function _shouldChangeFlow({
                 )
             );
             if (isSenderSolvent) {
-                // the reward recipient role depends on whether the time is still
-                // in the patrician period, if it is, the reward recipient is the
+                // the rewardAmountReceiver depends on whether the time is still
+                // in the patrician period, if it is, the rewardAmountReceiver is the
                 // rewardAccount, otherwise it is the "agent" or the person who
                 // executes the liquidation
 
@@ -324,7 +324,7 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount: isPatricianPeriod
+                        rewardAmountReceiver: isPatricianPeriod
                             ? cfaDataModel.roles.reward
                             : cfaDataModel.roles.agent,
                         rewardAmount: expectedRewardAmount.toString(),
@@ -400,7 +400,7 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount: cfaDataModel.roles.agent,
+                        rewardAmountReceiver: cfaDataModel.roles.agent,
                         rewardAmount: expectedRewardAmount.toString(),
                         targetAccountBalanceDelta:
                             expectedBailoutAmount.toString(),

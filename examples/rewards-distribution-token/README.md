@@ -1,11 +1,12 @@
  # The Rewards Distribution token
  This project demonstrates an ERC20 token that tokenizes units in Superfluid [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-developers/interactive-tutorials/instant-distribution). 
 
-Steps for running the project:
-1) Install deps with `yarn install`.
+### Steps for running the project:
+1) Install deps with `yarn install`
 2) Create your own .env file based on the .env.example
 3) Set your default network inside of hardhat.config.json: NOTE you must make sure that the network information you're using is not commented out!
-4) Run npx hardhat scripts/deploy.ts
+4) Run ```npx hardhat typechain``` to generate typings for the Dividend Rights Token contract.
+4) Run ```npx hardhat run scripts/deploy.ts``` to deploy the contract
 
 
 # Advanced Sample Hardhat Project
@@ -48,7 +49,7 @@ hardhat run --network ropsten scripts/deploy.ts
 Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
 
 ```shell
-npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
+npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS
 ```
 
 # Performance optimizations

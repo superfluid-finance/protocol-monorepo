@@ -75,7 +75,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @param agreementClass The agreement address being called. MUST be the cfa.
     /// @param token The Super Token streamed in. MUST be the in-token.
     modifier validCallback(address agreementClass, ISuperToken token) {
-        if (token != _inToken) revert InvalidToken();
+        if (token != _inToken && token != _outToken) revert InvalidToken();
         if (msg.sender != address(_host)) revert Unauthorized();
         _;
     }

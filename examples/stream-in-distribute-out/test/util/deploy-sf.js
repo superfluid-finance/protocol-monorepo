@@ -136,4 +136,4 @@ async function deploySuperfluid(deployer) {
 	return resolver.address
 }
 
-module.exports = { deploySuperfluid }
+module.exports = deploySuperfluid

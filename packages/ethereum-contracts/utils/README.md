@@ -6,4 +6,22 @@ If you have python installed, you can start a webserver with the document root s
 ```python
 python -m SimpleHTTPServer 1337
 ```
-Then navigate to http://localhost:1337/supertoken-deployer.html.
+Then navigate to http://localhost:1337/supertoken-deployer.html
+
+Alternatively, you can also find it on IPFS: [QmbjeSLXfmePAnWRBhkhajCpdu58Xsn7BqQwj8pSxRS9d8](http://ipfs.io/ipfs/QmbjeSLXfmePAnWRBhkhajCpdu58Xsn7BqQwj8pSxRS9d8)
+
+## Stream Closer
+
+This is a single-file Dapp for closing streams / deleting flows.
+The flow parameters _token_, _sender_ and _receiver_ can be set either in the UI or provided as URL parameters.
+If you have python installed, you can start a webserver with the document root set to the current directory with
+```python
+python -m SimpleHTTPServer 1337
+```
+
+Then navigate to http://localhost:1337/stream-closer.html
+
+Alternatively, you can also find it on IPFS: [QmRJmHatYiGgGsXYCsYZdqPMx4dd2qbMskMJvXGWZ53oJJ](http://ipfs.io/ipfs/QmRJmHatYiGgGsXYCsYZdqPMx4dd2qbMskMJvXGWZ53oJJ)
+
+In order to set the parameter in the URL, use this format:
+stream-closer.html?chainId=<chainId>&token=<tokenAddress>&sender=<senderAddress>&receiver=<receiverAddress>

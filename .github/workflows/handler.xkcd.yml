@@ -2,11 +2,12 @@ name: XKCD Comic Relief
 
 on:
   pull_request:
-    types: [merged]
+    types: [closed]
 
 jobs:
   post-xkcd:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
       - name: Search relif
         id: search

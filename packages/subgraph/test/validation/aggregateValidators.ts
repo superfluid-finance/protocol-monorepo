@@ -1,13 +1,11 @@
-import { expect } from "chai";
-import { fetchEntityAndEnsureExistence } from "../helpers/helpers";
-import { IAccountTokenSnapshot, ITokenStatistic } from "../interfaces";
-import {
-    getAccountTokenSnapshot,
-    getTokenStatistic,
-} from "../queries/aggregateQueries";
+import {expect} from "chai";
+import {calculateMaybeCriticalAtTimestamp, fetchEntityAndEnsureExistence} from "../helpers/helpers";
+import {IAccountTokenSnapshot, IAccountTokenSnapshotLog, ITokenStatistic} from "../interfaces";
+import {getAccountTokenSnapshot, getTokenStatistic,} from "../queries/aggregateQueries";
 
 export const fetchATSAndValidate = async (
-    expectedATSData: IAccountTokenSnapshot
+    expectedATSData: IAccountTokenSnapshot,
+    skipLogEntryValidation: Boolean // Boolean flag to decide, whether to check log entries or not. Ignore IDA claim/distribute case
 ) => {
     const graphATS = await fetchEntityAndEnsureExistence<IAccountTokenSnapshot>(
         getAccountTokenSnapshot,
@@ -15,6 +13,7 @@ export const fetchATSAndValidate = async (
         "AccountTokenSnapshot"
     );
     validateATSEntity(graphATS, expectedATSData);
+   if(!skipLogEntryValidation) validateASTEntityAndItsLogEntry(graphATS);
 };
 
 export const fetchTokenStatsAndValidate = async (
@@ -54,8 +53,9 @@ export const validateATSEntity = (
         totalDeposit: expectedTotalDeposit,
     } = expectedATSData;
 
-    expect(
-        graphATSData.totalNumberOfActiveStreams,
+    const calculatedCriticalTimestamp = calculateMaybeCriticalAtTimestamp(expectedATSData.updatedAtTimestamp, expectedBalanceUntilUpdatedAt, expectedTotalDeposit, expectedTotalNetFlowRate);
+    expect(graphATSData.maybeCriticalAtTimestamp, "ATS: maybeCriticalAtTimestamp error").to.equal(calculatedCriticalTimestamp)
+    expect(graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"
     ).to.equal(expectedTotalNumberOfActiveStreams);
     expect(
@@ -97,6 +97,66 @@ export const validateATSEntity = (
         "ATS: totalAmountTransferredUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
 };
+
+export const validateASTEntityAndItsLogEntry = (
+    graphATSData: IAccountTokenSnapshot
+) => {
+    const accountTokenSnapshotLog: IAccountTokenSnapshotLog = graphATSData.accountTokenSnapshotLogs[0];
+    expect(graphATSData.maybeCriticalAtTimestamp, "ATS: maybeCriticalAtTimestamp error")
+        .to.equal(accountTokenSnapshotLog.maybeCriticalAtTimestamp)
+    expect(
+        graphATSData.totalNumberOfActiveStreams,
+        "ATS: totalNumberOfActiveStreams error"
+    ).to.equal(accountTokenSnapshotLog.totalNumberOfActiveStreams);
+    expect(
+        graphATSData.totalNumberOfClosedStreams,
+        "ATS: totalNumberOfClosedStreams error"
+    ).to.equal(accountTokenSnapshotLog.totalNumberOfClosedStreams);
+    expect(
+        graphATSData.totalSubscriptionsWithUnits,
+        "ATS: totalSubscriptionWithUnits error"
+    ).to.equal(accountTokenSnapshotLog.totalSubscriptionsWithUnits);
+    expect(
+        graphATSData.totalApprovedSubscriptions,
+        "ATS: totalApprovedSubscriptions error"
+    ).to.equal(accountTokenSnapshotLog.totalApprovedSubscriptions);
+    expect(
+        graphATSData.balanceUntilUpdatedAt,
+        "ATS: balanceUntilUpdatedAt error"
+    ).to.equal(accountTokenSnapshotLog.balance);
+    expect(
+        graphATSData.totalNetFlowRate,
+        "ATS: totalNetFlowRate error"
+    ).to.equal(accountTokenSnapshotLog.totalNetFlowRate);
+
+    expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
+        accountTokenSnapshotLog.totalInflowRate
+    );
+    expect(graphATSData.totalDeposit, "ATS: totalDeposit error").to.equal(
+        accountTokenSnapshotLog.totalDeposit
+    );
+    expect(
+        graphATSData.totalOutflowRate,
+        "ATS: totalOutflowRate error"
+    ).to.equal(accountTokenSnapshotLog.totalOutflowRate);
+    expect(
+        graphATSData.totalAmountStreamedUntilUpdatedAt,
+        "ATS: totalAmountStreamedUntilUpdatedAt error"
+    ).to.equal(accountTokenSnapshotLog.totalAmountStreamed);
+    expect(
+        graphATSData.totalAmountTransferredUntilUpdatedAt,
+        "ATS: totalAmountTransferredUntilUpdatedAt error"
+    ).to.equal(accountTokenSnapshotLog.totalAmountTransferred);
+    expect(
+        graphATSData.updatedAtTimestamp,
+        "ATS: updatedAtTimestamp error"
+    ).to.equal(accountTokenSnapshotLog.timestamp);
+
+    expect(
+        graphATSData.updatedAtBlockNumber,
+        "ATS: updatedAtBlockNumber error"
+    ).to.equal(accountTokenSnapshotLog.blockNumber);
+}
 
 /**
  * Validates the TokenStatistic entity.

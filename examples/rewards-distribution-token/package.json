@@ -1,25 +1,35 @@
 {
-    "name": "dividend-rights-token",
-    "version": "1.0.0",
-    "description": "Dividend Rights Token - a superfluid superapp demo",
-    "main": "scripts/demo.js",
-    "scripts": {
-        "build": "truffle compile --all",
-        "test": "truffle test",
-        "deploy": "npm run build && RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js",
-        "copy-watch": "nodemon --watch \"../../packages\" --ext \"js,ts,tsx,sol\" --exec rsync --archive --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
-    },
-    "author": "Superfluid",
-    "license": "MIT",
-    "devDependencies": {
-        "@decentral.ee/web3-helpers": "^0.5.3",
-        "@openzeppelin/contracts": "^4.5.0",
-        "@openzeppelin/test-helpers": "^0.5.15",
-        "@superfluid-finance/ethereum-contracts": "^1.1.0",
-        "@superfluid-finance/js-sdk": "^0.5.5",
-        "@truffle/contract": "4.3.42",
-        "@truffle/hdwallet-provider": "1.7.0",
-        "dotenv": "^10.0.0",
-        "truffle": "5.4.21"
-    }
+  "name": "rewards-distribution-token-ts",
+  "version": "1.0.0",
+  "description": "Re-write rewards-distribution-token tests using new sdk and hardhat ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andres Mayorca - ethcode",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.5",
+    "hardhat": "^2.9.3",
+    "ts-node": "^10.7.0",
+    "typechain": "^8.0.0",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "@decentral.ee/web3-helpers": "^0.5.3",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@openzeppelin/contracts": "^4.6.0",
+    "@superfluid-finance/ethereum-contracts": "^1.2.1",
+    "@superfluid-finance/js-sdk": "^0.5.13",
+    "@superfluid-finance/sdk-core": "^0.4.0",
+    "@typechain/hardhat": "^6.0.0",
+    "@types/mocha": "^9.1.1",
+    "dotenv": "^16.0.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.7.21"
+  }
 }

@@ -15,6 +15,8 @@ import {
     SubgraphListQueryHandler,
     SubscriptionUnitsUpdatedEvent,
     SubscriptionUnitsUpdatedEventQueryHandler,
+    TransferEvent,
+    TransferEventQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
 import {getSubgraphClient} from '../../../../sdkReduxConfig';
@@ -32,6 +34,8 @@ import {
     IndexUpdatedEventsQuery,
     SubscriptionUnitsUpdatedEventQuery,
     SubscriptionUnitsUpdatedEventsQuery,
+    TransferEventQuery,
+    TransferEventsQuery,
 } from './eventArgs';
 
 export const createEventQueryEndpoints = (builder: SubgraphEndpointBuilder) => {
@@ -45,7 +49,9 @@ export const createEventQueryEndpoints = (builder: SubgraphEndpointBuilder) => {
         indexUpdatedEvent: get<IndexUpdatedEvent, IndexUpdatedEventQuery>(builder, new IndexUpdatedEventQueryHandler()),
         indexUpdatedEvents: list<IndexUpdatedEvent, IndexUpdatedEventsQuery>(builder, new IndexUpdatedEventQueryHandler()),
         subscriptionUnitsUpdatedEvent: get<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventQuery>(builder, new SubscriptionUnitsUpdatedEventQueryHandler()),
-        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventsQuery>(builder, new SubscriptionUnitsUpdatedEventQueryHandler())
+        subscriptionUnitsUpdatedEvents: list<SubscriptionUnitsUpdatedEvent, SubscriptionUnitsUpdatedEventsQuery>(builder, new SubscriptionUnitsUpdatedEventQueryHandler()),
+        transferEvent: get<TransferEvent, TransferEventQuery>(builder, new TransferEventQueryHandler()),
+        transferEvents: list<TransferEvent, TransferEventsQuery>(builder, new TransferEventQueryHandler())
     };
 };
 

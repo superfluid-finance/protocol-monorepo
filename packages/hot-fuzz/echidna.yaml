@@ -1,4 +1,5 @@
 corpusDir: "corpus"
+cryticArgs: ["--truffle-build-directory", "build/hot-fuzz-contracts"]
 deployContracts: [
   ["0x00000000000000000000000000000000000000ff", "SlotsBitmapLibrary"],
 ]
@@ -8,4 +9,3 @@ deployBytecodes: [
 
 # format: "json"
 # testLimit: 1000
-# cryticArgs: ["--solc", "solc-0.8.13"] # "--truffle-ignore-compile"]

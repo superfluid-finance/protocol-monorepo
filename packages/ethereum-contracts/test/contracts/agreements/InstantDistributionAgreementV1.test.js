@@ -311,7 +311,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 );
             });
 
-            it("#1.2.0 publisher should not be able to delete zero address subscription", async () => {
+            it("#1.1.10 publisher should not be able to delete zero address subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,
@@ -329,6 +329,23 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_ZERO_SUBS"
                 );
+            });
+
+            it("#1.1.11 calling distribute when total units = 0 doesn't revert", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldDistribute({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    amount: toWad(1).toString(),
+                });
             });
         });
 

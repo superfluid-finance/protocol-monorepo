@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.4.0",
+    "version": "0.4.2",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -39,11 +39,15 @@
         "fix:eslint": "yarn lint:eslint --fix",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "set-default-subgraph-release-tag": "node scripts/setDefaultSubgraphReleaseTag.js",
+        "start-node": "hardhat node",
         "generate": "run-s generate:*",
         "generate:abi-files": "rm -rf src/abi && mkdir -p src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
-        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",
+        "generate-graphql-schema": "yarn generate-graphql-schema:v1",
+        "generate-graphql-schema:v1": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic > src/subgraph/schema.graphql",
+        "generate-graphql-schema:dev": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-matic > src/subgraph/schema.graphql",
+        "generate-graphql-schema:feature": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-matic > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {

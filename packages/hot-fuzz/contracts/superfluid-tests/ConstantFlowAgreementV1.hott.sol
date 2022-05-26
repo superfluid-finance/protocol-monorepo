@@ -22,6 +22,6 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
 
 contract CFAHotFuzz is CFAHotFuzzMixin {
     constructor() HotFuzzBase(10) {
-        initPlayers();
+        initTesters();
     }
 }

@@ -1,0 +1,31 @@
+name: Reusable Workflow | Check Subgraph Indexing Statuses on All Networks
+
+on:
+  workflow_call:
+    inputs:
+      subgraph-release:
+        required: true
+        type: string
+
+jobs:
+  check-subgraph-indexing-statuses-on-deployed-networks:
+    name: Check Subgraph Indexing Statuses for ${{ inputs.subgraph-release }} Release
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Run indexing statuses check
+        run: |
+          yarn install
+          yarn check-indexing-completeness
+        working-directory: ./packages/subgraph
+        env:
+          SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
+                    

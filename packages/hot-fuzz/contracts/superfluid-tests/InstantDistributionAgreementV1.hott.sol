@@ -65,6 +65,6 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
 
 contract IDAHotFuzz is IDAHotFuzzMixin {
     constructor() HotFuzzBase(10) {
-        initPlayers();
+        initTesters();
     }
 }

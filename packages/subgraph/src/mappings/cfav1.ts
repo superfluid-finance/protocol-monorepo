@@ -19,6 +19,7 @@ import {
     ZERO_ADDRESS,
 } from "../utils";
 import {
+    createAccountTokenSnapshotLogEntity,
     getOrInitFlowOperator,
     getOrInitStream,
     getOrInitStreamRevision,
@@ -327,6 +328,8 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         isDelete,
         event.block
     );
+    createAccountTokenSnapshotLogEntity(event, senderAddress, tokenAddress, "FlowUpdated");
+    createAccountTokenSnapshotLogEntity(event, receiverAddress, tokenAddress, "FlowUpdated");
 }
 
 // NOTE: This handler is run right after handleStreamUpdated as the FlowUpdatedExtension

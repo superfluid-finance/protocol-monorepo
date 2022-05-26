@@ -11,7 +11,7 @@ export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
-
+export const MAX_SAFE_SECONDS = BigInt.fromI64(8640000000000); //In seconds, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_ecmascript_epoch_and_timestamps
 /**************************************************************************
  * Convenience Conversions
  *************************************************************************/
@@ -242,6 +242,30 @@ export function getAmountStreamedSinceLastUpdatedAt(
 }
 
 /**
+ * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, totalDeposit, balanceUntilUpdatedAt and totalNetFlowRate.
+ * @param updatedAtTimestamp
+ * @param balanceUntilUpdatedAt
+ * @param totalDeposit
+ * @param totalNetFlowRate
+ */
+
+export function calculateMaybeCriticalAtTimestamp(
+    updatedAtTimestamp: BigInt,
+    balanceUntilUpdatedAt: BigInt,
+    totalDeposit: BigInt,
+    totalNetFlowRate: BigInt
+): BigInt {
+    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return BIG_INT_ZERO;
+    if (totalNetFlowRate.ge(BIG_INT_ZERO)) return BIG_INT_ZERO;
+    const criticalTimestamp = balanceUntilUpdatedAt.plus(totalDeposit).div(totalNetFlowRate.abs());
+    const calculatedCriticalTimestamp = criticalTimestamp.plus(updatedAtTimestamp);
+    if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
+        return MAX_SAFE_SECONDS;
+    }
+    return calculatedCriticalTimestamp;
+}
+
+/**
  * getOrder calculate order based on {blockNumber.times(10000).plus(logIndex)}.
  * @param blockNumber
  * @param logIndex
@@ -253,3 +277,22 @@ export function getOrder(
     return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
 }
 
+/**************************************************************************
+ * Log entities util functions
+ *************************************************************************/
+
+export function createLogID(
+    logPrefix: string,
+    accountTokenSnapshotId: string,
+    event: ethereum.Event,
+): string {
+    return (
+        logPrefix
+        + "-" +
+        accountTokenSnapshotId
+        + "-" +
+        event.transaction.hash.toHexString()
+        + "-" +
+        event.logIndex.toString()
+    );
+}

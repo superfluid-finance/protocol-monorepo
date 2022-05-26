@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-truffle5";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
@@ -22,7 +23,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const { API_URL, PRIVATE_KEY } = process.env;
 module.exports = {
   solidity: "0.8.13",
-  defaultNetwork: "ropsten",
+  // defaultNetwork: "localhost",
   // networks: {
   //    hardhat: {},
   //    ropsten: {

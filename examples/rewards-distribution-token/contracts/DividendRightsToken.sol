@@ -182,7 +182,8 @@ contract DividendRightsToken is
     function distribute(uint256 cashAmount) external onlyOwner {
         (uint256 actualCashAmount,) = idaV1.ida.calculateDistribution(
             _cashToken,
-            address(this), INDEX_ID,
+            address(this), 
+            INDEX_ID,
             cashAmount);
 
         _cashToken.transferFrom(owner(), address(this), actualCashAmount);

@@ -346,7 +346,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
             // NOTE: useDefaultRewardAccount being true is undefined behavior
             // because the default reward account isn't receiving the rewardAmount by default
             assert(!useDefaultRewardAccount);
-            _balances[rewardAccount] -= rewardAmount.toInt256() - targetAccountBalanceDelta;
+            _balances[rewardAccount] -= (rewardAmount.toInt256() + targetAccountBalanceDelta);
             _balances[liquidatorAccount] += rewardAmount.toInt256();
             _balances[targetAccount] += targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(rewardAccount, liquidatorAccount, rewardAmount);

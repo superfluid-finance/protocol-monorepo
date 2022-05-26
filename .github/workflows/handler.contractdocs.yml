@@ -1,0 +1,73 @@
+name: Create and upload contract docs
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+on:
+  push:
+    branches: [ solidity-docgen ]
+
+jobs:
+  checkout-and-install:
+    name: Checkout the repo and install dependencies
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Show contexts
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      -name: Install
+        run: |
+          yarn install --frozen-lockfile
+
+  create-and-upload-docs:
+    name: Create api docs for solidity contracts
+    needs: [checkout-and-install]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
+
+      - name: Use Node.js 16.x
+          uses: actions/setup-node@v1
+          with:
+            node-version: 16.x
+
+      - name: create the docs
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts docgen
+
+      - name: Get contracts version
+        id: contracts-version
+        run: |
+          CONTRACTS_VERSION=`jq -r .version packages/ethereum-contracts/package.json`
+          echo "::set-output name=CONTRACTS_VERSION::$CONTRACTS_VERSION"
+
+      - name: upload docs
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/ethereum-contracts/docs
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}ethereum-contracts@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.CONTRACTS_VERSION) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO
+    

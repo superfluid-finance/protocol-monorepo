@@ -9,7 +9,9 @@ on:
 jobs:
   checkout-and-install:
     name: Checkout the repo and install dependencies
+
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v3
 
@@ -33,8 +35,11 @@ jobs:
 
   create-and-upload-docs:
     name: Create api docs for solidity contracts
+
     needs: [checkout-and-install]
+
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v3
         with:

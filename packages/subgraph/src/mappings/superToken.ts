@@ -116,7 +116,7 @@ export function handleAgreementLiquidatedV2(
         event,
         event.params.liquidatorAccount,
         event.params.targetAccount,
-        event.params.rewardAccount,
+        event.params.rewardAmountReceiver,
         "AgreementLiquidatedV2"
     );
 }
@@ -302,7 +302,7 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
         event.address,
         event.params.liquidatorAccount,
         event.params.targetAccount,
-        event.params.rewardAccount,
+        event.params.rewardAmountReceiver,
     ];
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -312,7 +312,7 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
     ev.agreementClass = event.params.agreementClass;
     ev.agreementId = event.params.id;
     ev.targetAccount = event.params.targetAccount;
-    ev.rewardAccount = event.params.rewardAccount;
+    ev.rewardAmountReceiver = event.params.rewardAmountReceiver;
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
 

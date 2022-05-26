@@ -214,6 +214,11 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[to] = _balances[to] + amount;
     }
 
+    function _getRewardAccount() internal view returns (address rewardAccount) {
+        ISuperfluidGovernance gov = _host.getGovernance();
+        rewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+    }
+
     /**************************************************************************
      * Super Agreement hosting functions
      *************************************************************************/
@@ -309,11 +314,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[account] = _balances[account] + delta;
     }
 
-    function _getRewardAccount() internal view returns (address rewardAccount) {
-        ISuperfluidGovernance gov = _host.getGovernance();
-        rewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-    }
-
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
     function makeLiquidationPayoutsV2(
         bytes32 id,
@@ -332,22 +332,23 @@ abstract contract SuperfluidToken is ISuperfluidToken
             rewardAccount = liquidatorAccount;
         }
 
+        address rewardAmountReceiver = useDefaultRewardAccount ? rewardAccount : liquidatorAccount;
+
         if (targetAccountBalanceDelta <= 0) {
             // LIKELY BRANCH: target account pays penalty to rewarded account
             assert(rewardAmount.toInt256() == -targetAccountBalanceDelta);
-            address rewardedAccount = useDefaultRewardAccount ? rewardAccount : liquidatorAccount;
 
-            _balances[rewardedAccount] = _balances[rewardedAccount] + rewardAmount.toInt256();
-            _balances[targetAccount] = _balances[targetAccount] + targetAccountBalanceDelta;
-            EventsEmitter.emitTransfer(targetAccount, rewardedAccount, rewardAmount);
+            _balances[rewardAmountReceiver] += rewardAmount.toInt256();
+            _balances[targetAccount] += targetAccountBalanceDelta;
+            EventsEmitter.emitTransfer(targetAccount, rewardAmountReceiver, rewardAmount);
         } else {
             // LESS LIKELY BRANCH: target account is bailed out
-            // NOTE: useDefaultRewardAccount is ignored
-            _balances[rewardAccount] = _balances[rewardAccount]
-                - rewardAmount.toInt256()
-                - targetAccountBalanceDelta;
-            _balances[liquidatorAccount] = _balances[liquidatorAccount] + rewardAmount.toInt256();
-            _balances[targetAccount] = _balances[targetAccount] + targetAccountBalanceDelta;
+            // NOTE: useDefaultRewardAccount being true is undefined behavior
+            // because the default reward account isn't receiving the rewardAmount by default
+            assert(!useDefaultRewardAccount);
+            _balances[rewardAccount] -= rewardAmount.toInt256() - targetAccountBalanceDelta;
+            _balances[liquidatorAccount] += rewardAmount.toInt256();
+            _balances[targetAccount] += targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(rewardAccount, liquidatorAccount, rewardAmount);
             EventsEmitter.emitTransfer(rewardAccount, targetAccount, uint256(targetAccountBalanceDelta));
         }
@@ -357,7 +358,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
             id,
             liquidatorAccount,
             targetAccount,
-            rewardAccount,
+            rewardAmountReceiver,
             rewardAmount,
             targetAccountBalanceDelta,
             liquidationTypeData

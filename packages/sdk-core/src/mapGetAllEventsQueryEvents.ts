@@ -74,7 +74,7 @@ export const mapGetAllEventsQueryEvents = (
                     agreementClass: x.agreementClass,
                     agreementId: x.agreementId,
                     targetAccount: x.targetAccount,
-                    rewardAccount: x.rewardAccount,
+                    rewardAmountReceiver: x.rewardAmountReceiver,
                     rewardAmount: x.rewardAmount,
                     targetAccountBalanceDelta: x.targetAccountBalanceDelta,
                     version: x.version,

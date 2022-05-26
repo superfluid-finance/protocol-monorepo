@@ -5,9 +5,8 @@ on:
     branches: [ "solidity-docgen" ]
 
 jobs:
-  checkout-and-install:
-    name: Checkout the repo and install dependencies
-
+#  checkout-and-install:
+  do-it-all:
     runs-on: ubuntu-latest
     
     steps:
@@ -31,14 +30,14 @@ jobs:
         run: |
           yarn install --frozen-lockfile
 
-  create-and-upload-docs:
-    name: Create api docs for solidity contracts
+#  create-and-upload-docs:
+#    name: Create api docs for solidity contracts
 
-    needs: [checkout-and-install]
+#    needs: [checkout-and-install]
 
-    runs-on: ubuntu-latest
+#    runs-on: ubuntu-latest
     
-    steps:
+#    steps:
       - uses: actions/checkout@v3
         with:
           repository: superfluid-finance/build-scripts

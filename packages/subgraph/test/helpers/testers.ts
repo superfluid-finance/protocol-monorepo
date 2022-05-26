@@ -20,7 +20,6 @@ import {
     IFlowUpdatedEvent,
     IGetExpectedIDADataParams as IGetExpectedIDADataParams,
     IIDAEvents,
-    IIndexSubscription,
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
     ITestModifyIDAData,
@@ -40,7 +39,6 @@ import {
 } from "../validation/validators";
 import {
     clipDepositNumber,
-    fetchEntityAndEnsureExistence,
     fetchEventAndEnsureExistence,
     getFlowOperatorId,
     getIndexId,
@@ -77,9 +75,7 @@ import {
 import { Framework } from "@superfluid-finance/sdk-core";
 import { BigNumber } from "@ethersproject/bignumber";
 import { BaseProvider, TransactionResponse } from "@ethersproject/providers";
-import { getSubscription } from "../queries/holQueries";
 import { ethers } from "hardhat";
-import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 /**

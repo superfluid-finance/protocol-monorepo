@@ -600,7 +600,6 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
 
     let updatedTokenStats: ITokenStatistic = isEventEmitted
         ? {
-              // ...currentTokenStats,
               ...getExpectedTokenStatsForCFAEvent(
                   currentTokenStats,
                   atsArray,

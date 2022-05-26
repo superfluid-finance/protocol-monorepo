@@ -48,6 +48,7 @@ export * from "./subgraph/events/events";
 export * from "./subgraph/events/flowUpdatedEvent";
 export * from "./subgraph/events/indexUpdatedEvent";
 export * from "./subgraph/events/subscriptionUnitsUpdatedEvents";
+export * from "./subgraph/events/transferEvents";
 
 export * from "./subgraph/meta/meta";
 

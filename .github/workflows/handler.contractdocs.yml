@@ -4,17 +4,12 @@ env:
 
 on:
   push:
-    branches: [ solidity-docgen ]
+    branches: [ "solidity-docgen" ]
 
 jobs:
   checkout-and-install:
     name: Checkout the repo and install dependencies
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-
     steps:
       - uses: actions/checkout@v3
 
@@ -27,10 +22,10 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
 
       -name: Install
         run: |

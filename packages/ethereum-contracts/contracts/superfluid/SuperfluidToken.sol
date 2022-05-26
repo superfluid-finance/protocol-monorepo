@@ -309,16 +309,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[account] = _balances[account] + delta;
     }
 
-    function _getRewardAccount(address defaultValue) internal view returns (address rewardAccount) {
+    function _getRewardAccount() internal view returns (address rewardAccount) {
         ISuperfluidGovernance gov = _host.getGovernance();
-        address defaultRewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-        rewardAccount = defaultRewardAccount;
-
-        // we set the rewardAccount to the user who executed the liquidation if
-        // no rewardAccount is set (ANARCHY MODE - should not occur in reality, for testing purposes)
-        if (defaultRewardAccount == address(0)) {
-            rewardAccount = defaultValue;
-        }
+        rewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
     }
 
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
@@ -331,9 +324,15 @@ abstract contract SuperfluidToken is ISuperfluidToken
         uint256 rewardAmount, // The amount the rewarded account will receive
         int256 targetAccountBalanceDelta // The delta amount the target account balance should change by
     ) external override onlyAgreement {
-        address rewardAccount = _getRewardAccount(liquidatorAccount);
+        address rewardAccount = _getRewardAccount();
 
-        if (targetAccountBalanceDelta > 0) {
+        // we set the rewardAccount to the user who executed the liquidation if
+        // no rewardAccount is set (aka. ANARCHY MODE - should not occur in reality, for testing purposes)
+        if (rewardAccount == address(0)) {
+            rewardAccount = liquidatorAccount;
+        }
+
+        if (targetAccountBalanceDelta <= 0) {
             // LIKELY BRANCH: target account pays penalty to rewarded account
             assert(rewardAmount.toInt256() == -targetAccountBalanceDelta);
             address rewardedAccount = useDefaultRewardAccount ? rewardAccount : liquidatorAccount;

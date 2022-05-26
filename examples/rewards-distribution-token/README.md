@@ -5,8 +5,9 @@
 1) Install deps with `yarn install`
 2) Create your own .env file based on the .env.example
 3) Set your default network inside of hardhat.config.json: NOTE you must make sure that the network information you're using is not commented out!
-4) Run ```npx hardhat typechain``` to generate typings for the Dividend Rights Token contract.
-4) Run ```npx hardhat run scripts/deploy.ts``` to deploy the contract
+4) Run ```yarn build``` to compile and generate typings for the Dividend Rights Token contract.
+5) Make sure that you have the right network set as the ```defaultNetwork``` in your hardhat.config file, and the correct Superfluid host address set in your deploy.ts file. NOTE: you can find the host address for each network here: https://console.superfluid.finance/
+6) Run ```npx hardhat run scripts/deploy.ts``` to deploy the contract
 
 
 # Advanced Sample Hardhat Project

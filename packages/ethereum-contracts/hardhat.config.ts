@@ -6,6 +6,8 @@ import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 import {NetworkUserConfig} from "hardhat/types";
+import "solidity-docgen";
+import { resolve, relative } from "path";
 
 try {
     dotenvConfig();
@@ -126,6 +128,13 @@ const config: HardhatUserConfig = {
     mocha: {
         timeout: 250000,
     },
+    docgen: {
+        outputDir: "docs/api",
+        templates: "./templates",
+        pages: (item: any, file: any) => file.absolutePath.startsWith('contracts/interfaces/')
+            ? relative('contracts', file.absolutePath).replace('.sol', '.md')
+            : undefined,
+    }, 
 };
 
 export default config;

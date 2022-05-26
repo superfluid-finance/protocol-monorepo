@@ -309,58 +309,48 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[account] = _balances[account] + delta;
     }
 
+    function _getRewardAccount(address defaultValue) internal view returns (address rewardAccount) {
+        ISuperfluidGovernance gov = _host.getGovernance();
+        address defaultRewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+        rewardAccount = defaultRewardAccount;
+
+        // we set the rewardAccount to the user who executed the liquidation if
+        // no rewardAccount is set (ANARCHY MODE - should not occur in reality, for testing purposes)
+        if (defaultRewardAccount == address(0)) {
+            rewardAccount = defaultValue;
+        }
+    }
+
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
     function makeLiquidationPayoutsV2(
         bytes32 id,
         bytes memory liquidationTypeData,
         address liquidatorAccount, // the address executing the liquidation
-        bool useDefaultRewardAccount,
-        address targetAccount, // the flow sender
-        uint256 rewardAmount,
-        int256 targetAccountBalanceDelta
+        bool useDefaultRewardAccount, // Whether or not the default reward account receives the rewardAmount
+        address targetAccount, // Account to be liquidated
+        uint256 rewardAmount, // The amount the rewarded account will receive
+        int256 targetAccountBalanceDelta // The delta amount the target account balance should change by
     ) external override onlyAgreement {
-        address rewardAccount;
-        address defaultRewardAccount;
+        address rewardAccount = _getRewardAccount(liquidatorAccount);
 
-        {
-            ISuperfluidGovernance gov = _host.getGovernance();
-            defaultRewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-            rewardAccount = defaultRewardAccount;
-        }
+        if (targetAccountBalanceDelta > 0) {
+            // LIKELY BRANCH: target account pays penalty to rewarded account
+            assert(rewardAmount.toInt256() == -targetAccountBalanceDelta);
+            address rewardedAccount = useDefaultRewardAccount ? rewardAccount : liquidatorAccount;
 
-        // we set the rewardAccount to the user who executed the liquidation if
-        // no rewardAccount is set (ANARCHY MODE - should not occur in reality, for testing purposes)
-        if (defaultRewardAccount == address(0)) {
-            rewardAccount = liquidatorAccount;
-        }
-
-        if (useDefaultRewardAccount) {
-            _balances[rewardAccount] = _balances[rewardAccount]
-                + rewardAmount.toInt256();
+            _balances[rewardedAccount] = _balances[rewardedAccount] + rewardAmount.toInt256();
+            _balances[targetAccount] = _balances[targetAccount] + targetAccountBalanceDelta;
+            EventsEmitter.emitTransfer(targetAccount, rewardedAccount, rewardAmount);
         } else {
-            _balances[liquidatorAccount] = _balances[liquidatorAccount]
-                + rewardAmount.toInt256();
-
-            // this can occur in two cases:
-            // - pleb period: the two amounts cancel each other out
-            // - pirate/bailout period: reward account has to pay bailout amount
+            // LESS LIKELY BRANCH: target account is bailed out
+            // NOTE: useDefaultRewardAccount is ignored
             _balances[rewardAccount] = _balances[rewardAccount]
                 - rewardAmount.toInt256()
                 - targetAccountBalanceDelta;
-        }
-
-        // if targetAccountBalanceDelta > 0, it is a bailout, else a solvent liquidation
-        _balances[targetAccount] = _balances[targetAccount]
-            + targetAccountBalanceDelta;
-        
-        // PIRATE PERIOD
-        if (targetAccountBalanceDelta > 0) {
+            _balances[liquidatorAccount] = _balances[liquidatorAccount] + rewardAmount.toInt256();
+            _balances[targetAccount] = _balances[targetAccount] + targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(rewardAccount, liquidatorAccount, rewardAmount);
             EventsEmitter.emitTransfer(rewardAccount, targetAccount, uint256(targetAccountBalanceDelta));
-        } else {
-            // PIC / PLEB PERIOD
-            address rewardedAccount = useDefaultRewardAccount ? rewardAccount : liquidatorAccount;
-            EventsEmitter.emitTransfer(targetAccount, rewardedAccount, rewardAmount);
         }
 
         emit AgreementLiquidatedV2(
@@ -368,7 +358,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
             id,
             liquidatorAccount,
             targetAccount,
-            useDefaultRewardAccount ? rewardAccount : liquidatorAccount,
+            rewardAccount,
             rewardAmount,
             targetAccountBalanceDelta,
             liquidationTypeData

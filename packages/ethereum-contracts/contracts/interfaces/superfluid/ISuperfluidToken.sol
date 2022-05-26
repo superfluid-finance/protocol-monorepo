@@ -280,9 +280,9 @@ interface ISuperfluidToken {
      * @param liquidationTypeData Data regarding the version of the liquidation schema and the type
      * @param liquidatorAccount Address of the executor of the liquidation
      * @param useDefaultRewardAccount Whether or not the default reward account receives the rewardAmount
-     * @param targetAccount Account of the stream sender
-     * @param rewardAmount The amount the reward recepient account will receive
-     * @param targetAccountBalanceDelta The amount the sender account balance should change by
+     * @param targetAccount Account to be liquidated
+     * @param rewardAmount The amount the rewarded account will receive
+     * @param targetAccountBalanceDelta The delta amount the target account balance should change by
      *
      * - If a bailout is required (bailoutAmount > 0)
      *   - the actual reward (single deposit) goes to the executor,

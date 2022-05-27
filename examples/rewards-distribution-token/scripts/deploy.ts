@@ -1,13 +1,8 @@
 import { ethers } from 'hardhat';
-let { artifacts } = require("hardhat");
 import { Framework } from '@superfluid-finance/sdk-core';
 import * as dotenv from "dotenv";
-import { DividendRightsToken } from "../typechain-types/contracts";
-
 
 dotenv.config();
-
-let dividendRightsToken: DividendRightsToken;
 
 async function main() {
 
@@ -36,13 +31,13 @@ async function main() {
   );
   
   console.log("Deploying...");
-  const dividendRightsToken = await drtContractFactory.deploy(
+  const drtPromise = await drtContractFactory.deploy(
     "Dividend Rights Token",
     "DRT",
     daix.address,
     hostAddr
   );
-  const drt = await dividendRightsToken.deployed();
+  const drt = await drtPromise.deployed();
   console.log("Dividend Rights Token deployed to:", drt.address);
 
   console.log("You can verify the contract with:");
@@ -50,6 +45,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
+  console.error(error);
+  process.exitCode = 1;
 });

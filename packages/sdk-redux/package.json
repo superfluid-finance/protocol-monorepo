@@ -48,7 +48,7 @@
     },
     "peerDependencies": {
         "@reduxjs/toolkit": "^1.6.0 || ^1.7.0",
-        "@superfluid-finance/sdk-core": "~0.4.0"
+        "@superfluid-finance/sdk-core": "~0.4.2"
     },
     "files": [
         "dist/main",

@@ -2,13 +2,12 @@
  This project demonstrates an ERC20 token that tokenizes units in Superfluid [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-developers/interactive-tutorials/instant-distribution). 
 
 ### Steps for running the project:
-1) Install deps with `yarn install`
-2) Create your own .env file based on the .env.example
-3) Set your default network inside of hardhat.config.json: NOTE you must make sure that the network information you're using is not commented out!
-4) Run ```yarn build``` to compile and generate typings for the Dividend Rights Token contract.
-5) Make sure that you have the right network set as the ```defaultNetwork``` in your hardhat.config file, and the correct Superfluid host address set in your deploy.ts file. NOTE: you can find the host address for each network here: https://console.superfluid.finance/
-6) Run ```npx hardhat run scripts/deploy.ts``` to deploy the contract
-
+1) Install deps with `yarn install`.
+2) Create your own _.env_ file based (see _.env.example_).
+3) Make sure the signer account (defined by the PRIVATE_KEY env var) has native tokens for paying tx fees on the configured network.
+4) Set the network config in _hardhat.config.ts_. For goerli, you can just uncomment the relevant lines already in place.
+5) Run ```yarn build``` to compile and generate typings for the Dividend Rights Token contract.
+6) Run ```npx hardhat run scripts/deploy.ts``` to deploy the contract.
 
 # Advanced Sample Hardhat Project
 
@@ -39,18 +38,24 @@ npx solhint 'contracts/**/*.sol' --fix
 
 # Etherscan verification
 
-To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
+To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Görli.
 
-In this project, copy the .env.example file to a file named .env, and then edit it to fill in the details. Enter your Etherscan API key, your Ropsten node URL (eg from Alchemy), and the private key of the account which will send the deployment transaction. With a valid .env file in place, first deploy your contract:
+In this project, copy the .env.example file to a file named .env, and then edit it to fill in the details. Enter your Etherscan API key, your RPC node URL (eg from Alchemy), and the private key of the account which will send the deployment transaction. 
+Then make sure there's a section for the etherscan config in _hardhat.config.ts_ (uncomment it).
+
+With that in place, first deploy your contract:
 
 ```shell
-hardhat run --network ropsten scripts/deploy.ts
+hardhat run scripts/deploy.ts
 ```
 
-Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
+If succeeding, this will print the command needed for etherscan verification as the last output.  
+Execute that command!
+
+The general syntax is:
 
 ```shell
-npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS
+npx hardhat verify DEPLOYED_CONTRACT_ADDRESS <constructor arguments...>
 ```
 
 # Performance optimizations

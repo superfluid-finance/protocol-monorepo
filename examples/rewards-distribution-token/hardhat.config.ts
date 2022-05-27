@@ -20,15 +20,13 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-let defaultNetwork = "goerli";
-
 const { API_URL, PRIVATE_KEY } = process.env;
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
-  // defaultNetwork,
   solidity: "0.8.13",
+  // defaultNetwork: "goerli",
   // networks: {
   //   goerli: {
   //     url: process.env.RPC_URL || "",

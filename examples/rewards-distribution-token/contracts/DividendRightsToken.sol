@@ -48,7 +48,8 @@ contract DividendRightsToken is
         string memory name,
         string memory symbol,
         ISuperToken cashToken,
-        ISuperfluid host)
+        ISuperfluid host
+    )
         ERC20(name, symbol)
     {
         _cashToken = cashToken;

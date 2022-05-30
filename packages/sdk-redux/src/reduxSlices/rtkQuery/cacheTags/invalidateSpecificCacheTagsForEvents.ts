@@ -83,7 +83,7 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
                 createSpecificTags({
                     chainId,
                     address1: event.token,
-                    address2: event.rewardAccount,
+                    address2: event.rewardAmountReceiver,
                 }),
                 createSpecificTags({
                     chainId,

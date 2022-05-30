@@ -1158,7 +1158,7 @@ fragment agreementLiquidatedV2Event on AgreementLiquidatedV2Event {
     agreementClass
     agreementId
     targetAccount
-    rewardAccount
+    rewardAmountReceiver
     rewardAmount
     targetAccountBalanceDelta
     version

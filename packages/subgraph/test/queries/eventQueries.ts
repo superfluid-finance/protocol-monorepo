@@ -299,3 +299,21 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
         }
     }
 `;
+
+export const getTransferEvents = gql`
+    query getTransferEvents($transactionHash: Bytes!) {
+        response: transferEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            order
+            transactionHash
+            name
+            blockNumber
+            logIndex
+            from
+            to
+            value
+        }
+    }
+`;

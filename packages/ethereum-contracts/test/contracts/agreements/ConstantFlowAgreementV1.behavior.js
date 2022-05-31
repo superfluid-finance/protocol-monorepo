@@ -267,8 +267,8 @@ async function _shouldChangeFlow({
                 )
             );
             if (isSenderSolvent) {
-                // the reward recipient role depends on whether the time is still
-                // in the patrician period, if it is, the reward recipient is the
+                // the rewardAmountReceiver depends on whether the time is still
+                // in the patrician period, if it is, the rewardAmountReceiver is the
                 // rewardAccount, otherwise it is the "agent" or the person who
                 // executes the liquidation
 
@@ -324,7 +324,7 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount: isPatricianPeriod
+                        rewardAmountReceiver: isPatricianPeriod
                             ? cfaDataModel.roles.reward
                             : cfaDataModel.roles.agent,
                         rewardAmount: expectedRewardAmount.toString(),
@@ -332,6 +332,21 @@ async function _shouldChangeFlow({
                             .mul(toBN(-1))
                             .toString(),
                         liquidationTypeData,
+                    }
+                );
+
+                // targetAccount (sender) transferring remaining deposit to
+                // rewardAccount / liquidatorAccount depending on isPatricianPeriod
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.sender,
+                        to: isPatricianPeriod
+                            ? cfaDataModel.roles.reward
+                            : cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
                     }
                 );
             } else {
@@ -385,11 +400,36 @@ async function _shouldChangeFlow({
                         agreementClass: testenv.sf.agreements.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
-                        rewardAccount: cfaDataModel.roles.agent,
+                        rewardAmountReceiver: cfaDataModel.roles.agent,
                         rewardAmount: expectedRewardAmount.toString(),
                         targetAccountBalanceDelta:
                             expectedBailoutAmount.toString(),
                         liquidationTypeData,
+                    }
+                );
+
+                // reward account transferring the single flow deposit to the
+                // liquidator (agent)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
+                    }
+                );
+
+                // reward account bailing out the targetAccount (sender)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.sender,
+                        value: expectedBailoutAmount.toString(),
                     }
                 );
             }

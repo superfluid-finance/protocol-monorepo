@@ -203,12 +203,14 @@ contract BudgetNFT is ERC721, Ownable {
         if (to == address(this) || to == address(0)) return;
         _host.callAgreement(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.createFlow.selector,
-                _acceptedToken,
-                to,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                _cfa.createFlow,
+                (
+                    _acceptedToken,
+                    to,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             "0x"
         );
@@ -218,12 +220,14 @@ contract BudgetNFT is ERC721, Ownable {
         if (to == address(this) || to == address(0)) return;
         _host.callAgreement(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.updateFlow.selector,
-                _acceptedToken,
-                to,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                _cfa.updateFlow,
+                (
+                    _acceptedToken,
+                    to,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             "0x"
         );
@@ -232,12 +236,14 @@ contract BudgetNFT is ERC721, Ownable {
     function _deleteFlow(address from, address to) internal {
         _host.callAgreement(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.deleteFlow.selector,
-                _acceptedToken,
-                from,
-                to,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                _cfa.deleteFlow,
+                (
+                    _acceptedToken,
+                    from,
+                    to,
+                    new bytes(0) // placeholder
+                )
             ),
             "0x"
         );

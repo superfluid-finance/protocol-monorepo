@@ -131,12 +131,15 @@ contract MultiFlowTesterApp is SuperAppBase {
         external
         returns (bytes memory newCtx)
     {
-        bytes memory callData = abi.encodeWithSelector(
-            _cfa.createFlow.selector,
-            superToken,
-            receiver,
-            flowRate,
-            new bytes(0));
+        bytes memory callData = abi.encodeCall(
+            _cfa.createFlow,
+            (
+                superToken,
+                receiver,
+                flowRate,
+                new bytes(0)
+            )
+        );
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
             callData,
@@ -269,12 +272,14 @@ contract MultiFlowTesterApp is SuperAppBase {
         newCtx = ctx;
         if (vars.flowReceiver == address(this)) {
             for(uint256 i = 0; i < vars.configuration.receivers.length; i++) {
-                callData = abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    superToken,
-                    address(this),
-                    vars.configuration.receivers[i].to,
-                    new bytes(0) //placeholder ctx
+                callData = abi.encodeCall(
+                    _cfa.deleteFlow,
+                    (
+                        superToken,
+                        address(this),
+                        vars.configuration.receivers[i].to,
+                        new bytes(0) //placeholder ctx
+                    )
                 );
                 (newCtx, ) = _host.callAgreementWithContext(
                     _cfa,
@@ -288,12 +293,14 @@ contract MultiFlowTesterApp is SuperAppBase {
                 // skip current closed flow
                 if (vars.configuration.receivers[i].to == vars.flowReceiver) continue;
                 // close the rest of the mfa receiver flows
-                callData = abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    superToken,
-                    address(this),
-                    vars.configuration.receivers[i].to,
-                    new bytes(0) //placeholder ctx
+                callData = abi.encodeCall(
+                    _cfa.deleteFlow,
+                    (
+                        superToken,
+                        address(this),
+                        vars.configuration.receivers[i].to,
+                        new bytes(0) //placeholder ctx
+                    )
                 );
                 (newCtx, ) = _host.callAgreementWithContext(
                     _cfa,
@@ -303,12 +310,14 @@ contract MultiFlowTesterApp is SuperAppBase {
                 );
             }
             // close the mfa sender flow
-            callData = abi.encodeWithSelector(
-                _cfa.deleteFlow.selector,
-                superToken,
-                vars.mfaSender,
-                address(this),
-                new bytes(0) //placeholder ctx
+            callData = abi.encodeCall(
+                _cfa.deleteFlow,
+                (
+                    superToken,
+                    vars.mfaSender,
+                    address(this),
+                    new bytes(0) //placeholder ctx
+                )
             );
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,

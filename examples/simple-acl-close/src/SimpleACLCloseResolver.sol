@@ -98,11 +98,13 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         // NOTE: this can be modified to execute pretty much any function
         // given the permissions
         // e.g. other host contract functions, supertoken upgrades/downgrades
-        execPayload = abi.encodeWithSelector(
-            ISuperfluid.callAgreement.selector,
-            IConstantFlowAgreementV1(cfa),
-            callData,
-            "0x"
+        execPayload = abi.encodeCall(
+            ISuperfluid(superToken.getHost()).callAgreement,
+            (
+                IConstantFlowAgreementV1(cfa),
+                callData,
+                "0x"
+            )
         );
     }
 }

@@ -682,6 +682,9 @@ type AgreementLiquidatedV2Event implements Event @entity {
     targetAccountBalanceDelta: BigInt!
     version: BigInt!
     liquidationType: Int!
+
+    # TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+    rewardAccount: Bytes!
 }
 
 type BurnedEvent implements Event @entity {

@@ -53,7 +53,7 @@ jobs:
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ./graph-node/docker
-      #
+      #                                                                     #
 
       - name: "Run subgraph integration test suite"
         if: inputs.local-subgraph-url == ''
@@ -73,5 +73,5 @@ jobs:
           yarn generate
           npx hardhat test --network localhost
         working-directory: ./packages/sdk-core
-        env: 
+        env:
           LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}

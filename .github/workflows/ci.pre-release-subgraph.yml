@@ -27,23 +27,29 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-  # build and run sdk-core tests with local subgraph
+  # A. build and run sdk-core tests with local subgraph
+  # purpose: ensure the current sdk-core version works with the current subgraph implementation
+  # assumption: current subgraph implementation will not break sdk-core implementation
+  # result: this will break if there is an intentional breaking change (must document),
+  #         otherwise it should ALWAYS work
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Release Branch)
     with:
       local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
-      # we must use dev endpoint here because v1 endpoints won't be deployed yet
-      # we want to test what is to be deployed
-      subgraph-release: dev
+      subgraph-release: local
 
-  # build and test live subgraph with previous sdk-core releases
+  # B. build and test live subgraph with previous sdk-core releases
+  # purpose: ensure that the currently deployed v1 subgraph endpoint will work with previous sdk-core versions
+  # assumption: dev is fully indexed
+  # result: this will break previous sdk-core versions if there is an intentional breaking change (must document)
+  #         otherwise it should ALWAYS work
   build-and-test-live-subgraph-previous-releases:
     uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
     name: Build and test current subgraph release with previous sdk-core versions
     if: github.base_ref == 'release-subgraph-v1'
     with:
       # we check with dev endpoint here because v1 endpoints won't be deployed yet
-      # we want to check here if it's safe to merge what we have in dev 
-      # endpoints to v1 endpoints (backwards compatible)
+      # we want to check here if the subgraph implementation in dev is safe to use
+      # for v1 endpoints (backwards compatible)
       subgraph-release: dev

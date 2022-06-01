@@ -24,7 +24,7 @@ jobs:
       - name: test push something
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
-          API_TOKEN_GITHUB: {{ CI_GITHUB_API_TOKEN_FOR_DOCS_UPDATE }}
+          API_TOKEN_GITHUB: ${{ CI_GITHUB_API_TOKEN_FOR_DOCS_UPDATE }}
         with:
           # can be a directory too
           source_file: packages/ethereum-contracts/docs/

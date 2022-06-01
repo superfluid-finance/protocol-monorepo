@@ -21,6 +21,20 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
+      - name: test push something
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+        # yes, this is a plaintext key, but has access to an empty test repo only
+          API_TOKEN_GITHUB: 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
+        with:
+          # can be a directory too
+          source_file: packages/ethereum-contracts/docs/
+          destination_repo: d10r/testrepo
+          destination_branch: main
+          destination_folder: somedir
+          user_email: ghbot@superfluid.finance
+          user_name: ghactionsfordocs
+
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:

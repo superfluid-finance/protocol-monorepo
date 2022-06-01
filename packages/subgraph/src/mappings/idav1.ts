@@ -1,4 +1,4 @@
-import {BigInt} from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexDistributionClaimed,
@@ -40,7 +40,7 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
+import { getHostAddress } from "../addresses";
 
 export function handleIndexCreated(event: IndexCreated): void {
     let hostAddress = getHostAddress();
@@ -79,7 +79,12 @@ export function handleIndexCreated(event: IndexCreated): void {
         event.block
     );
 
-    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "IndexCreated");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.publisher,
+        event.params.token,
+        "IndexCreated"
+    );
     createIndexCreatedEntity(event, index.id);
 }
 
@@ -152,7 +157,12 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.params.token,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "IndexUpdated");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.publisher,
+        event.params.token,
+        "IndexUpdated"
+    );
     createIndexUpdatedEntity(event, index.id);
 }
 
@@ -245,7 +255,12 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             event.params.token,
             event.block
         );
-        createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionApproved");
+        createAccountTokenSnapshotLogEntity(
+            event,
+            event.params.publisher,
+            event.params.token,
+            "SubscriptionApproved"
+        );
     }
 
     subscription.save();
@@ -267,7 +282,12 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     index.save();
 
     createSubscriptionApprovedEntity(event, subscription.id);
-    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionApproved")
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.subscriber,
+        event.params.token,
+        "SubscriptionApproved"
+    );
 }
 
 export function handleSubscriptionDistributionClaimed(
@@ -302,6 +322,9 @@ export function handleSubscriptionDistributionClaimed(
 
     createSubscriptionDistributionClaimedEntity(event, subscription.id);
 
+    // // update streamed until updated at field
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.publisher,
         event.params.token,
@@ -312,8 +335,18 @@ export function handleSubscriptionDistributionClaimed(
         event.params.token,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionDistributionClaimed");
-    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionDistributionClaimed");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.publisher,
+        event.params.token,
+        "SubscriptionDistributionClaimed"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.subscriber,
+        event.params.token,
+        "SubscriptionDistributionClaimed"
+    );
 }
 
 /**
@@ -403,8 +436,18 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     subscription.save();
 
     createSubscriptionRevokedEntity(event, subscription.id);
-    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionRevoked")
-    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionRevoked");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.subscriber,
+        event.params.token,
+        "SubscriptionRevoked"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.publisher,
+        event.params.token,
+        "SubscriptionRevoked"
+    );
 }
 
 /**
@@ -478,12 +521,12 @@ export function handleSubscriptionUnitsUpdated(
         event.block
     );
 
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+
     // when units are set to 0, the graph marks this as a deletion
     // and therefore subtracts the number of totalSubscriptionWithUnits and
     // totalApprovedSubscriptions
     if (units.equals(BIG_INT_ZERO)) {
-        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
-
         updateAggregateIDASubscriptionsData(
             event.params.subscriber,
             event.params.token,
@@ -510,8 +553,6 @@ export function handleSubscriptionUnitsUpdated(
         index.totalSubscriptionsWithUnits =
             index.totalSubscriptionsWithUnits + 1;
 
-        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
-
         updateAggregateIDASubscriptionsData(
             event.params.subscriber,
             event.params.token,
@@ -529,8 +570,18 @@ export function handleSubscriptionUnitsUpdated(
     subscription.save();
 
     createSubscriptionUnitsUpdatedEntity(event, subscription.id, oldUnits);
-    createAccountTokenSnapshotLogEntity(event, event.params.publisher, event.params.token, "SubscriptionUnitsUpdated");
-    createAccountTokenSnapshotLogEntity(event, event.params.subscriber, event.params.token, "SubscriptionUnitsUpdated");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.publisher,
+        event.params.token,
+        "SubscriptionUnitsUpdated"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.subscriber,
+        event.params.token,
+        "SubscriptionUnitsUpdated"
+    );
 }
 
 /**************************************************************************

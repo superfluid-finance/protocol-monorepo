@@ -1,11 +1,16 @@
-import {BigInt} from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     FlowOperatorUpdated,
     FlowUpdated,
     FlowUpdatedExtension,
     IConstantFlowAgreementV1,
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import {FlowOperatorUpdatedEvent, FlowUpdatedEvent, StreamPeriod, StreamRevision,} from "../../generated/schema";
+import {
+    FlowOperatorUpdatedEvent,
+    FlowUpdatedEvent,
+    StreamPeriod,
+    StreamRevision,
+} from "../../generated/schema";
 import {
     BIG_INT_ONE,
     BIG_INT_ZERO,
@@ -26,7 +31,7 @@ import {
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
+import { getHostAddress } from "../addresses";
 
 enum FlowActionType {
     create,
@@ -316,7 +321,8 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         tokenAddress,
         event.block
     );
-
+    // NOTE: EXCEPTION for not calling updateTokenStatsStreamedUntilUpdatedAt
+    // because updateAggregateEntitiesStreamData updates tokenStats.streamedUntilUpdatedAt
     updateAggregateEntitiesStreamData(
         senderAddress,
         receiverAddress,
@@ -328,8 +334,18 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         isDelete,
         event.block
     );
-    createAccountTokenSnapshotLogEntity(event, senderAddress, tokenAddress, "FlowUpdated");
-    createAccountTokenSnapshotLogEntity(event, receiverAddress, tokenAddress, "FlowUpdated");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        senderAddress,
+        tokenAddress,
+        "FlowUpdated"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        receiverAddress,
+        tokenAddress,
+        "FlowUpdated"
+    );
 }
 
 // NOTE: This handler is run right after handleStreamUpdated as the FlowUpdatedExtension
@@ -416,5 +432,3 @@ export function updateFlowOperatorForFlowUpdated(
     }
     flowOperator.save();
 }
-
-

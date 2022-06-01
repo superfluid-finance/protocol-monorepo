@@ -85,22 +85,26 @@ contract SimpleACLCloseResolver is IResolver, Ownable {
         // e.g. supertoken balance reaches a specific amount
         canExec = block.timestamp >= endTime && timestamp != 0;
 
-        bytes memory callData = abi.encodeWithSelector(
-            IConstantFlowAgreementV1.deleteFlowByOperator.selector,
-            superToken,
-            flowSender,
-            flowReceiver,
-            new bytes(0)
+        bytes memory callData = abi.encodeCall(
+            cfa.deleteFlowByOperator,
+            (
+                superToken,
+                flowSender,
+                flowReceiver,
+                new bytes(0)
+            )
         );
 
         // NOTE: this can be modified to execute pretty much any function
         // given the permissions
         // e.g. other host contract functions, supertoken upgrades/downgrades
-        execPayload = abi.encodeWithSelector(
-            ISuperfluid.callAgreement.selector,
-            IConstantFlowAgreementV1(cfa),
-            callData,
-            "0x"
+        execPayload = abi.encodeCall(
+            ISuperfluid(superToken.getHost()).callAgreement,
+            (
+                IConstantFlowAgreementV1(cfa),
+                callData,
+                "0x"
+            )
         );
     }
 }

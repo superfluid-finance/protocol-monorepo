@@ -20,18 +20,26 @@ import {
     IFlowUpdatedEvent,
     IGetExpectedIDADataParams as IGetExpectedIDADataParams,
     IIDAEvents,
-    IIndexSubscription,
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
     ITestModifyIDAData,
     ITestUpdateFlowOperatorData,
+    ITransferEvent,
 } from "../interfaces";
-import {getFlowOperatorUpdatedEvents, getFlowUpdatedEvents,} from "../queries/eventQueries";
-import {fetchEventAndValidate} from "../validation/eventValidators";
-import {validateFlowUpdated, validateModifyIDA, validateUpdateFlowOperatorPermissions,} from "../validation/validators";
+import {
+    getFlowOperatorUpdatedEvents,
+    getFlowUpdatedEvents,
+    getTransferEvents,
+} from "../queries/eventQueries";
+import { fetchEventAndValidate } from "../validation/eventValidators";
+import {
+    validateFlowUpdated,
+    validateModifyIDA,
+    validateUpdateFlowOperatorPermissions,
+} from "../validation/validators";
 import {
     clipDepositNumber,
-    fetchEntityAndEnsureExistence,
+    fetchEventAndEnsureExistence,
     getFlowOperatorId,
     getIndexId,
     getOrder,
@@ -64,13 +72,11 @@ import {
     MAX_FLOW_RATE,
     subscriptionEventTypeToIndexEventType,
 } from "./constants";
-import {Framework} from "@superfluid-finance/sdk-core";
-import {BigNumber} from "@ethersproject/bignumber";
-import {BaseProvider, TransactionResponse} from "@ethersproject/providers";
-import {getSubscription} from "../queries/holQueries";
-import {ethers} from "hardhat";
-import {expect} from "chai";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import { Framework } from "@superfluid-finance/sdk-core";
+import { BigNumber } from "@ethersproject/bignumber";
+import { BaseProvider, TransactionResponse } from "@ethersproject/providers";
+import { ethers } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -173,6 +179,26 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         "FlowUpdatedEvents"
     );
 
+    // if it is a PIC period liquidation
+    if (data.liquidator) {
+        const transferEvent =
+            await fetchEventAndEnsureExistence<ITransferEvent>(
+                getTransferEvents,
+                txnResponse.hash,
+                "TransferEvents"
+            );
+        
+        expectedData.updatedSenderATS = {
+            ...expectedData.updatedSenderATS,
+            totalAmountTransferredUntilUpdatedAt: toBN(
+                expectedData.updatedSenderATS
+                    .totalAmountTransferredUntilUpdatedAt
+            )
+                .add(toBN(transferEvent.value))
+                .toString(),
+        };
+    }
+
     await validateFlowUpdated(
         initData.pastStreamData,
         streamedAmountUntilTimestamp,
@@ -207,7 +233,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
 export async function testUpdateFlowOperatorPermissions(
     data: ITestUpdateFlowOperatorData
 ) {
-    let {timestamp, txnResponse, logIndex} = await updateFlowOperatorPermissions(data);
+    let { timestamp, txnResponse, logIndex } =
+        await updateFlowOperatorPermissions(data);
 
     const lastUpdatedAtTimestamp = timestamp.toString();
     const lastUpdatedBlockNumber = txnResponse.blockNumber!.toString();
@@ -326,8 +353,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
 
     const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
         localData;
-    const {token, publisher, indexId, subscriber} = baseParams;
-    const {txnResponse, timestamp, updatedAtBlockNumber, logIndex} =
+    const { token, publisher, indexId, subscriber } = baseParams;
+    const { txnResponse, timestamp, updatedAtBlockNumber, logIndex } =
         await executeIDATransactionByTypeAndWaitForIndexer(
             framework,
             provider,
@@ -399,75 +426,63 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         logIndex: logIndex,
         order: getOrder(txnResponse?.blockNumber, logIndex),
     };
-
-    // Claim is tested quite differently as no event is emitted for it (currently)
-    // in the future we can write some logic which handles the event in this block
-    // as it will require special logic to accurately do so.
-    // NOTE: we are keeping this here too cause right now claim event isn't being
-    // mapped.
+    let pendingDistribution: BigNumber = toBN(0);
     if (eventType === IDAEventType.SubscriptionDistributionClaimed) {
-        const indexSubscription =
-            await fetchEntityAndEnsureExistence<IIndexSubscription>(
-                getSubscription,
-                initData.currentSubscription.id,
-                "Subscription"
-            );
-
-        const subscriberAddress = ethers.utils.getAddress(
-            indexSubscription.subscriber.id
-        );
-
-        const subscription = await framework.idaV1.getSubscription({
-            superToken: token,
+        const pendingUnits = await framework.idaV1.getSubscription({
+            superToken: data.superToken.address,
             publisher,
-            indexId: indexSubscription.index.indexId,
-            subscriber: subscriberAddress,
+            subscriber,
+            indexId: indexId.toString(),
             providerOrSigner: provider,
         });
-
-        expect(subscription.pendingDistribution).to.equal("0");
-
-        return {
-            updatedIndex: initData.currentIndex,
-            updatedSubscription: initData.currentSubscription,
-            updatedPublisherATS: initData.currentPublisherATS,
-            updatedSubscriberATS: initData.currentSubscriberATS,
-            updatedTokenStats: initData.currentTokenStats,
-        };
+        pendingDistribution = toBN(pendingUnits.pendingDistribution);
     }
 
-    let events: IIDAEvents = await fetchIDAEventsAndValidate(
-        eventType,
-        txnResponse,
-        baseParams,
-        extraEventData
-    );
+    // TODO [FUTURE]: if you want to test an empty distribute (0 units), be wary
+    // that no event will be emitted because it will not trigger the code
+    // which eimts the event
 
-    // handles IndexSubscribed, IndexDistributionClaimed, IndexUnitsUpdated, IndexUnsubscribed
-    // which also occur on the three events below, respectively
-    if (
-        [
-            IDAEventType.SubscriptionApproved,
-            IDAEventType.SubscriptionUnitsUpdated,
-            IDAEventType.SubscriptionRevoked,
-            IDAEventType.SubscriptionDistributionClaimed,
-        ].includes(eventType)
-    ) {
-        const otherEventType =
-            subscriptionEventTypeToIndexEventType.get(eventType);
-        if (!otherEventType) {
-            throw new Error("Incorrect event type.");
+    // NOTE: when a user does an empty claim, no event is emitted and we have to handle this case
+    // throughout
+    const isEventEmitted =
+        eventType !== IDAEventType.SubscriptionDistributionClaimed ||
+        pendingDistribution.gt(toBN(0));
+    let events: IIDAEvents = {};
+
+    if (isEventEmitted) {
+        events = await fetchIDAEventsAndValidate(
+            eventType,
+            txnResponse,
+            baseParams,
+            extraEventData
+        );
+
+        // handles IndexSubscribed, IndexDistributionClaimed, IndexUnitsUpdated, IndexUnsubscribed
+        // which also occur on the three events below, respectively
+        if (
+            [
+                IDAEventType.SubscriptionApproved,
+                IDAEventType.SubscriptionUnitsUpdated,
+                IDAEventType.SubscriptionRevoked,
+                IDAEventType.SubscriptionDistributionClaimed,
+            ].includes(eventType)
+        ) {
+            const otherEventType =
+                subscriptionEventTypeToIndexEventType.get(eventType);
+            if (!otherEventType) {
+                throw new Error("Incorrect event type.");
+            }
+
+            events = {
+                ...events,
+                ...(await fetchIDAEventsAndValidate(
+                    otherEventType,
+                    txnResponse,
+                    baseParams,
+                    extraEventData
+                )),
+            };
         }
-
-        events = {
-            ...events,
-            ...(await fetchIDAEventsAndValidate(
-                otherEventType,
-                txnResponse,
-                baseParams,
-                extraEventData
-            )),
-        };
     }
 
     const expectedDataParams = {
@@ -481,6 +496,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         updatedAtBlockNumber,
         timestamp,
         provider,
+        isEventEmitted,
     };
 
     const extraData: IExtraExpectedData = {
@@ -637,14 +653,16 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     await waitUntilBlockIndexed(txnResponse.blockNumber);
     const transactionReceipt = await txnResponse.wait();
     const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
+    const transactionLog = transactionReceipt.logs.find(
+        (log) => log.topics[0] === methodSignature
+    );
     timestamp = block.timestamp.toString();
     updatedAtBlockNumber = txnResponse.blockNumber.toString();
     return {
         txnResponse,
         timestamp,
         updatedAtBlockNumber,
-        logIndex: transactionLog?.logIndex
+        logIndex: transactionLog?.logIndex,
     };
 }
 

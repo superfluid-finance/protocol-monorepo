@@ -78,6 +78,6 @@ jobs:
           source_file: packages/ethereum-contracts/docs/api/interfaces/
           destination_repo: superfluid-finance/docs
           destination_branch: main
-          destination_folder: resources/reference-documentations/evm-contracts/
+          destination_folder: developers/reference-documentations/evm-contracts
           user_email: ghbot@superfluid.finance
           user_name: ghactionsfordocs

@@ -72,9 +72,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     // //////////////////////////////////////////////////////////////
 
     /// @dev Checks every callback to validate inputs. MUST be called by the host.
-    /// @param agreementClass The agreement address being called. MUST be the cfa.
     /// @param token The Super Token streamed in. MUST be the in-token.
-    modifier validCallback(address agreementClass, ISuperToken token) {
+    modifier validCallback(ISuperToken token) {
         if (token != _inToken && token != _outToken) revert InvalidToken();
         if (msg.sender != address(_host)) revert Unauthorized();
         _;
@@ -156,7 +155,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         bytes calldata agreementData,
         bytes calldata,
         bytes calldata ctx
-    ) external override validCallback(agreementClass, token) returns (bytes memory newCtx) {
+    ) external override validCallback(token) returns (bytes memory newCtx) {
         if (agreementClass != address(_cfa)) return ctx;
 
         newCtx = executeActionInCallback(ctx);
@@ -186,7 +185,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         bytes calldata agreementData,
         bytes calldata,
         bytes calldata ctx
-    ) external override validCallback(agreementClass, token) returns (bytes memory newCtx) {
+    ) external override validCallback(token) returns (bytes memory newCtx) {
         if (agreementClass != address(_cfa)) return ctx;
 
         newCtx = executeActionInCallback(ctx);
@@ -229,13 +228,13 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         ISuperToken token,
         address agreementClass,
         bytes32,
-        bytes calldata,
+        bytes calldata agreementData,
         bytes calldata cbdata,
         bytes calldata ctx
-    ) external override validCallback(agreementClass, token) returns (bytes memory) {
+    ) external override validCallback(token) returns (bytes memory) {
         if (agreementClass != address(_cfa)) return ctx;
 
-        address sender = _host.decodeCtx(ctx).msgSender;
+        (address sender, ) = abi.decode(agreementData, (address, address));
 
         // Try to execute the action. On success, continue to `deleteSubscriptionWithCtx`
         try this.executeActionInCallback(ctx) returns (bytes memory newCtx) {
@@ -255,15 +254,10 @@ abstract contract StreamInDistributeOut is SuperAppBase {
 
             // Extract the last flowRate and timestamp before this closure using the `cbdata`
             // encoded in the `beforeAgreementTerminated` callback.
-            (uint256 lastStreamUpdate, int96 flowRate) = abi.decode(cbdata, (uint256, int96));
-
-            // The most recent of the following: last flow update, last distribution
-            uint256 timestamp = lastStreamUpdate > lastDistribution
-                ? lastStreamUpdate
-                : lastDistribution;
+            (, int96 flowRate) = abi.decode(cbdata, (uint256, int96));
 
             // Compute amount owed by multiplying the number of seconds passed by the flow rate.
-            uint256 amountOwed = (block.timestamp - timestamp) * uint256(int256(flowRate));
+            uint256 amountOwed = (block.timestamp - lastDistribution) * uint256(int256(flowRate));
 
             // If this contract has insufficient balance to refund the address whose stream is being
             // closed, emit `ActionFailed` with the `amountOwed`.

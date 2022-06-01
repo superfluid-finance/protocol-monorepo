@@ -59,7 +59,7 @@ contract StreamSwapDistribute is StreamInDistributeOut {
             0,
             path,
             address(this),
-            block.timestamp + 1 minutes
+            type(uint256).max
         );
 
         // Get the full balance of the underlying `_outToken`.

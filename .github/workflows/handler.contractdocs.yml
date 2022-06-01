@@ -24,8 +24,7 @@ jobs:
       - name: test push something
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
-        # yes, this is a plaintext key, but has access to an empty test repo only
-          API_TOKEN_GITHUB: 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
+          API_TOKEN_GITHUB: {{ CI_GITHUB_API_TOKEN_FOR_DOCS_UPDATE }}
         with:
           # can be a directory too
           source_file: packages/ethereum-contracts/docs/

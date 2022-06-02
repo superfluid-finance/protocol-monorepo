@@ -39,7 +39,6 @@ contract DividendRightsToken is
     );
 
     ISuperToken private _cashToken;
-    ISuperfluid private _host;
 
     // use callbacks to track approved subscriptions
     mapping (address => bool) public isSubscribing;
@@ -48,12 +47,10 @@ contract DividendRightsToken is
         string memory name,
         string memory symbol,
         ISuperToken cashToken,
-        ISuperfluid host
     )
         ERC20(name, symbol)
     {
         _cashToken = cashToken;
-        _host = host;
 
         uint256 configWord =
             SuperAppDefinitions.APP_LEVEL_FINAL |
@@ -63,9 +60,9 @@ contract DividendRightsToken is
         _host.registerApp(configWord);
 
         idaV1 = IDAv1Library.InitData(
-            host,
+            _host,
             IInstantDistributionAgreementV1(
-                address(host.getAgreementClass(_IDAV1_HASH))
+                address(_host.getAgreementClass(_IDAV1_HASH))
             )
         );
 
@@ -146,7 +143,7 @@ contract DividendRightsToken is
     )
         private
     {
-        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        ISuperfluid.Context memory context = cfaV1.host.decodeCtx(ctx);
         // only interested in the subscription approval callbacks
         if (context.agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
             address publisher;

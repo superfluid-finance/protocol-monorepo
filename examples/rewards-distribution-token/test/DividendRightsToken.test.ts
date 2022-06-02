@@ -97,7 +97,6 @@ before(async function () {
         "Dividend Rights Token",
         "DRT",
         daix.address,
-        sf.settings.config.hostAddress
     );
     const drt = await dividendRightsToken.deployed();
     console.log("Dividend Rights Token Address:", drt.address);

@@ -229,6 +229,27 @@ describe("Streaming Operations", async function () {
     });
 });
 
+describe("IDA Operations", async function () {
+    it("Can approve subscription to super app", async function () {
+        await sf.cfaV1
+            .createFlow({
+                superToken: inToken.address,
+                flowRate,
+                receiver: streamSwapDistributeApp.address,
+                overrides,
+            })
+            .exec(alice);
+
+        await sf.idaV1.approveSubscription({
+            indexId,
+            superToken: outToken.address,
+            publisher: streamSwapDistributeApp.address,
+            overrides
+        })
+        .exec(alice);
+    });
+});
+
 describe("Action operations", async () => {
     // this also asserts the `createFlow` from the first streamer won't throw.
     it("Can execute action with zero units", async function () {

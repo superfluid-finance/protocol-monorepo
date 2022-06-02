@@ -1,6 +1,5 @@
 const {expectRevert} = require("@openzeppelin/test-helpers");
 
-const {Web3Provider} = require("@ethersproject/providers");
 const Web3 = require("web3");
 
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
@@ -147,14 +146,6 @@ describe("Framework class", function () {
             testLoadedContracts(sf);
         });
 
-        it("with Ethers.js environment", async () => {
-            const sf = new SuperfluidSDK.Framework({
-                ethers: new Web3Provider(web3.currentProvider),
-                version: "test",
-            });
-            await sf.initialize();
-            testLoadedContracts(sf);
-        });
 
         it("Fail generating gas report without setting gas report type", async () => {
             const sf = new SuperfluidSDK.Framework({

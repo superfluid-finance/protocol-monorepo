@@ -113,12 +113,6 @@ The `@superfluid-finance/js-sdk` isn't aware of your Super App, so you must enco
 // Example Solidity function in your Super App
 function deposit(uint256 amount) {}
 
-// Ethers.js
-myContract.interface.encodeFunctionData(
-   "deposit",
-   ["1000000000000000000"]
-);
-
 // Web3.js
 myContract.methods.deposit("1000000000000000000").encodeABI()
 ```

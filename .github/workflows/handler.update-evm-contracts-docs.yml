@@ -1,12 +1,11 @@
-name: CI (testing) | Docs
+name: Update EVM Contracts Docs
 
 on:
   push:
-    branches: [ "solidity-docgen" ]
+    branches: [ "solidity-docgen", "release-ethereum-contracts-stable" ]
 
 jobs:
-#  checkout-and-install:
-  do-it-all:
+  update-evm-contracts-docs:
     runs-on: ubuntu-latest
     
     steps:
@@ -30,35 +29,22 @@ jobs:
         run: |
           yarn install --frozen-lockfile
 
-#  create-and-upload-docs:
-#    name: Create api docs for solidity contracts
-
-#    needs: [checkout-and-install]
-
-#    runs-on: ubuntu-latest
-    
-#    steps:
       - uses: actions/checkout@v3
         with:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-#      - name: Use Node.js 16.x
-#          uses: actions/setup-node@v1
-#          with:
-#            node-version: 16.x
-
       - name: create the docs
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts docgen
 
-      - name: Get contracts version
-        id: contracts-version
-        run: |
-          CONTRACTS_VERSION=`jq -r .version packages/ethereum-contracts/package.json`
-          echo "::set-output name=CONTRACTS_VERSION::$CONTRACTS_VERSION"
+# Code to upload to refs.superfluid.finance. The md files aren't useful there, need to render first
+      # - name: Get contracts version
+      #   id: contracts-version
+      #   run: |
+      #     CONTRACTS_VERSION=`jq -r .version packages/ethereum-contracts/package.json`
+      #     echo "::set-output name=CONTRACTS_VERSION::$CONTRACTS_VERSION"
 
-# the md files aren't useful here, need to render first
       # - name: upload docs to refs site
       #   uses: ./build-scripts/s3cloudfront-hosting/actions/sync
       #   with:
@@ -72,13 +58,15 @@ jobs:
       - name: update the docs repo
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
+          # Personal Access Token of the GH user accessing the docs repo
           API_TOKEN_GITHUB: ${{ secrets.CI_GITHUB_API_TOKEN_FOR_DOCS_UPDATE }}
         with:
-          # can be a directory too
+          # can be a directory too despite the name
           source_file: packages/ethereum-contracts/docs/api/interfaces/
           destination_repo: superfluid-finance/docs
           destination_branch: main
           destination_folder: developers/reference-documentations/evm-contracts
           user_email: ghbot@superfluid.finance
+          # dedicated GH user with write access to the docs repo
           user_name: ghactionsfordocs
           use_rsync: true

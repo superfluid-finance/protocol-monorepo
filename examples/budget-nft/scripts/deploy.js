@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 const { Framework } = require("@superfluid-finance/sdk-core");
-const BudgetNFT = require("../artifacts/contracts/BudgetNFT.sol/BudgetNFT.json");
-const BudgetNFTABI = Factory.abi;
+const BudgetNFTJSON = require("../artifacts/contracts/BudgetNFT.sol/BudgetNFT.json");
+const BudgetNFTABI = BudgetNFTJSON.abi;
 require("dotenv").config();
 
 async function main() {
@@ -10,40 +10,38 @@ async function main() {
   const url = `${process.env.GOERLI_URL}`;
   const customHttpProvider = new ethers.providers.JsonRpcProvider(url);
 
+  const network = await customHttpProvider.getNetwork();
+
   const sf = await Framework.create({
-    chainId: process.env.CHAIN_ID,
+    chainId: network.chainId,
     provider: customHttpProvider,
     customSubgraphQueriesEndpoint: "",
     dataMode: "WEB3_ONLY"
   });
 
-  const borrower = sf.createSigner({
+  const deployer = sf.createSigner({
     privateKey:
-      process.env.BORROWER_PRIVATE_KEY,
+      process.env.PRIVATE_KEY,
     provider: customHttpProvider
   });
 
-  const employer = sf.createSigner({
-    privateKey:
-      process.env.EMPLOYER_PRIVATE_KEY,
-    provider: customHttpProvider
-  });
+  //NOTE - this is DAIx on goerli - you can change this token to suit your network and desired token address
+  const daix = await sf.loadSuperToken("fDAIx");
 
-  console.log('running deploy factory script...')
+  console.log('running deploy script...')
   // We get the contract to deploy
-  const LoanFactory = await hre.ethers.getContractFactory("LoanFactory");
-  const loanFactory = await LoanFactory.connect(borrower).deploy();
+  const BudgetNFT = await hre.ethers.getContractFactory("BudgetNFT");
+  const budgetNFT = await BudgetNFT.connect(deployer).deploy(
+      "Budget NFT",
+      "BNFT",
+      sf.settings.config.hostAddress,
+      daix.address
+  );
   
-  await loanFactory.deployed();
+  await budgetNFT.deployed();
 
-  console.log("LoanFactory.sol deployed to:", loanFactory.address);
-
-  const MockV3Aggregator = await hre.ethers.getContractFactory("MockV3Aggregator");
-  const mockV3Aggregator = await MockV3Aggregator.connect(borrower).deploy(10000000000);
-
-  await mockV3Aggregator.deployed();
-
-  console.log("MockV3Aggregator deployed to: ", mockV3Aggregator.address);
+  //NOTE: you will need this address to run other scripts, so we recommend getting it from the console
+  console.log("BudgetNFT.sol deployed to:", budgetNFT.address);
   
 }
 

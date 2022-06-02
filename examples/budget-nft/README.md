@@ -41,8 +41,6 @@ Edit NFTs: `npx hardhat run scripts/editNFT.js`
 - Note: Make adjustments to the editNFT script by adding your own parameters.
 Split NFTs: `npx hardhat run scripts/splitNFT.js`
 - Note: Make adjustments to the splitNFT script by adding your own parameters.
-Transfer NFTs: `npx hardhat run scripts/transferNFT.js`
-- Note: Make adjustments to the transferNFT script by adding your own parameters. 
 Merge NFTs: `npx hardhat run scripts/mergeNFTs.js`
 - Note: Make adjustments to the mergeNFTs script by adding your own parameters. Remember that before you merge NFTs, you must make sure that both of these NFTs are under the same ownership.
 

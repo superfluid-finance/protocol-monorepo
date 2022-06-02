@@ -16,6 +16,8 @@ contract EmploymentLoan is SuperAppBase {
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1;
 
+    bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+
     AggregatorV3Interface public priceFeed;
     //decimals of value returned by the priceFeed
     uint8 public priceFeedDecimals;
@@ -46,13 +48,7 @@ contract EmploymentLoan is SuperAppBase {
         uint8 _priceFeedDecimals
     ) {
         IConstantFlowAgreementV1 cfa = IConstantFlowAgreementV1(
-            address(
-                _host.getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
-                )
-            )
+            address(_host.getAgreementClass(CFA_ID))
         );
 
         borrowAmount = _borrowAmount;
@@ -322,7 +318,6 @@ contract EmploymentLoan is SuperAppBase {
         (,int96 currentFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), borrower);
 
         if (msg.sender == lender) {
-
             cfaV1.deleteFlow(address(this), lender, borrowToken);
             cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
         }
@@ -355,7 +350,6 @@ contract EmploymentLoan is SuperAppBase {
         external 
         override 
         onlyCFA(_agreementClass)
-        onlyHost
         returns (bytes memory newCtx) 
     {
         newCtx = _updateOutflow(ctx);
@@ -392,14 +386,12 @@ contract EmploymentLoan is SuperAppBase {
         returns (bytes memory newCtx) 
     {
         if (!_isCFAv1(_agreementClass)) {
-            newCtx = ctx;
-            return newCtx;
+            return ctx;
         }
         return _updateOutflow(ctx);
     }
 
     function _isCFAv1(address agreementClass) private view returns (bool) {
-        bytes32 CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
         return ISuperAgreement(agreementClass).agreementType() == CFA_ID;
     }
 

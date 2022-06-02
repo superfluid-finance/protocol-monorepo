@@ -130,7 +130,7 @@ const config: HardhatUserConfig = {
     },
     docgen: {
         outputDir: "docs/api",
-        templates: "./templates",
+        templates: "./docs/docgen-templates",
         pages: (item: any, file: any) => file.absolutePath.startsWith('contracts/interfaces/')
             ? relative('contracts', file.absolutePath).replace('.sol', '.md')
             : undefined,

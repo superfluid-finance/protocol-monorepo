@@ -61,8 +61,6 @@ before(async function () {
     protocolReleaseVersion: "test",
   });
 
-  console.log(sf)
-
   superSigner = await sf.createSigner({
     signer: accounts[0],
     provider: provider

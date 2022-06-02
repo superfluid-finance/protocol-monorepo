@@ -35,7 +35,6 @@ contract BudgetNFT is ERC721, Ownable {
         nextId = 0;
 
         assert(address(host) != address(0));
-        assert(address(cfaV1.cfa) != address(0));
         assert(address(_acceptedToken) != address(0));
 
         //initialize InitData struct, and set equal to cfaV1

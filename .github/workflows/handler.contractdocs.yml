@@ -81,3 +81,4 @@ jobs:
           destination_folder: developers/reference-documentations/evm-contracts
           user_email: ghbot@superfluid.finance
           user_name: ghactionsfordocs
+          use_rsync: true

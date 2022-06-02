@@ -121,10 +121,10 @@ Here is an example which approves a Super App to spend a user's Super Tokens, fo
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { Web3Provider } = require("@ethersproject/providers");
+const Web3 = require("web3");
 
 const sf = new SuperfluidSDK.Framework({
-    ethers: new Web3Provider(window.ethereum),
+    web3: new Web3(window.ethereum),
     tokens: ["fDAI"],
 });
 await sf.initialize();

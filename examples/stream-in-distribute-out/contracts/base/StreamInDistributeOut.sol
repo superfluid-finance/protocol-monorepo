@@ -156,6 +156,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         bytes calldata,
         bytes calldata ctx
     ) external override validCallback(token) returns (bytes memory newCtx) {
+        // MUST NOT revert. If agreement is not explicitly CFA, return context, DO NOT update state.
+        // If this reverts, then no user can approve subscriptions.
         if (agreementClass != address(_cfa)) return ctx;
 
         newCtx = executeActionInCallback(ctx);
@@ -186,6 +188,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         bytes calldata,
         bytes calldata ctx
     ) external override validCallback(token) returns (bytes memory newCtx) {
+        // MUST NOT revert. If agreement is not explicitly CFA, return context, DO NOT update state.
+        // If this reverts, then no user can approve subscriptions.
         if (agreementClass != address(_cfa)) return ctx;
 
         newCtx = executeActionInCallback(ctx);
@@ -232,6 +236,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         bytes calldata cbdata,
         bytes calldata ctx
     ) external override validCallback(token) returns (bytes memory) {
+        // MUST NOT revert. If agreement is not explicitly CFA, return context, DO NOT update state.
+        // If this reverts, then no user can approve subscriptions.
         if (agreementClass != address(_cfa)) return ctx;
 
         (address sender, ) = abi.decode(agreementData, (address, address));

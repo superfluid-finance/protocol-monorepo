@@ -12,7 +12,6 @@ const getCleanAddress = (address) => {
 };
 
 const completeTransaction = async ({
-    sf,
     method,
     args,
     sender,

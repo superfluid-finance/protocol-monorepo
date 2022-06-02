@@ -146,7 +146,6 @@ describe("Framework class", function () {
             testLoadedContracts(sf);
         });
 
-
         it("Fail generating gas report without setting gas report type", async () => {
             const sf = new SuperfluidSDK.Framework({
                 isTruffle: true,

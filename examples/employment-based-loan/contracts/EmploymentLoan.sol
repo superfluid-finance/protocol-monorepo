@@ -16,6 +16,8 @@ contract EmploymentLoan is SuperAppBase {
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1;
 
+    bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+
     AggregatorV3Interface public priceFeed;
     //decimals of value returned by the priceFeed
     uint8 public priceFeedDecimals;
@@ -32,12 +34,9 @@ contract EmploymentLoan is SuperAppBase {
     ISuperToken public borrowToken;
     ISuperToken public collateralToken;
 
-    ISuperfluid public host;
-    IConstantFlowAgreementV1 public cfa;
-
     constructor(
         int _borrowAmount,
-        int8 _interestRate, //annual interest rate
+        int8 _interestRate, //annual interest rate, in whole number - i.e. 8% would be passed as 8
         int8 _paybackMonths,
         int _collateralAmount,
         address _employer,
@@ -48,15 +47,8 @@ contract EmploymentLoan is SuperAppBase {
         AggregatorV3Interface _priceFeed,
         uint8 _priceFeedDecimals
     ) {
-        host = _host;
-        cfa = IConstantFlowAgreementV1(
-            address(
-                host.getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
-                )
-            )
+        IConstantFlowAgreementV1 cfa = IConstantFlowAgreementV1(
+            address(_host.getAgreementClass(CFA_ID))
         );
 
         borrowAmount = _borrowAmount;
@@ -68,7 +60,7 @@ contract EmploymentLoan is SuperAppBase {
         borrowToken = _borrowToken;
         collateralToken = _collateralToken;
 
-        cfaV1 = CFAv1Library.InitData(host, cfa);
+        cfaV1 = CFAv1Library.InitData(_host, cfa);
         priceFeed = _priceFeed;
         priceFeedDecimals = _priceFeedDecimals;
 
@@ -115,7 +107,7 @@ contract EmploymentLoan is SuperAppBase {
         }
     }
 
-//allows loan to be prepped by the borrower
+    //allows loan to be prepped by the borrower
     function sendCollateral() external {
         require(msg.sender == borrower);
 
@@ -124,10 +116,10 @@ contract EmploymentLoan is SuperAppBase {
         }
     }
 
-//lender can use this function to send funds to the borrower and start the loan
+    //lender can use this function to send funds to the borrower and start the loan
     function lend() external {
         
-        (, int96 employerFlowRate, , ) = cfa.getFlow(
+        (, int96 employerFlowRate, , ) = cfaV1.cfa.getFlow(
             borrowToken,
             employer,
             address(this)
@@ -141,8 +133,8 @@ contract EmploymentLoan is SuperAppBase {
         //lender must approve contract before running next line
         borrowToken.transferFrom(msg.sender, borrower, uint256(borrowAmount));
         //want to make sure that tokens are sent successfully first before setting lender to msg.sender
-        int96 netFlowRate = cfa.getNetFlow(borrowToken, address(this));
-        (, int96 outFlowRate, , ) = cfa.getFlow(borrowToken, address(this), borrower);
+        int96 netFlowRate = cfaV1.cfa.getNetFlow(borrowToken, address(this));
+        (, int96 outFlowRate, , ) = cfaV1.cfa.getFlow(borrowToken, address(this), borrower);
 
         //update flow to borrower
         cfaV1.updateFlow(borrower, borrowToken, ((netFlowRate - outFlowRate) * -1) - getPaymentFlowRate());
@@ -271,14 +263,14 @@ contract EmploymentLoan is SuperAppBase {
         //this will get us the amount of money that should be redirected to the lender out of the inflow, denominated in borrow token
         int96 paymentFlowRate = getPaymentFlowRate();
         // @dev This will give me the new flowRate, as it is called in after callbacks
-        int96 netFlowRate = cfa.getNetFlow(borrowToken, address(this));
+        int96 netFlowRate = cfaV1.cfa.getNetFlow(borrowToken, address(this));
         
         //current amount being sent to lender
-        (, int96 outFlowRateLender, , ) = cfa.getFlow(borrowToken, address(this), lender);
+        (, int96 outFlowRateLender, , ) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
         //current amount being sent to borrower
-        (, int96 outFlowRateBorrower, , ) = cfa.getFlow(borrowToken, address(this), borrower);
+        (, int96 outFlowRateBorrower, , ) = cfaV1.cfa.getFlow(borrowToken, address(this), borrower);
         //current amount being streamed out in collateral token
-        (, int96 collateralFlow, , ) = cfa.getFlow(collateralToken, address(this), lender);
+        (, int96 collateralFlow, , ) = cfaV1.cfa.getFlow(collateralToken, address(this), lender);
         //total outflow rate in borrow token - only 2
         int96 outFlowRate = outFlowRateLender + outFlowRateBorrower;
         //total inflow rate in borrow token
@@ -312,26 +304,22 @@ contract EmploymentLoan is SuperAppBase {
             collateralToken.transfer(borrower, collateralTokenBalance);
         }
 
-        (,int96 currentLenderFlowRate,,) = cfa.getFlow(borrowToken, address(this), lender);
+        (,int96 currentLenderFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
         cfaV1.deleteFlow(address(this), lender, borrowToken);
 
-        (,int96 currentFlowRate,,) = cfa.getFlow(borrowToken, address(this), borrower);
-        cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
-        // loanCompleted = true;
-        
+        (,int96 currentFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), borrower);
+        cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);        
     }
     //allows lender or borrower to close a loan
     //if the loan is paid off, or if the loan is closed by the lender, pass 0
     //if the loan is not yet paid off, pass in the required amount to close loan
     function closeOpenLoan(uint amountForPayoff) external {
-        (,int96 currentLenderFlowRate,,) = cfa.getFlow(borrowToken, address(this), lender);
-        (,int96 currentFlowRate,,) = cfa.getFlow(borrowToken, address(this), borrower);
+        (,int96 currentLenderFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
+        (,int96 currentFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), borrower);
 
         if (msg.sender == lender) {
-
             cfaV1.deleteFlow(address(this), lender, borrowToken);
             cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
-            // loanCompleted = true;
         }
         else {
     
@@ -342,13 +330,11 @@ contract EmploymentLoan is SuperAppBase {
                 cfaV1.deleteFlow(address(this), lender, borrowToken);
 
                 cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
-                // loanCompleted = true;
             }
             else {
 
                 cfaV1.deleteFlow(address(this), lender, borrowToken);
                 cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
-                // loanCompleted = true;
             }
         }
     }
@@ -360,7 +346,11 @@ contract EmploymentLoan is SuperAppBase {
         bytes calldata, /*_agreementData*/
         bytes calldata, // _cbdata,
         bytes calldata ctx
-    ) external override returns (bytes memory newCtx) 
+    ) 
+        external 
+        override 
+        onlyCFA(_agreementClass)
+        returns (bytes memory newCtx) 
     {
         newCtx = _updateOutflow(ctx);
     }
@@ -372,7 +362,12 @@ contract EmploymentLoan is SuperAppBase {
         bytes calldata, /*_agreementData*/
         bytes calldata, // _cbdata,
         bytes calldata ctx
-    ) external override returns (bytes memory newCtx) 
+    ) 
+        external 
+        override 
+        onlyCFA(_agreementClass)
+        onlyHost
+        returns (bytes memory newCtx) 
     {
         newCtx = _updateOutflow(ctx);
     }
@@ -384,8 +379,32 @@ contract EmploymentLoan is SuperAppBase {
         bytes calldata, /*_agreementData*/
         bytes calldata, // _cbdata,
         bytes calldata ctx
-    ) external override returns (bytes memory newCtx) 
+    ) 
+        external 
+        override 
+        onlyHost
+        returns (bytes memory newCtx) 
     {
-        newCtx = _updateOutflow(ctx);
+        if (!_isCFAv1(_agreementClass)) {
+            return ctx;
+        }
+        return _updateOutflow(ctx);
+    }
+
+    function _isCFAv1(address agreementClass) private view returns (bool) {
+        return ISuperAgreement(agreementClass).agreementType() == CFA_ID;
+    }
+
+    modifier onlyHost() {
+        require(
+            msg.sender == address(cfaV1.host),
+            "Only host can call callback"
+        );
+        _;
+    }
+
+    modifier onlyCFA(address agreementClass) {
+        require(_isCFAv1(agreementClass), "Only CFAv1 supported");
+        _;
     }
 }

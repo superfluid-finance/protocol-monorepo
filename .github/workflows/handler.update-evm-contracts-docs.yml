@@ -34,7 +34,7 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - name: create the docs
+      - name: Create the docs
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts docgen
 
@@ -55,7 +55,7 @@ jobs:
       #     s3_uri: ${{ format('{0}ethereum-contracts@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.CONTRACTS_VERSION) }}
       #     cloudfront_distribution_id: E3SV855CTC9UJO
     
-      - name: update the docs repo
+      - name: Update the docs repo
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           # Personal Access Token of the GH user accessing the docs repo

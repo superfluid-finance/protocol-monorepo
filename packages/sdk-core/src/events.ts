@@ -191,7 +191,7 @@ export interface AgreementLiquidatedV2Event extends EventBase {
     version: string;
     liquidationType: number;
 
-    // TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+    /** @deprecated TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead */
     rewardAccount: string;
 }
 

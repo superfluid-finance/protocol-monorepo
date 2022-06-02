@@ -64,7 +64,7 @@ jobs:
     with:
       subgraph-release: v1
 
-  # D. check previous versions of sdk-core with released v1 endpoints
+  # D. check previous versions of sdk-core with indexed v1 endpoints
   # purpose: ensure that the currently deployed v1 subgraph endpoint will work with previous sdk-core versions
   # assumption: v1 is fully indexed
   # result: this will break previous sdk-core versions if there is an intentional breaking change (must document)

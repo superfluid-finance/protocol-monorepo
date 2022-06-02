@@ -683,8 +683,8 @@ type AgreementLiquidatedV2Event implements Event @entity {
     version: BigInt!
     liquidationType: Int!
 
-    # TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
-    rewardAccount: Bytes!
+    """TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead"""
+    rewardAccount: Bytes! @deprecated(reason: "use rewardAmountReceiver")
 }
 
 type BurnedEvent implements Event @entity {

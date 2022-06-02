@@ -280,9 +280,9 @@ interface ISuperfluidToken {
      * @param liquidationTypeData Data regarding the version of the liquidation schema and the type
      * @param liquidatorAccount Address of the executor of the liquidation
      * @param useDefaultRewardAccount Whether or not the default reward account receives the rewardAmount
-     * @param targetAccount Account of the stream sender
-     * @param rewardAmount The amount the reward recepient account will receive
-     * @param targetAccountBalanceDelta The amount the sender account balance should change by
+     * @param targetAccount Account to be liquidated
+     * @param rewardAmount The amount the rewarded account will receive
+     * @param targetAccountBalanceDelta The delta amount the target account balance should change by
      *
      * @custom:note 
      * - If a bailout is required (bailoutAmount > 0)
@@ -313,7 +313,7 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param liquidatorAccount Address of the executor of the liquidation
      * @param targetAccount Account of the stream sender
-     * @param rewardAccount Account that collects the reward or bails out insolvent accounts
+     * @param rewardAmountReceiver Account that collects the reward or bails out insolvent accounts
      * @param rewardAmount The amount the reward recipient account balance should change by
      * @param targetAccountBalanceDelta The amount the sender account balance should change by
      * @param liquidationTypeData The encoded liquidation type data including the version (how to decode)
@@ -321,14 +321,14 @@ interface ISuperfluidToken {
      * @custom:note 
      * Reward account rule:
      * - if the agreement is liquidated during the PIC period
-     *   - the rewardAccount will get the rewardAmount (remaining deposit), regardless of the liquidatorAccount
+     *   - the rewardAmountReceiver will get the rewardAmount (remaining deposit), regardless of the liquidatorAccount
      *   - the targetAccount will pay for the rewardAmount
      * - if the agreement is liquidated after the PIC period AND the targetAccount is solvent
-     *   - the liquidatorAccount will get the rewardAmount (remaining deposit)
+     *   - the rewardAmountReceiver will get the rewardAmount (remaining deposit)
      *   - the targetAccount will pay for the rewardAmount
      * - if the targetAccount is insolvent
      *   - the liquidatorAccount will get the rewardAmount (single deposit)
-     *   - the rewardAccount will pay for both the rewardAmount and bailoutAmount
+     *   - the default reward account (governance) will pay for both the rewardAmount and bailoutAmount
      *   - the targetAccount will receive the bailoutAmount
      */
     event AgreementLiquidatedV2(
@@ -336,7 +336,7 @@ interface ISuperfluidToken {
         bytes32 id,
         address indexed liquidatorAccount,
         address indexed targetAccount,
-        address rewardAccount,
+        address rewardAmountReceiver,
         uint256 rewardAmount,
         int256 targetAccountBalanceDelta,
         bytes liquidationTypeData

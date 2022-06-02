@@ -53,12 +53,14 @@ contract ExclusiveInflowTestApp is SuperAppBase {
         newCtx = ctx;
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         if (_currentSender != address(0)) {
-            bytes memory callData = abi.encodeWithSelector(
-                _cfa.deleteFlow.selector,
-                superToken,
-                _currentSender,
-                address(this),
-                new bytes(0)
+            bytes memory callData = abi.encodeCall(
+                _cfa.deleteFlow,
+                (
+                    superToken,
+                    _currentSender,
+                    address(this),
+                    new bytes(0)
+                )
             );
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
@@ -133,12 +135,14 @@ contract NonClosableOutflowTestApp is SuperAppBase {
         _flowRate = flowRate;
         _host.callAgreement(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.createFlow.selector,
-                superToken,
-                receiver,
-                flowRate,
-                new bytes(0)
+            abi.encodeCall(
+                _cfa.createFlow,
+                (
+                    superToken,
+                    receiver,
+                    flowRate,
+                    new bytes(0)
+                )
             ),
             new bytes(0) // user data
         );
@@ -158,16 +162,22 @@ contract NonClosableOutflowTestApp is SuperAppBase {
         (address flowSender, address flowReceiver) = abi.decode(agreementData, (address, address));
         assert(flowSender == address(this));
         assert(flowReceiver == _receiver);
-        // recreate the flow
-        (newCtx, ) = _host.callAgreementWithContext(
-            _cfa,
-            abi.encodeWithSelector(
-                _cfa.createFlow.selector,
+
+        // moved out to avoid stack too deep error
+        bytes memory callData = abi.encodeCall(
+            _cfa.createFlow,
+            (
                 superToken,
                 flowReceiver,
                 _flowRate,
                 new bytes(0)
-            ),
+            )
+        );
+
+        // recreate the flow
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            callData,
             "0x",
             ctx
         );
@@ -218,12 +228,14 @@ contract SelfDeletingFlowTestApp is SuperAppBase {
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.deleteFlow.selector,
-                superToken,
-                context.msgSender,
-                address(this),
-                new bytes(0)
+            abi.encodeCall(
+                _cfa.deleteFlow,
+                (
+                    superToken,
+                    context.msgSender,
+                    address(this),
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             newCtx
@@ -273,12 +285,14 @@ contract ClosingOnUpdateFlowTestApp is SuperAppBase {
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.deleteFlow.selector,
-                superToken,
-                context.msgSender,
-                address(this),
-                new bytes(0)
+            abi.encodeCall(
+                _cfa.deleteFlow,
+                (
+                    superToken,
+                    context.msgSender,
+                    address(this),
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             newCtx
@@ -331,12 +345,14 @@ contract FlowExchangeTestApp is SuperAppBase {
         (,int96 flowRate,,) = _cfa.getFlow(superToken, context.msgSender, address(this));
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.createFlow.selector,
-                _targetToken,
-                context.msgSender,
-                flowRate,
-                new bytes(0)
+            abi.encodeCall(
+                _cfa.createFlow,
+                (
+                    _targetToken,
+                    context.msgSender,
+                    flowRate,
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             newCtx

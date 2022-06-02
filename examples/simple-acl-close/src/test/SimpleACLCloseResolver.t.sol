@@ -301,13 +301,15 @@ contract SimpleACLCloseResolverTest is Test {
     ) internal {
         _host.callAgreement(
             _cfa,
-            abi.encodeWithSelector(
-                _cfa.updateFlowOperatorPermissions.selector,
-                _flowSuperToken,
-                _flowOperator,
-                4,
-                0,
-                new bytes(0)
+            abi.encodeCall(
+                _cfa.updateFlowOperatorPermissions,
+                (
+                    _flowSuperToken,
+                    _flowOperator,
+                    4,
+                    0,
+                    new bytes(0)
+                )
             ),
             "0x"
         );

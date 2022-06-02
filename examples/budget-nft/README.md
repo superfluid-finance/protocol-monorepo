@@ -3,9 +3,9 @@
 
 If you'd like a step by step walkthrough on how to use this example, [this workshop](https://www.youtube.com/watch?v=alnIRuoKocw&t=1484s) is a great guide.
 
-The main Budget NFT smart contract will enable you to
+Key Functionality of the Budget NFT Contract:
 - Mint NFTs to various working groups or DAO contributors that come attached with money streams
-- Transferring these NFTs will result in the transfer of the money stream to the new recipient
+- Transfer these NFTs to transfer the associated money stream to the new recipient
 - FlowRates may be edited by the owner of the core BudgetNFT contract (ideally the DAO itself)
 - Owners of each individual NFT may split their NFT into separate NFTs
 - NFTs may be merged together if they fall under the ownership of the same account
@@ -25,7 +25,7 @@ Create a `.env` file based on the `.env.template`. Add your own RPC URL and priv
 Make sure that the `hardhat.config.ts` file is up to date with the network you want to use. Note: you should follow this syntax when adding a network to the 'Networks' list in `hardhat.config.ts`
   ```
   networks: {
-    ropsten: {
+    goerli: {
       url: process.env.GOERLI_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],

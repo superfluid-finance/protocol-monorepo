@@ -10,7 +10,6 @@ on:
       - ".github/workflows/ci.canary.yml"
       - "codecov.yml"
       - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
-      - ".github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml"
 
 jobs:
   essential-build-and-test:
@@ -51,22 +50,17 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
+          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+          SUBGRAPH_RELEASE_TAG: dev
 
   test-subgraph:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
     if: github.repository == 'superfluid-finance/protocol-monorepo'
-
-  test-subgraph-on-previous-sdk-versions:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml@dev
-    name: Build and Test Subgraph on Previous SDK-Core Versions (Development Branch)
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-    with:
-      subgraph-release: dev
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch

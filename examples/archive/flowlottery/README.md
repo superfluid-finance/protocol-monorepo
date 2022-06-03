@@ -42,7 +42,7 @@ yarn test
 
 ## Run property tests
 
-This project includes property tests based on [Hot Fuzz](../../packages/hot-fuzz/), which is itself an [Echidna](https://github.com/crytic/echidna) wrapper.  
+This project includes property tests based on [Hot Fuzz](../../../packages/hot-fuzz/), which is itself an [Echidna](https://github.com/crytic/echidna) wrapper.  
 
 You can run it with
 

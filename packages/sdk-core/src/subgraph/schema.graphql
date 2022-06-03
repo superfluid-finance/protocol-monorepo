@@ -27,7 +27,7 @@ type _Meta_ {
   will be null if the _meta field has a block constraint that asks for
   a block number. It will be filled if the _meta field has no block constraint
   and therefore asks for the latest  block
-
+  
   """
   block: _Block_!
 
@@ -62,7 +62,7 @@ type Account {
 
   """
   Indicates whether the address/account is a super app.
-
+  
   """
   isSuperApp: Boolean!
   inflows(skip: Int = 0, first: Int = 100, orderBy: Stream_orderBy, orderDirection: OrderDirection, where: Stream_filter): [Stream!]!
@@ -121,6 +121,9 @@ input Account_filter {
   isSuperApp_not: Boolean
   isSuperApp_in: [Boolean!]
   isSuperApp_not_in: [Boolean!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum Account_orderBy {
@@ -149,86 +152,96 @@ interaction with a `token`.
 type AccountTokenSnapshot {
   """
   ID composed of: accountID-tokenID
-
+  
   """
   id: ID!
   updatedAtTimestamp: BigInt!
   updatedAtBlockNumber: BigInt!
 
   """
+  isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
+  Optimistic means that it is the earliest time the user will be liquidated as
+  they may receive ongoing distributions which aren't tracked by the subgraph
+  
+  """
+  isLiquidationEstimateOptimistic: Boolean!
+
+  """
   Optimistic liquidation estimation property.
+  
   """
   maybeCriticalAtTimestamp: BigInt!
 
   """
   The number of currently open streams.
-
+  
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The number of all-time closed streams.
-
+  
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all currently (as of updatedAt) approved subscriptions whether or not they have units.
-
+  
   """
   totalApprovedSubscriptions: Int!
 
   """
   Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   balanceUntilUpdatedAt: BigInt!
 
   """
   The total deposit this account has held by the CFA agreement for `account` active streams.
-
+  
   """
   totalDeposit: BigInt!
 
   """
   The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalNetFlowRate: BigInt!
 
   """
   The total inflow rate (receive flowRate per second) of the `account`.
-
+  
   """
   totalInflowRate: BigInt!
 
   """
   The total outflow rate (send flowrate per second) of the `account`.
-
+  
   """
   totalOutflowRate: BigInt!
 
   """
   The total amount of `token` streamed to this `account` until
   the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
 
   """
   The total amount of `token` this `account` has transferred.
-
+  
   """
   totalAmountTransferredUntilUpdatedAt: BigInt!
   account: Account!
   token: Token!
   flowOperators(skip: Int = 0, first: Int = 100, orderBy: FlowOperator_orderBy, orderDirection: OrderDirection, where: FlowOperator_filter): [FlowOperator!]!
+  accountTokenSnapshotLogs(skip: Int = 0, first: Int = 100, orderBy: AccountTokenSnapshotLog_orderBy, orderDirection: OrderDirection, where: AccountTokenSnapshotLog_filter): [AccountTokenSnapshotLog!]!
 }
 
 input AccountTokenSnapshot_filter {
@@ -256,6 +269,10 @@ input AccountTokenSnapshot_filter {
   updatedAtBlockNumber_lte: BigInt
   updatedAtBlockNumber_in: [BigInt!]
   updatedAtBlockNumber_not_in: [BigInt!]
+  isLiquidationEstimateOptimistic: Boolean
+  isLiquidationEstimateOptimistic_not: Boolean
+  isLiquidationEstimateOptimistic_in: [Boolean!]
+  isLiquidationEstimateOptimistic_not_in: [Boolean!]
   maybeCriticalAtTimestamp: BigInt
   maybeCriticalAtTimestamp_not: BigInt
   maybeCriticalAtTimestamp_gt: BigInt
@@ -392,12 +409,16 @@ input AccountTokenSnapshot_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum AccountTokenSnapshot_orderBy {
   id
   updatedAtTimestamp
   updatedAtBlockNumber
+  isLiquidationEstimateOptimistic
   maybeCriticalAtTimestamp
   totalNumberOfActiveStreams
   totalNumberOfClosedStreams
@@ -413,6 +434,350 @@ enum AccountTokenSnapshot_orderBy {
   account
   token
   flowOperators
+  accountTokenSnapshotLogs
+}
+
+"""
+AccountTokenSnapshotLog: Historical entries of AccountTokenSnapshot updates.
+
+"""
+type AccountTokenSnapshotLog {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  order: BigInt!
+  triggeredByEventName: String!
+
+  """
+  Optimistic liquidation estimation property.
+  
+  """
+  maybeCriticalAtTimestamp: BigInt!
+
+  """
+  The current (as of timestamp) number of currently open streams.
+  
+  """
+  totalNumberOfActiveStreams: Int!
+
+  """
+  The current (as of timestamp) number of all-time closed streams.
+  
+  """
+  totalNumberOfClosedStreams: Int!
+
+  """
+  The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
+  
+  """
+  totalSubscriptionsWithUnits: Int!
+
+  """
+  Counts all currently (as of timestamp) approved subscriptions whether or not they have units.
+  
+  """
+  totalApprovedSubscriptions: Int!
+
+  """
+  Balance of `account` as of `timestamp`/`block`.
+  
+  """
+  balance: BigInt!
+
+  """
+  The total (as of timestamp) deposit this account has held by the CFA agreement for `account` active streams.
+  
+  """
+  totalDeposit: BigInt!
+
+  """
+  The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
+  
+  """
+  totalNetFlowRate: BigInt!
+
+  """
+  The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
+  
+  """
+  totalInflowRate: BigInt!
+
+  """
+  The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
+  
+  """
+  totalOutflowRate: BigInt!
+
+  """
+  The total (as of timestamp) amount of `token` streamed to this `account` until
+  the `timestamp`/`block`.
+  
+  """
+  totalAmountStreamed: BigInt!
+
+  """
+  The total (as of timestamp) amount of `token` this `account` has transferred.
+  
+  """
+  totalAmountTransferred: BigInt!
+  account: Account!
+  token: Token!
+  accountTokenSnapshot: AccountTokenSnapshot!
+}
+
+input AccountTokenSnapshotLog_filter {
+  id: ID
+  id_not: ID
+  id_gt: ID
+  id_lt: ID
+  id_gte: ID
+  id_lte: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+  timestamp_in: [BigInt!]
+  timestamp_not_in: [BigInt!]
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  blockNumber_in: [BigInt!]
+  blockNumber_not_in: [BigInt!]
+  transactionHash: Bytes
+  transactionHash_not: Bytes
+  transactionHash_in: [Bytes!]
+  transactionHash_not_in: [Bytes!]
+  transactionHash_contains: Bytes
+  transactionHash_not_contains: Bytes
+  logIndex: BigInt
+  logIndex_not: BigInt
+  logIndex_gt: BigInt
+  logIndex_lt: BigInt
+  logIndex_gte: BigInt
+  logIndex_lte: BigInt
+  logIndex_in: [BigInt!]
+  logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
+  triggeredByEventName: String
+  triggeredByEventName_not: String
+  triggeredByEventName_gt: String
+  triggeredByEventName_lt: String
+  triggeredByEventName_gte: String
+  triggeredByEventName_lte: String
+  triggeredByEventName_in: [String!]
+  triggeredByEventName_not_in: [String!]
+  triggeredByEventName_contains: String
+  triggeredByEventName_contains_nocase: String
+  triggeredByEventName_not_contains: String
+  triggeredByEventName_not_contains_nocase: String
+  triggeredByEventName_starts_with: String
+  triggeredByEventName_starts_with_nocase: String
+  triggeredByEventName_not_starts_with: String
+  triggeredByEventName_not_starts_with_nocase: String
+  triggeredByEventName_ends_with: String
+  triggeredByEventName_ends_with_nocase: String
+  triggeredByEventName_not_ends_with: String
+  triggeredByEventName_not_ends_with_nocase: String
+  maybeCriticalAtTimestamp: BigInt
+  maybeCriticalAtTimestamp_not: BigInt
+  maybeCriticalAtTimestamp_gt: BigInt
+  maybeCriticalAtTimestamp_lt: BigInt
+  maybeCriticalAtTimestamp_gte: BigInt
+  maybeCriticalAtTimestamp_lte: BigInt
+  maybeCriticalAtTimestamp_in: [BigInt!]
+  maybeCriticalAtTimestamp_not_in: [BigInt!]
+  totalNumberOfActiveStreams: Int
+  totalNumberOfActiveStreams_not: Int
+  totalNumberOfActiveStreams_gt: Int
+  totalNumberOfActiveStreams_lt: Int
+  totalNumberOfActiveStreams_gte: Int
+  totalNumberOfActiveStreams_lte: Int
+  totalNumberOfActiveStreams_in: [Int!]
+  totalNumberOfActiveStreams_not_in: [Int!]
+  totalNumberOfClosedStreams: Int
+  totalNumberOfClosedStreams_not: Int
+  totalNumberOfClosedStreams_gt: Int
+  totalNumberOfClosedStreams_lt: Int
+  totalNumberOfClosedStreams_gte: Int
+  totalNumberOfClosedStreams_lte: Int
+  totalNumberOfClosedStreams_in: [Int!]
+  totalNumberOfClosedStreams_not_in: [Int!]
+  totalSubscriptionsWithUnits: Int
+  totalSubscriptionsWithUnits_not: Int
+  totalSubscriptionsWithUnits_gt: Int
+  totalSubscriptionsWithUnits_lt: Int
+  totalSubscriptionsWithUnits_gte: Int
+  totalSubscriptionsWithUnits_lte: Int
+  totalSubscriptionsWithUnits_in: [Int!]
+  totalSubscriptionsWithUnits_not_in: [Int!]
+  totalApprovedSubscriptions: Int
+  totalApprovedSubscriptions_not: Int
+  totalApprovedSubscriptions_gt: Int
+  totalApprovedSubscriptions_lt: Int
+  totalApprovedSubscriptions_gte: Int
+  totalApprovedSubscriptions_lte: Int
+  totalApprovedSubscriptions_in: [Int!]
+  totalApprovedSubscriptions_not_in: [Int!]
+  balance: BigInt
+  balance_not: BigInt
+  balance_gt: BigInt
+  balance_lt: BigInt
+  balance_gte: BigInt
+  balance_lte: BigInt
+  balance_in: [BigInt!]
+  balance_not_in: [BigInt!]
+  totalDeposit: BigInt
+  totalDeposit_not: BigInt
+  totalDeposit_gt: BigInt
+  totalDeposit_lt: BigInt
+  totalDeposit_gte: BigInt
+  totalDeposit_lte: BigInt
+  totalDeposit_in: [BigInt!]
+  totalDeposit_not_in: [BigInt!]
+  totalNetFlowRate: BigInt
+  totalNetFlowRate_not: BigInt
+  totalNetFlowRate_gt: BigInt
+  totalNetFlowRate_lt: BigInt
+  totalNetFlowRate_gte: BigInt
+  totalNetFlowRate_lte: BigInt
+  totalNetFlowRate_in: [BigInt!]
+  totalNetFlowRate_not_in: [BigInt!]
+  totalInflowRate: BigInt
+  totalInflowRate_not: BigInt
+  totalInflowRate_gt: BigInt
+  totalInflowRate_lt: BigInt
+  totalInflowRate_gte: BigInt
+  totalInflowRate_lte: BigInt
+  totalInflowRate_in: [BigInt!]
+  totalInflowRate_not_in: [BigInt!]
+  totalOutflowRate: BigInt
+  totalOutflowRate_not: BigInt
+  totalOutflowRate_gt: BigInt
+  totalOutflowRate_lt: BigInt
+  totalOutflowRate_gte: BigInt
+  totalOutflowRate_lte: BigInt
+  totalOutflowRate_in: [BigInt!]
+  totalOutflowRate_not_in: [BigInt!]
+  totalAmountStreamed: BigInt
+  totalAmountStreamed_not: BigInt
+  totalAmountStreamed_gt: BigInt
+  totalAmountStreamed_lt: BigInt
+  totalAmountStreamed_gte: BigInt
+  totalAmountStreamed_lte: BigInt
+  totalAmountStreamed_in: [BigInt!]
+  totalAmountStreamed_not_in: [BigInt!]
+  totalAmountTransferred: BigInt
+  totalAmountTransferred_not: BigInt
+  totalAmountTransferred_gt: BigInt
+  totalAmountTransferred_lt: BigInt
+  totalAmountTransferred_gte: BigInt
+  totalAmountTransferred_lte: BigInt
+  totalAmountTransferred_in: [BigInt!]
+  totalAmountTransferred_not_in: [BigInt!]
+  account: String
+  account_not: String
+  account_gt: String
+  account_lt: String
+  account_gte: String
+  account_lte: String
+  account_in: [String!]
+  account_not_in: [String!]
+  account_contains: String
+  account_contains_nocase: String
+  account_not_contains: String
+  account_not_contains_nocase: String
+  account_starts_with: String
+  account_starts_with_nocase: String
+  account_not_starts_with: String
+  account_not_starts_with_nocase: String
+  account_ends_with: String
+  account_ends_with_nocase: String
+  account_not_ends_with: String
+  account_not_ends_with_nocase: String
+  token: String
+  token_not: String
+  token_gt: String
+  token_lt: String
+  token_gte: String
+  token_lte: String
+  token_in: [String!]
+  token_not_in: [String!]
+  token_contains: String
+  token_contains_nocase: String
+  token_not_contains: String
+  token_not_contains_nocase: String
+  token_starts_with: String
+  token_starts_with_nocase: String
+  token_not_starts_with: String
+  token_not_starts_with_nocase: String
+  token_ends_with: String
+  token_ends_with_nocase: String
+  token_not_ends_with: String
+  token_not_ends_with_nocase: String
+  accountTokenSnapshot: String
+  accountTokenSnapshot_not: String
+  accountTokenSnapshot_gt: String
+  accountTokenSnapshot_lt: String
+  accountTokenSnapshot_gte: String
+  accountTokenSnapshot_lte: String
+  accountTokenSnapshot_in: [String!]
+  accountTokenSnapshot_not_in: [String!]
+  accountTokenSnapshot_contains: String
+  accountTokenSnapshot_contains_nocase: String
+  accountTokenSnapshot_not_contains: String
+  accountTokenSnapshot_not_contains_nocase: String
+  accountTokenSnapshot_starts_with: String
+  accountTokenSnapshot_starts_with_nocase: String
+  accountTokenSnapshot_not_starts_with: String
+  accountTokenSnapshot_not_starts_with_nocase: String
+  accountTokenSnapshot_ends_with: String
+  accountTokenSnapshot_ends_with_nocase: String
+  accountTokenSnapshot_not_ends_with: String
+  accountTokenSnapshot_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
+}
+
+enum AccountTokenSnapshotLog_orderBy {
+  id
+  timestamp
+  blockNumber
+  transactionHash
+  logIndex
+  order
+  triggeredByEventName
+  maybeCriticalAtTimestamp
+  totalNumberOfActiveStreams
+  totalNumberOfClosedStreams
+  totalSubscriptionsWithUnits
+  totalApprovedSubscriptions
+  balance
+  totalDeposit
+  totalNetFlowRate
+  totalInflowRate
+  totalOutflowRate
+  totalAmountStreamed
+  totalAmountTransferred
+  account
+  token
+  accountTokenSnapshot
 }
 
 type AgreementClassRegisteredEvent implements Event {
@@ -423,7 +788,7 @@ type AgreementClassRegisteredEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -518,6 +883,9 @@ input AgreementClassRegisteredEvent_filter {
   code_not_in: [Bytes!]
   code_contains: Bytes
   code_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum AgreementClassRegisteredEvent_orderBy {
@@ -541,7 +909,7 @@ type AgreementClassUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -636,6 +1004,9 @@ input AgreementClassUpdatedEvent_filter {
   code_not_in: [Bytes!]
   code_contains: Bytes
   code_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum AgreementClassUpdatedEvent_orderBy {
@@ -659,7 +1030,7 @@ type AgreementLiquidatedByEvent implements Event {
 
   """
   Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -800,6 +1171,9 @@ input AgreementLiquidatedByEvent_filter {
   bailoutAmount_lte: BigInt
   bailoutAmount_in: [BigInt!]
   bailoutAmount_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum AgreementLiquidatedByEvent_orderBy {
@@ -828,8 +1202,8 @@ type AgreementLiquidatedV2Event implements Event {
   name: String!
 
   """
-  Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
-
+  Holds the token, liquidatorAccount, targetAccount and rewardAmountReceiver addresses.
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -840,11 +1214,17 @@ type AgreementLiquidatedV2Event implements Event {
   agreementClass: Bytes!
   agreementId: Bytes!
   targetAccount: Bytes!
-  rewardAccount: Bytes!
+  rewardAmountReceiver: Bytes!
   rewardAmount: BigInt!
   targetAccountBalanceDelta: BigInt!
   version: BigInt!
   liquidationType: Int!
+
+  """
+  TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+  
+  """
+  rewardAccount: Bytes!
 }
 
 input AgreementLiquidatedV2Event_filter {
@@ -950,12 +1330,12 @@ input AgreementLiquidatedV2Event_filter {
   targetAccount_not_in: [Bytes!]
   targetAccount_contains: Bytes
   targetAccount_not_contains: Bytes
-  rewardAccount: Bytes
-  rewardAccount_not: Bytes
-  rewardAccount_in: [Bytes!]
-  rewardAccount_not_in: [Bytes!]
-  rewardAccount_contains: Bytes
-  rewardAccount_not_contains: Bytes
+  rewardAmountReceiver: Bytes
+  rewardAmountReceiver_not: Bytes
+  rewardAmountReceiver_in: [Bytes!]
+  rewardAmountReceiver_not_in: [Bytes!]
+  rewardAmountReceiver_contains: Bytes
+  rewardAmountReceiver_not_contains: Bytes
   rewardAmount: BigInt
   rewardAmount_not: BigInt
   rewardAmount_gt: BigInt
@@ -988,6 +1368,15 @@ input AgreementLiquidatedV2Event_filter {
   liquidationType_lte: Int
   liquidationType_in: [Int!]
   liquidationType_not_in: [Int!]
+  rewardAccount: Bytes
+  rewardAccount_not: Bytes
+  rewardAccount_in: [Bytes!]
+  rewardAccount_not_in: [Bytes!]
+  rewardAccount_contains: Bytes
+  rewardAccount_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum AgreementLiquidatedV2Event_orderBy {
@@ -1004,11 +1393,12 @@ enum AgreementLiquidatedV2Event_orderBy {
   agreementClass
   agreementId
   targetAccount
-  rewardAccount
+  rewardAmountReceiver
   rewardAmount
   targetAccountBalanceDelta
   version
   liquidationType
+  rewardAccount
 }
 
 type AppRegisteredEvent implements Event {
@@ -1019,7 +1409,7 @@ type AppRegisteredEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1107,6 +1497,9 @@ input AppRegisteredEvent_filter {
   app_not_in: [Bytes!]
   app_contains: Bytes
   app_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum AppRegisteredEvent_orderBy {
@@ -1125,22 +1518,14 @@ scalar BigDecimal
 
 scalar BigInt
 
-"""The block at which the query should be executed."""
 input Block_height {
-  """Value containing a block hash"""
   hash: Bytes
-
-  """Value containing a block number"""
   number: Int
-
-  """
-  Value containing the minimum block number.
-  In the case of `number_gte`, the query will be executed on the latest block only if
-  the subgraph has progressed to or past the minimum block number.
-  Defaults to the latest block when omitted.
-
-  """
   number_gte: Int
+}
+
+input BlockChangedFilter {
+  number_gte: Int!
 }
 
 type BurnedEvent implements Event {
@@ -1151,7 +1536,7 @@ type BurnedEvent implements Event {
 
   """
   Holds the token and from addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1269,6 +1654,9 @@ input BurnedEvent_filter {
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
   operatorData_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum BurnedEvent_orderBy {
@@ -1297,7 +1685,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1406,6 +1794,9 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   liquidationPeriod_lte: BigInt
   liquidationPeriod_in: [BigInt!]
   liquidationPeriod_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum CFAv1LiquidationPeriodChangedEvent_orderBy {
@@ -1431,7 +1822,7 @@ type ConfigChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1547,6 +1938,9 @@ input ConfigChangedEvent_filter {
   value_lte: BigInt
   value_in: [BigInt!]
   value_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum ConfigChangedEvent_orderBy {
@@ -1573,7 +1967,7 @@ type CustomSuperTokenCreatedEvent implements Event {
 
   """
   Holds the token address.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1661,6 +2055,9 @@ input CustomSuperTokenCreatedEvent_filter {
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum CustomSuperTokenCreatedEvent_orderBy {
@@ -1690,7 +2087,7 @@ interface Event {
 
   """
   Holds the addresses for accounts that were impacted by the event.
-
+  
   """
   addresses: [Bytes!]!
   timestamp: BigInt!
@@ -1770,6 +2167,9 @@ input Event_filter {
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
   transactionHash_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum Event_orderBy {
@@ -1790,7 +2190,7 @@ FlowOperator: A higher order entity that of a flow operator for an `AccountToken
 type FlowOperator {
   """
   ID composed of: flowOperator - token - sender
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -1801,7 +2201,7 @@ type FlowOperator {
   """
   The permissions granted to the `flowOperator`.
   Octo bitmask representation.
-
+  
   """
   permissions: Int!
 
@@ -1809,7 +2209,7 @@ type FlowOperator {
   The flow rate allowance granted to the `flowOperator`
   by the `sender`. This can be reset if the `sender`
   updates the `flowOperator` flow rate allowance.
-
+  
   """
   flowRateAllowanceGranted: BigInt!
 
@@ -1819,7 +2219,7 @@ type FlowOperator {
   (if they increase flowRate or create a new flow)
   and can only be reset if the `sender` updates the flow
   rate allowance.
-
+  
   """
   flowRateAllowanceRemaining: BigInt!
   flowOperator: Bytes!
@@ -1960,6 +2360,9 @@ input FlowOperator_filter {
   accountTokenSnapshot_ends_with_nocase: String
   accountTokenSnapshot_not_ends_with: String
   accountTokenSnapshot_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum FlowOperator_orderBy {
@@ -1986,7 +2389,7 @@ type FlowOperatorUpdatedEvent implements Event {
 
   """
   Holds the token, sender, and flowOperator addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1995,7 +2398,7 @@ type FlowOperatorUpdatedEvent implements Event {
 
   """
   The address of the `token` being streamed.
-
+  
   """
   token: Bytes!
   sender: Bytes!
@@ -2003,7 +2406,7 @@ type FlowOperatorUpdatedEvent implements Event {
   """
   The permissions granted to the `flowOperator`.
   Octo bitmask representation.
-
+  
   """
   permissions: Int!
   flowRateAllowance: BigInt!
@@ -2131,6 +2534,9 @@ input FlowOperatorUpdatedEvent_filter {
   flowOperator_ends_with_nocase: String
   flowOperator_not_ends_with: String
   flowOperator_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum FlowOperatorUpdatedEvent_orderBy {
@@ -2162,7 +2568,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   Holds the token, sender and receiver addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -2171,7 +2577,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   The address of the `token` being streamed.
-
+  
   """
   token: Bytes!
   sender: Bytes!
@@ -2181,13 +2587,13 @@ type FlowUpdatedEvent implements Event {
   The address that is triggering the flow update.
   This will be the zero address until the flowOperator
   feature is live.
-
+  
   """
   flowOperator: Bytes!
 
   """
   The flow rate per second.
-
+  
   """
   flowRate: BigInt!
   totalSenderFlowRate: BigInt!
@@ -2197,7 +2603,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   The previous flow rate.
-
+  
   """
   oldFlowRate: BigInt!
 
@@ -2206,20 +2612,20 @@ type FlowUpdatedEvent implements Event {
   0 = create
   1 = update
   2 = terminate
-
+  
   """
   type: Int!
 
   """
   The total amount streamed until the timestamp
   for the Stream entity linked to this event.
-
+  
   """
   totalAmountStreamedUntilTimestamp: BigInt!
 
   """
   The stream entity which is being modified.
-
+  
   """
   stream: Stream!
 }
@@ -2403,6 +2809,9 @@ input FlowUpdatedEvent_filter {
   stream_ends_with_nocase: String
   stream_not_ends_with: String
   stream_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum FlowUpdatedEvent_orderBy {
@@ -2441,7 +2850,7 @@ type GovernanceReplacedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   oldGovernance: Bytes!
   newGovernance: Bytes!
@@ -2532,6 +2941,9 @@ input GovernanceReplacedEvent_filter {
   newGovernance_not_in: [Bytes!]
   newGovernance_contains: Bytes
   newGovernance_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum GovernanceReplacedEvent_orderBy {
@@ -2554,7 +2966,7 @@ Index: An Index higher order entity.
 type Index {
   """
   ID composed of: publisherAddress-tokenAddress-indexId
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -2564,14 +2976,14 @@ type Index {
 
   """
   indexId is not the id of the `Index` entity.
-
+  
   """
   indexId: BigInt!
   indexValue: BigInt!
 
   """
   The number of subscriptions which have units allocated to them on the `Index`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
@@ -2579,7 +2991,7 @@ type Index {
   The number of units allocated by the `Index` that are pending.
   This refers to the current (as of updatedAt) `totalUnitsPending`
   - not all that has ever been pending.
-
+  
   """
   totalUnitsPending: BigInt!
 
@@ -2587,19 +2999,19 @@ type Index {
   The number of units allocated by the `Index` that are approved.
   This refers to the current (as of updatedAt) `totalUnitsApproved`
   - not all that has ever been approved.
-
+  
   """
   totalUnitsApproved: BigInt!
 
   """
   The sum of `totalUnitsPending` and `totalUnitsApproved`.
-
+  
   """
   totalUnits: BigInt!
 
   """
   The total amount distributed from this `Index`.
-
+  
   """
   totalAmountDistributedUntilUpdatedAt: BigInt!
   token: Token!
@@ -2608,13 +3020,13 @@ type Index {
   """
   The subscriptions of the index, it will include approved, unapproved
   and deleted subscriptions.
-
+  
   """
   subscriptions(skip: Int = 0, first: Int = 100, orderBy: IndexSubscription_orderBy, orderDirection: OrderDirection, where: IndexSubscription_filter): [IndexSubscription!]!
 
   """
   IndexCreated event, there will only be one.
-
+  
   """
   indexCreatedEvent: IndexCreatedEvent!
   indexDistributionClaimedEvents(skip: Int = 0, first: Int = 100, orderBy: IndexDistributionClaimedEvent_orderBy, orderDirection: OrderDirection, where: IndexDistributionClaimedEvent_filter): [IndexDistributionClaimedEvent!]!
@@ -2781,6 +3193,9 @@ input Index_filter {
   indexCreatedEvent_ends_with_nocase: String
   indexCreatedEvent_not_ends_with: String
   indexCreatedEvent_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum Index_orderBy {
@@ -2815,7 +3230,7 @@ type IndexCreatedEvent implements Event {
 
   """
   Holds the token and publisher addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -2947,6 +3362,9 @@ input IndexCreatedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexCreatedEvent_orderBy {
@@ -2973,7 +3391,7 @@ type IndexDistributionClaimedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3114,6 +3532,9 @@ input IndexDistributionClaimedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexDistributionClaimedEvent_orderBy {
@@ -3141,7 +3562,7 @@ type IndexSubscribedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3280,6 +3701,9 @@ input IndexSubscribedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexSubscribedEvent_orderBy {
@@ -3307,7 +3731,7 @@ IndexSubscription: A higher order entity that contains subscription data for a `
 type IndexSubscription {
   """
   ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -3319,21 +3743,21 @@ type IndexSubscription {
   """
   Approved subscriptions don't require subscribers to claim tokens that are distributed from
   the publisher.
-
+  
   """
   approved: Boolean!
 
   """
   If units is 0, it indicates that the subscription is "deleted". They are no longer
   subscribed to the index.
-
+  
   """
   units: BigInt!
 
   """
   The total amount of tokens you've received via IDA until
   `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountReceivedUntilUpdatedAt: BigInt!
 
@@ -3342,14 +3766,14 @@ type IndexSubscription {
   `index.updatedAtTimestamp`. The formula to get this value is:
   `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue -
   indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
-
+  
   """
   indexValueUntilUpdatedAt: BigInt!
   index: Index!
 
   """
   IndexSubscription approved events on the subscription.
-
+  
   """
   subscriptionApprovedEvents(skip: Int = 0, first: Int = 100, orderBy: SubscriptionApprovedEvent_orderBy, orderDirection: OrderDirection, where: SubscriptionApprovedEvent_filter): [SubscriptionApprovedEvent!]!
   subscriptionDistributionClaimedEvents(skip: Int = 0, first: Int = 100, orderBy: SubscriptionDistributionClaimedEvent_orderBy, orderDirection: OrderDirection, where: SubscriptionDistributionClaimedEvent_filter): [SubscriptionDistributionClaimedEvent!]!
@@ -3466,6 +3890,9 @@ input IndexSubscription_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexSubscription_orderBy {
@@ -3494,7 +3921,7 @@ type IndexUnitsUpdatedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3651,6 +4078,9 @@ input IndexUnitsUpdatedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexUnitsUpdatedEvent_orderBy {
@@ -3680,7 +4110,7 @@ type IndexUnsubscribedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3819,6 +4249,9 @@ input IndexUnsubscribedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexUnsubscribedEvent_orderBy {
@@ -3846,7 +4279,7 @@ type IndexUpdatedEvent implements Event {
 
   """
   Holds the token and publisher addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4014,6 +4447,9 @@ input IndexUpdatedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum IndexUpdatedEvent_orderBy {
@@ -4044,7 +4480,7 @@ type JailEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4141,6 +4577,9 @@ input JailEvent_filter {
   reason_lte: BigInt
   reason_in: [BigInt!]
   reason_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum JailEvent_orderBy {
@@ -4164,7 +4603,7 @@ type MintedEvent implements Event {
 
   """
   Holds the token, operator and to addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4282,6 +4721,9 @@ input MintedEvent_filter {
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
   operatorData_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum MintedEvent_orderBy {
@@ -4314,7 +4756,7 @@ type PPPConfigurationChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4432,6 +4874,9 @@ input PPPConfigurationChangedEvent_filter {
   patricianPeriod_lte: BigInt
   patricianPeriod_in: [BigInt!]
   patricianPeriod_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum PPPConfigurationChangedEvent_orderBy {
@@ -6331,6 +6776,46 @@ type Query {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [AccountTokenSnapshot!]!
+  accountTokenSnapshotLog(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): AccountTokenSnapshotLog
+  accountTokenSnapshotLogs(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: AccountTokenSnapshotLog_orderBy
+    orderDirection: OrderDirection
+    where: AccountTokenSnapshotLog_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [AccountTokenSnapshotLog!]!
   tokenStatistic(
     id: ID!
 
@@ -6464,7 +6949,7 @@ type RewardAddressChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -6571,6 +7056,9 @@ input RewardAddressChangedEvent_filter {
   rewardAddress_not_in: [Bytes!]
   rewardAddress_contains: Bytes
   rewardAddress_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum RewardAddressChangedEvent_orderBy {
@@ -6596,7 +7084,7 @@ type RoleAdminChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -6698,6 +7186,9 @@ input RoleAdminChangedEvent_filter {
   newAdminRole_not_in: [Bytes!]
   newAdminRole_contains: Bytes
   newAdminRole_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum RoleAdminChangedEvent_orderBy {
@@ -6722,7 +7213,7 @@ type RoleGrantedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -6824,6 +7315,9 @@ input RoleGrantedEvent_filter {
   sender_not_in: [Bytes!]
   sender_contains: Bytes
   sender_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum RoleGrantedEvent_orderBy {
@@ -6848,7 +7342,7 @@ type RoleRevokedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -6950,6 +7444,9 @@ input RoleRevokedEvent_filter {
   sender_not_in: [Bytes!]
   sender_contains: Bytes
   sender_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum RoleRevokedEvent_orderBy {
@@ -6974,7 +7471,7 @@ type SentEvent implements Event {
 
   """
   Holds the token, operator and from addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -7099,6 +7596,9 @@ input SentEvent_filter {
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
   operatorData_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SentEvent_orderBy {
@@ -7121,7 +7621,7 @@ enum SentEvent_orderBy {
 type SFMeta {
   """
   The id is the commit hash.
-
+  
   """
   id: ID!
   timestamp: BigInt!
@@ -7129,13 +7629,13 @@ type SFMeta {
 
   """
   Whether the branch is feature/dev/v1.
-
+  
   """
   configuration: String!
 
   """
   The branch the current deployment is coming from.
-
+  
   """
   branch: String!
 }
@@ -7205,6 +7705,9 @@ input SFMeta_filter {
   branch_ends_with_nocase: String
   branch_not_ends_with: String
   branch_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SFMeta_orderBy {
@@ -7226,7 +7729,7 @@ between the same `sender` and `receiver`.
 type Stream {
   """
   ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -7240,7 +7743,7 @@ type Stream {
   The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
   amount is:
   `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
-
+  
   """
   streamedUntilUpdatedAt: BigInt!
   token: Token!
@@ -7375,6 +7878,9 @@ input Stream_filter {
   receiver_ends_with_nocase: String
   receiver_not_ends_with: String
   receiver_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum Stream_orderBy {
@@ -7400,7 +7906,7 @@ StreamPeriod: A higher order entity that represents a period of time in a Stream
 type StreamPeriod {
   """
   ID composed of: streamId - periodRevisionIndex
-
+  
   """
   id: ID!
   stream: Stream!
@@ -7415,7 +7921,7 @@ type StreamPeriod {
 
   """
   Following values are null until the StreamPeriod is terminated
-
+  
   """
   stoppedAtTimestamp: BigInt
   stoppedAtBlockNumber: BigInt
@@ -7608,6 +8114,9 @@ input StreamPeriod_filter {
   totalAmountStreamed_lte: BigInt
   totalAmountStreamed_in: [BigInt!]
   totalAmountStreamed_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum StreamPeriod_orderBy {
@@ -7658,6 +8167,9 @@ input StreamRevision_filter {
   periodRevisionIndex_lte: Int
   periodRevisionIndex_in: [Int!]
   periodRevisionIndex_not_in: [Int!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum StreamRevision_orderBy {
@@ -9547,6 +10059,46 @@ type Subscription {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [AccountTokenSnapshot!]!
+  accountTokenSnapshotLog(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): AccountTokenSnapshotLog
+  accountTokenSnapshotLogs(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: AccountTokenSnapshotLog_orderBy
+    orderDirection: OrderDirection
+    where: AccountTokenSnapshotLog_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [AccountTokenSnapshotLog!]!
   tokenStatistic(
     id: ID!
 
@@ -9680,7 +10232,7 @@ type SubscriptionApprovedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -9819,6 +10371,9 @@ input SubscriptionApprovedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SubscriptionApprovedEvent_orderBy {
@@ -9846,7 +10401,7 @@ type SubscriptionDistributionClaimedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -9987,6 +10542,9 @@ input SubscriptionDistributionClaimedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SubscriptionDistributionClaimedEvent_orderBy {
@@ -10014,7 +10572,7 @@ type SubscriptionRevokedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10153,6 +10711,9 @@ input SubscriptionRevokedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SubscriptionRevokedEvent_orderBy {
@@ -10180,7 +10741,7 @@ type SubscriptionUnitsUpdatedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10337,6 +10898,9 @@ input SubscriptionUnitsUpdatedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SubscriptionUnitsUpdatedEvent_orderBy {
@@ -10366,7 +10930,7 @@ type SuperTokenCreatedEvent implements Event {
 
   """
   Holds the token address.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10454,6 +11018,9 @@ input SuperTokenCreatedEvent_filter {
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SuperTokenCreatedEvent_orderBy {
@@ -10476,7 +11043,7 @@ type SuperTokenFactoryUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10564,6 +11131,9 @@ input SuperTokenFactoryUpdatedEvent_filter {
   newFactory_not_in: [Bytes!]
   newFactory_contains: Bytes
   newFactory_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SuperTokenFactoryUpdatedEvent_orderBy {
@@ -10586,7 +11156,7 @@ type SuperTokenLogicCreatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10674,6 +11244,9 @@ input SuperTokenLogicCreatedEvent_filter {
   tokenLogic_not_in: [Bytes!]
   tokenLogic_contains: Bytes
   tokenLogic_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SuperTokenLogicCreatedEvent_orderBy {
@@ -10696,7 +11269,7 @@ type SuperTokenLogicUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10791,6 +11364,9 @@ input SuperTokenLogicUpdatedEvent_filter {
   code_not_in: [Bytes!]
   code_contains: Bytes
   code_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum SuperTokenLogicUpdatedEvent_orderBy {
@@ -10814,7 +11390,7 @@ Superfluid's host contract address set as the host).
 type Token {
   """
   ID: the token address
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -10826,20 +11402,20 @@ type Token {
 
   """
   This indicates whether the token is a part of our resolver list.
-
+  
   """
   isListed: Boolean!
 
   """
   The address of the underlying ERC20 token.
-
+  
   """
   underlyingAddress: Bytes!
 
   """
   The underlying ERC20 token for a SuperToken or
   null for a regular ERC20 token.
-
+  
   """
   underlyingToken: Token
 }
@@ -10951,6 +11527,9 @@ input Token_filter {
   underlyingToken_ends_with_nocase: String
   underlyingToken_not_ends_with: String
   underlyingToken_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum Token_orderBy {
@@ -10975,7 +11554,7 @@ type TokenDowngradedEvent implements Event {
 
   """
   Holds the token and account addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11092,6 +11671,9 @@ input TokenDowngradedEvent_filter {
   amount_lte: BigInt
   amount_in: [BigInt!]
   amount_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum TokenDowngradedEvent_orderBy {
@@ -11115,7 +11697,7 @@ TokenStatistic: An aggregate entity which aggregates data of a single `token`.
 type TokenStatistic {
   """
   id: token address
-
+  
   """
   id: ID!
   updatedAtTimestamp: BigInt!
@@ -11123,76 +11705,76 @@ type TokenStatistic {
 
   """
   The total number of currently active `token` streams.
-
+  
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The all-time number of closed streams.
-
+  
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The total number of Indexes created with `token`.
-
+  
   """
   totalNumberOfIndexes: Int!
 
   """
   The total number of "active" (has greater than 0 units and has distributed it at
   least once) Indexes created with `token`.
-
+  
   """
   totalNumberOfActiveIndexes: Int!
 
   """
   The number of subscriptions which have units allocated to them
   created with Indexes that distribute `token`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all approved subscriptions whether or not they have units.
-
+  
   """
   totalApprovedSubscriptions: Int!
 
   """
   The total deposit held by the CFA agreement for this particular `token`.
-
+  
   """
   totalDeposit: BigInt!
 
   """
   The total outflow rate of the `token` (how much value is being moved).
-
+  
   """
   totalOutflowRate: BigInt!
 
   """
   The all-time total amount streamed until the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
 
   """
   The all-time total amount transferred until the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountTransferredUntilUpdatedAt: BigInt!
 
   """
   The all-time total amount distributed until the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountDistributedUntilUpdatedAt: BigInt!
 
   """
   The total supply of the token - this is impacted by users upgrading/downgrading their
   tokens.
-
+  
   """
   totalSupply: BigInt!
   token: Token!
@@ -11339,6 +11921,9 @@ input TokenStatistic_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum TokenStatistic_orderBy {
@@ -11369,7 +11954,7 @@ type TokenUpgradedEvent implements Event {
 
   """
   Holds the token and account addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11486,6 +12071,9 @@ input TokenUpgradedEvent_filter {
   amount_lte: BigInt
   amount_in: [BigInt!]
   amount_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum TokenUpgradedEvent_orderBy {
@@ -11510,7 +12098,7 @@ type TransferEvent implements Event {
 
   """
   Holds the token, from and to addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11649,6 +12237,9 @@ input TransferEvent_filter {
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum TransferEvent_orderBy {
@@ -11674,7 +12265,7 @@ type TrustedForwarderChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11786,6 +12377,9 @@ input TrustedForwarderChangedEvent_filter {
   enabled_not: Boolean
   enabled_in: [Boolean!]
   enabled_not_in: [Boolean!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
 }
 
 enum TrustedForwarderChangedEvent_orderBy {

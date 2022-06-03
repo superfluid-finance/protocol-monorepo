@@ -28,5 +28,6 @@ query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountT
         updatedAtBlockNumber
         updatedAtTimestamp
         maybeCriticalAtTimestamp
+        isLiquidationEstimateOptimistic
     }
 }

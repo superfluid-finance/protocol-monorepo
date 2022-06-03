@@ -197,12 +197,14 @@ contract TOGA is ITOGAv2, IERC777Recipient {
             // need to update existing flow
             _host.callAgreement(
                 _cfa,
-                abi.encodeWithSelector(
-                    _cfa.updateFlow.selector,
-                    token,
-                    currentPICAddr,
-                    newExitRate,
-                    new bytes(0)
+                abi.encodeCall(
+                    _cfa.updateFlow,
+                    (
+                        token,
+                        currentPICAddr,
+                        newExitRate,
+                        new bytes(0)
+                    )
                 ),
                 "0x"
             );
@@ -210,12 +212,14 @@ contract TOGA is ITOGAv2, IERC777Recipient {
             // no pre-existing flow, need to create
             _host.callAgreement(
                 _cfa,
-                abi.encodeWithSelector(
-                    _cfa.createFlow.selector,
-                    token,
-                    currentPICAddr,
-                    newExitRate,
-                    new bytes(0)
+                abi.encodeCall(
+                    _cfa.createFlow,
+                    (
+                        token,
+                        currentPICAddr,
+                        newExitRate,
+                        new bytes(0)
+                    )
                 ),
                 "0x"
             );
@@ -223,12 +227,14 @@ contract TOGA is ITOGAv2, IERC777Recipient {
             // need to close existing flow
             _host.callAgreement(
                 _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    token,
-                    address(this),
-                    currentPICAddr,
-                    new bytes(0)
+                abi.encodeCall(
+                    _cfa.deleteFlow,
+                    (
+                        token,
+                        address(this),
+                        currentPICAddr,
+                        new bytes(0)
+                    )
                 ),
                 "0x"
             );
@@ -267,12 +273,14 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         if (curFlowRate > 0) {
             _host.callAgreement(
                 _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    token,
-                    address(this),
-                    currentPICAddr,
-                    new bytes(0)
+                abi.encodeCall(
+                    _cfa.deleteFlow,
+                    (
+                        token,
+                        address(this),
+                        currentPICAddr,
+                        new bytes(0)
+                    )
                 ),
                 "0x"
             );
@@ -300,12 +308,14 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         if (exitRate > 0) {
             _host.callAgreement(
                 _cfa,
-                abi.encodeWithSelector(
-                    _cfa.createFlow.selector,
-                    token,
-                    newPIC,
-                    exitRate,
-                    new bytes(0)
+                abi.encodeCall(
+                    _cfa.createFlow,
+                    (
+                        token,
+                        newPIC,
+                        exitRate,
+                        new bytes(0)
+                    )
                 ),
                 "0x"
             );

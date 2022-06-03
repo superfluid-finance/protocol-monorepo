@@ -3,8 +3,6 @@ require("../test/contracts/upgradability/UUPS.test.js");
 
 // Libs
 require("../test/contracts/libs/CallUtils.test.js");
-require("../test/contracts/libs/Int96SafeMath.test.js");
-require("../test/contracts/libs/UInt128SafeMath.test.js");
 
 // Superfluid
 require("./superfluid-core.js");

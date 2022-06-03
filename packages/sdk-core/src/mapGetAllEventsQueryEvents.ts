@@ -74,11 +74,14 @@ export const mapGetAllEventsQueryEvents = (
                     agreementClass: x.agreementClass,
                     agreementId: x.agreementId,
                     targetAccount: x.targetAccount,
-                    rewardAccount: x.rewardAccount,
+                    rewardAmountReceiver: x.rewardAmountReceiver,
                     rewardAmount: x.rewardAmount,
                     targetAccountBalanceDelta: x.targetAccountBalanceDelta,
                     version: x.version,
                     liquidationType: x.liquidationType,
+
+                    // TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+                    rewardAccount: x.rewardAccount,
                 });
             case "BurnedEvent":
                 return typeGuard<events.BurnedEvent>({

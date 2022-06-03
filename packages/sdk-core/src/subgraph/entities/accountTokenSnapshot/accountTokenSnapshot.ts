@@ -31,7 +31,8 @@ export interface AccountTokenSnapshot {
     totalNetFlowRate: BigNumber;
     totalNumberOfActiveStreams: number;
     totalOutflowRate: BigNumber;
-    maybeCriticalAtTimestamp: BigNumber;
+    maybeCriticalAtTimestamp: Timestamp;
+    isLiquidationEstimateOptimistic: boolean;
     totalNumberOfClosedStreams: number;
     totalSubscriptionsWithUnits: number;
     updatedAtBlockNumber: BlockNumber;
@@ -75,6 +76,7 @@ export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
             account: x.account.id,
             token: x.token.id,
             tokenSymbol: x.token.symbol,
+            maybeCriticalAtTimestamp: Number(x.maybeCriticalAtTimestamp),
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
         }));

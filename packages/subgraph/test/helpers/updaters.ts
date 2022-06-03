@@ -126,11 +126,12 @@ export const getExpectedATSForCFAEvent = async (
     provider: BaseProvider
 ): Promise<IAccountTokenSnapshot> => {
     const balanceUntilUpdatedAt = (
-        await superToken.balanceOf({
+        await superToken.realtimeBalanceOf({
             account: currentATS.account.id,
             providerOrSigner: provider,
+            timestamp: Number(updatedAtTimestamp),
         })
-    ).toString();
+    ).availableBalance;
 
     // Force casting because they will never be undefined
     const activeStreamsDelta =
@@ -586,8 +587,10 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
         currentSubscriberATS,
         currentTokenStats,
         updatedAtBlockNumber,
+        isEventEmitted,
         timestamp,
         provider,
+        atsArray,
     } = data;
     const distributionDelta = toBN(currentSubscription.units).mul(
         toBN(currentIndex.indexValue).sub(
@@ -595,9 +598,20 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
         )
     );
 
-    let updatedTokenStats: ITokenStatistic = {
-        ...currentTokenStats,
-    };
+    let updatedTokenStats: ITokenStatistic = isEventEmitted
+        ? {
+              ...getExpectedTokenStatsForCFAEvent(
+                  currentTokenStats,
+                  atsArray,
+                  updatedAtBlockNumber,
+                  timestamp,
+                  FlowActionType.Update,
+                  toBN(0),
+                  toBN(0),
+                  toBN(0)
+              ),
+          }
+        : currentTokenStats;
 
     let updatedIndex: IIndex = {
         ...currentIndex,
@@ -613,35 +627,39 @@ export const getExpectedDataForSubscriptionDistributionClaimed = async (
         indexValueUntilUpdatedAt: updatedIndex.indexValue,
     };
 
-    let updatedSubscriberATS: IAccountTokenSnapshot = {
-        ...(await getExpectedATSForCFAEvent(
-            token,
-            currentSubscriberATS,
-            updatedAtBlockNumber,
-            timestamp,
-            FlowActionType.Update,
-            true,
-            toBN(0),
-            toBN(0),
-            toBN(0),
-            provider
-        )),
-    };
+    let updatedSubscriberATS: IAccountTokenSnapshot = isEventEmitted
+        ? {
+              ...(await getExpectedATSForCFAEvent(
+                  token,
+                  currentSubscriberATS,
+                  updatedAtBlockNumber,
+                  timestamp,
+                  FlowActionType.Update,
+                  true,
+                  toBN(0),
+                  toBN(0),
+                  toBN(0),
+                  provider
+              )),
+          }
+        : currentSubscriberATS;
 
-    let updatedPublisherATS: IAccountTokenSnapshot = {
-        ...(await getExpectedATSForCFAEvent(
-            token,
-            currentPublisherATS,
-            updatedAtBlockNumber,
-            timestamp,
-            FlowActionType.Update,
-            true,
-            toBN(0),
-            toBN(0),
-            toBN(0),
-            provider
-        )),
-    };
+    let updatedPublisherATS: IAccountTokenSnapshot = isEventEmitted
+        ? {
+              ...(await getExpectedATSForCFAEvent(
+                  token,
+                  currentPublisherATS,
+                  updatedAtBlockNumber,
+                  timestamp,
+                  FlowActionType.Update,
+                  true,
+                  toBN(0),
+                  toBN(0),
+                  toBN(0),
+                  provider
+              )),
+          }
+        : currentPublisherATS;
 
     return {
         updatedIndex,
@@ -861,7 +879,16 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         )),
     };
     const subscriptionWithUnitsExists = currentSubscription.units !== "0";
-    let updatedTokenStats = { ...currentTokenStats };
+    let updatedTokenStats = getExpectedTokenStatsForCFAEvent(
+        currentTokenStats,
+        atsArray,
+        updatedAtBlockNumber,
+        timestamp,
+        FlowActionType.Update,
+        toBN(0),
+        toBN(0),
+        toBN(0)
+    );
 
     const unitsDelta = units.sub(toBN(currentSubscription.units));
     if (currentSubscription.approved) {
@@ -892,16 +919,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
 
     if (units.eq(toBN(0))) {
         updatedTokenStats = {
-            ...getExpectedTokenStatsForCFAEvent(
-                updatedTokenStats,
-                atsArray,
-                updatedAtBlockNumber,
-                timestamp,
-                FlowActionType.Update,
-                toBN(0),
-                toBN(0),
-                toBN(0)
-            ),
+            ...updatedTokenStats,
             totalSubscriptionsWithUnits:
                 updatedTokenStats.totalSubscriptionsWithUnits +
                 totalSubscriptionsWithUnitsDelta,
@@ -936,16 +954,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         };
 
         updatedTokenStats = {
-            ...getExpectedTokenStatsForCFAEvent(
-                updatedTokenStats,
-                atsArray,
-                updatedAtBlockNumber,
-                timestamp,
-                FlowActionType.Update,
-                toBN(0),
-                toBN(0),
-                toBN(0)
-            ),
+            ...updatedTokenStats,
             totalSubscriptionsWithUnits:
                 updatedTokenStats.totalSubscriptionsWithUnits + 1,
         };

@@ -666,7 +666,7 @@ type AgreementLiquidatedV2Event implements Event @entity {
     name: String!
 
     """
-    Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
+    Holds the token, liquidatorAccount, targetAccount and rewardAmountReceiver addresses.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -677,11 +677,14 @@ type AgreementLiquidatedV2Event implements Event @entity {
     agreementClass: Bytes!
     agreementId: Bytes!
     targetAccount: Bytes!
-    rewardAccount: Bytes!
+    rewardAmountReceiver: Bytes!
     rewardAmount: BigInt!
     targetAccountBalanceDelta: BigInt!
     version: BigInt!
     liquidationType: Int!
+
+    """TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead"""
+    rewardAccount: Bytes! @deprecated(reason: "use rewardAmountReceiver")
 }
 
 type BurnedEvent implements Event @entity {

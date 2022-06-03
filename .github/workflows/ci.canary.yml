@@ -62,6 +62,13 @@ jobs:
     name: Build and Test Subgraph (Development Branch)
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
+  test-subraph-on-previous-sdk-core-versions:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Build and Test Current Subgraph Implementation with Previous SDK-Core Versions
+    with:
+      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
+      subgraph-release: local
+
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
 

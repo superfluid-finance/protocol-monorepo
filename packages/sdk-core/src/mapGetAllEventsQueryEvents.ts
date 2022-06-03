@@ -79,6 +79,9 @@ export const mapGetAllEventsQueryEvents = (
                     targetAccountBalanceDelta: x.targetAccountBalanceDelta,
                     version: x.version,
                     liquidationType: x.liquidationType,
+
+                    // TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+                    rewardAccount: x.rewardAccount,
                 });
             case "BurnedEvent":
                 return typeGuard<events.BurnedEvent>({

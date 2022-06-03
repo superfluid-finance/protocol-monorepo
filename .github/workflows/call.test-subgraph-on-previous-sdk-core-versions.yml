@@ -23,15 +23,15 @@ jobs:
     env:
       contracts-working-directory: ./packages/ethereum-contracts
       sdk-core-working-directory: ./packages/sdk-core
-    
+
     steps:
       - uses: actions/checkout@v3
-    
+
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
-          
+
       - name: "Install contract dependencies"
         run: yarn install
         working-directory: ${{ env.contracts-working-directory }}
@@ -68,7 +68,7 @@ jobs:
         if: inputs.local-subgraph-url != ''
         run: docker-compose up &
         working-directory: ./graph-node/docker
-      #
+      #                                                             #
 
       - name: "Setup subgraph test environment"
         if: inputs.local-subgraph-url != ''

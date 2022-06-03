@@ -28,8 +28,6 @@ import {
 
 contract RedirectAll is SuperAppBase {
 
-    ISuperfluid public _host; // host
-    IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
     ISuperToken private _acceptedToken; // accepted token
     address public _receiver;
 
@@ -38,28 +36,22 @@ contract RedirectAll is SuperAppBase {
 
     constructor(
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken,
         address receiver) {
         assert(address(host) != address(0));
-        assert(address(cfa) != address(0));
         assert(address(acceptedToken) != address(0));
         assert(address(receiver) != address(0));
-        //assert(!_host.isApp(ISuperApp(receiver)));
 
-        _host = host;
-        _cfa = cfa;
         _acceptedToken = acceptedToken;
         _receiver = receiver;
 
         uint256 configWord =
             SuperAppDefinitions.APP_LEVEL_FINAL |
-            // change from 'before agreement stuff to after agreement
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
-        _host.registerApp(configWord);
+        host.registerApp(configWord);
 
         //initialize InitData struct, and set equal to cfaV1
         cfaV1 = CFAv1Library.InitData(
@@ -89,7 +81,7 @@ contract RedirectAll is SuperAppBase {
         )
     {
         if (_receiver != address(0)) {
-            (startTime, flowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver);
+            (startTime, flowRate,,) = cfaV1.cfa.getFlow(_acceptedToken, address(this), _receiver);
             receiver = _receiver;
         }
     }
@@ -103,8 +95,8 @@ contract RedirectAll is SuperAppBase {
     {
       newCtx = ctx;
       // @dev This will give me the new flowRate, as it is called in after callbacks
-      int96 netFlowRate = _cfa.getNetFlow(_acceptedToken, address(this));
-      (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver);
+      int96 netFlowRate = cfaV1.cfa.getNetFlow(_acceptedToken, address(this));
+      (,int96 outFlowRate,,) = cfaV1.cfa.getFlow(_acceptedToken, address(this), _receiver);
       int96 inFlowRate = netFlowRate + outFlowRate;
       if (inFlowRate < 0 ) {
           inFlowRate = inFlowRate * -1; // Fixes issue when inFlowRate is negative
@@ -128,14 +120,14 @@ contract RedirectAll is SuperAppBase {
     function _changeReceiver( address newReceiver ) internal {
         require(newReceiver != address(0), "New receiver is zero address");
         // @dev because our app is registered as final, we can't take downstream apps
-        require(!_host.isApp(ISuperApp(newReceiver)), "New receiver can not be a superApp");
+        require(!cfaV1.host.isApp(ISuperApp(newReceiver)), "New receiver can not be a superApp");
         // @dev only engage in flow editting if there is active outflow and transfer is not to self
-        (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver);
+        (,int96 outFlowRate,,) = cfaV1.cfa.getFlow(_acceptedToken, address(this), _receiver);
         if (newReceiver == _receiver || outFlowRate == 0) return ;
         // @dev delete flow to old receiver
         cfaV1.deleteFlow(address(this), _receiver, _acceptedToken);
         // @dev create flow to new receiver
-        cfaV1.createFlow(newReceiver, _acceptedToken, _cfa.getNetFlow(_acceptedToken, address(this)));
+        cfaV1.createFlow(newReceiver, _acceptedToken, cfaV1.cfa.getNetFlow(_acceptedToken, address(this)));
         // @dev set global receiver to new receiver
         _receiver = newReceiver;
 
@@ -166,7 +158,7 @@ contract RedirectAll is SuperAppBase {
     {
         
         // decode Context - store full context as uData variable for easy visualization purposes
-        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        ISuperfluid.Context memory decompiledContext = cfaV1.host.decodeCtx(_ctx);
         uData = decompiledContext;
 
         //set userData variable to decoded value
@@ -191,7 +183,7 @@ contract RedirectAll is SuperAppBase {
         onlyHost
         returns (bytes memory newCtx)
     {
-        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        ISuperfluid.Context memory decompiledContext = cfaV1.host.decodeCtx(_ctx);
         uData = decompiledContext;
 
         userData = abi.decode(decompiledContext.userData, (string));
@@ -227,7 +219,7 @@ contract RedirectAll is SuperAppBase {
     }
 
     modifier onlyHost() {
-        require(msg.sender == address(_host), "RedirectAll: support only one host");
+        require(msg.sender == address(cfaV1.host), "RedirectAll: support only one host");
         _;
     }
 

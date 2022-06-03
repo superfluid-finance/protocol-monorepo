@@ -89,7 +89,6 @@ contract("TradeableCashflow", (accounts) => {
           "NFTBillboard",
           "NFTBILL",
           sf.host.address,
-          sf.agreements.cfa.address,
           daix.address
       );
 

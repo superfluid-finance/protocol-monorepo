@@ -15,8 +15,6 @@ We're excited to see what you build 💻
 3) Deploy Your Billboard NFT by following the instructions below.
 4) Add your own custom message inside of each of the scripts as the value that is encoded and set to the ```userData``` variable.
 
-
-
 ### For Initial Setup and Contract Deployment:
 
 - You need to change the `defaultNetwork` inside of `hardhat.config.js` to reflect your target network.

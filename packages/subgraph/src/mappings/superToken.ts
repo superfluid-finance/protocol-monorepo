@@ -313,6 +313,7 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
     ev.agreementId = event.params.id;
     ev.targetAccount = event.params.targetAccount;
     ev.rewardAmountReceiver = event.params.rewardAmountReceiver;
+    ev.rewardAccount = event.params.rewardAmountReceiver;
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
 

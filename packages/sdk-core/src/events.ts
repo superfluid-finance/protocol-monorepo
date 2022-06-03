@@ -190,6 +190,9 @@ export interface AgreementLiquidatedV2Event extends EventBase {
     targetAccountBalanceDelta: string;
     version: string;
     liquidationType: number;
+
+    /** @deprecated TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead */
+    rewardAccount: string;
 }
 
 export interface AppRegisteredEvent extends EventBase {

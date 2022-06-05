@@ -80,7 +80,6 @@ before(async function () {
     "BudgetNFT",
     "BNFT",
     sf.settings.config.hostAddress,
-    sf.settings.config.cfaV1Address,
     daix.address
   );
 

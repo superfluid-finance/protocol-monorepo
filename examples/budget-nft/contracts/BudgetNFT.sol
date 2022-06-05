@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.13;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
@@ -9,11 +9,14 @@ import {ISuperfluid, ISuperToken, ISuperApp} from "@superfluid-finance/ethereum-
 
 import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
+import {CFAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+
 // Simple contract which allows users to create NFTs with attached streams
 
 contract BudgetNFT is ERC721, Ownable {
-    ISuperfluid private _host; // host
-    IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
+
+    using CFAv1Library for CFAv1Library.InitData;
+    CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
 
     ISuperToken public _acceptedToken; // accepted token
 
@@ -25,18 +28,26 @@ contract BudgetNFT is ERC721, Ownable {
         string memory _name,
         string memory _symbol,
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken
     ) ERC721(_name, _symbol) {
-        _host = host;
-        _cfa = cfa;
         _acceptedToken = acceptedToken;
 
         nextId = 0;
 
-        assert(address(_host) != address(0));
-        assert(address(_cfa) != address(0));
+        assert(address(host) != address(0));
         assert(address(_acceptedToken) != address(0));
+
+        //initialize InitData struct, and set equal to cfaV1
+        cfaV1 = CFAv1Library.InitData(
+        host,
+        //here, we are deriving the address of the CFA using the host contract
+        IConstantFlowAgreementV1(
+            address(host.getAgreementClass(
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                ))
+            )
+        );
+
     }
 
     event NFTIssued(uint256 tokenId, address receiver, int96 flowRate);
@@ -58,11 +69,7 @@ contract BudgetNFT is ERC721, Ownable {
     }
 
     // @dev owner can edit the NFT as long as it hasn't been issued (transferred out) yet
-    function editNFT(uint256 tokenId, int96 flowRate)
-        external
-        onlyOwner
-        exists(tokenId)
-    {
+    function editNFT(uint256 tokenId, int96 flowRate) external onlyOwner exists(tokenId) {
         require(flowRate >= 0, "flowRate must be positive!");
 
         address receiver = ownerOf(tokenId);
@@ -90,7 +97,7 @@ contract BudgetNFT is ERC721, Ownable {
         _reduceFlow(receiver, rate);
     }
 
-    //now I will insert a hook in the _transfer, executing every time the token is moved
+    //this hook will execute every time the token is transferred
     //When the token is first "issued", i.e. moved from the first contract, it will start the stream
     function _beforeTokenTransfer(
         address oldReceiver,
@@ -99,7 +106,7 @@ contract BudgetNFT is ERC721, Ownable {
     ) internal override {
         //blocks transfers to superApps - done for simplicity, but you could support super apps in a new version!
         require(
-            !_host.isApp(ISuperApp(newReceiver)) ||
+            !cfaV1.host.isApp(ISuperApp(newReceiver)) ||
                 newReceiver == address(this),
             "New receiver can not be a superApp"
         );
@@ -168,84 +175,37 @@ contract BudgetNFT is ERC721, Ownable {
     function _reduceFlow(address to, int96 flowRate) internal {
         if (to == address(this)) return;
 
-        (, int96 outFlowRate, , ) = _cfa.getFlow(
+        (, int96 outFlowRate, , ) = cfaV1.cfa.getFlow(
             _acceptedToken,
             address(this),
             to
         );
 
         if (outFlowRate == flowRate) {
-            _deleteFlow(address(this), to);
+            cfaV1.deleteFlow(address(this), to, _acceptedToken);
         } else if (outFlowRate > flowRate) {
             // reduce the outflow by flowRate;
             // shouldn't overflow, because we just checked that it was bigger.
-            _updateFlow(to, outFlowRate - flowRate);
+            cfaV1.updateFlow(to, _acceptedToken, outFlowRate - flowRate);
         }
         // won't do anything if outFlowRate < flowRate
     }
 
     //this will increase the flow or create it
     function _increaseFlow(address to, int96 flowRate) internal {
-        (, int96 outFlowRate, , ) = _cfa.getFlow(
+        if (to == address(0)) return;
+
+        (, int96 outFlowRate, , ) = cfaV1.cfa.getFlow(
             _acceptedToken,
             address(this),
             to
         ); //returns 0 if stream doesn't exist
         if (outFlowRate == 0) {
-            _createFlow(to, flowRate);
+            cfaV1.createFlow(to, _acceptedToken, flowRate);
         } else {
             // increase the outflow by flowRates[tokenId]
-            _updateFlow(to, outFlowRate + flowRate);
+            cfaV1.updateFlow(to, _acceptedToken, outFlowRate + flowRate);
         }
     }
 
-    function _createFlow(address to, int96 flowRate) internal {
-        if (to == address(this) || to == address(0)) return;
-        _host.callAgreement(
-            _cfa,
-            abi.encodeCall(
-                _cfa.createFlow,
-                (
-                    _acceptedToken,
-                    to,
-                    flowRate,
-                    new bytes(0) // placeholder
-                )
-            ),
-            "0x"
-        );
-    }
-
-    function _updateFlow(address to, int96 flowRate) internal {
-        if (to == address(this) || to == address(0)) return;
-        _host.callAgreement(
-            _cfa,
-            abi.encodeCall(
-                _cfa.updateFlow,
-                (
-                    _acceptedToken,
-                    to,
-                    flowRate,
-                    new bytes(0) // placeholder
-                )
-            ),
-            "0x"
-        );
-    }
-
-    function _deleteFlow(address from, address to) internal {
-        _host.callAgreement(
-            _cfa,
-            abi.encodeCall(
-                _cfa.deleteFlow,
-                (
-                    _acceptedToken,
-                    from,
-                    to,
-                    new bytes(0) // placeholder
-                )
-            ),
-            "0x"
-        );
-    }
 }

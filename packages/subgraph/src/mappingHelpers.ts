@@ -542,7 +542,8 @@ function updateATSBalanceAndUpdatedAt(
     accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         accountTokenSnapshot.updatedAtTimestamp,
         accountTokenSnapshot.balanceUntilUpdatedAt,
-        accountTokenSnapshot.totalNetFlowRate
+        accountTokenSnapshot.totalNetFlowRate,
+        accountTokenSnapshot.maybeCriticalAtTimestamp
     );
 
     accountTokenSnapshot.save();
@@ -688,7 +689,8 @@ export function updateAggregateEntitiesStreamData(
     senderATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         senderATS.updatedAtTimestamp,
         senderATS.balanceUntilUpdatedAt,
-        senderATS.totalNetFlowRate
+        senderATS.totalNetFlowRate,
+        senderATS.maybeCriticalAtTimestamp
     );
 
     let receiverATS = getOrInitAccountTokenSnapshot(
@@ -717,7 +719,8 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         receiverATS.updatedAtTimestamp,
         receiverATS.balanceUntilUpdatedAt,
-        receiverATS.totalNetFlowRate
+        receiverATS.totalNetFlowRate,
+        receiverATS.maybeCriticalAtTimestamp
     );
     receiverATS.save();
 

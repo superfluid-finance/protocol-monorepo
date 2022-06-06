@@ -36,8 +36,8 @@ jobs:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Release Branch)
     with:
-      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
       subgraph-release: dev
+      run-sdk-core-tests: true
 
   # B. run subgraph integration tests
   # purpose: ensure the new subgraph feature passes the integration tests (double checking)
@@ -46,6 +46,9 @@ jobs:
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Release Branch)
+    with:
+      subgraph-release: ''
+      run-sdk-core-tests: false
 
   # C. check previous versions of sdk-core with indexed dev endpoints
   # purpose: ensure that the currently deployed dev subgraph endpoint will work with previous sdk-core versions
@@ -61,3 +64,4 @@ jobs:
       # we want to check here if the subgraph implementation in dev is safe to use
       # for v1 endpoints (backwards compatible)
       subgraph-release: dev
+      run-sdk-core-tests: false

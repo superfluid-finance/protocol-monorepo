@@ -8,7 +8,6 @@ on:
       - "packages/sdk-core/**"
       - "packages/subgraph/**"
       - ".github/workflows/ci.pre-release-sdk-core.yml"
-      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
       - ".github/workflows/call.check-subgraph-indexing-statuses.yml"
       - ".github/workflows/call.test-sdk-core.yml"
 

@@ -8,21 +8,18 @@ import {
     testListenerInitialization,
     testQueryClassFunctions,
 } from "../previous-versions-testing/queryTests";
+import { getSubgraphEndpoint } from "../previous-versions-testing/runQueryTests";
 
 describe("Subgraph Tests", () => {
     let query: Query;
 
     const chainIdToUse = getChainId();
-    const resolverData = chainIdToResolverDataMap.get(chainIdToUse);
-    if (!resolverData) throw new Error("Resolver data is undefined");
-
-    const subgraphEndpoint =
-        process.env.LOCAL_SUBGRAPH_URL || resolverData.subgraphAPIEndpoint;
+    const customSubgraphQueriesEndpoint = getSubgraphEndpoint(chainIdToUse);
 
     before(() => {
         query = new Query({
             dataMode: "SUBGRAPH_ONLY",
-            customSubgraphQueriesEndpoint: subgraphEndpoint,
+            customSubgraphQueriesEndpoint,
         });
     });
 

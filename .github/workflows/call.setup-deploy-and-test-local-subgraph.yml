@@ -3,13 +3,12 @@ name: Reusable Workflow | Setup, Deploy and Test Local Subgraph
 on:
   workflow_call:
     inputs:
-      local-subgraph-url:
-        required: false
-        type: string
-      # only required when local-subgraph-url is inputted
       subgraph-release:
-        required: false
+        required: true
         type: string
+      run-sdk-core-tests:
+        required: true
+        type: boolean
 
 jobs:
   setup-and-test-subgraph:
@@ -56,22 +55,22 @@ jobs:
       #                                                                     #
 
       - name: "Run subgraph integration test suite"
-        if: inputs.local-subgraph-url == ''
+        if: inputs.run-sdk-core-tests == false
         run: yarn test
         working-directory: ${{ env.subgraph-working-directory }}
 
       # test local subgraph w/ SDK-core
       - name: "Setup subgraph test environment"
-        if: inputs.local-subgraph-url != ''
+        if: inputs.run-sdk-core-tests == true
         run: ./tasks/testenv-ctl.sh start
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run SDK-Core tests and test subgraph query with local subgraph"
-        if: inputs.local-subgraph-url != ''
+        if: inputs.run-sdk-core-tests == true
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           yarn generate
           npx hardhat test --network localhost
         working-directory: ./packages/sdk-core
         env:
-          LOCAL_SUBGRAPH_URL: ${{ inputs.local-subgraph-url }}
+          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}

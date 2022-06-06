@@ -53,7 +53,7 @@ export const validateATSEntity = (
         totalDeposit: expectedTotalDeposit,
     } = expectedATSData;
 
-    const calculatedCriticalTimestamp = calculateMaybeCriticalAtTimestamp(expectedATSData.updatedAtTimestamp, expectedBalanceUntilUpdatedAt, expectedTotalDeposit, expectedTotalNetFlowRate);
+    const calculatedCriticalTimestamp = calculateMaybeCriticalAtTimestamp(expectedATSData.updatedAtTimestamp, expectedBalanceUntilUpdatedAt, expectedTotalNetFlowRate);
     expect(graphATSData.maybeCriticalAtTimestamp, "ATS: maybeCriticalAtTimestamp error").to.equal(calculatedCriticalTimestamp)
     expect(graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"

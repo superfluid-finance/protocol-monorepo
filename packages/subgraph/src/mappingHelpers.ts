@@ -542,7 +542,6 @@ function updateATSBalanceAndUpdatedAt(
     accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         accountTokenSnapshot.updatedAtTimestamp,
         accountTokenSnapshot.balanceUntilUpdatedAt,
-        accountTokenSnapshot.totalDeposit,
         accountTokenSnapshot.totalNetFlowRate
     );
 
@@ -592,8 +591,8 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
 
 /**
  * This function should always be called with updateATSStreamedAndBalanceUntilUpdatedAt
- * @param tokenAddress 
- * @param block 
+ * @param tokenAddress
+ * @param block
  */
 export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenAddress: Address,
@@ -689,7 +688,6 @@ export function updateAggregateEntitiesStreamData(
     senderATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         senderATS.updatedAtTimestamp,
         senderATS.balanceUntilUpdatedAt,
-        senderATS.totalDeposit,
         senderATS.totalNetFlowRate
     );
 
@@ -719,7 +717,6 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         receiverATS.updatedAtTimestamp,
         receiverATS.balanceUntilUpdatedAt,
-        receiverATS.totalDeposit,
         receiverATS.totalNetFlowRate
     );
     receiverATS.save();

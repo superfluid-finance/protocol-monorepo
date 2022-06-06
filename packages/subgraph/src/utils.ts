@@ -242,22 +242,20 @@ export function getAmountStreamedSinceLastUpdatedAt(
 }
 
 /**
- * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, totalDeposit, balanceUntilUpdatedAt and totalNetFlowRate.
+ * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, balanceUntilUpdatedAt and totalNetFlowRate.
  * @param updatedAtTimestamp
  * @param balanceUntilUpdatedAt
- * @param totalDeposit
  * @param totalNetFlowRate
  */
 
 export function calculateMaybeCriticalAtTimestamp(
     updatedAtTimestamp: BigInt,
     balanceUntilUpdatedAt: BigInt,
-    totalDeposit: BigInt,
     totalNetFlowRate: BigInt
 ): BigInt {
     if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return BIG_INT_ZERO;
     if (totalNetFlowRate.ge(BIG_INT_ZERO)) return BIG_INT_ZERO;
-    const criticalTimestamp = balanceUntilUpdatedAt.plus(totalDeposit).div(totalNetFlowRate.abs());
+    const criticalTimestamp = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
     const calculatedCriticalTimestamp = criticalTimestamp.plus(updatedAtTimestamp);
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
         return MAX_SAFE_SECONDS;

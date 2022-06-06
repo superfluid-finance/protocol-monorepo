@@ -468,12 +468,11 @@ export const getOrder = (blockNumber?: number, logIndex?: number) => {
 export function calculateMaybeCriticalAtTimestamp(
     updatedAtTimestamp: string,
     balanceUntilUpdatedAt: string,
-    totalDeposit: string,
     totalNetFlowRate: string
 ) {
     if (BigNumber.from(balanceUntilUpdatedAt).lte(BigNumber.from("0"))) return "0";
     if (BigNumber.from(totalNetFlowRate).gte(BigNumber.from("0"))) return "0";
-    const criticalTimestamp = BigNumber.from(balanceUntilUpdatedAt).add(BigNumber.from(totalDeposit)).div(BigNumber.from(totalNetFlowRate).abs());
+    const criticalTimestamp = BigNumber.from(balanceUntilUpdatedAt).div(BigNumber.from(totalNetFlowRate).abs());
     const calculatedCriticalTimestamp = criticalTimestamp.add(BigNumber.from(updatedAtTimestamp));
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
         return MAX_SAFE_SECONDS.toString();

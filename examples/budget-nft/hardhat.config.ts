@@ -28,19 +28,19 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.12",
+    version: "0.8.13",
     settings: {
       optimizer: {
         enabled: true
       }
     }
-  }
-  // networks: {
-  //   ropsten: {
-  //     url: process.env.ROPSTEN_URL || "",
-  //     accounts:
-  //       process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-  //   },
+  },
+  networks: {
+    goerli: {
+      url: process.env.GOERLI_URL || "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
   // },
   // gasReporter: {
   //   enabled: process.env.REPORT_GAS !== undefined,
@@ -48,7 +48,7 @@ const config: HardhatUserConfig = {
   // },
   // etherscan: {
   //   apiKey: process.env.ETHERSCAN_API_KEY,
-  // },
+  },
 };
 
 export default config;

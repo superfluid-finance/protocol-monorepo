@@ -27,7 +27,6 @@ module.exports = {
         },
     },
     externals: {
-        "@ethersproject/contracts": "@ethersproject/contracts",
         "@truffle/contract": "@truffle/contract",
     },
 };

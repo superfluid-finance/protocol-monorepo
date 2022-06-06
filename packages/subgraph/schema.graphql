@@ -1208,7 +1208,7 @@ type AccountTokenSnapshot @entity {
     """
     Optimistic liquidation estimation property.
     """
-    maybeCriticalAtTimestamp: BigInt!
+    maybeCriticalAtTimestamp: BigInt
 
     """
     The number of currently open streams.
@@ -1289,7 +1289,7 @@ type AccountTokenSnapshotLog @entity {
     """
     Optimistic liquidation estimation property.
     """
-    maybeCriticalAtTimestamp: BigInt!
+    maybeCriticalAtTimestamp: BigInt
     """
     The current (as of timestamp) number of currently open streams.
     """

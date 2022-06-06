@@ -252,9 +252,10 @@ export function calculateMaybeCriticalAtTimestamp(
     updatedAtTimestamp: BigInt,
     balanceUntilUpdatedAt: BigInt,
     totalNetFlowRate: BigInt
-): BigInt {
-    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return BIG_INT_ZERO;
-    if (totalNetFlowRate.ge(BIG_INT_ZERO)) return BIG_INT_ZERO;
+): BigInt | null {
+    if (totalNetFlowRate.ge(BIG_INT_ZERO)) return null;
+    if (balanceUntilUpdatedAt.equals(BIG_INT_ZERO)) return BIG_INT_ZERO;
+    if (balanceUntilUpdatedAt.lt(BIG_INT_ZERO)) return updatedAtTimestamp;
     const secondsUntilCritical = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
     const calculatedCriticalTimestamp = secondsUntilCritical.plus(updatedAtTimestamp);
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {

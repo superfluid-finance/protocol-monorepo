@@ -1,5 +1,4 @@
 import { Query } from "../src";
-import { chainIdToResolverDataMap } from "../src/constants";
 import {
     getChainId,
     testExpectListenerThrow,

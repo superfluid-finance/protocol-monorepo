@@ -21,7 +21,6 @@ module.exports = class Framework {
      * @param {string} options.version (Default: v1) protocol release version.
      * @param {boolean} options.isTruffle (Default: false) if the framework is used within truffle environment.
      * @param {Web3} options.web3  Injected web3 instance (version has to be 1.x)
-     * @param {Ethers} options.ethers  Injected ethers instance
      *
      * @param {Array} options.additionalContracts (Optional) additional contracts to be loaded
      * @param {string[]} options.tokens (Optional) Tokens to be loaded with a list of (in order of preference):
@@ -41,21 +40,16 @@ module.exports = class Framework {
         this._options = options;
         this.version = options.version || "v1";
 
-        if (options.isTruffle && (options.ethers || options.web3))
+        if (options.isTruffle && options.web3)
             throw Error(
-                "@superfluid-finance/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
+                "@superfluid-finance/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3 instance."
             );
-        if (!options.isTruffle && !options.ethers && !options.web3)
+        if (!options.isTruffle && !options.web3)
             throw Error(
-                "@superfluid-finance/js-sdk: You must provide a web3 or ethers instance."
+                "@superfluid-finance/js-sdk: You must provide a web3 instance."
             );
-        if (options.ethers && options.web3)
-            throw Error(
-                `@superfluid-finance/js-sdk: You cannot provide both a web3 and ethers instance.
-                Please choose only one.`
-            );
+
         this.web3 = options.isTruffle ? global.web3 : options.web3;
-        this.ethers = options.ethers;
 
         if (options.gasReportType) {
             if (
@@ -77,19 +71,13 @@ module.exports = class Framework {
      */
     async initialize() {
         console.log("Initializing Superfluid Framework...");
-        if (this.ethers) {
-            const network = await this.ethers.getNetwork();
-            this.networkType = network.name;
-            this.networkId = network.chainId; // TODO: this could be wrong
-            this.chainId = network.chainId;
-        } else {
-            // NOTE: querying network type first,
-            // Somehow web3.eth.net.getId may send bogus number if this was not done first
-            // It could be a red-herring issue, but it makes it more stable.
-            this.networkType = await this.web3.eth.net.getNetworkType();
-            this.networkId = await this.web3.eth.net.getId();
-            this.chainId = await this.web3.eth.getChainId();
-        }
+        // NOTE: querying network type first,
+        // Somehow web3.eth.net.getId may send bogus number if this was not done first
+        // It could be a red-herring issue, but it makes it more stable.
+        this.networkType = await this.web3.eth.net.getNetworkType();
+        this.networkId = await this.web3.eth.net.getId();
+        this.chainId = await this.web3.eth.getChainId();
+
         console.log("version", this.version);
         console.log("networkType", this.networkType);
         console.log("networkId", this.networkId);
@@ -100,7 +88,6 @@ module.exports = class Framework {
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,
             web3: this._options.web3,
-            ethers: this._options.ethers,
             from: this._options.from,
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,

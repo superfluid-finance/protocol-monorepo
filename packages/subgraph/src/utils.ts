@@ -255,11 +255,16 @@ export function calculateMaybeCriticalAtTimestamp(
     totalNetFlowRate: BigInt,
     previousMaybeCriticalAtTimestamp: BigInt | null,
 ): BigInt | null {
+    // When the flow rate is not negative then there's no way to have a critical balance timestamp anymore.
     if (totalNetFlowRate.ge(BIG_INT_ZERO)) return null;
-    if (balanceUntilUpdatedAt.equals(BIG_INT_ZERO)) return BIG_INT_ZERO;
-    if (balanceUntilUpdatedAt.lt(BIG_INT_ZERO)) return previousMaybeCriticalAtTimestamp;
+
+    // When there's no balance then that either means:
+    // 1. account is already critical and we keep the existing timestamp when the liquidations supposedly started
+    // 2. it's a new account without a critical balance timestamp to begin with
+    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return previousMaybeCriticalAtTimestamp;
+
     const secondsUntilCritical = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
-    const calculatedCriticalTimestamp = secondsUntilCritical.plus(updatedAtTimestamp);
+    const calculatedCriticalTimestamp = updatedAtTimestamp.plus(secondsUntilCritical);
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
         return MAX_SAFE_SECONDS;
     }

@@ -476,7 +476,7 @@ export function calculateMaybeCriticalAtTimestamp(
     // When there's no balance then that either means:
     // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
     // 2. it's a new account without a critical balance timestamp to begin with
-    if (toBN(balanceUntilUpdatedAt).lte(toBN("0"))) return updatedAtTimestamp;
+    if (toBN(balanceUntilUpdatedAt).lte(toBN("0"))) throw new Error("This will never gonna hit `Already critical` case because can simulate realistic liquidation" ); //https://github.com/superfluid-finance/protocol-monorepo/pull/885
     const secondsUntilCritical = toBN(balanceUntilUpdatedAt).div(toBN(totalNetFlowRate).abs());
     const calculatedCriticalTimestamp = secondsUntilCritical.add(toBN(updatedAtTimestamp));
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {

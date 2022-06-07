@@ -18,16 +18,7 @@ How To Use
 
 ## Setup
 
-1. Download the latest echidna binary from: https://github.com/crytic/echidna
-
-> :warning: Temporary Workaround needed
->
-> Hot fuzz currently needs a fix in echidna to support contract deployment to specific address.
->
-> The fix can be found at https://github.com/crytic/echidna/pull/758.
->
-> To download, open the link above -> click "Checks" tab -> click "CI" -> Download the artifact
-> for your operating system.
+1. Download the latest echidna binary from: https://github.com/crytic/echidna/releases
 
 2. Add `@superfluid-finance/hot-fuzz` to your project `devDependencies`.
 

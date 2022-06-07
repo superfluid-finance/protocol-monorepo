@@ -1,0 +1,48 @@
+
+{{h}} Fn {{name}}
+
+```solidity
+function {{name}}(
+    {{#each params}}
+    {{type}} {{name}}{{#if @last}}{{else}},{{/if}}
+    {{/each}}
+) 
+    {{visibility}}{{#if returns}} 
+    returns ({{printParams returns}}){{/if}}
+```
+{{#if natspec.dev}}
+{{! TODO: the italic markers break for multi-paragraph content}}
+_{{{natspec.dev}}}_
+{{/if}}
+
+{{#if params}}
+#### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+{{#each params}}
+| `{{name}}` | {{type}} | {{{natspec}}} |
+{{/each}}
+{{/if}}
+
+{{#if natspec.returns}}
+#### Return Values
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+{{#each returns}}
+| `{{#if name}}{{name}}{{else}}[{{@index}}]{{/if}}` | {{type}} | {{{natspec}}} |
+{{/each}}
+{{/if}}
+
+{{#if natspec.notice}}
+{{{natspec.notice}}}
+{{/if}}
+
+{{#if natspec.custom}}
+{{#each natspec.custom}}
+#### {{capitalizeFirstLetter @key}} 
+
+{{this}}
+{{/each}}
+{{/if}}

@@ -1,6 +1,5 @@
 const {expectRevert} = require("@openzeppelin/test-helpers");
 
-const {Web3Provider} = require("@ethersproject/providers");
 const Web3 = require("web3");
 
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
@@ -141,15 +140,6 @@ describe("Framework class", function () {
         it("with non-native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
                 web3: new Web3(web3.currentProvider),
-                version: "test",
-            });
-            await sf.initialize();
-            testLoadedContracts(sf);
-        });
-
-        it("with Ethers.js environment", async () => {
-            const sf = new SuperfluidSDK.Framework({
-                ethers: new Web3Provider(web3.currentProvider),
                 version: "test",
             });
             await sf.initialize();

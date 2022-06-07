@@ -6,7 +6,6 @@ import LoadContracts from "./loadContracts";
 import Config from "./getConfig";
 import type { User } from "./User";
 import type { Utils } from "./Utils";
-import type { Web3Provider } from "@ethersproject/providers";
 
 declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
 
@@ -19,7 +18,6 @@ export interface FrameworkOptions {
     version?: string,
     isTruffle?: boolean,
     web3?: Web3,
-    ethers?: Web3Provider,
     gasReportType?: GasReportTypeOptions,
     additionalContracts?: string[],
     tokens?: string[],
@@ -34,7 +32,6 @@ export declare class Framework {
     _options: FrameworkOptions;
     version: string;
     web3: Web3;
-    ethers: Web3Provider;
     _gasReportType: GasReportTypeOptions;
     config: Config.NetworkConfig;
     contracts: Promise<LoadContracts.LoadedContract[]> | undefined;

@@ -9,7 +9,10 @@ import {
     testQueryClassFunctions,
 } from "./queryTests";
 
-const getSubgraphEndpoint = (chainId: number) => {
+export const getSubgraphEndpoint = (chainId: number) => {
+    if (process.env.SUBGRAPH_RELEASE_TAG === "local")
+        return "http://localhost:8000/subgraphs/name/superfluid-test";
+
     const resolverData = chainIdToResolverDataMap.get(chainId);
     if (!resolverData) throw new Error("Resolver data is undefined");
     return resolverData.subgraphAPIEndpoint;
@@ -19,11 +22,8 @@ describe("Query Tests", () => {
     let query: Query;
     before(async () => {
         const chainIdToUse = getChainId();
-        let customSubgraphQueriesEndpoint =
-            process.env.LOCAL_SUBGRAPH_URL || getSubgraphEndpoint(chainIdToUse);
+        let customSubgraphQueriesEndpoint = getSubgraphEndpoint(chainIdToUse);
 
-        // this will work fine given the assumption that
-        // LOCAL_SUBGRAPH_URL doesn't have "v1"
         if (process.env.SUBGRAPH_RELEASE_TAG) {
             customSubgraphQueriesEndpoint =
                 customSubgraphQueriesEndpoint.replace(

@@ -141,6 +141,7 @@ export const mapGetAllEventsQueryEvents = (
             case "FlowUpdatedEvent":
                 return typeGuard<events.FlowUpdatedEvent>({
                     name: "FlowUpdated",
+                    type: mapNumberToFlowUpdateType(x.type),
                     id: x.id,
                     blockNumber: Number(x.blockNumber),
                     transactionHash: x.transactionHash,
@@ -563,4 +564,16 @@ export const mapGetAllEventsQueryEvents = (
                 });
         }
     });
+};
+
+const mapNumberToFlowUpdateType = (type: number): events.FlowUpdateType => {
+    if (type === 0) {
+        return events.FlowUpdateType.Create;
+    } else if (type === 1) {
+        return events.FlowUpdateType.Update;
+    } else if (type === 2) {
+        return events.FlowUpdateType.Terminate;
+    } else {
+        throw Error(`Mapping error: unknown flow update type ([${type}]).`);
+    }
 };

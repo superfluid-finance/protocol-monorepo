@@ -1,0 +1,48 @@
+{{h}} {{name}}
+
+{{#if natspec.title}}
+**{{{natspec.title}}}**
+{{/if}}
+
+{{! we need to make up our mind about how to use @dev and @notice in the code}}
+{{{natspec.dev}}}
+
+{{{natspec.notice}}}
+
+{{#each items}}
+{{#hsection}}
+{{>item}}
+{{/hsection}}
+{{/each}}
+
+{{! Alternative layout with functions, events, errors grouped. Seems less suited for our code}}
+
+{{!-- {{#if functions}}
+{{h}} Functions
+{{/if}}
+
+{{#each functions}}
+{{#hsection 1}}
+{{>item}}
+{{/hsection}}
+{{/each}}
+
+{{#if events}}
+{{h}} Events
+{{/if}}
+
+{{#each events}}
+{{#hsection 1}}
+{{>item}}
+{{/hsection}}
+{{/each}}
+
+{{#if errors}}
+{{h}} Errors
+{{/if}}
+
+{{#each errors}}
+{{#hsection 1}}
+{{>item}}
+{{/hsection}}
+{{/each}} --}}

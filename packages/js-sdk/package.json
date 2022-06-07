@@ -43,18 +43,14 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
-        "@ethersproject/abi": "^5.6.0",
-        "@ethersproject/hash": "^5.6.0",
         "@truffle/contract": "4.5.5",
         "auto-bind": "^4.0.0",
         "node-fetch": "^2.6.7"
     },
     "peerDependencies": {
-        "@ethersproject/contracts": "^5.0.0",
         "@truffle/contract": "^4.0.0"
     },
     "devDependencies": {
-        "@ethersproject/contracts": "^5.6.0",
         "@superfluid-finance/ethereum-contracts": "1.2.2",
         "chai-as-promised": "^7.1.1",
         "webpack": "^5.72.0",

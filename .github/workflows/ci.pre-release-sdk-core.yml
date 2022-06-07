@@ -8,7 +8,6 @@ on:
       - "packages/sdk-core/**"
       - "packages/subgraph/**"
       - ".github/workflows/ci.pre-release-sdk-core.yml"
-      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
       - ".github/workflows/call.check-subgraph-indexing-statuses.yml"
       - ".github/workflows/call.test-sdk-core.yml"
 
@@ -28,18 +27,7 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-  # A. build and run sdk-core tests with local subgraph
-  # purpose: ensure the new sdk-core version works with the current subgraph implementation
-  # assumption: current subgraph implementation is equal to TBD (or deployed) v1 endpoints
-  # result: this should ALWAYS work otherwise there is an issue with sdk-core implementation and is NG for release
-  build-and-test-local-subgraph:
-    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
-    name: Build and Test Subgraph (Release Branch)
-    with:
-      local-subgraph-url: http://localhost:8000/subgraphs/name/superfluid-test
-      subgraph-release: local
-
-  # B. ensure subgraph indexing is complete on all v1 endpoints before allowing sdk-core release
+  # A. ensure subgraph indexing is complete on all v1 endpoints before allowing sdk-core release
   # purpose: ensure the new sdk-core version can be released, it will ALWAYS fail if v1 is
   #          still indexing on any network
   # assumption: releasing sdk-core before v1 is indexed on all networks may lead to a broken release
@@ -52,25 +40,25 @@ jobs:
     with:
       subgraph-release: v1
 
-  # C. build and test live subgraph with release sdk-core
+  # B. build and test v1 endpoint subgraph with release sdk-core
   # purpose: ensure the new sdk-core version works with the currently deployed v1 matic endpoint
   # assumption: matic is the indexing blocker and if this passes, it will pass on all other networks
-  # result: this should work once matic v1 endpoint is indexed and thus A and B should be passing as well
-  #         otherwise it's NG for release
-  build-and-test-live-subgraph-current-release:
+  # result: this should work once matic v1 endpoint is indexed and thus A should be passing as well
+  #         otherwise it's NG for release (we run A just in case another endpoint is lagging)
+  build-and-test-live-v1-subgraph-current-release:
     uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Release branch)
     if: github.base_ref == 'release-sdk-core-stable'
     with:
       subgraph-release: v1
 
-  # D. check previous versions of sdk-core with indexed v1 endpoints
-  # purpose: ensure that the currently deployed v1 subgraph endpoint will work with previous sdk-core versions
-  # assumption: v1 is fully indexed
-  # result: this will break previous sdk-core versions if there is an intentional breaking change (must document)
-  #         otherwise it should ALWAYS work
-  check-deployed-subgraph-on-previous-sdk-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Build and test current subgraph release with previous sdk-core versions
+  # C. build and test dev endpoint subgraph with release sdk-core
+  # purpose: ensure the new sdk-core version works with the currently deployed dev goerli endpoint
+  # assumption: we assume that dev endpoint is synced (do a manual check here to see this is true)
+  # result: this should work as ci.canary should've passed otherwise we need to go back and complete the previous release
+  build-and-test-live-dev-subgraph-current-release:
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core (Release branch)
+    if: github.base_ref == 'release-sdk-core-stable'
     with:
-      subgraph-release: v1
+      subgraph-release: dev

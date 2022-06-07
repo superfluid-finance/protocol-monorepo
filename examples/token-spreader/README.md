@@ -71,3 +71,12 @@ Super Tokens held in the contract are sweeped out to unit holders.
 ### Adding Super Tokens to TokenSpreader
 
 Just a matter of transfering them in. You could also try streaming them in 😉
+
+
+## Deployment
+
+1. Fill out a .env file in accordance with [.env.template](./.env.template)
+2. To deploy, `npx hardhat run scripts/deploy.js --network goerli`
+3. To verify, `npx hardhat verify --network goerli --constructor-args arguments-tokenspreader.js (the contract address printed from previous step)`
+
+Interact with a sample deployment here: https://goerli.etherscan.io/address/0x48Cf61C16D066ad597e390E7e575E8832e58BddA#writeContract

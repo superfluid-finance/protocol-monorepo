@@ -101,7 +101,7 @@ before(async function () {
     //// INITIALIZING SPREADER CONTRACT
 
     const spreaderContractFactory = await ethers.getContractFactory(
-        "Spreader",
+        "TokenSpreader",
         admin
     );
 
@@ -109,10 +109,6 @@ before(async function () {
         sf.settings.config.hostAddress, 
         daix.address, // Setting DAIx as spreader token
     );
-
-    console.log("DAIx host address", await spreader.hostAddress1());
-    console.log("CFA lib address", await spreader.hostAddress2());
-    console.log("actual host address", sf.settings.config.hostAddress);
 
 
     //// SUBSCRIBING TO SPREADER CONTRACT'S IDA INDEX
@@ -126,10 +122,10 @@ before(async function () {
     await approveSubscriptionOperation.exec(alice);
     await approveSubscriptionOperation.exec(bob);
 
-    console.log("Set Up Complete! - Spreader Contract Address:", spreader.address);
+    console.log("Set Up Complete! - TokenSpreader Contract Address:", spreader.address);
 });
 
-describe("Spreader Test Sequence", async () => {
+describe("TokenSpreader Test Sequence", async () => {
 
   it("Distribution with [ no units outstanding ] and [ no spreaderTokens held ]", async function () {
     
@@ -152,7 +148,7 @@ describe("Spreader Test Sequence", async () => {
     let aliceSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: alice.address, 
       providerOrSigner: alice 
     });
@@ -182,7 +178,7 @@ describe("Spreader Test Sequence", async () => {
     let aliceSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: alice.address, 
       providerOrSigner: alice 
     });
@@ -197,7 +193,7 @@ describe("Spreader Test Sequence", async () => {
     let bobSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: bob.address, 
       providerOrSigner: bob 
     });
@@ -294,7 +290,7 @@ describe("Spreader Test Sequence", async () => {
     let bobSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: bob.address, 
       providerOrSigner: bob 
     })
@@ -362,7 +358,7 @@ describe("Spreader Test Sequence", async () => {
     let aliceSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: alice.address, 
       providerOrSigner: alice 
     })
@@ -430,7 +426,7 @@ describe("Spreader Test Sequence", async () => {
     let bobSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: bob.address, 
       providerOrSigner: bob 
     })
@@ -498,7 +494,7 @@ describe("Spreader Test Sequence", async () => {
     let bobSubscription = await sf.idaV1.getSubscription({ 
       superToken: daix.address, 
       publisher: spreader.address, 
-      indexId: "0", // recall this was `INDEX_ID` in Spreader.sol
+      indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
       subscriber: bob.address, 
       providerOrSigner: bob 
     })

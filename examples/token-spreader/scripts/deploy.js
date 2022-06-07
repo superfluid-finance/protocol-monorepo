@@ -1,25 +1,20 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 
+const gorliHostAddress = "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9";
+const gorliFDAIXAddress = "0xF2d68898557cCb2Cf4C10c3Ef2B034b2a69DAD00"; 
+
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  // We get the contract to deploy to Gorli Testnet
+  const TokenSpreader = await hre.ethers.getContractFactory("TokenSpreader");
+  const tokenSpreader = await TokenSpreader.deploy(
+    gorliHostAddress,
+    gorliFDAIXAddress
+  );
 
-  await greeter.deployed();
+  await tokenSpreader.deployed();
 
-  console.log("Greeter deployed to:", greeter.address);
+  console.log("Token Spreader deployed to:", tokenSpreader.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -28,3 +23,7 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+// Deploy: npx hardhat run scripts/deploy.js --network goerli
+
+// Verify: npx hardhat verify --network goerli --constructor-args arguments-tokenspreader.js [contractaddress]

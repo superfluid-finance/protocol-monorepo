@@ -15,7 +15,7 @@ import {IDAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/app
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Spreader {
+contract TokenSpreader {
 
     ISuperToken public spreaderToken;                  // Token to be distributed to unit holders by distribute() function
 
@@ -33,9 +33,8 @@ contract Spreader {
     ) {
 
         // Ensure _spreaderToken is indeed a super token
-        // require(address(idaV1.host) == _spreaderToken.getHost(),"!superToken"); 
-        hostAddress1 = _spreaderToken.getHost();
-        hostAddress2 = address(idaV1.host);
+        require(address(_host) == _spreaderToken.getHost(),"!superToken"); 
+
 
         spreaderToken = _spreaderToken;
 

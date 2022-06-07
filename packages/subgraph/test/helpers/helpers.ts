@@ -14,6 +14,7 @@ import TestTokenABI from "../../abis/TestToken.json";
 import {TestToken} from "../../typechain";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber} from "ethers";
+import {BigInt} from "@graphprotocol/graph-ts";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -470,9 +471,12 @@ export function calculateMaybeCriticalAtTimestamp(
     balanceUntilUpdatedAt: string,
     totalNetFlowRate: string,
 ) {
+    // When the flow rate is not negative then there's no way to have a critical balance timestamp anymore.
     if (toBN(totalNetFlowRate).gte(toBN("0"))) return null;
-    if (toBN(balanceUntilUpdatedAt).eq(toBN("0"))) return "0";
-    if (toBN(balanceUntilUpdatedAt).lt(toBN("0"))) return updatedAtTimestamp;
+    // When there's no balance then that either means:
+    // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
+    // 2. it's a new account without a critical balance timestamp to begin with
+    if (toBN(balanceUntilUpdatedAt).lte(toBN("0"))) return updatedAtTimestamp;
     const secondsUntilCritical = toBN(balanceUntilUpdatedAt).div(toBN(totalNetFlowRate).abs());
     const calculatedCriticalTimestamp = secondsUntilCritical.add(toBN(updatedAtTimestamp));
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {

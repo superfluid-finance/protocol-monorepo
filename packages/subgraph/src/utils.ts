@@ -259,7 +259,7 @@ export function calculateMaybeCriticalAtTimestamp(
     if (totalNetFlowRate.ge(BIG_INT_ZERO)) return null;
 
     // When there's no balance then that either means:
-    // 1. account is already critical and we keep the existing timestamp when the liquidations supposedly started
+    // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
     // 2. it's a new account without a critical balance timestamp to begin with
     if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return previousMaybeCriticalAtTimestamp;
 

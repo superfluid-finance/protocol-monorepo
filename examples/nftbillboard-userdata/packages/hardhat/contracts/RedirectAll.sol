@@ -1,18 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import "hardhat/console.sol";
-
 import {
     ISuperfluid,
     ISuperToken,
     ISuperApp,
     ISuperAgreement,
-    ContextDefinitions,
     SuperAppDefinitions
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-// When ready to move to leave Remix, change imports to follow this pattern:
-// "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {
     IConstantFlowAgreementV1
@@ -30,6 +25,8 @@ contract RedirectAll is SuperAppBase {
 
     ISuperToken private _acceptedToken; // accepted token
     address public _receiver;
+
+    bytes32 constant public CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
 
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData cfaV1; //initialize cfaV1 variable
@@ -58,15 +55,11 @@ contract RedirectAll is SuperAppBase {
         host,
         //here, we are deriving the address of the CFA using the host contract
         IConstantFlowAgreementV1(
-            address(host.getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                ))
+            address(host.getAgreementClass(CFA_ID))
             )
         );
 
     }
-
-
 
     /**************************************************************************
      * Redirect Logic
@@ -214,8 +207,7 @@ contract RedirectAll is SuperAppBase {
     }
 
     function _isCFAv1(address agreementClass) private view returns (bool) {
-        return ISuperAgreement(agreementClass).agreementType()
-            == keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+        return ISuperAgreement(agreementClass).agreementType() == CFA_ID;
     }
 
     modifier onlyHost() {

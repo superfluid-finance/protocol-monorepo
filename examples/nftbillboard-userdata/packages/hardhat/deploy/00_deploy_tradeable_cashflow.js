@@ -8,6 +8,7 @@ const fDAIx = '0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f';
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
+const { Framework } = require("@superfluid-finance/sdk-core")
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const Web3 = require("web3");
 const { defaultNetwork } = require("../hardhat.config");

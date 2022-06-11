@@ -399,7 +399,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
-        accountTokenSnapshot.maybeCriticalAtTimestamp = BIG_INT_ZERO;
+        accountTokenSnapshot.maybeCriticalAtTimestamp = null;
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
         accountTokenSnapshot.save();
@@ -542,8 +542,8 @@ function updateATSBalanceAndUpdatedAt(
     accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         accountTokenSnapshot.updatedAtTimestamp,
         accountTokenSnapshot.balanceUntilUpdatedAt,
-        accountTokenSnapshot.totalDeposit,
-        accountTokenSnapshot.totalNetFlowRate
+        accountTokenSnapshot.totalNetFlowRate,
+        accountTokenSnapshot.maybeCriticalAtTimestamp
     );
 
     accountTokenSnapshot.save();
@@ -592,8 +592,8 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
 
 /**
  * This function should always be called with updateATSStreamedAndBalanceUntilUpdatedAt
- * @param tokenAddress 
- * @param block 
+ * @param tokenAddress
+ * @param block
  */
 export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenAddress: Address,
@@ -689,8 +689,8 @@ export function updateAggregateEntitiesStreamData(
     senderATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         senderATS.updatedAtTimestamp,
         senderATS.balanceUntilUpdatedAt,
-        senderATS.totalDeposit,
-        senderATS.totalNetFlowRate
+        senderATS.totalNetFlowRate,
+        senderATS.maybeCriticalAtTimestamp
     );
 
     let receiverATS = getOrInitAccountTokenSnapshot(
@@ -719,8 +719,8 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         receiverATS.updatedAtTimestamp,
         receiverATS.balanceUntilUpdatedAt,
-        receiverATS.totalDeposit,
-        receiverATS.totalNetFlowRate
+        receiverATS.totalNetFlowRate,
+        receiverATS.maybeCriticalAtTimestamp
     );
     receiverATS.save();
 

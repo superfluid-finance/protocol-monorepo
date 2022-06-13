@@ -20,6 +20,7 @@ We're excited to see what you build 💻
 - You need to change the `defaultNetwork` inside of `hardhat.config.js` to reflect your target network.
 - If you're deploying locally, `ganache` or `localhost` should suffice. 
 - If you're deploying to a live mainnet or testnet, you should change the default network and make sure that your private key and rpc url for that network are correct in your `.env` file.
+- Note that this project uses the `hardhat-deploy` library instead of a vanilla `deploy.js` script. See the `deploy` folder for the deploy script.
 - Inside of the deploy script, you will also need to make sure that the deployment is using the super token you're intending to use for deployment. The default is `fDAIx`. See line 51 and line 69 of the 00_deploy_tradeable_cashflow.js script for where you need to update these params. The `host` should be correct each time because we're getting the host address from the `Framework` object when deploying the [Superfluid SDK Core](https://docs.superfluid.finance/superfluid/developers/sdk-initialization/sdk-core/sdk-core-initialization).
 
 Once the above is complete, you can run:
@@ -27,6 +28,8 @@ Once the above is complete, you can run:
 ```yarn install``` to install dependencies
 ```yarn start``` to start the react app
 ```yarn deploy``` to deploy the tradable cashflow contract
+
+NOTE: before running your scripts, you need to get the address of your deployed contract and update the `tcfAddress` variable inside each respective script for them to work. You can get this variable either in the console after running `yarn deploy` or from the react app in the UI.
 
 To create a flow and set a message on the billboard, you can go to the ```createFlow()``` script and pass in your own message to the ```message``` variable at the top of the file. Then run:
 ```yarn createFlow```

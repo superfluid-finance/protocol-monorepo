@@ -1076,9 +1076,9 @@ contract Superfluid is
         if (actionSelector == ISuperApp.beforeAgreementCreated.selector ||
             actionSelector == ISuperApp.afterAgreementCreated.selector ||
             actionSelector == ISuperApp.beforeAgreementUpdated.selector ||
-            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.afterAgreementUpdated.selector ||
             actionSelector == ISuperApp.beforeAgreementTerminated.selector ||
-            actionSelector == ISuperApp.afterAgreementCreated.selector) {
+            actionSelector == ISuperApp.afterAgreementTerminated.selector) {
             revert("SF: agreement callback is not action");
         }
         _;

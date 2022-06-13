@@ -157,7 +157,7 @@ contract IDAv1LibraryMock {
     /**************************************************************************
      * Subscription Operations
      *************************************************************************/
-    
+
     function approveSubscriptionTest(
         ISuperfluidToken token,
         address publisher,
@@ -265,7 +265,7 @@ contract IDAv1LibrarySuperAppMock is IDAv1LibraryMock, SuperAppBase {
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
-        host.registerApp(configWord);
+        host.registerAppWithKey(configWord, "");
     }
 
     function afterAgreementCreated(

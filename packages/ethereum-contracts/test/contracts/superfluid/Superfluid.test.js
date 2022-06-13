@@ -1218,6 +1218,25 @@ describe("Superfluid Host Contract", function () {
                         );
                     }
                 });
+
+                it("#6.19 Jail event should not be emitted twice", async () => {
+                    let tx = await superfluid.jailApp(app.address);
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app.address,
+                            reason: "6942", // it is scientific, check the code
+                        }
+                    );
+                    tx = await superfluid.jailApp(app.address);
+                    await expectEvent.notEmitted.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail"
+                    );
+                });
             });
 
             context("#6.2x callback gas limit", () => {

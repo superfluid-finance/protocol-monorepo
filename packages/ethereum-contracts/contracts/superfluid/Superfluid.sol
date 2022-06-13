@@ -255,7 +255,7 @@ contract Superfluid is
         external view override
         returns (address logic)
     {
-        if (address(_superTokenFactory) == address(0)) return address(0);
+        assert(address(_superTokenFactory) != address(0));
         if (NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
         else return UUPSProxiable(address(_superTokenFactory)).getCodeAddress();
     }

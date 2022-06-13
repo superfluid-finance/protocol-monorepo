@@ -1,28 +1,24 @@
 import { Query } from "../src";
-import { chainIdToResolverDataMap, MATIC_CHAIN_ID } from "../src/constants";
 import {
+    getChainId,
     testExpectListenerThrow,
     testExpectWeb3OnlyErrors,
     testGetAllEventsQuery,
     testListenerInitialization,
     testQueryClassFunctions,
 } from "../previous-versions-testing/queryTests";
+import { getSubgraphEndpoint } from "../previous-versions-testing/runQueryTests";
 
 describe("Subgraph Tests", () => {
     let query: Query;
 
-    // NOTE: we use MATIC_CHAIN_ID as default for the live endpoint because
-    // MATIC is normally the bottleneck
-    const resolverData = chainIdToResolverDataMap.get(MATIC_CHAIN_ID);
-    if (!resolverData) throw new Error("Resolver data is undefined");
-
-    const subgraphEndpoint =
-        process.env.LOCAL_SUBGRAPH_URL || resolverData.subgraphAPIEndpoint;
+    const chainIdToUse = getChainId();
+    const customSubgraphQueriesEndpoint = getSubgraphEndpoint(chainIdToUse);
 
     before(() => {
         query = new Query({
             dataMode: "SUBGRAPH_ONLY",
-            customSubgraphQueriesEndpoint: subgraphEndpoint,
+            customSubgraphQueriesEndpoint,
         });
     });
 

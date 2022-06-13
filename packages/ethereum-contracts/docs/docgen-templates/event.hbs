@@ -1,0 +1,27 @@
+{{h}} Event {{name}}
+
+```solidity
+event {{name}}(
+    {{#params}}
+    {{type}} {{name}}{{#if @last}}{{else}},{{/if}}
+    {{/params}}
+)
+```
+
+{{#if natspec.notice}}
+{{{natspec.notice}}}
+{{/if}}
+
+{{#if natspec.dev}}
+{{{natspec.dev}}}
+{{/if}}
+
+{{#if params}}
+{{h 3}} Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+{{#each params}}
+| `{{name}}` | {{type}} | {{{natspec}}} |
+{{/each}}
+{{/if}}

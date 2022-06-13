@@ -399,7 +399,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
-        accountTokenSnapshot.maybeCriticalAtTimestamp = BIG_INT_ZERO;
+        accountTokenSnapshot.maybeCriticalAtTimestamp = null;
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
         accountTokenSnapshot.save();
@@ -542,8 +542,8 @@ function updateATSBalanceAndUpdatedAt(
     accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         accountTokenSnapshot.updatedAtTimestamp,
         accountTokenSnapshot.balanceUntilUpdatedAt,
-        accountTokenSnapshot.totalDeposit,
-        accountTokenSnapshot.totalNetFlowRate
+        accountTokenSnapshot.totalNetFlowRate,
+        accountTokenSnapshot.maybeCriticalAtTimestamp
     );
 
     accountTokenSnapshot.save();
@@ -553,7 +553,8 @@ function updateATSBalanceAndUpdatedAt(
 /**
  * Updates the amount streamed, balance until updated at for the AccountTokenSnapshot
  * entity and also updates the updatedAt property on the account entity.
- * @dev Must call before updatedAt is updated.
+ * NOTE: call before the `updatedAt` property is updated otherwise you get incorrect data;
+ * NOTE: you should be calling updateTokenStatsStreamedUntilUpdatedAt whenever you call this
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountAddress: Address,
@@ -589,6 +590,11 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     updateAccountUpdatedAt(accountAddress, block);
 }
 
+/**
+ * This function should always be called with updateATSStreamedAndBalanceUntilUpdatedAt
+ * @param tokenAddress
+ * @param block
+ */
 export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenAddress: Address,
     block: ethereum.Block
@@ -603,6 +609,8 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
         tokenStats.totalAmountStreamedUntilUpdatedAt.plus(
             amountStreamedSinceLastUpdatedAt
         );
+    tokenStats.updatedAtTimestamp = block.timestamp;
+    tokenStats.updatedAtBlockNumber = block.number;
     tokenStats.save();
 }
 
@@ -681,8 +689,8 @@ export function updateAggregateEntitiesStreamData(
     senderATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         senderATS.updatedAtTimestamp,
         senderATS.balanceUntilUpdatedAt,
-        senderATS.totalDeposit,
-        senderATS.totalNetFlowRate
+        senderATS.totalNetFlowRate,
+        senderATS.maybeCriticalAtTimestamp
     );
 
     let receiverATS = getOrInitAccountTokenSnapshot(
@@ -711,8 +719,8 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         receiverATS.updatedAtTimestamp,
         receiverATS.balanceUntilUpdatedAt,
-        receiverATS.totalDeposit,
-        receiverATS.totalNetFlowRate
+        receiverATS.totalNetFlowRate,
+        receiverATS.maybeCriticalAtTimestamp
     );
     receiverATS.save();
 

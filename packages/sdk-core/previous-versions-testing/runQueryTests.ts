@@ -1,9 +1,7 @@
 import { Query } from "@superfluid-finance/sdk-core/src";
+import { chainIdToResolverDataMap } from "@superfluid-finance/sdk-core/src/constants";
 import {
-    chainIdToResolverDataMap,
-    MATIC_CHAIN_ID,
-} from "@superfluid-finance/sdk-core/src/constants";
-import {
+    getChainId,
     testExpectListenerThrow,
     testExpectWeb3OnlyErrors,
     testGetAllEventsQuery,
@@ -11,7 +9,10 @@ import {
     testQueryClassFunctions,
 } from "./queryTests";
 
-const getSubgraphEndpoint = (chainId: number) => {
+export const getSubgraphEndpoint = (chainId: number) => {
+    if (process.env.SUBGRAPH_RELEASE_TAG === "local")
+        return "http://localhost:8000/subgraphs/name/superfluid-test";
+
     const resolverData = chainIdToResolverDataMap.get(chainId);
     if (!resolverData) throw new Error("Resolver data is undefined");
     return resolverData.subgraphAPIEndpoint;
@@ -20,12 +21,9 @@ const getSubgraphEndpoint = (chainId: number) => {
 describe("Query Tests", () => {
     let query: Query;
     before(async () => {
-        let customSubgraphQueriesEndpoint =
-            process.env.LOCAL_SUBGRAPH_URL ||
-            getSubgraphEndpoint(MATIC_CHAIN_ID);
-        
-        // this will work fine given the assumption that
-        // LOCAL_SUBGRAPH_URL doesn't have "v1"
+        const chainIdToUse = getChainId();
+        let customSubgraphQueriesEndpoint = getSubgraphEndpoint(chainIdToUse);
+
         if (process.env.SUBGRAPH_RELEASE_TAG) {
             customSubgraphQueriesEndpoint =
                 customSubgraphQueriesEndpoint.replace(

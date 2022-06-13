@@ -27,7 +27,7 @@ type _Meta_ {
   will be null if the _meta field has a block constraint that asks for
   a block number. It will be filled if the _meta field has no block constraint
   and therefore asks for the latest  block
-
+  
   """
   block: _Block_!
 
@@ -62,7 +62,7 @@ type Account {
 
   """
   Indicates whether the address/account is a super app.
-
+  
   """
   isSuperApp: Boolean!
   inflows(skip: Int = 0, first: Int = 100, orderBy: Stream_orderBy, orderDirection: OrderDirection, where: Stream_filter): [Stream!]!
@@ -149,7 +149,7 @@ interaction with a `token`.
 type AccountTokenSnapshot {
   """
   ID composed of: accountID-tokenID
-
+  
   """
   id: ID!
   updatedAtTimestamp: BigInt!
@@ -159,80 +159,80 @@ type AccountTokenSnapshot {
   isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
   Optimistic means that it is the earliest time the user will be liquidated as
   they may receive ongoing distributions which aren't tracked by the subgraph
-
+  
   """
   isLiquidationEstimateOptimistic: Boolean!
 
   """
   Optimistic liquidation estimation property.
-
+  
   """
-  maybeCriticalAtTimestamp: BigInt!
+  maybeCriticalAtTimestamp: BigInt
 
   """
   The number of currently open streams.
-
+  
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The number of all-time closed streams.
-
+  
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all currently (as of updatedAt) approved subscriptions whether or not they have units.
-
+  
   """
   totalApprovedSubscriptions: Int!
 
   """
   Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   balanceUntilUpdatedAt: BigInt!
 
   """
   The total deposit this account has held by the CFA agreement for `account` active streams.
-
+  
   """
   totalDeposit: BigInt!
 
   """
   The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalNetFlowRate: BigInt!
 
   """
   The total inflow rate (receive flowRate per second) of the `account`.
-
+  
   """
   totalInflowRate: BigInt!
 
   """
   The total outflow rate (send flowrate per second) of the `account`.
-
+  
   """
   totalOutflowRate: BigInt!
 
   """
   The total amount of `token` streamed to this `account` until
   the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
 
   """
   The total amount of `token` this `account` has transferred.
-
+  
   """
   totalAmountTransferredUntilUpdatedAt: BigInt!
   account: Account!
@@ -446,74 +446,74 @@ type AccountTokenSnapshotLog {
 
   """
   Optimistic liquidation estimation property.
-
+  
   """
-  maybeCriticalAtTimestamp: BigInt!
+  maybeCriticalAtTimestamp: BigInt
 
   """
   The current (as of timestamp) number of currently open streams.
-
+  
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The current (as of timestamp) number of all-time closed streams.
-
+  
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all currently (as of timestamp) approved subscriptions whether or not they have units.
-
+  
   """
   totalApprovedSubscriptions: Int!
 
   """
   Balance of `account` as of `timestamp`/`block`.
-
+  
   """
   balance: BigInt!
 
   """
   The total (as of timestamp) deposit this account has held by the CFA agreement for `account` active streams.
-
+  
   """
   totalDeposit: BigInt!
 
   """
   The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
-
+  
   """
   totalNetFlowRate: BigInt!
 
   """
   The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
-
+  
   """
   totalInflowRate: BigInt!
 
   """
   The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
-
+  
   """
   totalOutflowRate: BigInt!
 
   """
   The total (as of timestamp) amount of `token` streamed to this `account` until
   the `timestamp`/`block`.
-
+  
   """
   totalAmountStreamed: BigInt!
 
   """
   The total (as of timestamp) amount of `token` this `account` has transferred.
-
+  
   """
   totalAmountTransferred: BigInt!
   account: Account!
@@ -779,7 +779,7 @@ type AgreementClassRegisteredEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -897,7 +897,7 @@ type AgreementClassUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1015,7 +1015,7 @@ type AgreementLiquidatedByEvent implements Event {
 
   """
   Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1184,8 +1184,8 @@ type AgreementLiquidatedV2Event implements Event {
   name: String!
 
   """
-  Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
-
+  Holds the token, liquidatorAccount, targetAccount and rewardAmountReceiver addresses.
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1196,11 +1196,17 @@ type AgreementLiquidatedV2Event implements Event {
   agreementClass: Bytes!
   agreementId: Bytes!
   targetAccount: Bytes!
-  rewardAccount: Bytes!
+  rewardAmountReceiver: Bytes!
   rewardAmount: BigInt!
   targetAccountBalanceDelta: BigInt!
   version: BigInt!
   liquidationType: Int!
+
+  """
+  TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+  
+  """
+  rewardAccount: Bytes!
 }
 
 input AgreementLiquidatedV2Event_filter {
@@ -1306,12 +1312,12 @@ input AgreementLiquidatedV2Event_filter {
   targetAccount_not_in: [Bytes!]
   targetAccount_contains: Bytes
   targetAccount_not_contains: Bytes
-  rewardAccount: Bytes
-  rewardAccount_not: Bytes
-  rewardAccount_in: [Bytes!]
-  rewardAccount_not_in: [Bytes!]
-  rewardAccount_contains: Bytes
-  rewardAccount_not_contains: Bytes
+  rewardAmountReceiver: Bytes
+  rewardAmountReceiver_not: Bytes
+  rewardAmountReceiver_in: [Bytes!]
+  rewardAmountReceiver_not_in: [Bytes!]
+  rewardAmountReceiver_contains: Bytes
+  rewardAmountReceiver_not_contains: Bytes
   rewardAmount: BigInt
   rewardAmount_not: BigInt
   rewardAmount_gt: BigInt
@@ -1344,6 +1350,12 @@ input AgreementLiquidatedV2Event_filter {
   liquidationType_lte: Int
   liquidationType_in: [Int!]
   liquidationType_not_in: [Int!]
+  rewardAccount: Bytes
+  rewardAccount_not: Bytes
+  rewardAccount_in: [Bytes!]
+  rewardAccount_not_in: [Bytes!]
+  rewardAccount_contains: Bytes
+  rewardAccount_not_contains: Bytes
 }
 
 enum AgreementLiquidatedV2Event_orderBy {
@@ -1360,11 +1372,12 @@ enum AgreementLiquidatedV2Event_orderBy {
   agreementClass
   agreementId
   targetAccount
-  rewardAccount
+  rewardAmountReceiver
   rewardAmount
   targetAccountBalanceDelta
   version
   liquidationType
+  rewardAccount
 }
 
 type AppRegisteredEvent implements Event {
@@ -1375,7 +1388,7 @@ type AppRegisteredEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1490,11 +1503,11 @@ input Block_height {
   number: Int
 
   """
-  Value containing the minimum block number.
+  Value containing the minimum block number. 
   In the case of `number_gte`, the query will be executed on the latest block only if
   the subgraph has progressed to or past the minimum block number.
   Defaults to the latest block when omitted.
-
+  
   """
   number_gte: Int
 }
@@ -1507,7 +1520,7 @@ type BurnedEvent implements Event {
 
   """
   Holds the token and from addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1653,7 +1666,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1787,7 +1800,7 @@ type ConfigChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -1929,7 +1942,7 @@ type CustomSuperTokenCreatedEvent implements Event {
 
   """
   Holds the token address.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -2046,7 +2059,7 @@ interface Event {
 
   """
   Holds the addresses for accounts that were impacted by the event.
-
+  
   """
   addresses: [Bytes!]!
   timestamp: BigInt!
@@ -2146,7 +2159,7 @@ FlowOperator: A higher order entity that of a flow operator for an `AccountToken
 type FlowOperator {
   """
   ID composed of: flowOperator - token - sender
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -2157,7 +2170,7 @@ type FlowOperator {
   """
   The permissions granted to the `flowOperator`.
   Octo bitmask representation.
-
+  
   """
   permissions: Int!
 
@@ -2165,7 +2178,7 @@ type FlowOperator {
   The flow rate allowance granted to the `flowOperator`
   by the `sender`. This can be reset if the `sender`
   updates the `flowOperator` flow rate allowance.
-
+  
   """
   flowRateAllowanceGranted: BigInt!
 
@@ -2175,7 +2188,7 @@ type FlowOperator {
   (if they increase flowRate or create a new flow)
   and can only be reset if the `sender` updates the flow
   rate allowance.
-
+  
   """
   flowRateAllowanceRemaining: BigInt!
   flowOperator: Bytes!
@@ -2342,7 +2355,7 @@ type FlowOperatorUpdatedEvent implements Event {
 
   """
   Holds the token, sender, and flowOperator addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -2351,7 +2364,7 @@ type FlowOperatorUpdatedEvent implements Event {
 
   """
   The address of the `token` being streamed.
-
+  
   """
   token: Bytes!
   sender: Bytes!
@@ -2359,7 +2372,7 @@ type FlowOperatorUpdatedEvent implements Event {
   """
   The permissions granted to the `flowOperator`.
   Octo bitmask representation.
-
+  
   """
   permissions: Int!
   flowRateAllowance: BigInt!
@@ -2518,7 +2531,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   Holds the token, sender and receiver addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -2527,7 +2540,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   The address of the `token` being streamed.
-
+  
   """
   token: Bytes!
   sender: Bytes!
@@ -2537,13 +2550,13 @@ type FlowUpdatedEvent implements Event {
   The address that is triggering the flow update.
   This will be the zero address until the flowOperator
   feature is live.
-
+  
   """
   flowOperator: Bytes!
 
   """
   The flow rate per second.
-
+  
   """
   flowRate: BigInt!
   totalSenderFlowRate: BigInt!
@@ -2553,7 +2566,7 @@ type FlowUpdatedEvent implements Event {
 
   """
   The previous flow rate.
-
+  
   """
   oldFlowRate: BigInt!
 
@@ -2562,20 +2575,20 @@ type FlowUpdatedEvent implements Event {
   0 = create
   1 = update
   2 = terminate
-
+  
   """
   type: Int!
 
   """
   The total amount streamed until the timestamp
   for the Stream entity linked to this event.
-
+  
   """
   totalAmountStreamedUntilTimestamp: BigInt!
 
   """
   The stream entity which is being modified.
-
+  
   """
   stream: Stream!
 }
@@ -2797,7 +2810,7 @@ type GovernanceReplacedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   oldGovernance: Bytes!
   newGovernance: Bytes!
@@ -2910,7 +2923,7 @@ Index: An Index higher order entity.
 type Index {
   """
   ID composed of: publisherAddress-tokenAddress-indexId
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -2920,14 +2933,14 @@ type Index {
 
   """
   indexId is not the id of the `Index` entity.
-
+  
   """
   indexId: BigInt!
   indexValue: BigInt!
 
   """
   The number of subscriptions which have units allocated to them on the `Index`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
@@ -2935,7 +2948,7 @@ type Index {
   The number of units allocated by the `Index` that are pending.
   This refers to the current (as of updatedAt) `totalUnitsPending`
   - not all that has ever been pending.
-
+  
   """
   totalUnitsPending: BigInt!
 
@@ -2943,19 +2956,19 @@ type Index {
   The number of units allocated by the `Index` that are approved.
   This refers to the current (as of updatedAt) `totalUnitsApproved`
   - not all that has ever been approved.
-
+  
   """
   totalUnitsApproved: BigInt!
 
   """
   The sum of `totalUnitsPending` and `totalUnitsApproved`.
-
+  
   """
   totalUnits: BigInt!
 
   """
   The total amount distributed from this `Index`.
-
+  
   """
   totalAmountDistributedUntilUpdatedAt: BigInt!
   token: Token!
@@ -2964,13 +2977,13 @@ type Index {
   """
   The subscriptions of the index, it will include approved, unapproved
   and deleted subscriptions.
-
+  
   """
   subscriptions(skip: Int = 0, first: Int = 100, orderBy: IndexSubscription_orderBy, orderDirection: OrderDirection, where: IndexSubscription_filter): [IndexSubscription!]!
 
   """
   IndexCreated event, there will only be one.
-
+  
   """
   indexCreatedEvent: IndexCreatedEvent!
   indexDistributionClaimedEvents(skip: Int = 0, first: Int = 100, orderBy: IndexDistributionClaimedEvent_orderBy, orderDirection: OrderDirection, where: IndexDistributionClaimedEvent_filter): [IndexDistributionClaimedEvent!]!
@@ -3171,7 +3184,7 @@ type IndexCreatedEvent implements Event {
 
   """
   Holds the token and publisher addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3329,7 +3342,7 @@ type IndexDistributionClaimedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3497,7 +3510,7 @@ type IndexSubscribedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -3663,7 +3676,7 @@ IndexSubscription: A higher order entity that contains subscription data for a `
 type IndexSubscription {
   """
   ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -3675,21 +3688,21 @@ type IndexSubscription {
   """
   Approved subscriptions don't require subscribers to claim tokens that are distributed from
   the publisher.
-
+  
   """
   approved: Boolean!
 
   """
   If units is 0, it indicates that the subscription is "deleted". They are no longer
   subscribed to the index.
-
+  
   """
   units: BigInt!
 
   """
   The total amount of tokens you've received via IDA until
   `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountReceivedUntilUpdatedAt: BigInt!
 
@@ -3698,14 +3711,14 @@ type IndexSubscription {
   `index.updatedAtTimestamp`. The formula to get this value is:
   `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue -
   indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
-
+  
   """
   indexValueUntilUpdatedAt: BigInt!
   index: Index!
 
   """
   IndexSubscription approved events on the subscription.
-
+  
   """
   subscriptionApprovedEvents(skip: Int = 0, first: Int = 100, orderBy: SubscriptionApprovedEvent_orderBy, orderDirection: OrderDirection, where: SubscriptionApprovedEvent_filter): [SubscriptionApprovedEvent!]!
   subscriptionDistributionClaimedEvents(skip: Int = 0, first: Int = 100, orderBy: SubscriptionDistributionClaimedEvent_orderBy, orderDirection: OrderDirection, where: SubscriptionDistributionClaimedEvent_filter): [SubscriptionDistributionClaimedEvent!]!
@@ -3850,7 +3863,7 @@ type IndexUnitsUpdatedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4036,7 +4049,7 @@ type IndexUnsubscribedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4202,7 +4215,7 @@ type IndexUpdatedEvent implements Event {
 
   """
   Holds the token and publisher addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4400,7 +4413,7 @@ type JailEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4520,7 +4533,7 @@ type MintedEvent implements Event {
 
   """
   Holds the token, operator and to addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -4670,7 +4683,7 @@ type PPPConfigurationChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -6860,7 +6873,7 @@ type RewardAddressChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -6992,7 +7005,7 @@ type RoleAdminChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -7118,7 +7131,7 @@ type RoleGrantedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -7244,7 +7257,7 @@ type RoleRevokedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -7370,7 +7383,7 @@ type SentEvent implements Event {
 
   """
   Holds the token, operator and from addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -7517,7 +7530,7 @@ enum SentEvent_orderBy {
 type SFMeta {
   """
   The id is the commit hash.
-
+  
   """
   id: ID!
   timestamp: BigInt!
@@ -7525,13 +7538,13 @@ type SFMeta {
 
   """
   Whether the branch is feature/dev/v1.
-
+  
   """
   configuration: String!
 
   """
   The branch the current deployment is coming from.
-
+  
   """
   branch: String!
 }
@@ -7622,7 +7635,7 @@ between the same `sender` and `receiver`.
 type Stream {
   """
   ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -7636,7 +7649,7 @@ type Stream {
   The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
   amount is:
   `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
-
+  
   """
   streamedUntilUpdatedAt: BigInt!
   token: Token!
@@ -7796,7 +7809,7 @@ StreamPeriod: A higher order entity that represents a period of time in a Stream
 type StreamPeriod {
   """
   ID composed of: streamId - periodRevisionIndex
-
+  
   """
   id: ID!
   stream: Stream!
@@ -7811,7 +7824,7 @@ type StreamPeriod {
 
   """
   Following values are null until the StreamPeriod is terminated
-
+  
   """
   stoppedAtTimestamp: BigInt
   stoppedAtBlockNumber: BigInt
@@ -10116,7 +10129,7 @@ type SubscriptionApprovedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10282,7 +10295,7 @@ type SubscriptionDistributionClaimedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10450,7 +10463,7 @@ type SubscriptionRevokedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10616,7 +10629,7 @@ type SubscriptionUnitsUpdatedEvent implements Event {
 
   """
   Holds the token, publisher and subscriber addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10802,7 +10815,7 @@ type SuperTokenCreatedEvent implements Event {
 
   """
   Holds the token address.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -10912,7 +10925,7 @@ type SuperTokenFactoryUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11022,7 +11035,7 @@ type SuperTokenLogicCreatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11132,7 +11145,7 @@ type SuperTokenLogicUpdatedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11250,7 +11263,7 @@ Superfluid's host contract address set as the host).
 type Token {
   """
   ID: the token address
-
+  
   """
   id: ID!
   createdAtTimestamp: BigInt!
@@ -11262,20 +11275,20 @@ type Token {
 
   """
   This indicates whether the token is a part of our resolver list.
-
+  
   """
   isListed: Boolean!
 
   """
   The address of the underlying ERC20 token.
-
+  
   """
   underlyingAddress: Bytes!
 
   """
   The underlying ERC20 token for a SuperToken or
   null for a regular ERC20 token.
-
+  
   """
   underlyingToken: Token
 }
@@ -11411,7 +11424,7 @@ type TokenDowngradedEvent implements Event {
 
   """
   Holds the token and account addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11551,7 +11564,7 @@ TokenStatistic: An aggregate entity which aggregates data of a single `token`.
 type TokenStatistic {
   """
   id: token address
-
+  
   """
   id: ID!
   updatedAtTimestamp: BigInt!
@@ -11559,76 +11572,76 @@ type TokenStatistic {
 
   """
   The total number of currently active `token` streams.
-
+  
   """
   totalNumberOfActiveStreams: Int!
 
   """
   The all-time number of closed streams.
-
+  
   """
   totalNumberOfClosedStreams: Int!
 
   """
   The total number of Indexes created with `token`.
-
+  
   """
   totalNumberOfIndexes: Int!
 
   """
   The total number of "active" (has greater than 0 units and has distributed it at
   least once) Indexes created with `token`.
-
+  
   """
   totalNumberOfActiveIndexes: Int!
 
   """
   The number of subscriptions which have units allocated to them
   created with Indexes that distribute `token`.
-
+  
   """
   totalSubscriptionsWithUnits: Int!
 
   """
   Counts all approved subscriptions whether or not they have units.
-
+  
   """
   totalApprovedSubscriptions: Int!
 
   """
   The total deposit held by the CFA agreement for this particular `token`.
-
+  
   """
   totalDeposit: BigInt!
 
   """
   The total outflow rate of the `token` (how much value is being moved).
-
+  
   """
   totalOutflowRate: BigInt!
 
   """
   The all-time total amount streamed until the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
 
   """
   The all-time total amount transferred until the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountTransferredUntilUpdatedAt: BigInt!
 
   """
   The all-time total amount distributed until the `updatedAtTimestamp`/`updatedAtBlock`.
-
+  
   """
   totalAmountDistributedUntilUpdatedAt: BigInt!
 
   """
   The total supply of the token - this is impacted by users upgrading/downgrading their
   tokens.
-
+  
   """
   totalSupply: BigInt!
   token: Token!
@@ -11805,7 +11818,7 @@ type TokenUpgradedEvent implements Event {
 
   """
   Holds the token and account addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -11946,7 +11959,7 @@ type TransferEvent implements Event {
 
   """
   Holds the token, from and to addresses.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!
@@ -12110,7 +12123,7 @@ type TrustedForwarderChangedEvent implements Event {
 
   """
   Empty addresses array.
-
+  
   """
   addresses: [Bytes!]!
   blockNumber: BigInt!

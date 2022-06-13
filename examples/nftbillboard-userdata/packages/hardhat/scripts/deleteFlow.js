@@ -1,4 +1,3 @@
-//most recent loan address
 const ethers = require("ethers");
 const { Framework } = require("@superfluid-finance/sdk-core");
 const { AbiCoder, defaultAbiCoder } = require("ethers/lib/utils");

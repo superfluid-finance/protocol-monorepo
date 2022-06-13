@@ -24,9 +24,6 @@ contract TokenSpreader {
 
     uint32 public constant INDEX_ID = 0;               // The IDA Index. Since this contract will only use one index, we'll hardcode it to "0".
 
-    address public hostAddress1;
-    address public hostAddress2;
-
     constructor(
         ISuperfluid _host,
         ISuperToken _spreaderToken

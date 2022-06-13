@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {
-    ISuperfluid,
-    ISuperToken,
-    SuperAppBase,
-    SuperAppDefinitions
-} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
-import {
-    IInstantDistributionAgreementV1
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import { SuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
+
+import { 
+    ISuperfluid, 
+    ISuperToken, 
+    ISuperApp, 
+    ISuperAgreement, 
+    SuperAppDefinitions 
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol"; 
+
+import { IInstantDistributionAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
 
 import {IDAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
@@ -34,12 +36,11 @@ contract DividendRightsToken is
     uint32 public constant INDEX_ID = 0;
     uint8 private _decimals;
 
-    bytes32 internal constant _IDAV1_HASH = keccak256(
+    bytes32 internal constant IDAV1_ID = keccak256(
         "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
     );
 
     ISuperToken private _cashToken;
-    ISuperfluid private _host;
 
     // use callbacks to track approved subscriptions
     mapping (address => bool) public isSubscribing;
@@ -48,12 +49,11 @@ contract DividendRightsToken is
         string memory name,
         string memory symbol,
         ISuperToken cashToken,
-        ISuperfluid host
+        ISuperfluid _host
     )
         ERC20(name, symbol)
     {
         _cashToken = cashToken;
-        _host = host;
 
         uint256 configWord =
             SuperAppDefinitions.APP_LEVEL_FINAL |
@@ -63,9 +63,9 @@ contract DividendRightsToken is
         _host.registerApp(configWord);
 
         idaV1 = IDAv1Library.InitData(
-            host,
+            _host,
             IInstantDistributionAgreementV1(
-                address(host.getAgreementClass(_IDAV1_HASH))
+                address(_host.getAgreementClass(IDAV1_ID))
             )
         );
 
@@ -75,68 +75,9 @@ contract DividendRightsToken is
         _decimals = 0;
     }
 
+
     function decimals() public view override returns (uint8) {
         return _decimals;
-    }
-
-    function beforeAgreementCreated(
-        ISuperToken superToken,
-        address agreementClass,
-        bytes32 /* agreementId */,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*ctx*/
-    )
-        external view override
-        returns (bytes memory data)
-    {
-        require(superToken == _cashToken, "DRT: Unsupported cash token");
-        require(agreementClass == address(idaV1.ida), "DRT: Unsupported agreement");
-        return new bytes(0);
-    }
-
-    function afterAgreementCreated(
-        ISuperToken superToken,
-        address /* agreementClass */,
-        bytes32 agreementId,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*cbdata*/,
-        bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
-        _checkSubscription(superToken, ctx, agreementId);
-        newCtx = ctx;
-    }
-
-    function beforeAgreementUpdated(
-        ISuperToken superToken,
-        address agreementClass,
-        bytes32 /* agreementId */,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*ctx*/
-    )
-        external view override
-        returns (bytes memory data)
-    {
-        require(superToken == _cashToken, "DRT: Unsupported cash token");
-        require(agreementClass == address(idaV1.ida), "DRT: Unsupported agreement");
-        return new bytes(0);
-    }
-
-    function afterAgreementUpdated(
-        ISuperToken superToken,
-        address /* agreementClass */,
-        bytes32 agreementId,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*cbdata*/,
-        bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
-        _checkSubscription(superToken, ctx, agreementId);
-        newCtx = ctx;
     }
 
     function _checkSubscription(
@@ -146,7 +87,7 @@ contract DividendRightsToken is
     )
         private
     {
-        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        ISuperfluid.Context memory context = idaV1.host.decodeCtx(ctx);
         // only interested in the subscription approval callbacks
         if (context.agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
             address publisher;
@@ -203,6 +144,90 @@ contract DividendRightsToken is
 
         idaV1.updateSubscriptionUnits(_cashToken, INDEX_ID, recipient, recipientUnits + uint128(amount));
 
+    }
+
+    function beforeAgreementCreated(
+        ISuperToken superToken,
+        address agreementClass,
+        bytes32 /* agreementId */,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
+    )
+        external view override
+        onlyHost
+        onlyIDA(agreementClass)
+        returns (bytes memory data)
+        
+    {
+        require(superToken == _cashToken, "DRT: Unsupported cash token");
+        return new bytes(0);
+    }
+
+    function afterAgreementCreated(
+        ISuperToken superToken,
+        address agreementClass,
+        bytes32 agreementId,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external override
+        onlyHost
+        onlyIDA(agreementClass)
+        returns(bytes memory newCtx)
+    {
+        _checkSubscription(superToken, ctx, agreementId);
+        newCtx = ctx;
+    }
+
+    function beforeAgreementUpdated(
+        ISuperToken superToken,
+        address agreementClass,
+        bytes32 /* agreementId */,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
+    )
+        external view override
+        onlyHost
+        onlyIDA(agreementClass)
+        returns (bytes memory data)
+    {
+        require(superToken == _cashToken, "DRT: Unsupported cash token");
+        return new bytes(0);
+    }
+
+    function afterAgreementUpdated(
+        ISuperToken superToken,
+        address agreementClass,
+        bytes32 agreementId,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external override
+        onlyHost
+        onlyIDA(agreementClass)
+        returns(bytes memory newCtx)
+    {
+        _checkSubscription(superToken, ctx, agreementId);
+        newCtx = ctx;
+    }
+
+    function _isIDAv1(address agreementClass) private view returns (bool) {
+        return ISuperAgreement(agreementClass).agreementType() == IDAV1_ID;
+    }
+
+    modifier onlyHost() {
+        require(
+            msg.sender == address(idaV1.host),
+            "Only host can call callback"
+        );
+        _;
+    }
+
+    modifier onlyIDA(address agreementClass) {
+        require(_isIDAv1(agreementClass), "Only IDAv1 supported");
+        _;
     }
 
 }

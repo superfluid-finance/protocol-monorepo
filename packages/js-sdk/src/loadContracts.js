@@ -1,43 +1,6 @@
 const contractNames = require("./contracts.json");
 const abis = require("./abi");
 
-const getAdaptedContract = ({address, abi, ethers}) => {
-    const {Contract} = require("@ethersproject/contracts");
-
-    let providerOrSigner = ethers;
-    try {
-        providerOrSigner = ethers.getSigner();
-    } catch (e) {
-        console.debug(
-            "Ethers.js signer is not available. Using read-only mode."
-        );
-    }
-    const ethersContract = new Contract(address, abi, providerOrSigner);
-
-    // Create adapter for web3.js Contract.contract.methods.encodeABI
-    const web3EncodingAdapter = {};
-    ethersContract.interface.fragments.forEach((fragment) => {
-        web3EncodingAdapter[fragment.name] = (...args) => {
-            return {
-                encodeABI: () => {
-                    return ethersContract.interface.encodeFunctionData(
-                        fragment,
-                        args
-                    );
-                },
-            };
-        };
-    });
-    ethersContract.contract = {
-        methods: {
-            ...web3EncodingAdapter,
-        },
-    };
-    ethersContract.abi = abi;
-
-    return ethersContract;
-};
-
 function defaultContractLoader(name) {
     if (name in abis) {
         return {
@@ -58,7 +21,6 @@ function setTruffleContractDefaults(c, {networkId, from}) {
 
 const loadContracts = async ({
     isTruffle,
-    ethers,
     web3,
     from,
     additionalContracts,
@@ -72,36 +34,7 @@ const loadContracts = async ({
     );
     contractLoader = contractLoader || defaultContractLoader;
     let contracts = {};
-    if (ethers) {
-        try {
-            console.debug(
-                `Using @superfluid-finance/js-sdk within the Ethers.js environment.
-                Peer dependency @ethersproject/contract is required.`
-            );
-            await Promise.all(
-                allContractNames.map(async (name) => {
-                    const contract = await contractLoader(name);
-                    contracts[name] = {
-                        at: (address) =>
-                            getAdaptedContract({
-                                address,
-                                ethers,
-                                abi: contract.abi,
-                            }),
-                        abi: contract.abi,
-                        contractName: name,
-                    };
-                })
-            );
-            if (from) {
-                throw Error(
-                    "Ethers mode does not support default from address"
-                );
-            }
-        } catch (e) {
-            throw Error(`could not load ethers environment contracts. ${e}`);
-        }
-    } else if (web3) {
+    if (web3) {
         try {
             const TruffleContract = require("@truffle/contract");
             console.debug(

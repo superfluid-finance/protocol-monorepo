@@ -57,8 +57,15 @@ export type OtherEvents =
 
 export type AllEvents = AccountEvents | OtherEvents;
 
+export enum FlowUpdateType {
+    Create = 0,
+    Update = 1,
+    Terminate = 2,
+}
+
 export interface FlowUpdatedEvent extends EventBase {
     name: "FlowUpdated";
+    type: FlowUpdateType;
     token: string;
     sender: string;
     receiver: string;

@@ -19,13 +19,11 @@ contract TradeableCashflow is ERC721, RedirectAll {
     string memory _name,
     string memory _symbol,
     ISuperfluid host,
-    IConstantFlowAgreementV1 cfa,
     ISuperToken acceptedToken
   )
     ERC721 ( _name, _symbol )
     RedirectAll (
       host,
-      cfa,
       acceptedToken,
       owner
      )

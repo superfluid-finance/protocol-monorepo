@@ -113,12 +113,6 @@ The `@superfluid-finance/js-sdk` isn't aware of your Super App, so you must enco
 // Example Solidity function in your Super App
 function deposit(uint256 amount) {}
 
-// Ethers.js
-myContract.interface.encodeFunctionData(
-   "deposit",
-   ["1000000000000000000"]
-);
-
 // Web3.js
 myContract.methods.deposit("1000000000000000000").encodeABI()
 ```
@@ -127,10 +121,10 @@ Here is an example which approves a Super App to spend a user's Super Tokens, fo
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { Web3Provider } = require("@ethersproject/providers");
+const Web3 = require("web3");
 
 const sf = new SuperfluidSDK.Framework({
-    ethers: new Web3Provider(window.ethereum),
+    web3: new Web3(window.ethereum),
     tokens: ["fDAI"],
 });
 await sf.initialize();

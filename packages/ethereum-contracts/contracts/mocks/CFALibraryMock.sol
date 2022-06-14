@@ -161,7 +161,7 @@ contract CFALibrarySuperAppMock is SuperAppBase {
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
-        host.registerApp(configWord);
+        host.registerAppWithKey(configWord, "");
     }
 
     function createFlow(ISuperToken token) external {

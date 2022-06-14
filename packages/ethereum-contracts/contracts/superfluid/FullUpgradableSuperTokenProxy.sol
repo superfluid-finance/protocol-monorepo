@@ -32,7 +32,7 @@ contract FullUpgradableSuperTokenProxy is Proxy {
         assembly { // solium-disable-line
             factory := sload(_FACTORY_SLOT)
         }
-        require(address(factory) != address(0), "Not initialized");
+        assert(address(factory) != address(0));
         return address(factory.getSuperTokenLogic());
     }
 

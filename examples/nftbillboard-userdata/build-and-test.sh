@@ -12,7 +12,7 @@ echo "Ganache port: $GANACHE_PORT"
 yarn ganache-cli --port $GANACHE_PORT &
 ganache_pid=$!
 sleep 10 # wait ganache to start
-yarn deploy --reset --network ganache
+yarn deploy
 yarn build
 
 # test contracts

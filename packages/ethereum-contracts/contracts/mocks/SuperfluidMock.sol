@@ -171,7 +171,7 @@ contract SuperfluidMock is Superfluid {
     function jailApp(ISuperApp app)
         external
     {
-        _jailApp(app, 0);
+        _jailApp(app, 6942);
     }
 
 }

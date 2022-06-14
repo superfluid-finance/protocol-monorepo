@@ -10,9 +10,6 @@ import {
 } from "./queryTests";
 
 export const getSubgraphEndpoint = (chainId: number) => {
-    if (process.env.SUBGRAPH_RELEASE_TAG === "local")
-        return "http://localhost:8000/subgraphs/name/superfluid-test";
-
     const resolverData = chainIdToResolverDataMap.get(chainId);
     if (!resolverData) throw new Error("Resolver data is undefined");
     return resolverData.subgraphAPIEndpoint;

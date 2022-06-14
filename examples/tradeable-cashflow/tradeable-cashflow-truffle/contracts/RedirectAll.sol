@@ -70,7 +70,7 @@ contract RedirectAll is SuperAppBase {
         }
     }
 
-    event ReceiverChanged(address receiver); //what is this?
+    event ReceiverChanged(address receiver);
 
     /// @dev If a new stream is opened, or an existing one is opened
     function _updateOutflow(bytes calldata ctx)
@@ -84,7 +84,7 @@ contract RedirectAll is SuperAppBase {
             _acceptedToken,
             address(this),
             _receiver
-        ); // CHECK: unclear what happens if flow doesn't exist.
+        );
         int96 inFlowRate = netFlowRate + outFlowRate;
 
         // @dev If inFlowRate === 0, then delete existing flow.

@@ -23,7 +23,7 @@ contract TestToken is ERC20 {
      * @dev See {ERC20-_mint}.
      */
     function mint(address account, uint256 amount) public returns (bool) {
-        require(amount <= MINT_LIMIT, "Don't mint too many");
+        assert(amount <= MINT_LIMIT); // no revert msg for you, bad boy
         ERC20._mint(account, amount);
         return true;
     }

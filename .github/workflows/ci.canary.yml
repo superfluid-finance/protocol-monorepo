@@ -69,7 +69,7 @@ jobs:
     uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
     name: Build and Test Current Subgraph Implementation with Previous SDK-Core Versions
     with:
-      subgraph-release: feature
+      subgraph-release: dev
       run-sdk-core-tests: true
 
   ethereum-contracts-coverage:

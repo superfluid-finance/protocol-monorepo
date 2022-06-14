@@ -40,10 +40,10 @@ module.exports = {
       chain_id: "1337",
       port: process.env.GANACHE_PORT || 8545
     },
-    goerli: {
-      url: `${process.env.GOERLI_URL}`,
-      accounts: [`${process.env.PRIVATE_KEY}`]
-      },
+    // goerli: {
+    //   url: `${process.env.GOERLI_URL}`,
+    //   accounts: [`${process.env.PRIVATE_KEY}`]
+    //   },
     },
   
     namedAccounts: {

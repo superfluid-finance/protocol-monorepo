@@ -20,7 +20,7 @@ const {
  *
  * NOTE:
  * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the ZERO_ADDRESS or the (known) native token symbol
- *   of the network, then the SETH contract will be deployed.,
+ *   of the network, then the SETH contract will be deployed.
  *   If the name of the network's native token isn't known by the framework, it can be provided
  *   via ENV var NATIVE_TOKEN_SYMBOL.
  * - Otherwise an ERC20 super token wrapper will be created for the underlying ERC20 token specified in

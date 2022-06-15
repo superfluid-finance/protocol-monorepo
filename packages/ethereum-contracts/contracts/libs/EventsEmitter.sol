@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 /**
  * @title Events Emitter Library
  * @author Superfluid
  * @dev A library used for emitting missing and unaccessable events.
- * 
+ *
  */
 library EventsEmitter {
     event Transfer(address indexed from, address indexed to, uint256 value);

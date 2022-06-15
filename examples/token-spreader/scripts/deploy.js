@@ -1,4 +1,5 @@
 const hre = require("hardhat");
+const ethers = hre.ethers;
 const { Framework } = require("@superfluid-finance/sdk-core");
 
 async function main() {
@@ -25,7 +26,7 @@ async function main() {
   //// Actually deploying
 
   // We get the contract to deploy to Gorli Testnet
-  const TokenSpreader = await hre.ethers.getContractFactory("TokenSpreader");
+  const TokenSpreader = await ethers.getContractFactory("TokenSpreader");
   const tokenSpreader = await TokenSpreader.deploy(
     sf.settings.config.hostAddress, // Getting the Goerli Host contract address from the Framework object
     daix.address                  

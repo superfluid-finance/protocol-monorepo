@@ -1,4 +1,4 @@
-name: Deploy to Testnets
+name: Verify on Etherscan
 
 on:
   workflow_dispatch:
@@ -13,8 +13,8 @@ on:
 
 jobs:
 
-  deploy-to-testnets:
-    name: Deploy to testnets
+  verify-on-etherscan:
+    name: Verify on Etherscan
 
     runs-on: ubuntu-latest
 

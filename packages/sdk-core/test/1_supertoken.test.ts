@@ -1230,14 +1230,6 @@ describe("SuperToken Tests", () => {
                 })
                 .exec(alpha)
 
-            // await daix
-            //     .updateSubscriptionUnits({
-            //         indexId: "0",
-            //         subscriber: bravo.address,
-            //         units,
-            //     })
-            //     .exec(alpha)
-
             await daix
                 .distribute({
                     indexId: "0",

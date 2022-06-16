@@ -7,9 +7,9 @@ digital representations of money. Examples are bills, coins, bank accounts, Bitc
 
 \ignore{
 \begin{code}
-module Money.Distribution.Concepts where
+module Money.Concepts.Distribution where
 
-import Data.Default
+import Data.Default ( Default )
 \end{code}
 }
 
@@ -23,17 +23,19 @@ class (Default lq, Integral lq, Show lq) => Liquidity lq
 \end{code}
 
 \begin{code}
--- | Timestamp Type Class
---
--- Naming conventions:
---  * Type name: ts
---  * SuperfluidTypes type indexer: SFT_TS
-class (Default ts, Integral ts, Show ts) => Timestamp ts
+class Context ctx
 \end{code}
 
 \begin{code}
--- | Money Distribution
-class MoneyDistribution md
+class Bearer brr
+\end{code}
+
+\begin{code}
+-- | Liquidity Distribution
+class LiquidityDistribution ld where
+    bearers :: Bearer brr => ld -> [brr]
+
+    liquidity :: (Context ctx, Bearer brr, Liquidity liq) => ld -> (brr, ctx) -> liq
 \end{code}
 
 (WIP)

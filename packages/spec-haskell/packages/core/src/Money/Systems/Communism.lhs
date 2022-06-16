@@ -2,9 +2,9 @@ Communism comes in various forms, and all have its own money distribution "syste
 
 \ignore{
 \begin{code}
-module Money.Distribution.Communism where
+module Money.Systems.Communism where
 
-import Money.Distribution.Concepts ( MoneyDistribution )
+import Money.Concepts.Distribution ( LiquidityDistribution)
 \end{code}
 }
 
@@ -18,7 +18,7 @@ data Infinite a = Infinite | Only a
 
 data UtopianCommunism
 
-instance MoneyDistribution UtopianCommunism
+instance LiquidityDistribution UtopianCommunism
 \end{code}
 
 \lhsparagraph{Dystopian Communism}
@@ -28,7 +28,7 @@ In its more likely form, there is simply nothing, and everyone owns nothing.
 \begin{code}
 data DystopianCommunism
 
-instance MoneyDistribution DystopianCommunism
+instance LiquidityDistribution DystopianCommunism
 \end{code}
 
 \lhsparagraph{Autocratic Communism}
@@ -39,7 +39,7 @@ effect of the monadic autocrat.
 \begin{code}
 data AutocraticCommunism
 
-instance MoneyDistribution AutocraticCommunism
+instance LiquidityDistribution AutocraticCommunism
 \end{code}
 
 \lhsparagraph{Communism Bad}

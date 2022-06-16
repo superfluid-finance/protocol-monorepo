@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 
-module Money.Superfluid.System.AccountTokenModel
+module Money.Systems.Superfluid.System.AccountTokenModel
     ( Account (..)
     , balanceOfAccountAt
     , sumAccounts
@@ -16,22 +16,22 @@ import           Data.Kind                                                (Type)
 import           Data.Maybe
 import           Data.Proxy
 
-import           Money.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
 --
-import           Money.Superfluid.Concepts.Agreement
+import           Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementAccountData
     , AgreementContractData
     , AnyAgreementAccountData (..)
     , providedBalanceOfAnyAgreement
     )
 --
-import qualified Money.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
+import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
-import qualified Money.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import qualified Money.Superfluid.System.Serialization                    as S
+import qualified Money.Systems.Superfluid.System.Serialization                    as S
 
 
 -- | SuperfluidTypes type class

@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Superfluid.Concepts.RealtimeBalance
+module Money.Systems.Superfluid.Concepts.RealtimeBalance
     ( UntypedLiquidityVector (..)
     , TypedLiquidityVector (..)
     , RealtimeBalance (..)
@@ -11,7 +11,7 @@ module Money.Superfluid.Concepts.RealtimeBalance
 
 import           Data.Default
 
-import           Money.Superfluid.Concepts.Liquidity (AnyTappedLiquidity, Liquidity, UntappedLiquidity)
+import           Money.Systems.Superfluid.Concepts.Liquidity (AnyTappedLiquidity, Liquidity, UntappedLiquidity)
 
 -- | UntypedLiquidityVector type
 --

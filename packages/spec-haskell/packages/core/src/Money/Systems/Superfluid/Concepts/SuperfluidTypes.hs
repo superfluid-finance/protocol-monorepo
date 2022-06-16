@@ -1,8 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 
-module Money.Superfluid.Concepts.SuperfluidTypes
+module Money.Systems.Superfluid.Concepts.SuperfluidTypes
     ( Address
+    , Timestamp
     , SFTFloat
     , SuperfluidTypes (..)
     ) where
@@ -11,9 +12,8 @@ import           Data.Default                              (Default)
 import           Data.Kind                                 (Type)
 import           Data.Typeable                             (Typeable)
 
-import           Money.Distribution.Concepts               (Timestamp)
-import           Money.Superfluid.Concepts.Liquidity       (Liquidity)
-import           Money.Superfluid.Concepts.RealtimeBalance
+import           Money.Concepts.Distribution               (Liquidity)
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBalance)
 
 
 -- | Address Type Class
@@ -23,6 +23,14 @@ import           Money.Superfluid.Concepts.RealtimeBalance
 --  * Type family name: ACC_ADDR
 class (Eq addr, Show addr) => Address addr
 
+-- | Timestamp Type Class
+--
+-- Naming conventions:
+--  * Type name: ts
+--  * SuperfluidTypes type indexer: SFT_TS
+class (Default ts, Integral ts, Show ts) => Timestamp ts
+
+-- | Actual Float Type
 class (Default fr, RealFloat fr, Show fr) => SFTFloat fr
 
 -- | SuperfluidTypes Type Class

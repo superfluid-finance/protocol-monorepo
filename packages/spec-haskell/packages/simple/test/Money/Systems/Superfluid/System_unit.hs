@@ -1,15 +1,15 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Money.Superfluid.System_unit (tests) where
+module Money.Systems.Superfluid.System_unit (tests) where
 
 import           Control.Monad.IO.Class
 import           Test.Framework.Providers.HUnit           (hUnitTestToTests)
 import           Test.HUnit                               (assertEqual)
 
-import qualified Money.Superfluid.Instances.Simple.System as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System as SF
 --
-import           Money.Superfluid.TokenTester
+import           Money.Systems.Superfluid.TokenTester
 
 
 simple1to1ScenarioTest = TokenTestCase TokenTestSpec

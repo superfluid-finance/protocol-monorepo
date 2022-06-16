@@ -15,9 +15,9 @@ build-type:    Simple
 
 library
     exposed-modules:
-        Money.Superfluid.Instances.Simple.Serialization
-        Money.Superfluid.Instances.Simple.SuperfluidTypes
-        Money.Superfluid.Instances.Simple.System
+        Money.Systems.Superfluid.Instances.Simple.Serialization
+        Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+        Money.Systems.Superfluid.Instances.Simple.System
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -36,9 +36,9 @@ test-suite tests
     main-is:          Tests.hs
     hs-source-dirs:   test
     other-modules:
-        Money.Superfluid.RealtimeBalance_prop
-        Money.Superfluid.TokenTester
-        Money.Superfluid.System_unit
+        Money.Systems.Superfluid.RealtimeBalance_prop
+        Money.Systems.Superfluid.TokenTester
+        Money.Systems.Superfluid.System_unit
 
     default-language: Haskell2010
     ghc-options:      -Wall -Wno-incomplete-uni-patterns

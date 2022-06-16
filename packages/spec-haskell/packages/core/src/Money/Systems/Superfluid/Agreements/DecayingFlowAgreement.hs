@@ -18,7 +18,7 @@
 --
 --   t_h == log(2) / λ
 --   λ = log(2) /  t_h
-module Money.Superfluid.Agreements.DecayingFlowAgreement
+module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
     ( DFAContractData (..)
     , DFAAccountData (..)
     , DecayingFlow (..)
@@ -26,16 +26,17 @@ module Money.Superfluid.Agreements.DecayingFlowAgreement
     ) where
 
 import           Data.Default                                    (Default (..))
+import           Data.Kind                                       (Type)
 import           Text.Printf                                     (printf)
 
-import           Money.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
-import           Money.Superfluid.Concepts.Liquidity             (UntappedLiquidity (..), mkAnyTappedLiquidity)
-import           Money.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
-import           Money.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
+import           Money.Systems.Superfluid.Concepts.Liquidity             (UntappedLiquidity (..), mkAnyTappedLiquidity)
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --
 import           Data.Internal.TaggedTypeable
 --
-import qualified Money.Superfluid.SubSystems.BufferBasedSolvency as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 default_lambda :: RealFloat b => b
 default_lambda = log 2 / (3600 * 24 * 7)
@@ -43,6 +44,7 @@ default_lambda = log 2 / (3600 * 24 * 7)
 -- ============================================================================
 -- | DFAContractData Type
 --
+type DFAContractData :: Type -> Type
 data DFAContractData sft = DFAContractData
     { flowLastUpdatedAt :: SFT_TS sft
     , decayingFactor    :: SFT_FLOAT sft
@@ -67,6 +69,7 @@ instance SuperfluidTypes sft => AgreementContractData (DFAContractData sft) sft
 -- ============================================================================
 -- | DFAAccountData Type (is AgreementAccountData)
 --
+type DFAAccountData :: Type -> Type
 data DFAAccountData sft = DFAAccountData
     { settledAt     :: SFT_TS sft
     , αVal          :: SFT_FLOAT sft

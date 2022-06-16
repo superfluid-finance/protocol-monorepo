@@ -5,8 +5,8 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Money.Superfluid.Instances.Simple.SuperfluidTypes
-    ( module Money.Superfluid.Concepts.Liquidity
+module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+    ( module Money.Systems.Superfluid.Concepts.Liquidity
     , SFDouble (..)
     -- SimpleAddress
     , SimpleAddress
@@ -19,7 +19,7 @@ module Money.Superfluid.Instances.Simple.SuperfluidTypes
     -- SimpleTimestamp
     , SimpleTimestamp (..)
     -- SimpleRealtimeBalance
-    , module Money.Superfluid.Concepts.RealtimeBalance
+    , module Money.Systems.Superfluid.Concepts.RealtimeBalance
     , SimpleRealtimeBalance (..)
     -- SimpleSuperfluidTypes
     , SimpleSuperfluidTypes
@@ -34,15 +34,13 @@ import           Data.String
 import           GHC.Generics                                             (Generic)
 import           Text.Printf                                              (printf)
 
-import           Money.Distribution.Concepts                              (Timestamp)
+import           Money.Systems.Superfluid.Concepts.Liquidity
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --
-import           Money.Superfluid.Concepts.Liquidity
-import           Money.Superfluid.Concepts.RealtimeBalance
-import           Money.Superfluid.Concepts.SuperfluidTypes
+import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
-import qualified Money.Superfluid.Agreements.TransferableBalanceAgreement as TBA
---
-import qualified Money.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
 
 -- | SFDouble Type

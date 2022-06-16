@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Money.Superfluid.Agreements.ConstantFlowAgreement
+module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ( CFAContractData (..)
     , CFAAccountData (..)
     , ConstantFlow (..)
@@ -10,27 +10,28 @@ module Money.Superfluid.Agreements.ConstantFlowAgreement
     ) where
 
 import           Data.Default                                    (Default (..))
-import           Data.Internal.TaggedTypeable
+import           Data.Internal.TaggedTypeable                    (TaggedTypeable (..))
+import           Data.Kind                                       (Type)
 import           Text.Printf                                     (printf)
 
-import           Money.Distribution.Concepts                     (Timestamp)
 --
-import           Money.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
-import           Money.Superfluid.Concepts.Liquidity
+import           Money.Systems.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
+import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
     , untypeLiquidity
     )
-import           Money.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
-import           Money.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --
-import qualified Money.Superfluid.SubSystems.BufferBasedSolvency as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
 -- ============================================================================
 -- | CFAContractData Type
 --
+type CFAContractData :: Type -> Type
 data CFAContractData sft = CFAContractData
     { flowLastUpdatedAt :: SFT_TS sft
     , flowRate          :: SFT_LQ sft
@@ -53,6 +54,7 @@ instance SuperfluidTypes sft => AgreementContractData (CFAContractData sft) sft
 -- ============================================================================
 -- | CFAAccountData Type (is AgreementAccountData)
 --
+type CFAAccountData :: Type -> Type
 data CFAAccountData sft = CFAAccountData
     { settledAt                :: SFT_TS sft
     , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
@@ -91,6 +93,7 @@ instance SuperfluidTypes sft => Show (CFAAccountData sft) where
 -- ============================================================================
 -- CFA Operations
 --
+type ConstantFlow :: Type -> Type
 data ConstantFlow sft = ConstantFlow
     { flowContract :: CFAContractData sft
     , flowSender   :: CFAAccountData sft

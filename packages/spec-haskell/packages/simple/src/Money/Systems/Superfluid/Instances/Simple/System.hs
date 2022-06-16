@@ -5,8 +5,8 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Money.Superfluid.Instances.Simple.System
-    ( module Money.Superfluid.Instances.Simple.SuperfluidTypes
+module Money.Systems.Superfluid.Instances.Simple.System
+    ( module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     -- SimpleAccount
     , SimpleAccount
     , SF.Account (..)
@@ -35,15 +35,15 @@ import           Data.Functor
 import qualified Data.Map                                          as M
 import           Data.Maybe
 
-import           Money.Superfluid.Concepts.Agreement               (agreementTypeTag)
+import           Money.Systems.Superfluid.Concepts.Agreement               (agreementTypeTag)
 --
 import           Data.Internal.TaggedTypeable
 --
-import qualified Money.Superfluid.System.AccountTokenModel         as SF
-import qualified Money.Superfluid.System.Serialization             as S
+import qualified Money.Systems.Superfluid.System.AccountTokenModel         as SF
+import qualified Money.Systems.Superfluid.System.Serialization             as S
 
-import           Money.Superfluid.Instances.Simple.Serialization
-import           Money.Superfluid.Instances.Simple.SuperfluidTypes
+import           Money.Systems.Superfluid.Instances.Simple.Serialization
+import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
 
 -- ============================================================================
 -- SimpleAccount Type and Operations (is SuperfluidAccount)
@@ -65,7 +65,7 @@ instance SF.Account SimpleAccount SimpleSuperfluidTypes where
         { agreementAccountData = M.insert k (S.runPutter aad) (agreementAccountData acc)
         , accountLastUpdatedAt = t
         }
-        where k = tagFromType aad
+        where k = tagFromValue aad
 
     showAccountAt acc t =
         "Account @" ++ show(SF.addressOfAccount acc) ++

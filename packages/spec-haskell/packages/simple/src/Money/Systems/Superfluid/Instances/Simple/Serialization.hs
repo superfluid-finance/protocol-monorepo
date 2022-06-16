@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 
-module Money.Superfluid.Instances.Simple.Serialization (SimpleSerialized) where
+module Money.Systems.Superfluid.Instances.Simple.Serialization (SimpleSerialized) where
 
 import qualified Data.Binary                                       as B (Binary (..))
 import qualified Data.Binary.Get                                   as B (Get, runGet)
@@ -9,8 +9,8 @@ import qualified Data.Binary.Put                                   as B (PutM, r
 import           Data.ByteString.Lazy                              (ByteString)
 import           Data.Coerce
 
-import           Money.Superfluid.Instances.Simple.SuperfluidTypes (SFDouble (..), SimpleSuperfluidTypes)
-import qualified Money.Superfluid.System.Serialization             as S
+import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes (SFDouble (..), SimpleSuperfluidTypes)
+import qualified Money.Systems.Superfluid.System.Serialization             as S
 
 newtype SimpleSerialized = SimpleSerialized ByteString
 newtype SimpleGetter a = SimpleGetter (B.Get a) deriving (Functor, Applicative, Monad)

@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Superfluid.System.Serialization
+module Money.Systems.Superfluid.System.Serialization
   ( Putter (..),
     Getter (..),
     Serializable (..),
@@ -13,15 +13,15 @@ import           Data.Proxy
 --
 
 --
-import           Money.Superfluid.Concepts.Liquidity                      (UntappedLiquidity (..), untypeLiquidity)
-import           Money.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts.Liquidity                      (UntappedLiquidity (..), untypeLiquidity)
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
 --
 import           Data.Internal.TaggedTypeable                 (TaggedTypeable)
 --
-import qualified Money.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Superfluid.Agreements.TransferableBalanceAgreement as TBA
-import qualified Money.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
+import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
 class (Monad srl, SuperfluidTypes sft) => Putter srl sft | srl -> sft where
     putFloat :: SFT_FLOAT sft -> srl ()

@@ -1,7 +1,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 
-module Money.Superfluid.Concepts.Agreement
+module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementContractData
     , AgreementAccountData (..)
     , AnyAgreementAccountData (MkAgreementAccountData)
@@ -9,9 +9,9 @@ module Money.Superfluid.Concepts.Agreement
     , agreementTypeTag
     ) where
 
-import           Data.Internal.TaggedTypeable              (TaggedTypeable (tagFromType))
+import           Data.Internal.TaggedTypeable              (TaggedTypeable (..), tagFromValue)
 
-import           Money.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 
 -- ============================================================================
 -- | AgreementContractData type class
@@ -56,4 +56,4 @@ providedBalanceOfAnyAgreement (MkAgreementAccountData g) = providedBalanceOfAgre
 
 -- | agreementTypeTag
 agreementTypeTag :: AnyAgreementAccountData sft -> String
-agreementTypeTag (MkAgreementAccountData g) = tagFromType g
+agreementTypeTag (MkAgreementAccountData g) = tagFromValue g

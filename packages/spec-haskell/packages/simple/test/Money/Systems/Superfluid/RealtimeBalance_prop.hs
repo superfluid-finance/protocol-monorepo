@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-orphans #-}
-module Money.Superfluid.RealtimeBalance_prop (tests) where
+module Money.Systems.Superfluid.RealtimeBalance_prop (tests) where
 
 import           Test.Framework.Providers.QuickCheck2              (testProperty)
 import           Test.QuickCheck
 
-import           Money.Superfluid.Instances.Simple.SuperfluidTypes
+import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     ( RealtimeBalance (..)
     , SimpleRealtimeBalance (..)
     , Wad (..)

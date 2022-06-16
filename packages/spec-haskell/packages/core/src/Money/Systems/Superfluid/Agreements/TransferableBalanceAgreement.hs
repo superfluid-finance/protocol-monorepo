@@ -3,9 +3,9 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE PolyKinds             #-}
 
-module Money.Superfluid.Agreements.TransferableBalanceAgreement
+module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
     ( MintedLiquidity
     , mintedLiquidityTag
     , mkMintedLiquidity
@@ -17,11 +17,12 @@ module Money.Superfluid.Agreements.TransferableBalanceAgreement
     ) where
 
 import           Data.Default                              (Default (..))
-import           Data.Typeable
+import           Data.Kind                                 (Type)
+import           Data.Typeable                             (Proxy (..))
 import           Text.Printf                               (printf)
 
-import           Money.Superfluid.Concepts.Agreement       (AgreementAccountData (..))
-import           Money.Superfluid.Concepts.Liquidity
+import           Money.Systems.Superfluid.Concepts.Agreement       (AgreementAccountData (..))
+import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , TappedLiquidity (..)
     , TappedLiquidityTag
@@ -30,8 +31,8 @@ import           Money.Superfluid.Concepts.Liquidity
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
     )
-import           Money.Superfluid.Concepts.RealtimeBalance (TypedLiquidityVector (..), typedLiquidityVectorToRTB)
-import           Money.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance (TypedLiquidityVector (..), typedLiquidityVectorToRTB)
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 --
 import           Data.Internal.TaggedTypeable
 
@@ -50,6 +51,7 @@ mkMintedLiquidity = TappedLiquidity
 -- ============================================================================
 -- | TBAAccountData Type (is AgreementAccountData)
 --
+type TBAAccountData:: Type -> Type
 data TBAAccountData sft = TBAAccountData
     { settledAt         :: SFT_TS sft
     , untappedLiquidity :: UntappedLiquidity (SFT_LQ sft)

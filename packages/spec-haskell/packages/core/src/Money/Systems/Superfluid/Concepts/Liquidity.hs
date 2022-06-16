@@ -19,21 +19,21 @@
 -- Here is how their relations look like:
 --
 -- @
---                 ┌──────────────┐
---                 │TaggedTypeable│
---                 └───────▲──────┘
---                         │
---                ┌────────┴────────┐                                   ┌──────────────┐
---            ┌───►TypedLiquidityTag◄─────┐                       ┌─────►TypedLiquidity◄────┐
---            │   └─────────────────┘     │                       │     └──────────────┘    │
---            │                           │                       │                         │
--- ┌──────────┴─────────┐     ┌───────────┴─────────┐       ┌─────┴───────────┐   ┌─────────┴────────┐
--- │UntappedLiquidityTag│     │(C)TappedLiquidityTag│ ===>> │UntappedLiquidity│   │(C)TappedLiquidity│
--- └────────────────────┘     └───────────o─────────┘       └─────────────────┘   └─────────o────────┘
---                                        │                                                 │
---                            ┌───────────┴─────────┐                             ┌─────────┴────────┐
---                            │AnyTappedLiquidityTag│                             │AnyTappedLiquidity│
---                            └─────────────────────┘                             └──────────────────┘
+--                 +--------------+
+--                 |TaggedTypeable|
+--                 +-------^------+
+--                         |
+--                +--------+--------+                                   +--------------+
+--            +--->TypedLiquidityTag<-----+                       +----->TypedLiquidity<----+
+--            |   +-----------------+     |                       |     +--------------+    |
+--            |                           |                       |                         |
+-- +----------+---------+     +-----------+---------+       +-----+-----------+   +---------+--------+
+-- |UntappedLiquidityTag|     |(C)TappedLiquidityTag| ===>> |UntappedLiquidity|   |(C)TappedLiquidity|
+-- +--------------------+     +-----------@---------+       +-----------------+   +---------@--------+
+--                                        |                                                 |
+--                            +-----------+---------+                             +---------+--------+
+--                            |AnyTappedLiquidityTag|                             |AnyTappedLiquidity|
+--                            +---------------------+                             +------------------+
 -- @
 -- [(ASCIIFlow Link)](https://asciiflow.com/#/share/eJyrVspLzE1VslIKLi1ILUrLKc1MUfDJLARSmSWVSjpKOYmVqUVA6eoYpYoYJStLcwOdGKVKIMvIEsQqSa0oAXJilBTQwKMpe0hCMTF5WIwISUxPT00JqSxITUzKScWpDDuatotYm5CMwpQl1SdwhMsWqoUSmm9BwZQCjztg0GENAeJdgm7io%2BkthJxDcXDhdSBZQYY1XvHHDmFH4JADWkK29zHCgUomURYjlFgPCY3QvJLEAvSEifClhrNmCFZ5W1tbOzsFbAbAXYapl%2B5x4DDAMYDPfjwFHQnJGn9yx6%2BAShFBCxsIut0xrxJ7wiTgIkx9Qz2klGqVagHvSCn9)
 --
@@ -43,7 +43,7 @@
 -- * Atomic Composite Agreement (ACA)
 -- * Buffer Based Solvency (BBS)
 --
-module Money.Superfluid.Concepts.Liquidity
+module Money.Systems.Superfluid.Concepts.Liquidity
     -- Untyped Liquidity
     ( Liquidity
     -- Typed Liquidity
@@ -64,10 +64,10 @@ module Money.Superfluid.Concepts.Liquidity
     ) where
 
 import           Data.Default                 (Default (..))
-import           Data.Internal.TaggedTypeable
+import           Data.Internal.TaggedTypeable (TaggedTypeable (..))
 import           Data.Typeable                (Proxy (..), typeRep)
 
-import           Money.Distribution.Concepts  (Liquidity)
+import           Money.Concepts.Distribution  (Liquidity)
 
 -- | TypedLiquidityTag Type Class
 --

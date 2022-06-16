@@ -2,7 +2,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TypeApplications   #-}
 
-module Money.Superfluid.SubSystems.BufferBasedSolvency
+module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
     ( BufferLiquidityTag
     , bufferLiquidityTag
     , BufferLiquidity
@@ -13,7 +13,7 @@ module Money.Superfluid.SubSystems.BufferBasedSolvency
 import           Data.Typeable
 
 import           Data.Internal.TaggedTypeable
-import           Money.Superfluid.Concepts.Liquidity
+import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , TappedLiquidity (..)
     , TappedLiquidityTag

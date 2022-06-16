@@ -1,4 +1,4 @@
-module Money.Superfluid.TokenTester where
+module Money.Systems.Superfluid.TokenTester where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
@@ -6,11 +6,11 @@ import           Data.Default
 import           GHC.Stack
 import           Test.HUnit                                        (Test (TestCase, TestLabel, TestList), assertBool)
 
-import qualified Money.Superfluid.Concepts.RealtimeBalance         as RTB
+import qualified Money.Systems.Superfluid.Concepts.RealtimeBalance         as RTB
 --
-import qualified Money.Superfluid.Agreements.ConstantFlowAgreement as CFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement as CFA
 
-import qualified Money.Superfluid.Instances.Simple.System          as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
 
 
 constInitBalance :: SF.Wad

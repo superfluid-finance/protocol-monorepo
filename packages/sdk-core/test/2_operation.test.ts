@@ -5,15 +5,17 @@ import {
     IConstantFlowAgreementV1,
     SuperToken as SuperTokenType,
 } from "../src/typechain";
-import { getPerSecondFlowRateByMonth } from "../src/utils";
+import { getPerSecondFlowRateByMonth } from "../src";
 import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 import Operation from "../src/Operation";
+import hre from "hardhat";
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
 describe("Operation Tests", () => {
+    let evmSnapshotId: any
     let framework: Framework;
     let cfaV1: IConstantFlowAgreementV1;
     let deployer: SignerWithAddress;
@@ -32,7 +34,13 @@ describe("Operation Tests", () => {
         bravo = Bravo;
         superToken = SuperToken;
         cfaV1 = CFAV1;
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
     });
+
+    beforeEach(async () => {
+        await hre.network.provider.send("evm_revert",[evmSnapshotId])
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+    })
 
     it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
         const revokeControlOp = framework.cfaV1.revokeFlowOperatorWithFullControl({

@@ -3,8 +3,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken as SuperTokenType } from "../src/typechain";
 import { setup } from "../scripts/setup";
-import { WrapperSuperToken } from "../src/SuperToken";
+import { WrapperSuperToken } from "../src";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
+import hre from "hardhat";
 
 const DEFAULT_PARAMS = {
     LIQUIDATION_PERIOD: "3600",
@@ -14,6 +15,7 @@ const DEFAULT_PARAMS = {
 };
 
 describe("Governance Tests", () => {
+    let evmSnapshotId:any;
     let framework: Framework;
     let deployer: SignerWithAddress;
     let superToken: SuperTokenType;
@@ -27,7 +29,13 @@ describe("Governance Tests", () => {
         deployer = Deployer;
         superToken = SuperToken;
         daix = await framework.loadWrapperSuperToken(superToken.address);
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
     });
+
+    beforeEach(async () => {
+        await hre.network.provider.send("evm_revert",[evmSnapshotId])
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+    })
 
     it("Should get default governance parameters", async () => {
         const defaultParams =

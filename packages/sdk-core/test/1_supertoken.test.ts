@@ -8,15 +8,16 @@ import {
     TestToken,
 } from "../src/typechain";
 import { SuperToken } from "../src";
-import { getFlowOperatorId, getPerSecondFlowRateByMonth } from "../src/utils";
+import { getFlowOperatorId, getPerSecondFlowRateByMonth } from "../src";
 import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { NativeAssetSuperToken, WrapperSuperToken } from "../src/SuperToken";
+import { NativeAssetSuperToken, WrapperSuperToken } from "../src";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
     AUTHORIZE_FULL_CONTROL,
-} from "../src/constants";
+} from "../src";
+import hre from "hardhat";
 
 const INITIAL_AMOUNT_PER_USER = "10000000000";
 const toBN = (x: BigNumberish) => ethers.BigNumber.from(x);
@@ -32,49 +33,92 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
 
-describe("SuperToken Tests", () => {
-    let framework: Framework;
-    let cfaV1: IConstantFlowAgreementV1;
-    let idaV1: IInstantDistributionAgreementV1;
-    let deployer: SignerWithAddress;
-    let alpha: SignerWithAddress;
-    let superToken: SuperTokenType;
-    let token: TestToken;
-    let daix: WrapperSuperToken;
-    let bravo: SignerWithAddress;
-    let charlie: SignerWithAddress;
-    let signerCount: number;
+let evmSnapshotId:any;
+let framework: Framework;
+let cfaV1: IConstantFlowAgreementV1;
+let idaV1: IInstantDistributionAgreementV1;
+let deployer: SignerWithAddress;
+let alpha: SignerWithAddress;
+let superToken: SuperTokenType;
+let token: TestToken;
+let daix: WrapperSuperToken;
+let bravo: SignerWithAddress;
+let charlie: SignerWithAddress;
+let signerCount: number;
 
-    before(async () => {
-        const {
-            frameworkClass,
-            CFAV1,
-            IDAV1,
-            Deployer,
-            Alpha,
-            Bravo,
-            Charlie,
-            SuperToken,
-            Token,
-            SignerCount,
-        } = await setup({
-            subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
-        });
-        framework = frameworkClass;
-        cfaV1 = CFAV1;
-        idaV1 = IDAV1;
-        deployer = Deployer;
-        alpha = Alpha;
-        bravo = Bravo;
-        superToken = SuperToken;
-        daix = await framework.loadWrapperSuperToken(superToken.address);
-        token = Token;
-        charlie = Charlie;
-        signerCount = SignerCount;
+before(async () => {
+    const {
+        frameworkClass,
+        CFAV1,
+        IDAV1,
+        Deployer,
+        Alpha,
+        Bravo,
+        Charlie,
+        SuperToken,
+        Token,
+        SignerCount,
+    } = await setup({ amount: "10000000000",
+        subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
     });
+    framework = frameworkClass;
+    cfaV1 = CFAV1;
+    idaV1 = IDAV1;
+    deployer = Deployer;
+    alpha = Alpha;
+    bravo = Bravo;
+    superToken = SuperToken;
+    daix = await framework.loadWrapperSuperToken(superToken.address);
+    token = Token;
+    charlie = Charlie;
+    signerCount = SignerCount;
 
+    evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+});
+
+beforeEach(async () => {
+    await hre.network.provider.send("evm_revert",[evmSnapshotId])
+    evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+})
+
+async function createFlowWithOperator(flowOperator:SignerWithAddress , sender: SignerWithAddress,receiver:SignerWithAddress){
+    const flowRateAllowance = getPerSecondFlowRateByMonth("100");
+    let permissions = AUTHORIZE_FULL_CONTROL;
+
+    const updateFlowOperatorPermissionsOperation =
+        daix.updateFlowOperatorPermissions({
+            flowRateAllowance,
+            flowOperator: flowOperator.address,
+            permissions,
+        });
+    await updateFlowOperatorPermissionsOperation.exec(sender)
+
+    let flowRate = getPerSecondFlowRateByMonth("100");
+
+    await daix.createFlowByOperator({
+        flowRate,
+        sender: sender.address,
+        receiver: receiver.address,
+    }).exec(flowOperator);
+
+}
+async function approveAndDowngrade(signer: SignerWithAddress , amount:string = "2000"){
+    amount = ethers.utils.parseUnits(amount).toString();
+    await expect(
+        daix
+            .approve({ receiver: daix.settings.address, amount })
+            .exec(signer)
+    )
+        .to.emit(superToken, "Approval")
+        .withArgs(signer.address, daix.settings.address, amount);
+    await expect(daix.downgrade({ amount }).exec(signer))
+        .to.emit(superToken, "TokenDowngraded")
+        .withArgs(signer.address, amount);
+}
+
+describe("SuperToken Tests", () => {
     describe("SuperToken Tests", () => {
-        it("Should throw an error if SuperToken isn't initialized properly.", async () => {
+    it("Should throw an error if SuperToken isn't initialized properly.", async () => {
             try {
                 await SuperToken.create({
                     address: superToken.address,
@@ -178,6 +222,9 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should properly return totalSupply", async () => {
+            await daix.totalSupply({
+                providerOrSigner: deployer,
+            })
             const totalSupply = await daix.totalSupply({
                 providerOrSigner: deployer,
             });
@@ -259,20 +306,11 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to approve + downgrade", async () => {
-            const amount = ethers.utils.parseUnits("2000").toString();
-            await expect(
-                daix
-                    .approve({ receiver: daix.settings.address, amount })
-                    .exec(deployer)
-            )
-                .to.emit(superToken, "Approval")
-                .withArgs(deployer.address, daix.settings.address, amount);
-            await expect(daix.downgrade({ amount }).exec(deployer))
-                .to.emit(superToken, "TokenDowngraded")
-                .withArgs(deployer.address, amount);
-        });
+            await approveAndDowngrade(deployer)
+        })
 
         it("Should be able to transfer downgraded tokens", async () => {
+            await approveAndDowngrade(deployer)
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 daix.underlyingToken
@@ -284,6 +322,7 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to approve + upgrade", async () => {
+            await approveAndDowngrade(deployer)
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 token.connect(deployer).approve(daix.settings.address, amount)
@@ -296,6 +335,7 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to approve + upgrade to", async () => {
+            await approveAndDowngrade(alpha)
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 token.connect(alpha).approve(daix.settings.address, amount)
@@ -426,6 +466,10 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to downgrade native asset", async () => {
+            await nativeAssetSuperToken.upgrade({
+                amount: ethers.utils.parseUnits("1").toString(),
+            }).exec(deployer);
+
             const downgradeOperation = nativeAssetSuperToken.downgrade({
                 amount: ethers.utils.parseUnits("1").toString(),
             });
@@ -577,7 +621,15 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to update flow", async () => {
-            const flowRate = getPerSecondFlowRateByMonth("1200");
+            let flowRate = getPerSecondFlowRateByMonth("1000");
+                await daix
+                    .createFlow({
+                        sender: deployer.address,
+                        receiver: alpha.address,
+                        flowRate,
+                    })
+                    .exec(deployer)
+            flowRate = getPerSecondFlowRateByMonth("1200");
             await expect(
                 daix
                     .updateFlow({
@@ -600,6 +652,15 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to delete flow", async () => {
+            let flowRate = getPerSecondFlowRateByMonth("1000");
+            await daix
+                .createFlow({
+                    sender: deployer.address,
+                    receiver: alpha.address,
+                    flowRate,
+                })
+                .exec(deployer)
+
             await expect(
                 daix
                     .deleteFlow({
@@ -760,6 +821,17 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to create flow by operator", async () => {
+            const flowRateAllowance = getPerSecondFlowRateByMonth("100");
+            let permissions = AUTHORIZE_FLOW_OPERATOR_CREATE; // ALLOW_CREATE
+
+            const updateFlowOperatorPermissionsOperation =
+                daix.updateFlowOperatorPermissions({
+                    flowRateAllowance,
+                    flowOperator: flowOperator.address,
+                    permissions,
+                });
+
+            await updateFlowOperatorPermissionsOperation.exec(sender)
             const flowRate = getPerSecondFlowRateByMonth("100");
             const operation = daix.createFlowByOperator({
                 flowRate,
@@ -773,6 +845,7 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to update flow by operator", async () => {
+            await createFlowWithOperator(flowOperator, sender, receiver)
             const flowRate = getPerSecondFlowRateByMonth("70");
             const operation = daix.updateFlowByOperator({
                 flowRate,
@@ -786,6 +859,8 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to delete flow by operator", async () => {
+            await createFlowWithOperator(flowOperator, sender, receiver)
+
             const operation = daix.deleteFlowByOperator({
                 sender: sender.address,
                 receiver: receiver.address,
@@ -866,6 +941,12 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to update subscription units and get newly created subscriptions", async () => {
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
             const units = ethers.utils.parseUnits("0.001").toString();
             await expect(
                 daix
@@ -931,6 +1012,22 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to distribute", async () => {
+            const units = ethers.utils.parseUnits("0.001").toString();
+
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: deployer.address,
+                    units,
+                })
+                .exec(alpha)
+
             await expect(
                 daix
                     .distribute({
@@ -945,14 +1042,30 @@ describe("SuperToken Tests", () => {
                     alpha.address,
                     0,
                     "0",
-                    "500",
-                    ethers.utils.parseUnits("0.002").toString(),
+                    "1000",
+                    ethers.utils.parseUnits("0.001").toString(),
                     ethers.utils.parseUnits("0").toString(),
                     "0x"
                 );
         });
 
         it("Should be able to approve subscription", async () => {
+            const units = ethers.utils.parseUnits("0.001").toString();
+
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: deployer.address,
+                    units,
+                })
+                .exec(alpha)
+
             await expect(
                 daix
                     .approveSubscription({
@@ -989,13 +1102,29 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to update index value", async () => {
+            const units = ethers.utils.parseUnits("0.001").toString();
+        const updatedIndexValue = ethers.utils
+     .parseUnits("0.000000002")
+        .toString()
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: deployer.address,
+                    units,
+                })
+                .exec(alpha)
+
             await expect(
                 daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils
-                            .parseUnits("0.000000002")
-                            .toString(),
+                        indexValue: updatedIndexValue,
                     })
                     .exec(alpha)
             )
@@ -1004,15 +1133,52 @@ describe("SuperToken Tests", () => {
                     superToken.address,
                     alpha.address,
                     0,
-                    "500",
-                    ethers.utils.parseUnits("0.000000002").toString(),
                     "0",
-                    "2000000000000000",
+                    updatedIndexValue,
+                    units,
+                    "0",
                     "0x"
                 );
         });
 
         it("Should be able to revoke subscription", async () => {
+            const units = ethers.utils.parseUnits("0.001").toString();
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: deployer.address,
+                    units,
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: alpha.address,
+                    units,
+                })
+                .exec(alpha)
+
+            await daix
+                .approveSubscription({
+                    indexId: "0",
+                    publisher: alpha.address,
+                })
+                .exec(deployer)
+
+            await daix
+                .approveSubscription({
+                    indexId: "0",
+                    publisher: alpha.address,
+                })
+                .exec(alpha)
+
             await expect(
                 daix
                     .revokeSubscription({
@@ -1036,44 +1202,49 @@ describe("SuperToken Tests", () => {
                         indexId: "0",
                         publisher: alpha.address,
                     })
-                    .exec(bravo)
+                    .exec(alpha)
             )
                 .to.emit(idaV1, "IndexUnsubscribed")
                 .withArgs(
                     superToken.address,
                     alpha.address,
                     0,
-                    bravo.address,
-                    "0x"
-                );
-        });
-
-        it("Should be able to update index value", async () => {
-            await expect(
-                daix
-                    .updateIndexValue({
-                        indexId: "0",
-                        indexValue: ethers.utils
-                            .parseUnits("0.000000003")
-                            .toString(),
-                    })
-                    .exec(alpha)
-            )
-                .to.emit(idaV1, "IndexUpdated")
-                .withArgs(
-                    superToken.address,
                     alpha.address,
-                    0,
-                    ethers.utils.parseUnits("0.000000002").toString(),
-                    ethers.utils.parseUnits("0.000000003").toString(),
-                    "2000000000000000",
-                    "0",
                     "0x"
                 );
         });
 
         it("Should be able to claim pending units", async () => {
-            ("");
+            const units = ethers.utils.parseUnits("0.002").toString();
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: deployer.address,
+                    units,
+                })
+                .exec(alpha)
+
+            // await daix
+            //     .updateSubscriptionUnits({
+            //         indexId: "0",
+            //         subscriber: bravo.address,
+            //         units,
+            //     })
+            //     .exec(alpha)
+
+            await daix
+                .distribute({
+                    indexId: "0",
+                    amount: units,
+                })
+                .exec(alpha)
+
             await expect(
                 daix
                     .claim({
@@ -1089,29 +1260,41 @@ describe("SuperToken Tests", () => {
                     deployer.address,
                     alpha.address,
                     0,
-                    "1000000000000000000000000"
-                );
-
-            await expect(
-                daix
-                    .claim({
-                        indexId: "0",
-                        subscriber: bravo.address,
-                        publisher: alpha.address,
-                    })
-                    .exec(bravo)
-            )
-                .to.emit(idaV1, "IndexDistributionClaimed")
+                    units
+                ).and.to.emit(idaV1, "IndexDistributionClaimed")
                 .withArgs(
                     superToken.address,
                     alpha.address,
                     0,
-                    bravo.address,
-                    "1000000000000000000000000"
+                    deployer.address,
+                    units
                 );
         });
 
         it("Should be able to delete subscription", async () => {
+            const units = ethers.utils.parseUnits("0.001").toString();
+            await daix
+                .createIndex({
+                    indexId: "0",
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: deployer.address,
+                    units,
+                })
+                .exec(alpha)
+
+            await daix
+                .updateSubscriptionUnits({
+                    indexId: "0",
+                    subscriber: bravo.address,
+                    units,
+                })
+                .exec(alpha)
+
             await expect(
                 daix
                     .deleteSubscription({

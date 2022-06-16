@@ -1,13 +1,15 @@
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
-import { getPerSecondFlowRateByMonth } from "../src/utils";
+import { getPerSecondFlowRateByMonth } from "../src";
 import { SuperToken as SuperTokenType } from "../src/typechain";
 import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
+import hre from "hardhat";
 
 describe("Batch Call Tests", () => {
+    let evmSnapshotId:any;
     let framework: Framework;
     let deployer: SignerWithAddress;
     let alpha: SignerWithAddress;
@@ -26,7 +28,13 @@ describe("Batch Call Tests", () => {
         bravo = Bravo;
         charlie = Charlie;
         superToken = SuperToken;
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
     });
+
+    beforeEach(async () => {
+        await hre.network.provider.send("evm_revert",[evmSnapshotId])
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+    })
 
     it("Should throw an error on unsupported operations", async () => {
         const daix = await framework.loadSuperToken(superToken.address);

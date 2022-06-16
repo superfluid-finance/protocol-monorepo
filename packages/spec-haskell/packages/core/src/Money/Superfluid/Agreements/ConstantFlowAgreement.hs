@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -8,20 +9,21 @@ module Money.Superfluid.Agreements.ConstantFlowAgreement
     , updateFlow
     ) where
 
-import           Data.Default
-import           Text.Printf
+import           Data.Default                                    (Default (..))
+import           Data.Internal.TaggedTypeable
+import           Text.Printf                                     (printf)
 
+import           Money.Distribution.Concepts                     (Timestamp)
+--
 import           Money.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
 import           Money.Superfluid.Concepts.Liquidity
     ( Liquidity
-    , Timestamp
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
     , untypeLiquidity
     )
 import           Money.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
 import           Money.Superfluid.Concepts.SuperfluidTypes
-import           Money.Superfluid.Concepts.TaggedTypeable
 --
 import qualified Money.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
@@ -29,7 +31,7 @@ import qualified Money.Superfluid.SubSystems.BufferBasedSolvency as BBS
 -- ============================================================================
 -- | CFAContractData Type
 --
-data SuperfluidTypes sft => CFAContractData sft = CFAContractData
+data CFAContractData sft = CFAContractData
     { flowLastUpdatedAt :: SFT_TS sft
     , flowRate          :: SFT_LQ sft
     , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
@@ -51,7 +53,7 @@ instance SuperfluidTypes sft => AgreementContractData (CFAContractData sft) sft
 -- ============================================================================
 -- | CFAAccountData Type (is AgreementAccountData)
 --
-data SuperfluidTypes sft => CFAAccountData sft = CFAAccountData
+data CFAAccountData sft = CFAAccountData
     { settledAt                :: SFT_TS sft
     , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
     , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)

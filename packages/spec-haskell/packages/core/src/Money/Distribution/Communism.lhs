@@ -37,9 +37,9 @@ In a more realistic form, the one that determines the liquidity amount of each m
 effect of the monadic autocrat.
 
 \begin{code}
-data (Monad autocrat) => AutocraticCommunism autocrat
+data AutocraticCommunism
 
-instance (Monad autocrat) => MoneyDistribution (AutocraticCommunism autocrat)
+instance MoneyDistribution AutocraticCommunism
 \end{code}
 
 \lhsparagraph{Communism Bad}

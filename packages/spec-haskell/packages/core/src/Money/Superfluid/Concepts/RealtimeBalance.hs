@@ -15,7 +15,7 @@ import           Money.Superfluid.Concepts.Liquidity (AnyTappedLiquidity, Liquid
 
 -- | UntypedLiquidityVector type
 --
-data Liquidity lq => UntypedLiquidityVector lq = UntypedLiquidityVector lq [lq]
+data UntypedLiquidityVector lq = UntypedLiquidityVector lq [lq]
 
 mk_untyped_liquidity_vector :: Liquidity lq => [lq] -> UntypedLiquidityVector lq
 mk_untyped_liquidity_vector (uliq:xs) = UntypedLiquidityVector uliq xs
@@ -23,7 +23,7 @@ mk_untyped_liquidity_vector _         = error "Untapped liquidity missing"
 
 -- | TypedLiquidityVector type
 --
-data Liquidity lq => TypedLiquidityVector lq = TypedLiquidityVector (UntappedLiquidity lq) [AnyTappedLiquidity lq]
+data TypedLiquidityVector lq = TypedLiquidityVector (UntappedLiquidity lq) [AnyTappedLiquidity lq]
 
 -- | RealtimeBalance Type Class
 --
@@ -58,8 +58,7 @@ class (Liquidity lq, Num rtb, Default rtb, Show rtb) => RealtimeBalance rtb lq |
 --   - enable DerivingVia language extension
 --   - do @deriving Num via RTB.RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad@
 --
-newtype (Liquidity lq, RealtimeBalance rtb lq)
-    => RealtimeBalanceDerivingHelper rtb lq = RealtimeBalanceDerivingHelper rtb
+newtype RealtimeBalanceDerivingHelper rtb lq = RealtimeBalanceDerivingHelper rtb
 
 instance (Liquidity lq, RealtimeBalance rtb lq) => Num (RealtimeBalanceDerivingHelper rtb lq) where
     (+) (RealtimeBalanceDerivingHelper a) (RealtimeBalanceDerivingHelper b) = RealtimeBalanceDerivingHelper $

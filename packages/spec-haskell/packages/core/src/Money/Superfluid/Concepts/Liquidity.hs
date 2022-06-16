@@ -6,18 +6,42 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeApplications           #-}
 
--- | Liquidity Concept
+-- | = Liquidity Concept Refined for Superfluid Money
 --
--- Terminology:
---  * Untyped liquidity: Liquidity with unspecified types
---  * Untapped liquidity: Type of liquidity that can be freely used by any sub-systems (without tag)
---  * Tapped liquidity: Type of liquidity that must be specific to a sub-system (with tag)
---  * Typed liquidity: Liquidity is either untapped or tapped
+-- == Terminologies
 --
--- Known sub-systems to be introduced later:
---  * Agreements (TBA, CFA, IDA, etc.)
---  * Atomic Composite Agreement (ACA)
---  * Buffer Based Solvency (BBS)
+-- In /Superfluid Money/, plain 'Liquidity' is also called untyped liquidity, while 'TypedLiquidity' is 'Liquidity' that
+-- is tagged to be either 'UntappedLiquidity' or 'TappedLiquidity':
+--
+-- * Untapped liquidity is the type of liquidity that can be freely used by any sub-systems.
+-- * Tapped liquidity is the type of liquidity that must only be used by a specific sub-system.
+--
+-- Here is how their relations look like:
+--
+-- @
+--                 ┌──────────────┐
+--                 │TaggedTypeable│
+--                 └───────▲──────┘
+--                         │
+--                ┌────────┴────────┐                                   ┌──────────────┐
+--            ┌───►TypedLiquidityTag◄─────┐                       ┌─────►TypedLiquidity◄────┐
+--            │   └─────────────────┘     │                       │     └──────────────┘    │
+--            │                           │                       │                         │
+-- ┌──────────┴─────────┐     ┌───────────┴─────────┐       ┌─────┴───────────┐   ┌─────────┴────────┐
+-- │UntappedLiquidityTag│     │(C)TappedLiquidityTag│ ===>> │UntappedLiquidity│   │(C)TappedLiquidity│
+-- └────────────────────┘     └───────────o─────────┘       └─────────────────┘   └─────────o────────┘
+--                                        │                                                 │
+--                            ┌───────────┴─────────┐                             ┌─────────┴────────┐
+--                            │AnyTappedLiquidityTag│                             │AnyTappedLiquidity│
+--                            └─────────────────────┘                             └──────────────────┘
+-- @
+-- [(ASCIIFlow Link)](https://asciiflow.com/#/share/eJyrVspLzE1VslIKLi1ILUrLKc1MUfDJLARSmSWVSjpKOYmVqUVA6eoYpYoYJStLcwOdGKVKIMvIEsQqSa0oAXJilBTQwKMpe0hCMTF5WIwISUxPT00JqSxITUzKScWpDDuatotYm5CMwpQl1SdwhMsWqoUSmm9BwZQCjztg0GENAeJdgm7io%2BkthJxDcXDhdSBZQYY1XvHHDmFH4JADWkK29zHCgUomURYjlFgPCY3QvJLEAvSEifClhrNmCFZ5W1tbOzsFbAbAXYapl%2B5x4DDAMYDPfjwFHQnJGn9yx6%2BAShFBCxsIut0xrxJ7wiTgIkx9Qz2klGqVagHvSCn9)
+--
+-- == Known Sub-systems
+--
+-- * Agreements (TBA, CFA, IDA, etc.)
+-- * Atomic Composite Agreement (ACA)
+-- * Buffer Based Solvency (BBS)
 --
 module Money.Superfluid.Concepts.Liquidity
     -- Untyped Liquidity
@@ -37,22 +61,13 @@ module Money.Superfluid.Concepts.Liquidity
     , AnyTappedLiquidityTag (..)
     , AnyTappedLiquidity (..)
     , mkAnyTappedLiquidity
-    -- Timestamp
-    , Timestamp
     ) where
 
-import           Data.Default
-import           Data.Typeable
+import           Data.Default                 (Default (..))
+import           Data.Internal.TaggedTypeable
+import           Data.Typeable                (Proxy (..), typeRep)
 
-import           Money.Superfluid.Concepts.TaggedTypeable
-
-
--- | (Untyped) Liquidity Type Class
---
--- Naming conventions:
---  * Type name: lq
---  * SuperfluidTypes type indexer: SFT_LQ
-class (Default lq, Integral lq, Show lq) => Liquidity lq
+import           Money.Distribution.Concepts  (Liquidity)
 
 -- | TypedLiquidityTag Type Class
 --
@@ -65,7 +80,6 @@ class TaggedTypeable ltag => TypedLiquidityTag ltag
 --
 -- Naming conventions:
 --  * Type name: tlq
---
 class (Show tlq, Liquidity lq) => TypedLiquidity tlq lq | tlq -> lq where
     typeLiquidity :: lq -> tlq
     untypeLiquidity :: tlq -> lq
@@ -90,7 +104,7 @@ untappedLiquidityTag = Proxy @UntappedLiquidityTag
 -- Naming conventions:
 --  * Term name: uliq
 --
-newtype Liquidity lq => UntappedLiquidity lq = UntappedLiquidity lq
+newtype UntappedLiquidity lq = UntappedLiquidity lq
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
 
 instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq where
@@ -101,10 +115,11 @@ instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq where
 instance Liquidity lq => Show (UntappedLiquidity lq) where
     show (UntappedLiquidity liq) = show liq ++ "@_"
 
--- | TappedLiquidityTag type class and its Any Type
+-- | Tapped LiquidityTag Tag
 --
 class TypedLiquidityTag ltag => TappedLiquidityTag ltag
 
+-- | Any Tapped Liquidity Tag Existential Type
 data AnyTappedLiquidityTag where
     MkTappedLiquidityTag :: TappedLiquidityTag ltag => Proxy ltag -> AnyTappedLiquidityTag
 
@@ -113,7 +128,7 @@ data AnyTappedLiquidityTag where
 -- Naming conventions for TypedLiquidity:
 --  * Term name: tliq
 --
-newtype (TappedLiquidityTag ltag, Liquidity lq) => TappedLiquidity ltag lq = TappedLiquidity lq
+newtype TappedLiquidity ltag lq = TappedLiquidity lq
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
 
 untapLiquidity :: (TappedLiquidityTag ltag, Liquidity lq) => TappedLiquidity ltag lq -> lq
@@ -132,7 +147,7 @@ instance (TappedLiquidityTag ltag, Liquidity lq) => Show (TappedLiquidity ltag l
 -- Naming conventions for TypedLiquidity:
 --  * Term name: tliq
 --
-newtype Liquidity lq => AnyTappedLiquidity lq = AnyTappedLiquidity (AnyTappedLiquidityTag, lq)
+newtype AnyTappedLiquidity lq = AnyTappedLiquidity (AnyTappedLiquidityTag, lq)
 
 mkAnyTappedLiquidity
     :: forall ltag lq. (TappedLiquidityTag ltag, Liquidity lq)
@@ -146,10 +161,3 @@ instance Liquidity lq => TypedLiquidity (AnyTappedLiquidity lq) lq where
 
 instance Liquidity lq => Show (AnyTappedLiquidity lq) where
     show (AnyTappedLiquidity (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag
-
--- | Timestamp Type Class
---
--- Naming conventions:
---  * Type name: ts
---  * SuperfluidTypes type indexer: SFT_TS
-class (Default ts, Integral ts, Show ts) => Timestamp ts

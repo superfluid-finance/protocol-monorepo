@@ -1,4 +1,5 @@
-The formal specification of the Superfluid protocol is written in Haskell, namely GHC2021 with GADTs and TypeFamilies.
+The formal specification of the Superfluid protocol is written in Haskell, namely Haskell2010 with extensions such as
+GADTs and TypeFamilies.
 
 This package is managed using [cabal](https://www.haskell.org/cabal/) to manage multiple haskell packages:
 
@@ -43,37 +44,6 @@ These are the core Superfluid protocol concepts expressed in multi-parameter typ
 
 These related type classes defines the integral numeric types where a _Superfluid system_ can attach different meaning
 to, such as minbreated tokens, demand deposit, safety deposit, app loan & debt etc.
-
-```
-                                                    ┌──────────────┐
-                                                    │TaggedTypeable│
-                                                    └───────▲──────┘
-                                                            │
-                                                            │
-                                                   ┌────────┴────────┐
-                                               ┌───►TypedLiquidityTag◄─────┐
-                                               │   └─────────────────┘     │
-                                               │                           │
-                                               │                           │
-                                    ┌──────────┴─────────┐      ┌──────────┴────────┐
-                                    │UntappedLiquidityTag│      │*TappedLiquidityTag│
-                                    └────────────────────┘      └──────────@────────┘
-                                                                           │
-                                                                           │
-                                                               ┌───────────┴─────────┐
-                                                               │AnyTappedLiquidityTag│
-                                                               └─────────────────────┘
-
-
-           ┌───────────────────┐                     ┌──────────────┐
-           │(Untyped) Liquidity│                 ┌───►TypedLiquidity◄────┐
-           └───────────────────┘                 │   └──────────────┘    │
-                                                 │                       │
-                                                 │                       │
-                                         ┌───────┴─────────┐    ┌────────┴──────┐
-                                         │UntappedLiquidity│    │TappedLiquidity│
-                                         └─────────────────┘    └───────────────┘
-```
 
 **Timestamp**
 
@@ -143,5 +113,3 @@ References
 ==========
 
 - Liquidity ascii art:
-
-https://asciiflow.com/#/share/eJyrVspLzE1VssorzcnRUcpJrEwtUrJSqo5RqohRsrK0NNSJUaoEsowsDICsktSKEiAnRkkBDTyasockFBOTh8WIkMT09NSUkMqC1MSknFScyrCjabuItQnJKFJlSfUnDmegORzk4xSfzMLSzJTMkkpgKGD1DIYRlLgHuxdhEkSGCDHKyXYhqlPJ9yk88IBkaF5JYgF6WCPZoBWCTZqevnAgOg3hA9RVTLnnibHCMa8SV%2BjTwW0QRLHx6GagSKNn9EfTWwhrJ8MROCL1Ec7cSq5isgOcTM1I9mLkZISpIRgSA%2BZepVqlWgCpQbl%2F)

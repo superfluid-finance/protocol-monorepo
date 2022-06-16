@@ -27,16 +27,14 @@ prepare:
 build:
 	$(CABAL_TEST) v2-build all
 
-clean: clean-dist
-
 clean-docs:
-	rm -rf dist-docs
+	rm -rf $(DOCS_BUILDDIR)
 
 clean-test:
-	rm -rf dist-docs
+	rm -rf $(TEST_BUILDDIR)
 
 clean-coverage:
-	rm -rf dist-coverage
+	rm -rf $(TEST_COVERAGE_BUILDDIR)
 
 clean: clean-docs clean-test clean-coverage
 	rm -rf dist-newstyle
@@ -80,23 +78,22 @@ demo-dfa: build
 docs-haddock:
 	$(CABAL_DOCS) haddock all
 
-YELLOWPAPER_ROOT=$(DOCS_BUILDDIR)/yellowpaper
+YELLOWPAPER_ROOT = $(DOCS_BUILDDIR)/yellowpaper
 
 $(YELLOWPAPER_ROOT)/tex:
 	mkdir -p "$@"
-$(YELLOWPAPER_ROOT)/tex/Paper.tex: yellowpaper/Paper.tex
-	cp "$<" "$@"
-$(YELLOWPAPER_ROOT)/tex/Biblio.bib: yellowpaper/Biblio.bib
-	cp "$<" "$@"
 $(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Distribution/Concepts.lhs
 	./tasks/lhs2tex.sh "$<" > "$@"
 $(YELLOWPAPER_ROOT)/tex/Communism.tex: packages/core/src/Money/Distribution/Communism.lhs
 	./tasks/lhs2tex.sh "$<" > "$@"
-
 $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 	echo '%include lhs2TeX.fmt' | lhs2TeX > "$@"
 
-YELLOWPAPER_INPUTS=$(YELLOWPAPER_ROOT)/tex \
+.SECONDEXPANSION:
+$(YELLOWPAPER_ROOT)/tex/%: yellowpaper/$$(notdir $$*)
+	cp "$<" "$@"
+
+YELLOWPAPER_INPUTS = $(YELLOWPAPER_ROOT)/tex \
 	$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex \
 	$(YELLOWPAPER_ROOT)/tex/Communism.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
@@ -123,7 +120,7 @@ docs: docs-haddock docs-yellowpaper
 # Dev Environment
 #
 dev:
-	nodemon -e hs,cabal -i dist -x "make $(DEV_TARGETS) || exit 1"
+	nodemon -e lhs,hs,cabal -i "$(TEST_BUILDDIR)" -x "make $(DEV_TARGETS) || exit 1"
 
 repl-simple:
 	$(CABAL_TEST) repl superfluid-protocol-system-simple

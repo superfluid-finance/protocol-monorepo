@@ -36,8 +36,8 @@ import qualified Data.Map                                          as M
 import           Data.Maybe
 
 import           Money.Superfluid.Concepts.Agreement               (agreementTypeTag)
-import           Money.Superfluid.Concepts.TaggedTypeable
 --
+import           Data.Internal.TaggedTypeable
 --
 import qualified Money.Superfluid.System.AccountTokenModel         as SF
 import qualified Money.Superfluid.System.Serialization             as S

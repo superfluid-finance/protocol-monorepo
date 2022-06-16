@@ -12,15 +12,15 @@ module Money.Superfluid.SubSystems.BufferBasedSolvency
 -- import           Data.Default
 import           Data.Typeable
 
+import           Data.Internal.TaggedTypeable
 import           Money.Superfluid.Concepts.Liquidity
     ( Liquidity
     , TappedLiquidity (..)
     , TappedLiquidityTag
     , TypedLiquidityTag
     )
-import           Money.Superfluid.Concepts.TaggedTypeable
 
--- $(defineTappedLiquidity BufferLiquidityTag "d" BufferLiquidity)
+-- TODO use TH: $(defineTappedLiquidity BufferLiquidityTag "d" BufferLiquidity)
 data BufferLiquidityTag deriving anyclass (TypedLiquidityTag, TappedLiquidityTag)
 instance TaggedTypeable BufferLiquidityTag where tagFromProxy _ = "b"
 bufferLiquidityTag :: Proxy BufferLiquidityTag

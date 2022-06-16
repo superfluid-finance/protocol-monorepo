@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -15,9 +16,9 @@ module Money.Superfluid.Agreements.TransferableBalanceAgreement
     , transferLiquidity
     ) where
 
-import           Data.Default
-import           Data.Proxy
-import           Text.Printf
+import           Data.Default                              (Default (..))
+import           Data.Typeable
+import           Text.Printf                               (printf)
 
 import           Money.Superfluid.Concepts.Agreement       (AgreementAccountData (..))
 import           Money.Superfluid.Concepts.Liquidity
@@ -31,7 +32,8 @@ import           Money.Superfluid.Concepts.Liquidity
     )
 import           Money.Superfluid.Concepts.RealtimeBalance (TypedLiquidityVector (..), typedLiquidityVectorToRTB)
 import           Money.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
-import           Money.Superfluid.Concepts.TaggedTypeable
+--
+import           Data.Internal.TaggedTypeable
 
 
 -- ============================================================================
@@ -48,16 +50,16 @@ mkMintedLiquidity = TappedLiquidity
 -- ============================================================================
 -- | TBAAccountData Type (is AgreementAccountData)
 --
-data SuperfluidTypes sft => TBAAccountData sft = TBAAccountData
+data TBAAccountData sft = TBAAccountData
     { settledAt         :: SFT_TS sft
     , untappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
     , mintedLiquidity   :: MintedLiquidity (SFT_LQ sft)
     }
-instance SuperfluidTypes sft => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
+instance (SuperfluidTypes sft) => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
 instance SuperfluidTypes sft => Default (TBAAccountData sft) where
     def = TBAAccountData { settledAt = def, untappedLiquidity = def, mintedLiquidity = def }
 
-instance SuperfluidTypes sft => AgreementAccountData (TBAAccountData sft) sft where
+instance (SuperfluidTypes sft) => AgreementAccountData (TBAAccountData sft) sft where
     providedBalanceOfAgreement a _ = typedLiquidityVectorToRTB $ TypedLiquidityVector
         ( untappedLiquidity a )
         [ mkAnyTappedLiquidity $ mintedLiquidity a ]

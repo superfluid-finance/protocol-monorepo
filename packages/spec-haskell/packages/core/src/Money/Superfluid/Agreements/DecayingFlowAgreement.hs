@@ -25,14 +25,15 @@ module Money.Superfluid.Agreements.DecayingFlowAgreement
     , updateDecayingFlow
     ) where
 
-import           Data.Default
-import           Text.Printf
+import           Data.Default                                    (Default (..))
+import           Text.Printf                                     (printf)
 
 import           Money.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
 import           Money.Superfluid.Concepts.Liquidity             (UntappedLiquidity (..), mkAnyTappedLiquidity)
 import           Money.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
 import           Money.Superfluid.Concepts.SuperfluidTypes
-import           Money.Superfluid.Concepts.TaggedTypeable
+--
+import           Data.Internal.TaggedTypeable
 --
 import qualified Money.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
@@ -42,7 +43,7 @@ default_lambda = log 2 / (3600 * 24 * 7)
 -- ============================================================================
 -- | DFAContractData Type
 --
-data SuperfluidTypes sft => DFAContractData sft = DFAContractData
+data DFAContractData sft = DFAContractData
     { flowLastUpdatedAt :: SFT_TS sft
     , decayingFactor    :: SFT_FLOAT sft
     , distributionLimit :: SFT_LQ sft
@@ -66,7 +67,7 @@ instance SuperfluidTypes sft => AgreementContractData (DFAContractData sft) sft
 -- ============================================================================
 -- | DFAAccountData Type (is AgreementAccountData)
 --
-data SuperfluidTypes sft => DFAAccountData sft = DFAAccountData
+data DFAAccountData sft = DFAAccountData
     { settledAt     :: SFT_TS sft
     , αVal          :: SFT_FLOAT sft
     , εVal          :: SFT_FLOAT sft

@@ -9,8 +9,9 @@ module Money.Superfluid.Concepts.Agreement
     , agreementTypeTag
     ) where
 
+import           Data.Internal.TaggedTypeable              (TaggedTypeable (tagFromType))
+
 import           Money.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
-import           Money.Superfluid.Concepts.TaggedTypeable
 
 -- ============================================================================
 -- | AgreementContractData type class

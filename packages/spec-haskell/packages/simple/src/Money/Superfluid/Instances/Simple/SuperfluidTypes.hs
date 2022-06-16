@@ -34,6 +34,8 @@ import           Data.String
 import           GHC.Generics                                             (Generic)
 import           Text.Printf                                              (printf)
 
+import           Money.Distribution.Concepts                              (Timestamp)
+--
 import           Money.Superfluid.Concepts.Liquidity
 import           Money.Superfluid.Concepts.RealtimeBalance
 import           Money.Superfluid.Concepts.SuperfluidTypes

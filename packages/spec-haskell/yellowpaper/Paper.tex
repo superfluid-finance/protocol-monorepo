@@ -1,24 +1,44 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Document Preamble
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass{article}
 
+%% Base Folder for Inputs
+\makeatletter
+\def\input@path{{../tex/}}
+\makeatother
+
+%% Import Packages
 \usepackage{fvextra}
 \usepackage{csquotes}
 \usepackage{xcolor}
 \usepackage{minted}
 
-\usepackage{biblatex}
-\addbibresource{../tex/Biblio.bib}
+%% Literate Haskell Macros
 
-\input{../tex/lhsfmt.tex}
+%%% include common formatting
+\input{lhsfmt.tex}
+%%% for ignoring some code
 \long\def\ignore#1{}
+%%% for creating a paragraph
 \newcommand{\lhsparagraph}[1]{\paragraph{#1}\mbox{}\\}
 
+%% Document Meta Data
+
 \title{Superfluid Money: Enabling Generalized Schemes For Monetary Units}
+
 \author{
     Miao, ZhiCheng (hellwolf)\\
     Co-Founder, Superfluid Finance\\
     miao@superfluid.finance
 }
 
+\usepackage{biblatex}
+\addbibresource{../tex/Biblio.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Document Body
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
 \maketitle
@@ -79,11 +99,11 @@ better verifiability and reusability.
 
 \subsection{A New Unifying Theory}
 
-\input{../tex/MoneyDistributionConcepts.tex}
+\input{MoneyDistributionConcepts.tex}
 
 \subsection{Communism}
 
-\input{../tex/Communism.tex}
+\input{Communism.tex}
 
 \subsection{Context free Schemes}
 

@@ -1,11 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module Money.Superfluid.Concepts.TaggedTypeable where
+module Data.Internal.TaggedTypeable where
 
-import           Data.Typeable
+import           Data.Typeable (Proxy (..), Typeable)
 
-class (Typeable a) => TaggedTypeable a where
+-- | Tagged Typeable
+class (Typeable a, Typeable k) => TaggedTypeable (a :: k) where
     tagFromProxy :: Proxy a -> String
     tagFromType :: a -> String
     tagFromType _ = tagFromProxy (Proxy @a)

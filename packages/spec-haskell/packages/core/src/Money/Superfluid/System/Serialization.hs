@@ -15,7 +15,8 @@ import           Data.Proxy
 --
 import           Money.Superfluid.Concepts.Liquidity                      (UntappedLiquidity (..), untypeLiquidity)
 import           Money.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
-import           Money.Superfluid.Concepts.TaggedTypeable                 (TaggedTypeable)
+--
+import           Data.Internal.TaggedTypeable                 (TaggedTypeable)
 --
 import qualified Money.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Superfluid.Agreements.DecayingFlowAgreement        as DFA

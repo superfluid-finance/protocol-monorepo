@@ -7,11 +7,12 @@ module Money.Superfluid.Concepts.SuperfluidTypes
     , SuperfluidTypes (..)
     ) where
 
-import           Data.Default
+import           Data.Default                              (Default)
 import           Data.Kind                                 (Type)
-import           Data.Typeable
+import           Data.Typeable                             (Typeable)
 
-import           Money.Superfluid.Concepts.Liquidity
+import           Money.Distribution.Concepts               (Timestamp)
+import           Money.Superfluid.Concepts.Liquidity       (Liquidity)
 import           Money.Superfluid.Concepts.RealtimeBalance
 
 
@@ -37,7 +38,7 @@ class ( Typeable sft
       , Address (SFT_ADDR sft)
       ) => SuperfluidTypes sft where
 
-    -- Associated Types
+    -- Associated Type Synonyms
     type SFT_FLOAT sft :: Type
     type SFT_LQ sft :: Type
     type SFT_TS sft :: Type

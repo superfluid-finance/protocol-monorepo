@@ -1,18 +1,18 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Money.Superfluid.Validator.Demos.DFA (demo) where
+module Money.Systems.Superfluid.Validator.Demos.DFA (demo) where
 
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Coerce
-import           Data.Time.Clock.POSIX                    (getPOSIXTime)
+import           Data.Time.Clock.POSIX                            (getPOSIXTime)
 import           GHC.Stack
 import           Text.Printf
 
-import qualified Money.Superfluid.Instances.Simple.System as SF
-
-import           Money.Superfluid.Validator.Simulation
+import qualified Money.Systems.Superfluid.Instances.Simple.System as SF
+--
+import           Money.Systems.Superfluid.Validator.Simulation
 
 now =  do
     t <- getPOSIXTime

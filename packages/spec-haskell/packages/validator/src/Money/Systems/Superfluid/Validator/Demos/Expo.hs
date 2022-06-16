@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Money.Superfluid.Validator.Demos.Expo (demo) where
+module Money.Systems.Superfluid.Validator.Demos.Expo (demo) where
 
 import           Control.Monad.IO.Class
-import           Data.Time.Clock.POSIX                    (getPOSIXTime)
+import           Data.Time.Clock.POSIX                            (getPOSIXTime)
 import           GHC.Stack
 
-import qualified Money.Superfluid.Instances.Simple.System as SF
-
-import           Money.Superfluid.Validator.Simulation
+import qualified Money.Systems.Superfluid.Instances.Simple.System as SF
+--
+import           Money.Systems.Superfluid.Validator.Simulation
 
 
 now :: IO SF.SimpleTimestamp

@@ -1,4 +1,4 @@
-module Money.Superfluid.Validator.Simulation
+module Money.Systems.Superfluid.Validator.Simulation
     -- SimMonad operations
     ( SimMonad
     , runSimMonad
@@ -19,11 +19,11 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                 as M
+import qualified Data.Map                                         as M
 import           Data.Maybe
 import           GHC.Stack
 
-import qualified Money.Superfluid.Instances.Simple.System as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System as SF
 
 -- ============================================================================
 -- | Simulation Monad Stacks

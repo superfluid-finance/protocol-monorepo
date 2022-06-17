@@ -73,7 +73,7 @@ contract TokenSpreader {
     /// @param subscriber subscriber address whose units are to be incremented
     function gainShare(address subscriber) public {
 
-        // Get current units msg.sender holds
+        // Get current units subscriber holds
         (,,uint256 currentUnitsHeld,) = idaV1.getSubscription(
             spreaderToken,   
             address(this),   
@@ -95,7 +95,7 @@ contract TokenSpreader {
     /// @param subscriber subscriber address whose units are to be decremented
     function loseShare(address subscriber) public {
 
-        // Get current units msg.sender holds
+        // Get current units subscriber holds
         (,,uint256 currentUnitsHeld,) = idaV1.getSubscription(
             spreaderToken,   
             address(this),   

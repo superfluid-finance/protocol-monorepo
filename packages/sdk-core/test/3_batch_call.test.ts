@@ -9,7 +9,7 @@ import { ethers } from "ethers";
 import hre from "hardhat";
 
 describe("Batch Call Tests", () => {
-    let evmSnapshotId:any;
+    let evmSnapshotId: string;
     let framework: Framework;
     let deployer: SignerWithAddress;
     let alpha: SignerWithAddress;
@@ -28,13 +28,13 @@ describe("Batch Call Tests", () => {
         bravo = Bravo;
         charlie = Charlie;
         superToken = SuperToken;
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
     });
 
     beforeEach(async () => {
-        await hre.network.provider.send("evm_revert",[evmSnapshotId])
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
-    })
+        await hre.network.provider.send("evm_revert", [evmSnapshotId]);
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
+    });
 
     it("Should throw an error on unsupported operations", async () => {
         const daix = await framework.loadSuperToken(superToken.address);

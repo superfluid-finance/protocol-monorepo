@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import hardhat from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
@@ -11,7 +10,7 @@ export const ROPSTEN_SUBGRAPH_ENDPOINT =
     "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten";
 
 describe("Framework Tests", async () => {
-    let evmSnapshotId:any;
+    let evmSnapshotId: string;
     let deployer: SignerWithAddress;
     let alpha: SignerWithAddress;
     let superToken: SuperToken;
@@ -209,7 +208,7 @@ describe("Framework Tests", async () => {
         it("Should be able to create a framework with injected hardhat ethers", async () => {
             await Framework.create({
                 networkName: "custom",
-                provider: hardhat.ethers,
+                provider: hre.ethers,
                 dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",

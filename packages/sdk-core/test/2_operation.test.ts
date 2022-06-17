@@ -15,7 +15,7 @@ import hre from "hardhat";
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
 describe("Operation Tests", () => {
-    let evmSnapshotId: any
+    let evmSnapshotId: string;
     let framework: Framework;
     let cfaV1: IConstantFlowAgreementV1;
     let deployer: SignerWithAddress;
@@ -34,19 +34,20 @@ describe("Operation Tests", () => {
         bravo = Bravo;
         superToken = SuperToken;
         cfaV1 = CFAV1;
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
     });
 
     beforeEach(async () => {
-        await hre.network.provider.send("evm_revert",[evmSnapshotId])
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
-    })
+        await hre.network.provider.send("evm_revert", [evmSnapshotId]);
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
+    });
 
     it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
-        const revokeControlOp = framework.cfaV1.revokeFlowOperatorWithFullControl({
-            superToken: superToken.address,
-            flowOperator: alpha.address,
-        });
+        const revokeControlOp =
+            framework.cfaV1.revokeFlowOperatorWithFullControl({
+                superToken: superToken.address,
+                flowOperator: alpha.address,
+            });
         const signer = framework.createSigner({
             privateKey: HARDHAT_PRIVATE_KEY,
             provider: deployer.provider,
@@ -64,12 +65,11 @@ describe("Operation Tests", () => {
             getPerSecondFlowRateByMonth("-100"),
             "0x",
         ]);
-        const txn =
-            framework.host.contract.populateTransaction.callAgreement(
-                cfaV1.address,
-                callData,
-                "0x"
-            );
+        const txn = framework.host.contract.populateTransaction.callAgreement(
+            cfaV1.address,
+            callData,
+            "0x"
+        );
         const operation = new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
         try {
             await operation.exec(deployer);

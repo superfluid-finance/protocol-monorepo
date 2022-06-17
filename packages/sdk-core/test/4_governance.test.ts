@@ -15,7 +15,7 @@ const DEFAULT_PARAMS = {
 };
 
 describe("Governance Tests", () => {
-    let evmSnapshotId:any;
+    let evmSnapshotId: string;
     let framework: Framework;
     let deployer: SignerWithAddress;
     let superToken: SuperTokenType;
@@ -29,13 +29,13 @@ describe("Governance Tests", () => {
         deployer = Deployer;
         superToken = SuperToken;
         daix = await framework.loadWrapperSuperToken(superToken.address);
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
     });
 
     beforeEach(async () => {
-        await hre.network.provider.send("evm_revert",[evmSnapshotId])
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
-    })
+        await hre.network.provider.send("evm_revert", [evmSnapshotId]);
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
+    });
 
     it("Should get default governance parameters", async () => {
         const defaultParams =

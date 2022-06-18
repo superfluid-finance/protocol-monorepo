@@ -78,8 +78,5 @@
             "**/webpack/**"
         ]
     },
-    "version": "0.0.0",
-    "dependencies": {
-        "graphql": "^16.5.0"
-    }
+    "version": "0.0.0"
 }

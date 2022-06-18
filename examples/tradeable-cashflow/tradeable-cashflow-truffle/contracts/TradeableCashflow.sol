@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity >=0.8.13;
 
 import {RedirectAll, ISuperToken, ISuperfluid} from "./RedirectAll.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";

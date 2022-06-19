@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.0;
+pragma solidity 0.8.14;
 
 import { ISuperfluid, ISuperToken, ISuperApp, ISuperAgreement, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol"; 
 
@@ -81,10 +81,9 @@ contract EmploymentLoan is SuperAppBase {
         (, int collateralTokenPrice,,,) = priceFeed.latestRoundData();
 
         //note: all chainlink feeds return either 8 or 18 decimals...in our case, if it's not 18, we need to balance out the diff
-        if (uint(int(priceFeedDecimals)) < 18) {
-            collateralTokenPrice = int(uint(collateralTokenPrice) * (10 ** uint(18 - int(priceFeedDecimals))));
+        if (uint(priceFeedDecimals) < 18) {
+            collateralTokenPrice = int(uint(collateralTokenPrice) * (10 ** uint(18 - priceFeedDecimals)));
         }
-
         //denominate borrow amount in collateral token instead
         if (collateralTokenPrice > 0 ) {
             //not perfect, but assumes that borrow token is a stablecoin
@@ -92,18 +91,18 @@ contract EmploymentLoan is SuperAppBase {
         }
 
         //calculate monthly payment formula
-        return (int96(((collateralDenominatedBorrowAmount / int(paybackMonths)) + ((collateralDenominatedBorrowAmount * int(int(interestRate) / 100)) / int(paybackMonths))) / ((365 / 12) * 86400)));
+        return int96(((collateralDenominatedBorrowAmount / int(paybackMonths) + ((collateralDenominatedBorrowAmount * int(int(interestRate) / 100)) / int(paybackMonths))) / ((365 / 12) * 86400)));
     }
 
     function getTotalAmountRemaining() public view returns (uint) {
         //if there is no time left on loan, return zero
-        int secondsLeft = (int(paybackMonths) * int((365 * 86400) / 12)) - int(block.timestamp - loanStartTime);
-        if (secondsLeft <= 0) {
+        // int secondsLeft = (int(paybackMonths) * int((365 * 86400) / 12)) - int(block.timestamp - loanStartTime);
+        if ((uint(int(paybackMonths)) * ((365 * 86400) / 12) - block.timestamp - loanStartTime) <= 0) {
             return 0;
         } 
         //if an amount is left, return the total amount to be paid
         else {
-            return uint(secondsLeft) * uint(int(getPaymentFlowRate()));
+            return uint(int(paybackMonths)) * ((365 * 86400) / 12) - block.timestamp - loanStartTime * uint(int(getPaymentFlowRate()));
         }
     }
 
@@ -299,9 +298,8 @@ contract EmploymentLoan is SuperAppBase {
     function closeCompletedLoan() external {
         require(msg.sender == lender || getTotalAmountRemaining() <= 0);
 
-        uint collateralTokenBalance = collateralToken.balanceOf(address(this));
-        if (collateralAmount >= 0 && collateralTokenBalance > 0) {
-            collateralToken.transfer(borrower, collateralTokenBalance);
+        if (collateralAmount >= 0 && collateralToken.balanceOf(address(this)) > 0) {
+            collateralToken.transfer(borrower, collateralToken.balanceOf(address(this)));
         }
 
         (,int96 currentLenderFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
@@ -398,13 +396,13 @@ contract EmploymentLoan is SuperAppBase {
     modifier onlyHost() {
         require(
             msg.sender == address(cfaV1.host),
-            "Only host can call callback"
+            "Only host"
         );
         _;
     }
 
     modifier onlyCFA(address agreementClass) {
-        require(_isCFAv1(agreementClass), "Only CFAv1 supported");
+        require(_isCFAv1(agreementClass), "Only CFAv1");
         _;
     }
 }

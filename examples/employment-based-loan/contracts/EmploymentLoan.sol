@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >= 0.8.0;
 
 import { ISuperfluid, ISuperToken, ISuperApp, ISuperAgreement, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol"; 
 
@@ -20,12 +20,12 @@ contract EmploymentLoan is SuperAppBase {
 
     AggregatorV3Interface public priceFeed;
     //decimals of value returned by the priceFeed
-    uint8 public priceFeedDecimals;
+    uint public priceFeedDecimals;
 
     uint public loanStartTime;
     int public borrowAmount;
     int8 public interestRate;
-    int8 public paybackMonths;
+    int public paybackMonths;
     int public collateralAmount;
     address public employer;
     address public borrower;
@@ -37,7 +37,7 @@ contract EmploymentLoan is SuperAppBase {
     constructor(
         int _borrowAmount,
         int8 _interestRate, //annual interest rate, in whole number - i.e. 8% would be passed as 8
-        int8 _paybackMonths,
+        int _paybackMonths,
         int _collateralAmount,
         address _employer,
         address _borrower,
@@ -45,7 +45,7 @@ contract EmploymentLoan is SuperAppBase {
         ISuperToken _collateralToken,
         ISuperfluid _host,
         AggregatorV3Interface _priceFeed,
-        uint8 _priceFeedDecimals
+        uint _priceFeedDecimals
     ) {
         IConstantFlowAgreementV1 cfa = IConstantFlowAgreementV1(
             address(_host.getAgreementClass(CFA_ID))
@@ -73,7 +73,7 @@ contract EmploymentLoan is SuperAppBase {
     }
 
     function getPaymentFlowRate() public view returns (int96 paymentFlowRate) {
-        return (int96(((borrowAmount / int(paybackMonths)) + ((borrowAmount * int(int(interestRate) / 100)) / int(paybackMonths))) / ((365 / 12) * 86400)));
+        return (int96(((borrowAmount / paybackMonths) + ((borrowAmount * int(int(interestRate) / 100)) / paybackMonths)) / ((365 / 12) * 86400)));
     }
 
     function _getCollateralFlowRate() public view returns (int96 collateralFlowRate) {
@@ -82,8 +82,9 @@ contract EmploymentLoan is SuperAppBase {
 
         //note: all chainlink feeds return either 8 or 18 decimals...in our case, if it's not 18, we need to balance out the diff
         if (uint(priceFeedDecimals) < 18) {
-            collateralTokenPrice = int(uint(collateralTokenPrice) * (10 ** uint(18 - priceFeedDecimals)));
+            collateralTokenPrice = int(uint(collateralTokenPrice) * (10 ** uint(18 - int(priceFeedDecimals))));
         }
+
         //denominate borrow amount in collateral token instead
         if (collateralTokenPrice > 0 ) {
             //not perfect, but assumes that borrow token is a stablecoin
@@ -91,18 +92,18 @@ contract EmploymentLoan is SuperAppBase {
         }
 
         //calculate monthly payment formula
-        return int96(((collateralDenominatedBorrowAmount / int(paybackMonths) + ((collateralDenominatedBorrowAmount * int(int(interestRate) / 100)) / int(paybackMonths))) / ((365 / 12) * 86400)));
+        return (int96(((collateralDenominatedBorrowAmount / paybackMonths) + ((collateralDenominatedBorrowAmount * int(int(interestRate) / 100)) / paybackMonths)) / ((365 / 12) * 86400)));
     }
 
     function getTotalAmountRemaining() public view returns (uint) {
         //if there is no time left on loan, return zero
-        // int secondsLeft = (int(paybackMonths) * int((365 * 86400) / 12)) - int(block.timestamp - loanStartTime);
-        if ((uint(int(paybackMonths)) * ((365 * 86400) / 12) - block.timestamp - loanStartTime) <= 0) {
+        int secondsLeft = (paybackMonths * int((365 * 86400) / 12)) - int(block.timestamp - loanStartTime);
+        if (secondsLeft <= 0) {
             return 0;
         } 
         //if an amount is left, return the total amount to be paid
         else {
-            return uint(int(paybackMonths)) * ((365 * 86400) / 12) - block.timestamp - loanStartTime * uint(int(getPaymentFlowRate()));
+            return uint(secondsLeft) * uint(int(getPaymentFlowRate()));
         }
     }
 
@@ -298,8 +299,9 @@ contract EmploymentLoan is SuperAppBase {
     function closeCompletedLoan() external {
         require(msg.sender == lender || getTotalAmountRemaining() <= 0);
 
-        if (collateralAmount >= 0 && collateralToken.balanceOf(address(this)) > 0) {
-            collateralToken.transfer(borrower, collateralToken.balanceOf(address(this)));
+        uint collateralTokenBalance = collateralToken.balanceOf(address(this));
+        if (collateralAmount >= 0 && collateralTokenBalance > 0) {
+            collateralToken.transfer(borrower, collateralTokenBalance);
         }
 
         (,int96 currentLenderFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
@@ -396,13 +398,13 @@ contract EmploymentLoan is SuperAppBase {
     modifier onlyHost() {
         require(
             msg.sender == address(cfaV1.host),
-            "Only host"
+            "Only host can call callback"
         );
         _;
     }
 
     modifier onlyCFA(address agreementClass) {
-        require(_isCFAv1(agreementClass), "Only CFAv1");
+        require(_isCFAv1(agreementClass), "Only CFAv1 supported");
         _;
     }
 }

@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexDistributeMutation } from "@superfluid-finance/sdk-redux";
 
 export const DistributeToIndex: FC = (): ReactElement => {
     const [distribute, { isLoading, error }] = sfApi.useIndexDistributeMutation();
@@ -25,7 +26,7 @@ export const DistributeToIndex: FC = (): ReactElement => {
             amountWei,
             userDataBytes,
             signer
-        });
+        } as IndexDistributeMutation);
     };
 
     return (

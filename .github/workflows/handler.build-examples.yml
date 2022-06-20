@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, tradeable-cashflow/tradeable-cashflow-truffle, tradeable-cashflow/tradeable-cashflow-hardhat, budget-nft, nftbillboard-userdata, sdk-redux-examples/sdk-redux-react-typecript, sdk-redux-examples/sdk-redux-nextjs-typescript, employment-based-loan, simple-acl-close, beginner-examples/money-router, beginner-examples/token-spreader]
+        example: [rewards-distribution-token , tradeable-cashflow, budget-nft, nftbillboard-userdata, sdk-redux-examples/sdk-redux-react-typecript, sdk-redux-examples/sdk-redux-nextjs-typescript, employment-based-loan, simple-acl-close, beginner-examples/money-router, beginner-examples/token-spreader]
         install: [locked-install, clean-install]
         node-version: [16]
 

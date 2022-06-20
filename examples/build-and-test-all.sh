@@ -18,8 +18,7 @@ EXAMPLES=(
     rewards-distribution-token
     sdk-redux-examples/sdk-redux-nextjs-typescript
     sdk-redux-examples/sdk-redux-react-typescript
-    tradeable-cashflow/tradeable-cashflow-hardhat
-    tradeable-cashflow/tradeable-cashflow-truffle
+    tradeable-cashflow
 )
 
 for i in "${EXAMPLES[@]}";do

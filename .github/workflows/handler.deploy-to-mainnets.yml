@@ -1,9 +1,6 @@
 name: Deploy to Mainnets
 
 on:
-  push:
-    branches: [ "gh-workflow-deploy-mainnets" ]
-
   workflow_dispatch:
     inputs:
       release_version:
@@ -72,8 +69,8 @@ jobs:
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
-#          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
-#          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
+          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
+          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}

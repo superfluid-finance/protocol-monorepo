@@ -9,7 +9,7 @@ export const IndexSubscriptionApprove: FC = (): ReactElement => {
     const [approve, { isLoading, error }] =
         sfApi.useIndexSubscriptionApproveMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
     const [publisherAddress, setPublisherAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
@@ -25,6 +25,7 @@ export const IndexSubscriptionApprove: FC = (): ReactElement => {
             indexId,
             userDataBytes,
             publisherAddress,
+            signer
         });
     };
 

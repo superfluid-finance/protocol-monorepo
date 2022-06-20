@@ -8,7 +8,7 @@ import { sfApi } from "../redux/store";
 export const IndexCreate: FC = (): ReactElement => {
     const [createIndex, { isLoading, error }] = sfApi.useIndexCreateMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
@@ -22,6 +22,7 @@ export const IndexCreate: FC = (): ReactElement => {
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
+            signer
         });
     };
 

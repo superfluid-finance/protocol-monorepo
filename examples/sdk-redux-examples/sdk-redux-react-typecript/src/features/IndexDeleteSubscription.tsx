@@ -9,7 +9,7 @@ export const IndexDeleteSubscription: FC = (): ReactElement => {
     const [trigger, { isLoading, error }] =
         sfApi.useIndexDeleteSubscriptionMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
     const [publisherAddress, setPublisherAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
@@ -26,6 +26,7 @@ export const IndexDeleteSubscription: FC = (): ReactElement => {
             userDataBytes,
             publisherAddress,
             subscriberAddress: signerAddress,
+            signer
         });
     };
 

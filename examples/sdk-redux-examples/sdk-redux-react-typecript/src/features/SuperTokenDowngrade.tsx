@@ -9,7 +9,7 @@ export const SuperTokenDowngrade: FC = (): ReactElement => {
     const [downgradeFromSuperToken, { isLoading, error }] =
         sfApi.useSuperTokenDowngradeMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
 
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -17,11 +17,12 @@ export const SuperTokenDowngrade: FC = (): ReactElement => {
         useState<boolean>(false);
 
     const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
-        downgradeFromSuperToken({
+        downgradeFromSuperToken({   
             chainId,
             superTokenAddress: superToken,
             amountWei: amount,
-            waitForConfirmation
+            waitForConfirmation,
+            signer
         });
     };
 

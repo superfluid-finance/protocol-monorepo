@@ -8,7 +8,7 @@ import { sfApi } from "../redux/store";
 export const FlowCreate: FC = (): ReactElement => {
     const [createFlow, { isLoading, error }] = sfApi.useFlowCreateMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -25,7 +25,8 @@ export const FlowCreate: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             waitForConfirmation,
-            userDataBytes
+            userDataBytes,
+            signer
         });
     };
 

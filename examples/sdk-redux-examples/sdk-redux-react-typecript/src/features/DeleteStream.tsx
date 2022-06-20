@@ -8,7 +8,7 @@ import { sfApi } from "../redux/store";
 export const DeleteStream: FC = (): ReactElement => {
     const [deleteFlow, { isLoading, error }] = sfApi.useFlowDeleteMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -23,7 +23,8 @@ export const DeleteStream: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             waitForConfirmation,
-            userDataBytes
+            userDataBytes,
+            signer
         });
     };
 

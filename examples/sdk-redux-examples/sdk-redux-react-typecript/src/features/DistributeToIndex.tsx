@@ -8,7 +8,7 @@ import { sfApi } from "../redux/store";
 export const DistributeToIndex: FC = (): ReactElement => {
     const [distribute, { isLoading, error }] = sfApi.useIndexDistributeMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
     const [amountWei, setAmountWei] = useState<string>("");
@@ -24,6 +24,7 @@ export const DistributeToIndex: FC = (): ReactElement => {
             indexId,
             amountWei,
             userDataBytes,
+            signer
         });
     };
 

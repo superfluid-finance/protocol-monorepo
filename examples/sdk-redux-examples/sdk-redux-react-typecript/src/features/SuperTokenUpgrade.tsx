@@ -9,7 +9,7 @@ export const SuperTokenUpgrade: FC = (): ReactElement => {
     const [upgradeToSuperToken, { isLoading, error }] =
         sfApi.useSuperTokenUpgradeMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
 
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -37,6 +37,7 @@ export const SuperTokenUpgrade: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             amountWei: amount,
+            signer
         });
     };
 

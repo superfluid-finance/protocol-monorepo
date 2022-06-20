@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexCreateMutation } from "@superfluid-finance/sdk-redux";
 
 export const IndexCreate: FC = (): ReactElement => {
     const [createIndex, { isLoading, error }] = sfApi.useIndexCreateMutation();
@@ -23,7 +24,7 @@ export const IndexCreate: FC = (): ReactElement => {
             indexId,
             userDataBytes,
             signer
-        });
+        } as IndexCreateMutation);
     };
 
     return (

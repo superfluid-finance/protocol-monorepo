@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexUpdateSubscriptionUnitsMutation } from "@superfluid-finance/sdk-redux";
 
 export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
     const [update, { isLoading, error }] =
@@ -28,7 +29,7 @@ export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
             unitsNumber,
             subscriberAddress,
             signer
-        });
+        } as IndexUpdateSubscriptionUnitsMutation);
     };
 
     return (

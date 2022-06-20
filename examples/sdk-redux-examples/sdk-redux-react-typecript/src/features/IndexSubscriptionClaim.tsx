@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexSubscriptionClaimMutation } from "@superfluid-finance/sdk-redux";
 
 export const IndexSubscriptionClaim: FC = (): ReactElement => {
     const [claim, { isLoading, error }] =
@@ -27,7 +28,7 @@ export const IndexSubscriptionClaim: FC = (): ReactElement => {
             publisherAddress,
             subscriberAddress: signerAddress,
             signer
-        });
+        } as IndexSubscriptionClaimMutation);
     };
 
     return (

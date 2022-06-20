@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { FlowCreateMutation } from "@superfluid-finance/sdk-redux";
 
 export const FlowCreate: FC = (): ReactElement => {
     const [createFlow, { isLoading, error }] = sfApi.useFlowCreateMutation();
@@ -27,7 +28,7 @@ export const FlowCreate: FC = (): ReactElement => {
             waitForConfirmation,
             userDataBytes,
             signer
-        });
+        } as FlowCreateMutation);
     };
 
     return (

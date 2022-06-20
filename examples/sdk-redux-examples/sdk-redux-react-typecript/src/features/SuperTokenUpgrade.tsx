@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { SuperTokenUpgradeMutation } from "@superfluid-finance/sdk-redux";
 
 export const SuperTokenUpgrade: FC = (): ReactElement => {
     const [upgradeToSuperToken, { isLoading, error }] =
@@ -38,7 +39,7 @@ export const SuperTokenUpgrade: FC = (): ReactElement => {
             superTokenAddress: superToken,
             amountWei: amount,
             signer
-        });
+        } as SuperTokenUpgradeMutation);
     };
 
     return (

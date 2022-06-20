@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity >=0.8.2;
 
 import "@superfluid-finance/hot-fuzz/contracts/HotFuzzBase.sol";
 

@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { FlowDeleteMutation } from "@superfluid-finance/sdk-redux"
 
 export const DeleteStream: FC = (): ReactElement => {
     const [deleteFlow, { isLoading, error }] = sfApi.useFlowDeleteMutation();
@@ -25,7 +26,7 @@ export const DeleteStream: FC = (): ReactElement => {
             waitForConfirmation,
             userDataBytes,
             signer
-        });
+        } as FlowDeleteMutation);
     };
 
     return (

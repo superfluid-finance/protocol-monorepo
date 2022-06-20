@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexSubscriptionApproveMutation } from "@superfluid-finance/sdk-redux";
 
 export const IndexSubscriptionApprove: FC = (): ReactElement => {
     const [approve, { isLoading, error }] =
@@ -26,7 +27,7 @@ export const IndexSubscriptionApprove: FC = (): ReactElement => {
             userDataBytes,
             publisherAddress,
             signer
-        });
+        } as IndexSubscriptionApproveMutation);
     };
 
     return (

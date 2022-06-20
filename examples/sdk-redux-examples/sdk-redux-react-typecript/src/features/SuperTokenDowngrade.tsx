@@ -4,6 +4,7 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { SuperTokenDowngradeMutation } from "@superfluid-finance/sdk-redux";
 
 export const SuperTokenDowngrade: FC = (): ReactElement => {
     const [downgradeFromSuperToken, { isLoading, error }] =
@@ -23,7 +24,7 @@ export const SuperTokenDowngrade: FC = (): ReactElement => {
             amountWei: amount,
             waitForConfirmation,
             signer
-        });
+        } as SuperTokenDowngradeMutation);
     };
 
     return (

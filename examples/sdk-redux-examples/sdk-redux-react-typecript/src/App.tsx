@@ -36,10 +36,12 @@ import { StreamPeriods } from "./features/generic-entity-queries/StreamPeriods";
 import { Tokens } from "./features/generic-entity-queries/Tokens";
 import { IndexSubscriptions } from "./features/generic-entity-queries/IndexSubscriptions";
 import { TokenStatistics } from "./features/generic-entity-queries/TokenStatistics";
+import { Signer } from "ethers";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
+    const [signer, setSigner] = useState<Signer>();
     const [chainId, setChainId] = useState<number | undefined>();
 
     const onSuperfluidSdkInitialized = async (
@@ -48,11 +50,10 @@ function App() {
     ) => {
         setSuperfluidSdk(superfluidSdk);
 
-        provider
-            .getSigner()
-            .getAddress()
-            .then((address) => setSignerAddress(address));
+        const _signer = provider.getSigner();
+        setSigner(_signer);
 
+        _signer.getAddress().then((address) => setSignerAddress(address));
         provider.getNetwork().then((network) => setChainId(network.chainId));
     };
 
@@ -114,10 +115,10 @@ function App() {
                             onSuperfluidSdkInitialized(x, provider)
                         }
                     />
-                ) : !chainId || !signerAddress ? (
+                ) : !chainId || !signerAddress || !signer ? (
                     <Loader />
                 ) : (
-                    <SignerContext.Provider value={[chainId, signerAddress]}>
+                    <SignerContext.Provider value={[chainId, signerAddress, signer]}>
                         <Box maxWidth="sm">
                             <Typography sx={{ mb: 4 }}>
                                 You are connected. You are on network [{chainId}

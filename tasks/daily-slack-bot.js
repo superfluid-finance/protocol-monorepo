@@ -299,6 +299,5 @@ async function sendMessageToSlack(data) {
     addHeader(webhookPayload, workflowName + " latest status");
     addWorkflowSection();
     addDivider(webhookPayload);
-    console.log(process.argv[2]);
-    //await sendMessageToSlack(JSON.stringify(webhookPayload));
+    await sendMessageToSlack(JSON.stringify(webhookPayload));
 })();

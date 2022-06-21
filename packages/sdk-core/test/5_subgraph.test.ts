@@ -2,7 +2,6 @@ import { Query } from "../src";
 import {
     getChainId,
     testExpectListenerThrow,
-    testExpectWeb3OnlyErrors,
     testGetAllEventsQuery,
     testListenerInitialization,
     testQueryClassFunctions,
@@ -17,7 +16,6 @@ describe("Subgraph Tests", () => {
 
     before(() => {
         query = new Query({
-            dataMode: "SUBGRAPH_ONLY",
             customSubgraphQueriesEndpoint,
         });
     });
@@ -37,12 +35,6 @@ describe("Subgraph Tests", () => {
 
         it("Should be able to use the listener", async () => {
             await testListenerInitialization(query);
-        });
-    });
-
-    describe("WEB3_ONLY mode should not allow queries", () => {
-        it("Should fail when trying to execute any of the query class in WEB3_ONLY mode", async () => {
-            await testExpectWeb3OnlyErrors(query);
         });
     });
 });

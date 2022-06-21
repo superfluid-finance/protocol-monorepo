@@ -22,7 +22,7 @@ on:
         description: 'Script arguments'
         required: false
       environments:
-        description: 'Additional environments, separated by semicolons'
+        description: 'Additional env vars, separated by semicolons'
         required: false
 
 jobs:

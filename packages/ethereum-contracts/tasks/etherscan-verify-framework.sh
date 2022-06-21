@@ -28,7 +28,11 @@ case $TRUFFLE_NETWORK in
         ;;
     *)
         echo "Unknown network: $TRUFFLE_NETWORK"
-        exit 1;
+        if [ -z $SKIP_IF_UNSUPPORTED ]; then
+            exit 1;
+        else
+            exit 0;
+        fi
 esac
 
 echo "Reading addresses vars..."

@@ -4,7 +4,7 @@ import {
     CFAv1LiquidationPeriodChanged,
     TrustedForwarderChanged,
     PPPConfigurationChanged,
-} from "../../generated/SuperfluidGovernance/SuperfluidGovernanceBase";
+} from "../../generated/templates/SuperfluidGovernance/SuperfluidGovernanceBase";
 import {
     CFAv1LiquidationPeriodChangedEvent,
     ConfigChangedEvent,

@@ -419,7 +419,6 @@ type GovernanceReplacedEvent implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
-    addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
@@ -427,6 +426,7 @@ type GovernanceReplacedEvent implements Event @entity {
     """
     Empty addresses array.
     """
+    addresses: [Bytes!]!
     oldGovernance: Bytes!
     newGovernance: Bytes!
 }

@@ -20,6 +20,7 @@ import {
 import {createEventID, getOrder} from "../utils";
 import { commitHash, configuration, branch } from "../meta.ignore";
 import { ethereum } from "@graphprotocol/graph-ts";
+import { SuperfluidGovernance } from "../../generated/templates";
 
 export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     let ev = new GovernanceReplacedEvent(
@@ -35,6 +36,12 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     ev.newGovernance = event.params.newGov;
     ev.logIndex = event.logIndex;
     ev.save();
+
+    // Create data source template for new Governance contract
+    // and start indexing events
+    // @note The subgraph will not capture governance events
+    // which occur prior to this event being emitted
+    SuperfluidGovernance.create(event.params.newGov);
 }
 
 export function handleAgreementClassRegistered(

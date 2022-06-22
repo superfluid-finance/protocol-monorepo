@@ -25,6 +25,7 @@ import {
 } from "../utils";
 import {
     createAccountTokenSnapshotLogEntity,
+    createTokenStatisticLogEntity,
     getOrInitFlowOperator,
     getOrInitStream,
     getOrInitStreamRevision,
@@ -349,6 +350,7 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         tokenAddress,
         "FlowUpdated"
     );
+    createTokenStatisticLogEntity(event, tokenAddress, "FlowUpdated");
 }
 
 // NOTE: This handler is run right after handleStreamUpdated as the FlowUpdatedExtension

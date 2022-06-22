@@ -544,6 +544,11 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     name: String!
 
     """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
+
+    """
     Empty addresses array.
     """
     addresses: [Bytes!]!
@@ -561,6 +566,11 @@ type ConfigChangedEvent implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
+
+    """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
 
     """
     Empty addresses array.
@@ -583,6 +593,11 @@ type RewardAddressChangedEvent implements Event @entity {
     name: String!
 
     """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
+
+    """
     Empty addresses array.
     """
     addresses: [Bytes!]!
@@ -600,6 +615,11 @@ type PPPConfigurationChangedEvent implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
+
+    """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
 
     """
     Empty addresses array.
@@ -620,6 +640,11 @@ type TrustedForwarderChangedEvent implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
+
+    """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
 
     """
     Empty addresses array.
@@ -683,7 +708,9 @@ type AgreementLiquidatedV2Event implements Event @entity {
     version: BigInt!
     liquidationType: Int!
 
-    """TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead"""
+    """
+    TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+    """
     rewardAccount: Bytes! @deprecated(reason: "use rewardAmountReceiver")
 }
 
@@ -702,6 +729,7 @@ type BurnedEvent implements Event @entity {
     order: BigInt!
     operator: Bytes!
     from: Bytes!
+    token: Bytes!
     amount: BigInt!
     data: Bytes!
     operatorData: Bytes!
@@ -724,6 +752,7 @@ type MintedEvent implements Event @entity {
     to: Bytes!
     amount: BigInt!
     data: Bytes!
+    token: Bytes!
     operatorData: Bytes!
 }
 
@@ -743,6 +772,7 @@ type SentEvent implements Event @entity {
     operator: Bytes!
     from: Bytes!
     to: Bytes!
+    token: Bytes!
     amount: BigInt!
     data: Bytes!
     operatorData: Bytes!
@@ -1256,7 +1286,19 @@ type AccountTokenSnapshot @entity {
     totalOutflowRate: BigInt!
 
     """
-    The total amount of `token` streamed to this `account` until
+    The total amount of `token` streamed into this `account` until
+    the `updatedAtTimestamp`/`updatedAtBlock`.
+    """
+    totalAmountStreamedInUntilUpdatedAt: BigInt!
+
+    """
+    The total amount of `token` streamed from this `account` until
+    the `updatedAtTimestamp`/`updatedAtBlock`.
+    """
+    totalAmountStreamedOutUntilUpdatedAt: BigInt!
+
+    """
+    The total amount of `token` streamed through this `account` until
     the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
@@ -1269,7 +1311,8 @@ type AccountTokenSnapshot @entity {
     account: Account!
     token: Token!
     flowOperators: [FlowOperator!]! @derivedFrom(field: "accountTokenSnapshot")
-    accountTokenSnapshotLogs: [AccountTokenSnapshotLog!]! @derivedFrom(field: "accountTokenSnapshot")
+    accountTokenSnapshotLogs: [AccountTokenSnapshotLog!]!
+        @derivedFrom(field: "accountTokenSnapshot")
 }
 
 """
@@ -1336,7 +1379,19 @@ type AccountTokenSnapshotLog @entity {
     totalOutflowRate: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` streamed to this `account` until
+    The total (as of timestamp) amount of `token` streamed into this `account` until
+    the `timestamp`/`block`.
+    """
+    totalAmountStreamedIn: BigInt!
+
+    """
+    The total (as of timestamp) amount of `token` streamed from this `account` until
+    the `timestamp`/`block`.
+    """
+    totalAmountStreamedOut: BigInt!
+
+    """
+    The total (as of timestamp) net amount of `token` streamed through this `account` until
     the `timestamp`/`block`.
     """
     totalAmountStreamed: BigInt!
@@ -1405,7 +1460,7 @@ type TokenStatistic @entity {
     totalOutflowRate: BigInt!
 
     """
-    The all-time total amount streamed until the `updatedAtTimestamp`/`updatedAtBlock`.
+    The all-time total amount streamed (outflows) until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
 
@@ -1427,6 +1482,91 @@ type TokenStatistic @entity {
 
     # ---------------------------------- links ----------------------------------
     token: Token!
+    tokenStatisticLogs: [TokenStatisticLog!]! @derivedFrom(field: "tokenStatistic")
+}
+
+"""
+TokenStatisticLog: Historical entries of TokenStatistic updates.
+"""
+type TokenStatisticLog @entity {
+    """
+    id: token address
+    """
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+
+    transactionHash: Bytes!
+    logIndex: BigInt!
+    order: BigInt!
+    triggeredByEventName: String!
+    # ---------------------------------- state ----------------------------------
+    """
+    The total number of currently active `token` streams.
+    """
+    totalNumberOfActiveStreams: Int!
+
+    """
+    The all-time number of closed streams.
+    """
+    totalNumberOfClosedStreams: Int!
+
+    """
+    The total number of Indexes created with `token`.
+    """
+    totalNumberOfIndexes: Int!
+
+    """
+    The total number of "active" (has greater than 0 units and has distributed it at
+    least once) Indexes created with `token`.
+    """
+    totalNumberOfActiveIndexes: Int!
+
+    """
+    The number of subscriptions which have units allocated to them
+    created with Indexes that distribute `token`.
+    """
+    totalSubscriptionsWithUnits: Int!
+
+    """
+    Counts all approved subscriptions whether or not they have units.
+    """
+    totalApprovedSubscriptions: Int!
+
+    """
+    The total deposit held by the CFA agreement for this particular `token`.
+    """
+    totalDeposit: BigInt!
+
+    """
+    The total outflow rate of the `token` (how much value is being moved).
+    """
+    totalOutflowRate: BigInt!
+
+    """
+    The all-time total amount streamed (outflows) until the `timestamp`/`block`.
+    """
+    totalAmountStreamed: BigInt!
+
+    """
+    The all-time total amount transferred until the `timestamp`/`block`.
+    """
+    totalAmountTransferred: BigInt!
+
+    """
+    The all-time total amount distributed until the `timestamp`/`block`.
+    """
+    totalAmountDistributed: BigInt!
+
+    """
+    The total supply of the token - this is impacted by users upgrading/downgrading their
+    tokens.
+    """
+    totalSupply: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    token: Token!
+    tokenStatistic: TokenStatistic!
 }
 
 ####################

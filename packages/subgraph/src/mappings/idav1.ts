@@ -33,6 +33,7 @@ import {
 } from "../utils";
 import {
     createAccountTokenSnapshotLogEntity,
+    createTokenStatisticLogEntity,
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
@@ -86,6 +87,7 @@ export function handleIndexCreated(event: IndexCreated): void {
         event.params.token,
         "IndexCreated"
     );
+    createTokenStatisticLogEntity(event, event.params.token, "IndexCreated");
     createIndexCreatedEntity(event, index.id);
 }
 
@@ -165,6 +167,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.params.token,
         "IndexUpdated"
     );
+    createTokenStatisticLogEntity(event, event.params.token, "IndexUpdated");
     createIndexUpdatedEntity(event, index.id);
 }
 
@@ -292,6 +295,11 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
         event.params.token,
         "SubscriptionApproved"
     );
+    createTokenStatisticLogEntity(
+        event,
+        event.params.token,
+        "SubscriptionApproved"
+    );
 }
 
 export function handleSubscriptionDistributionClaimed(
@@ -350,6 +358,11 @@ export function handleSubscriptionDistributionClaimed(
     createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
+        event.params.token,
+        "SubscriptionDistributionClaimed"
+    );
+    createTokenStatisticLogEntity(
+        event,
         event.params.token,
         "SubscriptionDistributionClaimed"
     );
@@ -453,6 +466,11 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
+        event.params.token,
+        "SubscriptionRevoked"
+    );
+    createTokenStatisticLogEntity(
+        event,
         event.params.token,
         "SubscriptionRevoked"
     );
@@ -589,6 +607,11 @@ export function handleSubscriptionUnitsUpdated(
     createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
+        event.params.token,
+        "SubscriptionUnitsUpdated"
+    );
+    createTokenStatisticLogEntity(
+        event,
         event.params.token,
         "SubscriptionUnitsUpdated"
     );

@@ -26,6 +26,7 @@ import {
 } from "../utils";
 import {
     createAccountTokenSnapshotLogEntity,
+    createTokenStatisticLogEntity,
     getOrInitAccount,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
@@ -82,6 +83,7 @@ function updateHOLEntitiesForLiquidation(
         event.address,
         eventName
     );
+    createTokenStatisticLogEntity(event, event.address, eventName);
 }
 
 export function handleAgreementLiquidatedBy(
@@ -150,6 +152,7 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
         event.address,
         "TokenUpgraded"
     );
+    createTokenStatisticLogEntity(event, event.address, "TokenUpgraded");
 }
 
 export function handleTokenDowngraded(event: TokenDowngraded): void {
@@ -178,6 +181,7 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
         event.address,
         "TokenDowngraded"
     );
+    createTokenStatisticLogEntity(event, event.address, "TokenDowngraded");
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -228,6 +232,7 @@ export function handleTransfer(event: Transfer): void {
         event.address,
         "Transfer"
     );
+    createTokenStatisticLogEntity(event, event.address, "Transfer");
 }
 
 export function handleSent(event: Sent): void {
@@ -351,6 +356,7 @@ function createBurnedEntity(event: Burned): void {
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
+    ev.token = event.address;
     ev.operator = event.params.operator;
     ev.from = event.params.from;
     ev.amount = event.params.amount;
@@ -368,6 +374,7 @@ function createMintedEntity(event: Minted): void {
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
+    ev.token = event.address;
     ev.operator = event.params.operator;
     ev.to = event.params.to;
     ev.amount = event.params.amount;
@@ -387,6 +394,7 @@ function createSentEntity(event: Sent): void {
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.amount = event.params.amount;
     ev.data = event.params.data;
+    ev.token = event.address;
     ev.operator = event.params.operator;
     ev.operatorData = event.params.operatorData;
     ev.from = event.params.from;

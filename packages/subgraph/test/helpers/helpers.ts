@@ -14,7 +14,6 @@ import TestTokenABI from "../../abis/TestToken.json";
 import {TestToken} from "../../typechain";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber} from "ethers";
-import {BigInt} from "@graphprotocol/graph-ts";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -40,10 +39,8 @@ export const beforeSetup = async (tokenAmount: number) => {
     );
     const users = signers.map((x) => x.address);
     let totalSupply = 0;
-    // names[Bob] = "Bob";
     const sf = await Framework.create({
-        networkName: "custom",
-        dataMode: "WEB3_ONLY",
+        chainId: 31337,
         protocolReleaseVersion: "test",
         provider: Deployer.provider!,
         resolverAddress: RESOLVER_ADDRESS,
@@ -56,7 +53,7 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
-        fDAIx.underlyingToken!.address,
+        fDAIx.underlyingToken.address,
         TestTokenABI
     ) as TestToken;
 

@@ -168,6 +168,16 @@ export const getExpectedATSForCFAEvent = async (
     )
         .add(toBN(currentATS.totalNetFlowRate).mul(timeDelta))
         .toString();
+    const totalAmountStreamedInUntilUpdatedAt = toBN(
+        currentATS.totalAmountStreamedInUntilUpdatedAt
+    )
+        .add(toBN(currentATS.totalInflowRate).mul(timeDelta))
+        .toString();
+    const totalAmountStreamedOutUntilUpdatedAt = toBN(
+        currentATS.totalAmountStreamedOutUntilUpdatedAt
+    )
+        .add(toBN(currentATS.totalOutflowRate).mul(timeDelta))
+        .toString();
 
     return {
         ...currentATS,
@@ -182,6 +192,8 @@ export const getExpectedATSForCFAEvent = async (
         totalInflowRate,
         totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt,
+        totalAmountStreamedInUntilUpdatedAt,
+        totalAmountStreamedOutUntilUpdatedAt,
         totalDeposit,
     };
 };

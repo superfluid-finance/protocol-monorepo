@@ -529,7 +529,7 @@ export function createTokenStatisticLogEntity(
     tokenStatisticLog.totalAmountStreamed =
         tokenStatistic.totalAmountStreamedUntilUpdatedAt;
     tokenStatisticLog.totalAmountTransferred =
-        tokenStatistic.totalAmountStreamedUntilUpdatedAt;
+        tokenStatistic.totalAmountTransferredUntilUpdatedAt;
     tokenStatisticLog.totalAmountDistributed =
         tokenStatistic.totalAmountDistributedUntilUpdatedAt;
     tokenStatisticLog.totalSupply = tokenStatistic.totalSupply;
@@ -696,7 +696,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
             accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalOutflowRate
+            accountTokenSnapshot.totalInflowRate
         );
     let amountStreamedOutSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(

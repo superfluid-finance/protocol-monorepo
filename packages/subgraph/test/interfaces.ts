@@ -1,10 +1,10 @@
 /**************************************************************************
  * GraphQL Entity Types
  *************************************************************************/
-import {BaseProvider} from "@ethersproject/providers";
-import {BigNumber} from "@ethersproject/bignumber";
-import {Framework, SuperToken} from "@superfluid-finance/sdk-core";
-import {FlowActionType, IDAEventType} from "./helpers/constants";
+import { BaseProvider } from "@ethersproject/providers";
+import { BigNumber } from "@ethersproject/bignumber";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
+import { FlowActionType, IDAEventType } from "./helpers/constants";
 
 /**
  * Event Entities
@@ -303,6 +303,8 @@ export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
     readonly totalApprovedSubscriptions: number;
     readonly balanceUntilUpdatedAt: string;
     readonly totalAmountStreamedUntilUpdatedAt: string;
+    readonly totalAmountStreamedInUntilUpdatedAt: string;
+    readonly totalAmountStreamedOutUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly totalDeposit: string;
     readonly maybeCriticalAtTimestamp: string;
@@ -328,14 +330,14 @@ export interface IAccountTokenSnapshotLog {
     readonly totalNumberOfClosedStreams: number;
     readonly totalSubscriptionsWithUnits: number;
     readonly totalAmountStreamed: string;
+    readonly totalAmountStreamedIn: string;
+    readonly totalAmountStreamedOut: string;
     readonly totalAmountTransferred: string;
     readonly totalDeposit: string;
     readonly totalInflowRate: string;
     readonly totalNetFlowRate: string;
     readonly totalOutflowRate: string;
     readonly maybeCriticalAtTimestamp: string;
-    readonly account: ILightEntity;
-    readonly token: ILightEntity;
 }
 
 export interface ITokenStatistic extends IBaseAggregateEntity {
@@ -352,6 +354,28 @@ export interface ITokenStatistic extends IBaseAggregateEntity {
     readonly totalDeposit: string;
     readonly totalSupply: string;
     readonly token: ILightEntity;
+    readonly tokenStatisticLogs: ITokenStatisticLog[];
+}
+
+export interface ITokenStatisticLog {
+    readonly transactionHash: string;
+    readonly blockNumber: string;
+    readonly logIndex: string;
+    readonly timestamp: string;
+    readonly order: string;
+    readonly triggeredByEventName: string;
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
+    readonly totalNumberOfIndexes: number;
+    readonly totalNumberOfActiveIndexes: number;
+    readonly totalSubscriptionsWithUnits: number;
+    readonly totalApprovedSubscriptions: number;
+    readonly totalOutflowRate: string;
+    readonly totalAmountStreamed: string;
+    readonly totalAmountTransferred: string;
+    readonly totalAmountDistributed: string;
+    readonly totalDeposit: string;
+    readonly totalSupply: string;
 }
 
 /** Sub-entity Entities */

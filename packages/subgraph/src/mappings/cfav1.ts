@@ -314,14 +314,17 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         senderAddress,
         tokenAddress,
-        event.block
+        event.block,
+        // @note when deleting, we do RPC call (prevents double accounting post-liquidation)
+        isDelete ? null : BIG_INT_ZERO.minus(depositDelta)
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         receiverAddress,
         tokenAddress,
-        event.block
+        event.block,
+        BIG_INT_ZERO
     );
-    // NOTE: EXCEPTION for not calling updateTokenStatsStreamedUntilUpdatedAt
+    // @note EXCEPTION for not calling updateTokenStatsStreamedUntilUpdatedAt
     // because updateAggregateEntitiesStreamData updates tokenStats.streamedUntilUpdatedAt
     updateAggregateEntitiesStreamData(
         senderAddress,

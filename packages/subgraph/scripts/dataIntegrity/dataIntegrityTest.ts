@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
 import _ from "lodash";
-import { toBN } from "../test/helpers/helpers";
-import cfaABI from "../abis/IConstantFlowAgreementV1.json";
-import idaABI from "../abis/IInstantDistributionAgreementV1.json";
-import superTokenABI from "../abis/ISuperToken.json";
+import { toBN } from "../../test/helpers/helpers";
+import cfaABI from "../../abis/IConstantFlowAgreementV1.json";
+import idaABI from "../../abis/IInstantDistributionAgreementV1.json";
+import superTokenABI from "../../abis/ISuperToken.json";
 import {
     getIndexes,
     getCurrentStreams,
@@ -21,13 +21,13 @@ import {
     IDataIntegrityTokenStatistic,
     IOnChainCFAEvents,
     IOnChainIDAEvents,
-} from "./interfaces";
-import { chainIdToData } from "./maps";
-import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
-import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
-import { ISuperToken } from "../typechain";
-import { calculateAvailableBalance } from "../../sdk-core/src/utils";
-import { IIndexSubscription } from "../../sdk-core/src/interfaces";
+} from "../interfaces";
+import { chainIdToData } from "../maps";
+import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
+import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
+import { ISuperToken } from "../../typechain";
+import { calculateAvailableBalance } from "../../../sdk-core/src/utils";
+import { IIndexSubscription } from "../../../sdk-core/src/interfaces";
 import {
     chunkData,
     getMostRecentIndexedBlockNumber,
@@ -36,7 +36,7 @@ import {
     printTestOutcome,
     QueryHelper,
     querySubgraphAndValidateEvents,
-} from "./dataIntegrity/helperFunctions";
+} from "../dataIntegrity/helperFunctions";
 
 // currently set to 1 due to limitation with node-fetch
 // // https://github.com/node-fetch/node-fetch/issues/449

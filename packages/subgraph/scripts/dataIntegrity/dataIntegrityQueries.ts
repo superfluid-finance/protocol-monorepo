@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { IDAEvent } from "./interfaces";
+import { IDAEvent } from "../interfaces";
 
 // Event Queries
 export const getFlowUpdatedEvents = gql`
@@ -391,7 +391,10 @@ export const getAccountTokenSnapshots = gql`
         response: accountTokenSnapshots(
             block: { number: $blockNumber }
             first: $first
-            where: { updatedAtTimestamp_gte: $updatedAt }
+            where: {
+                updatedAtTimestamp_gte: $updatedAt
+                account_not_contains: "0x0000000000000000000000000000000000000000"
+            }
             orderBy: updatedAtTimestamp
             orderDirection: asc
         ) {

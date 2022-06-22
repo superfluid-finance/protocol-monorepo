@@ -1,3 +1,8 @@
+import {ISuperTokenModifyFlowParams} from '@superfluid-finance/sdk-core';
+import {Signer} from 'ethers';
+
+import {mutationOverridesKey, mutationSignerKey} from '../utils';
+
 /**
  * Information about the transaction to locate it.
  */
@@ -43,6 +48,9 @@ export interface BaseSuperTokenMutation {
      * Custom data to included in transaction tracking. Has to be serializable for redux!
      */
     transactionExtraData?: Record<string, unknown>;
+
+    [mutationOverridesKey]?: ISuperTokenModifyFlowParams['overrides'];
+    [mutationSignerKey]: Signer;
 }
 
 /**

@@ -102,10 +102,17 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
             data: {
                 initialBlockNumber: 5000000,
                 getLogsRange: 5000,
+            },
+        },
+        97: {
+            // BSC chapel testnet
+            data: {
+                initialBlockNumber: 19437500,
+                getLogsRange: 10000,
             },
         },
 
@@ -177,7 +184,7 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
             data: {
                 initialBlockNumber: 14700000,
                 getLogsRange: 50000,
@@ -202,7 +209,18 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 13075000,
+                getLogsRange: 50000,
+            },
+        },
+        44787: {
+            // Celo alfajores testnet
+            data: {
+                initialBlockNumber: 11519000,
+                getLogsRange: 50000,
+            },
         },
     };
 

@@ -1,10 +1,13 @@
 <h1 align="center">Welcome to @superfluid-finance/js-sdk 👋
 </h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
+  </a>
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
@@ -15,9 +18,11 @@
 </p>
 </div>
 
-<>{`\_`}</>
+Javascript SDK for building with Superfluid Protocol.
 
-> Javascript SDK for building with Superfluid Protocol
+### :warning: This repo is deprecated :warning:
+**Superfluid SDK project has been modularized, for similar functionality use [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core) instead.**
+
 
 ### 🏠 [Homepage](https://superfluid.finance)
 
@@ -40,10 +45,10 @@ Here is a quick look at using the SDK.
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { Web3Provider } = require("@ethersproject/providers");
+const Web3 = require("web3");
 
 const sf = new SuperfluidSDK.Framework({
-    ethers: new Web3Provider(window.ethereum),
+    web3: new Web3(window.ethereum),
     tokens: ["fDAI"],
 });
 await sf.initialize();
@@ -97,7 +102,6 @@ During initialization, the resolver will be used to fetch the correct set of con
 | version              | String   | Release version of the deployed protocol               | v1        |
 | isTruffle            | Boolean  | Use the Framework under the native truffle environment | false     |
 | web3                 | Object   | Use the Framework with web3.js (1.3.x)                 | undefined |
-| ethers               | Object   | Use the Framework with ethers.js (5.x.y)               | undefined |
 | additionalContracts  | String[] | additional contracts to be loaded                      | []        |
 | tokens               | String[] | List of token keys to load from the resolver           | []        |
 | loadSuperNativeToken | Boolean  | Load super native token (e.g. ETHx) if possible        | false     |
@@ -107,24 +111,7 @@ You also need to choose what web3 framework you plan to use, currently we suppor
 
 -   Truffle native environment (developing using `truffle test|exec|egc.`).
 -   [Web3.js](https://web3js.readthedocs.io/en/v1.2.1/), currently the SDK has been tested with web3.js `1.3.x` versions.
--   [Ethers.js](https://github.com/ethers-io/ethers.js/), currently the SDK has been tested with ethers.js `5.x.y` versions.
 
-**Example with Ethers.js**
-
-```js
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { Web3Provider } = require("@ethersproject/providers");
-
-const sf = new SuperfluidSDK.Framework({
-    ethers: new Web3Provider(window.ethereum),
-    tokens: ["fDAI"],
-});
-await sf.initialize();
-
-const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
-```
-
-The exposed contract objects are an adapted version that look like [`truffle-contract`](https://github.com/trufflesuite/truffle/tree/develop/packages/contract/) objects.
 
 **Example with Web3.js**
 

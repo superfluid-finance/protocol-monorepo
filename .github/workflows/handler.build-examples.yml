@@ -31,9 +31,9 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow-truffle, tradeable-cashflow-hardhat, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript, sdk-redux-nextjs-typescript, employment-based-loan, simple-acl-close]
+        example: [rewards-distribution-token , tradeable-cashflow, budget-nft, nftbillboard-userdata, sdk-redux-examples/sdk-redux-react-typecript, sdk-redux-examples/sdk-redux-nextjs-typescript, employment-based-loan, simple-acl-close, beginner-examples/money-router, beginner-examples/token-spreader]
         install: [locked-install, clean-install]
-        node-version: [16.x]
+        node-version: [16]
 
     steps:
       - uses: actions/checkout@v3
@@ -47,7 +47,7 @@ jobs:
 
       - name: Use Node.js ${{ matrix.node-version }}
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -55,7 +55,7 @@ jobs:
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         run: |
           cp -R monorepo/examples/${{ matrix.example }} .
-          cd ${{ matrix.example }}
+          cd "$(basename ${{ matrix.example }})"
           # cleanup all yarn.lock file and force updating dependencies per
           # package.json semver semantic
           if [ "${{ matrix.install }}" == clean-install ];then

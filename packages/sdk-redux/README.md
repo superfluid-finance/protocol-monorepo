@@ -1,6 +1,7 @@
-<h1 align="center">sdk-redux</h1>
+<h1 align="center">Welcome to @superfluid-finance/sdk-redux 👋
+</h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="./sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-redux" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux.svg">
@@ -116,12 +117,11 @@ export const store = configureStore({
 });
 ```
 
-Somewhere in your code, give instructions to the `sdkReduxConfig` to locate `Framework` and `Signer`:
+Somewhere in your code, give instructions to the `sdkReduxConfig` to locate `Framework`:
 ```ts
-import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
+import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 
 setFrameworkForSdkRedux(chainId, sdkCoreFramework);
-setSignerForSdkRedux(chainId, ethersWeb3Provider.getSigner());
 ```
 
 That should be it! You should now be able to dispatch messages to Superfluid reducers & use the React hooks.
@@ -164,12 +164,13 @@ Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/
 Example using React Hook:
 ```ts
 const tx = await rpcApi.createFlow({
-    senderAddress: signerAddress,
+    signer,
+    chainId,
+    waitForConfirmation,
+    senderAddress: senderAddress,
     receiverAddress: receiver,
     flowRateWei: flowRate,
-    chainId,
-    superTokenAddress: superToken,
-    waitForConfirmation,
+    superTokenAddress: superToken
 }).unwrap();
 ```
 

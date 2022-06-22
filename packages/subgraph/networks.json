@@ -1,14 +1,15 @@
 [
-    "arbitrum-rinkeby",
-    "avalanche-fuji",
-    "optimism-kovan",
-    "goerli",
-    "kovan",
     "matic",
-    "mumbai",
-    "rinkeby",
-    "ropsten",
     "xdai",
     "optimism-mainnet",
-    "arbitrum-one"
+    "arbitrum-one",
+    "avalanche-c",
+    "ropsten",
+    "goerli",
+    "kovan",
+    "rinkeby",
+    "mumbai",
+    "arbitrum-rinkeby",
+    "optimism-kovan",
+    "avalanche-fuji"
 ]

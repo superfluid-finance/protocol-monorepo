@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
 
@@ -68,6 +68,8 @@ library SlotsBitmapLibrary {
             account,
             bitmapStateSlotId, 1)[0]);
         bytes32[] memory slotData = new bytes32[](1);
+        // [SECURITY] NOTE: We do not allow clearing of nonexistent slots
+        assert(subsBitmap & (1 << uint256(slotId)) != 0);
         slotData[0] = bytes32(subsBitmap & ~(1 << uint256(slotId)));
         // zero the data
         token.updateAgreementStateSlot(

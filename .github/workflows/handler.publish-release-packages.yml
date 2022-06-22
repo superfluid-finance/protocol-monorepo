@@ -1,11 +1,8 @@
 name: Publish Release Package
-env:
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   release:
     types: [published]
-
 
 jobs:
   publish-release:
@@ -33,11 +30,7 @@ jobs:
             echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
           fi
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@";then
-            if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@v0.6";then
-              echo "PUBLISH_JS_SDK_V0_6=1" >> $GITHUB_ENV
-            else
-              echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
-            fi
+            echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
           fi
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
             echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
@@ -49,6 +42,7 @@ jobs:
       - name: Build package
         run: |
           yarn install --frozen-lockfile
+          yarn --cwd packages/sdk-core generate-graphql-schema:v1
           yarn build
 
       - name: Publish ethereum-contracts package
@@ -58,21 +52,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-      - name: Publish js-sdk package
+      - name: Publish js-sdk@latest package
         if: env.PUBLISH_JS_SDK == 1
         run: tasks/npm-publish.sh packages/js-sdk/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-      - name: Publish js-sdk package
-        if: env.PUBLISH_JS_SDK_V0_6 == 1
-        run: tasks/npm-publish.sh packages/js-sdk/ v0.6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-
 
       - name: Publish sdk-core package
         id: publish-sdk-core
@@ -114,8 +99,6 @@ jobs:
           s3_uri: ${{ format('{0}sdk-core', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
           cloudfront_distribution_id: E3SV855CTC9UJO
 
-
-
       - name: Publish sdk-redux package
         id: publish-sdk-redux
         if: env.PUBLISH_SDK_REDUX == 1
@@ -133,7 +116,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-          
+
       - name: Upload sdk-redux HTML documentation
         if: env.PUBLISH_SDK_REDUX == 1
         uses: ./build-scripts/s3cloudfront-hosting/actions/sync

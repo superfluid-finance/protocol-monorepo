@@ -223,7 +223,7 @@ const getIndexesLightEntities = gql`
             subscriptions(first: 1) {
                 id
             }
-            indexCreatedEvent(first: 1) {
+            indexCreatedEvent {
                 id
             }
             indexDistributionClaimedEvents(first: 1) {

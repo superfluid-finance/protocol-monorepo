@@ -9,6 +9,8 @@ data.
 interface Event {
     id: ID!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     name: String!
 
     """
@@ -35,6 +37,8 @@ type FlowUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -97,6 +101,8 @@ type FlowOperatorUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
 
     """
     The address of the `token` being streamed.
@@ -127,6 +133,8 @@ type IndexCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -147,6 +155,8 @@ type IndexDistributionClaimedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -168,6 +178,8 @@ type IndexUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -192,6 +204,8 @@ type IndexSubscribedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -213,6 +227,8 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -238,6 +254,8 @@ type IndexUnsubscribedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -259,6 +277,8 @@ type SubscriptionApprovedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -280,6 +300,8 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -301,6 +323,8 @@ type SubscriptionRevokedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -322,6 +346,8 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -349,6 +375,8 @@ type AgreementClassRegisteredEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
@@ -364,6 +392,8 @@ type AgreementClassUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     agreementType: Bytes!
     code: Bytes!
 }
@@ -379,6 +409,8 @@ type AppRegisteredEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     app: Bytes!
 }
 
@@ -389,6 +421,8 @@ type GovernanceReplacedEvent implements Event @entity {
     name: String!
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
 
     """
     Empty addresses array.
@@ -408,6 +442,8 @@ type JailEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     app: Bytes!
     reason: BigInt!
 }
@@ -423,6 +459,8 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     newFactory: Bytes!
 }
 
@@ -437,6 +475,8 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     code: Bytes!
 }
@@ -453,6 +493,8 @@ type RoleAdminChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     role: Bytes!
     previousAdminRole: Bytes!
     newAdminRole: Bytes!
@@ -469,6 +511,8 @@ type RoleGrantedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
@@ -485,6 +529,8 @@ type RoleRevokedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     role: Bytes!
     account: Bytes!
     sender: Bytes!
@@ -502,6 +548,8 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    order: BigInt!
+    logIndex: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -519,6 +567,8 @@ type ConfigChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     key: Bytes!
@@ -537,6 +587,8 @@ type RewardAddressChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -554,6 +606,8 @@ type PPPConfigurationChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -572,6 +626,8 @@ type TrustedForwarderChangedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     host: Bytes!
     superToken: Bytes!
     isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
@@ -591,6 +647,8 @@ type AgreementLiquidatedByEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -608,20 +666,25 @@ type AgreementLiquidatedV2Event implements Event @entity {
     name: String!
 
     """
-    Holds the token, liquidatorAccount, targetAccount and rewardAccount addresses.
+    Holds the token, liquidatorAccount, targetAccount and rewardAmountReceiver addresses.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
     agreementId: Bytes!
     targetAccount: Bytes!
-    rewardAccount: Bytes!
+    rewardAmountReceiver: Bytes!
     rewardAmount: BigInt!
     targetAccountBalanceDelta: BigInt!
     version: BigInt!
     liquidationType: Int!
+
+    """TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead"""
+    rewardAccount: Bytes! @deprecated(reason: "use rewardAmountReceiver")
 }
 
 type BurnedEvent implements Event @entity {
@@ -635,6 +698,8 @@ type BurnedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     operator: Bytes!
     from: Bytes!
     amount: BigInt!
@@ -653,6 +718,8 @@ type MintedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     operator: Bytes!
     to: Bytes!
     amount: BigInt!
@@ -671,6 +738,8 @@ type SentEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     operator: Bytes!
     from: Bytes!
     to: Bytes!
@@ -690,6 +759,8 @@ type TransferEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     from: Account!
     to: Account!
     value: BigInt!
@@ -708,6 +779,8 @@ type TokenDowngradedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     amount: BigInt!
 }
@@ -724,6 +797,8 @@ type TokenUpgradedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
     amount: BigInt!
 }
@@ -741,6 +816,8 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
 }
 
@@ -755,6 +832,8 @@ type SuperTokenCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     token: Bytes!
 }
 
@@ -769,6 +848,8 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
     tokenLogic: Bytes!
 }
 
@@ -1112,12 +1193,23 @@ interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
     """
-    ID composed of: accountID + keccak256("-") + tokenID
+    ID composed of: accountID-tokenID
     """
     id: ID!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
+    """
+    isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
+    Optimistic means that it is the earliest time the user will be liquidated as they may receive ongoing distributions which aren't tracked by the subgraph
+    """
+    isLiquidationEstimateOptimistic: Boolean!
+
+    """
+    Optimistic liquidation estimation property.
+    """
+    maybeCriticalAtTimestamp: BigInt
+
     """
     The number of currently open streams.
     """
@@ -1177,6 +1269,86 @@ type AccountTokenSnapshot @entity {
     account: Account!
     token: Token!
     flowOperators: [FlowOperator!]! @derivedFrom(field: "accountTokenSnapshot")
+    accountTokenSnapshotLogs: [AccountTokenSnapshotLog!]! @derivedFrom(field: "accountTokenSnapshot")
+}
+
+"""
+AccountTokenSnapshotLog: Historical entries of AccountTokenSnapshot updates.
+"""
+type AccountTokenSnapshotLog @entity {
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+
+    transactionHash: Bytes!
+    logIndex: BigInt!
+    order: BigInt!
+    triggeredByEventName: String!
+
+    # ---------------------------------- state ----------------------------------
+    """
+    Optimistic liquidation estimation property.
+    """
+    maybeCriticalAtTimestamp: BigInt
+    """
+    The current (as of timestamp) number of currently open streams.
+    """
+    totalNumberOfActiveStreams: Int!
+
+    """
+    The current (as of timestamp) number of all-time closed streams.
+    """
+    totalNumberOfClosedStreams: Int!
+
+    """
+    The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
+    """
+    totalSubscriptionsWithUnits: Int!
+
+    """
+    Counts all currently (as of timestamp) approved subscriptions whether or not they have units.
+    """
+    totalApprovedSubscriptions: Int!
+
+    """
+    Balance of `account` as of `timestamp`/`block`.
+    """
+    balance: BigInt!
+
+    """
+    The total (as of timestamp) deposit this account has held by the CFA agreement for `account` active streams.
+    """
+    totalDeposit: BigInt!
+
+    """
+    The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
+    """
+    totalNetFlowRate: BigInt!
+
+    """
+    The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
+    """
+    totalInflowRate: BigInt!
+
+    """
+    The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
+    """
+    totalOutflowRate: BigInt!
+
+    """
+    The total (as of timestamp) amount of `token` streamed to this `account` until
+    the `timestamp`/`block`.
+    """
+    totalAmountStreamed: BigInt!
+
+    """
+    The total (as of timestamp) amount of `token` this `account` has transferred.
+    """
+    totalAmountTransferred: BigInt!
+    # ---------------------------------- links ----------------------------------
+    account: Account!
+    token: Token!
+    accountTokenSnapshot: AccountTokenSnapshot!
 }
 
 """

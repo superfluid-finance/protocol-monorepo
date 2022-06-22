@@ -1,28 +1,17 @@
-import {
-    BigInt,
-    Bytes,
-    ethereum,
-    Address,
-    log,
-} from "@graphprotocol/graph-ts";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { Resolver } from "../generated/ResolverV1/Resolver";
-import {
-    StreamRevision,
-    IndexSubscription,
-    Token,
-    TokenStatistic,
-} from "../generated/schema";
+import {Address, BigInt, Bytes, ethereum, log,} from "@graphprotocol/graph-ts";
+import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
+import {Resolver} from "../generated/ResolverV1/Resolver";
+import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../generated/schema";
 
 /**************************************************************************
  * Constants
  *************************************************************************/
-
 export const BIG_INT_ZERO = BigInt.fromI32(0);
 export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
 export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
-
+export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
+export const MAX_SAFE_SECONDS = BigInt.fromI64(8640000000000); //In seconds, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_ecmascript_epoch_and_timestamps
 /**************************************************************************
  * Convenience Conversions
  *************************************************************************/
@@ -250,4 +239,66 @@ export function getAmountStreamedSinceLastUpdatedAt(
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(previousTotalOutflowRate);
+}
+
+/**
+ * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, balanceUntilUpdatedAt and totalNetFlowRate.
+ * @param updatedAtTimestamp
+ * @param balanceUntilUpdatedAt
+ * @param totalNetFlowRate
+ * @param previousMaybeCriticalAtTimestamp
+ */
+
+export function calculateMaybeCriticalAtTimestamp(
+    updatedAtTimestamp: BigInt,
+    balanceUntilUpdatedAt: BigInt,
+    totalNetFlowRate: BigInt,
+    previousMaybeCriticalAtTimestamp: BigInt | null,
+): BigInt | null {
+    // When the flow rate is not negative then there's no way to have a critical balance timestamp anymore.
+    if (totalNetFlowRate.ge(BIG_INT_ZERO)) return null;
+
+    // When there's no balance then that either means:
+    // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
+    // 2. it's a new account without a critical balance timestamp to begin with
+    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return previousMaybeCriticalAtTimestamp;
+
+    const secondsUntilCritical = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
+    const calculatedCriticalTimestamp = updatedAtTimestamp.plus(secondsUntilCritical);
+    if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
+        return MAX_SAFE_SECONDS;
+    }
+    return calculatedCriticalTimestamp;
+}
+
+/**
+ * getOrder calculate order based on {blockNumber.times(10000).plus(logIndex)}.
+ * @param blockNumber
+ * @param logIndex
+ */
+export function getOrder(
+    blockNumber: BigInt,
+    logIndex: BigInt,
+): BigInt {
+    return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
+}
+
+/**************************************************************************
+ * Log entities util functions
+ *************************************************************************/
+
+export function createLogID(
+    logPrefix: string,
+    accountTokenSnapshotId: string,
+    event: ethereum.Event,
+): string {
+    return (
+        logPrefix
+        + "-" +
+        accountTokenSnapshotId
+        + "-" +
+        event.transaction.hash.toHexString()
+        + "-" +
+        event.logIndex.toString()
+    );
 }

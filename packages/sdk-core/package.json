@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.4.0",
+    "version": "0.4.3",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -28,7 +28,8 @@
         "testenv:start": "tasks/testenv-ctl.sh start",
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
-        "test": "nyc --reporter=html --reporter=lcov --reporter=json npx hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
+        "test": "hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
+        "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
         "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts && copyfiles -f ./sf-logo.png ./dist/docs/",
@@ -38,11 +39,16 @@
         "fix:eslint": "yarn lint:eslint --fix",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "set-default-subgraph-release-tag": "node scripts/setDefaultSubgraphReleaseTag.js",
+        "start-node": "hardhat node",
         "generate": "run-s generate:*",
         "generate:abi-files": "rm -rf src/abi && mkdir -p src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
-        "generate-graphql-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",
+        "generate-graphql-schema": "yarn generate-graphql-schema:v1",
+        "generate-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
+        "generate-graphql-schema:v1": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic > src/subgraph/schema.graphql",
+        "generate-graphql-schema:dev": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli > src/subgraph/schema.graphql",
+        "generate-graphql-schema:feature": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {
@@ -65,8 +71,7 @@
         "@graphql-codegen/typescript-operations": "^2.3.5",
         "@graphql-typed-document-node/core": "^3.1.1",
         "get-graphql-schema": "^2.1.2",
-        "mocha": "^9.2.2",
-        "nyc": "^15.1.0"
+        "mocha": "^9.2.2"
     },
     "resolutions": {
         "graphql": "^16.0.0"

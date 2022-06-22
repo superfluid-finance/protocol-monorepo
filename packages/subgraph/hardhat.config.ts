@@ -8,7 +8,7 @@ dotenvConfig();
 /**
  * This Hardhat config is only used for testing the subgraph.
  * Note: For tests to work, 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
- * must be the deployer of the contracts. (add to readme.md).
+ * must be the deployer of the contracts.
  */
 const config: HardhatUserConfig = {
     solidity: {
@@ -22,8 +22,9 @@ const config: HardhatUserConfig = {
     },
     networks: {
         localhost: {
+            // url may not be necessary for localhost/hardhat node chainId
             url: "http://0.0.0.0:8545/",
-            chainId: 1337,
+            chainId: 31337,
         },
         matic: {
             url: process.env.MATIC_PROVIDER_URL || "",

@@ -14,8 +14,6 @@ import {CFAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/app
 // Simple contract which allows users to create NFTs with attached streams
 
 contract BudgetNFT is ERC721, Ownable {
-    ISuperfluid private _host; // host
-    IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
 
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
@@ -30,17 +28,13 @@ contract BudgetNFT is ERC721, Ownable {
         string memory _name,
         string memory _symbol,
         ISuperfluid host,
-        IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken
     ) ERC721(_name, _symbol) {
-        _host = host;
-        _cfa = cfa;
         _acceptedToken = acceptedToken;
 
         nextId = 0;
 
-        assert(address(_host) != address(0));
-        assert(address(_cfa) != address(0));
+        assert(address(host) != address(0));
         assert(address(_acceptedToken) != address(0));
 
         //initialize InitData struct, and set equal to cfaV1
@@ -103,7 +97,7 @@ contract BudgetNFT is ERC721, Ownable {
         _reduceFlow(receiver, rate);
     }
 
-    //now I will insert a hook in the _transfer, executing every time the token is moved
+    //this hook will execute every time the token is transferred
     //When the token is first "issued", i.e. moved from the first contract, it will start the stream
     function _beforeTokenTransfer(
         address oldReceiver,
@@ -112,7 +106,7 @@ contract BudgetNFT is ERC721, Ownable {
     ) internal override {
         //blocks transfers to superApps - done for simplicity, but you could support super apps in a new version!
         require(
-            !_host.isApp(ISuperApp(newReceiver)) ||
+            !cfaV1.host.isApp(ISuperApp(newReceiver)) ||
                 newReceiver == address(this),
             "New receiver can not be a superApp"
         );
@@ -181,7 +175,7 @@ contract BudgetNFT is ERC721, Ownable {
     function _reduceFlow(address to, int96 flowRate) internal {
         if (to == address(this)) return;
 
-        (, int96 outFlowRate, , ) = _cfa.getFlow(
+        (, int96 outFlowRate, , ) = cfaV1.cfa.getFlow(
             _acceptedToken,
             address(this),
             to
@@ -201,7 +195,7 @@ contract BudgetNFT is ERC721, Ownable {
     function _increaseFlow(address to, int96 flowRate) internal {
         if (to == address(0)) return;
 
-        (, int96 outFlowRate, , ) = _cfa.getFlow(
+        (, int96 outFlowRate, , ) = cfaV1.cfa.getFlow(
             _acceptedToken,
             address(this),
             to

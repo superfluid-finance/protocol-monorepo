@@ -1,0 +1,10 @@
+{
+    "network": "avalanche",
+    "hostStartBlock": 14701205,
+    "hostAddress": "0x60377C7016E4cdB03C87EF474896C11cB560752C",
+    "cfaAddress": "0x6946c5B38Ffea373b0a2340b4AEf0De8F6782e58",
+    "idaAddress": "0x1fA9fFe8Db73F701454B195151Db4Abb18423cf2",
+    "superTokenFactoryAddress": "0x464AADdBB2B80f3Cb666522EB7381bE610F638b4",
+    "superfluidGovernanceAddress": "0x190d3c450942Ee07eeB1E0E37B5F9B7C5abbdeb0",
+    "resolverV1Address": "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1"
+}

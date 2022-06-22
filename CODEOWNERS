@@ -4,20 +4,16 @@
 * @superfluid-finance/fte
 
 # Workflow files are gatekept by MiaoZC
-.github/ @hellwolf
-tasks/ @hellwolf
-.yarn/ @hellwolf
+/.github/ @hellwolf
+/tasks/ @hellwolf
+/.yarn/ @hellwolf
 
 # Packages
 #
-packages/ethereum-contracts/ @hellwolf
-packages/spec-haskell/ @hellwolf
-packages/js-sdk/ @hellwolf @0xdavinchee
-packages/subgraph/ @0xdavinchee @kasparkallas @hellwolf
-packages/sdk-core/ @0xdavinchee @kasparkallas @hellwolf
-packages/sdk-redux/ @0xdavinchee @kasparkallas @hellwolf
-
-# Examples owned by the DEVX crew
-
-.github/workflows/handler.build-examples.yml @saflamini @ngmachado @JoshuaTrujillo15 @hellwolf
-examples/ @saflamini @ngmachado @JoshuaTrujillo15 @hellwolf
+/packages/spec-haskell/ @hellwolf
+/packages/ethereum-contracts/ @hellwolf
+/packages/js-sdk/ @hellwolf @0xdavinchee
+/packages/subgraph/ @0xdavinchee @kasparkallas @hellwolf
+/packages/sdk-core/ @0xdavinchee @kasparkallas @hellwolf
+/packages/sdk-redux/ @0xdavinchee @kasparkallas @hellwolf
+/packages/hot-fuzz/ @hellwolf

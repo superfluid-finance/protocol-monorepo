@@ -8,8 +8,6 @@ out
 **/node_modules
 /build
 **/build
-/reports
-**/reports
 /dist
 **/dist
 **/dist-newstyle
@@ -17,8 +15,6 @@ out
 **/.env
 *.env
 lerna-debug.log
-/coverage.json
-/coverage
 
 *.ignore.*
 yarn-error.log

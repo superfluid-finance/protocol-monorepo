@@ -1,15 +1,16 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import hardhat from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
 import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "../scripts/setup";
+import hre from "hardhat";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
     "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten";
 
-describe("Framework Tests", () => {
+describe("Framework Tests", async () => {
+    let evmSnapshotId: string;
     let deployer: SignerWithAddress;
     let alpha: SignerWithAddress;
     let superToken: SuperToken;
@@ -29,9 +30,15 @@ describe("Framework Tests", () => {
         deployer = Deployer;
         alpha = Alpha;
         superToken = SuperToken;
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
     });
 
-    describe("Validate Framework Constructor Options Tests", () => {
+    beforeEach(async () => {
+        await hre.network.provider.send("evm_revert",[evmSnapshotId])
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+    })
+
+    describe("Validate Framework Constructor Options Tests", async() => {
         it("Should throw an error if no networkName or chainId", async () => {
             try {
                 await Framework.create({ provider: deployer.provider! });
@@ -61,7 +68,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if network and chainId don't match", async () => {
             try {
                 await Framework.create({
-                    networkName: "matic",
+                    networkName: "polygon-mainnet",
                     chainId: 4,
                     provider: deployer.provider!,
                 });
@@ -93,7 +100,7 @@ describe("Framework Tests", () => {
             try {
                 // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
-                    networkName: "matic",
+                    networkName: "polygon-mainnet",
                 } as any);
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -155,7 +162,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
                 await Framework.create({
-                    networkName: "matic",
+                    networkName: "polygon-mainnet",
                     provider: customProvider,
                     customSubgraphQueriesEndpoint: "",
                     resolverAddress:
@@ -201,7 +208,7 @@ describe("Framework Tests", () => {
         it("Should be able to create a framework with injected hardhat ethers", async () => {
             await Framework.create({
                 networkName: "custom",
-                provider: hardhat.ethers,
+                provider: hre.ethers,
                 dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",

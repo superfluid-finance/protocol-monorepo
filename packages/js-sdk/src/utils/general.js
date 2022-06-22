@@ -12,7 +12,6 @@ const getCleanAddress = (address) => {
 };
 
 const completeTransaction = async ({
-    sf,
     method,
     args,
     sender,
@@ -20,17 +19,10 @@ const completeTransaction = async ({
     gasOptions = {},
 }) => {
     let tx;
-    if (sf.ethers) {
-        const tx = await method(...args);
-        const receipt = await tx.wait();
-        if (receipt.status === 1) onTransaction(receipt.transactionHash);
-        tx.receipt = receipt;
-    } else {
-        tx = await method(...args, {from: sender, ...gasOptions}).on(
-            "transactionHash",
-            onTransaction
-        );
-    }
+    tx = await method(...args, {from: sender, ...gasOptions}).on(
+        "transactionHash",
+        onTransaction
+    );
     return tx;
 };
 

@@ -1,28 +1,26 @@
-import { TransactionResponse } from "@ethersproject/providers";
-import { expect } from "chai";
-import { fetchEventAndEnsureExistence } from "../helpers/helpers";
-import { IEvent } from "../interfaces";
+import {TransactionResponse} from "@ethersproject/providers";
+import {expect} from "chai";
+import {fetchEventAndEnsureExistence} from "../helpers/helpers";
+import {IEvent} from "../interfaces";
 
 // Event Entity Validator Functions
 
-export const fetchEventAndValidate = async <
-    EventType extends IEvent,
-    ExpectedDataType
->(
+export const fetchEventAndValidate = async <EventType extends IEvent,
+    ExpectedDataType>(
     txnResponse: TransactionResponse,
     expectedData: ExpectedDataType,
     query: string,
-    queryName: string
+    eventName: string
 ) => {
     const event = await fetchEventAndEnsureExistence<EventType>(
         query,
         txnResponse.hash,
-        queryName
+        eventName
     );
 
     // Note: we parse the name of the query (e.g. FlowUpdatedEvent)
     // and use this to validate that the name property has been set properly.
-    const parsedQueryName = queryName.split("Event")[0];
+    const parsedQueryName = eventName.split("Event")[0];
     validateEventData(event, expectedData, txnResponse, parsedQueryName);
 
     return event;
@@ -34,8 +32,8 @@ export const validateData = <T>(
 ) => {
     const propertiesToValidate = Object.keys(expectedData);
     for (let i = 0; i < propertiesToValidate.length; i++) {
-        expect((queriedData as any)[propertiesToValidate[i]]).to.eql(
-            expectedData[propertiesToValidate[i]],
+        expect(String((queriedData as any)[propertiesToValidate[i]])).to.eql(
+            String(expectedData[propertiesToValidate[i]]),
             propertiesToValidate[i] + " expect error for event"
         );
     }

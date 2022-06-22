@@ -1,31 +1,16 @@
-Rewards Distribution Token
-==========================
+ # The Rewards Distribution token
+ This project demonstrates an ERC20 token that tokenizes units in Superfluid [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-developers/interactive-tutorials/instant-distribution). 
 
-A ERC20 token that tokenizes units in the [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-tutorials/perform-an-instant-distribution/).
+### Steps for running the project:
+1) Install deps with `yarn install`.
+2) Create your own _.env_ file based (see _.env.example_).
+3) Make sure the signer account (defined by the PRIVATE_KEY env var) has native tokens for paying tx fees on the configured network.
+4) Set the network config in _hardhat.config.ts_. For goerli, you can just uncomment the relevant lines already in place.
+5) Run ```yarn build``` to compile and generate typings for the Dividend Rights Token contract.
+6) Run ```npx hardhat run scripts/deploy.ts``` to deploy the contract.
 
-All holders of the rights tokens can receive cash token rewards in one distribution transaction in two ways:
+# Advanced Sample Hardhat Project
 
-- If the subscription to the token is approved by its holder, then the distribution is available the moment distribution is done,
-- if not, then the pending distribution could be claimed by its holder any time in a separated transaction.
+This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
 
-# Usage
-
-## Run tests
-
-```bash
-yarn install
-yarn build
-yarn test
-```
-
-## Deployment
-
-Setup a `.env` file following the example of `.env.template`.
-
-```bash
-RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js
-```
-
-## UI
-
-A minimal one-pager plain HTML/jS ui is available also under `ui/` folder.
+The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.

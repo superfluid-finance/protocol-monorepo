@@ -6,23 +6,25 @@ import {
     IConstantFlowAgreementV1,
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import {
+    FlowOperatorUpdatedEvent,
     FlowUpdatedEvent,
     StreamPeriod,
     StreamRevision,
-    FlowOperatorUpdatedEvent,
 } from "../../generated/schema";
 import {
-    createEventID,
-    BIG_INT_ZERO,
-    tokenHasValidHost,
-    getStreamPeriodID,
     BIG_INT_ONE,
-    getFlowOperatorID,
-    MAX_FLOW_RATE,
-    ZERO_ADDRESS,
+    BIG_INT_ZERO,
     bytesToAddress,
+    createEventID,
+    getFlowOperatorID,
+    getOrder,
+    getStreamPeriodID,
+    MAX_FLOW_RATE,
+    tokenHasValidHost,
+    ZERO_ADDRESS,
 } from "../utils";
 import {
+    createAccountTokenSnapshotLogEntity,
     getOrInitFlowOperator,
     getOrInitStream,
     getOrInitStreamRevision,
@@ -53,7 +55,9 @@ function createFlowUpdatedEntity(
         event.params.receiver,
     ];
     ev.timestamp = event.block.timestamp;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.receiver = event.params.receiver;
@@ -88,6 +92,8 @@ function createFlowOperatorUpdatedEventEntity(
     ];
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.logIndex = event.logIndex;
+    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.permissions = event.params.permissions;
@@ -315,7 +321,8 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         tokenAddress,
         event.block
     );
-
+    // NOTE: EXCEPTION for not calling updateTokenStatsStreamedUntilUpdatedAt
+    // because updateAggregateEntitiesStreamData updates tokenStats.streamedUntilUpdatedAt
     updateAggregateEntitiesStreamData(
         senderAddress,
         receiverAddress,
@@ -326,6 +333,18 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         isCreate,
         isDelete,
         event.block
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        senderAddress,
+        tokenAddress,
+        "FlowUpdated"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        receiverAddress,
+        tokenAddress,
+        "FlowUpdated"
     );
 }
 

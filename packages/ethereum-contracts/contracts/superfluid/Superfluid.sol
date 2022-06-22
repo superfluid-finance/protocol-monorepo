@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -255,7 +255,7 @@ contract Superfluid is
         external view override
         returns (address logic)
     {
-        if (address(_superTokenFactory) == address(0)) return address(0);
+        assert(address(_superTokenFactory) != address(0));
         if (NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
         else return UUPSProxiable(address(_superTokenFactory)).getCodeAddress();
     }
@@ -315,16 +315,18 @@ contract Superfluid is
             tx.origin,
             registrationKey
         );
-        // check if the key is valid and not expired
-        require(
-            _gov.getConfigAsUint256(
-                this,
-                ISuperfluidToken(address(0)),
-                configKey
-            // solhint-disable-next-line not-rely-on-time
-            ) >= block.timestamp,
-            "SF: invalid or expired registration key"
-        );
+        if (APP_WHITE_LISTING_ENABLED) {
+            // check if the key is valid and not expired
+            require(
+                _gov.getConfigAsUint256(
+                    this,
+                    ISuperfluidToken(address(0)),
+                    configKey
+                // solhint-disable-next-line not-rely-on-time
+                ) >= block.timestamp,
+                "SF: invalid or expired registration key"
+            );
+        }
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
@@ -1074,9 +1076,9 @@ contract Superfluid is
         if (actionSelector == ISuperApp.beforeAgreementCreated.selector ||
             actionSelector == ISuperApp.afterAgreementCreated.selector ||
             actionSelector == ISuperApp.beforeAgreementUpdated.selector ||
-            actionSelector == ISuperApp.afterAgreementCreated.selector ||
+            actionSelector == ISuperApp.afterAgreementUpdated.selector ||
             actionSelector == ISuperApp.beforeAgreementTerminated.selector ||
-            actionSelector == ISuperApp.afterAgreementCreated.selector) {
+            actionSelector == ISuperApp.afterAgreementTerminated.selector) {
             revert("SF: agreement callback is not action");
         }
         _;

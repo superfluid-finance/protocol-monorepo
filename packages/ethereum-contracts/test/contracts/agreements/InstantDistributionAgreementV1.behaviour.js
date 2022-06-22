@@ -241,9 +241,22 @@ async function shouldDistribute({
         indexId,
     });
     const subscriberAddresses = Object.keys(subscribers);
-
+    const totalUnitsZero = toBN(idataBefore.totalUnitsApproved)
+        .add(toBN(idataBefore.totalUnitsPending))
+        .eq(toBN(0));
     let tx;
-    if (fn) {
+    if (totalUnitsZero) {
+        indexValue = idataBefore.indexValue;
+        tx = await web3tx(
+            testenv.sf.ida.distribute,
+            `${publisherName} does not distribute tokens to index @${indexId} with amount ${amount} because units = 0`
+        )({
+            superToken: superToken.address,
+            publisher,
+            indexId,
+            amount,
+        });
+    } else if (fn) {
         indexValue = (
             await testenv.sf.agreements.ida.calculateDistribution(
                 superToken.address,
@@ -306,22 +319,26 @@ async function shouldDistribute({
     });
     _assertEqualIndexData(idataActual, idataExpected);
 
-    // expect events
-    await expectEvent.inTransaction(
-        tx.tx,
-        testenv.sf.contracts.IInstantDistributionAgreementV1,
-        "IndexUpdated",
-        {
-            token: superToken.address,
-            publisher: publisher,
-            indexId: indexId.toString(),
-            oldIndexValue: idataBefore.indexValue,
-            newIndexValue: indexValue,
-            totalUnitsPending: idataExpected.totalUnitsPending,
-            totalUnitsApproved: idataExpected.totalUnitsApproved,
-            userData: null,
-        }
-    );
+    // if we are distributing where the totalUnits is zero
+    // _updateIndex is not called and there will be no emitted event
+    if (!totalUnitsZero) {
+        // expect events
+        await expectEvent.inTransaction(
+            tx.tx,
+            testenv.sf.contracts.IInstantDistributionAgreementV1,
+            "IndexUpdated",
+            {
+                token: superToken.address,
+                publisher: publisher,
+                indexId: indexId.toString(),
+                oldIndexValue: idataBefore.indexValue,
+                newIndexValue: indexValue,
+                totalUnitsPending: idataExpected.totalUnitsPending,
+                totalUnitsApproved: idataExpected.totalUnitsApproved,
+                userData: null,
+            }
+        );
+    }
 
     // expect balances
     await testenv.validateExpectedBalances(() => {

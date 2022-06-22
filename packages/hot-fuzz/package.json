@@ -1,0 +1,34 @@
+{
+    "name": "@superfluid-finance/hot-fuzz",
+    "version": "0.1.0",
+    "description": "A hot fuzz for testing Superfluid protocol and Super Apps",
+    "main": "index.js",
+    "scripts": {
+        "lint": "run-s lint:*",
+        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
+        "pre-commit:lint": "yarn lint"
+    },
+    "bin": {
+        "hot-fuzz": "./hot-fuzz"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/hot-fuzz"
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "4.5.0"
+    },
+    "peerDependencies": {
+        "@superfluid-finance/ethereum-contracts": "1.2.2"
+    },
+    "devDependencies": {
+        "@superfluid-finance/ethereum-contracts": "1.3.0"
+    },
+    "license": "AGPL-3.0",
+    "bugs": {
+        "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
+    },
+    "homepage": "https://github.com/superfluid-finance/protocol-monorepo#readme"
+}

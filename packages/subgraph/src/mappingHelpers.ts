@@ -680,6 +680,10 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountAddress: Address,
     tokenAddress: Address,
     block: ethereum.Block,
+
+    // TODO: we are currently always passing null here
+    // remove null one at a time and use validation script
+    // to compare v1 to feature
     balanceDelta: BigInt | null
 ): void {
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(

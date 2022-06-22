@@ -78,7 +78,7 @@ export function handleIndexCreated(event: IndexCreated): void {
         event.params.publisher,
         event.params.token,
         event.block,
-        BIG_INT_ZERO // will do RPC if any units exist anyways (balance isn't impacted by index creation)
+        null // will do RPC if any units exist anyways (balance isn't impacted by index creation)
     );
 
     createAccountTokenSnapshotLogEntity(
@@ -159,7 +159,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.params.publisher,
         event.params.token,
         event.block,
-        distributionDelta.neg() // will do RPC if any units exist anyways
+        null // will do RPC if any units exist anyways
     );
     createAccountTokenSnapshotLogEntity(
         event,
@@ -242,7 +242,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
         event.params.subscriber,
         event.params.token,
         event.block,
-        balanceDelta // will do RPC if any units exist anyways
+        null // will do RPC if any units exist anyways
     );
 
     if (hasSubscriptionWithUnits) {
@@ -260,7 +260,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             event.params.publisher,
             event.params.token,
             event.block,
-            balanceDelta.neg() // will do RPC if any units exist anyways
+           null // will do RPC if any units exist anyways
         );
         createAccountTokenSnapshotLogEntity(
             event,
@@ -341,13 +341,13 @@ export function handleSubscriptionDistributionClaimed(
         event.params.publisher,
         event.params.token,
         event.block,
-        pendingDistribution.neg() // will do RPC call if they have sub w/ units
+        null // will do RPC call if they have sub w/ units
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.subscriber,
         event.params.token,
         event.block,
-        pendingDistribution // will do RPC call if they have sub w/ units
+        null // will do RPC call if they have sub w/ units
     );
     createAccountTokenSnapshotLogEntity(
         event,
@@ -424,7 +424,7 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
         event.params.subscriber,
         event.params.token,
         event.block,
-        balanceDelta // will do RPC call if they have sub w/ units
+        null // will do RPC call if they have sub w/ units
     );
 
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
@@ -445,7 +445,7 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
         event.params.publisher,
         event.params.token,
         event.block,
-        balanceDelta // will do RPC call if they have sub w/ units
+        null // will do RPC call if they have sub w/ units
     );
 
     // occurs on revoke or delete
@@ -540,13 +540,13 @@ export function handleSubscriptionUnitsUpdated(
         event.params.publisher,
         event.params.token,
         event.block,
-        balanceDelta.neg() // will do RPC call if they have sub w/ units
+        null // will do RPC call if they have sub w/ units
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.subscriber,
         event.params.token,
         event.block,
-        balanceDelta // will do RPC call if they have sub w/ units
+        null // will do RPC call if they have sub w/ units
     );
 
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);

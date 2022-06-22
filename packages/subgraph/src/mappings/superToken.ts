@@ -201,13 +201,13 @@ export function handleTransfer(event: Transfer): void {
         event.params.to,
         event.address,
         event.block,
-        event.params.value // manual accounting (overriden in upgrade/downgrade)
+        null // manual accounting (overriden in upgrade/downgrade)
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.from,
         event.address,
         event.block,
-        event.params.value.neg() // manual accounting (overriden in upgrade/downgrade)
+        null // manual accounting (overriden in upgrade/downgrade)
     );
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 

@@ -29,7 +29,7 @@ module.exports = {
     goerli: {
       url: process.env.GOERLI_URL || "",
       accounts: {
-        mnemonic: process.env.SEED_PHRASE,
+        mnemonic: process.env.MNEMONIC || "",
         initialIndex: 0,
         count: 10,
       }

@@ -40,26 +40,26 @@ pragma solidity 0.8.13;
 
 import { ISuperfluid, ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
-import {IInstantDistributionAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IInstantDistributionAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-import {IDAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+import { IDAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 ```
 
 **Terms and Snippets**
 
-**`ISuperToken`** 
+**`ISuperToken`**
 
 Allows us to use Super Tokens within our contract
 
-**`ISuperfluid`** 
+**`ISuperfluid`**
 
 The [Superfluid Host Contract](https://docs.superfluid.finance/superfluid/protocol-overview/in-depth-overview/superfluid-host)
 
-**`IInstantDistributionAgreementV1`** 
+**`IInstantDistributionAgreementV1`**
 
 The IDA Super Agreement interface that will facilitate instant distributions
 
-**`IDAv1Library`** 
+**`IDAv1Library`**
 
 A helper library that will allow us to easily interact with and manage the contract’s distributions
 
@@ -80,15 +80,15 @@ contract TokenSpreader {
 
 **Terms and Snippets**
 
-**`spreaderToken`** 
+**`spreaderToken`**
 
 This is the Super Token that will be supported for the TokenSpreader’s distribution index. Remember, each distribution index can only support one Super Token.
 
-**`idaV1`** 
+**`idaV1`**
 
 This is the object with which the contract can interact in order to call Instant Distribution functions.
 
-**`INDEX_ID`** 
+**`INDEX_ID`**
 
 An account or contract may have multiple IDA Indices. Each IDA Index has it’s own Index ID which is set when it’s created. Here, we’re hardcoding it to “0” because the TokenSpreader contract will only be using one IDA Index.
 
@@ -101,7 +101,7 @@ constructor(
     ) {
 
         // Ensure _spreaderToken is indeed a super token
-        require(address(_host) == _spreaderToken.getHost(),"!superToken"); 
+        require(address(_host) == _spreaderToken.getHost(),"!superToken");
 
         spreaderToken = _spreaderToken;
 
@@ -122,11 +122,11 @@ constructor(
 
 **Terms and Snippets**
 
-**`_host`** 
+**`_host`**
 
 The address of the [Superfluid Host Contract](https://docs.superfluid.finance/superfluid/protocol-overview/in-depth-overview/superfluid-host) which is in turn used to instantiate the `IDAv1Library`
 
-**`_spreaderToken`** 
+**`_spreaderToken`**
 
 The supported Super Token
 
@@ -134,7 +134,7 @@ The supported Super Token
 
 Now the contract has an IDA Index for `spreaderToken` identified with `INDEX_ID`. It can use this Index to start doing cool Instant Distribution stuff.
 
-**`require(address(_host) == _spreaderToken.getHost(),"!superToken");`** 
+**`require(address(_host) == _spreaderToken.getHost(),"!superToken");`**
 
 Every Super Token gets registered with the Host contract upon deployment. If no address or the wrong address is returned when getting the host from the `spreaderToken` passed in, we know we don’t have a proper Super Token on our hands and our contract won’t function properly. Hence, we verify it with this require statement.
 
@@ -151,7 +151,7 @@ The code where we use host.getAgreementClass and pass in the hash of that link t
 
 ## Distribute Function
 
-This function will take its entire `spreaderToken` Super Token balance and distribute it out to unit holders. 
+This function will take its entire `spreaderToken` Super Token balance and distribute it out to unit holders.
 
 - Notice the use of `calculateDistribution()`. This allows us to get an amount to distribute that will avoid any rounding errors.
 - By default of `idaV1.distribute`, this function will revert if there have been no units issued.
@@ -164,7 +164,7 @@ This function will take its entire `spreaderToken` Super Token balance and distr
 
         (uint256 actualDistributionAmount,) = idaV1.ida.calculateDistribution(
             spreaderToken,
-            address(this), 
+            address(this),
             INDEX_ID,
             spreaderTokenBalance
         );
@@ -185,10 +185,10 @@ Here is the functionality we introduce where accounts can work with their shares
 
         // Get current units subscriber holds
         (,,uint256 currentUnitsHeld,) = idaV1.getSubscription(
-            spreaderToken,   
-            address(this),   
-            INDEX_ID,        
-            subscriber       
+            spreaderToken,
+            address(this),
+            INDEX_ID,
+            subscriber
         );
 
         // Update to current amount + 1
@@ -207,10 +207,10 @@ Here is the functionality we introduce where accounts can work with their shares
 
         // Get current units subscriber holds
         (,,uint256 currentUnitsHeld,) = idaV1.getSubscription(
-            spreaderToken,   
-            address(this),   
-            INDEX_ID,        
-            subscriber       
+            spreaderToken,
+            address(this),
+            INDEX_ID,
+            subscriber
         );
 
         // Update to current amount - 1 (reverts if currentUnitsHeld - 1 < 0, so basically if currentUnitsHeld = 0)
@@ -245,10 +245,10 @@ Before we try out testing and scripting, we need to get our config and environme
 
 **Environment File**
 
-Referring to the `.env.template` file and fill out the fields in your `.env` file 
+Referring to the `.env.template` file and fill out the fields in your `.env` file
 
 - `GOERLI_URL` - Put in an RPC Endpoint (I recommend Infura, here are [the steps](https://blog.infura.io/post/getting-started-with-infura-28e41844cc89) on how to get one from them.)
-- `SEED_PHRASE` - Make sure you’re not using a seed phrase for a wallet that has any real money on it!
+- `MNEMONIC` - Make sure you’re not using a seed phrase for a wallet that has any real money on it!
 - `ETHERSCAN_API_KEY` - Get one [here](https://etherscan.io/apis), and just use the free option.
 - `TOKENSPREADER_ADDRESS` - Leave blank for now. We’ll fill this in when we deploy the TokenSpreader to Goerli later.
 
@@ -273,7 +273,7 @@ networks: {
   goerli: {
     url: process.env.GOERLI_URL || "",
     accounts: {
-      mnemonic: process.env.SEED_PHRASE,
+      mnemonic: process.env.MNEMONIC,
       initialIndex: 0,
       count: 10,
     }
@@ -329,8 +329,8 @@ let dai;                         // underlying token of daix
 let daix;                        // will act as `spreaderToken` - is a super token wrapper of dai
 
 // Test Accounts
-let admin;      
-let alice;      
+let admin;
+let alice;
 let bob;
 
 // Constants
@@ -346,7 +346,7 @@ const errorHandler = (err) => {
 
 When setting up a Hardhat test script to test locally and do Superfluid things, we’ll need to:
 
-1. Deploy the Superfluid Protocol locally with the `deployFramework` script. Here we set our Superfluid SDK Core Framework object (`sf`) which will be out one-stop shop for Superfluid interactions. 
+1. Deploy the Superfluid Protocol locally with the `deployFramework` script. Here we set our Superfluid SDK Core Framework object (`sf`) which will be out one-stop shop for Superfluid interactions.
 
 ```jsx
 ...
@@ -446,18 +446,18 @@ Notice that the upgrade transactions (which wrap the DAI into DAIx) **are not Et
     );
 
     spreader = await spreaderContractFactory.deploy(
-        sf.settings.config.hostAddress, 
+        sf.settings.config.hostAddress,
         daix.address, // Setting DAIx as spreader token
     );
 ...
 ```
 
-5. Have each testing account subscribe to the TokenSpreader’s IDA Index. 
+5. Have each testing account subscribe to the TokenSpreader’s IDA Index.
 
 This way the Super Tokens that TokenSpreader distributes actually show up in each testing account. For simplicity sake, if an account is not subscribed, but receives a distribution, its tokens will essentially “hang in limbo” until the account subscribes, after which they will go through. We’re just subscribing right after deployment to keep things simple.
 
 ```jsx
-...		
+...
 		//// SUBSCRIBING TO SPREADER CONTRACT'S IDA INDEX
 
     // subscribe to distribution (doesn't matter if this happens before or after distribution execution)
@@ -477,14 +477,14 @@ This way the Super Tokens that TokenSpreader distributes actually show up in eac
 
 So, you want to make sure that after certain actions have been done to the contract and units have been issued/deleted/etc., that once `distribute()` is called, everyone’s getting the right amount of tokens.
 
-Here we’ll walk through a single easy unit test that paints the general structure of testing for that. 
+Here we’ll walk through a single easy unit test that paints the general structure of testing for that.
 
 **The Structure**
 
 1. Run Actions: `gainShare()`, `loseShare()`, `deleteShares()`, transfers, etc.
 
 ```jsx
-// Assume earlier in the testing, Alice and Bob each called gainShare() once, 
+// Assume earlier in the testing, Alice and Bob each called gainShare() once,
 // So, we expect them each to have 1 distribution unit at the start of this unit test
 
 it("Distribution with [ 3 units issued to different accounts ] and [ 100 spreaderTokens ] - gainShare", async function () {
@@ -531,12 +531,12 @@ it("Distribution with [ 3 units issued to different accounts ] and [ 100 spreade
 		//// EXPECTATIONS
 
     // expect bob to have 2 distribution units
-    let bobSubscription = await sf.idaV1.getSubscription({ 
-      superToken: daix.address, 
-      publisher: spreader.address, 
+    let bobSubscription = await sf.idaV1.getSubscription({
+      superToken: daix.address,
+      publisher: spreader.address,
       indexId: "0", // recall this was `INDEX_ID` in TokenSpreader.sol
-      subscriber: bob.address, 
-      providerOrSigner: bob 
+      subscriber: bob.address,
+      providerOrSigner: bob
     })
 
     await expect(
@@ -577,7 +577,7 @@ It’s too much for this tutorial to walk through the entire test suite. So havi
 
 # Deploying and using the TokenSpreader with Hardhat scripts
 
-Ok, so we’ve got our TokenSpreader set and we’ve written some tests. Let’s hop in the **scripts** folder get to work deploying it to Goerli and then using some scripts to interact with them. 
+Ok, so we’ve got our TokenSpreader set and we’ve written some tests. Let’s hop in the **scripts** folder get to work deploying it to Goerli and then using some scripts to interact with them.
 
 View on Github 👇
 
@@ -589,7 +589,7 @@ https://github.com/superfluid-finance/protocol-monorepo/blob/simple_ida_example_
 
 Head to the `deploy.js` in the scripts folder.
 
-In the code, notice how with set up the Superfluid Framework object and used it to load the fDAIx Super Token. This is simple best practice as we get to use `loadSuperToken()` to pull the Super Token’s info straight from the Resolver inside the framework. The Resolver is like an internal compilation of useful Superfluid info. 
+In the code, notice how with set up the Superfluid Framework object and used it to load the fDAIx Super Token. This is simple best practice as we get to use `loadSuperToken()` to pull the Super Token’s info straight from the Resolver inside the framework. The Resolver is like an internal compilation of useful Superfluid info.
 
 ```jsx
 ...
@@ -624,7 +624,7 @@ Using the contract address from the previous step, run the following:
 
 `npx hardhat verify --network goerli --constructor-args arguments-tokenspreader.js [contractaddress]`
 
-You’ll now be able to see your contract verified on Etherscan! Here’s an example of one that I verified: 
+You’ll now be able to see your contract verified on Etherscan! Here’s an example of one that I verified:
 
 https://goerli.etherscan.io/address/0x48Cf61C16D066ad597e390E7e575E8832e58BddA#writeContract
 
@@ -660,7 +660,7 @@ Now, run the viewStatus.js script again and you’ll see that TokenSpreader’s 
 
 ![Image](https://user-images.githubusercontent.com/62968241/174394290-8b03e3fd-6d5d-4cd0-ad79-795f03857671.png)
 
-# That’s all, folks! 
+# That’s all, folks!
 
 Through this tutorial, you have:
 

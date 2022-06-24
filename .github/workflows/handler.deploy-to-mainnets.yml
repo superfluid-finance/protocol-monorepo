@@ -1,4 +1,5 @@
 name: Deploy to Mainnets
+# TODO: RENAME
 
 on:
   workflow_dispatch:
@@ -7,8 +8,11 @@ on:
         description: 'Protocol release version (test/master/v1/etc.)'
         required: true
         default: 'v1'
-      only_network:
-        description: 'Only a specific network is to be deployed'
+      network:
+        description: 'Network on which to deploy/upgrade'
+        required: true
+      provider_url:
+        description: 'HTTP or WS RPC provider (overrides the one preset in GH env)'
         required: false
       environments:
         description: 'Additional env vars, separated by semicolons'
@@ -24,57 +28,43 @@ jobs:
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
-      # network web3 providers
+      OVERRIDE_PROVIDER_URL: ${{ github.event.inputs.provider_url }}
+      # testnet web3 providers
+      ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+      ETH_RINKEBY_PROVIDER_URL: ${{ secrets.ETH_RINKEBY_PROVIDER_URL }}
+      ETH_ROPSTEN_PROVIDER_URL: ${{ secrets.ETH_ROPSTEN_PROVIDER_URL }}
+      ETH_KOVAN_PROVIDER_URL: ${{ secrets.ETH_KOVAN_PROVIDER_URL }}
+      POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
+      XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
+      POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+      OPTIMISM_KOVAN_PROVIDER_URL: ${{ secrets.OPTIMISM_KOVAN_PROVIDER_URL }}
+      ARBITRUM_RINKEBY_PROVIDER_URL: ${{ secrets.ARBITRUM_RINKEBY_PROVIDER_URL }}
+      AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+      # mainnet web3 providers
       XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
       POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
       OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
       ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
       AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-          network: [xdai-mainnet, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c]
-
     steps:
       - uses: actions/checkout@v3
 
-      # if only_network is set, skip all steps until the value matches one of the entries in matrix.network
-      - name: Check only_network
-        if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
-        run: echo "DO_SKIP=1" >> $GITHUB_ENV
-
       - name: Use Node.js 16.x
-        if: env.DO_SKIP != 1
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
 
       - name: Build
-        if: env.DO_SKIP != 1
         run: |
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Build and deploy to ${{ matrix.network }}
-        if: env.DO_SKIP != 1
+      - name: Build and deploy to ${{ github.event.inputs.network }}
         run: |
           cd packages/ethereum-contracts
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec --network ${{ matrix.network }} scripts/deploy-framework.js
+          npx truffle exec --network ${{ github.event.inputs.network }} scripts/deploy-framework.js
         env:
           GOVERNANCE_ADMIN_TYPE: MULTISIG
 
-      - name: Etherscan verification of ${{ matrix.network }} deployment
-        if: env.DO_SKIP != 1
-        run: |
-          cd packages/ethereum-contracts
-          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
-          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
-        env:
-          SKIP_IF_UNSUPPORTED: 1
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
-          SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
-          OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
-          ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}

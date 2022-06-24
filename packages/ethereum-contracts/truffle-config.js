@@ -108,7 +108,8 @@ function createNetworkDefaultConfiguration(networkName, chainId) {
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
                 url: createProviderWithOEWorkaround(
-                    getEnvValue(networkName, "PROVIDER_URL")
+                    process.env.OVERRIDE_PROVIDER_URL ||
+                        getEnvValue(networkName, "PROVIDER_URL")
                 ),
                 addressIndex: 0,
                 numberOfAddresses: 10,

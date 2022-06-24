@@ -235,10 +235,10 @@ export function subscriptionExists(id: string): boolean {
 export function getAmountStreamedSinceLastUpdatedAt(
     currentTime: BigInt,
     lastUpdatedTime: BigInt,
-    previousTotalOutflowRate: BigInt
+    flowRate: BigInt
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
-    return timeDelta.times(previousTotalOutflowRate);
+    return timeDelta.times(flowRate);
 }
 
 /**

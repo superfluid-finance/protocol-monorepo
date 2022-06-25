@@ -17,6 +17,7 @@ import { createEventID, getOrder } from "../utils";
 export function handleConfigChanged(event: ConfigChanged): void {
     let ev = new ConfigChangedEvent(createEventID("ConfigChanged", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "ConfigChanged";
     ev.addresses = [];
@@ -37,6 +38,7 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
         createEventID("RewardAddressChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "RewardAddressChanged";
     ev.addresses = [];
@@ -58,6 +60,7 @@ export function handleCFAv1LiquidationPeriodChanged(
         createEventID("CFAv1LiquidationPeriodChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "CFAv1LiquidationPeriodChanged";
     ev.addresses = [];
@@ -79,6 +82,7 @@ export function handlePPPConfigurationChanged(
         createEventID("PPPConfigurationChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "TrustedForwarderChanged";
     ev.addresses = [];
@@ -101,6 +105,7 @@ export function handleTrustedForwarderChanged(
         createEventID("TrustedForwarderChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.name = "TrustedForwarderChanged";

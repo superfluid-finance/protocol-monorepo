@@ -411,7 +411,7 @@ export function getOrInitAccountTokenSnapshot(
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
 
-export function createAccountTokenSnapshotLogEntity(
+export function _createAccountTokenSnapshotLogEntity(
     event: ethereum.Event,
     accountAddress: Address,
     tokenAddress: Address,
@@ -493,7 +493,7 @@ export function getOrInitTokenStatistic(
     return tokenStatistic as TokenStatistic;
 }
 
-export function createTokenStatisticLogEntity(
+export function _createTokenStatisticLogEntity(
     event: ethereum.Event,
     tokenAddress: Address,
     eventName: string

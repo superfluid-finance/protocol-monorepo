@@ -32,8 +32,8 @@ import {
     tokenHasValidHost,
 } from "../utils";
 import {
-    createAccountTokenSnapshotLogEntity,
-    createTokenStatisticLogEntity,
+    _createAccountTokenSnapshotLogEntity,
+    _createTokenStatisticLogEntity,
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
@@ -43,6 +43,9 @@ import {
 } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
 
+/******************
+ * Event Handlers *
+ *****************/
 export function handleIndexCreated(event: IndexCreated): void {
     let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
@@ -81,14 +84,14 @@ export function handleIndexCreated(event: IndexCreated): void {
         null // will do RPC if any units exist anyways (balance isn't impacted by index creation)
     );
 
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
         event.params.token,
         "IndexCreated"
     );
-    createTokenStatisticLogEntity(event, event.params.token, "IndexCreated");
-    createIndexCreatedEntity(event, index.id);
+    _createTokenStatisticLogEntity(event, event.params.token, "IndexCreated");
+    _createIndexCreatedEventEntity(event, index.id);
 }
 
 export function handleIndexDistributionClaimed(
@@ -99,7 +102,7 @@ export function handleIndexDistributionClaimed(
         event.params.token,
         event.params.indexId
     );
-    createIndexDistributionClaimedEntity(event, indexId);
+    _createIndexDistributionClaimedEventEntity(event, indexId);
 }
 
 export function handleIndexUpdated(event: IndexUpdated): void {
@@ -161,14 +164,14 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event.block,
         null // will do RPC if any units exist anyways
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
         event.params.token,
         "IndexUpdated"
     );
-    createTokenStatisticLogEntity(event, event.params.token, "IndexUpdated");
-    createIndexUpdatedEntity(event, index.id);
+    _createTokenStatisticLogEntity(event, event.params.token, "IndexUpdated");
+    _createIndexUpdatedEventEntity(event, index.id);
 }
 
 export function handleIndexSubscribed(event: IndexSubscribed): void {
@@ -177,7 +180,7 @@ export function handleIndexSubscribed(event: IndexSubscribed): void {
         event.params.token,
         event.params.indexId
     );
-    createIndexSubscribedEntity(event, indexId);
+    _createIndexSubscribedEventEntity(event, indexId);
 }
 
 export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
@@ -193,7 +196,7 @@ export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
         event.params.indexId,
         event.block
     );
-    createIndexUnitsUpdatedEntity(event, indexId, subscription.units);
+    _createIndexUnitsUpdatedEventEntity(event, indexId, subscription.units);
 }
 
 export function handleIndexUnsubscribed(event: IndexUnsubscribed): void {
@@ -202,7 +205,7 @@ export function handleIndexUnsubscribed(event: IndexUnsubscribed): void {
         event.params.token,
         event.params.indexId
     );
-    createIndexUnsubscribedEntity(event, indexId);
+    _createIndexUnsubscribedEventEntity(event, indexId);
 }
 
 export function handleSubscriptionApproved(event: SubscriptionApproved): void {
@@ -260,9 +263,9 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             event.params.publisher,
             event.params.token,
             event.block,
-           null // will do RPC if any units exist anyways
+            null // will do RPC if any units exist anyways
         );
-        createAccountTokenSnapshotLogEntity(
+        _createAccountTokenSnapshotLogEntity(
             event,
             event.params.publisher,
             event.params.token,
@@ -288,14 +291,14 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     );
     index.save();
 
-    createSubscriptionApprovedEntity(event, subscription.id);
-    createAccountTokenSnapshotLogEntity(
+    _createSubscriptionApprovedEventEntity(event, subscription.id);
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
         "SubscriptionApproved"
     );
-    createTokenStatisticLogEntity(
+    _createTokenStatisticLogEntity(
         event,
         event.params.token,
         "SubscriptionApproved"
@@ -332,7 +335,7 @@ export function handleSubscriptionDistributionClaimed(
     subscription.indexValueUntilUpdatedAt = index.indexValue;
     subscription.save();
 
-    createSubscriptionDistributionClaimedEntity(event, subscription.id);
+    _createSubscriptionDistributionClaimedEventEntity(event, subscription.id);
 
     // // update streamed until updated at field
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
@@ -349,19 +352,19 @@ export function handleSubscriptionDistributionClaimed(
         event.block,
         null // will do RPC call if they have sub w/ units
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
         event.params.token,
         "SubscriptionDistributionClaimed"
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
         "SubscriptionDistributionClaimed"
     );
-    createTokenStatisticLogEntity(
+    _createTokenStatisticLogEntity(
         event,
         event.params.token,
         "SubscriptionDistributionClaimed"
@@ -456,20 +459,20 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     index.save();
     subscription.save();
 
-    createSubscriptionRevokedEntity(event, subscription.id);
-    createAccountTokenSnapshotLogEntity(
+    _createSubscriptionRevokedEventEntity(event, subscription.id);
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
         "SubscriptionRevoked"
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
         event.params.token,
         "SubscriptionRevoked"
     );
-    createTokenStatisticLogEntity(
+    _createTokenStatisticLogEntity(
         event,
         event.params.token,
         "SubscriptionRevoked"
@@ -597,32 +600,40 @@ export function handleSubscriptionUnitsUpdated(
     index.save();
     subscription.save();
 
-    createSubscriptionUnitsUpdatedEntity(event, subscription.id, oldUnits);
-    createAccountTokenSnapshotLogEntity(
+    _createSubscriptionUnitsUpdatedEventEntity(
+        event,
+        subscription.id,
+        oldUnits
+    );
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
         event.params.token,
         "SubscriptionUnitsUpdated"
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
         "SubscriptionUnitsUpdated"
     );
-    createTokenStatisticLogEntity(
+    _createTokenStatisticLogEntity(
         event,
         event.params.token,
         "SubscriptionUnitsUpdated"
     );
 }
 
-/**************************************************************************
- * Create Event Entity Helper Functions
- *************************************************************************/
-function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
+/****************************************
+ * Create Event Entity Helper Functions *
+ ***************************************/
+function _createIndexCreatedEventEntity(
+    event: IndexCreated,
+    indexId: string
+): void {
     let ev = new IndexCreatedEvent(createEventID("IndexCreated", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexCreated";
     ev.addresses = [event.params.token, event.params.publisher];
@@ -637,7 +648,7 @@ function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
     ev.save();
 }
 
-function createIndexDistributionClaimedEntity(
+function _createIndexDistributionClaimedEventEntity(
     event: IndexDistributionClaimed,
     indexId: string
 ): void {
@@ -645,6 +656,7 @@ function createIndexDistributionClaimedEntity(
         createEventID("IndexDistributionClaimed", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexDistributionClaimed";
     ev.addresses = [
@@ -664,9 +676,13 @@ function createIndexDistributionClaimedEntity(
     ev.save();
 }
 
-function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
+function _createIndexUpdatedEventEntity(
+    event: IndexUpdated,
+    indexId: string
+): void {
     let ev = new IndexUpdatedEvent(createEventID("IndexUpdated", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexUpdated";
     ev.addresses = [event.params.token, event.params.publisher];
@@ -684,12 +700,13 @@ function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
     ev.index = indexId;
     ev.save();
 }
-function createIndexSubscribedEntity(
+function _createIndexSubscribedEventEntity(
     event: IndexSubscribed,
     indexId: string
 ): void {
     let ev = new IndexSubscribedEvent(createEventID("IndexSubscribed", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexSubscribed";
     ev.addresses = [
@@ -709,7 +726,7 @@ function createIndexSubscribedEntity(
     ev.save();
 }
 
-function createIndexUnitsUpdatedEntity(
+function _createIndexUnitsUpdatedEventEntity(
     event: IndexUnitsUpdated,
     indexId: string,
     oldUnits: BigInt
@@ -718,6 +735,7 @@ function createIndexUnitsUpdatedEntity(
         createEventID("IndexUnitsUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexUnitsUpdated";
     ev.addresses = [
@@ -739,7 +757,7 @@ function createIndexUnitsUpdatedEntity(
     ev.save();
 }
 
-function createIndexUnsubscribedEntity(
+function _createIndexUnsubscribedEventEntity(
     event: IndexUnsubscribed,
     indexId: string
 ): void {
@@ -747,6 +765,7 @@ function createIndexUnsubscribedEntity(
         createEventID("IndexUnsubscribed", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexUnsubscribed";
     ev.addresses = [
@@ -766,7 +785,7 @@ function createIndexUnsubscribedEntity(
     ev.save();
 }
 
-function createSubscriptionApprovedEntity(
+function _createSubscriptionApprovedEventEntity(
     event: SubscriptionApproved,
     subscriptionId: string
 ): void {
@@ -774,6 +793,7 @@ function createSubscriptionApprovedEntity(
         createEventID("SubscriptionApproved", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionApproved";
     ev.addresses = [
@@ -793,7 +813,7 @@ function createSubscriptionApprovedEntity(
     ev.save();
 }
 
-function createSubscriptionDistributionClaimedEntity(
+function _createSubscriptionDistributionClaimedEventEntity(
     event: SubscriptionDistributionClaimed,
     subscriptionId: string
 ): void {
@@ -801,6 +821,7 @@ function createSubscriptionDistributionClaimedEntity(
         createEventID("SubscriptionDistributionClaimed", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionDistributionClaimed";
     ev.addresses = [
@@ -820,7 +841,7 @@ function createSubscriptionDistributionClaimedEntity(
     ev.save();
 }
 
-function createSubscriptionRevokedEntity(
+function _createSubscriptionRevokedEventEntity(
     event: SubscriptionRevoked,
     subscriptionId: string
 ): void {
@@ -828,6 +849,7 @@ function createSubscriptionRevokedEntity(
         createEventID("SubscriptionRevoked", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionRevoked";
     ev.addresses = [
@@ -847,7 +869,7 @@ function createSubscriptionRevokedEntity(
     ev.save();
 }
 
-function createSubscriptionUnitsUpdatedEntity(
+function _createSubscriptionUnitsUpdatedEventEntity(
     event: SubscriptionUnitsUpdated,
     subscriptionId: string,
     oldUnits: BigInt
@@ -856,6 +878,7 @@ function createSubscriptionUnitsUpdatedEntity(
         createEventID("SubscriptionUnitsUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionUnitsUpdated";
     ev.addresses = [

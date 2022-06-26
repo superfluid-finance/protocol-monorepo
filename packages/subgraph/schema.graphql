@@ -1529,9 +1529,6 @@ type TokenStatistic @entity {
 TokenStatisticLog: Historical entries of TokenStatistic updates.
 """
 type TokenStatisticLog @entity {
-    """
-    id: token address
-    """
     id: ID!
     timestamp: BigInt!
     blockNumber: BigInt!

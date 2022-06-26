@@ -2,6 +2,7 @@ export type EventBase = {
     id: string;
     blockNumber: number;
     transactionHash: string;
+    gasPrice: string;
     order: number;
     timestamp: number;
     logIndex: number;

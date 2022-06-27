@@ -26,46 +26,58 @@ const config: HardhatUserConfig = {
             url: "http://0.0.0.0:8545/",
             chainId: 31337,
         },
-        matic: {
-            url: process.env.MATIC_PROVIDER_URL || "",
-            chainId: 137,
-        },
-        mumbai: {
-            url: process.env.MUMBAI_PROVIDER_URL || "",
-            chainId: 80001
+        "optimism-mainnet": {
+            url: process.env.OPTIMISM_PROVIDER_URL || "",
+            chainId: 10,
         },
         gnosis: {
             url: process.env.GNOSIS_PROVIDER_URL || "",
             chainId: 100,
         },
+        matic: {
+            url: process.env.MATIC_PROVIDER_URL || "",
+            chainId: 137,
+        },
+        "arbitrum-one": {
+            url: process.env.ARBITRUM_ONE_PROVIDER_URL || "",
+            chainId: 42161,
+        },
+        "avalanche-c": {
+            url: process.env.AVALANCHE_C_PROVIDER_URL || "",
+            chainId: 43114,
+        },
         ropsten: {
             url: process.env.ROPSTEN_PROVIDER_URL || "",
-            chainId: 3
+            chainId: 3,
         },
         rinkeby: {
             url: process.env.RINKEBY_PROVIDER_URL || "",
-            chainId: 4
+            chainId: 4,
         },
         goerli: {
             url: process.env.GOERLI_PROVIDER_URL || "",
-            chainId: 5
-        },
-        opkovan: {
-            url: process.env.OPKOVAN_PROVIDER_URL || "",
-            chainId: 69
+            chainId: 5,
         },
         kovan: {
             url: process.env.KOVAN_PROVIDER_URL || "",
-            chainId: 42
+            chainId: 42,
+        },
+        opkovan: {
+            url: process.env.OPKOVAN_PROVIDER_URL || "",
+            chainId: 69,
+        },
+        avafuji: {
+            url: process.env.AVAFUJI_PROVIDER_URL || "",
+            chainId: 43113,
+        },
+        mumbai: {
+            url: process.env.MUMBAI_PROVIDER_URL || "",
+            chainId: 80001,
         },
         arbrinkeby: {
             url: process.env.ARBRINKEBY_PROVIDER_URL || "",
-            chainId: 421611
+            chainId: 421611,
         },
-        avafuji: {
-            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
-            chainId: 43113
-        }
     },
     mocha: {
         timeout: 500000,

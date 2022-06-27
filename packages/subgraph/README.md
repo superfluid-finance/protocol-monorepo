@@ -72,7 +72,7 @@ All subgraphs are available via The Graph's hosted service:
 
 # 🤓 Local development
 
-🛑 **STOP - Do not pass Go** 🛑 You probably don't need this repo. If you need data for Superfluid on Gnosis, Polygon (Matic), or testnet, we already deployed them for you! Head over to the **Docs** to get started.
+🛑 **STOP - Do not pass Go** 🛑 You probably don't need this repo. If you need data for Superfluid on Optimism, Arbitrum-One, Avalanche-C, Gnosis, Polygon (Matic), or testnet, we already deployed them for you! Head over to the **Docs** to get started.
 
 In this section we will cover the following:
 

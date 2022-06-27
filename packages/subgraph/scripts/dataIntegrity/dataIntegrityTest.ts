@@ -108,7 +108,6 @@ async function main() {
     console.log("Querying past events...\n");
     console.log("Start Block:", addresses.hostStartBlock, "\n");
 
-    // @note some duplication below in the query + validation of events
     // query and set all the cfa events in our onChainEvents object
     await Promise.all(
         keys(onChainCFAEvents).map(async (x) => {

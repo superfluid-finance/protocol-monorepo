@@ -9,6 +9,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Breaking
 - Subgraph Query: `rewardAccount` renamed to `rewardAmountReceiver` on `AgreementLiquidatedV2Event` entity
+- `chainId` is a required property for framework initialization
+- `networkId` and `dataMode` no longer exist as properties for framework initialization
+
 ### Added
 - `QueryHandler` for transfer events
 

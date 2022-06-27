@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
+import { ETH_RINKEBY_CHAIN_ID, MATIC_CHAIN_ID } from "../src/constants";
 import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "../scripts/setup";
 import hre from "hardhat";
 
@@ -41,40 +42,10 @@ describe("Framework Tests", async () => {
     describe("Validate Framework Constructor Options Tests", async() => {
         it("Should throw an error if no networkName or chainId", async () => {
             try {
-                await Framework.create({ provider: deployer.provider! });
+                await Framework.create({ provider: deployer.provider!, chainId: null as any });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must input chainId or networkName."
-                );
-            }
-        });
-
-        it("Should be able to set up framework with networkName = custom", async () => {
-            try {
-                await Framework.create({
-                    networkName: "custom",
-                    provider: deployer.provider!,
-                    dataMode: "WEB3_ONLY",
-                    resolverAddress: RESOLVER_ADDRESS,
-                    protocolReleaseVersion: "test",
-                });
-            } catch (err: any) {
-                expect(err.message).to.equal(
-                    "Framework Initialization Error - The network name and chainId you have selected don't match."
-                );
-            }
-        });
-
-        it("Should throw an error if network and chainId don't match", async () => {
-            try {
-                await Framework.create({
-                    networkName: "polygon-mainnet",
-                    chainId: 4,
-                    provider: deployer.provider!,
-                });
-            } catch (err: any) {
-                expect(err.message).to.equal(
-                    "Framework Initialization Error - The network name and chainId you have selected don't match."
+                    "Framework Initialization Error - You must input chainId."
                 );
             }
         });
@@ -83,7 +54,7 @@ describe("Framework Tests", async () => {
             const chainId = (await deployer.provider!.getNetwork()).chainId;
             try {
                 await Framework.create({
-                    chainId: 4,
+                    chainId: ETH_RINKEBY_CHAIN_ID,
                     provider: deployer.provider!,
                 });
             } catch (err: any) {
@@ -91,7 +62,7 @@ describe("Framework Tests", async () => {
                     "Network Mismatch Error - Your provider network chainId is: " +
                         chainId +
                         " whereas your desired chainId is: " +
-                        4
+                        ETH_RINKEBY_CHAIN_ID
                 );
             }
         });
@@ -100,7 +71,7 @@ describe("Framework Tests", async () => {
             try {
                 // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
-                    networkName: "polygon-mainnet",
+                    chainId: MATIC_CHAIN_ID,
                 } as any);
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -109,25 +80,11 @@ describe("Framework Tests", async () => {
             }
         });
 
-        it("Should throw an error if subgraph endpoint is null on unsupported network and WEB3_ONLY isn't selected", async () => {
-            try {
-                await Framework.create({
-                    networkName: "custom",
-                    provider: deployer.provider!,
-                    resolverAddress: RESOLVER_ADDRESS,
-                    protocolReleaseVersion: "test",
-                });
-            } catch (err: any) {
-                expect(err.message).to.equal(
-                    "Framework Initialization Error - You must input your own custom subgraph query endpoint if you use an unsupported network with dataMode set to SUBGRAPH_ONLY or SUBGRAPH_WEB3."
-                );
-            }
-        });
-
         it("Should throw an error if resolver address is null on unsupported network", async () => {
             try {
+                const chainId = (await deployer.provider!.getNetwork()).chainId;
                 await Framework.create({
-                    networkName: "custom",
+                    chainId,
                     provider: deployer.provider!,
                     customSubgraphQueriesEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
                     protocolReleaseVersion: "test",
@@ -159,25 +116,9 @@ describe("Framework Tests", async () => {
             }
         });
 
-        it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
-            try {
-                await Framework.create({
-                    networkName: "polygon-mainnet",
-                    provider: customProvider,
-                    customSubgraphQueriesEndpoint: "",
-                    resolverAddress:
-                        "0xE0cc76334405EE8b39213E620587d815967af39C", // MATIC resolver address
-                });
-            } catch (err: any) {
-                expect(err.message).to.equal(
-                    "Framework Initialization Error - You cannot have a null subgraphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
-                );
-            }
-        });
-
         it("Should be able to create a framework with chain id only", async () => {
             await Framework.create({
-                chainId: 137,
+                chainId: MATIC_CHAIN_ID,
                 provider: customProvider,
             });
         });
@@ -186,30 +127,30 @@ describe("Framework Tests", async () => {
             const provider = new ethers.providers.Web3Provider(
                 (global as any).web3.currentProvider
             );
+            const chainId = (await deployer.provider!.getNetwork()).chainId;
             await Framework.create({
-                networkName: "custom",
+                chainId,
                 provider,
-                dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
             });
         });
 
         it("Should be able to create a framework with injected web3", async () => {
+            const chainId = (await deployer.provider!.getNetwork()).chainId;
             await Framework.create({
-                networkName: "custom",
+                chainId,
                 provider: (global as any).web3,
-                dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
             });
         });
 
         it("Should be able to create a framework with injected hardhat ethers", async () => {
+            const chainId = hre.network.config.chainId!;
             await Framework.create({
-                networkName: "custom",
+                chainId,
                 provider: hre.ethers,
-                dataMode: "WEB3_ONLY",
                 resolverAddress: RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
             });

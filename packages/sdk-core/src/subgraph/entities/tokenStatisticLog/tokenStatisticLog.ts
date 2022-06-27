@@ -48,7 +48,7 @@ export type TokenStatisticLogListQuery = SubgraphListQuery<
     TokenStatisticLog_OrderBy
 >;
 
-export class TokenStatisticQueryHandler extends SubgraphQueryHandler<
+export class TokenStatisticLogQueryHandler extends SubgraphQueryHandler<
     TokenStatisticLog,
     TokenStatisticLogListQuery,
     TokenStatisticLogsQuery,

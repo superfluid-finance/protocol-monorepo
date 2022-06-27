@@ -3,7 +3,6 @@ import { chainIdToResolverDataMap } from "@superfluid-finance/sdk-core/src/const
 import {
     getChainId,
     testExpectListenerThrow,
-    testExpectWeb3OnlyErrors,
     testGetAllEventsQuery,
     testListenerInitialization,
     testQueryClassFunctions,
@@ -29,7 +28,6 @@ describe("Query Tests", () => {
                 );
         }
         query = new Query({
-            dataMode: "SUBGRAPH_ONLY",
             customSubgraphQueriesEndpoint,
         });
         console.log("Testing with endpoint:", customSubgraphQueriesEndpoint);
@@ -50,12 +48,6 @@ describe("Query Tests", () => {
 
         it("Should be able to use the listener", async () => {
             await testListenerInitialization(query);
-        });
-    });
-
-    describe("WEB3_ONLY mode should not allow queries", () => {
-        it("Should fail when trying to execute any of the query class in WEB3_ONLY mode", async () => {
-            await testExpectWeb3OnlyErrors(query);
         });
     });
 });

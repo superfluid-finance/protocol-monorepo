@@ -87,6 +87,7 @@ export interface DataIntegrityIndexUnitsUpdatedEvent
 export interface DataIntegrityStream extends BaseEntity {
     readonly updatedAtTimestamp: string;
     readonly currentFlowRate: string;
+    readonly deposit: string;
     readonly token: ILightEntity;
     readonly sender: ILightEntity;
     readonly receiver: ILightEntity;

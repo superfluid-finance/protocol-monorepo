@@ -3,11 +3,7 @@ import _ from "lodash";
 import { toBN } from "../../test/helpers/helpers";
 import { IMeta } from "../../test/interfaces";
 import { TypedEvent } from "../../typechain/common";
-import {
-    BaseEntity,
-    OnChainCFAEvents,
-    OnChainIDAEvents,
-} from "./interfaces";
+import { BaseEntity } from "./interfaces";
 
 /**
  * @dev Extract type of key when using Object.keys.
@@ -102,13 +98,16 @@ export const validateEvents = <T extends TypedEvent, K>(
 
         // validate the event properties based on the returned subgraph event entity
         for (let j = 0; j < keys.length; j++) {
+
+            // skip properties that don't exist on the events
             if (
                 currentOnChainEvent.args[keys[j]] == null ||
                 currentOnChainEvent.args[keys[j]] == undefined
             ) {
                 continue;
             }
-            // the properties are usually either string or BigInt
+
+            // on-chain data is type string
             if (typeof currentOnChainEvent.args[keys[j]] === "string") {
                 if (
                     currentOnChainEvent.args[keys[j]].toLowerCase() !==
@@ -124,6 +123,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                     errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
+            // on-chain data is type number
             } else if (typeof currentOnChainEvent.args[keys[j]] === "number") {
                 if (
                     toBN(currentOnChainEvent.args[keys[j]]).eq(
@@ -140,6 +140,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                     errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
+            // on-chain data is type BigNumber
             } else {
                 if (
                     currentOnChainEvent.args[keys[j]].eq(
@@ -171,24 +172,13 @@ export const querySubgraphAndValidateEvents = async ({
     eventName,
     queryHelper,
     query,
-    onChainCFAEvents,
-    onChainIDAEvents,
+    onChainEvents,
 }: {
     eventName: string;
     queryHelper: QueryHelper;
     query: string;
-    onChainCFAEvents?: OnChainCFAEvents;
-    onChainIDAEvents?: OnChainIDAEvents;
+    onChainEvents: any; // OnChainIDAEvents or OnChainCFAEvents
 }) => {
-    if (
-        (!onChainCFAEvents && !onChainIDAEvents) ||
-        (onChainCFAEvents && onChainIDAEvents)
-    ) {
-        throw new Error(
-            "You must pass in either onChainCFAEvents OR OnChainIDAEvents"
-        );
-    }
-
     console.log(`\nQuerying all ${eventName} events via the Subgraph...`);
     const subgraphEvents = await queryHelper.getAllResults({
         query,
@@ -200,22 +190,11 @@ export const querySubgraphAndValidateEvents = async ({
             out of ${subgraphEvents.length} total ${eventName} events.`
     );
 
-    if (onChainCFAEvents) {
-        return validateEvents(
-            eventName,
-            onChainCFAEvents as any,
-            uniqueSubgraphEvents
-        );
-    }
-
-    if (onChainIDAEvents) {
-        return validateEvents(
-            eventName,
-            onChainIDAEvents as any,
-            uniqueSubgraphEvents
-        );
-    }
-    return 0;
+    return validateEvents(
+        eventName,
+        onChainEvents as any,
+        uniqueSubgraphEvents
+    );
 };
 
 interface IGetAllResultsQueryObject {

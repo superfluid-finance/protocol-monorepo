@@ -10,12 +10,10 @@ import {
     getSubscriptions,
     getAccountTokenSnapshots,
     getTokenStatistics,
-    getFlowUpdatedEvents,
     idaEventToQueryMap,
     cfaEventToQueryMap,
 } from "./dataIntegrityQueries";
 import {
-    CFAEvent,
     DataIntegrityAccountTokenSnapshot,
     DataIntegrityIndex,
     DataIntegrityStream,
@@ -49,9 +47,6 @@ const MAX_RESULTS_PER_PAGE = 1000; // a limit imposed by subgraph
 // https://github.com/superfluid-finance/protocol-monorepo/wiki/Subgraph-Data-Integrity-Invariants-Reference
 
 async function main() {
-    let netFlowRateSum = toBN(0);
-    let subscriptionUnitsSum = toBN(0);
-    let indexUnitsSum = toBN(0);
     let onChainCFAEvents: OnChainCFAEvents = {
         FlowOperatorUpdated: { events: [], groupedEvents: {} },
         FlowUpdated: { events: [], groupedEvents: {} },
@@ -68,17 +63,6 @@ async function main() {
         SubscriptionRevoked: { events: [], groupedEvents: {} },
         SubscriptionUnitsUpdated: { events: [], groupedEvents: {} },
     };
-    let errorCounts = {
-        a0: 0,
-        a1a: 0,
-        a1b: 0,
-        a2a: 0,
-        a2b: 0,
-        g0: 0,
-        g3: 0,
-        g4: 0,
-    };
-
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId;
     const chainIdData = chainIdToData.get(chainId);
@@ -115,43 +99,33 @@ async function main() {
         addresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
-    console.log("\nSubgraph Event Entities Data Integrity Tests Starting...\n");
-    console.log("Querying the blockchain for past events...\n");
+    //////////////////////// EVENTS INTEGRITY STARTING ////////////////////////
+
+    console.log(
+        "\nSubgraph Event Entities Data Integrity Tests Starting (G.3)...\n"
+    );
+
+    console.log("Querying past events...\n");
     console.log("Start Block:", addresses.hostStartBlock, "\n");
 
-    console.log("Querying flow updated events...\n");
-
-    const flowUpdatedEventFilter = cfaV1.filters.FlowUpdated();
-    const flowUpdatedEvents = await cfaV1.queryFilter(
-        flowUpdatedEventFilter,
-        addresses.hostStartBlock
-    );
-    const groupedFlowUpdatedEvents = _.groupBy(
-        flowUpdatedEvents,
-        (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
-    );
-    const flowOperatorUpdatedEventFilter = cfaV1.filters.FlowOperatorUpdated();
-    const flowOperatorUpdatedEvents = await cfaV1.queryFilter(
-        flowOperatorUpdatedEventFilter,
-        addresses.hostStartBlock
-    );
-    const groupedFlowOperatorUpdatedEvents = _.groupBy(
-        flowOperatorUpdatedEvents,
-        (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
-    );
-    onChainCFAEvents[CFAEvent.FlowOperatorUpdated] = {
-        events: flowOperatorUpdatedEvents,
-        groupedEvents: groupedFlowOperatorUpdatedEvents,
-    };
-    onChainCFAEvents[CFAEvent.FlowUpdated] = {
-        events: flowUpdatedEvents,
-        groupedEvents: groupedFlowUpdatedEvents,
-    };
-
-    console.log(flowUpdatedEvents.length, "FlowUpdated events queried.");
-    console.log(
-        flowOperatorUpdatedEvents.length,
-        "FlowOperatorUpdated events queried."
+    // @note some duplication below in the query + validation of events
+    // query and set all the cfa events in our onChainEvents object
+    await Promise.all(
+        keys(onChainCFAEvents).map(async (x) => {
+            console.log(`\nQuerying ${x} events...`);
+            const cfaEventName = x;
+            const eventsFilter = cfaV1.filters[cfaEventName]() as any;
+            const events = await cfaV1.queryFilter(
+                eventsFilter,
+                addresses.hostStartBlock
+            );
+            const groupedEvents = _.groupBy(
+                events,
+                (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
+            );
+            onChainCFAEvents[cfaEventName] = { events, groupedEvents };
+            console.log(events.length, `${cfaEventName} events queried.`);
+        })
     );
 
     // query and set all the ida events in our onChainEvents object
@@ -173,50 +147,54 @@ async function main() {
         })
     );
 
-    console.log("\nCFA/IDA Event Entities Validation Starting (G.3)...");
+    console.log("\nCFA/IDA Event Entities Validation Starting...");
 
     console.log("CFA Events Validation Starting...");
-    let cfaErrors = 0;
-    await Promise.all(
-        keys(onChainCFAEvents).map(async (x) => {
-            const query = cfaEventToQueryMap.get(x);
-            if (!query) {
-                throw new Error("No query: invalid CFA event.");
-            }
-            cfaErrors += await querySubgraphAndValidateEvents({
-                queryHelper,
-                query,
-                onChainCFAEvents,
-                eventName: x,
-            });
-        })
-    )
 
-    console.log("\nIDA Events Validation Starting...");
-    let idaErrors = 0;
-    await Promise.all(
-        keys(onChainIDAEvents).map(async (x) => {
-            const query = idaEventToQueryMap.get(x);
-            if (!query) {
-                throw new Error("No query: invalid IDA event.");
-            }
-            idaErrors += await querySubgraphAndValidateEvents({
-                queryHelper,
-                query,
-                onChainIDAEvents,
-                eventName: x,
-            });
-        })
+    const getEventErrorArray = async <T>(
+        onChainEvents: T,
+        eventToQueryMap: Map<keyof T, string>
+    ) => {
+        return await Promise.all(
+            keys(onChainEvents).map(async (x) => {
+                const query = eventToQueryMap.get(x);
+                if (!query) {
+                    throw new Error("No query: invalid CFA event.");
+                }
+                return await querySubgraphAndValidateEvents({
+                    queryHelper,
+                    query,
+                    onChainEvents,
+                    eventName: x,
+                });
+            })
+        );
+    };
+    const cfaErrorArray = await getEventErrorArray(
+        onChainCFAEvents,
+        cfaEventToQueryMap
     );
 
+    console.log("\nIDA Events Validation Starting...");
+    const idaErrorArray = await getEventErrorArray(
+        onChainIDAEvents,
+        idaEventToQueryMap
+    );
+
+    const eventErrorsSum = cfaErrorArray
+        .concat(idaErrorArray)
+        .reduce((x, y) => x + y, 0);
+
     // sum CFA/IDA errors
-    errorCounts.g3 += cfaErrors + idaErrors;
     printTestOutcome(
-        errorCounts.g3 === 0,
+        eventErrorsSum === 0,
         "\nSuccess (G.3): CFA/IDA Events Data Matching",
         "\nFailure (G.3): CFA/IDA Events Data Mismatch"
     );
 
+    /////////////////////// EVENTS INTEGRITY COMPLETED ///////////////////////
+
+    /////////////////// HOL + AGGREGATE INTEGRITY STARTING ///////////////////
     console.log(
         "\nSubgraph HOL & Aggregate Entities Data Integrity Tests Starting..."
     );
@@ -270,7 +248,7 @@ async function main() {
         (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
     );
     console.log(
-        `There are ${uniqueStreams.length} unique streams out of ${streams.length} total streams.`
+        `There are ${uniqueStreams.length} unique streams out of ${streams.length} total queried streams.`
     );
 
     const uniqueAccountTokenSnapshots = _.uniqBy(
@@ -279,19 +257,19 @@ async function main() {
     );
     console.log(
         `There are ${uniqueAccountTokenSnapshots.length} unique accountTokenSnapshots
-        out of ${accountTokenSnapshots.length} total accountTokenSnapshots.`
+        out of ${accountTokenSnapshots.length} total queried accountTokenSnapshots.`
     );
 
     const uniqueIndexes = _.uniqBy(indexes, (x) => x.id);
     console.log(
         `There are ${uniqueIndexes.length} unique indexes
-        out of ${indexes.length} total indexes.`
+        out of ${indexes.length} total queried indexes.`
     );
 
     const uniqueSubscriptions = _.uniqBy(subscriptions, (x) => x.id);
     console.log(
         `There are ${uniqueSubscriptions.length} unique subscriptions
-        out of ${subscriptions.length} total subscriptions.`
+        out of ${subscriptions.length} total queried subscriptions.`
     );
 
     // NOTE: we only care about super tokens with underlying for
@@ -303,7 +281,7 @@ async function main() {
     );
     console.log(
         `There are ${uniqueTokenStatistics.length} unique tokenStatistics with an underlying address
-        out of ${tokenStatistics.length} total tokenStatistics.`
+        out of ${tokenStatistics.length} total queried tokenStatistics.`
     );
 
     console.log(
@@ -314,19 +292,21 @@ async function main() {
     console.log("Flow Tests Starting (A.1.a)...");
     console.log("Validating " + uniqueStreams.length + " streams.");
     const chunkedUniqueStreams = chunkData(uniqueStreams, DEFAULT_CHUNK_LENGTH);
+    let flowDataErrors = 0;
     for (let i = 0; i < chunkedUniqueStreams.length; i++) {
         await Promise.all(
             chunkedUniqueStreams[i].map(async (x) => {
                 const stream = x;
                 try {
-                    const [updatedAtTimestamp, flowRate] = await cfaV1.getFlow(
-                        ethers.utils.getAddress(stream.token.id),
-                        ethers.utils.getAddress(stream.sender.id),
-                        ethers.utils.getAddress(stream.receiver.id),
-                        { blockTag: currentBlockNumber }
-                    );
+                    const { timestamp, flowRate, deposit } =
+                        await cfaV1.getFlow(
+                            ethers.utils.getAddress(stream.token.id),
+                            ethers.utils.getAddress(stream.sender.id),
+                            ethers.utils.getAddress(stream.receiver.id),
+                            { blockTag: currentBlockNumber }
+                        );
 
-                    const updatedAtShouldMatch = updatedAtTimestamp.eq(
+                    const updatedAtShouldMatch = timestamp.eq(
                         toBN(stream.updatedAtTimestamp)
                     );
 
@@ -334,20 +314,29 @@ async function main() {
                         toBN(stream.currentFlowRate)
                     );
 
+                    const depositShouldMatch = deposit.eq(toBN(stream.deposit));
+
                     const compareStream = {
-                        updatedAtTimestamp: stream.updatedAtTimestamp,
+                        timestamp: stream.timestamp,
                         currentFlowRate: stream.currentFlowRate,
+                        deposit: stream.deposit,
                     };
 
-                    if (!updatedAtShouldMatch || !flowRateShouldMatch) {
-                        errorCounts.a1a++;
+                    if (
+                        !updatedAtShouldMatch ||
+                        !flowRateShouldMatch ||
+                        !depositShouldMatch
+                    ) {
+                        flowDataErrors++;
                         throw new Error(
                             "Values don't match. \n Subgraph Stream: " +
                                 JSON.stringify(compareStream) +
                                 "\n Contract Data \n Updated At Timestamp: " +
-                                updatedAtTimestamp.toString() +
+                                timestamp.toString() +
                                 " \n Flow Rate: " +
-                                flowRate.toString()
+                                flowRate.toString() +
+                                " \n Deposit: " +
+                                deposit.toString()
                         );
                     }
                 } catch (err) {
@@ -358,7 +347,7 @@ async function main() {
         printProgress(i, uniqueStreams.length, "streams");
     }
     printTestOutcome(
-        errorCounts.a1a === 0,
+        flowDataErrors === 0,
         "Success (A.1.a): Flow data matching",
         "Failure (A.1.a): Flow data mismatch"
     );
@@ -374,6 +363,9 @@ async function main() {
         uniqueAccountTokenSnapshots,
         DEFAULT_CHUNK_LENGTH
     );
+
+    let netFlowRateSum = toBN(0);
+    let netFlowErrors = 0;
 
     for (let i = 0; i < chunkedUniqueAccountTokenSnapshots.length; i++) {
         await Promise.all(
@@ -391,7 +383,7 @@ async function main() {
                     );
                     netFlowRateSum = netFlowRateSum.add(netFlowRate);
                     if (!netFlowRateShouldMatch) {
-                        errorCounts.a1b++;
+                        netFlowErrors++;
                         throw new Error(
                             "Values don't match. \n Subgraph Net Flow Rate: " +
                                 x.totalNetFlowRate +
@@ -407,7 +399,7 @@ async function main() {
         printProgress(i, uniqueAccountTokenSnapshots.length, "ATS net flow");
     }
     printTestOutcome(
-        errorCounts.a1b === 0,
+        netFlowErrors === 0,
         "Success (A.1.b): Net Flow matching",
         "Failure (A.1.b): Net Flow mismatch"
     );
@@ -428,6 +420,7 @@ async function main() {
         (x) => x.token.id
     ).map((x) => x.token.id);
     let tokenContracts: { [tokenAddress: string]: ISuperToken } = {};
+    let realtimeBalanceErrors = 0;
     for (let i = 0; i < uniqueTokens.length; i++) {
         tokenContracts[uniqueTokens[i]] = new ethers.Contract(
             uniqueTokens[i],
@@ -473,7 +466,7 @@ async function main() {
                         });
 
                     if (!realtimeBalance.eq(calculatedAvailableBalance)) {
-                        errorCounts.a0++;
+                        realtimeBalanceErrors++;
                         throw new Error(
                             `Realtime balance: ${realtimeBalance.toString()} (on-chain)
                                 !== ${calculatedAvailableBalance.toString()} (calculated w/ subgraph data)`
@@ -493,7 +486,7 @@ async function main() {
     }
 
     printTestOutcome(
-        errorCounts.a0 === 0,
+        realtimeBalanceErrors === 0,
         "Success (A.0): User RTB === Subgraph calculated balance",
         "Failure (A.0): User RTB === Subgraph calculated balance mismatch"
     );
@@ -505,6 +498,9 @@ async function main() {
     console.log("Index Tests Starting (A.2.a, G.2)...");
     console.log("Validating " + uniqueIndexes.length + " indexes.");
     const chunkedUniqueIndexes = chunkData(uniqueIndexes, DEFAULT_CHUNK_LENGTH);
+    let subscriptionUnitsSum = toBN(0);
+    let indexUnitsSum = toBN(0);
+    let indexDataErrors = 0;
     for (let i = 0; i < chunkedUniqueIndexes.length; i++) {
         await Promise.all(
             chunkedUniqueIndexes[i].map(async (x) => {
@@ -525,22 +521,19 @@ async function main() {
                     });
 
                     if (!exist) {
-                        errorCounts.a2a++;
+                        indexDataErrors++;
                         throw new Error("This index doesn't exist.");
                     }
 
                     const indexValueShouldMatch = toBN(index.indexValue).eq(
                         indexValue
                     );
-
                     const totalUnitsApprovedShouldMatch = toBN(
                         index.totalUnitsApproved
                     ).eq(totalUnitsApproved);
-
                     const totalUnitsPendingShouldMatch = toBN(
                         index.totalUnitsPending
                     ).eq(totalUnitsPending);
-
                     const compareIndex = {
                         indexValue: index.indexValue,
                         totalUnitsApproved: index.totalUnitsApproved,
@@ -555,7 +548,7 @@ async function main() {
                         console.log("superToken:", superToken);
                         console.log("publisher:", publisher);
                         console.log("indexId:", indexId);
-                        errorCounts.a2a++;
+                        indexDataErrors++;
                         throw new Error(
                             "Values don't match. \n Subgraph Index: " +
                                 JSON.stringify(compareIndex) +
@@ -584,7 +577,7 @@ async function main() {
         );
     }
     printTestOutcome(
-        errorCounts.a2a === 0,
+        indexDataErrors === 0,
         "Success (A.2.a): Index data matching",
         "Failure (A.2.a): Index data mismatch"
     );
@@ -606,6 +599,7 @@ async function main() {
         uniqueSubscriptions,
         DEFAULT_CHUNK_LENGTH
     );
+    let subscriptionDataErrors = 0;
     for (let i = 0; i < chunkedUniqueSubscriptions.length; i++) {
         await Promise.all(
             chunkedUniqueSubscriptions[i].map(async (x) => {
@@ -632,7 +626,7 @@ async function main() {
 
                     // subscription may have been deleted, but it's ok if units === 0
                     if (!exist && units.gt(toBN(0))) {
-                        errorCounts.a2b++;
+                        subscriptionDataErrors++;
                         throw new Error("This subscription doesn't exist.");
                     }
 
@@ -664,7 +658,7 @@ async function main() {
                         !unitsShouldMatch ||
                         !pendingDistributionShouldMatch
                     ) {
-                        errorCounts.a2b++;
+                        subscriptionDataErrors++;
                         throw new Error(
                             "Values don't match. \n Subgraph Subscription: " +
                                 JSON.stringify(compareSubscription) +
@@ -684,16 +678,20 @@ async function main() {
     }
 
     printTestOutcome(
-        errorCounts.a2b === 0,
+        subscriptionDataErrors === 0,
         "Success (A.2.b): Subscription data matching",
         "Failure (A.2.b): Subscription data mismatch"
     );
 
     console.log("Token Global Invariants Tests Starting (G.0, G.4)");
+    // G.0 SuperToken Total Supply === SuperToken AUM (underlyingToken.balanceOf(superTokenAddress))
+    // G.4 Subgraph Total Supply === On-Chain Total Supply
     const chunkedUniqueTokenStatistics = chunkData(
         uniqueTokenStatistics,
         DEFAULT_CHUNK_LENGTH
     );
+    let totalSupplyAUMErrors = 0; // g0
+    let totalSupplyErrors = 0; // g4
     for (let i = 0; i < chunkedUniqueTokenStatistics.length; i++) {
         await Promise.all(
             chunkedUniqueTokenStatistics[i].map(async (x) => {
@@ -728,24 +726,25 @@ async function main() {
                         );
                     };
 
-                    if (!toBN(x.totalSupply).eq(totalSupply)) {
-                        await getTokenNameAndLog();
-                        errorCounts.g4++;
-                        throw new Error(
-                            `Failure: Subgraph total supply (${
-                                x.totalSupply
-                            }) !== on-chain total supply (${totalSupply.toString()})`
-                        );
-                    }
-
-                    // Global Invariant: G.0 Total Supply === SuperToken AUM
+                    // Global Invariant (G.0): SuperToken Total Supply === SuperToken AUM
                     if (toBN(x.totalSupply).eq(formattedAUM) === false) {
                         await getTokenNameAndLog();
-                        errorCounts.g0++;
+                        totalSupplyAUMErrors++;
                         throw new Error(
                             `Failure (G.0): Subgraph Total Supply (${
                                 x.totalSupply
                             }) !== SuperToken AUM (${formattedAUM.toString()})`
+                        );
+                    }
+
+                    // Gloval Invariant (G.4): Subgraph Total Supply === On-Chain Total Supply
+                    if (!toBN(x.totalSupply).eq(totalSupply)) {
+                        await getTokenNameAndLog();
+                        totalSupplyErrors++;
+                        throw new Error(
+                            `Failure: Subgraph total supply (${
+                                x.totalSupply
+                            }) !== on-chain total supply (${totalSupply.toString()})`
                         );
                     }
                 } catch (err) {
@@ -755,12 +754,12 @@ async function main() {
         );
     }
     printTestOutcome(
-        errorCounts.g0 === 0,
-        "Success (G.0): Total Supply === SuperToken AUM",
-        "Failure (G.0): Total Supply === SuperToken AUM mismatch"
+        totalSupplyAUMErrors === 0,
+        "Success (G.0): SuperToken Total Supply === SuperToken AUM",
+        "Failure (G.0): SuperToken Total Supply === SuperToken AUM mismatch"
     );
     printTestOutcome(
-        errorCounts.g4 === 0,
+        totalSupplyErrors === 0,
         "Success (G.4): Subgraph Total Supply === On-Chain Total Supply",
         "Failure (G.4): Subgraph Total Supply === On-Chain Total Supply mismatch"
     );

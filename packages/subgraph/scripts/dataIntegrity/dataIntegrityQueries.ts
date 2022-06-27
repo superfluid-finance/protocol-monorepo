@@ -46,11 +46,9 @@ export const getFlowOperatorUpdatedEvents = gql`
             timestamp
             token
             sender
-            receiver
-            flowRate
-            totalSenderFlowRate
-            totalReceiverFlowRate
-            userData
+            flowOperator
+            permissions
+            flowRateAllowance
         }
     }
 `;
@@ -326,6 +324,7 @@ export const getCurrentStreams = gql`
             createdAtTimestamp
             updatedAtTimestamp
             currentFlowRate
+            deposit
             token {
                 id
             }

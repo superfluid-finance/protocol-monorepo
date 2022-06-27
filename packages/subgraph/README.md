@@ -262,7 +262,7 @@ This goes over an integration tests which test that the data we are mapping to t
 You can also run data integrity tests which checks that the data mapped to the subgraph is in line with the data from the contracts:
 
 ```bash
-yarn run integrity <NETWORK>
+yarn integrity <NETWORK>
 ```
 
 > Note: you must specify the network in the `hardhat.config.ts` file, you can look at how it is being done for matic and do so for any network you are interested in running this on. You can use a URL from Infura, Alchemy or from your own node.

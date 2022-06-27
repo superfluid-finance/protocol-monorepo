@@ -12,6 +12,7 @@ import { FlowActionType, IDAEventType } from "./helpers/constants";
 export interface IEvent {
     readonly id: string;
     readonly transactionHash: string;
+    readonly gasPrice: string;
     readonly blockNumber: string;
     readonly logIndex: string;
     readonly name: string;

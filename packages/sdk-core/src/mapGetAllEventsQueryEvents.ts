@@ -102,6 +102,7 @@ export const mapGetAllEventsQueryEvents = (
                     data: x.data,
                     from: x.from,
                     operator: x.operator,
+                    token: x.token,
                     operatorData: x.operatorData,
                 });
             case "CFAv1LiquidationPeriodChangedEvent":
@@ -115,6 +116,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     host: x.host,
+                    governanceAddress: x.governanceAddress,
                     isKeySet: x.isKeySet,
                     liquidationPeriod: Number(x.liquidationPeriod),
                     superToken: x.superToken,
@@ -130,6 +132,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     host: x.host,
+                    governanceAddress: x.governanceAddress,
                     isKeySet: x.isKeySet,
                     key: x.key,
                     superToken: x.superToken,
@@ -319,6 +322,7 @@ export const mapGetAllEventsQueryEvents = (
                     to: x.to,
                     amount: x.amount,
                     data: x.data,
+                    token: x.token,
                     operatorData: x.operatorData,
                 });
             case "RewardAddressChangedEvent":
@@ -332,6 +336,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     host: x.host,
+                    governanceAddress: x.governanceAddress,
                     superToken: x.superToken,
                     isKeySet: x.isKeySet,
                     rewardAddress: x.rewardAddress,
@@ -392,6 +397,7 @@ export const mapGetAllEventsQueryEvents = (
                     to: x.to,
                     amount: x.amount,
                     data: x.data,
+                    token: x.token,
                     operatorData: x.operatorData,
                 });
             case "SubscriptionApprovedEvent":
@@ -523,6 +529,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     host: x.host,
+                    governanceAddress: x.governanceAddress,
                     superToken: x.superToken,
                     isKeySet: x.isKeySet,
                     liquidationPeriod: x.liquidationPeriod,
@@ -582,6 +589,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     host: x.host,
+                    governanceAddress: x.governanceAddress,
                     superToken: x.superToken,
                     isKeySet: x.isKeySet,
                     forwarder: x.forwarder,

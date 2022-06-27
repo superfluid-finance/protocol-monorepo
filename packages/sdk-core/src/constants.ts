@@ -35,27 +35,6 @@ export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
 export const AVALANCHE_C = "avalanche-c";
 export const AVALANCHE_FUJI = "avalanche-fuji";
 
-export const networkNames: string[] = [
-    ETH_ROPSTEN,
-    ETH_RINKEBY,
-    ETH_GOERLI,
-    ETH_KOVAN,
-
-    POLYGON_MAINNET,
-    POLYGON_MUMBAI,
-
-    XDAI_MAINNET,
-
-    ARBITRUM_ONE,
-    ARBITRUM_RINKEBY,
-
-    OPTIMISM_MAINNET,
-    OPTIMISM_KOVAN,
-
-    AVALANCHE_C,
-    AVALANCHE_FUJI,
-];
-
 /******* CHAIN IDS *******/
 export const ETH_ROPSTEN_CHAIN_ID = 3;
 export const ETH_RINKEBY_CHAIN_ID = 4;

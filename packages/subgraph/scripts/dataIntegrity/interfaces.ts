@@ -1,6 +1,9 @@
 import _ from "lodash";
-import {ILightEntity} from "../test/interfaces";
-import {FlowUpdatedEvent} from "../typechain/ConstantFlowAgreementV1";
+import { ILightEntity } from "../../test/interfaces";
+import {
+    FlowOperatorUpdatedEvent,
+    FlowUpdatedEvent,
+} from "../../typechain/IConstantFlowAgreementV1";
 import {
     IndexCreatedEvent,
     IndexDistributionClaimedEvent,
@@ -12,22 +15,22 @@ import {
     SubscriptionDistributionClaimedEvent,
     SubscriptionRevokedEvent,
     SubscriptionUnitsUpdatedEvent,
-} from "../typechain/IInstantDistributionAgreementV1";
+} from "../../typechain/IInstantDistributionAgreementV1";
 
-export interface IBaseEntity {
+export interface BaseEntity {
     readonly id: string;
     readonly createdAtTimestamp: string;
     readonly timestamp?: string;
     readonly updatedAtTimestamp?: string;
 }
 
-export interface IBaseIndexEvent {
+export interface BaseIndexEvent {
     readonly publisher: string;
     readonly token: string;
     readonly indexId: string;
 }
 
-export interface IDataIntegrityFlowUpdatedEvent extends IBaseEntity {
+export interface DataIntegrityFlowUpdatedEvent extends BaseEntity {
     readonly token: string;
     readonly transactionHash: string;
     readonly sender: string;
@@ -38,24 +41,24 @@ export interface IDataIntegrityFlowUpdatedEvent extends IBaseEntity {
     readonly userData: string;
 }
 
-export interface IDataIntegrityIndexCreatedEvent
-    extends IBaseEntity,
-        IBaseIndexEvent {
+export interface DataIntegrityIndexCreatedEvent
+    extends BaseEntity,
+        BaseIndexEvent {
     readonly transactionHash: string;
     readonly userData: string;
 }
 
-export interface IDataIntegrityIndexDistributionClaimedEvent
-    extends IBaseEntity,
-        IBaseIndexEvent {
+export interface DataIntegrityIndexDistributionClaimedEvent
+    extends BaseEntity,
+        BaseIndexEvent {
     readonly transactionHash: string;
     readonly subscriber: string;
     readonly amount: string;
 }
 
-export interface IDataIntegrityIndexUpdatedEvent
-    extends IBaseEntity,
-        IBaseIndexEvent {
+export interface DataIntegrityIndexUpdatedEvent
+    extends BaseEntity,
+        BaseIndexEvent {
     readonly transactionHash: string;
     readonly oldIndexValue: string;
     readonly newIndexValue: string;
@@ -64,24 +67,24 @@ export interface IDataIntegrityIndexUpdatedEvent
     readonly userData: string;
 }
 
-export interface IDataIntegrityIndexSubscribedEvent
-    extends IBaseEntity,
-        IBaseIndexEvent {
+export interface DataIntegrityIndexSubscribedEvent
+    extends BaseEntity,
+        BaseIndexEvent {
     readonly transactionHash: string;
     readonly subscriber: string;
     readonly userData: string;
 }
 
-export interface IDataIntegrityIndexUnitsUpdatedEvent
-    extends IBaseEntity,
-        IBaseIndexEvent {
+export interface DataIntegrityIndexUnitsUpdatedEvent
+    extends BaseEntity,
+        BaseIndexEvent {
     readonly transactionHash: string;
     readonly subscriber: string;
     readonly units: string;
     readonly userData: string;
 }
 
-export interface IDataIntegrityStream extends IBaseEntity {
+export interface DataIntegrityStream extends BaseEntity {
     readonly updatedAtTimestamp: string;
     readonly currentFlowRate: string;
     readonly token: ILightEntity;
@@ -89,7 +92,7 @@ export interface IDataIntegrityStream extends IBaseEntity {
     readonly receiver: ILightEntity;
 }
 
-export interface IDataIntegrityIndex extends IBaseEntity {
+export interface DataIntegrityIndex extends BaseEntity {
     readonly indexId: string;
     readonly indexValue: string;
     readonly totalUnitsPending: string;
@@ -99,7 +102,7 @@ export interface IDataIntegrityIndex extends IBaseEntity {
     readonly publisher: ILightEntity;
 }
 
-export interface IDataIntegritySubscription extends IBaseEntity {
+export interface DataIntegritySubscription extends BaseEntity {
     readonly approved: boolean;
     readonly units: string;
     readonly indexValueUntilUpdatedAt: string;
@@ -116,16 +119,21 @@ export interface IDataIntegritySubscription extends IBaseEntity {
 // NOTE: IDataIntegrityAccountTokenSnapshot and
 // IDataIntegrityTokenStatistic only have updatedAtTimestamp
 // not createdAtTimestamp
-export interface IDataIntegrityAccountTokenSnapshot extends IBaseEntity {
+export interface DataIntegrityAccountTokenSnapshot extends BaseEntity {
     readonly balanceUntilUpdatedAt: string;
     readonly totalNetFlowRate: string;
-    readonly token: {id: string; underlyingAddress: string};
+    readonly token: { id: string; underlyingAddress: string };
     readonly account: ILightEntity;
 }
 
-export interface IDataIntegrityTokenStatistic extends IBaseEntity {
+export interface DataIntegrityTokenStatistic extends BaseEntity {
     readonly totalSupply: string;
-    readonly token: {id: string; underlyingAddress: string};
+    readonly token: { id: string; underlyingAddress: string };
+}
+
+export const enum CFAEvent {
+    FlowOperatorUpdated = "FlowOperatorUpdated",
+    FlowUpdated = "FlowUpdated",
 }
 
 export const enum IDAEvent {
@@ -141,13 +149,17 @@ export const enum IDAEvent {
     SubscriptionUnitsUpdated = "SubscriptionUnitsUpdated",
 }
 
-export interface IOnChainCFAEvents {
-    ["FlowUpdated"]: {
+export interface OnChainCFAEvents {
+    [CFAEvent.FlowOperatorUpdated]: {
+        events: FlowOperatorUpdatedEvent[];
+        groupedEvents: _.Dictionary<FlowOperatorUpdatedEvent[]>;
+    };
+    [CFAEvent.FlowUpdated]: {
         events: FlowUpdatedEvent[];
         groupedEvents: _.Dictionary<FlowUpdatedEvent[]>;
     };
 }
-export interface IOnChainIDAEvents {
+export interface OnChainIDAEvents {
     [IDAEvent.IndexCreated]: {
         events: IndexCreatedEvent[];
         groupedEvents: _.Dictionary<IndexCreatedEvent[]>;

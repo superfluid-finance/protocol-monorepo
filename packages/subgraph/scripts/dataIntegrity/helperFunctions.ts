@@ -3,7 +3,11 @@ import _ from "lodash";
 import { toBN } from "../../test/helpers/helpers";
 import { IMeta } from "../../test/interfaces";
 import { TypedEvent } from "../../typechain/common";
-import { IBaseEntity, IDAEvent, IOnChainCFAEvents, IOnChainIDAEvents } from "../interfaces";
+import {
+    BaseEntity,
+    OnChainCFAEvents,
+    OnChainIDAEvents,
+} from "./interfaces";
 
 /**
  * @dev Extract type of key when using Object.keys.
@@ -66,11 +70,17 @@ export const chunkData = <T>(promises: T[], chunkLength: number) => {
 
 export const validateEvents = <T extends TypedEvent, K>(
     eventName: string,
-    onchainEvents: T[],
-    subgraphEvents: K[],
-    groupedEvents: _.Dictionary<T[]>
+    onChainData: Record<
+        string,
+        { events: T[]; groupedEvents: _.Dictionary<T[]> }
+    >,
+    subgraphEvents: K[]
 ) => {
     let errors = 0;
+
+    const onchainEvents = onChainData[eventName].events;
+    const groupedEvents = onChainData[eventName].groupedEvents;
+
     // base case length equality check
     if (onchainEvents.length === subgraphEvents.length) {
         console.log(`${eventName} events length is the same.`);
@@ -81,15 +91,16 @@ export const validateEvents = <T extends TypedEvent, K>(
 
     for (let i = 0; i < subgraphEvents.length; i++) {
         const currentSubgraphEvent = subgraphEvents[i] as any;
-        const id = currentSubgraphEvent.id.split(eventName + "-")[1]; // this yields: txnId-logIndex
+        const id = currentSubgraphEvent.id.split(eventName + "-")[1]; // this returns: txnId-logIndex
         const currentOnChainEvent = groupedEvents[id][0];
         const keys = Object.keys(currentSubgraphEvent);
         if (currentOnChainEvent == null) {
+            console.error("Event exists on subgraph, but not on chain");
             console.log("currentSubgraphEvent", currentSubgraphEvent);
             continue;
         }
 
-        // validate the event properties
+        // validate the event properties based on the returned subgraph event entity
         for (let j = 0; j < keys.length; j++) {
             if (
                 currentOnChainEvent.args[keys[j]] == null ||
@@ -115,8 +126,9 @@ export const validateEvents = <T extends TypedEvent, K>(
                 }
             } else if (typeof currentOnChainEvent.args[keys[j]] === "number") {
                 if (
-                    toBN(currentOnChainEvent.args[keys[j]]).eq
-                    (toBN(currentSubgraphEvent[keys[j]])) === false
+                    toBN(currentOnChainEvent.args[keys[j]]).eq(
+                        toBN(currentSubgraphEvent[keys[j]])
+                    ) === false
                 ) {
                     console.log(
                         `${keys[j]} - Subgraph: ${
@@ -156,17 +168,17 @@ export const validateEvents = <T extends TypedEvent, K>(
 };
 
 export const querySubgraphAndValidateEvents = async ({
-    idaEventName,
+    eventName,
     queryHelper,
     query,
     onChainCFAEvents,
     onChainIDAEvents,
 }: {
-    idaEventName?: IDAEvent;
+    eventName: string;
     queryHelper: QueryHelper;
     query: string;
-    onChainCFAEvents?: IOnChainCFAEvents;
-    onChainIDAEvents?: IOnChainIDAEvents;
+    onChainCFAEvents?: OnChainCFAEvents;
+    onChainIDAEvents?: OnChainIDAEvents;
 }) => {
     if (
         (!onChainCFAEvents && !onChainIDAEvents) ||
@@ -176,13 +188,6 @@ export const querySubgraphAndValidateEvents = async ({
             "You must pass in either onChainCFAEvents OR OnChainIDAEvents"
         );
     }
-    if (!idaEventName && onChainIDAEvents) {
-        throw new Error(
-            "You must pass in the IDA event name if you are validating IDA events."
-        );
-    }
-
-    const eventName = idaEventName || "FlowUpdated";
 
     console.log(`\nQuerying all ${eventName} events via the Subgraph...`);
     const subgraphEvents = await queryHelper.getAllResults({
@@ -191,25 +196,23 @@ export const querySubgraphAndValidateEvents = async ({
     });
     const uniqueSubgraphEvents = _.uniqBy(subgraphEvents, (x) => x.id);
     console.log(
-        `There are ${uniqueSubgraphEvents.length} ${eventName} events 
+        `There are ${uniqueSubgraphEvents.length} ${eventName} events
             out of ${subgraphEvents.length} total ${eventName} events.`
     );
 
     if (onChainCFAEvents) {
         return validateEvents(
-            "FlowUpdated",
-            onChainCFAEvents["FlowUpdated"].events,
-            uniqueSubgraphEvents,
-            onChainCFAEvents["FlowUpdated"].groupedEvents
+            eventName,
+            onChainCFAEvents as any,
+            uniqueSubgraphEvents
         );
     }
 
-    if (onChainIDAEvents && idaEventName) {
+    if (onChainIDAEvents) {
         return validateEvents(
-            idaEventName,
-            onChainIDAEvents[idaEventName].events as any,
-            uniqueSubgraphEvents,
-            onChainIDAEvents[idaEventName].groupedEvents as any
+            eventName,
+            onChainIDAEvents as any,
+            uniqueSubgraphEvents
         );
     }
     return 0;
@@ -241,7 +244,7 @@ export class QueryHelper {
     /**
      * @dev Gets all the results given the 1000 item limitation imposed by the Graph.
      */
-    getAllResults = async <T extends IBaseEntity>({
+    getAllResults = async <T extends BaseEntity>({
         query,
         isUpdatedAt,
         isEvent = false,

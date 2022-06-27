@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { IDAEvent } from "../interfaces";
+import { CFAEvent, IDAEvent } from "./interfaces";
 
 // Event Queries
 export const getFlowUpdatedEvents = gql`
@@ -9,6 +9,32 @@ export const getFlowUpdatedEvents = gql`
         $timestamp: Int
     ) {
         response: flowUpdatedEvents(
+            block: { number: $blockNumber }
+            first: $first
+            where: { timestamp_gte: $timestamp }
+            orderBy: timestamp
+            orderDirection: asc
+        ) {
+            id
+            transactionHash
+            timestamp
+            token
+            sender
+            receiver
+            flowRate
+            totalSenderFlowRate
+            totalReceiverFlowRate
+            userData
+        }
+    }
+`;
+export const getFlowOperatorUpdatedEvents = gql`
+    query getFlowOperatorUpdatedEvents(
+        $blockNumber: Int
+        $first: Int
+        $timestamp: Int
+    ) {
+        response: flowOperatorUpdatedEvents(
             block: { number: $blockNumber }
             first: $first
             where: { timestamp_gte: $timestamp }
@@ -436,6 +462,11 @@ export const getTokenStatistics = gql`
         }
     }
 `;
+
+export const cfaEventToQueryMap = new Map([
+    [CFAEvent.FlowOperatorUpdated, getFlowOperatorUpdatedEvents],
+    [CFAEvent.FlowUpdated, getFlowUpdatedEvents],
+]);
 
 export const idaEventToQueryMap = new Map([
     [IDAEvent.IndexCreated, getIndexCreatedEvents],

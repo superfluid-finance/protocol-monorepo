@@ -12,16 +12,18 @@ import {
     getTokenStatistics,
     getFlowUpdatedEvents,
     idaEventToQueryMap,
+    cfaEventToQueryMap,
 } from "./dataIntegrityQueries";
 import {
-    IDataIntegrityAccountTokenSnapshot,
-    IDataIntegrityIndex,
-    IDataIntegrityStream,
-    IDataIntegritySubscription,
-    IDataIntegrityTokenStatistic,
-    IOnChainCFAEvents,
-    IOnChainIDAEvents,
-} from "../interfaces";
+    CFAEvent,
+    DataIntegrityAccountTokenSnapshot,
+    DataIntegrityIndex,
+    DataIntegrityStream,
+    DataIntegritySubscription,
+    DataIntegrityTokenStatistic,
+    OnChainCFAEvents,
+    OnChainIDAEvents,
+} from "./interfaces";
 import { chainIdToData } from "../maps";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
@@ -39,18 +41,22 @@ import {
 } from "../dataIntegrity/helperFunctions";
 
 // currently set to 1 due to limitation with node-fetch
-// // https://github.com/node-fetch/node-fetch/issues/449
+// https://github.com/node-fetch/node-fetch/issues/449
 const DEFAULT_CHUNK_LENGTH = 1;
 const MAX_RESULTS_PER_PAGE = 1000; // a limit imposed by subgraph
+
+// Reference to the invariants tested:
+// https://github.com/superfluid-finance/protocol-monorepo/wiki/Subgraph-Data-Integrity-Invariants-Reference
 
 async function main() {
     let netFlowRateSum = toBN(0);
     let subscriptionUnitsSum = toBN(0);
     let indexUnitsSum = toBN(0);
-    let onChainCFAEvents: IOnChainCFAEvents = {
+    let onChainCFAEvents: OnChainCFAEvents = {
+        FlowOperatorUpdated: { events: [], groupedEvents: {} },
         FlowUpdated: { events: [], groupedEvents: {} },
     };
-    let onChainIDAEvents: IOnChainIDAEvents = {
+    let onChainIDAEvents: OnChainIDAEvents = {
         IndexCreated: { events: [], groupedEvents: {} },
         IndexDistributionClaimed: { events: [], groupedEvents: {} },
         IndexUpdated: { events: [], groupedEvents: {} },
@@ -115,21 +121,38 @@ async function main() {
 
     console.log("Querying flow updated events...\n");
 
-    const flowUpdatedEventsFilter = cfaV1.filters.FlowUpdated();
+    const flowUpdatedEventFilter = cfaV1.filters.FlowUpdated();
     const flowUpdatedEvents = await cfaV1.queryFilter(
-        flowUpdatedEventsFilter,
+        flowUpdatedEventFilter,
         addresses.hostStartBlock
     );
     const groupedFlowUpdatedEvents = _.groupBy(
         flowUpdatedEvents,
         (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
     );
-    onChainCFAEvents["FlowUpdated"] = {
+    const flowOperatorUpdatedEventFilter = cfaV1.filters.FlowOperatorUpdated();
+    const flowOperatorUpdatedEvents = await cfaV1.queryFilter(
+        flowOperatorUpdatedEventFilter,
+        addresses.hostStartBlock
+    );
+    const groupedFlowOperatorUpdatedEvents = _.groupBy(
+        flowOperatorUpdatedEvents,
+        (x) => x.transactionHash.toLowerCase() + "-" + x.logIndex
+    );
+    onChainCFAEvents[CFAEvent.FlowOperatorUpdated] = {
+        events: flowOperatorUpdatedEvents,
+        groupedEvents: groupedFlowOperatorUpdatedEvents,
+    };
+    onChainCFAEvents[CFAEvent.FlowUpdated] = {
         events: flowUpdatedEvents,
         groupedEvents: groupedFlowUpdatedEvents,
     };
 
     console.log(flowUpdatedEvents.length, "FlowUpdated events queried.");
+    console.log(
+        flowOperatorUpdatedEvents.length,
+        "FlowOperatorUpdated events queried."
+    );
 
     // query and set all the ida events in our onChainEvents object
     await Promise.all(
@@ -153,11 +176,21 @@ async function main() {
     console.log("\nCFA/IDA Event Entities Validation Starting (G.3)...");
 
     console.log("CFA Events Validation Starting...");
-    const cfaErrors = await querySubgraphAndValidateEvents({
-        queryHelper,
-        query: getFlowUpdatedEvents,
-        onChainCFAEvents,
-    });
+    let cfaErrors = 0;
+    await Promise.all(
+        keys(onChainCFAEvents).map(async (x) => {
+            const query = cfaEventToQueryMap.get(x);
+            if (!query) {
+                throw new Error("No query: invalid CFA event.");
+            }
+            cfaErrors += await querySubgraphAndValidateEvents({
+                queryHelper,
+                query,
+                onChainCFAEvents,
+                eventName: x,
+            });
+        })
+    )
 
     console.log("\nIDA Events Validation Starting...");
     let idaErrors = 0;
@@ -171,7 +204,7 @@ async function main() {
                 queryHelper,
                 query,
                 onChainIDAEvents,
-                idaEventName: x,
+                eventName: x,
             });
         })
     );
@@ -191,7 +224,7 @@ async function main() {
     console.log("\nQuerying all streams via the Subgraph...");
 
     // This gets all of the current streams (flow rate > 0)
-    const streams = await queryHelper.getAllResults<IDataIntegrityStream>({
+    const streams = await queryHelper.getAllResults<DataIntegrityStream>({
         query: getCurrentStreams,
         isUpdatedAt: false,
     });
@@ -200,14 +233,14 @@ async function main() {
     // This gets account token snapshots of all accounts that have
     // ever interacted with the Super protocol.
     const accountTokenSnapshots =
-        await queryHelper.getAllResults<IDataIntegrityAccountTokenSnapshot>({
+        await queryHelper.getAllResults<DataIntegrityAccountTokenSnapshot>({
             query: getAccountTokenSnapshots,
             isUpdatedAt: true,
         });
 
     console.log("\nQuerying all indexes via the Subgraph...");
     // Gets all indexes ever created
-    const indexes = await queryHelper.getAllResults<IDataIntegrityIndex>({
+    const indexes = await queryHelper.getAllResults<DataIntegrityIndex>({
         query: getIndexes,
         isUpdatedAt: false,
     });
@@ -215,7 +248,7 @@ async function main() {
     console.log("\nQuerying all subscriptions via the Subgraph...");
     // Gets all subscriptions ever created
     const subscriptions =
-        await queryHelper.getAllResults<IDataIntegritySubscription>({
+        await queryHelper.getAllResults<DataIntegritySubscription>({
             query: getSubscriptions,
             isUpdatedAt: false,
         });
@@ -223,7 +256,7 @@ async function main() {
     console.log("\nQuerying all tokenStatistics via the Subgraph...");
     // Gets all subscriptions ever created
     const tokenStatistics =
-        await queryHelper.getAllResults<IDataIntegrityTokenStatistic>({
+        await queryHelper.getAllResults<DataIntegrityTokenStatistic>({
             query: getTokenStatistics,
             isUpdatedAt: true,
         });

@@ -3,7 +3,7 @@ import {
     getMostRecentIndexedBlockNumber,
     QueryHelper,
 } from "./dataIntegrity/helperFunctions";
-import { IDataIntegrityAccountTokenSnapshot } from "./interfaces";
+import { DataIntegrityAccountTokenSnapshot } from "./dataIntegrity/interfaces";
 
 async function main() {
     const endpointA =
@@ -29,7 +29,7 @@ async function main() {
 
     console.log("Retrieving Feature Endpoint data");
     const endpointAData =
-        await endpointAQueryHelper.getAllResults<IDataIntegrityAccountTokenSnapshot>(
+        await endpointAQueryHelper.getAllResults<DataIntegrityAccountTokenSnapshot>(
             {
                 query: getAccountTokenSnapshots,
                 isUpdatedAt: true,
@@ -38,7 +38,7 @@ async function main() {
 
     console.log("Retrieving V1 Endpoint data");
     const endpointBData =
-        await endpointBQueryHelper.getAllResults<IDataIntegrityAccountTokenSnapshot>(
+        await endpointBQueryHelper.getAllResults<DataIntegrityAccountTokenSnapshot>(
             {
                 query: getAccountTokenSnapshots,
                 isUpdatedAt: true,

@@ -1,4 +1,4 @@
-import {getFramework, getSigner} from '../../../../sdkReduxConfig';
+import {getFramework} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionTrackerSlice/registerNewTransaction';
 import {RpcEndpointBuilder} from '../rpcEndpointBuilder';
@@ -16,7 +16,6 @@ import {
 export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     indexCreate: builder.mutation<TransactionInfo, IndexCreateMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -24,13 +23,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                 .createIndex({
                     indexId: arg.indexId,
                     userData: arg.userDataBytes,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Create Index',
@@ -40,7 +40,6 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     indexDistribute: builder.mutation<TransactionInfo, IndexDistributeMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -49,13 +48,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                     indexId: arg.indexId,
                     userData: arg.userDataBytes,
                     amount: arg.amountWei,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Distribute Index',
@@ -65,7 +65,6 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     indexUpdateSubscriptionUnits: builder.mutation<TransactionInfo, IndexUpdateSubscriptionUnitsMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -75,13 +74,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                     subscriber: arg.subscriberAddress,
                     units: arg.unitsNumber,
                     userData: arg.userDataBytes,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Update Index Subscription Units',
@@ -91,7 +91,6 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     indexSubscriptionApprove: builder.mutation<TransactionInfo, IndexSubscriptionApproveMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -100,13 +99,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                     indexId: arg.indexId,
                     publisher: arg.publisherAddress,
                     userData: arg.userDataBytes,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Approve Index Subscription',
@@ -116,7 +116,6 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     indexSubscriptionClaim: builder.mutation<TransactionInfo, IndexSubscriptionClaimMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -126,13 +125,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                     publisher: arg.publisherAddress,
                     subscriber: arg.subscriberAddress,
                     userData: arg.userDataBytes,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Claim from Index Subscription',
@@ -142,7 +142,6 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     indexDeleteSubscription: builder.mutation<TransactionInfo, IndexDeleteSubscriptionMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -152,13 +151,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                     publisher: arg.publisherAddress,
                     subscriber: arg.subscriberAddress,
                     userData: arg.userDataBytes,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Delete Index Subscription',
@@ -168,7 +168,6 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     indexSubscriptionRevoke: builder.mutation<TransactionInfo, IndexSubscriptionRevokeMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -177,13 +176,14 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
                     indexId: arg.indexId,
                     publisher: arg.publisherAddress,
                     userData: arg.userDataBytes,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Revoke Index Subscription',

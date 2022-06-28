@@ -18,7 +18,12 @@ import {
     TokenUpgradedEvent,
     TransferEvent,
 } from "../../generated/schema";
-import {createEventID, getOrder, tokenHasValidHost, ZERO_ADDRESS} from "../utils";
+import {
+    createEventID,
+    getOrder,
+    tokenHasValidHost,
+    ZERO_ADDRESS,
+} from "../utils";
 import {
     createAccountTokenSnapshotLogEntity,
     getOrInitAccount,
@@ -28,36 +33,55 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
-import {Address, BigInt, ethereum, log} from "@graphprotocol/graph-ts";
+import { getHostAddress } from "../addresses";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
     liquidatorAccount: Address,
     targetAccount: Address,
     bondAccount: Address,
-    eventName: String,
+    eventName: string
 ): void {
     getOrInitSuperToken(event.address, event.block);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         liquidatorAccount,
         event.address,
-        event.block
+        event.block,
+        null // will always do RPC - don't want to leak liquidation logic here
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         targetAccount,
         event.address,
-        event.block
+        event.block,
+        null // will always do RPC - don't want to leak liquidation logic here
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         bondAccount,
         event.address,
-        event.block
+        event.block,
+        null // will always do RPC - don't want to leak liquidation logic here
     );
-    createAccountTokenSnapshotLogEntity(event, targetAccount, event.address, eventName);
-    createAccountTokenSnapshotLogEntity(event, liquidatorAccount, event.address, eventName);
-    createAccountTokenSnapshotLogEntity(event, bondAccount, event.address, eventName);
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    createAccountTokenSnapshotLogEntity(
+        event,
+        targetAccount,
+        event.address,
+        eventName
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        liquidatorAccount,
+        event.address,
+        eventName
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        bondAccount,
+        event.address,
+        eventName
+    );
 }
 
 export function handleAgreementLiquidatedBy(
@@ -95,7 +119,7 @@ export function handleAgreementLiquidatedV2(
         event,
         event.params.liquidatorAccount,
         event.params.targetAccount,
-        event.params.rewardAccount,
+        event.params.rewardAmountReceiver,
         "AgreementLiquidatedV2"
     );
 }
@@ -116,9 +140,16 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
         event.address,
-        event.block
+        event.block,
+        null // will always do final RPC - override accounting done in handleTransfer
     );
-    createAccountTokenSnapshotLogEntity(event, event.params.account, event.address, "TokenUpgraded");
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.address,
+        "TokenUpgraded"
+    );
 }
 
 export function handleTokenDowngraded(event: TokenDowngraded): void {
@@ -137,9 +168,16 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
         event.address,
-        event.block
+        event.block,
+        null // will always do final RPC - override accounting done in handleTransfer
     );
-    createAccountTokenSnapshotLogEntity(event, event.params.account, event.address, "TokenDowngraded");
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.address,
+        "TokenDowngraded"
+    );
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -158,12 +196,14 @@ export function handleTransfer(event: Transfer): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.to,
         event.address,
-        event.block
+        event.block,
+        event.params.value // manual accounting (overriden in upgrade/downgrade)
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.from,
         event.address,
-        event.block
+        event.block,
+        event.params.value.neg() // manual accounting (overriden in upgrade/downgrade)
     );
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -176,8 +216,18 @@ export function handleTransfer(event: Transfer): void {
 
     if (event.params.to.equals(ZERO_ADDRESS)) return;
     if (event.params.from.equals(ZERO_ADDRESS)) return; // Ignoring downgrade and upgrade transfer event logs.
-    createAccountTokenSnapshotLogEntity(event, event.params.to, event.address, "Transfer");
-    createAccountTokenSnapshotLogEntity(event, event.params.from, event.address, "Transfer");
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.to,
+        event.address,
+        "Transfer"
+    );
+    createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.from,
+        event.address,
+        "Transfer"
+    );
 }
 
 export function handleSent(event: Sent): void {
@@ -259,7 +309,7 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
         event.address,
         event.params.liquidatorAccount,
         event.params.targetAccount,
-        event.params.rewardAccount,
+        event.params.rewardAmountReceiver,
     ];
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -269,7 +319,8 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
     ev.agreementClass = event.params.agreementClass;
     ev.agreementId = event.params.id;
     ev.targetAccount = event.params.targetAccount;
-    ev.rewardAccount = event.params.rewardAccount;
+    ev.rewardAmountReceiver = event.params.rewardAmountReceiver;
+    ev.rewardAccount = event.params.rewardAmountReceiver;
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
 

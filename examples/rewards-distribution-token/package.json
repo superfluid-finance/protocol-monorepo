@@ -4,7 +4,8 @@
   "description": "Re-write rewards-distribution-token tests using new sdk and hardhat ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat test",
+    "build": "npx hardhat compile && npx hardhat typechain"
   },
   "author": "Andres Mayorca - ethcode",
   "license": "ISC",
@@ -22,13 +23,17 @@
   "dependencies": {
     "@decentral.ee/web3-helpers": "^0.5.3",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@nomiclabs/hardhat-truffle5": "^2.0.6",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.6.0",
     "@superfluid-finance/ethereum-contracts": "^1.2.1",
     "@superfluid-finance/js-sdk": "^0.5.13",
     "@superfluid-finance/sdk-core": "^0.4.0",
+    "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^6.0.0",
     "@types/mocha": "^9.1.1",
     "dotenv": "^16.0.0",
+    "graphql": "^16.5.0",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21"
   }

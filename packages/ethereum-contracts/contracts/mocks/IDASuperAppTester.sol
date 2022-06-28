@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperfluid,
@@ -26,18 +26,20 @@ contract IDASuperAppTester is ISuperApp {
         uint32 indexId)
     {
         _host = host;
-        _host.registerApp(configWord);
+        _host.registerAppWithKey(configWord, "");
         _ida = ida;
         _token = token;
         _indexId = indexId;
 
         _host.callAgreement(
             _ida,
-            abi.encodeWithSelector(
-                _ida.createIndex.selector,
-                _token,
-                _indexId,
-                new bytes(0) // placeholder ctx
+            abi.encodeCall(
+                _ida.createIndex,
+                (
+                    _token,
+                    _indexId,
+                    new bytes(0) // placeholder ctx
+                )
             ),
             new bytes(0) // user data
         );
@@ -51,13 +53,15 @@ contract IDASuperAppTester is ISuperApp {
     {
         _host.callAgreement(
             _ida,
-            abi.encodeWithSelector(
-                _ida.updateSubscription.selector,
-                _token,
-                _indexId,
-                subscriber,
-                units,
-                new bytes(0) // placeholder ctx
+            abi.encodeCall(
+                _ida.updateSubscription,
+                (
+                    _token,
+                    _indexId,
+                    subscriber,
+                    units,
+                    new bytes(0) // placeholder ctx
+                )
             ),
             new bytes(0) // user data
         );
@@ -70,12 +74,14 @@ contract IDASuperAppTester is ISuperApp {
     {
         _host.callAgreement(
             _ida,
-            abi.encodeWithSelector(
-                _ida.distribute.selector,
-                _token,
-                _indexId,
-                amount,
-                new bytes(0) // placeholder ctx
+            abi.encodeCall(
+                _ida.distribute,
+                (
+                    _token,
+                    _indexId,
+                    amount,
+                    new bytes(0) // placeholder ctx
+                )
             ),
             new bytes(0) // user data
         );

@@ -6,6 +6,8 @@ import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 import {NetworkUserConfig} from "hardhat/types";
+import "solidity-docgen";
+import { resolve, relative } from "path";
 
 try {
     dotenvConfig();
@@ -58,7 +60,7 @@ function createNetworkConfig(
 }
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.13",
+        version: "0.8.14",
         settings: {
             optimizer: {
                 enabled: true,
@@ -125,6 +127,13 @@ const config: HardhatUserConfig = {
     },
     mocha: {
         timeout: 250000,
+    },
+    docgen: {
+        outputDir: "docs/api",
+        templates: "./docs/docgen-templates",
+        pages: (item: any, file: any) => file.absolutePath.startsWith('contracts/interfaces/')
+            ? relative('contracts', file.absolutePath).replace('.sol', '.md')
+            : undefined,
     },
 };
 

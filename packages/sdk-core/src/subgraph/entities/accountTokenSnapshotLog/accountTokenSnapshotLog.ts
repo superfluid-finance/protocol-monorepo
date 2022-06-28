@@ -29,7 +29,7 @@ export interface AccountTokenSnapshotLog {
     timestamp: Timestamp;
     blockNumber: BlockNumber;
     balance: BigNumber;
-    maybeCriticalAtTimestamp: BigNumber;
+    maybeCriticalAtTimestamp: Timestamp | null;
     totalAmountStreamed: BigNumber;
     totalAmountTransferred: BigNumber;
     totalApprovedSubscriptions: number;
@@ -80,6 +80,10 @@ export class AccountTokenSnapshotLogQueryHandler extends SubgraphQueryHandler<
             account: x.account.id,
             token: x.token.id,
             tokenSymbol: x.token.symbol,
+            maybeCriticalAtTimestamp:
+                x.maybeCriticalAtTimestamp != null
+                    ? Number(x.maybeCriticalAtTimestamp)
+                    : null,
             blockNumber: Number(x.blockNumber),
             timestamp: Number(x.timestamp),
             order: Number(x.order),

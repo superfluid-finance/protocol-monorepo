@@ -235,30 +235,36 @@ export function subscriptionExists(id: string): boolean {
 export function getAmountStreamedSinceLastUpdatedAt(
     currentTime: BigInt,
     lastUpdatedTime: BigInt,
-    previousTotalOutflowRate: BigInt
+    flowRate: BigInt
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
-    return timeDelta.times(previousTotalOutflowRate);
+    return timeDelta.times(flowRate);
 }
 
 /**
- * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, totalDeposit, balanceUntilUpdatedAt and totalNetFlowRate.
+ * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, balanceUntilUpdatedAt and totalNetFlowRate.
  * @param updatedAtTimestamp
  * @param balanceUntilUpdatedAt
- * @param totalDeposit
  * @param totalNetFlowRate
+ * @param previousMaybeCriticalAtTimestamp
  */
 
 export function calculateMaybeCriticalAtTimestamp(
     updatedAtTimestamp: BigInt,
     balanceUntilUpdatedAt: BigInt,
-    totalDeposit: BigInt,
-    totalNetFlowRate: BigInt
-): BigInt {
-    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return BIG_INT_ZERO;
-    if (totalNetFlowRate.ge(BIG_INT_ZERO)) return BIG_INT_ZERO;
-    const criticalTimestamp = balanceUntilUpdatedAt.plus(totalDeposit).div(totalNetFlowRate.abs());
-    const calculatedCriticalTimestamp = criticalTimestamp.plus(updatedAtTimestamp);
+    totalNetFlowRate: BigInt,
+    previousMaybeCriticalAtTimestamp: BigInt | null,
+): BigInt | null {
+    // When the flow rate is not negative then there's no way to have a critical balance timestamp anymore.
+    if (totalNetFlowRate.ge(BIG_INT_ZERO)) return null;
+
+    // When there's no balance then that either means:
+    // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
+    // 2. it's a new account without a critical balance timestamp to begin with
+    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return previousMaybeCriticalAtTimestamp;
+
+    const secondsUntilCritical = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
+    const calculatedCriticalTimestamp = updatedAtTimestamp.plus(secondsUntilCritical);
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
         return MAX_SAFE_SECONDS;
     }

@@ -1,55 +1,19 @@
 import { Query } from "@superfluid-finance/sdk-core/src";
 import { expect } from "chai";
+import {
+    ETH_GOERLI_CHAIN_ID,
+    MATIC_CHAIN_ID,
+} from "@superfluid-finance/sdk-core/src/constants";
 
-export const testExpectWeb3OnlyErrors = async (query: Query) => {
-    query = new Query({
-        dataMode: "WEB3_ONLY",
-        customSubgraphQueriesEndpoint:
-            query.options.customSubgraphQueriesEndpoint,
-    });
-
-    try {
-        await query.listAllSuperTokens({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listIndexes({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listIndexSubscriptions({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listStreams({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listUserInteractedSuperTokens({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listEvents({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
+/**
+ * We only use matic network endpoints for v1 release tests
+ * otherwise, we use goerli
+ * @returns chainId
+ */
+export const getChainId = () => {
+    return process.env.SUBGRAPH_RELEASE_TAG == "v1"
+        ? MATIC_CHAIN_ID
+        : ETH_GOERLI_CHAIN_ID;
 };
 
 export const testQueryClassFunctions = async (query: Query) => {

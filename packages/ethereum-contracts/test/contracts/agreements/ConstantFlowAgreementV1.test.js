@@ -990,7 +990,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: admin}
+                    {rewardAmountReceiver: admin}
                 );
 
                 // reward account (here: admin) should have received the deposit
@@ -1044,7 +1044,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: admin}
+                    {rewardAmountReceiver: admin}
                 );
 
                 // reward account (here: admin) should have received the deposit
@@ -1108,7 +1108,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: admin}
+                    {rewardAmountReceiver: admin}
                 );
 
                 // reward account (here: admin) should have received the deposit
@@ -1162,7 +1162,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: t.aliases[agent]}
+                    {rewardAmountReceiver: t.aliases[agent]}
                 );
 
                 // reward account (here: agent) should have received the deposit
@@ -1223,7 +1223,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: t.aliases[agent]}
+                    {rewardAmountReceiver: t.aliases[agent]}
                 );
 
                 // reward account (here: agent) should have received the deposit
@@ -1286,7 +1286,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: t.aliases[agent]}
+                    {rewardAmountReceiver: t.aliases[agent]}
                 );
 
                 // reward account (here: agent) should have received the deposit
@@ -1333,7 +1333,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: t.aliases[agent]}
+                    {rewardAmountReceiver: t.aliases[agent]}
                 );
 
                 // reward account (here: agent) should have received the deposit
@@ -1385,7 +1385,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     r.tx,
                     t.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
-                    {rewardAccount: t.aliases[agent]}
+                    {rewardAmountReceiver: t.aliases[agent]}
                 );
             });
 

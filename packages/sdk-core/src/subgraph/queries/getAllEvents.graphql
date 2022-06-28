@@ -284,11 +284,14 @@ query getAllEvents(
             agreementClass
             agreementId
             targetAccount
-            rewardAccount
+            rewardAmountReceiver
             rewardAmount
             targetAccountBalanceDelta
             version
             liquidationType
+
+            # TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+            rewardAccount
         }
         ... on BurnedEvent {
             ...eventFields

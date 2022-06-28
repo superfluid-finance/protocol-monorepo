@@ -399,7 +399,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
-        accountTokenSnapshot.maybeCriticalAtTimestamp = BIG_INT_ZERO;
+        accountTokenSnapshot.maybeCriticalAtTimestamp = null;
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
         accountTokenSnapshot.save();
@@ -523,27 +523,39 @@ export function updateAggregateIDASubscriptionsData(
  */
 function updateATSBalanceAndUpdatedAt(
     accountTokenSnapshot: AccountTokenSnapshot,
-    block: ethereum.Block
+    block: ethereum.Block,
+    balanceDelta: BigInt | null
 ): AccountTokenSnapshot {
     let superTokenContract = SuperToken.bind(
         Address.fromString(accountTokenSnapshot.token)
     );
-    let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
-        Address.fromString(accountTokenSnapshot.account),
-        block.timestamp
-    );
-    if (!newBalanceResult.reverted) {
+
+    if (balanceDelta && accountTokenSnapshot.totalSubscriptionsWithUnits == 0) {
         accountTokenSnapshot.balanceUntilUpdatedAt =
-            newBalanceResult.value.value0;
+            accountTokenSnapshot.balanceUntilUpdatedAt.plus(balanceDelta as BigInt);
+    } else {
+        // if the account has any subscriptions with units we assume that
+        // the balance data requires a RPC call for balance because we did not
+        // have claim events there and we do not count distributions
+        // for subscribers
+        let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
+            Address.fromString(accountTokenSnapshot.account),
+            block.timestamp
+        );
+        if (!newBalanceResult.reverted) {
+            accountTokenSnapshot.balanceUntilUpdatedAt =
+                newBalanceResult.value.value0;
+        }
     }
+
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
 
     accountTokenSnapshot.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         accountTokenSnapshot.updatedAtTimestamp,
         accountTokenSnapshot.balanceUntilUpdatedAt,
-        accountTokenSnapshot.totalDeposit,
-        accountTokenSnapshot.totalNetFlowRate
+        accountTokenSnapshot.totalNetFlowRate,
+        accountTokenSnapshot.maybeCriticalAtTimestamp
     );
 
     accountTokenSnapshot.save();
@@ -553,19 +565,21 @@ function updateATSBalanceAndUpdatedAt(
 /**
  * Updates the amount streamed, balance until updated at for the AccountTokenSnapshot
  * entity and also updates the updatedAt property on the account entity.
- * @dev Must call before updatedAt is updated.
+ * NOTE: call before the `updatedAt` property is updated otherwise you get incorrect data;
+ * NOTE: you should be calling updateTokenStatsStreamedUntilUpdatedAt whenever you call this
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountAddress: Address,
     tokenAddress: Address,
-    block: ethereum.Block
+    block: ethereum.Block,
+    balanceDelta: BigInt | null
 ): void {
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
         accountAddress,
         tokenAddress,
         block
     );
-    let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
+    let amountStreamedInSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
         block.timestamp,
         accountTokenSnapshot.updatedAtTimestamp,
         accountTokenSnapshot.totalOutflowRate
@@ -574,14 +588,22 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     // update the totalStreamedUntilUpdatedAt
     accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt =
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt.plus(
-            amountStreamedSinceLastUpdatedAt
+            amountStreamedInSinceLastUpdatedAt
         );
 
-    // update the balance via external call and saves the entity
-    // NOTE: this is the main culprit which slows things down currently
+    let netAmountStreamedInSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
+        block.timestamp,
+        accountTokenSnapshot.updatedAtTimestamp,
+        accountTokenSnapshot.totalNetFlowRate
+    );
+
+    // update the balance via external call if account has any subscription with more than 0 units
+    // or uses the balance delta (which includes amount streamed) and saves the entity
+    // we always add the amount streamed in this function
     accountTokenSnapshot = updateATSBalanceAndUpdatedAt(
         accountTokenSnapshot,
-        block
+        block,
+        balanceDelta ? balanceDelta.plus(netAmountStreamedInSinceLastUpdatedAt) : balanceDelta
     );
     accountTokenSnapshot.save();
 
@@ -589,6 +611,11 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     updateAccountUpdatedAt(accountAddress, block);
 }
 
+/**
+ * This function should always be called with updateATSStreamedAndBalanceUntilUpdatedAt
+ * @param tokenAddress
+ * @param block
+ */
 export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenAddress: Address,
     block: ethereum.Block
@@ -603,6 +630,8 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
         tokenStats.totalAmountStreamedUntilUpdatedAt.plus(
             amountStreamedSinceLastUpdatedAt
         );
+    tokenStats.updatedAtTimestamp = block.timestamp;
+    tokenStats.updatedAtBlockNumber = block.number;
     tokenStats.save();
 }
 
@@ -681,8 +710,8 @@ export function updateAggregateEntitiesStreamData(
     senderATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         senderATS.updatedAtTimestamp,
         senderATS.balanceUntilUpdatedAt,
-        senderATS.totalDeposit,
-        senderATS.totalNetFlowRate
+        senderATS.totalNetFlowRate,
+        senderATS.maybeCriticalAtTimestamp
     );
 
     let receiverATS = getOrInitAccountTokenSnapshot(
@@ -711,8 +740,8 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.maybeCriticalAtTimestamp = calculateMaybeCriticalAtTimestamp(
         receiverATS.updatedAtTimestamp,
         receiverATS.balanceUntilUpdatedAt,
-        receiverATS.totalDeposit,
-        receiverATS.totalNetFlowRate
+        receiverATS.totalNetFlowRate,
+        receiverATS.maybeCriticalAtTimestamp
     );
     receiverATS.save();
 

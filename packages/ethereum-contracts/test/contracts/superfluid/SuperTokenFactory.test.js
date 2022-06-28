@@ -8,6 +8,9 @@ const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMockHelper = artifacts.require(
     "SuperTokenFactoryMockHelper"
 );
+const FullUpgradableSuperTokenProxy = artifacts.require(
+    "FullUpgradableSuperTokenProxy"
+);
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -165,6 +168,9 @@ describe("SuperTokenFactory Contract", function () {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 2,
                 });
+                let proxy = await FullUpgradableSuperTokenProxy.at(
+                    superToken1.address
+                );
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
                     token: superToken1.address,
                 });
@@ -179,6 +185,10 @@ describe("SuperTokenFactory Contract", function () {
                         superToken1.address,
                     ]),
                     "UUPSProxiable: not upgradable"
+                );
+                await expectRevertedWith(
+                    proxy.initialize(),
+                    "Already initialized"
                 );
             });
 

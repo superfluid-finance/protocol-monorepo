@@ -81,7 +81,7 @@ jobs:
       - name: Test ethereum-contracts
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
-  
+
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 
@@ -144,6 +144,9 @@ jobs:
     name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
+    with:
+      subgraph-release: ''
+      run-sdk-core-tests: false
 
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml

@@ -1158,11 +1158,14 @@ fragment agreementLiquidatedV2Event on AgreementLiquidatedV2Event {
     agreementClass
     agreementId
     targetAccount
-    rewardAccount
+    rewardAmountReceiver
     rewardAmount
     targetAccountBalanceDelta
     version
     liquidationType
+
+    # TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+    rewardAccount
 }
 
 fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {

@@ -78,14 +78,14 @@ async function deployContractIfCodeChanged(
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.newTestResolver Force to create a new resolver (overridng env: CREATE_NEW_RESOLVER)
- * @param {boolean} options.useMocks Use mock contracts instead (overridng env: USE_MOCKS)
+ * @param {boolean} options.newTestResolver Force to create a new resolver (overriding env: CREATE_NEW_RESOLVER)
+ * @param {boolean} options.useMocks Use mock contracts instead (overriding env: USE_MOCKS)
  * @param {boolean} options.nonUpgradable Deploy contracts configured to be non-upgradable
- *                  (overridng env: NON_UPGRADABLE)
+ *                  (overriding env: NON_UPGRADABLE)
  * @param {boolean} options.appWhiteListing Deploy contracts configured to require app white listing
- *                  (overridng env: ENABLE_APP_WHITELISTING)
+ *                  (overriding env: ENABLE_APP_WHITELISTING)
  * @param {boolean} options.resetSuperfluidFramework Reset the superfluid framework deployment
- *                  (overridng env: RESET_SUPERFLUID_FRAMEWORK)
+ *                  (overriding env: RESET_SUPERFLUID_FRAMEWORK)
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *                  (overriding env: RELEASE_VERSION)
  *

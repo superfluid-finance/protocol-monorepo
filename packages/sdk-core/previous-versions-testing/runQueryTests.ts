@@ -1,17 +1,14 @@
 import { Query } from "@superfluid-finance/sdk-core/src";
+import { chainIdToResolverDataMap } from "@superfluid-finance/sdk-core/src/constants";
 import {
-    chainIdToResolverDataMap,
-    MATIC_CHAIN_ID,
-} from "@superfluid-finance/sdk-core/src/constants";
-import {
+    getChainId,
     testExpectListenerThrow,
-    testExpectWeb3OnlyErrors,
     testGetAllEventsQuery,
     testListenerInitialization,
     testQueryClassFunctions,
 } from "./queryTests";
 
-const getSubgraphEndpoint = (chainId: number) => {
+export const getSubgraphEndpoint = (chainId: number) => {
     const resolverData = chainIdToResolverDataMap.get(chainId);
     if (!resolverData) throw new Error("Resolver data is undefined");
     return resolverData.subgraphAPIEndpoint;
@@ -20,12 +17,9 @@ const getSubgraphEndpoint = (chainId: number) => {
 describe("Query Tests", () => {
     let query: Query;
     before(async () => {
-        let customSubgraphQueriesEndpoint =
-            process.env.LOCAL_SUBGRAPH_URL ||
-            getSubgraphEndpoint(MATIC_CHAIN_ID);
-        
-        // this will work fine given the assumption that
-        // LOCAL_SUBGRAPH_URL doesn't have "v1"
+        const chainIdToUse = getChainId();
+        let customSubgraphQueriesEndpoint = getSubgraphEndpoint(chainIdToUse);
+
         if (process.env.SUBGRAPH_RELEASE_TAG) {
             customSubgraphQueriesEndpoint =
                 customSubgraphQueriesEndpoint.replace(
@@ -34,7 +28,6 @@ describe("Query Tests", () => {
                 );
         }
         query = new Query({
-            dataMode: "SUBGRAPH_ONLY",
             customSubgraphQueriesEndpoint,
         });
         console.log("Testing with endpoint:", customSubgraphQueriesEndpoint);
@@ -55,12 +48,6 @@ describe("Query Tests", () => {
 
         it("Should be able to use the listener", async () => {
             await testListenerInitialization(query);
-        });
-    });
-
-    describe("WEB3_ONLY mode should not allow queries", () => {
-        it("Should fail when trying to execute any of the query class in WEB3_ONLY mode", async () => {
-            await testExpectWeb3OnlyErrors(query);
         });
     });
 });

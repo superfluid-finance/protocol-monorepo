@@ -1,76 +1,102 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
-    ( CFAContractData (..)
-    , CFAAccountData (..)
-    , ConstantFlow (..)
-    , updateFlow
+    ( AgreementContractData' (..)
+    , AgreementAccountData' (..)
+    , AgreementParties (..)
+    , CFAContractData
+    , CFAAccountData
     ) where
 
-import           Data.Default                                    (Default (..))
-import           Data.Internal.TaggedTypeable                    (TaggedTypeable (..))
-import           Data.Kind                                       (Type)
-import           Text.Printf                                     (printf)
+import           Data.Default                                            (Default (..))
+import           Data.Internal.TaggedTypeable                            (TaggedTypeable (..))
+import           Data.Kind                                               (Type)
+import           Text.Printf                                             (printf)
 
 --
-import           Money.Systems.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
+import           Money.Systems.Superfluid.Concepts.Agreement
+    ( Agreement (..)
+    , AgreementAccountData (..)
+    , AgreementContractData
+    )
 import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
     , untypeLiquidity
     )
-import           Money.Systems.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance
+    ( RealtimeBalance (..)
+    , TypedLiquidityVector (..)
+    )
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
--- ============================================================================
--- | CFAContractData Type
---
-type CFAContractData :: Type -> Type
-data CFAContractData sft = CFAContractData
-    { flowLastUpdatedAt :: SFT_TS sft
-    , flowRate          :: SFT_LQ sft
-    , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
-    }
-instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
-instance SuperfluidTypes sft => Default (CFAContractData sft) where
-    def = CFAContractData
-        { flowLastUpdatedAt = def
-        , flowRate = def
-        , flowBuffer = def
+type ConstantFlowAgreement :: Type -> Type
+data ConstantFlowAgreement sft
+type CFAContractData sft = AgreementContractData' (ConstantFlowAgreement sft)
+type CFAAccountData sft = AgreementAccountData' (ConstantFlowAgreement sft)
+instance SuperfluidTypes sft => Agreement (ConstantFlowAgreement sft) where
+    type DistributionForAgreement (ConstantFlowAgreement sft) = sft
+    data AgreementContractData' (ConstantFlowAgreement sft) = CFAContractData
+        { flowLastUpdatedAt :: SFT_TS sft
+        , flowRate          :: SFT_LQ sft
+        , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
         }
+    data AgreementAccountData' (ConstantFlowAgreement sft) = CFAAccountData
+        { settledAt                :: SFT_TS sft
+        , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
+        , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
+        , netFlowRate              :: SFT_LQ sft
+        }
+    data AgreementParties (ConstantFlowAgreement sft) = CFAParties (CFAAccountData sft) (CFAAccountData sft)
 
-instance SuperfluidTypes sft => Show (CFAContractData sft) where
-    show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
-        (show $ flowLastUpdatedAt x) (show $ flowRate x) (show $ flowBuffer x)
+    createAgreementParties old new = CFAParties
+        CFAAccountData
+        { settledAt = t1
+        , netFlowRate = negate flowRateDelta
+        , settledUntappedLiquidity = UntappedLiquidity $ negate flowPeriodDelta - untypeLiquidity flowBufferDelta
+        , settledBufferLiquidity = flowBufferDelta
+        }
+        CFAAccountData
+        { settledAt = t1
+        , netFlowRate = flowRateDelta
+        , settledUntappedLiquidity = UntappedLiquidity $ flowPeriodDelta
+        , settledBufferLiquidity = def
+        }
+        where
+            fr = flowRate old
+            t0 = flowLastUpdatedAt old
+            t1 = flowLastUpdatedAt new
+            flowPeriodDelta = calc_liquidity_delta fr t0 t1
+            flowRateDelta = flowRate new - fr
+            flowBufferDelta = flowBuffer new - flowBuffer old
 
-instance SuperfluidTypes sft => AgreementContractData (CFAContractData sft) sft
+    liftAgreementParties2 f (CFAParties s r) (CFAParties s' r') = CFAParties (f s  s') (f r r')
 
--- ============================================================================
--- | CFAAccountData Type (is AgreementAccountData)
---
-type CFAAccountData :: Type -> Type
-data CFAAccountData sft = CFAAccountData
-    { settledAt                :: SFT_TS sft
-    , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
-    , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
-    , netFlowRate              :: SFT_LQ sft
-    }
-instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
-instance SuperfluidTypes sft => Default (CFAAccountData sft) where
-    def = CFAAccountData
+instance SuperfluidTypes sft => Semigroup (CFAAccountData sft) where
+    (<>) a b = CFAAccountData
+               { settledAt = settledAt b
+               , settledUntappedLiquidity = settledUntappedLiquidity a + settledUntappedLiquidity b
+               , settledBufferLiquidity = settledBufferLiquidity a + settledBufferLiquidity b
+               , netFlowRate = netFlowRate a + netFlowRate b
+               }
+
+instance SuperfluidTypes sft => Monoid (CFAAccountData sft) where
+    mempty = CFAAccountData
         { settledAt = def
         , settledUntappedLiquidity = def
         , settledBufferLiquidity = def
         , netFlowRate = def }
 
-calc_liquidity_delta :: (Liquidity lq, Timestamp ts) => lq -> ts -> ts -> lq
-calc_liquidity_delta fr t0 t1 = fr * fromIntegral (t1 - t0)
+-- | CFAAccountData Type (is AgreementAccountData)
+--
+instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
 
 instance SuperfluidTypes sft => AgreementAccountData (CFAAccountData sft) sft where
     providedBalanceOfAgreement CFAAccountData
@@ -83,6 +109,22 @@ instance SuperfluidTypes sft => AgreementAccountData (CFAAccountData sft) sft wh
             ( UntappedLiquidity $ uliq_s + calc_liquidity_delta fr t_s t )
             [ mkAnyTappedLiquidity buf_s ]
 
+-- | CFAContractData Type
+--
+instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
+instance SuperfluidTypes sft => Default (CFAContractData sft) where
+    def = CFAContractData
+        { flowLastUpdatedAt = def
+        , flowRate = def
+        , flowBuffer = def
+        }
+
+instance SuperfluidTypes sft => Show (CFAContractData sft) where
+    show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
+        (show $ flowLastUpdatedAt x) (show $ flowRate x) (show $ flowBuffer x)
+
+instance SuperfluidTypes sft => AgreementContractData (CFAContractData sft) sft (CFAAccountData sft)
+
 instance SuperfluidTypes sft => Show (CFAAccountData sft) where
     show x = printf "{ t = %s, uliq = %s, buf = %s, fr = %s }"
         (show $ settledAt x)
@@ -91,39 +133,8 @@ instance SuperfluidTypes sft => Show (CFAAccountData sft) where
         (show $ netFlowRate x)
 
 -- ============================================================================
--- CFA Operations
+-- Internal functions
 --
-type ConstantFlow :: Type -> Type
-data ConstantFlow sft = ConstantFlow
-    { flowContract :: CFAContractData sft
-    , flowSender   :: CFAAccountData sft
-    , flowReceiver :: CFAAccountData sft
-    }
-
-updateFlow
-    :: SuperfluidTypes sft
-    => ConstantFlow sft -> SFT_LQ sft -> BBS.BufferLiquidity (SFT_LQ sft) -> SFT_TS sft -> ConstantFlow sft
-updateFlow (ConstantFlow cfaACD senderAAD receiverAAD) newFlowRate newFlowBuffer t =
-    ConstantFlow CFAContractData
-            { flowLastUpdatedAt = t
-            , flowRate = newFlowRate
-            , flowBuffer = newFlowBuffer
-            }
-        ( update_flow_aad senderAAD (negate flowRateDelta) )
-        ( update_flow_aad receiverAAD flowRateDelta )
-    where
-    flowRateDelta = newFlowRate - flowRate cfaACD
-    flowBufferDelta = newFlowBuffer -  flowBuffer cfaACD
-    update_flow_aad CFAAccountData
-        { netFlowRate = fr
-        , settledUntappedLiquidity = (UntappedLiquidity uliq_s)
-        , settledBufferLiquidity = buf_s
-        , settledAt = t_s
-        } fr_delta
-        = CFAAccountData
-        { netFlowRate = fr + fr_delta
-        , settledUntappedLiquidity = UntappedLiquidity $
-            uliq_s + calc_liquidity_delta fr t_s t - untypeLiquidity flowBufferDelta
-        , settledBufferLiquidity = buf_s + flowBufferDelta
-        , settledAt = t
-        }
+-- Calculate liquidity delta for settlement
+calc_liquidity_delta :: (Liquidity lq, Timestamp ts) => lq -> ts -> ts -> lq
+calc_liquidity_delta fr t0 t1 = fr * fromIntegral (t1 - t0)

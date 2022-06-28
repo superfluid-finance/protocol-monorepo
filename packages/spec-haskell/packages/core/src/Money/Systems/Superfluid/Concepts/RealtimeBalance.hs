@@ -17,6 +17,7 @@ import           Money.Systems.Superfluid.Concepts.Liquidity (AnyTappedLiquidity
 --
 data UntypedLiquidityVector lq = UntypedLiquidityVector lq [lq]
 
+-- | Create an untyped liquidity vector from a list of liquidity
 mk_untyped_liquidity_vector :: Liquidity lq => [lq] -> UntypedLiquidityVector lq
 mk_untyped_liquidity_vector (uliq:xs) = UntypedLiquidityVector uliq xs
 mk_untyped_liquidity_vector _         = error "Untapped liquidity missing"

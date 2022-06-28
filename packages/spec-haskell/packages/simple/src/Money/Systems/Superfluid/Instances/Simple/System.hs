@@ -32,7 +32,7 @@ import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                          as M
+import qualified Data.Map                                                  as M
 import           Data.Maybe
 
 import           Money.Systems.Superfluid.Concepts.Agreement               (agreementTypeTag)
@@ -40,7 +40,9 @@ import           Money.Systems.Superfluid.Concepts.Agreement               (agre
 import           Data.Internal.TaggedTypeable
 --
 import qualified Money.Systems.Superfluid.System.AccountTokenModel         as SF
-import qualified Money.Systems.Superfluid.System.Serialization             as S
+--
+import qualified Money.Systems.Superfluid.Integrations.Serialization       as S
+import           Money.Systems.Superfluid.Integrations.Show                ()
 
 import           Money.Systems.Superfluid.Instances.Simple.Serialization
 import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
@@ -57,6 +59,7 @@ data SimpleAccount = SimpleAccount
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     addressOfAccount = address
 
+--    agreementOfAccount :: (AgreementAccountData aad sft)
     agreementOfAccount taggedProxy acc = S.runGetter taggedProxy
          <$> M.lookup k (agreementAccountData acc)
          where k = tagFromProxy taggedProxy

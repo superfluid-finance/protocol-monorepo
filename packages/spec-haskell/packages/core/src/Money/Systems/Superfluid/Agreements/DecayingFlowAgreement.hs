@@ -25,13 +25,19 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
     , updateDecayingFlow
     ) where
 
-import           Data.Default                                    (Default (..))
-import           Data.Kind                                       (Type)
-import           Text.Printf                                     (printf)
+import           Data.Default                                            (Default (..))
+import           Data.Kind                                               (Type)
+import           Text.Printf                                             (printf)
 
-import           Money.Systems.Superfluid.Concepts.Agreement             (AgreementAccountData (..), AgreementContractData)
+import           Money.Systems.Superfluid.Concepts.Agreement
+    ( AgreementAccountData (..)
+    , AgreementContractData
+    )
 import           Money.Systems.Superfluid.Concepts.Liquidity             (UntappedLiquidity (..), mkAnyTappedLiquidity)
-import           Money.Systems.Superfluid.Concepts.RealtimeBalance       (RealtimeBalance (..), TypedLiquidityVector (..))
+import           Money.Systems.Superfluid.Concepts.RealtimeBalance
+    ( RealtimeBalance (..)
+    , TypedLiquidityVector (..)
+    )
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --
 import           Data.Internal.TaggedTypeable
@@ -41,7 +47,47 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 default_lambda :: RealFloat b => b
 default_lambda = log 2 / (3600 * 24 * 7)
 
--- ============================================================================
+
+-- | DFAAccountData Type (is AgreementAccountData)
+--
+type DFAAccountData :: Type -> Type
+data DFAAccountData sft = DFAAccountData
+    { settledAt     :: SFT_TS sft
+    , αVal          :: SFT_FLOAT sft
+    , εVal          :: SFT_FLOAT sft
+    , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sft)
+    }
+instance SuperfluidTypes sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
+
+instance SuperfluidTypes sft => AgreementAccountData (DFAAccountData sft) sft where
+    providedBalanceOfAgreement DFAAccountData
+        { settledAt = t_s
+        , αVal = α
+        , εVal = ε
+        , settledBuffer = buf_s
+        } t =
+        typedLiquidityVectorToRTB $ TypedLiquidityVector
+            ( UntappedLiquidity $ ceiling $ α * exp (-λ * t_Δ) + ε )
+            [ mkAnyTappedLiquidity buf_s ]
+        where λ = default_lambda
+              t_Δ = fromIntegral (t - t_s)
+
+instance SuperfluidTypes sft => Show (DFAAccountData sft) where
+    show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
+        (show $ settledAt x)
+        (show $ αVal x)
+        (show $ εVal x)
+        (show $ settledBuffer x)
+
+instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
+    (<>) = undefined
+instance SuperfluidTypes sft => Monoid (DFAAccountData sft) where
+    mempty = DFAAccountData
+        { settledAt = def
+        , αVal = def
+        , εVal = def
+        , settledBuffer = def }
+
 -- | DFAContractData Type
 --
 type DFAContractData :: Type -> Type
@@ -64,45 +110,9 @@ instance SuperfluidTypes sft => Show (DFAContractData sft) where
     show x = printf "{ t_u = %s, δ = %s, λ = %s }"
         (show $ flowLastUpdatedAt x) (show $ distributionLimit x) (show $ decayingFactor x)
 
-instance SuperfluidTypes sft => AgreementContractData (DFAContractData sft) sft
+instance SuperfluidTypes sft => AgreementContractData (DFAContractData sft) sft (DFAAccountData sft)
 
 -- ============================================================================
--- | DFAAccountData Type (is AgreementAccountData)
---
-type DFAAccountData :: Type -> Type
-data DFAAccountData sft = DFAAccountData
-    { settledAt     :: SFT_TS sft
-    , αVal          :: SFT_FLOAT sft
-    , εVal          :: SFT_FLOAT sft
-    , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sft)
-    }
-instance SuperfluidTypes sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
-instance SuperfluidTypes sft => Default (DFAAccountData sft) where
-    def = DFAAccountData
-        { settledAt = def
-        , αVal = def
-        , εVal = def
-        , settledBuffer = def }
-
-instance SuperfluidTypes sft => AgreementAccountData (DFAAccountData sft) sft where
-    providedBalanceOfAgreement DFAAccountData
-        { settledAt = t_s
-        , αVal = α
-        , εVal = ε
-        , settledBuffer = buf_s
-        } t =
-        typedLiquidityVectorToRTB $ TypedLiquidityVector
-            ( UntappedLiquidity $ ceiling $ α * exp (-λ * t_Δ) + ε )
-            [ mkAnyTappedLiquidity buf_s ]
-        where λ = default_lambda
-              t_Δ = fromIntegral (t - t_s)
-
-instance SuperfluidTypes sft => Show (DFAAccountData sft) where
-    show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
-        (show $ settledAt x)
-        (show $ αVal x)
-        (show $ εVal x)
-        (show $ settledBuffer x)
 
 -- ============================================================================
 -- DFA Operations

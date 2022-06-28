@@ -27,8 +27,9 @@ library
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DistributionAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Systems.Superfluid.System.Serialization
         Money.Systems.Superfluid.System.AccountTokenModel
+        Money.Systems.Superfluid.Integrations.Serialization
+        Money.Systems.Superfluid.Integrations.Show
     hs-source-dirs:   src
     default-language: GHC2021
     ghc-options:      -Wall

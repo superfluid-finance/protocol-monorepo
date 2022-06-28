@@ -12,7 +12,7 @@ module Money.Systems.Superfluid.System.AccountTokenModel
     ) where
 
 import           Data.Default
-import           Data.Kind                                                (Type)
+import           Data.Kind                                                        (Type)
 import           Data.Maybe
 import           Data.Proxy
 
@@ -23,6 +23,7 @@ import           Money.Systems.Superfluid.Concepts.Agreement
     , AgreementContractData
     , AnyAgreementAccountData (..)
     , providedBalanceOfAnyAgreement
+    , updateAgreement
     )
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
@@ -31,7 +32,7 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import qualified Money.Systems.Superfluid.System.Serialization                    as S
+import           Money.Systems.Superfluid.Integrations.Serialization              (Serializable)
 
 
 -- | SuperfluidTypes type class
@@ -45,21 +46,21 @@ class SuperfluidTypes sft => Account acc sft | acc -> sft where
     addressOfAccount :: acc -> SFT_ADDR sft
 
     agreementOfAccount
-        :: (AgreementAccountData aad sft, S.Serializable aad sft)
+        :: (AgreementAccountData aad sft, Serializable aad sft)
         => Proxy aad -> acc -> Maybe aad
 
     updateAgreementOfAccount
-        :: (AgreementAccountData aad sft, S.Serializable aad sft)
+        :: (AgreementAccountData aad sft, Serializable aad sft)
         => acc -> aad -> SFT_TS sft -> acc
 
     accountTBA :: acc -> TBA.TBAAccountData sft
-    accountTBA acc = fromMaybe def $ agreementOfAccount (Proxy @(TBA.TBAAccountData sft)) acc
+    accountTBA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(TBA.TBAAccountData sft)) acc
 
     accountCFA :: acc -> CFA.CFAAccountData sft
-    accountCFA acc = fromMaybe def $ agreementOfAccount (Proxy @(CFA.CFAAccountData sft)) acc
+    accountCFA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(CFA.CFAAccountData sft)) acc
 
     accountDFA :: acc -> DFA.DFAAccountData sft
-    accountDFA acc = fromMaybe def $ agreementOfAccount (Proxy @(DFA.DFAAccountData sft)) acc
+    accountDFA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(DFA.DFAAccountData sft)) acc
 
     agreementsOfAccount :: acc -> [AnyAgreementAccountData sft]
     agreementsOfAccount acc =
@@ -109,11 +110,11 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
     -- Agreement operations
     --
     getAgreementContractData
-        :: (AgreementContractData acd (TK_SFT tk), S.Serializable acd (TK_SFT tk))
+        :: (AgreementContractData acd (TK_SFT tk) aad, Serializable acd (TK_SFT tk))
         => Proxy acd -> [SFT_ADDR (TK_SFT tk)] -> tk (Maybe acd)
 
     putAgreementContractData
-        :: (AgreementContractData acd (TK_SFT tk), S.Serializable acd (TK_SFT tk))
+        :: (AgreementContractData acd (TK_SFT tk) aad, Serializable acd (TK_SFT tk))
         => [SFT_ADDR (TK_SFT tk)] -> SFT_TS (TK_SFT tk) -> acd -> tk ()
 
     --
@@ -168,9 +169,10 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
         receiverAccount <- getAccount receiverAddr
         flowACD <- getFlow senderAddr receiverAddr
         flowBuffer <-  calcFlowBuffer newFlowRate
-        let (CFA.ConstantFlow flowACD' senderFlowAAD' receiverFlowAAD') = CFA.updateFlow
-                (CFA.ConstantFlow flowACD (accountCFA senderAccount) (accountCFA receiverAccount))
-                newFlowRate (BBS.mkBufferLiquidity flowBuffer) t
+        let flowACD' = CFA.CFAContractData t newFlowRate (BBS.mkBufferLiquidity flowBuffer)
+        let (CFA.CFAParties senderFlowAAD' receiverFlowAAD') =
+                updateAgreement flowACD flowACD'
+                (CFA.CFAParties (accountCFA senderAccount) (accountCFA receiverAccount))
         let senderAccount' = updateAgreementOfAccount senderAccount senderFlowAAD' t
         let receiverAccount' = updateAgreementOfAccount receiverAccount receiverFlowAAD' t
         putAgreementContractData [senderAddr, receiverAddr] t flowACD'

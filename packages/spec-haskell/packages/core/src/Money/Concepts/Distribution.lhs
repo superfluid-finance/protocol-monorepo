@@ -35,7 +35,7 @@ class Bearer brr
 class LiquidityDistribution ld where
     bearers :: Bearer brr => ld -> [brr]
 
-    liquidity :: (Context ctx, Bearer brr, Liquidity liq) => ld -> (brr, ctx) -> liq
+    liquidityOf :: (Context ctx, Bearer brr, Liquidity liq) => ld -> (brr, ctx) -> liq
 \end{code}
 
 (WIP)

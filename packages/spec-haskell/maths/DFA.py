@@ -61,12 +61,12 @@ def solve_aad_mempty_update_with_acd(newACD: ACD) -> AAD:
     aad_prime.alpha = aad.alpha.subs(solution[0][0])
     aad_prime.epsilon = aad.epsilon.subs(solution[0][1])
     aad_prime.settledAt = aad.settledAt.subs(solution[0][2])
-    print("rtb(aad_prime, t):\n\t", rtb(aad_prime, t))
+    print("\trtb(aad_prime, t) = ", rtb(aad_prime, t))
     print("\n")
     return aad_prime
 
 def solve_aad_mappend(aad1: AAD, aad2: AAD) -> AAD:
-    print("# Solve solve_aad_mappend equation\n")
+    print("# Solve aad_mappend equation\n")
     print("Given:")
     t = var("t")
     print("\tvariables: ", t)

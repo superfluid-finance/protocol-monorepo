@@ -19,10 +19,9 @@ import           Data.Proxy
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
 --
 import           Money.Systems.Superfluid.Concepts.Agreement
-    ( AgreementAccountData
-    , AgreementContractData
+    ( Agreement (..)
     , AnyAgreementAccountData (..)
-    , providedBalanceOfAnyAgreement
+    , providedBalanceByAnyAgreement
     , updateAgreement
     )
 --
@@ -46,12 +45,12 @@ class SuperfluidTypes sft => Account acc sft | acc -> sft where
     addressOfAccount :: acc -> SFT_ADDR sft
 
     agreementOfAccount
-        :: (AgreementAccountData aad sft, Serializable aad sft)
-        => Proxy aad -> acc -> Maybe aad
+        :: (Serializable (AgreementAccountData a) sft)
+        => Proxy (AgreementAccountData a) -> acc -> Maybe (AgreementAccountData a)
 
     updateAgreementOfAccount
-        :: (AgreementAccountData aad sft, Serializable aad sft)
-        => acc -> aad -> SFT_TS sft -> acc
+        :: (Serializable (AgreementAccountData a) sft)
+        => acc -> AgreementAccountData a -> SFT_TS sft -> acc
 
     accountTBA :: acc -> TBA.TBAAccountData sft
     accountTBA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(TBA.TBAAccountData sft)) acc
@@ -73,7 +72,7 @@ class SuperfluidTypes sft => Account acc sft | acc -> sft where
 
 balanceOfAccountAt :: (SuperfluidTypes sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
 balanceOfAccountAt holderAccount t = foldr
-    ((+) . (`providedBalanceOfAnyAgreement` t))
+    ((+) . (`providedBalanceByAnyAgreement` t))
     def
     (agreementsOfAccount holderAccount)
 
@@ -110,12 +109,12 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
     -- Agreement operations
     --
     getAgreementContractData
-        :: (AgreementContractData acd (TK_SFT tk) aad, Serializable acd (TK_SFT tk))
-        => Proxy acd -> [SFT_ADDR (TK_SFT tk)] -> tk (Maybe acd)
+        :: (Serializable (AgreementContractData a) (TK_SFT tk))
+        => Proxy (AgreementContractData a) -> [SFT_ADDR (TK_SFT tk)] -> tk (Maybe (AgreementContractData a))
 
     putAgreementContractData
-        :: (AgreementContractData acd (TK_SFT tk) aad, Serializable acd (TK_SFT tk))
-        => [SFT_ADDR (TK_SFT tk)] -> SFT_TS (TK_SFT tk) -> acd -> tk ()
+        :: (Serializable (AgreementContractData a) (TK_SFT tk))
+        => [SFT_ADDR (TK_SFT tk)] -> SFT_TS (TK_SFT tk) -> AgreementContractData a -> tk ()
 
     --
     -- Account operations
@@ -169,7 +168,11 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
         receiverAccount <- getAccount receiverAddr
         flowACD <- getFlow senderAddr receiverAddr
         flowBuffer <-  calcFlowBuffer newFlowRate
-        let flowACD' = CFA.CFAContractData t newFlowRate (BBS.mkBufferLiquidity flowBuffer)
+        let flowACD' = CFA.CFAContractData
+                { CFA.flowLastUpdatedAt = t
+                , CFA.flowRate = newFlowRate
+                , CFA.flowBuffer = BBS.mkBufferLiquidity flowBuffer
+                }
         let (CFA.CFAParties senderFlowAAD' receiverFlowAAD') =
                 updateAgreement flowACD flowACD'
                 (CFA.CFAParties (accountCFA senderAccount) (accountCFA receiverAccount))
@@ -179,16 +182,24 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
         putAccount senderAddr senderAccount'
         putAccount receiverAddr receiverAccount'
 
+    --
+    -- DFA functions
+    --
     updateDecayingFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> SFT_LQ (TK_SFT tk) -> tk ()
     updateDecayingFlow senderAddr receiverAddr newDistributionLimit = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
         flowACD <- getDecayingFlow senderAddr receiverAddr
-        let flowBuffer = 0
-        let (DFA.DecayingFlow flowACD' senderFlowAAD' receiverFlowAAD') = DFA.updateDecayingFlow
-                (DFA.DecayingFlow flowACD (accountDFA senderAccount) (accountDFA receiverAccount))
-                newDistributionLimit (BBS.mkBufferLiquidity flowBuffer) t
+        let flowACD' = DFA.DFAContractData
+                { DFA.flowLastUpdatedAt = t
+                , DFA.distributionLimit = newDistributionLimit
+                , DFA.decayingFactor = DFA.decayingFactor flowACD
+                , DFA.flowBuffer = def
+                }
+        let (DFA.DFAParties senderFlowAAD' receiverFlowAAD') =
+                updateAgreement flowACD flowACD'
+                (DFA.DFAParties (accountDFA senderAccount) (accountDFA receiverAccount))
         let senderAccount' = updateAgreementOfAccount senderAccount senderFlowAAD' t
         let receiverAccount' = updateAgreementOfAccount receiverAccount receiverFlowAAD' t
         putAgreementContractData [senderAddr, receiverAddr] t flowACD'

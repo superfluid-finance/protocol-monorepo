@@ -1,3 +1,5 @@
+{-# LANGUAGE GADTs #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Money.Systems.Superfluid.Integrations.Show where

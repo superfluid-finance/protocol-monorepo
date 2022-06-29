@@ -9,7 +9,6 @@ export const getFlowUpdatedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             timestamp
             name
             blockNumber
@@ -38,7 +37,6 @@ export const getFlowOperatorUpdatedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             timestamp
             name
             blockNumber
@@ -66,7 +64,6 @@ export const getIndexCreatedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -90,7 +87,6 @@ export const getIndexDistributionClaimedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -115,7 +111,6 @@ export const getIndexUpdatedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -143,7 +138,6 @@ export const getIndexSubscribedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -168,7 +162,6 @@ export const getIndexUnitsUpdatedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -194,7 +187,6 @@ export const getIndexUnsubscribedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -219,7 +211,6 @@ export const getSubscriptionApprovedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -244,7 +235,6 @@ export const getSubscriptionDistributionClaimedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -269,7 +259,6 @@ export const getSubscriptionRevokedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -294,7 +283,6 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex
@@ -320,7 +308,6 @@ export const getTransferEvents = gql`
             id
             order
             transactionHash
-            gasPrice
             name
             blockNumber
             logIndex

@@ -25,8 +25,6 @@ export interface AccountTokenSnapshot {
     balanceUntilUpdatedAt: BigNumber;
     id: SubgraphId;
     totalAmountStreamedUntilUpdatedAt: BigNumber;
-    totalAmountStreamedInUntilUpdatedAt: BigNumber;
-    totalAmountStreamedOutUntilUpdatedAt: BigNumber;
     totalAmountTransferredUntilUpdatedAt: BigNumber;
     totalInflowRate: BigNumber;
     totalApprovedSubscriptions: number;

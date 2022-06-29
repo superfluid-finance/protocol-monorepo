@@ -232,7 +232,6 @@ query getAllEvents(
             ...eventFields
             superToken
             host
-            governanceAddress
             liquidationPeriod
             isKeySet
         }
@@ -243,7 +242,6 @@ query getAllEvents(
             key
             isKeySet
             host
-            governanceAddress
         }
         ... on RewardAddressChangedEvent {
             ...eventFields
@@ -251,12 +249,10 @@ query getAllEvents(
             rewardAddress
             isKeySet
             host
-            governanceAddress
         }
         ... on PPPConfigurationChangedEvent {
             ...eventFields
             host
-            governanceAddress
             superToken
             isKeySet
             liquidationPeriod
@@ -266,7 +262,6 @@ query getAllEvents(
             ...eventFields
             isKeySet
             host
-            governanceAddress
             forwarder
             enabled
             superToken
@@ -301,7 +296,6 @@ query getAllEvents(
         ... on BurnedEvent {
             ...eventFields
             operatorData
-            token
             operator
             from
             data
@@ -310,7 +304,6 @@ query getAllEvents(
         ... on MintedEvent {
             ...eventFields
             operatorData
-            token
             operator
             data
             amount
@@ -320,7 +313,6 @@ query getAllEvents(
             ...eventFields
             to
             operatorData
-            token
             operator
             data
             amount
@@ -345,7 +337,6 @@ fragment eventFields on Event {
     id
     blockNumber
     transactionHash
-    gasPrice
     order
     timestamp
     logIndex

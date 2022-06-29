@@ -15,8 +15,6 @@ query accountTokenSnapshotLogs($first: Int = 10, $skip: Int = 0, $orderBy: Accou
         balance
         maybeCriticalAtTimestamp
         totalAmountStreamed
-        totalAmountStreamedIn
-        totalAmountStreamedOut
         totalAmountTransferred
         totalApprovedSubscriptions
         totalDeposit

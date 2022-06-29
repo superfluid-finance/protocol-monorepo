@@ -9,19 +9,16 @@ import {
     IStreamData,
     ITokenStatistic,
 } from "../interfaces";
-import { fetchStreamPeriodAndValidate } from "./hol/streamPeriodValidator";
-import { fetchIndexAndValidate } from "./hol/indexValidator";
-import { fetchStreamAndValidate } from "./hol/streamValidator";
-import { fetchSubscriptionAndValidate } from "./hol/subscriptionValidator";
-import {
-    fetchATSAndValidate,
-    fetchTokenStatsAndValidate,
-} from "./aggregateValidators";
-import { Framework } from "@superfluid-finance/sdk-core";
-import { BigNumber } from "@ethersproject/bignumber";
-import { expect } from "chai";
-import { FlowActionType, IDAEventType } from "../helpers/constants";
-import { fetchFlowOperatorAndValidate } from "./hol/flowOperatorValidator";
+import {fetchStreamPeriodAndValidate} from "./hol/streamPeriodValidator";
+import {fetchIndexAndValidate} from "./hol/indexValidator";
+import {fetchStreamAndValidate} from "./hol/streamValidator";
+import {fetchSubscriptionAndValidate} from "./hol/subscriptionValidator";
+import {fetchATSAndValidate, fetchTokenStatsAndValidate,} from "./aggregateValidators";
+import {Framework} from "@superfluid-finance/sdk-core";
+import {BigNumber} from "@ethersproject/bignumber";
+import {expect} from "chai";
+import {FlowActionType, IDAEventType} from "../helpers/constants";
+import {fetchFlowOperatorAndValidate} from "./hol/flowOperatorValidator";
 
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
@@ -59,7 +56,7 @@ export async function validateFlowUpdated(
     await fetchATSAndValidate(updatedReceiverATS, false); // Boolean flag to decide, whether to check log entries or not.
 
     // validate token stats
-    await fetchTokenStatsAndValidate(updatedTokenStats, false);
+    await fetchTokenStatsAndValidate(updatedTokenStats);
 }
 
 export async function validateUpdateFlowOperatorPermissions({
@@ -113,7 +110,7 @@ export async function validateModifyIDA(
         subscriptionExists
     );
     await fetchATSAndValidate(updatedPublisherATS, true); // Boolean flag to decide, whether to check log entries or not.
-    await fetchTokenStatsAndValidate(updatedTokenStats, true);
+    await fetchTokenStatsAndValidate(updatedTokenStats);
 }
 
 export function validateReverseLookup(

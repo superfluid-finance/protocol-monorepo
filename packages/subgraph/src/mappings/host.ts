@@ -27,7 +27,6 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
         createEventID("GovernanceReplaced", event)
     );
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "GovernanceReplaced";
     ev.addresses = [];
@@ -52,7 +51,6 @@ export function handleAgreementClassRegistered(
         createEventID("AgreementClassRegistered", event)
     );
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementClassRegistered";
     ev.addresses = [];
@@ -73,7 +71,6 @@ export function handleAgreementClassUpdated(
         createEventID("AgreementClassUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementClassUpdated";
     ev.addresses = [];
@@ -95,7 +92,6 @@ export function handleSuperTokenFactoryUpdated(
         createEventID("SuperTokenFactoryUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenFactoryUpdated";
     ev.addresses = [];
@@ -113,7 +109,6 @@ export function handleSuperTokenLogicUpdated(
         createEventID("SuperTokenLogicUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenLogicUpdated";
     ev.addresses = [];
@@ -128,7 +123,6 @@ export function handleSuperTokenLogicUpdated(
 export function handleAppRegistered(event: AppRegistered): void {
     let ev = new AppRegisteredEvent(createEventID("AppRegistered", event));
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "AppRegistered";
     ev.addresses = [];
@@ -142,7 +136,6 @@ export function handleAppRegistered(event: AppRegistered): void {
 export function handleJail(event: Jail): void {
     let ev = new JailEvent(createEventID("Jail", event));
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "Jail";
     ev.addresses = [];

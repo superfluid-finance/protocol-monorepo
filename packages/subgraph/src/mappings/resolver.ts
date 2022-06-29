@@ -8,14 +8,13 @@ import {
     RoleGrantedEvent,
     RoleRevokedEvent,
 } from "../../generated/schema";
-import { createEventID, getOrder } from "../utils";
+import {createEventID, getOrder} from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     let ev = new RoleAdminChangedEvent(
         createEventID("RoleAdminChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.order = getOrder(event.block.number, event.logIndex);
@@ -31,7 +30,6 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 export function handleRoleGranted(event: RoleGranted): void {
     let ev = new RoleGrantedEvent(createEventID("RoleGranted", event));
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -46,7 +44,6 @@ export function handleRoleGranted(event: RoleGranted): void {
 export function handleRoleRevoked(event: RoleRevoked): void {
     let ev = new RoleRevokedEvent(createEventID("RoleRevoked", event));
     ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;

@@ -860,7 +860,6 @@ fragment eventFields on Event {
     id
     blockNumber
     transactionHash
-    gasPrice
     order
     timestamp
     logIndex
@@ -1110,7 +1109,6 @@ fragment cfaV1LiquidationPeriodChangedEvent on CFAv1LiquidationPeriodChangedEven
     ...eventFields
     superToken
     host
-    governanceAddress
     liquidationPeriod
     isKeySet
 }
@@ -1122,7 +1120,6 @@ fragment configChangedEvent on ConfigChangedEvent {
     key
     isKeySet
     host
-    governanceAddress
 }
 
 fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
@@ -1131,14 +1128,12 @@ fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
     rewardAddress
     isKeySet
     host
-    governanceAddress
 }
 
 fragment trustedForwarderChangedEvent on TrustedForwarderChangedEvent {
     ...eventFields
     isKeySet
     host
-    governanceAddress
     forwarder
     enabled
     superToken
@@ -1176,7 +1171,6 @@ fragment agreementLiquidatedV2Event on AgreementLiquidatedV2Event {
 fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
     ...eventFields
     host
-    governanceAddress
     superToken
     isKeySet
     liquidationPeriod
@@ -1186,7 +1180,6 @@ fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
 fragment burnedEvent on BurnedEvent {
     ...eventFields
     operatorData
-    token
     operator
     from
     data
@@ -1196,7 +1189,6 @@ fragment burnedEvent on BurnedEvent {
 fragment mintedEvent on MintedEvent {
     ...eventFields
     operatorData
-    token
     operator
     data
     amount
@@ -1207,7 +1199,6 @@ fragment sentEvent on SentEvent {
     ...eventFields
     to
     operatorData
-    token
     operator
     data
     amount

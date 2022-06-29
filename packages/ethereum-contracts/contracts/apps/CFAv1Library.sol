@@ -54,7 +54,7 @@ library CFAv1Library {
      * @param userData The user provided data
      */
     function createFlow(
-        InitData storage cfaLibrary, 
+        InitData storage cfaLibrary,
         address receiver,
         ISuperfluidToken token,
         int96 flowRate,
@@ -62,12 +62,14 @@ library CFAv1Library {
     ) internal {
         cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.createFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.createFlow,
+                (
+                    token,
+                    receiver,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             userData
         );
@@ -106,12 +108,14 @@ library CFAv1Library {
     ) internal {
         cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.updateFlow,
+                (
+                    token,
+                    receiver,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             userData
         );
@@ -150,12 +154,14 @@ library CFAv1Library {
     ) internal {
         cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.deleteFlow.selector,
-                token,
-                sender,
-                receiver,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.deleteFlow,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    new bytes(0) // placeholder
+                )
             ),
             userData
         );
@@ -198,12 +204,14 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.createFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.createFlow,
+                (
+                    token,
+                    receiver,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             userData,
             ctx
@@ -247,12 +255,14 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlow.selector,
-                token,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.updateFlow,
+                (
+                    token,
+                    receiver,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             userData,
             ctx
@@ -296,12 +306,14 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.deleteFlow.selector,
-                token,
-                sender,
-                receiver,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.deleteFlow,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    new bytes(0) // placeholder
+                )
             ),
             userData,
             ctx
@@ -345,13 +357,15 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         return cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.createFlowByOperator.selector,
-                token,
-                sender,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.createFlowByOperator,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             userData
         );
@@ -406,13 +420,15 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.createFlowByOperator.selector,
-                token,
-                sender,
-                receiver,
-                flowRate,
-                new bytes(0) // placeholder
+            abi.encodeCall(
+                cfaLibrary.cfa.createFlowByOperator,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    flowRate,
+                    new bytes(0) // placeholder
+                )
             ),
             userData,
             ctx
@@ -456,13 +472,15 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         return cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlowByOperator.selector,
-                token,
-                sender,
-                receiver,
-                flowRate,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.updateFlowByOperator,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    flowRate,
+                    new bytes(0)
+                )
             ),
             userData
         );
@@ -517,13 +535,15 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlowByOperator.selector,
-                token,
-                sender,
-                receiver,
-                flowRate,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.updateFlowByOperator,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    flowRate,
+                    new bytes(0)
+                )
             ),
             userData,
             ctx
@@ -563,12 +583,14 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         return cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.deleteFlowByOperator.selector,
-                token,
-                sender,
-                receiver,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.deleteFlowByOperator,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    new bytes(0)
+                )
             ),
             userData
         );
@@ -611,12 +633,14 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.deleteFlowByOperator.selector,
-                token,
-                sender,
-                receiver,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.deleteFlowByOperator,
+                (
+                    token,
+                    sender,
+                    receiver,
+                    new bytes(0)
+                )
             ),
             userData,
             ctx
@@ -641,13 +665,15 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         return cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlowOperatorPermissions.selector,
-                token,
-                flowOperator,
-                permissions,
-                flowRateAllowance,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.updateFlowOperatorPermissions,
+                (
+                    token,
+                    flowOperator,
+                    permissions,
+                    flowRateAllowance,
+                    new bytes(0)
+                )
             ),
             new bytes(0)
         );
@@ -673,13 +699,15 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.updateFlowOperatorPermissions.selector,
-                token,
-                flowOperator,
-                permissions,
-                flowRateAllowance,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.updateFlowOperatorPermissions,
+                (
+                    token,
+                    flowOperator,
+                    permissions,
+                    flowRateAllowance,
+                    new bytes(0)
+                )
             ),
             new bytes(0),
             ctx
@@ -699,11 +727,13 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         return cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl.selector,
-                token,
-                flowOperator,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl,
+                (
+                    token,
+                    flowOperator,
+                    new bytes(0)
+                )
             ),
             new bytes(0)
         );
@@ -724,11 +754,13 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl.selector,
-                token,
-                flowOperator,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl,
+                (
+                    token,
+                    flowOperator,
+                    new bytes(0)
+                )
             ),
             new bytes(0),
             ctx
@@ -748,11 +780,13 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         return cfaLibrary.host.callAgreement(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.revokeFlowOperatorWithFullControl.selector,
-                token,
-                flowOperator,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.revokeFlowOperatorWithFullControl,
+                (
+                    token,
+                    flowOperator,
+                    new bytes(0)
+                )
             ),
             new bytes(0)
         );
@@ -773,11 +807,13 @@ library CFAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = cfaLibrary.host.callAgreementWithContext(
             cfaLibrary.cfa,
-            abi.encodeWithSelector(
-                cfaLibrary.cfa.revokeFlowOperatorWithFullControl.selector,
-                token,
-                flowOperator,
-                new bytes(0)
+            abi.encodeCall(
+                cfaLibrary.cfa.revokeFlowOperatorWithFullControl,
+                (
+                    token,
+                    flowOperator,
+                    new bytes(0)
+                )
             ),
             new bytes(0),
             ctx

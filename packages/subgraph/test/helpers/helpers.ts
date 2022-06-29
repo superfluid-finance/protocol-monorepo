@@ -39,10 +39,8 @@ export const beforeSetup = async (tokenAmount: number) => {
     );
     const users = signers.map((x) => x.address);
     let totalSupply = 0;
-    // names[Bob] = "Bob";
     const sf = await Framework.create({
-        networkName: "custom",
-        dataMode: "WEB3_ONLY",
+        chainId: 31337,
         protocolReleaseVersion: "test",
         provider: Deployer.provider!,
         resolverAddress: RESOLVER_ADDRESS,
@@ -55,7 +53,7 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
-        fDAIx.underlyingToken!.address,
+        fDAIx.underlyingToken.address,
         TestTokenABI
     ) as TestToken;
 
@@ -468,13 +466,16 @@ export const getOrder = (blockNumber?: number, logIndex?: number) => {
 export function calculateMaybeCriticalAtTimestamp(
     updatedAtTimestamp: string,
     balanceUntilUpdatedAt: string,
-    totalDeposit: string,
-    totalNetFlowRate: string
+    totalNetFlowRate: string,
 ) {
-    if (BigNumber.from(balanceUntilUpdatedAt).lte(BigNumber.from("0"))) return "0";
-    if (BigNumber.from(totalNetFlowRate).gte(BigNumber.from("0"))) return "0";
-    const criticalTimestamp = BigNumber.from(balanceUntilUpdatedAt).add(BigNumber.from(totalDeposit)).div(BigNumber.from(totalNetFlowRate).abs());
-    const calculatedCriticalTimestamp = criticalTimestamp.add(BigNumber.from(updatedAtTimestamp));
+    // When the flow rate is not negative then there's no way to have a critical balance timestamp anymore.
+    if (toBN(totalNetFlowRate).gte(toBN("0"))) return null;
+    // When there's no balance then that either means:
+    // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
+    // 2. it's a new account without a critical balance timestamp to begin with
+    if (toBN(balanceUntilUpdatedAt).lte(toBN("0"))) throw new Error("This will never gonna hit `Already critical` case because can't simulate realistic liquidation" ); //https://github.com/superfluid-finance/protocol-monorepo/pull/885
+    const secondsUntilCritical = toBN(balanceUntilUpdatedAt).div(toBN(totalNetFlowRate).abs());
+    const calculatedCriticalTimestamp = secondsUntilCritical.add(toBN(updatedAtTimestamp));
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
         return MAX_SAFE_SECONDS.toString();
     }

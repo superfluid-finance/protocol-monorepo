@@ -1,0 +1,10 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+package-lock.json
+
+#Hardhat files
+cache
+artifacts

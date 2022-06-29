@@ -48,17 +48,20 @@ function updateHOLEntitiesForLiquidation(
     updateATSStreamedAndBalanceUntilUpdatedAt(
         liquidatorAccount,
         event.address,
-        event.block
+        event.block,
+        null // will always do RPC - don't want to leak liquidation logic here
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         targetAccount,
         event.address,
-        event.block
+        event.block,
+        null // will always do RPC - don't want to leak liquidation logic here
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         bondAccount,
         event.address,
-        event.block
+        event.block,
+        null // will always do RPC - don't want to leak liquidation logic here
     );
     updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
     createAccountTokenSnapshotLogEntity(
@@ -137,7 +140,8 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
         event.address,
-        event.block
+        event.block,
+        null // will always do final RPC - override accounting done in handleTransfer
     );
     updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
     createAccountTokenSnapshotLogEntity(
@@ -164,7 +168,8 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
         event.address,
-        event.block
+        event.block,
+        null // will always do final RPC - override accounting done in handleTransfer
     );
     updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
     createAccountTokenSnapshotLogEntity(
@@ -191,12 +196,14 @@ export function handleTransfer(event: Transfer): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.to,
         event.address,
-        event.block
+        event.block,
+        event.params.value // manual accounting (overriden in upgrade/downgrade)
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.from,
         event.address,
-        event.block
+        event.block,
+        event.params.value.neg() // manual accounting (overriden in upgrade/downgrade)
     );
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -313,6 +320,7 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
     ev.agreementId = event.params.id;
     ev.targetAccount = event.params.targetAccount;
     ev.rewardAmountReceiver = event.params.rewardAmountReceiver;
+    ev.rewardAccount = event.params.rewardAmountReceiver;
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
@@ -32,7 +32,7 @@ contract FullUpgradableSuperTokenProxy is Proxy {
         assembly { // solium-disable-line
             factory := sload(_FACTORY_SLOT)
         }
-        require(address(factory) != address(0), "Not initialized");
+        assert(address(factory) != address(0));
         return address(factory.getSuperTokenLogic());
     }
 

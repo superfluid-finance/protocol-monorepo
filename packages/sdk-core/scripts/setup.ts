@@ -5,7 +5,7 @@ import {
     IInstantDistributionAgreementV1,
     TestToken,
 } from "../src/typechain";
-import { DataMode, Framework, WrapperSuperToken } from "../src";
+import { Framework, WrapperSuperToken } from "../src";
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
 // test test test test test test test test test test test junk
@@ -16,7 +16,6 @@ export const HARDHAT_PRIVATE_KEY =
 
 interface ISetupProps {
     readonly amount?: string;
-    readonly dataMode?: DataMode;
     readonly subgraphEndpoint?: string;
 }
 
@@ -39,7 +38,6 @@ export const setup = async (props: ISetupProps) => {
         chainId,
         resolverAddress: RESOLVER_ADDRESS,
         provider,
-        dataMode: props.dataMode,
         customSubgraphQueriesEndpoint: props.subgraphEndpoint,
         protocolReleaseVersion: "test",
     });

@@ -419,7 +419,6 @@ type GovernanceReplacedEvent implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     name: String!
-    addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
@@ -427,6 +426,7 @@ type GovernanceReplacedEvent implements Event @entity {
     """
     Empty addresses array.
     """
+    addresses: [Bytes!]!
     oldGovernance: Bytes!
     newGovernance: Bytes!
 }
@@ -682,6 +682,9 @@ type AgreementLiquidatedV2Event implements Event @entity {
     targetAccountBalanceDelta: BigInt!
     version: BigInt!
     liquidationType: Int!
+
+    """TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead"""
+    rewardAccount: Bytes! @deprecated(reason: "use rewardAmountReceiver")
 }
 
 type BurnedEvent implements Event @entity {
@@ -1205,7 +1208,7 @@ type AccountTokenSnapshot @entity {
     """
     Optimistic liquidation estimation property.
     """
-    maybeCriticalAtTimestamp: BigInt!
+    maybeCriticalAtTimestamp: BigInt
 
     """
     The number of currently open streams.
@@ -1286,7 +1289,7 @@ type AccountTokenSnapshotLog @entity {
     """
     Optimistic liquidation estimation property.
     """
-    maybeCriticalAtTimestamp: BigInt!
+    maybeCriticalAtTimestamp: BigInt
     """
     The current (as of timestamp) number of currently open streams.
     """

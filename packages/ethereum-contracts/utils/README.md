@@ -8,7 +8,7 @@ python -m SimpleHTTPServer 1337
 ```
 Then navigate to http://localhost:1337/supertoken-deployer.html
 
-Alternatively, you can also find it on IPFS: [QmbjeSLXfmePAnWRBhkhajCpdu58Xsn7BqQwj8pSxRS9d8](http://ipfs.io/ipfs/QmbjeSLXfmePAnWRBhkhajCpdu58Xsn7BqQwj8pSxRS9d8)
+Alternatively, you can also find it on IPFS: [QmbjeSLXfmePAnWRBhkhajCpdu58Xsn7BqQwj8pSxRS9d8](https://ipfs.io/ipfs/QmaCBCARcUthLcG1sNYC8SAE7okuDUZqbythvWuYozBpgC)
 
 ## Stream Closer
 
@@ -21,7 +21,7 @@ python -m SimpleHTTPServer 1337
 
 Then navigate to http://localhost:1337/stream-closer.html
 
-Alternatively, you can also find it on IPFS: [QmRJmHatYiGgGsXYCsYZdqPMx4dd2qbMskMJvXGWZ53oJJ](http://ipfs.io/ipfs/QmRJmHatYiGgGsXYCsYZdqPMx4dd2qbMskMJvXGWZ53oJJ)
+Alternatively, you can also find it on IPFS: [QmRJmHatYiGgGsXYCsYZdqPMx4dd2qbMskMJvXGWZ53oJJ](https://ipfs.io/ipfs/QmVQ4B9MyEpr3i39XiEZ4qefuqMKv5HnfLPPB42r19mhEi)
 
 In order to set the parameter in the URL, use this format:
 stream-closer.html?chainId=<chainId>&token=<tokenAddress>&sender=<senderAddress>&receiver=<receiverAddress>

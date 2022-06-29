@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, eth-rinkeby, eth-ropsten, eth-kovan, polygon-mumbai, optimism-kovan, arbitrum-rinkeby, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c]
+          network: [eth-goerli, eth-rinkeby, eth-ropsten, eth-kovan, polygon-mumbai, optimism-kovan, arbitrum-rinkeby, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet]
 
     steps:
       - uses: actions/checkout@v3
@@ -57,3 +57,4 @@ jobs:
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
           OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
           ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}

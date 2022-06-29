@@ -11,5 +11,6 @@
     "mumbai",
     "arbitrum-rinkeby",
     "optimism-kovan",
-    "avalanche-fuji"
+    "avalanche-fuji",
+    "bsc-mainnet"
 ]

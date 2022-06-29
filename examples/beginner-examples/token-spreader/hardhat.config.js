@@ -28,8 +28,11 @@ module.exports = {
   networks: {
     goerli: {
       url: process.env.GOERLI_URL || "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts: {
+        mnemonic: process.env.MNEMONIC || "",
+        initialIndex: 0,
+        count: 10,
+      }
     },
   },
   gasReporter: {

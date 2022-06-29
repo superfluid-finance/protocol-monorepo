@@ -37,8 +37,9 @@ export const trackPendingTransactionThunk = createAsyncThunk<
         .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
             // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
+            const {updateTransaction} = getTransactionTrackerSlice().actions;
             dispatch(
-                getTransactionTrackerSlice().actions.updateTransaction({
+                updateTransaction({
                     id: transactionHash,
                     changes: {
                         status: 'Succeeded',
@@ -66,9 +67,17 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                     factor: 2,
                     forever: true,
                 }
-            ).then((_subgraphEventsQueryResult) =>
-                dispatch(getSubgraphApiSlice().util.invalidateTags(createGeneralTags({chainId: arg.chainId})))
-            );
+            ).then((_subgraphEventsQueryResult) => {
+                dispatch(getSubgraphApiSlice().util.invalidateTags(createGeneralTags({chainId: arg.chainId})));
+                dispatch(
+                    updateTransaction({
+                        id: transactionHash,
+                        changes: {
+                            isSubgraphInSync: true,
+                        },
+                    })
+                );
+            });
         })
         .catch((ethersError: EthersError) => {
             notifyOfError(ethersError, {chainId: arg.chainId, hash: transactionHash}, dispatch);

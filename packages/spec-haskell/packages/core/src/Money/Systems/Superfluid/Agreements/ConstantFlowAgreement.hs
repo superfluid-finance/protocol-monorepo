@@ -1,7 +1,4 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ( AgreementContractData (..)
@@ -12,8 +9,8 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ) where
 
 import           Data.Default                                            (Default (..))
-import           Data.Internal.TaggedTypeable                            (TaggedTypeable (..))
 import           Data.Kind                                               (Type)
+import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
 import           Text.Printf                                             (printf)
 
 --

@@ -1,8 +1,5 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE PolyKinds          #-}
 {-# LANGUAGE TypeFamilies       #-}
 
 module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
@@ -23,6 +20,7 @@ module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
 
 import           Data.Default                                      (Default (..))
 import           Data.Kind                                         (Type)
+import           Data.Type.TaggedTypeable
 import           Data.Typeable                                     (Proxy (..))
 import           Text.Printf                                       (printf)
 
@@ -41,8 +39,6 @@ import           Money.Systems.Superfluid.Concepts.RealtimeBalance
     , typedLiquidityVectorToRTB
     )
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
---
-import           Data.Internal.TaggedTypeable
 
 -- | MintedLiquidity Type
 --

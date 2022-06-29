@@ -1,6 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE PolyKinds         #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Decaying Flow Agreement (DFA)
 --
@@ -15,6 +13,7 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
 
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
+import           Data.Type.TaggedTypeable
 import           Text.Printf                                             (printf)
 
 import           Money.Systems.Superfluid.Concepts.Agreement             (Agreement (..))
@@ -24,8 +23,6 @@ import           Money.Systems.Superfluid.Concepts.RealtimeBalance
     , TypedLiquidityVector (..)
     )
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
---
-import           Data.Internal.TaggedTypeable
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 

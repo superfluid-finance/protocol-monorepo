@@ -1,6 +1,4 @@
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)
@@ -11,8 +9,8 @@ module Money.Systems.Superfluid.Concepts.Agreement
     ) where
 
 import           Data.Default                                      (Default)
-import           Data.Internal.TaggedTypeable                      (TaggedTypeable (..), tagFromValue)
 import           Data.Kind                                         (Type)
+import           Data.Type.TaggedTypeable                          (TaggedTypeable (..), tagFromValue)
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 

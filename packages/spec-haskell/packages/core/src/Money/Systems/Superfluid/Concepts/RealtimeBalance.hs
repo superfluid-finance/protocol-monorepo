@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
 module Money.Systems.Superfluid.Concepts.RealtimeBalance

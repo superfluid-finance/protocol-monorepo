@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Concepts.SuperfluidTypes
     ( Address
@@ -8,11 +7,11 @@ module Money.Systems.Superfluid.Concepts.SuperfluidTypes
     , SuperfluidTypes (..)
     ) where
 
-import           Data.Default                              (Default)
-import           Data.Kind                                 (Type)
-import           Data.Typeable                             (Typeable)
+import           Data.Default                                      (Default)
+import           Data.Kind                                         (Type)
+import           Data.Typeable                                     (Typeable)
 
-import           Money.Concepts.Distribution               (Liquidity)
+import           Money.Concepts.Distribution                       (Liquidity)
 import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBalance)
 
 

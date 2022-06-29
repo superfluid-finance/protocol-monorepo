@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TypeApplications   #-}
 
 module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
     ( BufferLiquidityTag
@@ -9,10 +8,9 @@ module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
     , mkBufferLiquidity
     ) where
 
--- import           Data.Default
+import           Data.Type.TaggedTypeable
 import           Data.Typeable
 
-import           Data.Internal.TaggedTypeable
 import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , TappedLiquidity (..)

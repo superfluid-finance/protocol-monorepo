@@ -1,8 +1,6 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Money.Systems.Superfluid.Instances.Simple.System
@@ -34,10 +32,9 @@ import           Data.Default
 import           Data.Functor
 import qualified Data.Map                                                  as M
 import           Data.Maybe
+import           Data.Type.TaggedTypeable
 
 import           Money.Systems.Superfluid.Concepts.Agreement               (agreementTypeTag)
---
-import           Data.Internal.TaggedTypeable
 --
 import qualified Money.Systems.Superfluid.System.AccountTokenModel         as SF
 --

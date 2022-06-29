@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 
 module Money.Systems.Superfluid.Instances.Simple.Serialization (SimpleSerialized) where
 

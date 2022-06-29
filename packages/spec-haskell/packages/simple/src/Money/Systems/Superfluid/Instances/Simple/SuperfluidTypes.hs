@@ -1,8 +1,6 @@
 {-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingVia                #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
@@ -25,14 +23,14 @@ module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     , SimpleSuperfluidTypes
     ) where
 
-import           Control.Exception                                        (assert)
+import           Control.Exception                                                (assert)
 import           Data.Binary
-import           Data.Char                                                (isAlpha)
+import           Data.Char                                                        (isAlpha)
 import           Data.Default
 import           Data.Maybe
 import           Data.String
-import           GHC.Generics                                             (Generic)
-import           Text.Printf                                              (printf)
+import           GHC.Generics                                                     (Generic)
+import           Text.Printf                                                      (printf)
 
 import           Money.Systems.Superfluid.Concepts.Liquidity
 import           Money.Systems.Superfluid.Concepts.RealtimeBalance

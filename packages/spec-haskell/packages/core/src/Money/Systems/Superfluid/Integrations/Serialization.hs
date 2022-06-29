@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
 module Money.Systems.Superfluid.Integrations.Serialization
@@ -10,16 +9,13 @@ module Money.Systems.Superfluid.Integrations.Serialization
 where
 
 import           Data.Proxy
---
+import           Data.Type.TaggedTypeable                                         (TaggedTypeable)
 
---
 import           Money.Systems.Superfluid.Concepts.Liquidity
     ( UntappedLiquidity (..)
     , untypeLiquidity
     )
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
---
-import           Data.Internal.TaggedTypeable                                     (TaggedTypeable)
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA

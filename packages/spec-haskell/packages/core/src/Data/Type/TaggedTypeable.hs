@@ -1,7 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-
-module Data.Internal.TaggedTypeable where
+module Data.Type.TaggedTypeable where
 
 import           Data.Typeable (Proxy (..), Typeable)
 

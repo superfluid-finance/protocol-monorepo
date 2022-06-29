@@ -1,10 +1,5 @@
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE FunctionalDependencies     #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralisedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE DerivingVia            #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 -- | = Liquidity Concept Refined for Superfluid Money
 --
@@ -63,11 +58,11 @@ module Money.Systems.Superfluid.Concepts.Liquidity
     , mkAnyTappedLiquidity
     ) where
 
-import           Data.Default                 (Default (..))
-import           Data.Internal.TaggedTypeable (TaggedTypeable (..))
-import           Data.Typeable                (Proxy (..), typeRep)
+import           Data.Default                (Default (..))
+import           Data.Type.TaggedTypeable    (TaggedTypeable (..))
+import           Data.Typeable               (Proxy (..), typeRep)
 
-import           Money.Concepts.Distribution  (Liquidity)
+import           Money.Concepts.Distribution (Liquidity)
 
 -- | TypedLiquidityTag Type Class
 --

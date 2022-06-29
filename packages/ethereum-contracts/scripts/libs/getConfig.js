@@ -104,7 +104,7 @@ module.exports = function getConfig(chainId) {
             // misc
             disableTestGovernance: true,
             data: {
-                initialBlockNumber: 5000000,
+                initialBlockNumber: 18800000,
                 getLogsRange: 5000,
             },
         },

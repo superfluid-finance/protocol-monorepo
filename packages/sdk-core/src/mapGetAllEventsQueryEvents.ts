@@ -79,6 +79,7 @@ export const mapGetAllEventsQueryEvents = (
                     targetAccountBalanceDelta: x.targetAccountBalanceDelta,
                     version: x.version,
                     liquidationType: x.liquidationType,
+                    rewardAccount: x.rewardAccount,
                 });
             case "BurnedEvent":
                 return typeGuard<events.BurnedEvent>({

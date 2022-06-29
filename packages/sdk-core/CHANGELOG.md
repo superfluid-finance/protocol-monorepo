@@ -15,6 +15,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - BNB Chain support added
 
+### Changed
+- `maybeCriticalAtTimestamp` is a nullable property now
+
 ## [0.4.2] - 2022-05-17
 
 ### Added

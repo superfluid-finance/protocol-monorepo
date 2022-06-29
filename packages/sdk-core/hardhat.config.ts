@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
         },
         bsc: {
             url: process.env.BSC_PROVIDER_URL || "",
-            accounts: [process.env.TEST_PRIVATE_KEY || ""],
+            accounts: process.env.TEST_PRIVATE_KEY ? [process.env.TEST_PRIVATE_KEY || ""] : [],
             chainId: 56
         }
     },

@@ -35,7 +35,7 @@ export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
 export const AVALANCHE_C = "avalanche-c";
 export const AVALANCHE_FUJI = "avalanche-fuji";
 
-export const BINANCE_MAINNET = "binance-mainnet";
+export const BSC_MAINNET = "bsc-mainnet";
 
 /******* CHAIN IDS *******/
 export const ETH_ROPSTEN_CHAIN_ID = 3;
@@ -57,7 +57,7 @@ export const ARBITRUM_RINKEBY_CHAIN_ID = 421611;
 export const AVALANCHE_FUJI_CHAIN_ID = 43113;
 export const AVALANCHE_C_CHAIN_ID = 43114;
 
-export const BINANCE_MAINNET_CHAIN_ID = 56;
+export const BSC_MAINNET_CHAIN_ID = 56;
 
 export const chainIds = [
     ETH_ROPSTEN_CHAIN_ID, // ROPSTEN
@@ -79,7 +79,7 @@ export const chainIds = [
     AVALANCHE_FUJI_CHAIN_ID, // AVALANCHE FUJI
     AVALANCHE_C_CHAIN_ID, // AVALANCHE C-CHAIN
 
-    BINANCE_MAINNET_CHAIN_ID, // BNB MAINNET
+    BSC_MAINNET_CHAIN_ID, // BNB MAINNET
 ];
 
 /******* ACL AUTHORIZATION BIT OPERATIONS *******/
@@ -190,17 +190,17 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         AVALANCHE_C_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `${baseUrl}-bsc-mainnet`,
+            subgraphAPIEndpoint: `${baseUrl}-avalanche-c`,
             networkName: AVALANCHE_C,
             resolverAddress: "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
             nativeTokenSymbol: "AVAX",
         },
     ],
     [
-        BINANCE_MAINNET_CHAIN_ID,
+        BSC_MAINNET_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `${baseUrl}-avalanche-c`,
-            networkName: BINANCE_MAINNET,
+            subgraphAPIEndpoint: `${baseUrl}-bsc-mainnet`,
+            networkName: BSC_MAINNET,
             resolverAddress: "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
             nativeTokenSymbol: "BNB",
         },
@@ -245,5 +245,5 @@ export const networkNameToChainIdMap = new Map<string, number>([
     [AVALANCHE_C, AVALANCHE_C_CHAIN_ID],
     [AVALANCHE_FUJI, AVALANCHE_FUJI_CHAIN_ID],
 
-    [BINANCE_MAINNET, BINANCE_MAINNET_CHAIN_ID],
+    [BSC_MAINNET, BSC_MAINNET_CHAIN_ID],
 ]);

@@ -25,7 +25,8 @@ import {
     ZERO_ADDRESS,
 } from "../utils";
 import {
-    createAccountTokenSnapshotLogEntity,
+    _createAccountTokenSnapshotLogEntity,
+    _createTokenStatisticLogEntity,
     getOrInitAccount,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
@@ -36,6 +37,199 @@ import {
 import { getHostAddress } from "../addresses";
 import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 
+/******************
+ * Event Handlers *
+ *****************/
+export function handleAgreementLiquidatedBy(
+    event: AgreementLiquidatedBy
+): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    _createAgreementLiquidatedByEventEntity(event);
+
+    updateHOLEntitiesForLiquidation(
+        event,
+        event.params.liquidatorAccount,
+        event.params.penaltyAccount,
+        event.params.bondAccount,
+        "AgreementLiquidatedBy"
+    );
+}
+
+export function handleAgreementLiquidatedV2(
+    event: AgreementLiquidatedV2
+): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    _createAgreementLiquidatedV2EventEntity(event);
+
+    updateHOLEntitiesForLiquidation(
+        event,
+        event.params.liquidatorAccount,
+        event.params.targetAccount,
+        event.params.rewardAmountReceiver,
+        "AgreementLiquidatedV2"
+    );
+}
+
+export function handleTokenUpgraded(event: TokenUpgraded): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    _createTokenUpgradedEventEntity(event);
+
+    getOrInitAccount(event.params.account, event.block);
+
+    getOrInitSuperToken(event.address, event.block);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.account,
+        event.address,
+        event.block,
+        null // will always do final RPC - override accounting done in handleTransfer
+    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.address,
+        "TokenUpgraded"
+    );
+    _createTokenStatisticLogEntity(event, event.address, "TokenUpgraded");
+}
+
+export function handleTokenDowngraded(event: TokenDowngraded): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    _createTokenDowngradedEventEntity(event);
+
+    getOrInitAccount(event.params.account, event.block);
+
+    getOrInitSuperToken(event.address, event.block);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.account,
+        event.address,
+        event.block,
+        null // will always do final RPC - override accounting done in handleTransfer
+    );
+    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.address,
+        "TokenDowngraded"
+    );
+    _createTokenStatisticLogEntity(event, event.address, "TokenDowngraded");
+}
+
+export function handleTransfer(event: Transfer): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    _createTransferEventEntity(event);
+
+    let tokenId = event.address;
+
+    getOrInitSuperToken(event.address, event.block);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.to,
+        event.address,
+        event.block,
+        null // manual accounting (overriden in upgrade/downgrade)
+    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.from,
+        event.address,
+        event.block,
+        null // manual accounting (overriden in upgrade/downgrade)
+    );
+    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+
+    updateAggregateEntitiesTransferData(
+        event.params.from,
+        event.address,
+        event.params.value,
+        event.block
+    );
+
+    if (event.params.to.equals(ZERO_ADDRESS)) return;
+    if (event.params.from.equals(ZERO_ADDRESS)) return; // Ignoring downgrade and upgrade transfer event logs.
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.to,
+        event.address,
+        "Transfer"
+    );
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.from,
+        event.address,
+        "Transfer"
+    );
+    _createTokenStatisticLogEntity(event, event.address, "Transfer");
+}
+
+export function handleSent(event: Sent): void {
+    let hostAddress = getHostAddress();
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+    _createSentEventEntity(event);
+}
+
+/**
+ * This always gets called with the Transfer event, which handles
+ * a lot of the logic with the Token, Account, ATS and TokenStatistic
+ * entities.
+ * @param event
+ */
+export function handleBurned(event: Burned): void {
+    _createBurnedEventEntity(event);
+    let tokenStats = getOrInitTokenStatistic(event.address, event.block);
+
+    tokenStats.totalSupply = tokenStats.totalSupply.minus(event.params.amount);
+    tokenStats.save();
+}
+
+/**
+ * This always gets called with the Transfer event, which handles
+ * a lot of the logic with the Token, Account, ATS and TokenStatistic
+ * entities.
+ * @param event
+ */
+export function handleMinted(event: Minted): void {
+    _createMintedEventEntity(event);
+    let tokenStats = getOrInitTokenStatistic(event.address, event.block);
+
+    tokenStats.totalSupply = tokenStats.totalSupply.plus(event.params.amount);
+    tokenStats.save();
+}
+
+/**************************************
+ * HOL Entity Updater Helper Function *
+ *************************************/
 function updateHOLEntitiesForLiquidation(
     event: ethereum.Event,
     liquidatorAccount: Address,
@@ -64,218 +258,38 @@ function updateHOLEntitiesForLiquidation(
         null // will always do RPC - don't want to leak liquidation logic here
     );
     updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         targetAccount,
         event.address,
         eventName
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         liquidatorAccount,
         event.address,
         eventName
     );
-    createAccountTokenSnapshotLogEntity(
+    _createAccountTokenSnapshotLogEntity(
         event,
         bondAccount,
         event.address,
         eventName
     );
+    _createTokenStatisticLogEntity(event, event.address, eventName);
 }
 
-export function handleAgreementLiquidatedBy(
+/****************************************
+ * Create Event Entity Helper Functions *
+ ***************************************/
+function _createAgreementLiquidatedByEventEntity(
     event: AgreementLiquidatedBy
 ): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
-    if (!hasValidHost) {
-        return;
-    }
-
-    createAgreementLiquidatedByEntity(event);
-
-    updateHOLEntitiesForLiquidation(
-        event,
-        event.params.liquidatorAccount,
-        event.params.penaltyAccount,
-        event.params.bondAccount,
-        "AgreementLiquidatedBy"
-    );
-}
-
-export function handleAgreementLiquidatedV2(
-    event: AgreementLiquidatedV2
-): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
-    if (!hasValidHost) {
-        return;
-    }
-
-    createAgreementLiquidatedV2Entity(event);
-
-    updateHOLEntitiesForLiquidation(
-        event,
-        event.params.liquidatorAccount,
-        event.params.targetAccount,
-        event.params.rewardAmountReceiver,
-        "AgreementLiquidatedV2"
-    );
-}
-
-export function handleTokenUpgraded(event: TokenUpgraded): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
-    if (!hasValidHost) {
-        return;
-    }
-
-    createTokenUpgradedEntity(event);
-
-    getOrInitAccount(event.params.account, event.block);
-
-    getOrInitSuperToken(event.address, event.block);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.account,
-        event.address,
-        event.block,
-        null // will always do final RPC - override accounting done in handleTransfer
-    );
-    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
-    createAccountTokenSnapshotLogEntity(
-        event,
-        event.params.account,
-        event.address,
-        "TokenUpgraded"
-    );
-}
-
-export function handleTokenDowngraded(event: TokenDowngraded): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
-    if (!hasValidHost) {
-        return;
-    }
-
-    createTokenDowngradedEntity(event);
-
-    getOrInitAccount(event.params.account, event.block);
-
-    getOrInitSuperToken(event.address, event.block);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.account,
-        event.address,
-        event.block,
-        null // will always do final RPC - override accounting done in handleTransfer
-    );
-    updateTokenStatsStreamedUntilUpdatedAt(event.address, event.block);
-    createAccountTokenSnapshotLogEntity(
-        event,
-        event.params.account,
-        event.address,
-        "TokenDowngraded"
-    );
-}
-
-export function handleTransfer(event: Transfer): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
-    if (!hasValidHost) {
-        return;
-    }
-
-    createTransferEntity(event);
-
-    let tokenId = event.address;
-
-    getOrInitSuperToken(event.address, event.block);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.to,
-        event.address,
-        event.block,
-        event.params.value // manual accounting (overriden in upgrade/downgrade)
-    );
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.from,
-        event.address,
-        event.block,
-        event.params.value.neg() // manual accounting (overriden in upgrade/downgrade)
-    );
-    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
-
-    updateAggregateEntitiesTransferData(
-        event.params.from,
-        event.address,
-        event.params.value,
-        event.block
-    );
-
-    if (event.params.to.equals(ZERO_ADDRESS)) return;
-    if (event.params.from.equals(ZERO_ADDRESS)) return; // Ignoring downgrade and upgrade transfer event logs.
-    createAccountTokenSnapshotLogEntity(
-        event,
-        event.params.to,
-        event.address,
-        "Transfer"
-    );
-    createAccountTokenSnapshotLogEntity(
-        event,
-        event.params.from,
-        event.address,
-        "Transfer"
-    );
-}
-
-export function handleSent(event: Sent): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
-    if (!hasValidHost) {
-        return;
-    }
-
-    createSentEntity(event);
-}
-
-/**
- * This always gets called with the Transfer event, which handles
- * a lot of the logic with the Token, Account, ATS and TokenStatistic
- * entities.
- * @param event
- */
-export function handleBurned(event: Burned): void {
-    createBurnedEntity(event);
-    let tokenStats = getOrInitTokenStatistic(event.address, event.block);
-
-    tokenStats.totalSupply = tokenStats.totalSupply.minus(event.params.amount);
-    tokenStats.save();
-}
-
-/**
- * This always gets called with the Transfer event, which handles
- * a lot of the logic with the Token, Account, ATS and TokenStatistic
- * entities.
- * @param event
- */
-export function handleMinted(event: Minted): void {
-    createMintedEntity(event);
-    let tokenStats = getOrInitTokenStatistic(event.address, event.block);
-
-    tokenStats.totalSupply = tokenStats.totalSupply.plus(event.params.amount);
-    tokenStats.save();
-}
-
-/**************************************************************************
- * Create Event Entity Helper Functions
- *************************************************************************/
-function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     let ev = new AgreementLiquidatedByEvent(
         createEventID("AgreementLiquidatedBy", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementLiquidatedBy";
     ev.addresses = [
@@ -298,11 +312,14 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     ev.save();
 }
 
-function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
+function _createAgreementLiquidatedV2EventEntity(
+    event: AgreementLiquidatedV2
+): void {
     let ev = new AgreementLiquidatedV2Event(
         createEventID("AgreementLiquidatedV2", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementLiquidatedV2";
     ev.addresses = [
@@ -342,15 +359,17 @@ function createAgreementLiquidatedV2Entity(event: AgreementLiquidatedV2): void {
     ev.save();
 }
 
-function createBurnedEntity(event: Burned): void {
+function _createBurnedEventEntity(event: Burned): void {
     let ev = new BurnedEvent(createEventID("Burned", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "Burned";
     ev.addresses = [event.address, event.params.from];
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
+    ev.token = event.address;
     ev.operator = event.params.operator;
     ev.from = event.params.from;
     ev.amount = event.params.amount;
@@ -359,15 +378,17 @@ function createBurnedEntity(event: Burned): void {
     ev.save();
 }
 
-function createMintedEntity(event: Minted): void {
+function _createMintedEventEntity(event: Minted): void {
     let ev = new MintedEvent(createEventID("Minted", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "Minted";
     ev.addresses = [event.address, event.params.operator, event.params.to];
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
+    ev.token = event.address;
     ev.operator = event.params.operator;
     ev.to = event.params.to;
     ev.amount = event.params.amount;
@@ -376,9 +397,10 @@ function createMintedEntity(event: Minted): void {
     ev.save();
 }
 
-function createSentEntity(event: Sent): void {
+function _createSentEventEntity(event: Sent): void {
     let ev = new SentEvent(createEventID("Sent", event));
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "Sent";
     ev.addresses = [event.address, event.params.operator, event.params.to];
@@ -387,6 +409,7 @@ function createSentEntity(event: Sent): void {
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.amount = event.params.amount;
     ev.data = event.params.data;
+    ev.token = event.address;
     ev.operator = event.params.operator;
     ev.operatorData = event.params.operatorData;
     ev.from = event.params.from;
@@ -394,10 +417,11 @@ function createSentEntity(event: Sent): void {
     ev.save();
 }
 
-function createTokenUpgradedEntity(event: TokenUpgraded): void {
+function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
     let ev = new TokenUpgradedEvent(createEventID("TokenUpgraded", event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "TokenUpgraded";
     ev.addresses = [event.address, event.params.account];
@@ -409,10 +433,11 @@ function createTokenUpgradedEntity(event: TokenUpgraded): void {
     ev.save();
 }
 
-function createTokenDowngradedEntity(event: TokenDowngraded): void {
+function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
     let ev = new TokenDowngradedEvent(createEventID("TokenDowngraded", event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "TokenDowngraded";
     ev.addresses = [event.address, event.params.account];
@@ -424,10 +449,11 @@ function createTokenDowngradedEntity(event: TokenDowngraded): void {
     ev.save();
 }
 
-function createTransferEntity(event: Transfer): void {
+function _createTransferEventEntity(event: Transfer): void {
     let ev = new TransferEvent(createEventID("Transfer", event));
     let value = event.params.value;
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "Transfer";
     ev.addresses = [event.address, event.params.from, event.params.to];

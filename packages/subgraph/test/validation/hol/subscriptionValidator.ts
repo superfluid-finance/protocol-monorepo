@@ -133,6 +133,7 @@ export const validateSubscriptionEntity = async (
     const approved = subscription.approved;
     const units = subscription.units;
     const pendingDistribution = subscription.pendingDistribution;
+
     // Check subgraph data against expected data
     expect(
         subgraphSubscription.approved,

@@ -110,7 +110,7 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleStreamUpdated
+                handler: handleFlowUpdated
               - event: FlowUpdatedExtension(indexed address,uint256)
                 handler: handleFlowUpdatedExtension
               - event: FlowOperatorUpdated(indexed address,indexed address,indexed address,uint8,int96)

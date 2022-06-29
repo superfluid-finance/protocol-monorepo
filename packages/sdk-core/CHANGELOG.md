@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Breaking
+- Subgraph Query: `rewardAccount` renamed to `rewardAmountReceiver` on `AgreementLiquidatedV2Event` entity
+- `chainId` is a required property for framework initialization
+- `networkId` and `dataMode` no longer exist as properties for framework initialization
+
+## [0.4.3] - 2022-06-29
+
+### Added
+- BNB Chain support added
+
+## [0.4.2] - 2022-05-17
+
 ### Added
 - `QueryHandler` for transfer events
 
@@ -47,7 +59,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - The `SuperToken` class is now an abstract base class and no longer contains the functions `upgrade` and `downgrade`.
 - `underlyingToken` is possibly undefined on `SuperToken`: `WrapperSuperToken` has `underlyingToken`, but `PureSuperToken` and `NativeAssetSuperToken` do not.
 > NOTE: These changes are due to the split of `SuperToken` into `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes.
-  - Migration: 
+  - Migration:
       - if you are unsure of the type of the super token, you can use: `await framework.loadSuperToken("0x...");`
       - if you want to load a wrapper super token, use: `await framework.loadWrapperSuperToken("DAIx");`
       - if you want to load a native asset super token, use: `await framework.loadNativeAssetSuperToken("ETHx");`
@@ -69,7 +81,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Typo for `networkName: "arbitrum-rinkeby"` fixed (was expecting `"arbitrium-rinkeby"`) in `Framework.create` ([#637])
 
 ### Breaking
-- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"` 
+- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"`
   - Migration: change `networkName` from `"xdai"` to `"gnosis"`
 
 ## [0.3.0] - 2022-02-02

@@ -46,6 +46,7 @@ jobs:
       OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
       ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
       AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
+      BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}
 
     steps:
       - uses: actions/checkout@v3
@@ -67,4 +68,3 @@ jobs:
           npx truffle exec --network ${{ github.event.inputs.network }} scripts/deploy-framework.js
         env:
           GOVERNANCE_ADMIN_TYPE: MULTISIG
-

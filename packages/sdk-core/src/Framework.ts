@@ -31,7 +31,6 @@ import {
     ISignerConstructorOptions,
 } from "./interfaces";
 import { IResolver, SuperfluidLoader } from "./typechain";
-import { DataMode } from "./types";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
 type SupportedProvider =
@@ -42,10 +41,8 @@ type SupportedProvider =
 // TODO: add convenience function of utilizing provider (optional)
 // instead of having to pass it in every single time
 export interface IFrameworkOptions {
-    chainId?: number;
+    chainId: number;
     customSubgraphQueriesEndpoint?: string;
-    dataMode?: DataMode;
-    networkName?: string;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
     provider: SupportedProvider;
@@ -54,7 +51,6 @@ export interface IFrameworkOptions {
 export interface IFrameworkSettings {
     chainId: number;
     customSubgraphQueriesEndpoint: string;
-    dataMode: DataMode;
     networkName: string;
     protocolReleaseVersion: string;
     provider: ethers.providers.Provider;
@@ -113,8 +109,6 @@ export default class Framework {
      * Creates the Framework object based on user provided `options`.
      * @param options.chainId the chainId of your desired network (e.g. 137 = matic)
      * @param options.customSubgraphQueriesEndpoint your custom subgraph endpoint
-     * @param options.dataMode the data mode you'd like the framework to use (SUBGRAPH_ONLY, SUBGRAPH_WEB3, WEB3_ONLY)
-     * @param options.networkName the desired network (e.g. "matic", "rinkeby", etc.)
      * @param options.resolverAddress a custom resolver address (advanced use for testing)
      * @param options.protocolReleaseVersion a custom release version (advanced use for testing)
      * @param options.provider a provider object (injected web3, injected ethers, ethers provider) necessary for initializing the framework
@@ -123,7 +117,6 @@ export default class Framework {
     static create = async (options: IFrameworkOptions) => {
         validateFrameworkConstructorOptions({
             ...options,
-            dataMode: options.dataMode || "SUBGRAPH_ONLY",
             protocolReleaseVersion: options.protocolReleaseVersion || "v1",
         });
 
@@ -132,12 +125,9 @@ export default class Framework {
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
-        // NOTE: endpoint can be empty in WEB3_ONLY mode
         const customSubgraphQueriesEndpoint =
-            options.dataMode === "WEB3_ONLY"
-                ? ""
-                : options.customSubgraphQueriesEndpoint ||
-                  getSubgraphQueriesEndpoint(options);
+            options.customSubgraphQueriesEndpoint ||
+            getSubgraphQueriesEndpoint(options);
 
         const provider = isEthersProvider(options.provider)
             ? options.provider
@@ -203,7 +193,6 @@ export default class Framework {
             const settings: IFrameworkSettings = {
                 chainId,
                 customSubgraphQueriesEndpoint,
-                dataMode: options.dataMode || "SUBGRAPH_ONLY",
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
                 provider,
                 networkName,

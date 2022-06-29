@@ -1,0 +1,60 @@
+name: Verify on Etherscan
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Protocol release version (test/master/v1/etc.)'
+        required: true
+        default: 'test'
+      only_network:
+        description: 'Only a specific network is to be verified'
+        required: false
+
+jobs:
+
+  verify-on-etherscan:
+    name: Verify on Etherscan
+
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+          network: [eth-goerli, eth-rinkeby, eth-ropsten, eth-kovan, polygon-mumbai, optimism-kovan, arbitrum-rinkeby, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check only_network
+        if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
+        run: echo "DO_SKIP=1" >> $GITHUB_ENV
+
+      - name: Use Node.js 16.x
+        if: env.DO_SKIP != 1
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Build
+        if: env.DO_SKIP != 1
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-for-contracts-dev
+
+      - name: Etherscan verification of ${{ matrix.network }} deployment
+        if: env.DO_SKIP != 1
+        run: |
+          cd packages/ethereum-contracts
+          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
+          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
+          SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
+          OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
+          ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}

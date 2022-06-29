@@ -200,6 +200,24 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         },
 
         //
+        // Binance Smart Chain (BSC): https://docs.binance.org/
+        //
+        56: {
+            nativeTokenSymbol: "BNB",
+            resolverAddress: "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-bsc-mainnet",
+                },
+            },
+        },
+        97: {
+            // BSC chapel testnet
+            nativeTokenSymbol: "BNB",
+        },
+
+        //
         // Celo: https://github.com/celo-org/celo-monorepo#docs
         //
         42220: {

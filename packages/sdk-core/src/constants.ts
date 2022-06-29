@@ -35,6 +35,8 @@ export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
 export const AVALANCHE_C = "avalanche-c";
 export const AVALANCHE_FUJI = "avalanche-fuji";
 
+export const BSC_MAINNET = "bsc-mainnet";
+
 /******* CHAIN IDS *******/
 export const ETH_ROPSTEN_CHAIN_ID = 3;
 export const ETH_RINKEBY_CHAIN_ID = 4;
@@ -55,6 +57,8 @@ export const ARBITRUM_RINKEBY_CHAIN_ID = 421611;
 export const AVALANCHE_FUJI_CHAIN_ID = 43113;
 export const AVALANCHE_C_CHAIN_ID = 43114;
 
+export const BSC_MAINNET_CHAIN_ID = 56;
+
 export const chainIds = [
     ETH_ROPSTEN_CHAIN_ID, // ROPSTEN
     ETH_RINKEBY_CHAIN_ID, // RINKEBY
@@ -74,6 +78,8 @@ export const chainIds = [
 
     AVALANCHE_FUJI_CHAIN_ID, // AVALANCHE FUJI
     AVALANCHE_C_CHAIN_ID, // AVALANCHE C-CHAIN
+
+    BSC_MAINNET_CHAIN_ID, // BNB MAINNET
 ];
 
 /******* ACL AUTHORIZATION BIT OPERATIONS *******/
@@ -88,11 +94,13 @@ export const AUTHORIZE_FULL_CONTROL =
 const subgraphReleaseTag =
     process.env.SUBGRAPH_RELEASE_TAG || DefaultSubgraphReleaseTag.value;
 
+const baseUrl = `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}`;
+
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         ETH_ROPSTEN_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-ropsten`,
+            subgraphAPIEndpoint: `${baseUrl}-ropsten`,
             networkName: ETH_ROPSTEN,
             resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a",
             nativeTokenSymbol: "ETH",
@@ -101,7 +109,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         ETH_RINKEBY_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-rinkeby`,
+            subgraphAPIEndpoint: `${baseUrl}-rinkeby`,
             networkName: ETH_RINKEBY,
             resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A",
             nativeTokenSymbol: "ETH",
@@ -110,7 +118,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         ETH_GOERLI_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-goerli`,
+            subgraphAPIEndpoint: `${baseUrl}-goerli`,
             networkName: ETH_GOERLI,
             resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E",
             nativeTokenSymbol: "ETH",
@@ -119,7 +127,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         OPTIMISM_MAINNET_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-optimism-mainnet`,
+            subgraphAPIEndpoint: `${baseUrl}-optimism-mainnet`,
             networkName: OPTIMISM_MAINNET,
             resolverAddress: "0x743B5f46BC86caF41bE4956d9275721E0531B186",
             nativeTokenSymbol: "ETH",
@@ -128,7 +136,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         ETH_KOVAN_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-kovan`,
+            subgraphAPIEndpoint: `${baseUrl}-kovan`,
             networkName: ETH_KOVAN,
             resolverAddress: "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B",
             nativeTokenSymbol: "ETH",
@@ -137,7 +145,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         OPTIMISM_KOVAN_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-optimism-kovan`,
+            subgraphAPIEndpoint: `${baseUrl}-optimism-kovan`,
             networkName: OPTIMISM_KOVAN,
             resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
             nativeTokenSymbol: "ETH",
@@ -146,7 +154,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         GNOSIS_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-xdai`,
+            subgraphAPIEndpoint: `${baseUrl}-xdai`,
             networkName: XDAI_MAINNET,
             resolverAddress: "0xD2009765189164b495c110D61e4D301729079911",
             nativeTokenSymbol: "xDAI",
@@ -155,7 +163,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         MATIC_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-matic`,
+            subgraphAPIEndpoint: `${baseUrl}-matic`,
             networkName: POLYGON_MAINNET,
             resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
             nativeTokenSymbol: "MATIC",
@@ -164,7 +172,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         ARBITRUM_ONE_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-arbitrum-one`,
+            subgraphAPIEndpoint: `${baseUrl}-arbitrum-one`,
             networkName: ARBITRUM_ONE,
             resolverAddress: "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F",
             nativeTokenSymbol: "ETH",
@@ -173,7 +181,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         AVALANCHE_FUJI_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche-fuji`,
+            subgraphAPIEndpoint: `${baseUrl}-avalanche-fuji`,
             networkName: AVALANCHE_FUJI,
             resolverAddress: "0x141920741bC45b962B59c833cd849bA617F7ef38",
             nativeTokenSymbol: "AVAX",
@@ -182,16 +190,25 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         AVALANCHE_C_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-avalanche-c`,
+            subgraphAPIEndpoint: `${baseUrl}-avalanche-c`,
             networkName: AVALANCHE_C,
             resolverAddress: "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
             nativeTokenSymbol: "AVAX",
         },
     ],
     [
+        BSC_MAINNET_CHAIN_ID,
+        {
+            subgraphAPIEndpoint: `${baseUrl}-bsc-mainnet`,
+            networkName: BSC_MAINNET,
+            resolverAddress: "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
+            nativeTokenSymbol: "BNB",
+        },
+    ],
+    [
         MUMBAI_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-mumbai`,
+            subgraphAPIEndpoint: `${baseUrl}-mumbai`,
             networkName: POLYGON_MUMBAI,
             resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
             nativeTokenSymbol: "MATIC",
@@ -200,7 +217,7 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
         ARBITRUM_RINKEBY_CHAIN_ID,
         {
-            subgraphAPIEndpoint: `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}-arbitrum-rinkeby`,
+            subgraphAPIEndpoint: `${baseUrl}-arbitrum-rinkeby`,
             networkName: ARBITRUM_RINKEBY,
             resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
             nativeTokenSymbol: "ETH",
@@ -227,4 +244,6 @@ export const networkNameToChainIdMap = new Map<string, number>([
 
     [AVALANCHE_C, AVALANCHE_C_CHAIN_ID],
     [AVALANCHE_FUJI, AVALANCHE_FUJI_CHAIN_ID],
+
+    [BSC_MAINNET, BSC_MAINNET_CHAIN_ID],
 ]);

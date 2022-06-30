@@ -36,7 +36,7 @@ jobs:
       - name: "Install packages and start hardhat node"
         run: |
           yarn install
-          ./tasks/startHardhatNode.sh
+          ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: Run schema check

@@ -42,6 +42,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "SuperfluidGovernanceBase",
             "SuperToken",
             "Resolver",
+            "IAccessControlEnumerable",
         ],
         contractLoader: builtTruffleContractLoader,
     });

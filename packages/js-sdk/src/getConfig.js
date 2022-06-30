@@ -224,6 +224,10 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // celo mainnet
             nativeTokenSymbol: "CELO",
         },
+        44787: {
+            // celo alfajores testnet
+            nativeTokenSymbol: "CELO",
+        },
     };
 
     let configs = {

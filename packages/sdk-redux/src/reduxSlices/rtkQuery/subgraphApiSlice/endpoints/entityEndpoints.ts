@@ -2,6 +2,8 @@ import {
     Account,
     AccountQueryHandler,
     AccountTokenSnapshot,
+    AccountTokenSnapshotLog,
+    AccountTokenSnapshotLogQueryHandler,
     AccountTokenSnapshotQueryHandler,
     ILightEntity,
     Index,
@@ -22,6 +24,8 @@ import {
     Token,
     TokenQueryHandler,
     TokenStatistic,
+    TokenStatisticLog,
+    TokenStatisticLogQueryHandler,
     TokenStatisticQueryHandler,
 } from '@superfluid-finance/sdk-core';
 
@@ -34,6 +38,8 @@ import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 import {
     AccountQuery,
     AccountsQuery,
+    AccountTokenSnapshotLogQuery,
+    AccountTokenSnapshotLogsQuery,
     AccountTokenSnapshotQuery,
     AccountTokenSnapshotsQuery,
     IndexesQuery,
@@ -46,6 +52,8 @@ import {
     StreamsQuery,
     TokenQuery,
     TokensQuery,
+    TokenStatisticLogQuery,
+    TokenStatisticLogsQuery,
     TokenStatisticQuery,
     TokenStatisticsQuery,
 } from './entityArgs';
@@ -58,6 +66,8 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
         accounts: list<Account, AccountsQuery>(builder, new AccountQueryHandler()),
         accountTokenSnapshot: get<AccountTokenSnapshot, AccountTokenSnapshotQuery>(builder, new AccountTokenSnapshotQueryHandler()),
         accountTokenSnapshots: list<AccountTokenSnapshot, AccountTokenSnapshotsQuery>(builder, new AccountTokenSnapshotQueryHandler()),
+        accountTokenSnapshotLog: get<AccountTokenSnapshotLog, AccountTokenSnapshotLogQuery>(builder, new AccountTokenSnapshotLogQueryHandler()),
+        accountTokenSnapshotLogs: list<AccountTokenSnapshotLog, AccountTokenSnapshotLogsQuery>(builder, new AccountTokenSnapshotLogQueryHandler()),
         index: get<Index, IndexQuery>(builder, new IndexQueryHandler()),
         indexes: list<Index, IndexesQuery>(builder, new IndexQueryHandler()),
         indexSubscription: get<IndexSubscription, IndexSubscriptionQuery>(builder, new IndexSubscriptionQueryHandler()),
@@ -69,7 +79,9 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
         token: get<Token, TokenQuery>(builder, new TokenQueryHandler(), CacheTime.ThreeMinutes),
         tokens: list<Token, TokensQuery>(builder, new TokenQueryHandler()),
         tokenStatistic: get<TokenStatistic, TokenStatisticQuery>(builder, new TokenStatisticQueryHandler()),
-        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler())
+        tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler()),
+        tokenStatisticLog: get<TokenStatisticLog, TokenStatisticLogQuery>(builder, new TokenStatisticLogQueryHandler()),
+        tokenStatisticLogs: list<TokenStatisticLog, TokenStatisticLogsQuery>(builder, new TokenStatisticLogQueryHandler()),
     };
 };
 

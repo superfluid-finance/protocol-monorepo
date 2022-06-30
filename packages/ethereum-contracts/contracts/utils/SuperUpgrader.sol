@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -39,7 +39,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     /**
      * @notice The user should ERC20.approve this contract.
      * @dev Execute upgrade function in the name of the user
-     * @param superTokenAddr Super Token Address to upgrade 
+     * @param superTokenAddr Super Token Address to upgrade
      * @param account User address that previous approved this contract.
      * @param amount Amount value to be upgraded.
      */
@@ -50,7 +50,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     )
     external
     {
-        require(msg.sender == account || 
+        require(msg.sender == account ||
             (hasRole(BACKEND_ROLE, msg.sender) &&
             !_optout[account])
         , "operation not allowed");
@@ -69,14 +69,14 @@ contract SuperUpgrader is AccessControlEnumerable {
     }
 
     /**
-     * @dev Test if account is member BACKEND_ROLE 
+     * @dev Test if account is member BACKEND_ROLE
      */
     function isBackendAgent(address account) external view returns(bool yes) {
         return hasRole(BACKEND_ROLE, account);
     }
 
     /**
-     * @dev Add account to BACKEND_ROLE 
+     * @dev Add account to BACKEND_ROLE
      */
     function grantBackendAgent(address account) external {
         require(account != address(0), "operation not allowed");
@@ -85,7 +85,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     }
 
     /**
-     * @dev Remove account to BACKEND_ROLE 
+     * @dev Remove account to BACKEND_ROLE
      */
     function revokeBackendAgent(address account) external {
         // grantRole will check if sender is adminRole member

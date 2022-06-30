@@ -19,8 +19,10 @@ const {
  * Usage: npx truffle exec scripts/deploy-super-token.js : {UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS}
  *
  * NOTE:
- * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the ZERO_ADDRESS or the native token symbol
+ * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the ZERO_ADDRESS or the (known) native token symbol
  *   of the network, then the SETH contract will be deployed.
+ *   If the name of the network's native token isn't known by the framework, it can be provided
+ *   via ENV var NATIVE_TOKEN_SYMBOL.
  * - Otherwise an ERC20 super token wrapper will be created for the underlying ERC20 token specified in
  *   UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS. This underlying token needs to already be registered in the resolver.
  * - A resolver entry `supertokens.${protocolReleaseVersion}.${UNDERLYING_TOKEN_SYMBOL}x` will be created
@@ -80,7 +82,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         tokenSymbolOrAddress === sf.config.nativeTokenSymbol
     ) {
         // deploy wrapper for the native token
-        tokenSymbol = sf.config.nativeTokenSymbol;
+        tokenSymbol =
+            sf.config.nativeTokenSymbol || process.env.NATIVE_TOKEN_SYMBOL;
+        if (tokenSymbol === undefined) {
+            throw new Error(
+                "Native token symbol unknown. You can set it with ENV var NATIVE_TOKEN_SYMBOL"
+            );
+        }
+
         superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
         deploymentFn = async () => {
             console.log("Creating SETH Proxy...");
@@ -92,8 +101,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             await seth.initialize(
                 ZERO_ADDRESS,
                 18,
-                `Super ${sf.config.nativeTokenSymbol}`,
-                `${sf.config.nativeTokenSymbol}x`
+                `Super ${tokenSymbol}`,
+                `${tokenSymbol}x`
             );
             return seth;
         };

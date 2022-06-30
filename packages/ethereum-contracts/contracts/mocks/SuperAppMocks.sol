@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperfluid,
@@ -18,11 +18,13 @@ contract SuperAppMockAux {
     {
         host.callAgreementWithContext(
             agreement,
-            abi.encodeWithSelector(
-                AgreementMock.pingMe.selector,
-                address(this), // expectedMsgSender
-                ping,
-                new bytes(0)
+            abi.encodeCall(
+                agreement.pingMe,
+                (
+                    address(this), // expectedMsgSender
+                    ping,
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             ctx);
@@ -33,9 +35,9 @@ contract SuperAppMockAux {
     {
         host.callAppActionWithContext(
             app,
-            abi.encodeWithSelector(
-                SuperAppMock.actionNoop.selector,
-                new bytes(0)
+            abi.encodeCall(
+                app.actionNoop,
+                (new bytes(0))
             ),
             ctx);
     }
@@ -49,9 +51,9 @@ contract SuperAppMock is ISuperApp {
 
     constructor(ISuperfluid host, uint256 configWord, bool doubleRegistration) {
         _host = host;
-        _host.registerApp(configWord);
+        _host.registerAppWithKey(configWord, "");
         if (doubleRegistration) {
-            _host.registerApp(configWord);
+            _host.registerAppWithKey(configWord, "");
         }
         _aux = new SuperAppMockAux();
     }
@@ -157,11 +159,13 @@ contract SuperAppMock is ISuperApp {
     {
         (newCtx, ) = _host.callAgreementWithContext(
             agreement,
-            abi.encodeWithSelector(
-                AgreementMock.pingMe.selector,
-                address(this), // expectedMsgSender
-                ping,
-                new bytes(0)
+            abi.encodeCall(
+                agreement.pingMe,
+                (
+                    address(this), // expectedMsgSender
+                    ping,
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             ctx);
@@ -174,10 +178,12 @@ contract SuperAppMock is ISuperApp {
     {
         (newCtx, ) = _host.callAgreementWithContext(
             agreement,
-            abi.encodeWithSelector(
-                AgreementMock.doRevert.selector,
-                reason,
-                new bytes(0)
+            abi.encodeCall(
+                agreement.doRevert,
+                (
+                    reason,
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             ctx);
@@ -190,9 +196,9 @@ contract SuperAppMock is ISuperApp {
     {
         newCtx = _host.callAppActionWithContext(
             this,
-            abi.encodeWithSelector(
-                SuperAppMock.actionNoop.selector,
-                new bytes(0)
+            abi.encodeCall(
+                this.actionNoop,
+                (new bytes(0))
             ),
             ctx);
     }
@@ -204,10 +210,12 @@ contract SuperAppMock is ISuperApp {
     {
         newCtx = _host.callAppActionWithContext(
             this,
-            abi.encodeWithSelector(
-                SuperAppMock.actionRevertWithReason.selector,
-                reason,
-                new bytes(0)
+            abi.encodeCall(
+                this.actionRevertWithReason,
+                (
+                    reason,
+                    new bytes(0)
+                )
             ),
             ctx);
     }
@@ -219,11 +227,13 @@ contract SuperAppMock is ISuperApp {
     {
         (newCtx, ) = _host.callAgreementWithContext(
             agreement,
-            abi.encodeWithSelector(
-                AgreementMock.pingMe.selector,
-                address(this), // expectedMsgSender
-                42,
-                new bytes(0)
+            abi.encodeCall(
+                agreement.pingMe,
+                (
+                    address(this), // expectedMsgSender
+                    42,
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             abi.encode(42));
@@ -236,10 +246,12 @@ contract SuperAppMock is ISuperApp {
     {
         newCtx = _host.callAppActionWithContext(
             this,
-            abi.encodeWithSelector(
-                SuperAppMock.actionRevertWithReason.selector,
-                reason,
-                new bytes(0)
+            abi.encodeCall(
+                this.actionRevertWithReason,
+                (
+                    reason,
+                    new bytes(0)
+                )
             ),
             abi.encode(42));
     }
@@ -250,9 +262,9 @@ contract SuperAppMock is ISuperApp {
     {
         _host.callAppActionWithContext(
             this,
-            abi.encodeWithSelector(
-                SuperAppMock.actionAlteringCtx.selector,
-                new bytes(0)
+            abi.encodeCall(
+                this.actionAlteringCtx,
+                (new bytes(0))
             ),
             ctx);
         assert(false);
@@ -449,7 +461,7 @@ contract SuperAppMockReturningEmptyCtx {
 
     constructor(ISuperfluid host) {
         _host = host;
-        _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
+        _host.registerAppWithKey(SuperAppDefinitions.APP_LEVEL_FINAL, "");
     }
 
     function beforeAgreementCreated(
@@ -510,7 +522,7 @@ contract SuperAppMockReturningInvalidCtx {
 
     constructor(ISuperfluid host) {
         _host = host;
-        _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
+        _host.registerAppWithKey(SuperAppDefinitions.APP_LEVEL_FINAL, "");
     }
 
     function afterAgreementCreated(
@@ -551,7 +563,7 @@ contract SuperAppMock2ndLevel {
 
     constructor(ISuperfluid host, SuperAppMock app, AgreementMock agreement) {
         _host = host;
-        _host.registerApp(SuperAppDefinitions.APP_LEVEL_SECOND);
+        _host.registerAppWithKey(SuperAppDefinitions.APP_LEVEL_SECOND, "");
         _app = app;
         _agreement = agreement;
     }
@@ -573,24 +585,29 @@ contract SuperAppMock2ndLevel {
     {
         (newCtx, ) = _host.callAgreementWithContext(
             _agreement,
-            abi.encodeWithSelector(
-                AgreementMock.callAppAfterAgreementCreatedCallback.selector,
-                _app,
-                new bytes(0)
+            abi.encodeCall(
+                _agreement.callAppAfterAgreementCreatedCallback,
+                (
+                    _app,
+                    new bytes(0)
+                )
             ),
             new bytes(0), // user data
             ctx);
     }
 }
 
-// The default SuperApp mock that does many tricks
+// An Super App that uses registerAppWithKey
 contract SuperAppMockWithRegistrationkey {
-
-    ISuperfluid private _host;
-
     constructor(ISuperfluid host, uint256 configWord, string memory registrationKey) {
-        _host = host;
-        _host.registerAppWithKey(configWord, registrationKey);
+        host.registerAppWithKey(configWord, registrationKey);
+    }
+}
+
+// An Super App that uses registerAppWithKey
+contract SuperAppMockUsingDeprecatedRegisterApp {
+    constructor(ISuperfluid host, uint256 configWord) {
+        host.registerApp(configWord);
     }
 }
 

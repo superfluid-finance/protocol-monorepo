@@ -1,28 +1,22 @@
 import { Query } from "../src";
-import { chainIdToResolverDataMap } from "../src/constants";
 import {
     getChainId,
     testExpectListenerThrow,
-    testExpectWeb3OnlyErrors,
     testGetAllEventsQuery,
     testListenerInitialization,
     testQueryClassFunctions,
 } from "../previous-versions-testing/queryTests";
+import { getSubgraphEndpoint } from "../previous-versions-testing/runQueryTests";
 
 describe("Subgraph Tests", () => {
     let query: Query;
 
     const chainIdToUse = getChainId();
-    const resolverData = chainIdToResolverDataMap.get(chainIdToUse);
-    if (!resolverData) throw new Error("Resolver data is undefined");
-
-    const subgraphEndpoint =
-        process.env.LOCAL_SUBGRAPH_URL || resolverData.subgraphAPIEndpoint;
+    const customSubgraphQueriesEndpoint = getSubgraphEndpoint(chainIdToUse);
 
     before(() => {
         query = new Query({
-            dataMode: "SUBGRAPH_ONLY",
-            customSubgraphQueriesEndpoint: subgraphEndpoint,
+            customSubgraphQueriesEndpoint,
         });
     });
 
@@ -41,12 +35,6 @@ describe("Subgraph Tests", () => {
 
         it("Should be able to use the listener", async () => {
             await testListenerInitialization(query);
-        });
-    });
-
-    describe("WEB3_ONLY mode should not allow queries", () => {
-        it("Should fail when trying to execute any of the query class in WEB3_ONLY mode", async () => {
-            await testExpectWeb3OnlyErrors(query);
         });
     });
 });

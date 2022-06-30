@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -23,7 +23,7 @@ contract TestToken is ERC20 {
      * @dev See {ERC20-_mint}.
      */
     function mint(address account, uint256 amount) public returns (bool) {
-        require(amount <= MINT_LIMIT, "Don't mint too many");
+        assert(amount <= MINT_LIMIT); // no revert msg for you, bad boy
         ERC20._mint(account, amount);
         return true;
     }

@@ -4,12 +4,13 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, TextField, Switch } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { SuperTokenDowngradeMutation } from "@superfluid-finance/sdk-redux";
 
 export const SuperTokenDowngrade: FC = (): ReactElement => {
     const [downgradeFromSuperToken, { isLoading, error }] =
         sfApi.useSuperTokenDowngradeMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
 
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -17,12 +18,13 @@ export const SuperTokenDowngrade: FC = (): ReactElement => {
         useState<boolean>(false);
 
     const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
-        downgradeFromSuperToken({
+        downgradeFromSuperToken({   
             chainId,
             superTokenAddress: superToken,
             amountWei: amount,
-            waitForConfirmation
-        });
+            waitForConfirmation,
+            signer
+        } as SuperTokenDowngradeMutation);
     };
 
     return (

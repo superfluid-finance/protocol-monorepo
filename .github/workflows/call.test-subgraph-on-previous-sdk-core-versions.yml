@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        version: [0.3.2, 0.4.0, 0.4.1, 0.4.2, latest]
+        version: [v0.3.2, v0.4.0, v0.4.1, v0.4.2, latest]
 
     env:
       contracts-working-directory: ./packages/ethereum-contracts
@@ -45,7 +45,7 @@ jobs:
 
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}}"
         run: |
-          yarn add -D @superfluid-finance/sdk-core@v${{ matrix.version }}
+          yarn add -D @superfluid-finance/sdk-core@${{ matrix.version }}
         working-directory: ./packages/sdk-core/previous-versions-testing
 
       - name: "Test Schemas and Attempt Query Execution"

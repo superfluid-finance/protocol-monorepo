@@ -43,11 +43,15 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
-      - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
+      - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}}"
         run: |
           yarn add -D @superfluid-finance/sdk-core@v${{ matrix.version }}
-          ../tasks/testSchemasAndQueries.sh
         working-directory: ./packages/sdk-core/previous-versions-testing
+
+      - name: "Test Schemas and Attempt Query Execution"
+        run: |
+          ./tasks/testSchemasAndQueries.sh
+        working-directory: ./packages/sdk-core
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
 

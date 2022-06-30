@@ -1,4 +1,4 @@
-name: Reusable Workflow | Check Subgraph Indexing Statuses on All Networks
+name: Reusable Workflow | Check SDK-Core Schema Against Deployed Subgraphs
 
 on:
   workflow_call:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   check-subgraph-indexing-statuses-on-deployed-networks:
-    name: Check Subgraph Indexing Statuses for ${{ inputs.subgraph-release }} Release
+    name: Check SDK-Core Schema Against Deployed Subgraphs (${{ inputs.subgraph-release }})
 
     runs-on: ubuntu-latest
 
@@ -21,11 +21,11 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Run indexing statuses check
+      - name: Run schema check
         run: |
           yarn install
-          yarn check-indexing-completeness
-        working-directory: ./packages/subgraph
+          ./tasks/testSchemasAndQueries.sh
+        working-directory: ./packages/sdk-core
         env:
           SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
-                    
+

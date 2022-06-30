@@ -33,7 +33,6 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ./packages/sdk-core
 
-      # duplicated in call.test-subgraph-on-previous-sdk-core-versions.yml #
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v3
         with:
@@ -52,7 +51,6 @@ jobs:
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ./graph-node/docker
-      #                                                                     #
 
       - name: "Run subgraph integration test suite"
         if: inputs.run-sdk-core-tests == false

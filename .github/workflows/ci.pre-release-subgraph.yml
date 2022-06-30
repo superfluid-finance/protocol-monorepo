@@ -64,4 +64,3 @@ jobs:
       # we want to check here if the subgraph implementation in dev is safe to use
       # for v1 endpoints (backwards compatible)
       subgraph-release: dev
-      run-sdk-core-tests: false

@@ -139,6 +139,7 @@ jobs:
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
+  # subgraph integration test
   test-subgraph:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Feature Branch)
@@ -148,11 +149,26 @@ jobs:
       subgraph-release: ''
       run-sdk-core-tests: false
 
+  # sdk-core integration test + feature subgraph w/ feature sdk-core
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core
+    with:
+      subgraph-release: feature
+
+  # test latest and previous version of sdk-core with current subgraph
+  test-subraph-on-previous-sdk-core-versions:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Build and Test Current Subgraph Implementation with Latest and Previous SDK-Core Versions
+    with:
+      subgraph-release: feature
+
+  # test sdk-core and subgraph schemas in sync and query works
+  test-sdk-core-schema-against-deployed-feature-subgraphs:
+    uses: ./.github/workflows/call.check-sdk-core-schema-against-subgraph.yml
+    name: "Test Query Schema and Queries Against Deployed Feature Subgraphs"
     with:
       subgraph-release: feature
 

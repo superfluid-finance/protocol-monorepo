@@ -70,7 +70,13 @@ jobs:
     name: Build and Test Current Subgraph Implementation with Previous SDK-Core Versions
     with:
       subgraph-release: dev
-      run-sdk-core-tests: true
+
+  # test query and subgraph schemas are in sync and query works
+  test-query-schema-against-deployed-dev-subgraphs:
+    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
+    name: "Test Query Schema and Queries Against Deployed Dev Subgraphs"
+    with:
+      subgraph-release: dev
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch

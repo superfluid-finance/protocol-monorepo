@@ -1,6 +1,7 @@
 import {
     AccountListQuery,
     AccountTokenSnapshotListQuery,
+    AccountTokenSnapshotLogListQuery,
     IndexListQuery,
     IndexSubscriptionsListQuery,
     StreamListQuery,
@@ -8,13 +9,22 @@ import {
     SubgraphGetQuery,
     TokenListQuery,
     TokenStatisticListQuery,
+    TokenStatisticLogListQuery,
 } from '@superfluid-finance/sdk-core';
 
 export interface AccountTokenSnapshotQuery extends SubgraphGetQuery {
     chainId: number;
 }
 
+export interface AccountTokenSnapshotLogQuery extends SubgraphGetQuery {
+    chainId: number;
+}
+
 export interface AccountTokenSnapshotsQuery extends AccountTokenSnapshotListQuery {
+    chainId: number;
+}
+
+export interface AccountTokenSnapshotLogsQuery extends AccountTokenSnapshotLogListQuery {
     chainId: number;
 }
 
@@ -71,5 +81,13 @@ export interface TokenStatisticQuery extends SubgraphGetQuery {
 }
 
 export interface TokenStatisticsQuery extends TokenStatisticListQuery {
+    chainId: number;
+}
+
+export interface TokenStatisticLogQuery extends SubgraphGetQuery {
+    chainId: number;
+}
+
+export interface TokenStatisticLogsQuery extends TokenStatisticLogListQuery {
     chainId: number;
 }

@@ -67,7 +67,7 @@ function createNetworkConfig(
 
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.13",
+        version: "0.8.14",
         settings: {
             optimizer: {
                 enabled: true,
@@ -145,7 +145,7 @@ const config: HardhatUserConfig = {
         pages: (item: any, file: any) => file.absolutePath.startsWith('contracts/interfaces/')
             ? relative('contracts', file.absolutePath).replace('.sol', '.md')
             : undefined,
-    }, 
+    },
 };
 
 export default config;

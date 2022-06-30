@@ -40,10 +40,8 @@ export const beforeSetup = async (tokenAmount: number) => {
     );
     const users = signers.map((x) => x.address);
     let totalSupply = 0;
-    // names[Bob] = "Bob";
     const sf = await Framework.create({
-        networkName: "custom",
-        dataMode: "WEB3_ONLY",
+        chainId: 31337,
         protocolReleaseVersion: "test",
         provider: Deployer.provider!,
         resolverAddress: RESOLVER_ADDRESS,
@@ -56,7 +54,7 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
-        fDAIx.underlyingToken!.address,
+        fDAIx.underlyingToken.address,
         TestTokenABI
     ) as TestToken;
 

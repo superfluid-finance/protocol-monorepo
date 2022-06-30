@@ -13,11 +13,6 @@ interface FrameworkLocator {
     setFramework: (chainId: number, frameworkOrFactory: Framework | (() => Promise<Framework>)) => void;
 }
 
-interface SignerLocator {
-    getSigner: (chainId: number) => Promise<Signer>;
-    setSigner: (chainId: number, signerOrFactory: Signer | (() => Promise<Signer>)) => void;
-}
-
 interface RpcApiSliceLocator {
     getRpcApiSlice: () => RpcApiSliceEmpty;
     setRpcApiSlice: (api: RpcApiSliceEmpty) => void;
@@ -37,12 +32,7 @@ interface TransactionTrackerSliceLocator {
  * NOTE: The reason memoization is used is to avoid multiple instantiations by the factory functions.
  */
 export default class SdkReduxConfig
-    implements
-        FrameworkLocator,
-        SignerLocator,
-        RpcApiSliceLocator,
-        SubgraphApiSliceLocator,
-        TransactionTrackerSliceLocator
+    implements FrameworkLocator, RpcApiSliceLocator, SubgraphApiSliceLocator, TransactionTrackerSliceLocator
 {
     rpcApiSlice: RpcApiSliceEmpty | undefined;
     subgraphApiSlice: SubgraphApiSliceEmpty | undefined;
@@ -80,13 +70,6 @@ export default class SdkReduxConfig
         return frameworkFactory();
     }
 
-    getSigner(chainId: number): Promise<Signer> {
-        const signerFactory = this.memoizedSignerFactories.get(chainId);
-        if (!signerFactory)
-            throw Error(`Don't know how to get a signer. :( Please set up a *signer* source for chain [${chainId}].`);
-        return signerFactory();
-    }
-
     getTransactionTrackerSlice(): TransactionTrackerSlice {
         if (!this.transactionTrackerSlice) {
             throw Error(
@@ -122,14 +105,6 @@ export default class SdkReduxConfig
         this.memoizedFrameworkFactories.set(chainId, _.memoize(frameworkFactory));
     }
 
-    setSigner(chainId: number, instanceOrFactory: Signer | (() => Promise<Signer>)) {
-        const signerFactory = isEthersSigner(instanceOrFactory)
-            ? () => Promise.resolve(instanceOrFactory)
-            : instanceOrFactory;
-
-        this.memoizedSignerFactories.set(chainId, _.memoize(signerFactory));
-    }
-
     setTransactionTrackerSlice(slice: TransactionTrackerSlice): void {
         if (this.transactionTrackerSlice) {
             console.log(
@@ -149,7 +124,5 @@ export const getSubgraphClient = (chainId: number) =>
     getConfig()
         .getFramework(chainId)
         .then((x) => x.query.subgraphClient);
-export const getSigner = (chainId: number) => getConfig().getSigner(chainId);
 
-const isEthersSigner = (value: any): value is Signer => !!value.getAddress;
 const isFramework = (value: any): value is Framework => !!value.cfaV1;

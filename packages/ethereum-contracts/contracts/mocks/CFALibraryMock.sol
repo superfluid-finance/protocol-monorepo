@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {ISuperfluid, ISuperfluidToken, ISuperToken} from "../interfaces/superfluid/ISuperfluid.sol";
 
@@ -161,7 +161,7 @@ contract CFALibrarySuperAppMock is SuperAppBase {
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
-        host.registerApp(configWord);
+        host.registerAppWithKey(configWord, "");
     }
 
     function createFlow(ISuperToken token) external {

@@ -27,3 +27,13 @@ export enum MillisecondTimes {
     ThreeMinutes = 180000,
     FiveMinutes = 300000,
 }
+
+/**
+ * @private
+ */
+export const mutationOverridesKey = 'overrides' as const;
+
+/**
+ * @private
+ */
+export const mutationSignerKey = 'signer' as const;

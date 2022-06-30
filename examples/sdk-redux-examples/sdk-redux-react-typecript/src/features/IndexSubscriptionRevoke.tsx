@@ -4,12 +4,13 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexSubscriptionRevokeMutation } from "@superfluid-finance/sdk-redux"
 
 export const IndexSubscriptionRevoke: FC = (): ReactElement => {
     const [trigger, { isLoading, error }] =
         sfApi.useIndexSubscriptionRevokeMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
     const [publisherAddress, setPublisherAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
@@ -24,8 +25,9 @@ export const IndexSubscriptionRevoke: FC = (): ReactElement => {
             superTokenAddress: superToken,
             indexId,
             userDataBytes,
-            publisherAddress
-        });
+            publisherAddress,
+            signer
+        } as IndexSubscriptionRevokeMutation);
     };
 
     return (

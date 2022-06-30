@@ -4,6 +4,7 @@ libs = ['lib']
 src = 'packages/ethereum-contracts'
 remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
+    'hardhat=packages/ethereum-contracts/node_modules/hardhat/',
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']

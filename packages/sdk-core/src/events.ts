@@ -195,6 +195,7 @@ export interface AgreementLiquidatedV2Event extends EventBase {
     targetAccount: string;
     rewardAmountReceiver: string;
     rewardAmount: string;
+    rewardAccount: string;
     targetAccountBalanceDelta: string;
     version: string;
     liquidationType: number;

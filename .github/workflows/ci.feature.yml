@@ -167,7 +167,7 @@ jobs:
 
   # test sdk-core and subgraph schemas in sync and query works
   test-sdk-core-schema-against-deployed-feature-subgraphs:
-    uses: ./.github/workflows/call.check-sdk-core-schema-against-subgraph.yml
+    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
     name: "Test Query Schema and Queries Against Deployed Feature Subgraphs"
     with:
       subgraph-release: feature

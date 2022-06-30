@@ -118,7 +118,6 @@ contract EmploymentLoan is SuperAppBase {
 
     //lender can use this function to send funds to the borrower and start the loan
     function lend() external {
-
         (, int96 employerFlowRate, , ) = cfaV1.cfa.getFlow(
             borrowToken,
             employer,
@@ -264,7 +263,6 @@ contract EmploymentLoan is SuperAppBase {
         int96 paymentFlowRate = getPaymentFlowRate();
         // @dev This will give me the new flowRate, as it is called in after callbacks
         int96 netFlowRate = cfaV1.cfa.getNetFlow(borrowToken, address(this));
-
         //current amount being sent to lender
         (, int96 outFlowRateLender, , ) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
         //current amount being sent to borrower

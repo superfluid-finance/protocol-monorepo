@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperfluid,
@@ -26,7 +26,7 @@ contract IDASuperAppTester is ISuperApp {
         uint32 indexId)
     {
         _host = host;
-        _host.registerApp(configWord);
+        _host.registerAppWithKey(configWord, "");
         _ida = ida;
         _token = token;
         _indexId = indexId;

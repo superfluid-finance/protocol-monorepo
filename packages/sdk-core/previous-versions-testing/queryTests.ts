@@ -16,57 +16,6 @@ export const getChainId = () => {
         : ETH_GOERLI_CHAIN_ID;
 };
 
-export const testExpectWeb3OnlyErrors = async (query: Query) => {
-    query = new Query({
-        dataMode: "WEB3_ONLY",
-        customSubgraphQueriesEndpoint:
-            query.options.customSubgraphQueriesEndpoint,
-    });
-
-    try {
-        await query.listAllSuperTokens({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listIndexes({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listIndexSubscriptions({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listStreams({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listUserInteractedSuperTokens({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-    try {
-        await query.listEvents({});
-    } catch (err: any) {
-        expect(err.message).to.contain(
-            "Unsupported Web 3 Only Error - This query is not supported in WEB3_ONLY mode."
-        );
-    }
-};
-
 export const testQueryClassFunctions = async (query: Query) => {
     const tokens = await query.listAllSuperTokens({}, { take: 10 });
     const indexes = await query.listIndexes({}, { take: 10 });

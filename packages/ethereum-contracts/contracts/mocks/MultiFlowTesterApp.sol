@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperfluid,
@@ -41,7 +41,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
-        _host.registerApp(configWord);
+        _host.registerAppWithKey(configWord, "");
     }
 
     function _parseUserData(

@@ -1,9 +1,11 @@
 import {isPlainObject} from '@reduxjs/toolkit';
 import {SerializeQueryArgs} from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs';
 
+import {mutationOverridesKey, mutationSignerKey} from '../../utils';
+
 export const getSerializeQueryArgs =
     (): SerializeQueryArgs<any> =>
-    ({endpointName, queryArgs}) => {
+    ({endpointName, queryArgs, endpointDefinition}) => {
         // NOTE: The code below is taken from Redux Toolkit's repository from `defaultSerializeQueryArgs.ts`.
 
         // Comment from RTK-Query: Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
@@ -12,6 +14,13 @@ export const getSerializeQueryArgs =
                 ? Object.keys(value)
                       .sort()
                       .reduce<any>((acc, key) => {
+                          // Don't cache non-serializable data from mutation args.
+                          if (endpointDefinition.type === 'mutation') {
+                              if (key === mutationOverridesKey || key === mutationSignerKey) {
+                                  return acc;
+                              }
+                          }
+
                           acc[key] = normalizeValue((value as any)[key]);
                           return acc;
                       }, {})

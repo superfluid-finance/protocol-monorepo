@@ -3,6 +3,28 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.0] - 2022-06-16
+
+### Added
+
+- Automated generation and publishing of contract API docs with solidity-docgen (#880)
+- Set newCtx whenever a function is modifying + using it (#854)
+- CfAv1Library ACL support (#803)
+- Avalanche Support Added (#819)
+
+### Fixes
+
+- Production deployment script fixes (#821)
+- Increase Code Coverage (#891)
+- SlotsBitmapLibrary Property Test Fuzzing (#790)
+
+### Changed
+
+- IDA: Distribute no longer reverts when units is 0 (#853)
+- Use `abi.encodeCall` (#869)
+- Review safemath & safecast (#851)
+- Solidity 0.8.14 (#896)
+
 ## [v1.2.2] - 2022-05-09
 
 ### Breaking

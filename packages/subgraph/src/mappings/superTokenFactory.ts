@@ -8,7 +8,7 @@ import {
     SuperTokenCreatedEvent,
     SuperTokenLogicCreatedEvent,
 } from "../../generated/schema";
-import {createEventID, getOrder, tokenHasValidHost} from "../utils";
+import { createEventID, getOrder, tokenHasValidHost } from "../utils";
 import { getOrInitSuperToken } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
 
@@ -23,6 +23,7 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
         createEventID("SuperTokenCreated", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenCreated";
     ev.addresses = [event.params.token];
@@ -48,6 +49,7 @@ export function handleCustomSuperTokenCreated(
         createEventID("CustomSuperTokenCreated", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "CustomSuperTokenCreated";
     ev.addresses = [event.params.token];
@@ -73,6 +75,7 @@ export function handleSuperTokenLogicCreated(
         createEventID("SuperTokenLogicCreated", event)
     );
     ev.transactionHash = event.transaction.hash;
+    ev.gasPrice = event.transaction.gasPrice;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenLogicCreated";
     ev.addresses = [];

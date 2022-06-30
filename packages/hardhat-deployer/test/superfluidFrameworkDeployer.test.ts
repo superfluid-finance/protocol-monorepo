@@ -11,8 +11,8 @@ import { useEnvironment } from "./helpers";
 // Environment Variables
 // (Anvil generated key)
 const privKey =
-    process.env.PRIV_KEY || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-const httpUrl = process.env.HTTP_URL || "http://localhost:8545";
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const httpUrl = "http://localhost:8545";
 
 const cfaAgreementType = "0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3";
 const idaAgreementType = "0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674";

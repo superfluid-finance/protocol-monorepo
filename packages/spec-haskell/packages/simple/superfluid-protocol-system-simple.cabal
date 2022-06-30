@@ -17,6 +17,7 @@ library
     exposed-modules:
         Money.Systems.Superfluid.Instances.Simple.Serialization
         Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+        Money.Systems.Superfluid.Instances.Simple.Integrations.Show
         Money.Systems.Superfluid.Instances.Simple.System
 
     hs-source-dirs:   src

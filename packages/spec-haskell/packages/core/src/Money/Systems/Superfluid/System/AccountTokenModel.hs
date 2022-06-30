@@ -9,18 +9,13 @@ module Money.Systems.Superfluid.System.AccountTokenModel
     ) where
 
 import           Data.Default
-import           Data.Kind                                                        (Type)
+import           Data.Kind                                                        (Constraint, Type)
 import           Data.Maybe
 import           Data.Proxy
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
 --
-import           Money.Systems.Superfluid.Concepts.Agreement
-    ( Agreement (..)
-    , AnyAgreementAccountData (..)
-    , providedBalanceByAnyAgreement
-    , updateAgreement
-    )
+import           Money.Systems.Superfluid.Concepts.Agreement                      (Agreement (..), updateAgreement)
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
@@ -38,6 +33,10 @@ import           Money.Systems.Superfluid.Integrations.Serialization            
 --   * Type family name: SF_ACC
 --   * Term name: *Account
 class SuperfluidTypes sft => Account acc sft | acc -> sft where
+
+    type AgreementAccountDataPreConstraint acc :: Type -> Constraint
+
+    type AnyAgreementAccountData acc :: Type
 
     addressOfAccount :: acc -> SFT_ADDR sft
 
@@ -58,20 +57,17 @@ class SuperfluidTypes sft => Account acc sft | acc -> sft where
     accountDFA :: acc -> DFA.DFAAccountData sft
     accountDFA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(DFA.DFAAccountData sft)) acc
 
-    agreementsOfAccount :: acc -> [AnyAgreementAccountData sft]
-    agreementsOfAccount acc =
-        [ MkAgreementAccountData $ accountTBA acc
-        , MkAgreementAccountData $ accountCFA acc
-        , MkAgreementAccountData $ accountDFA acc
-        ]
+    providedBalanceByAnyAgreement :: acc -> AnyAgreementAccountData acc -> SFT_TS sft -> SFT_RTB sft
+
+    agreementsOfAccount :: acc -> [AnyAgreementAccountData acc]
 
     showAccountAt :: acc -> SFT_TS sft -> String
 
 balanceOfAccountAt :: (SuperfluidTypes sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
-balanceOfAccountAt holderAccount t = foldr
-    ((+) . (`providedBalanceByAnyAgreement` t))
+balanceOfAccountAt account t = foldr
+    ((+) . (\a -> providedBalanceByAnyAgreement account a t))
     def
-    (agreementsOfAccount holderAccount)
+    (agreementsOfAccount account)
 
 sumAccounts :: (SuperfluidTypes sft, Account acc sft) => [acc] -> SFT_TS sft -> SFT_RTB sft
 sumAccounts alist t = foldr ((+) . (`balanceOfAccountAt` t)) def alist

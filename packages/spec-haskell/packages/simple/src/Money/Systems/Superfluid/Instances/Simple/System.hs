@@ -34,15 +34,14 @@ import qualified Data.Map                                                  as M
 import           Data.Maybe
 import           Data.Type.TaggedTypeable
 
-import           Money.Systems.Superfluid.Concepts.Agreement               (agreementTypeTag)
+import           Money.Systems.Superfluid.Concepts.Agreement               (Agreement (..))
 --
 import qualified Money.Systems.Superfluid.System.AccountTokenModel         as SF
---
-import qualified Money.Systems.Superfluid.Integrations.Serialization       as S
-import           Money.Systems.Superfluid.Integrations.Show                ()
 
 import           Money.Systems.Superfluid.Instances.Simple.Serialization
 import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+import qualified Money.Systems.Superfluid.Integrations.Serialization       as S
+
 
 -- ============================================================================
 -- SimpleAccount Type and Operations (is SuperfluidAccount)
@@ -54,6 +53,11 @@ data SimpleAccount = SimpleAccount
     }
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
+
+    type AgreementAccountDataPreConstraint SimpleAccount = SimpleAgreementAccountDataPreConstraint
+
+    type AnyAgreementAccountData SimpleAccount = AnySimpleAgreementAccountData
+
     addressOfAccount = address
 
 --    agreementOfAccount :: (AgreementAccountData aad sft)
@@ -67,11 +71,22 @@ instance SF.Account SimpleAccount SimpleSuperfluidTypes where
         }
         where k = tagFromValue aad
 
+    -- | Balance provided by any agreement of an account
+    providedBalanceByAnyAgreement _ (MkSimpleAgreementAccountData g) = providedBalanceByAgreement g
+
+    agreementsOfAccount acc =
+        [ MkSimpleAgreementAccountData (SF.accountTBA acc)
+        , MkSimpleAgreementAccountData (SF.accountCFA acc)
+        , MkSimpleAgreementAccountData (SF.accountDFA acc)
+        ]
+
     showAccountAt acc t =
         "Account @" ++ show(SF.addressOfAccount acc) ++
         "\n  Balance: " ++ show(SF.balanceOfAccountAt acc t) ++
         concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOfAccount acc) ++
         "\n  Last Update: " ++ show(accountLastUpdatedAt acc)
+        where agreementTypeTag (MkSimpleAgreementAccountData g) = tagFromValue g
+
 
 _createSimpleAccount :: SimpleAddress -> SimpleTimestamp -> SimpleAccount
 _createSimpleAccount toAddress t = SimpleAccount

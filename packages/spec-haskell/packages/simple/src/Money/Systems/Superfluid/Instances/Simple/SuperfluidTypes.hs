@@ -21,6 +21,9 @@ module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     , SimpleRealtimeBalance (..)
     -- SimpleSuperfluidTypes
     , SimpleSuperfluidTypes
+    -- Agreement
+    , SimpleAgreementAccountDataPreConstraint
+    , AnySimpleAgreementAccountData (..)
     ) where
 
 import           Control.Exception                                                (assert)
@@ -32,14 +35,18 @@ import           Data.String
 import           GHC.Generics                                                     (Generic)
 import           Text.Printf                                                      (printf)
 
+import           Money.Systems.Superfluid.Concepts.Agreement
 import           Money.Systems.Superfluid.Concepts.Liquidity
 import           Money.Systems.Superfluid.Concepts.RealtimeBalance
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
-
+--
+import           Money.Systems.Superfluid.Instances.Simple.Integrations.Show      ()
 
 -- | SFDouble Type
 newtype SFDouble = SFDouble Double
@@ -138,3 +145,19 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_TS SimpleSuperfluidTypes = SimpleTimestamp
     type SFT_RTB SimpleSuperfluidTypes = SimpleRealtimeBalance
     type SFT_ADDR SimpleSuperfluidTypes = SimpleAddress
+
+class (Show acc) => SimpleAgreementAccountDataPreConstraint acc
+instance SimpleAgreementAccountDataPreConstraint (TBA.TBAAccountData SimpleSuperfluidTypes)
+instance SimpleAgreementAccountDataPreConstraint (CFA.CFAAccountData SimpleSuperfluidTypes)
+instance SimpleAgreementAccountDataPreConstraint (DFA.DFAAccountData SimpleSuperfluidTypes)
+
+-- | AnyAgreementAccountData type
+data AnySimpleAgreementAccountData =
+    forall a. ( Agreement a
+              , DistributionForAgreement a ~ SimpleSuperfluidTypes
+              , SimpleAgreementAccountDataPreConstraint (AgreementAccountData a)
+              )
+    => MkSimpleAgreementAccountData (AgreementAccountData a)
+
+instance Show AnySimpleAgreementAccountData where
+    show (MkSimpleAgreementAccountData g) = show g

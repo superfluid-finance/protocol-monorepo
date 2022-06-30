@@ -1,16 +1,14 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies            #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)
     , updateAgreement
-    , AnyAgreementAccountData (MkAgreementAccountData)
-    , providedBalanceByAnyAgreement
-    , agreementTypeTag
     ) where
 
 import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
-import           Data.Type.TaggedTypeable                          (TaggedTypeable (..), tagFromValue)
+import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 
@@ -23,7 +21,6 @@ class ( SuperfluidTypes (DistributionForAgreement a)
       , TaggedTypeable (AgreementContractData a)
       , Monoid (AgreementAccountData a)
       , TaggedTypeable (AgreementAccountData a)
-      , Show (AgreementAccountData a)
       )
       => Agreement a where
 
@@ -48,16 +45,3 @@ class ( SuperfluidTypes (DistributionForAgreement a)
 updateAgreement :: Agreement a => AgreementContractData a -> AgreementContractData a -> AgreementParties a -> AgreementParties a
 updateAgreement old new parties = liftAgreementParties2 (<>) parties parties'
     where parties' = createAgreementParties old new
-
--- | AnyAgreementAccountData type
-data AnyAgreementAccountData sft =
-    forall a. (SuperfluidTypes sft, Agreement a, SFT a ~ sft)
-    => MkAgreementAccountData (AgreementAccountData a)
-
--- | Balance provided by any agreement of an account
-providedBalanceByAnyAgreement :: AnyAgreementAccountData sft -> SFT_TS sft -> SFT_RTB sft
-providedBalanceByAnyAgreement (MkAgreementAccountData g) = providedBalanceByAgreement g
-
--- | Get agreement type tag
-agreementTypeTag :: AnyAgreementAccountData sft -> String
-agreementTypeTag (MkAgreementAccountData g) = tagFromValue g

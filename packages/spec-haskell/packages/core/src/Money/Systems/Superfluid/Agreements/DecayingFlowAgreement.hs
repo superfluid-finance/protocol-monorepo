@@ -14,7 +14,6 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable
-import           Text.Printf                                             (printf)
 
 import           Money.Systems.Superfluid.Concepts.Agreement             (Agreement (..))
 import           Money.Systems.Superfluid.Concepts.Liquidity             (UntappedLiquidity (..), mkAnyTappedLiquidity)
@@ -78,9 +77,6 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
     liftAgreementParties2 f (DFAParties s r) (DFAParties s' r') = DFAParties (f s s') (f r r')
 
 instance SuperfluidTypes sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
-instance SuperfluidTypes sft => Show (DFAContractData sft) where
-    show x = printf "{ t_u = %s, δ = %s, λ = %s }"
-        (show $ flowLastUpdatedAt x) (show $ distributionLimit x) (show $ decayingFactor x)
 
 instance SuperfluidTypes sft => Default (DFAContractData sft) where
     def = DFAContractData
@@ -91,12 +87,6 @@ instance SuperfluidTypes sft => Default (DFAContractData sft) where
         }
 
 instance SuperfluidTypes sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
-instance SuperfluidTypes sft => Show (DFAAccountData sft) where
-    show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
-        (show $ settledAt x)
-        (show $ αVal x)
-        (show $ εVal x)
-        (show $ settledBuffer x)
 
 instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
     -- Formula:

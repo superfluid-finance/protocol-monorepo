@@ -11,9 +11,7 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
-import           Text.Printf                                             (printf)
 
---
 import           Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)
     , AgreementAccountData (..)
@@ -93,9 +91,6 @@ instance SuperfluidTypes sft => Default (CFAContractData sft) where
         , flowBuffer = def
         }
 instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
-instance SuperfluidTypes sft => Show (CFAContractData sft) where
-    show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
-        (show $ flowLastUpdatedAt x) (show $ flowRate x) (show $ flowBuffer x)
 
 
 instance SuperfluidTypes sft => Semigroup (CFAAccountData sft) where
@@ -113,12 +108,6 @@ instance SuperfluidTypes sft => Monoid (CFAAccountData sft) where
         , netFlowRate = def }
 
 instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
-instance SuperfluidTypes sft => Show (CFAAccountData sft) where
-    show x = printf "{ t = %s, uliq = %s, buf = %s, fr = %s }"
-        (show $ settledAt x)
-        (show $ settledUntappedLiquidity x)
-        (show $ settledBufferLiquidity x)
-        (show $ netFlowRate x)
 
 -- ============================================================================
 -- Internal functions

@@ -20,9 +20,8 @@ module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
 
 import           Data.Default                                      (Default (..))
 import           Data.Kind                                         (Type)
-import           Data.Type.TaggedTypeable
+import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
 import           Data.Typeable                                     (Proxy (..))
-import           Text.Printf                                       (printf)
 
 import           Money.Systems.Superfluid.Concepts.Agreement       (AgreementAccountData (..))
 import           Money.Systems.Superfluid.Concepts.Liquidity
@@ -75,12 +74,6 @@ instance (SuperfluidTypes sft) => Default (TBAContractData sft) where def = TBAC
 instance (SuperfluidTypes sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
 
 instance (SuperfluidTypes sft) => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
-
-instance SuperfluidTypes sft => Show (TBAAccountData sft) where
-    show x = printf "{ t = %s, uliq = %s, mliq = %s }"
-        (show $ settledAt x)
-        (show $ untappedLiquidity x)
-        (show $ mintedLiquidity x)
 
 instance SuperfluidTypes sft => Semigroup (TBAAccountData sft) where
     (<>) = undefined

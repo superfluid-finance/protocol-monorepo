@@ -46,7 +46,7 @@ jobs:
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
         run: |
           yarn add -D @superfluid-finance/sdk-core@v${{ matrix.version }}
-          yarn run-query-tests
+          ../tasks/testSchemasAndQueries.sh
         working-directory: ./packages/sdk-core/previous-versions-testing
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}

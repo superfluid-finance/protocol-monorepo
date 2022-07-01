@@ -35,6 +35,7 @@ All subgraphs are available via The Graph's hosted service:
 | Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
 | Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
 | Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-c |
+| BNB Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-bsc-mainnet |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
@@ -52,6 +53,7 @@ All subgraphs are available via The Graph's hosted service:
 | Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
 | Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
 | Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-c |
+| BNB Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-bsc-mainnet |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |

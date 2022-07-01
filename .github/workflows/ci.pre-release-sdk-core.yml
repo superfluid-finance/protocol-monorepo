@@ -29,7 +29,7 @@ jobs:
   # test query and subgraph schemas are in sync and query works (safe to deploy w/o breaking changes)
   test-query-schema-against-deployed-v1-subgraphs:
     uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: "Test Query Schema and Queries Against Deployed V1 Subgraphs"
+    name: Test Query Schema and Queries Against Local and Deployed V1 Subgraphs
     with:
       subgraph-release: v1
 

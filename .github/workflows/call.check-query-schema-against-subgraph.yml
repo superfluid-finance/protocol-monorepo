@@ -39,6 +39,31 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
+      # duplicated in call.test-subgraph-on-previous-sdk-core-versions, call.setup-deploy-and-test-local-subgraph
+      - name: "Checkout graph node repo and set up local graph node"
+        uses: actions/checkout@v3
+        with:
+          repository: graphprotocol/graph-node
+          path: graph-node
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Run setup because linux and docker-compose"
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          chmod +x setup.sh
+          ./setup.sh
+        working-directory: ./graph-node/docker
+
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ./graph-node/docker
+
+      - name: "Prepare and Deploy Local Subgraph"
+        run: yarn testenv:start
+        working-directory: ./packages/subgraph
+      #
+
       - name: Run schema check
         run: |
           ./tasks/setupTestEnvironment.sh

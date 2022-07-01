@@ -14,13 +14,21 @@ if [ "$SUBGRAPH_RELEASE_TAG" == "dev" ] || [ "$SUBGRAPH_RELEASE_TAG" == "v1" ];t
     NETWORKS=( $($JQ -r .[] ../subgraph/networks.json) )
 fi
 
-for i in "${NETWORKS[@]}";do
-    SUBGRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-$SUBGRAPH_RELEASE_TAG-$i
-
+function testSchemaAndQueries() {
     # generate schema.graphql with desired endpoint
     npx get-graphql-schema $SUBGRAPH_ENDPOINT > src/subgraph/schema.graphql
     # attempt to generate types with schema.graphql generated in previous step and .graphql files in entities folders
     yarn generate:graphql-types
     # attempt to run queries with desired endpoint
     export SUBGRAPH_ENDPOINT=$SUBGRAPH_ENDPOINT && npx hardhat test previous-versions-testing/runQueryTests.ts
+}
+
+# for sdk-core releases: test deployed subgraphs
+for i in "${NETWORKS[@]}";do
+    SUBGRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-$SUBGRAPH_RELEASE_TAG-$i
+    testSchemaAndQueries
 done
+
+# for subgraph releases: test local endpoint (current subgraph)
+SUBGRAPH_ENDPOINT=http://localhost:8000/subgraphs/name/superfluid-test
+testSchemaAndQueries

@@ -5,6 +5,7 @@ import { Button } from "@mui/material";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 
 interface Props {
     onSuperfluidSdkInitialized: (sf: Framework, provider: Web3Provider) => void;
@@ -17,30 +18,39 @@ export const chainIds = [
     42, // KOVAN
     // 100, // XDAI //TODO(KK): No infura support
     137, // MATIC
-    80001 // MUMBAI
+    80001, // MUMBAI
 ];
 
+// Enter a valid infura key here to avoid being rate limited
+// You can get a key for free at https://infura.io/register
+const INFURA_ID = "90db0e566ddf4de7b05ed1e57306bbe4";
+
 export const InitializeSuperfluidSdk: FC<Props> = ({
-                                                       onSuperfluidSdkInitialized
-                                                   }): ReactElement => {
+    onSuperfluidSdkInitialized,
+}): ReactElement => {
     const handleWallet = async () => {
         const providerOptions = {
-            /* See Provider Options Section */
+            walletconnect: {
+                package: WalletConnectProvider,
+                options: {
+                    infuraId: INFURA_ID,
+                },
+            },
         };
 
         // Configure Infura Providers when environment variable is present.
         const infuraProviders = !!process.env.REACT_APP_INFURA_ID
             ? chainIds.map((chainId) => ({
-                chainId,
-                frameworkGetter: () =>
-                    Framework.create({
-                        chainId,
-                        provider: new ethers.providers.InfuraProvider(
-                            chainId,
-                            process.env.REACT_APP_INFURA_ID
-                        )
-                    })
-            }))
+                  chainId,
+                  frameworkGetter: () =>
+                      Framework.create({
+                          chainId,
+                          provider: new ethers.providers.InfuraProvider(
+                              chainId,
+                              process.env.REACT_APP_INFURA_ID
+                          ),
+                      }),
+              }))
             : [];
 
         infuraProviders.map((x) =>
@@ -49,7 +59,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         const web3Modal = new Web3Modal({
             cacheProvider: false,
-            providerOptions
+            providerOptions,
         });
 
         const web3ModalProvider = await web3Modal.connect();
@@ -59,7 +69,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         const superfluidSdk = await Framework.create({
             chainId: currentNetwork.chainId,
-            provider: ethersWeb3Provider
+            provider: ethersWeb3Provider,
         });
 
         // Set active provider & signer from MetaMask
@@ -79,7 +89,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
             const newSdk = await Framework.create({
                 chainId: parsedChainId,
-                provider: ethersWeb3Provider
+                provider: ethersWeb3Provider,
             });
 
             // Re-set INFURA providers

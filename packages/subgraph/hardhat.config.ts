@@ -46,6 +46,10 @@ const config: HardhatUserConfig = {
             url: process.env.AVALANCHE_C_PROVIDER_URL || "",
             chainId: 43114,
         },
+        "bsc-mainnet": {
+            url: process.env.BSC_MAINNET_PROVIDER_URL || "",
+            chainId: 56,
+        },
         ropsten: {
             url: process.env.ROPSTEN_PROVIDER_URL || "",
             chainId: 3,

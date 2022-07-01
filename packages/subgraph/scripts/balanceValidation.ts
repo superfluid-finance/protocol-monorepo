@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { getAccountTokenSnapshots } from "./dataIntegrity/dataIntegrityQueries";
 import {
     getMostRecentIndexedBlockNumber,
@@ -5,6 +6,12 @@ import {
 } from "./dataIntegrity/helperFunctions";
 import { DataIntegrityAccountTokenSnapshot } from "./dataIntegrity/interfaces";
 
+/**
+ * This function "validates" that balance data is correct - this is to be used
+ * when removing the RPC calls on the subgraph piecemeal.
+ * The assumption of this test is that the v1 balance is correct as it initially starts from
+ * a place of only using RPC calls.
+ */
 async function main() {
     const endpointA =
         "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli";
@@ -18,6 +25,7 @@ async function main() {
         endpointARecentBlock,
         1000
     );
+
     const endpointBRecentBlock = await getMostRecentIndexedBlockNumber(
         endpointB
     );

@@ -6,6 +6,7 @@ All notable changes to the SDK-redux will be documented in this file.
 ### Breaking
 - Pass in `signer` through mutation payload
 - Remove `setSignerForSdkRedux`
+- Serialized `transactionResponse` is now possibly undefined on `TrackedTransaction` when serialization fails
 
 ### Added
 - Query for transfer events

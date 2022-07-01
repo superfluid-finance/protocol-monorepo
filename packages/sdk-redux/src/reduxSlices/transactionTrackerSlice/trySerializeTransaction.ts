@@ -13,4 +13,5 @@ export const trySerializeTransaction = (
     } catch (error) {
         console.error(error);
     }
+    return undefined;
 };

@@ -30,8 +30,8 @@ jobs:
       
       - name: "Install local hardhat instance"
         run: |
-        yarn init -y
-        yarn add hardhat
+          yarn init -y
+          yarn add hardhat
       working-directory: ./packages/hardhat-deployer/test/fixture-projects/hardhat-project
 
       - name: "Run test suite"

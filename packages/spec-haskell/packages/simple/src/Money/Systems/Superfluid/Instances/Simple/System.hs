@@ -6,10 +6,11 @@
 module Money.Systems.Superfluid.Instances.Simple.System
     ( module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     -- SimpleAccount
-    , SimpleAccount
     , SF.Account (..)
     , SF.balanceOfAccountAt
     , SF.sumAccounts
+    , SimpleAccount
+    , showAccountAt
     , listAccounts
     , addAccount
     -- Token
@@ -54,8 +55,6 @@ data SimpleAccount = SimpleAccount
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
 
-    type AgreementAccountDataPreConstraint SimpleAccount = SimpleAgreementAccountDataPreConstraint
-
     type AnyAgreementAccountData SimpleAccount = AnySimpleAgreementAccountData
 
     addressOfAccount = address
@@ -80,12 +79,14 @@ instance SF.Account SimpleAccount SimpleSuperfluidTypes where
         , MkSimpleAgreementAccountData (SF.accountDFA acc)
         ]
 
-    showAccountAt acc t =
-        "Account @" ++ show(SF.addressOfAccount acc) ++
-        "\n  Balance: " ++ show(SF.balanceOfAccountAt acc t) ++
-        concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOfAccount acc) ++
-        "\n  Last Update: " ++ show(accountLastUpdatedAt acc)
-        where agreementTypeTag (MkSimpleAgreementAccountData g) = tagFromValue g
+
+showAccountAt :: SimpleAccount -> SimpleTimestamp -> String
+showAccountAt acc t =
+    "Account @" ++ show(SF.addressOfAccount acc) ++
+    "\n  Balance: " ++ show(SF.balanceOfAccountAt acc t) ++
+    concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOfAccount acc) ++
+    "\n  Last Update: " ++ show(accountLastUpdatedAt acc)
+    where agreementTypeTag (MkSimpleAgreementAccountData g) = tagFromValue g
 
 
 _createSimpleAccount :: SimpleAddress -> SimpleTimestamp -> SimpleAccount
@@ -166,7 +167,6 @@ _modifySimpleTokenData = SimpleTokenStateT . modify
 -- | SimpleTokenStateT m is a SuperfluidToken instance
 --
 instance (Monad m) => SF.Token (SimpleTokenStateT m) where
-
     type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidTypes
 
     type TK_ACC (SimpleTokenStateT m) = SimpleAccount

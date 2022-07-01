@@ -75,7 +75,7 @@ class TaggedTypeable ltag => TypedLiquidityTag ltag
 --
 -- Naming conventions:
 --  * Type name: tlq
-class (Show tlq, Liquidity lq) => TypedLiquidity tlq lq | tlq -> lq where
+class Liquidity lq => TypedLiquidity tlq lq | tlq -> lq where
     typeLiquidity :: lq -> tlq
     untypeLiquidity :: tlq -> lq
     isLiquidityOfType :: TypedLiquidityTag ltag => tlq -> Proxy ltag -> Bool
@@ -107,8 +107,6 @@ instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq where
     untypeLiquidity (UntappedLiquidity liq) = liq
     isLiquidityOfType _ liqt1 = typeRep liqt1 == typeRep untappedLiquidityTag
 
-instance Liquidity lq => Show (UntappedLiquidity lq) where
-    show (UntappedLiquidity liq) = show liq ++ "@_"
 
 -- | Tapped LiquidityTag Tag
 --
@@ -134,8 +132,6 @@ instance (TappedLiquidityTag ltag, Liquidity lq) => TypedLiquidity (TappedLiquid
     untypeLiquidity (TappedLiquidity liq) = liq
     isLiquidityOfType _ tag2 = typeRep (Proxy @ltag) == typeRep tag2
 
-instance (TappedLiquidityTag ltag, Liquidity lq) => Show (TappedLiquidity ltag lq) where
-    show (TappedLiquidity liq) = show liq ++ "@" ++ tagFromProxy (Proxy @ltag)
 
 -- | AnyTappedLiquidity Type
 --
@@ -153,6 +149,3 @@ instance Liquidity lq => TypedLiquidity (AnyTappedLiquidity lq) lq where
     typeLiquidity _ = error "No TypedLiquidity information for AnyTappedLiquidity"
     untypeLiquidity (AnyTappedLiquidity (_, liq)) = liq
     isLiquidityOfType (AnyTappedLiquidity (MkTappedLiquidityTag tag1, _)) tag2 = typeRep tag1 == typeRep tag2
-
-instance Liquidity lq => Show (AnyTappedLiquidity lq) where
-    show (AnyTappedLiquidity (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag

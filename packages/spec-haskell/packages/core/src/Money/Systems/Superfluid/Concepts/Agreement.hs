@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies            #-}
-{-# LANGUAGE UndecidableSuperClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)

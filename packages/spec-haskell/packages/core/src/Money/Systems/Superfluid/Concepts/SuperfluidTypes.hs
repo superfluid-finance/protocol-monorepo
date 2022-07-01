@@ -20,17 +20,17 @@ import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBala
 -- Naming conventions:
 --  * Type name: addr
 --  * Type family name: ACC_ADDR
-class (Eq addr, Show addr) => Address addr
+class (Eq addr) => Address addr
 
 -- | Timestamp Type Class
 --
 -- Naming conventions:
 --  * Type name: ts
 --  * SuperfluidTypes type indexer: SFT_TS
-class (Default ts, Integral ts, Show ts) => Timestamp ts
+class (Default ts, Integral ts) => Timestamp ts
 
 -- | Actual Float Type
-class (Default fr, RealFloat fr, Show fr) => SFTFloat fr
+class (Default fr, RealFloat fr) => SFTFloat fr
 
 -- | SuperfluidTypes Type Class
 --

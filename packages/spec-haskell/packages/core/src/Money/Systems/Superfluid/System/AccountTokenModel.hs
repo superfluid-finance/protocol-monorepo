@@ -9,7 +9,7 @@ module Money.Systems.Superfluid.System.AccountTokenModel
     ) where
 
 import           Data.Default
-import           Data.Kind                                                        (Constraint, Type)
+import           Data.Kind                                                        (Type)
 import           Data.Maybe
 import           Data.Proxy
 
@@ -34,8 +34,6 @@ import           Money.Systems.Superfluid.Integrations.Serialization            
 --   * Term name: *Account
 class SuperfluidTypes sft => Account acc sft | acc -> sft where
 
-    type AgreementAccountDataPreConstraint acc :: Type -> Constraint
-
     type AnyAgreementAccountData acc :: Type
 
     addressOfAccount :: acc -> SFT_ADDR sft
@@ -43,10 +41,6 @@ class SuperfluidTypes sft => Account acc sft | acc -> sft where
     agreementOfAccount
         :: (Serializable (AgreementAccountData a) sft)
         => Proxy (AgreementAccountData a) -> acc -> Maybe (AgreementAccountData a)
-
-    updateAgreementOfAccount
-        :: (Serializable (AgreementAccountData a) sft)
-        => acc -> AgreementAccountData a -> SFT_TS sft -> acc
 
     accountTBA :: acc -> TBA.TBAAccountData sft
     accountTBA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(TBA.TBAAccountData sft)) acc
@@ -57,11 +51,13 @@ class SuperfluidTypes sft => Account acc sft | acc -> sft where
     accountDFA :: acc -> DFA.DFAAccountData sft
     accountDFA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(DFA.DFAAccountData sft)) acc
 
-    providedBalanceByAnyAgreement :: acc -> AnyAgreementAccountData acc -> SFT_TS sft -> SFT_RTB sft
-
     agreementsOfAccount :: acc -> [AnyAgreementAccountData acc]
 
-    showAccountAt :: acc -> SFT_TS sft -> String
+    updateAgreementOfAccount
+        :: (Serializable (AgreementAccountData a) sft)
+        => acc -> AgreementAccountData a -> SFT_TS sft -> acc
+
+    providedBalanceByAnyAgreement :: acc -> AnyAgreementAccountData acc -> SFT_TS sft -> SFT_RTB sft
 
 balanceOfAccountAt :: (SuperfluidTypes sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
 balanceOfAccountAt account t = foldr
@@ -71,7 +67,6 @@ balanceOfAccountAt account t = foldr
 
 sumAccounts :: (SuperfluidTypes sft, Account acc sft) => [acc] -> SFT_TS sft -> SFT_RTB sft
 sumAccounts alist t = foldr ((+) . (`balanceOfAccountAt` t)) def alist
-
 
 -- ============================================================================
 -- | Token Type Class

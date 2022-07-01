@@ -22,7 +22,6 @@ module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     -- SimpleSuperfluidTypes
     , SimpleSuperfluidTypes
     -- Agreement
-    , SimpleAgreementAccountDataPreConstraint
     , AnySimpleAgreementAccountData (..)
     ) where
 
@@ -31,7 +30,9 @@ import           Data.Binary
 import           Data.Char                                                        (isAlpha)
 import           Data.Default
 import           Data.Maybe
+import           Data.Proxy
 import           Data.String
+import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                     (Generic)
 import           Text.Printf                                                      (printf)
 
@@ -45,8 +46,6 @@ import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
---
-import           Money.Systems.Superfluid.Instances.Simple.Integrations.Show      ()
 
 -- | SFDouble Type
 newtype SFDouble = SFDouble Double
@@ -77,6 +76,16 @@ wad4human wad = wad4humanN wad 4
 instance Show Wad where
     show = wad4human
 
+instance Show (UntappedLiquidity Wad) where
+    show (UntappedLiquidity liq) = show liq ++ "@_"
+
+instance (TappedLiquidityTag ltag) => Show (TappedLiquidity ltag Wad) where
+    show (TappedLiquidity liq) = show liq ++ "@" ++ tagFromProxy (Proxy @ltag)
+
+instance Show (AnyTappedLiquidity Wad) where
+    show (AnyTappedLiquidity (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag
+
+
 -- ============================================================================
 -- SimpleTimestamp Type
 --
@@ -99,6 +108,18 @@ data SimpleRealtimeBalance = SimpleRealtimeBalance
     deriving stock (Generic)
     deriving anyclass (Binary, Default)
     deriving (Num, Show) via RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad
+
+instance Show (RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad) where
+    show (RealtimeBalanceDerivingHelper rtb) =
+        (show . liquidityRequiredForRTB $ rtb) ++ " " ++
+        (showDetail . typedLiquidityVectorFromRTB $ rtb)
+        where
+        showDetail (TypedLiquidityVector uliq tvec) = "( "
+            ++ show uliq
+            -- This is a version that ignores any zero liquidity scalar:
+            -- ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeLiquidity )) $ tvec)
+            ++ foldl ((++) . (++ ", ")) "" (map show tvec)
+            ++ " )"
 
 instance RealtimeBalance SimpleRealtimeBalance Wad where
     liquidityVectorFromRTB rtb = map (`id` rtb) [untappedLiquidityVal, mintedVal, depositVal, owedDepositVal]
@@ -146,16 +167,42 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_RTB SimpleSuperfluidTypes = SimpleRealtimeBalance
     type SFT_ADDR SimpleSuperfluidTypes = SimpleAddress
 
-class (Show acc) => SimpleAgreementAccountDataPreConstraint acc
-instance SimpleAgreementAccountDataPreConstraint (TBA.TBAAccountData SimpleSuperfluidTypes)
-instance SimpleAgreementAccountDataPreConstraint (CFA.CFAAccountData SimpleSuperfluidTypes)
-instance SimpleAgreementAccountDataPreConstraint (DFA.DFAAccountData SimpleSuperfluidTypes)
+-- ============================================================================
+-- Agreement Types
+--
+instance Show (TBA.TBAAccountData SimpleSuperfluidTypes) where
+    show x = printf "{ t = %s, uliq = %s, mliq = %s }"
+        (show $ TBA.settledAt x)
+        (show $ TBA.untappedLiquidity x)
+        (show $ TBA.mintedLiquidity x)
+
+instance Show (CFA.CFAContractData SimpleSuperfluidTypes) where
+    show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
+        (show $ CFA.flowLastUpdatedAt x) (show $ CFA.flowRate x) (show $ CFA.flowBuffer x)
+
+instance Show (CFA.CFAAccountData SimpleSuperfluidTypes) where
+    show x = printf "{ t = %s, uliq = %s, buf = %s, fr = %s }"
+        (show $ CFA.settledAt x)
+        (show $ CFA.settledUntappedLiquidity x)
+        (show $ CFA.settledBufferLiquidity x)
+        (show $ CFA.netFlowRate x)
+
+instance Show (DFA.DFAContractData SimpleSuperfluidTypes) where
+    show x = printf "{ t_u = %s, δ = %s, λ = %s }"
+        (show $ DFA.flowLastUpdatedAt x) (show $ DFA.distributionLimit x) (show $ DFA.decayingFactor x)
+
+instance Show (DFA.DFAAccountData SimpleSuperfluidTypes) where
+    show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
+        (show $ DFA.settledAt x)
+        (show $ DFA.αVal x)
+        (show $ DFA.εVal x)
+        (show $ DFA.settledBuffer x)
 
 -- | AnyAgreementAccountData type
 data AnySimpleAgreementAccountData =
     forall a. ( Agreement a
               , DistributionForAgreement a ~ SimpleSuperfluidTypes
-              , SimpleAgreementAccountDataPreConstraint (AgreementAccountData a)
+              , Show (AgreementAccountData a)
               )
     => MkSimpleAgreementAccountData (AgreementAccountData a)
 

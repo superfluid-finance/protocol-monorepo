@@ -30,7 +30,7 @@ data TypedLiquidityVector lq = TypedLiquidityVector (UntappedLiquidity lq) [AnyT
 --  * Type name : rtb
 --  * Type family name: SFT_RTB
 --  * Term name: *RTB *Balance
-class (Liquidity lq, Num rtb, Default rtb, Show rtb) => RealtimeBalance rtb lq | rtb -> lq where
+class (Liquidity lq, Num rtb, Default rtb) => RealtimeBalance rtb lq | rtb -> lq where
     liquidityVectorFromRTB :: rtb -> [lq]
 
     typedLiquidityVectorFromRTB :: rtb -> TypedLiquidityVector lq
@@ -59,6 +59,7 @@ class (Liquidity lq, Num rtb, Default rtb, Show rtb) => RealtimeBalance rtb lq |
 --
 newtype RealtimeBalanceDerivingHelper rtb lq = RealtimeBalanceDerivingHelper rtb
 
+-- | RealtimeBalance Num type class deriving helper
 instance (Liquidity lq, RealtimeBalance rtb lq) => Num (RealtimeBalanceDerivingHelper rtb lq) where
     (+) (RealtimeBalanceDerivingHelper a) (RealtimeBalanceDerivingHelper b) = RealtimeBalanceDerivingHelper $
         untypedLiquidityVectorToRTB . mk_untyped_liquidity_vector $
@@ -74,15 +75,3 @@ instance (Liquidity lq, RealtimeBalance rtb lq) => Num (RealtimeBalanceDerivingH
         mormalizeRTBWith abs x
     negate (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
         mormalizeRTBWith negate x
-
-instance (Liquidity lq, RealtimeBalance rtb lq) => Show (RealtimeBalanceDerivingHelper rtb lq) where
-    show (RealtimeBalanceDerivingHelper rtb) =
-        (show . liquidityRequiredForRTB $ rtb) ++ " " ++
-        (showDetail . typedLiquidityVectorFromRTB $ rtb)
-        where
-        showDetail (TypedLiquidityVector uliq tvec) = "( "
-            ++ show uliq
-            -- This is a version that ignores any zero liquidity scalar:
-            -- ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeLiquidity )) $ tvec)
-            ++ foldl ((++) . (++ ", ")) "" (map show tvec)
-            ++ " )"

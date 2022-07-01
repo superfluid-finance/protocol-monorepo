@@ -9,7 +9,7 @@ digital representations of money. Examples are bills, coins, bank accounts, Bitc
 \begin{code}
 module Money.Concepts.Distribution where
 
-import Data.Default ( Default )
+import Data.Default (Default)
 \end{code}
 }
 
@@ -19,7 +19,7 @@ import Data.Default ( Default )
 -- Naming conventions:
 --
 --   * Type name: lq
-class (Default lq, Integral lq, Show lq) => Liquidity lq
+class (Integral lq, Default lq) => Liquidity lq
 \end{code}
 
 \begin{code}

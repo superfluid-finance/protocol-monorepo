@@ -27,6 +27,12 @@ jobs:
       - name: "Build contracts"
         run: yarn build:contracts
         working-directory: ${{ env.contracts-working-directory }}
+      
+      - name: "Install local hardhat instance"
+        run: |
+        yarn init -y
+        yarn add hardhat
+      working-directory: ./packages/hardhat-deployer/test/fixture-projects/hardhat-project
 
       - name: "Run test suite"
         run: yarn test

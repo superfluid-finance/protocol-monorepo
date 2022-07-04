@@ -1,10 +1,17 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DerivingVia                #-}
+{-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     ( module Money.Systems.Superfluid.Concepts.Liquidity
+    -- Serializable
+    , Putter (..)
+    , Getter (..)
+    , Serializable (..)
+    , Serialized (..)
+    -- Double
     , SFDouble (..)
     -- SimpleAddress
     , SimpleAddress
@@ -22,6 +29,7 @@ module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     -- SimpleSuperfluidTypes
     , SimpleSuperfluidTypes
     -- Agreement
+    -- , AnySimpleAgreementContractData (..)
     , AnySimpleAgreementAccountData (..)
     ) where
 
@@ -47,7 +55,32 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
--- | SFDouble Type
+
+-- ============================================================================
+-- Putter/Getter Serializable Framework
+--
+
+class (Monad srl, SuperfluidTypes sft) => Putter srl sft | srl -> sft where
+    putFloat :: SFT_FLOAT sft -> srl ()
+    putLQ :: SFT_LQ sft -> srl ()
+    putTS :: SFT_TS sft -> srl ()
+
+class (Monad srl, SuperfluidTypes sft) => Getter srl sft | srl -> sft where
+    getFloat :: srl (SFT_FLOAT sft)
+    getLQ :: srl (SFT_LQ sft)
+    getTS :: srl (SFT_TS sft)
+
+class SuperfluidTypes sft => Serializable a sft | a -> sft where
+    getter :: Getter srl sft => Proxy a -> srl a
+    putter :: Putter srl sft => a -> srl ()
+
+class SuperfluidTypes sft => Serialized s sft | s -> sft where
+    runGetter :: Serializable a sft => Proxy a -> s -> a
+    runPutter :: Serializable a sft => a -> s
+
+-- ============================================================================
+-- SFDouble Type
+--
 newtype SFDouble = SFDouble Double
     deriving newtype (Default, Eq, Ord, Num, Real, Fractional, RealFrac, Floating, RealFloat, Show)
 instance SFTFloat SFDouble
@@ -198,6 +231,21 @@ instance Show (DFA.DFAAccountData SimpleSuperfluidTypes) where
         (show $ DFA.εVal x)
         (show $ DFA.settledBuffer x)
 
+-- | AnyAgreementContractData type
+-- data AnySimpleAgreementContractData =
+--     forall a. ( Agreement a
+--               , DistributionForAgreement a ~ SimpleSuperfluidTypes
+--               , Serializable (AgreementContractData a) SimpleSuperfluidTypes
+--               )
+--     => MkSimpleAgreementContractData (AgreementContractData a)
+
+-- instance Show AnySimpleAgreementContractData where
+--    show (MkSimpleAgreementContractData g) = show g
+
+-- instance Serializable AnySimpleAgreementContractData SimpleSuperfluidTypes where
+--     getter = undefined -- not possible, and no need to define
+--     putter (MkSimpleAgreementContractData a) = putter a
+
 -- | AnyAgreementAccountData type
 data AnySimpleAgreementAccountData =
     forall a. ( Agreement a
@@ -207,4 +255,4 @@ data AnySimpleAgreementAccountData =
     => MkSimpleAgreementAccountData (AgreementAccountData a)
 
 instance Show AnySimpleAgreementAccountData where
-    show (MkSimpleAgreementAccountData g) = show g
+    show (MkSimpleAgreementAccountData a) = show a

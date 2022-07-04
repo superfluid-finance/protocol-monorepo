@@ -87,7 +87,13 @@ instance SuperfluidTypes sft => Default (DFAContractData sft) where
         }
 
 instance SuperfluidTypes sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
-
+instance SuperfluidTypes sft => Default (DFAAccountData sft) where
+    def = DFAAccountData
+        { settledAt = def
+        , αVal = def
+        , εVal = def
+        , settledBuffer = def
+        }
 instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
@@ -105,10 +111,4 @@ instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
         }
         where λ = default_lambda
               t_Δ = fromIntegral (settledAt b - settledAt a)
-instance SuperfluidTypes sft => Monoid (DFAAccountData sft) where
-    mempty = DFAAccountData
-        { settledAt = def
-        , αVal = def
-        , εVal = def
-        , settledBuffer = def
-        }
+instance SuperfluidTypes sft => Monoid (DFAAccountData sft) where mempty = def

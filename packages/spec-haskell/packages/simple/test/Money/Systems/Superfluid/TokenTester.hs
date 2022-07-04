@@ -3,8 +3,12 @@ module Money.Systems.Superfluid.TokenTester where
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.Default
+import           Data.Maybe                                                (fromMaybe)
 import           GHC.Stack
-import           Test.HUnit                                        (Test (TestCase, TestLabel, TestList), assertBool)
+import           Test.HUnit
+    ( Test (TestCase, TestLabel, TestList)
+    , assertBool
+    )
 
 import qualified Money.Systems.Superfluid.Concepts.RealtimeBalance         as RTB
 --
@@ -95,10 +99,10 @@ expectCFANetFlowRateTo :: HasCallStack
     => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFANetFlowRateTo label addr expr = do
     account <- runToken $ SF.getAccount addr
-    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.accountCFA $ account)
+    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.viewAccountCFA $ account)
 
 expectCFAFlowRateTo :: HasCallStack
     => String -> (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFAFlowRateTo label (sender, receiver) expr = do
-    flow <- runToken $ SF.getFlow sender receiver
+    flow <- runToken $ fromMaybe def <$> SF.viewFlow sender receiver
     liftIO $ assertBool label (expr . CFA.flowRate $ flow)

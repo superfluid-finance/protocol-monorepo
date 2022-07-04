@@ -1,11 +1,12 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies            #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)
     , updateAgreement
     ) where
 
-import           Data.Default                                      (Default)
+import           Data.Default
 import           Data.Kind                                         (Type)
 import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
 
@@ -26,7 +27,9 @@ class ( SuperfluidTypes (DistributionForAgreement a)
     type DistributionForAgreement a :: Type
 
     data AgreementContractData a :: Type
+
     data AgreementAccountData a :: Type
+
     data AgreementParties a :: Type
 
     -- | Balance provided by the agreement of an account

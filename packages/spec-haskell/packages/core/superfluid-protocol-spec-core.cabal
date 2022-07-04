@@ -16,7 +16,6 @@ build-type:    Simple
 library
     exposed-modules:
         Data.Type.TaggedTypeable
-        Data.Constraint.PreConstraintOf
         Money.Concepts.Distribution
         Money.Systems.Communism
         Money.Systems.Superfluid.Concepts.Liquidity
@@ -29,7 +28,6 @@ library
         Money.Systems.Superfluid.Agreements.DistributionAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
         Money.Systems.Superfluid.System.AccountTokenModel
-        Money.Systems.Superfluid.Integrations.Serialization
     hs-source-dirs:   src
     default-language: GHC2021
     ghc-options:      -Wall

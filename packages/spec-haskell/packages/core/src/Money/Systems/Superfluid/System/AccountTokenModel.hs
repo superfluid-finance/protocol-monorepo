@@ -10,21 +10,17 @@ module Money.Systems.Superfluid.System.AccountTokenModel
 
 import           Data.Default
 import           Data.Kind                                                        (Type)
-import           Data.Maybe
-import           Data.Proxy
+import           Data.Maybe                                                       (fromMaybe)
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
 --
-import           Money.Systems.Superfluid.Concepts.Agreement                      (Agreement (..), updateAgreement)
+import           Money.Systems.Superfluid.Concepts.Agreement                      (updateAgreement)
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
---
-import           Money.Systems.Superfluid.Integrations.Serialization              (Serializable)
-
 
 -- | SuperfluidTypes type class
 --
@@ -33,31 +29,30 @@ import           Money.Systems.Superfluid.Integrations.Serialization            
 --   * Type family name: SF_ACC
 --   * Term name: *Account
 class SuperfluidTypes sft => Account acc sft | acc -> sft where
+    addressOfAccount :: acc -> SFT_ADDR sft
+
+    --
+    -- Polymorphic agreement account data functions
+    --
 
     type AnyAgreementAccountData acc :: Type
 
-    addressOfAccount :: acc -> SFT_ADDR sft
-
-    agreementOfAccount
-        :: (Serializable (AgreementAccountData a) sft)
-        => Proxy (AgreementAccountData a) -> acc -> Maybe (AgreementAccountData a)
-
-    accountTBA :: acc -> TBA.TBAAccountData sft
-    accountTBA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(TBA.TBAAccountData sft)) acc
-
-    accountCFA :: acc -> CFA.CFAAccountData sft
-    accountCFA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(CFA.CFAAccountData sft)) acc
-
-    accountDFA :: acc -> DFA.DFAAccountData sft
-    accountDFA acc = fromMaybe mempty $ agreementOfAccount (Proxy @(DFA.DFAAccountData sft)) acc
-
     agreementsOfAccount :: acc -> [AnyAgreementAccountData acc]
 
-    updateAgreementOfAccount
-        :: (Serializable (AgreementAccountData a) sft)
-        => acc -> AgreementAccountData a -> SFT_TS sft -> acc
-
     providedBalanceByAnyAgreement :: acc -> AnyAgreementAccountData acc -> SFT_TS sft -> SFT_RTB sft
+
+    --
+    -- Specialized agreement account data functions
+    --
+
+    viewAccountTBA :: acc -> TBA.TBAAccountData sft
+    setAccountTBA :: acc -> TBA.TBAAccountData sft -> SFT_TS sft -> acc
+
+    viewAccountCFA :: acc -> CFA.CFAAccountData sft
+    setAccountCFA :: acc -> CFA.CFAAccountData sft -> SFT_TS sft -> acc
+
+    viewAccountDFA ::  acc -> DFA.DFAAccountData sft
+    setAccountDFA :: acc -> DFA.DFAAccountData sft -> SFT_TS sft -> acc
 
 balanceOfAccountAt :: (SuperfluidTypes sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
 balanceOfAccountAt account t = foldr
@@ -89,23 +84,36 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
     type TK_ACC tk :: Type
 
     --
-    -- System operations
+    -- System functions
     --
     getCurrentTime :: tk (SFT_TS (TK_SFT tk))
 
     --
-    -- Agreement operations
+    -- Polymorphic agreement contract data functions
     --
-    getAgreementContractData
-        :: (Serializable (AgreementContractData a) (TK_SFT tk))
-        => Proxy (AgreementContractData a) -> [SFT_ADDR (TK_SFT tk)] -> tk (Maybe (AgreementContractData a))
+    -- mkAnyAgreementContractData
+    --     :: ( Agreement a
+    --        , DistributionForAgreement a ~ TK_SFT tk
+    --        )
+    --     => AgreementContractData a
+    --     -> tk (AnyAgreementContractData (TK_SFT tk))
 
-    putAgreementContractData
-        :: (Serializable (AgreementContractData a) (TK_SFT tk))
-        => [SFT_ADDR (TK_SFT tk)] -> SFT_TS (TK_SFT tk) -> AgreementContractData a -> tk ()
+    -- putAnyAgreementContractData
+    --     :: [SFT_ADDR (TK_SFT tk)]
+    --     -> SFT_TS (TK_SFT tk)
+    --     -> AnyAgreementContractData (TK_SFT tk)
+    --     -> tk ()
+
+    -- getAnyAgreementContractData
+    --     :: ( Agreement a
+    --        , DistributionForAgreement a ~ TK_SFT tk
+    --        )
+    --     => Proxy (AgreementContractData a)
+    --     -> [SFT_ADDR (TK_SFT tk)]
+    --     -> tk (Maybe (AnyAgreementContractData (TK_SFT tk)))
 
     --
-    -- Account operations
+    -- Account data
     --
     getAccount :: SFT_ADDR (TK_SFT tk) -> tk (TK_ACC tk)
 
@@ -128,33 +136,26 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
         minterAddress <- getMinterAddress
         mintFrom <- getAccount minterAddress
         mintTo <- getAccount toAddr
-        let (TBA.TransferPair mintFromTBA' mintToTBA') = TBA.mintLiquidity
-                (TBA.TransferPair (accountTBA mintFrom) (accountTBA mintTo))
+        let (TBA.TBAParties mintFromTBA' mintToTBA') = TBA.mintLiquidity
+                (TBA.TBAParties (viewAccountTBA mintFrom) (viewAccountTBA mintTo))
                 liquidity
-        putAccount minterAddress $ updateAgreementOfAccount mintFrom mintFromTBA' t
-        putAccount toAddr $ updateAgreementOfAccount mintTo mintToTBA' t
+        putAccount minterAddress $ setAccountTBA mintFrom mintFromTBA' t
+        putAccount toAddr $ setAccountTBA mintTo mintToTBA' t
 
     --
     -- CFA functions
     --
     calcFlowBuffer :: SFT_LQ (TK_SFT tk) -> tk (SFT_LQ (TK_SFT tk))
 
-    getFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> tk (CFA.CFAContractData (TK_SFT tk))
-    getFlow senderAddr receiverAddr = fromMaybe def <$> getAgreementContractData
-        (Proxy @(CFA.CFAContractData (TK_SFT tk)))
-        [senderAddr, receiverAddr]
-
-    getDecayingFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> tk (DFA.DFAContractData (TK_SFT tk))
-    getDecayingFlow senderAddr receiverAddr = fromMaybe def <$> getAgreementContractData
-        (Proxy @(DFA.DFAContractData (TK_SFT tk)))
-        [senderAddr, receiverAddr]
+    viewFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
+    setFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> CFA.CFAContractData (TK_SFT tk) -> SFT_TS (TK_SFT tk) -> tk ()
 
     updateFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> SFT_LQ (TK_SFT tk) -> tk ()
     updateFlow senderAddr receiverAddr newFlowRate = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
-        flowACD <- getFlow senderAddr receiverAddr
+        flowACD <- fromMaybe def <$> viewFlow senderAddr receiverAddr
         flowBuffer <-  calcFlowBuffer newFlowRate
         let flowACD' = CFA.CFAContractData
                 { CFA.flowLastUpdatedAt = t
@@ -163,22 +164,25 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
                 }
         let (CFA.CFAParties senderFlowAAD' receiverFlowAAD') =
                 updateAgreement flowACD flowACD'
-                (CFA.CFAParties (accountCFA senderAccount) (accountCFA receiverAccount))
-        let senderAccount' = updateAgreementOfAccount senderAccount senderFlowAAD' t
-        let receiverAccount' = updateAgreementOfAccount receiverAccount receiverFlowAAD' t
-        putAgreementContractData [senderAddr, receiverAddr] t flowACD'
+                (CFA.CFAParties (viewAccountCFA senderAccount) (viewAccountCFA receiverAccount))
+        let senderAccount' = setAccountCFA senderAccount senderFlowAAD' t
+        let receiverAccount' = setAccountCFA receiverAccount receiverFlowAAD' t
+        setFlow senderAddr receiverAddr flowACD' t
         putAccount senderAddr senderAccount'
         putAccount receiverAddr receiverAccount'
 
     --
     -- DFA functions
     --
+    viewDecayingFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> tk (Maybe (DFA.DFAContractData (TK_SFT tk)))
+    setDecayingFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> DFA.DFAContractData (TK_SFT tk) -> SFT_TS (TK_SFT tk) -> tk ()
+
     updateDecayingFlow :: SFT_ADDR (TK_SFT tk) -> SFT_ADDR (TK_SFT tk) -> SFT_LQ (TK_SFT tk) -> tk ()
     updateDecayingFlow senderAddr receiverAddr newDistributionLimit = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
-        flowACD <- getDecayingFlow senderAddr receiverAddr
+        flowACD <- fromMaybe def <$> viewDecayingFlow senderAddr receiverAddr
         let flowACD' = DFA.DFAContractData
                 { DFA.flowLastUpdatedAt = t
                 , DFA.distributionLimit = newDistributionLimit
@@ -187,9 +191,9 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
                 }
         let (DFA.DFAParties senderFlowAAD' receiverFlowAAD') =
                 updateAgreement flowACD flowACD'
-                (DFA.DFAParties (accountDFA senderAccount) (accountDFA receiverAccount))
-        let senderAccount' = updateAgreementOfAccount senderAccount senderFlowAAD' t
-        let receiverAccount' = updateAgreementOfAccount receiverAccount receiverFlowAAD' t
-        putAgreementContractData [senderAddr, receiverAddr] t flowACD'
+                (DFA.DFAParties (viewAccountDFA senderAccount) (viewAccountDFA receiverAccount))
+        let senderAccount' = setAccountDFA senderAccount senderFlowAAD' t
+        let receiverAccount' = setAccountDFA receiverAccount receiverFlowAAD' t
+        setDecayingFlow senderAddr receiverAddr flowACD' t
         putAccount senderAddr senderAccount'
         putAccount receiverAddr receiverAccount'

@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE TypeFamilies   #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ( AgreementContractData (..)
@@ -38,6 +39,7 @@ type CFAContractData sft = AgreementContractData (CFA sft)
 type CFAAccountData sft = AgreementAccountData (CFA sft)
 instance SuperfluidTypes sft => Agreement (CFA sft) where
     type DistributionForAgreement (CFA sft) = sft
+
     data AgreementContractData (CFA sft) = CFAContractData
         { flowLastUpdatedAt :: SFT_TS sft
         , flowRate          :: SFT_LQ sft
@@ -84,15 +86,22 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
 
     liftAgreementParties2 f (CFAParties s r) (CFAParties s' r') = CFAParties (f s s') (f r r')
 
+instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#" -- FIXME
 instance SuperfluidTypes sft => Default (CFAContractData sft) where
     def = CFAContractData
         { flowLastUpdatedAt = def
         , flowRate = def
         , flowBuffer = def
         }
-instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
 
-
+instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA" -- FIXME
+instance SuperfluidTypes sft => Default (CFAAccountData sft) where
+    def = CFAAccountData
+        { settledAt = def
+        , settledUntappedLiquidity = def
+        , settledBufferLiquidity = def
+        , netFlowRate = def
+        }
 instance SuperfluidTypes sft => Semigroup (CFAAccountData sft) where
     (<>) a b = CFAAccountData
                { settledAt = settledAt b
@@ -101,13 +110,7 @@ instance SuperfluidTypes sft => Semigroup (CFAAccountData sft) where
                , settledBufferLiquidity = settledBufferLiquidity a + settledBufferLiquidity b
                }
 instance SuperfluidTypes sft => Monoid (CFAAccountData sft) where
-    mempty = CFAAccountData
-        { settledAt = def
-        , settledUntappedLiquidity = def
-        , settledBufferLiquidity = def
-        , netFlowRate = def }
-
-instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
+    mempty = def
 
 -- ============================================================================
 -- Internal functions

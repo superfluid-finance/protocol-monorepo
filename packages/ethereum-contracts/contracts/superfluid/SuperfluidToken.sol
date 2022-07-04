@@ -372,7 +372,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     modifier onlyAgreement() {
         require(
             _host.isAgreementClassListed(ISuperAgreement(msg.sender)),
-            "SuperfluidToken: only listed agreeement");
+            "SuperfluidToken: only listed agreement");
         _;
     }
 

@@ -1014,7 +1014,7 @@ contract Superfluid is
             // NOTE: len(data) is data.length + 32 https://docs.soliditylang.org/en/latest/abi-spec.html
             // solhint-disable-next-line no-inline-assembly
             assembly { placeHolderCtxLength := mload(add(data, dataLen)) }
-            require(placeHolderCtxLength == 0, "SF: placerholder ctx should have zero length");
+            require(placeHolderCtxLength == 0, "SF: placeholder ctx should have zero length");
         }
 
         // 1.b remove the placeholder ctx
@@ -1050,7 +1050,7 @@ contract Superfluid is
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
-        require(isAgreementClassListed(agreementClass), "SF: only listed agreeement allowed");
+        require(isAgreementClassListed(agreementClass), "SF: only listed agreement allowed");
         _;
     }
 
@@ -1060,7 +1060,7 @@ contract Superfluid is
     }
 
     modifier onlyAgreement() {
-        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: sender is not listed agreeement");
+        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: sender is not listed agreement");
         _;
     }
 

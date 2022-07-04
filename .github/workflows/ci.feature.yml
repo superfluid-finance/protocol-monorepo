@@ -80,7 +80,7 @@ jobs:
 
       - name: Test ethereum-contracts
         run: |
-          yarn workspace @superfluid-finance/ethereum-contracts test:contracts:foundry
+          yarn workspace @superfluid-finance/ethereum-contracts test
 
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)

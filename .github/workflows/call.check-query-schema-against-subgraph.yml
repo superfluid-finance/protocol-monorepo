@@ -1,4 +1,4 @@
-name: Reusable Workflow | Test Subgraph on Previous SDK-Core Versions
+name: Reusable Workflow | Check SDK-Core Schema Against Deployed Subgraphs
 
 on:
   workflow_call:
@@ -8,14 +8,10 @@ on:
         type: string
 
 jobs:
-  build-and-test-live-subgraph-previous-releases:
-    name: Build and test current subgraph release with previous sdk-core versions
+  check-subgraph-indexing-statuses-on-deployed-networks:
+    name: Check SDK-Core Schema Against Deployed Subgraphs (${{ inputs.subgraph-release }})
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        version: [v0.3.2, v0.4.0, v0.4.1, v0.4.2, latest]
 
     env:
       contracts-working-directory: ./packages/ethereum-contracts
@@ -43,7 +39,7 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
-      # duplicated in call.check-query-schema-against-subgraph, call.setup-deploy-and-test-local-subgraph
+      # duplicated in call.test-subgraph-on-previous-sdk-core-versions, call.setup-deploy-and-test-local-subgraph
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v3
         with:
@@ -68,20 +64,11 @@ jobs:
         working-directory: ./packages/subgraph
       #
 
-      - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}}"
+      - name: Run schema check
         run: |
-          yarn add -D @superfluid-finance/sdk-core@${{ matrix.version }}
-        working-directory: ./packages/sdk-core/previous-versions-testing
-
-      - name: "Test Schemas and Attempt Query Execution"
-        run: |
-          yarn install
           ./tasks/setupTestEnvironment.sh
           ./tasks/testSchemasAndQueries.sh
-        working-directory: ./packages/sdk-core
-        env:
-          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
-
-      - name: "Stop Hardhat node"
-        run: ./tasks/startHardhatNode.sh stop
         working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
+

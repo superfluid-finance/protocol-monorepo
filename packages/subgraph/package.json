@@ -18,6 +18,7 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test --network localhost",
         "posttest": "yarn testenv:stop",
+        "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
         "deploy-contracts-local": "npx hardhat run scripts/deployContractsAndToken.ts --network localhost",
         "prepare-local": "mustache config/ganache.json test-subgraph.template.yaml > subgraph.yaml",

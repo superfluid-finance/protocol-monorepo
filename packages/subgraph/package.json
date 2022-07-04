@@ -52,15 +52,15 @@
     },
     "dependencies": {
         "@graphprotocol/graph-cli": "0.29.0",
-        "@graphprotocol/graph-ts": "0.26.0",
+        "@graphprotocol/graph-ts": "0.27.0",
         "@superfluid-finance/sdk-core": "0.4.4",
         "mustache": "^4.2.0"
     },
     "devDependencies": {
         "coingecko-api": "^1.0.10",
-        "ethers": "^5.6.2",
-        "graphql": "^16.3.0",
-        "graphql-request": "^3.7.0",
+        "ethers": "^5.6.9",
+        "graphql": "^16.5.0",
+        "graphql-request": "^4.3.0",
         "lodash": "^4.17.21"
     },
     "workspaces": {

@@ -140,14 +140,14 @@ library AgreementLibrary {
 
                 appContext = ISuperfluid(msg.sender).decodeCtx(newCtx);
 
-                // adjust allowance used to the range [appAllowanceWanted..appCreditGranted]
-                appContext.appAllowanceUsed = max(0, min(
+                // adjust credit used to the range [appCreditWanted..appCreditGranted]
+                appContext.appCreditUsed = max(0, min(
                     inputs.appCreditGranted.toInt256(),
-                    max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
+                    max(appContext.appCreditWanted.toInt256(), appContext.appCreditUsed)));
 
             }
             // [SECURITY] NOTE: ctx should be const, do not modify it ever to ensure callback stack correctness
-            newCtx = _popCallbackStack(ctx, appContext.appAllowanceUsed);
+            newCtx = _popCallbackStack(ctx, appContext.appCreditUsed);
         }
     }
 
@@ -177,8 +177,8 @@ library AgreementLibrary {
         private
         returns (bytes memory appCtx)
     {
-        // app allowance params stack PUSH
-        // pass app allowance and current allowance used to the app,
+        // app credit params stack PUSH
+        // pass app credit and current credit used to the app,
         appCtx = ISuperfluid(msg.sender).appCallbackPush(
             ctx,
             ISuperApp(inputs.account),
@@ -194,7 +194,7 @@ library AgreementLibrary {
         private
         returns (bytes memory newCtx)
     {
-        // app allowance params stack POP
+        // app credit params stack POP
         return ISuperfluid(msg.sender).appCallbackPop(ctx, appCreditUsedDelta);
     }
 

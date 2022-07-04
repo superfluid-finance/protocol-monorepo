@@ -686,9 +686,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     );
                     await expectReverted(superfluid.appCallbackPop("0x", 0));
-                    await expectReverted(
-                        superfluid.ctxUseAllowance("0x", 0, 0)
-                    );
+                    await expectReverted(superfluid.ctxUseCredit("0x", 0, 0));
                 });
 
                 it("#6.2 use agreement framework as an unregistered agreement", async () => {
@@ -731,7 +729,7 @@ describe("Superfluid Host Contract", function () {
                         reason
                     );
                     await expectRevertedWith(
-                        mock.tryCtxUseAllowance(
+                        mock.tryCtxUseCredit(
                             superfluid.address,
                             false /* do not hack Ctx */,
                             "0x"
@@ -788,7 +786,7 @@ describe("Superfluid Host Contract", function () {
                         reason
                     );
                     await expectRevertedWith(
-                        mock.tryCtxUseAllowance(
+                        mock.tryCtxUseCredit(
                             superfluid.address,
                             false /* do not hack Ctx */,
                             "0x"
@@ -915,7 +913,7 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.callAgreement(
                         agreement.address,
                         agreement.contract.methods
-                            .tryCtxUseAllowance(
+                            .tryCtxUseCredit(
                                 superfluid.address,
                                 false /* hack the Ctx */,
                                 "0x"
@@ -927,7 +925,7 @@ describe("Superfluid Host Contract", function () {
                         superfluid.callAgreement(
                             agreement.address,
                             agreement.contract.methods
-                                .tryCtxUseAllowance(
+                                .tryCtxUseCredit(
                                     superfluid.address,
                                     true /* hack the Ctx */,
                                     "0x"

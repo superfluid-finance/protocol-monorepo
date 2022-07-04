@@ -69,7 +69,7 @@ interface ISuperfluid {
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic Initial agreement class code
      *
-     * @custom:modifiers 
+     * @custom:modifiers
      * - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -85,7 +85,7 @@ interface ISuperfluid {
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -269,7 +269,7 @@ interface ISuperfluid {
      * Agreement Framework
      *
      * Agreements use these function to trigger super app callbacks, updates
-     * app allowance and charge gas fees.
+     * app credit and charge gas fees.
      *
      * These functions can only be called by registered agreements.
      *************************************************************************/
@@ -316,16 +316,16 @@ interface ISuperfluid {
      * @dev (For agreements) Create a new callback stack
      * @param  ctx                     The current ctx, it will be validated.
      * @param  app                     The super app.
-     * @param  appAllowanceGranted     App allowance granted so far.
-     * @param  appAllowanceUsed        App allowance used so far.
+     * @param  appCreditGranted        App credit granted so far.
+     * @param  appCreditUsed           App credit used so far.
      * @return newCtx                  The current context of the transaction.
      */
     function appCallbackPush(
         bytes calldata ctx,
         ISuperApp app,
-        uint256 appAllowanceGranted,
-        int256 appAllowanceUsed,
-        ISuperfluidToken appAllowanceToken
+        uint256 appCreditGranted,
+        int256 appCreditUsed,
+        ISuperfluidToken appCreditToken
     )
         external
         // onlyAgreement
@@ -335,32 +335,32 @@ interface ISuperfluid {
     /**
      * @dev (For agreements) Pop from the current app callback stack
      * @param  ctx                     The ctx that was pushed before the callback stack.
-     * @param  appAllowanceUsedDelta   App allowance used by the app.
+     * @param  appCreditUsedDelta      App credit used by the app.
      * @return newCtx                  The current context of the transaction.
      *
-     * @custom:security 
+     * @custom:security
      * - Here we cannot do assertValidCtx(ctx), since we do not really save the stack in memory.
      * - Hence there is still implicit trust that the agreement handles the callback push/pop pair correctly.
      */
     function appCallbackPop(
         bytes calldata ctx,
-        int256 appAllowanceUsedDelta
+        int256 appCreditUsedDelta
     )
         external
         // onlyAgreement
         returns (bytes memory newCtx);
 
     /**
-     * @dev (For agreements) Use app allowance.
+     * @dev (For agreements) Use app credit.
      * @param  ctx                      The current ctx, it will be validated.
-     * @param  appAllowanceWantedMore   See app allowance for more details.
-     * @param  appAllowanceUsedDelta    See app allowance for more details.
+     * @param  appCreditWantedMore      See app credit for more details.
+     * @param  appCreditUsedDelta       See app credit for more details.
      * @return newCtx                   The current context of the transaction.
      */
-    function ctxUseAllowance(
+    function ctxUseCredit(
         bytes calldata ctx,
-        uint256 appAllowanceWantedMore,
-        int256 appAllowanceUsedDelta
+        uint256 appCreditWantedMore,
+        int256 appCreditUsedDelta
     )
         external
         // onlyAgreement
@@ -480,16 +480,16 @@ interface ISuperfluid {
         //
         // App context
         //
-        // app allowance granted
-        uint256 appAllowanceGranted;
-        // app allowance wanted by the app callback
-        uint256 appAllowanceWanted;
-        // app allowance used, allowing negative values over a callback session
-        int256 appAllowanceUsed;
+        // app credit granted
+        uint256 appCreditGranted;
+        // app credit wanted by the app callback
+        uint256 appCreditWanted;
+        // app credit used, allowing negative values over a callback session
+        int256 appCreditUsed;
         // app address
         address appAddress;
-        // app allowance in super token
-        ISuperfluidToken appAllowanceToken;
+        // app credit in super token
+        ISuperfluidToken appCreditToken;
     }
 
     function callAgreementWithContext(

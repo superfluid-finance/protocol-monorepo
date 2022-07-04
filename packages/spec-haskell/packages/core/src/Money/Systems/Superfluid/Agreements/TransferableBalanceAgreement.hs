@@ -72,7 +72,7 @@ instance SuperfluidTypes sft => Agreement (TBA sft) where
         [ mkAnyTappedLiquidity $ mintedLiquidity a ]
 
     createAgreementParties = undefined
-    liftAgreementParties2 = undefined
+    unionAgreementPartiesWith = undefined
 
 instance (SuperfluidTypes sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
 instance (SuperfluidTypes sft) => Default (TBAContractData sft) where def = TBAContractData
@@ -82,8 +82,6 @@ instance SuperfluidTypes sft => Default (TBAAccountData sft) where
     def = TBAAccountData { settledAt = def, untappedLiquidity = def, mintedLiquidity = def }
 instance SuperfluidTypes sft => Semigroup (TBAAccountData sft) where
     (<>) = undefined
-
-instance SuperfluidTypes sft => Monoid (TBAAccountData sft) where mempty = def
 
 -- ============================================================================
 -- TBA Operations

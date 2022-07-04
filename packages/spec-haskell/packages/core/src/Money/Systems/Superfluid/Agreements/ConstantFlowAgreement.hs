@@ -84,7 +84,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
             flowRateDelta = flowRate new - fr
             flowBufferDelta = flowBuffer new - flowBuffer old
 
-    liftAgreementParties2 f (CFAParties s r) (CFAParties s' r') = CFAParties (f s s') (f r r')
+    unionAgreementPartiesWith f (CFAParties s r) (CFAParties s' r') = CFAParties (f s s') (f r r')
 
 instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#" -- FIXME
 instance SuperfluidTypes sft => Default (CFAContractData sft) where
@@ -109,8 +109,6 @@ instance SuperfluidTypes sft => Semigroup (CFAAccountData sft) where
                , netFlowRate = netFlowRate a + netFlowRate b
                , settledBufferLiquidity = settledBufferLiquidity a + settledBufferLiquidity b
                }
-instance SuperfluidTypes sft => Monoid (CFAAccountData sft) where
-    mempty = def
 
 -- ============================================================================
 -- Internal functions

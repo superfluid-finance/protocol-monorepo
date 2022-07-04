@@ -74,7 +74,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
             θ_Δ = fromIntegral (distributionLimit new - distributionLimit old)
             flowBufferDelta = flowBuffer new - flowBuffer old
 
-    liftAgreementParties2 f (DFAParties s r) (DFAParties s' r') = DFAParties (f s s') (f r r')
+    unionAgreementPartiesWith f (DFAParties s r) (DFAParties s' r') = DFAParties (f s s') (f r r')
 
 instance SuperfluidTypes sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
 
@@ -111,4 +111,3 @@ instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
         }
         where λ = default_lambda
               t_Δ = fromIntegral (settledAt b - settledAt a)
-instance SuperfluidTypes sft => Monoid (DFAAccountData sft) where mempty = def

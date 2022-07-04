@@ -28,7 +28,6 @@ import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , TappedLiquidity (..)
     , TappedLiquidityTag
-    , TypedLiquidity (..)
     , TypedLiquidityTag
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
@@ -88,15 +87,15 @@ instance SuperfluidTypes sft => Semigroup (TBAAccountData sft) where
 --
 mintLiquidity :: SuperfluidTypes sft => TBAParties sft -> SFT_LQ sft -> TBAParties sft
 mintLiquidity (TBAParties from to) l = TBAParties
-    ( from { mintedLiquidity = mapLiquidity (flip (-) l) (mintedLiquidity from) } )
-    ( to { untappedLiquidity = mapLiquidity (+ l) (untappedLiquidity to) } )
+    ( from { mintedLiquidity = fmap (flip (-) l) (mintedLiquidity from) } )
+    ( to { untappedLiquidity = fmap (+ l) (untappedLiquidity to) } )
 
 burnLiquidity :: SuperfluidTypes sft => TBAParties sft -> SFT_LQ sft -> TBAParties sft
 burnLiquidity (TBAParties from to) l = TBAParties
-    ( from { mintedLiquidity = mapLiquidity (+ l) (mintedLiquidity from) } )
-    ( to { untappedLiquidity = mapLiquidity (flip (-) l) (untappedLiquidity to) } )
+    ( from { mintedLiquidity = fmap (+ l) (mintedLiquidity from) } )
+    ( to { untappedLiquidity = fmap (flip (-) l) (untappedLiquidity to) } )
 
 transferLiquidity :: SuperfluidTypes sft => TBAParties sft -> SFT_LQ sft -> TBAParties sft
 transferLiquidity (TBAParties from to) l = TBAParties
-    ( from { untappedLiquidity = mapLiquidity (flip (-) l) (untappedLiquidity from) } )
-    ( to   { untappedLiquidity = mapLiquidity (+ l) (untappedLiquidity to) })
+    ( from { untappedLiquidity = fmap (flip (-) l) (untappedLiquidity from) } )
+    ( to   { untappedLiquidity = fmap (+ l) (untappedLiquidity to) })

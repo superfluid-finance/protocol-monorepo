@@ -86,7 +86,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
 
     unionAgreementPartiesWith f (CFAParties s r) (CFAParties s' r') = CFAParties (f s s') (f r r')
 
-instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#" -- FIXME
+instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
 instance SuperfluidTypes sft => Default (CFAContractData sft) where
     def = CFAContractData
         { flowLastUpdatedAt = def
@@ -94,7 +94,7 @@ instance SuperfluidTypes sft => Default (CFAContractData sft) where
         , flowBuffer = def
         }
 
-instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA" -- FIXME
+instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
 instance SuperfluidTypes sft => Default (CFAAccountData sft) where
     def = CFAAccountData
         { settledAt = def

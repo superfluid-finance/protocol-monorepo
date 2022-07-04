@@ -44,8 +44,8 @@ module Money.Systems.Superfluid.Concepts.Liquidity
     -- Typed Liquidity
     , TypedLiquidityTag
     , TypedLiquidity (..)
+    , untypeLiquidityOfType
     -- Untapped Liquidity
-    , UntappedLiquidityTag
     , untappedLiquidityTag
     , UntappedLiquidity (..)
     , untapLiquidity
@@ -60,7 +60,7 @@ module Money.Systems.Superfluid.Concepts.Liquidity
 
 import           Data.Default                (Default (..))
 import           Data.Type.TaggedTypeable    (TaggedTypeable (..))
-import           Data.Typeable               (Proxy (..), typeRep)
+import           Data.Typeable               (Proxy (..), Typeable, typeRep)
 
 import           Money.Concepts.Distribution (Liquidity)
 
@@ -79,20 +79,9 @@ class Liquidity lq => TypedLiquidity tlq lq | tlq -> lq where
     typeLiquidity :: lq -> tlq
     untypeLiquidity :: tlq -> lq
     isLiquidityOfType :: TypedLiquidityTag ltag => tlq -> Proxy ltag -> Bool
-    untypeLiquidityOfType :: TypedLiquidityTag ltag => tlq -> Proxy ltag -> lq
-    untypeLiquidityOfType tliq tag = if tliq `isLiquidityOfType` tag then untypeLiquidity tliq else def
-    mapLiquidity :: (lq -> lq) -> tlq -> tlq
-    mapLiquidity f = typeLiquidity . f . untypeLiquidity
 
--- | UntappedLiquidityTag
---
-data UntappedLiquidityTag
-
-instance TaggedTypeable UntappedLiquidityTag where tagFromProxy _ = "_"
-instance TypedLiquidityTag UntappedLiquidityTag
-
-untappedLiquidityTag :: Proxy UntappedLiquidityTag
-untappedLiquidityTag = Proxy @UntappedLiquidityTag
+untypeLiquidityOfType :: (TypedLiquidity tlq lq, TypedLiquidityTag ltag) => tlq -> Proxy ltag -> lq
+untypeLiquidityOfType tliq tag = if tliq `isLiquidityOfType` tag then untypeLiquidity tliq else def
 
 -- | UntappedLiquidity Type
 --
@@ -101,12 +90,17 @@ untappedLiquidityTag = Proxy @UntappedLiquidityTag
 --
 newtype UntappedLiquidity lq = UntappedLiquidity lq
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
+    deriving stock (Functor)
+    deriving TypedLiquidityTag
 
+instance Typeable lq => TaggedTypeable (UntappedLiquidity lq) where tagFromProxy _ = "_"
 instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq where
     typeLiquidity = UntappedLiquidity
     untypeLiquidity (UntappedLiquidity liq) = liq
     isLiquidityOfType _ liqt1 = typeRep liqt1 == typeRep untappedLiquidityTag
 
+untappedLiquidityTag :: Proxy UntappedLiquidity
+untappedLiquidityTag = Proxy @UntappedLiquidity
 
 -- | Tapped LiquidityTag Tag
 --
@@ -123,6 +117,7 @@ data AnyTappedLiquidityTag where
 --
 newtype TappedLiquidity ltag lq = TappedLiquidity lq
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
+    deriving stock (Functor)
 
 untapLiquidity :: (TappedLiquidityTag ltag, Liquidity lq) => TappedLiquidity ltag lq -> lq
 untapLiquidity (TappedLiquidity liq) = liq
@@ -139,6 +134,7 @@ instance (TappedLiquidityTag ltag, Liquidity lq) => TypedLiquidity (TappedLiquid
 --  * Term name: tliq
 --
 newtype AnyTappedLiquidity lq = AnyTappedLiquidity (AnyTappedLiquidityTag, lq)
+    deriving stock (Functor)
 
 mkAnyTappedLiquidity
     :: forall ltag lq. (TappedLiquidityTag ltag, Liquidity lq)

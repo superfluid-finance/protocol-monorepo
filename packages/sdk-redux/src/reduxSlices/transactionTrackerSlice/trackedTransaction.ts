@@ -17,7 +17,7 @@ export interface TrackedTransaction {
      */
     timestampMs: number;
     status: TransactionStatus;
-    transactionResponse: string;
+    transactionResponse?: string;
     transactionReceipt?: string;
     ethersErrorCode?: ethers.errors;
     ethersErrorMessage?: string;

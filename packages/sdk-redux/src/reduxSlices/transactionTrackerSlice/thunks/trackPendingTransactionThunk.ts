@@ -11,6 +11,7 @@ import {createGeneralTags} from '../../rtkQuery/cacheTags/CacheTagTypes';
 import {EthersError} from '../ethersError';
 import {transactionTrackerSelectors} from '../transactionTrackerAdapter';
 import {TransactionTrackerReducer, transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
+import {trySerializeTransaction} from '../trySerializeTransaction';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
 
 /**
@@ -43,7 +44,7 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                     id: transactionHash,
                     changes: {
                         status: 'Succeeded',
-                        transactionReceipt: ethers.utils.serializeTransaction(transactionReceipt),
+                        transactionReceipt: trySerializeTransaction(transactionReceipt),
                     },
                 })
             );

@@ -121,6 +121,15 @@ input Account_filter {
   isSuperApp_not: Boolean
   isSuperApp_in: [Boolean!]
   isSuperApp_not_in: [Boolean!]
+  inflows_: Stream_filter
+  outflows_: Stream_filter
+  subscriptions_: IndexSubscription_filter
+  publishedIndexes_: Index_filter
+  sentTransferEvents_: TransferEvent_filter
+  receivedTransferEvents_: TransferEvent_filter
+  tokenUpgradedEvents_: TokenUpgradedEvent_filter
+  tokenDowngradedEvents_: TokenDowngradedEvent_filter
+  accountTokenSnapshots_: AccountTokenSnapshot_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -419,6 +428,7 @@ input AccountTokenSnapshot_filter {
   account_ends_with_nocase: String
   account_not_ends_with: String
   account_not_ends_with_nocase: String
+  account_: Account_filter
   token: String
   token_not: String
   token_gt: String
@@ -439,6 +449,9 @@ input AccountTokenSnapshot_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
+  flowOperators_: FlowOperator_filter
+  accountTokenSnapshotLogs_: AccountTokenSnapshotLog_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -772,6 +785,7 @@ input AccountTokenSnapshotLog_filter {
   account_ends_with_nocase: String
   account_not_ends_with: String
   account_not_ends_with_nocase: String
+  account_: Account_filter
   token: String
   token_not: String
   token_gt: String
@@ -792,6 +806,7 @@ input AccountTokenSnapshotLog_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
   accountTokenSnapshot: String
   accountTokenSnapshot_not: String
   accountTokenSnapshot_gt: String
@@ -812,6 +827,7 @@ input AccountTokenSnapshotLog_filter {
   accountTokenSnapshot_ends_with_nocase: String
   accountTokenSnapshot_not_ends_with: String
   accountTokenSnapshot_not_ends_with_nocase: String
+  accountTokenSnapshot_: AccountTokenSnapshot_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -2518,6 +2534,7 @@ input FlowOperator_filter {
   sender_ends_with_nocase: String
   sender_not_ends_with: String
   sender_not_ends_with_nocase: String
+  sender_: Account_filter
   token: String
   token_not: String
   token_gt: String
@@ -2538,6 +2555,7 @@ input FlowOperator_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
   accountTokenSnapshot: String
   accountTokenSnapshot_not: String
   accountTokenSnapshot_gt: String
@@ -2558,6 +2576,8 @@ input FlowOperator_filter {
   accountTokenSnapshot_ends_with_nocase: String
   accountTokenSnapshot_not_ends_with: String
   accountTokenSnapshot_not_ends_with_nocase: String
+  accountTokenSnapshot_: AccountTokenSnapshot_filter
+  flowOperatorUpdatedEvents_: FlowOperatorUpdatedEvent_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -2741,6 +2761,7 @@ input FlowOperatorUpdatedEvent_filter {
   flowOperator_ends_with_nocase: String
   flowOperator_not_ends_with: String
   flowOperator_not_ends_with_nocase: String
+  flowOperator_: FlowOperator_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -3026,6 +3047,7 @@ input FlowUpdatedEvent_filter {
   stream_ends_with_nocase: String
   stream_not_ends_with: String
   stream_not_ends_with_nocase: String
+  stream_: Stream_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -3381,6 +3403,7 @@ input Index_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
   publisher: String
   publisher_not: String
   publisher_gt: String
@@ -3401,6 +3424,8 @@ input Index_filter {
   publisher_ends_with_nocase: String
   publisher_not_ends_with: String
   publisher_not_ends_with_nocase: String
+  publisher_: Account_filter
+  subscriptions_: IndexSubscription_filter
   indexCreatedEvent: String
   indexCreatedEvent_not: String
   indexCreatedEvent_gt: String
@@ -3421,6 +3446,12 @@ input Index_filter {
   indexCreatedEvent_ends_with_nocase: String
   indexCreatedEvent_not_ends_with: String
   indexCreatedEvent_not_ends_with_nocase: String
+  indexCreatedEvent_: IndexCreatedEvent_filter
+  indexDistributionClaimedEvents_: IndexDistributionClaimedEvent_filter
+  indexUpdatedEvents_: IndexUpdatedEvent_filter
+  indexSubscribedEvents_: IndexSubscribedEvent_filter
+  indexUnitsUpdatedEvents_: IndexUnitsUpdatedEvent_filter
+  indexUnsubscribedEvents_: IndexUnsubscribedEvent_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -3599,6 +3630,7 @@ input IndexCreatedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -3779,6 +3811,7 @@ input IndexDistributionClaimedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -3958,6 +3991,7 @@ input IndexSubscribedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -4100,6 +4134,7 @@ input IndexSubscription_filter {
   subscriber_ends_with_nocase: String
   subscriber_not_ends_with: String
   subscriber_not_ends_with_nocase: String
+  subscriber_: Account_filter
   approved: Boolean
   approved_not: Boolean
   approved_in: [Boolean!]
@@ -4148,6 +4183,11 @@ input IndexSubscription_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
+  subscriptionApprovedEvents_: SubscriptionApprovedEvent_filter
+  subscriptionDistributionClaimedEvents_: SubscriptionDistributionClaimedEvent_filter
+  subscriptionRevokedEvents_: SubscriptionRevokedEvent_filter
+  subscriptionUnitsUpdatedEvents_: SubscriptionUnitsUpdatedEvent_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -4345,6 +4385,7 @@ input IndexUnitsUpdatedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -4526,6 +4567,7 @@ input IndexUnsubscribedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -4734,6 +4776,7 @@ input IndexUpdatedEvent_filter {
   index_ends_with_nocase: String
   index_not_ends_with: String
   index_not_ends_with_nocase: String
+  index_: Index_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -8288,6 +8331,7 @@ input Stream_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
   sender: String
   sender_not: String
   sender_gt: String
@@ -8308,6 +8352,7 @@ input Stream_filter {
   sender_ends_with_nocase: String
   sender_not_ends_with: String
   sender_not_ends_with_nocase: String
+  sender_: Account_filter
   receiver: String
   receiver_not: String
   receiver_gt: String
@@ -8328,6 +8373,9 @@ input Stream_filter {
   receiver_ends_with_nocase: String
   receiver_not_ends_with: String
   receiver_not_ends_with_nocase: String
+  receiver_: Account_filter
+  flowUpdatedEvents_: FlowUpdatedEvent_filter
+  streamPeriods_: StreamPeriod_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -8408,6 +8456,7 @@ input StreamPeriod_filter {
   stream_ends_with_nocase: String
   stream_not_ends_with: String
   stream_not_ends_with_nocase: String
+  stream_: Stream_filter
   sender: String
   sender_not: String
   sender_gt: String
@@ -8428,6 +8477,7 @@ input StreamPeriod_filter {
   sender_ends_with_nocase: String
   sender_not_ends_with: String
   sender_not_ends_with_nocase: String
+  sender_: Account_filter
   receiver: String
   receiver_not: String
   receiver_gt: String
@@ -8448,6 +8498,7 @@ input StreamPeriod_filter {
   receiver_ends_with_nocase: String
   receiver_not_ends_with: String
   receiver_not_ends_with_nocase: String
+  receiver_: Account_filter
   token: String
   token_not: String
   token_gt: String
@@ -8468,6 +8519,7 @@ input StreamPeriod_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
   flowRate: BigInt
   flowRate_not: BigInt
   flowRate_gt: BigInt
@@ -8520,6 +8572,7 @@ input StreamPeriod_filter {
   startedAtEvent_ends_with_nocase: String
   startedAtEvent_not_ends_with: String
   startedAtEvent_not_ends_with_nocase: String
+  startedAtEvent_: FlowUpdatedEvent_filter
   stoppedAtTimestamp: BigInt
   stoppedAtTimestamp_not: BigInt
   stoppedAtTimestamp_gt: BigInt
@@ -8556,6 +8609,7 @@ input StreamPeriod_filter {
   stoppedAtEvent_ends_with_nocase: String
   stoppedAtEvent_not_ends_with: String
   stoppedAtEvent_not_ends_with_nocase: String
+  stoppedAtEvent_: FlowUpdatedEvent_filter
   totalAmountStreamed: BigInt
   totalAmountStreamed_not: BigInt
   totalAmountStreamed_gt: BigInt
@@ -10870,6 +10924,7 @@ input SubscriptionApprovedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+  subscription_: IndexSubscription_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -11051,6 +11106,7 @@ input SubscriptionDistributionClaimedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+  subscription_: IndexSubscription_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -11230,6 +11286,7 @@ input SubscriptionRevokedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+  subscription_: IndexSubscription_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -11427,6 +11484,7 @@ input SubscriptionUnitsUpdatedEvent_filter {
   subscription_ends_with_nocase: String
   subscription_not_ends_with: String
   subscription_not_ends_with_nocase: String
+  subscription_: IndexSubscription_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -12097,6 +12155,7 @@ input Token_filter {
   underlyingToken_ends_with_nocase: String
   underlyingToken_not_ends_with: String
   underlyingToken_not_ends_with_nocase: String
+  underlyingToken_: Token_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -12164,6 +12223,7 @@ input TokenDowngradedEvent_filter {
   account_ends_with_nocase: String
   account_not_ends_with: String
   account_not_ends_with_nocase: String
+  account_: Account_filter
   transactionHash: Bytes
   transactionHash_not: Bytes
   transactionHash_in: [Bytes!]
@@ -12502,6 +12562,8 @@ input TokenStatistic_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
+  tokenStatisticLogs_: TokenStatisticLog_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -12532,10 +12594,6 @@ TokenStatisticLog: Historical entries of TokenStatistic updates.
 
 """
 type TokenStatisticLog {
-  """
-  id: token address
-  
-  """
   id: ID!
   timestamp: BigInt!
   blockNumber: BigInt!
@@ -12805,6 +12863,7 @@ input TokenStatisticLog_filter {
   token_ends_with_nocase: String
   token_not_ends_with: String
   token_not_ends_with_nocase: String
+  token_: Token_filter
   tokenStatistic: String
   tokenStatistic_not: String
   tokenStatistic_gt: String
@@ -12825,6 +12884,7 @@ input TokenStatisticLog_filter {
   tokenStatistic_ends_with_nocase: String
   tokenStatistic_not_ends_with: String
   tokenStatistic_not_ends_with_nocase: String
+  tokenStatistic_: TokenStatistic_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -12903,6 +12963,7 @@ input TokenUpgradedEvent_filter {
   account_ends_with_nocase: String
   account_not_ends_with: String
   account_not_ends_with_nocase: String
+  account_: Account_filter
   transactionHash: Bytes
   transactionHash_not: Bytes
   transactionHash_in: [Bytes!]
@@ -13131,6 +13192,7 @@ input TransferEvent_filter {
   from_ends_with_nocase: String
   from_not_ends_with: String
   from_not_ends_with_nocase: String
+  from_: Account_filter
   to: String
   to_not: String
   to_gt: String
@@ -13151,6 +13213,7 @@ input TransferEvent_filter {
   to_ends_with_nocase: String
   to_not_ends_with: String
   to_not_ends_with_nocase: String
+  to_: Account_filter
   value: BigInt
   value_not: BigInt
   value_gt: BigInt

@@ -4,6 +4,7 @@ import {ethers} from 'ethers';
 import {getTransactionTrackerSlice} from '../../../sdkReduxConfig';
 import {TransactionTitle} from '../transactionTitle';
 import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
+import {trySerializeTransaction} from '../trySerializeTransaction';
 
 import {trackPendingTransactionThunk} from './trackPendingTransactionThunk';
 
@@ -31,7 +32,7 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
             signer: ethers.utils.getAddress(arg.signer),
             timestampMs: new Date().getTime(),
             status: 'Pending',
-            transactionResponse: ethers.utils.serializeTransaction(arg.transactionResponse),
+            transactionResponse: trySerializeTransaction(arg.transactionResponse),
             title: arg.title,
             extraData: arg.extraData,
         })

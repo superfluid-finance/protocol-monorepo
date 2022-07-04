@@ -137,31 +137,31 @@ async function _shouldChangeFlow({
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
-        const mainFlowAppAllowance = CFADataModel.clipDepositNumber(
+        const mainFlowAppCredit = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
-        const newAppAllowanceUsed = Object.values(cfaDataModel.expectedFlowInfo)
+        const newAppCreditUsed = Object.values(cfaDataModel.expectedFlowInfo)
             .map((i) => i.deposit)
             .reduce((acc, cur) => {
                 return acc.add(cur);
             }, toBN(0));
-        const mainFlowAllowanceUsed = CFADataModel.adjustNewAppAllowanceUsed(
-            mainFlowAppAllowance,
-            mainFlowDeposit, // appAllowanceUsed
-            newAppAllowanceUsed
+        const mainFlowCreditUsed = CFADataModel.adjustNewAppCreditUsed(
+            mainFlowAppCredit,
+            mainFlowDeposit, // appCreditUsed
+            newAppCreditUsed
         );
 
         cfaDataModel.expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
             deposit:
                 mainFlowDeposit
-                    .add(mainFlowAllowanceUsed)
+                    .add(mainFlowCreditUsed)
                     .lt(testenv.configs.MINIMUM_DEPOSIT) &&
                 toBN(flowRate).gt(toBN(0))
                     ? testenv.configs.MINIMUM_DEPOSIT
-                    : mainFlowDeposit.add(mainFlowAllowanceUsed),
-            owedDeposit: mainFlowAllowanceUsed,
+                    : mainFlowDeposit.add(mainFlowCreditUsed),
+            owedDeposit: mainFlowCreditUsed,
         };
     }
 

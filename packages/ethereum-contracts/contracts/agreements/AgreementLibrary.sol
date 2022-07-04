@@ -53,8 +53,8 @@ library AgreementLibrary {
         address account;
         bytes32 agreementId;
         bytes agreementData;
-        uint256 appAllowanceGranted;
-        int256 appAllowanceUsed;
+        uint256 appCreditGranted;
+        int256 appCreditUsed;
         uint256 noopBit;
     }
 
@@ -140,9 +140,9 @@ library AgreementLibrary {
 
                 appContext = ISuperfluid(msg.sender).decodeCtx(newCtx);
 
-                // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
+                // adjust allowance used to the range [appAllowanceWanted..appCreditGranted]
                 appContext.appAllowanceUsed = max(0, min(
-                    inputs.appAllowanceGranted.toInt256(),
+                    inputs.appCreditGranted.toInt256(),
                     max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
 
             }
@@ -182,20 +182,20 @@ library AgreementLibrary {
         appCtx = ISuperfluid(msg.sender).appCallbackPush(
             ctx,
             ISuperApp(inputs.account),
-            inputs.appAllowanceGranted,
-            inputs.appAllowanceUsed,
+            inputs.appCreditGranted,
+            inputs.appCreditUsed,
             inputs.token);
     }
 
     function _popCallbackStack(
         bytes memory ctx,
-        int256 appAllowanceUsedDelta
+        int256 appCreditUsedDelta
     )
         private
         returns (bytes memory newCtx)
     {
         // app allowance params stack POP
-        return ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsedDelta);
+        return ISuperfluid(msg.sender).appCallbackPop(ctx, appCreditUsedDelta);
     }
 
     /**************************************************************************

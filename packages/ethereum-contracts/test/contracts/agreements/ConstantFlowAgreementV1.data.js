@@ -419,12 +419,12 @@ module.exports = class CFADataModel {
         return deposit.shrn(32).addn(rounding).shln(32);
     }
 
-    static adjustNewAppAllowanceUsed(
-        appAllowance,
-        appAllowanceWanted,
-        newAppAllowanceUsed
+    static adjustNewAppCreditUsed(
+        appCredit,
+        appCreditWanted,
+        newAppCreditUsed
     ) {
-        //return BN.max(toBN(0), BN.min(appAllowance, BN.max(newAppAllowanceUsed, appAllowanceUsed)));
-        return BN.max(toBN(0), BN.min(appAllowance, newAppAllowanceUsed));
+        //return BN.max(toBN(0), BN.min(appCredit, BN.max(newAppCreditUsed, appCreditUsed)));
+        return BN.max(toBN(0), BN.min(appCredit, newAppCreditUsed));
     }
 };

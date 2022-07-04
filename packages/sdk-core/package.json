@@ -57,21 +57,25 @@
     "dependencies": {
         "ajv": "^8.11.0",
         "browserify": "^17.0.0",
-        "ethers": "^5.6.2",
-        "graphql-request": "^3.7.0",
+        "graphql-request": "^4.3.0",
         "lodash": "^4.17.21",
         "tsify": "^5.0.4"
     },
     "devDependencies": {
-        "@graphql-codegen/cli": "^2.6.2",
+        "@graphql-codegen/cli": "^2.6.4",
         "@graphql-codegen/introspection": "^2.1.1",
-        "@graphql-codegen/near-operation-file-preset": "^2.2.9",
-        "@graphql-codegen/typed-document-node": "^2.2.8",
-        "@graphql-codegen/typescript": "^2.4.8",
-        "@graphql-codegen/typescript-operations": "^2.3.5",
+        "@graphql-codegen/near-operation-file-preset": "^2.2.14",
+        "@graphql-codegen/typed-document-node": "^2.2.13",
+        "@graphql-codegen/typescript": "^2.5.1",
+        "@graphql-codegen/typescript-operations": "^2.4.2",
         "@graphql-typed-document-node/core": "^3.1.1",
+        "ethers": "^5.6.9",
         "get-graphql-schema": "^2.1.2",
-        "mocha": "^9.2.2"
+        "mocha": "^10.0.0"
+    },
+    "peerDependencies": {
+        "ethers": "^5.6.9",
+        "graphql": "^16.0.0"
     },
     "resolutions": {
         "graphql": "^16.0.0"

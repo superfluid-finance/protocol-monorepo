@@ -1,10 +1,10 @@
-import React, { FC, ReactElement } from "react";
+import { FC, ReactElement } from "react";
 import { Framework } from "@superfluid-finance/sdk-core";
 import { Web3Provider } from "@ethersproject/providers";
 import { Button } from "@mui/material";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
-import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
+import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 
 interface Props {
     onSuperfluidSdkInitialized: (sf: Framework, provider: Web3Provider) => void;
@@ -64,16 +64,10 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         // Set active provider & signer from MetaMask
         setFrameworkForSdkRedux(currentNetwork.chainId, superfluidSdk);
-        setSignerForSdkRedux(currentNetwork.chainId, ethersWeb3Provider.getSigner());
 
         onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
 
         web3ModalProvider.on("accountsChanged", (accounts: string[]) => {
-            setSignerForSdkRedux(
-                currentNetwork.chainId,
-                ethersWeb3Provider.getSigner()
-            );
-
             onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
         });
 
@@ -95,7 +89,6 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
             // Set active provider & signer from MetaMask
             setFrameworkForSdkRedux(parsedChainId, newSdk);
-            setSignerForSdkRedux(parsedChainId, ethersWeb3Provider.getSigner());
 
             onSuperfluidSdkInitialized(newSdk, ethersWeb3Provider);
         });

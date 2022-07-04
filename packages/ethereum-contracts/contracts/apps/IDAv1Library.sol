@@ -186,11 +186,13 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.createIndex.selector,
-                token,
-                indexId,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.createIndex,
+                (
+                    token,
+                    indexId,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -225,11 +227,13 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.createIndex.selector,
-                token,
-                indexId,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.createIndex,
+                (
+                    token,
+                    indexId,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -268,12 +272,14 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.updateIndex.selector,
-                token,
-                indexId,
-                indexValue,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.updateIndex,
+                (
+                    token,
+                    indexId,
+                    indexValue,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -321,12 +327,14 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.updateIndex.selector,
-                token,
-                indexId,
-                indexValue,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.updateIndex,
+                (
+                    token,
+                    indexId,
+                    indexValue,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -365,12 +373,14 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.distribute.selector,
-                token,
-                indexId,
-                amount,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.distribute,
+                (
+                    token,
+                    indexId,
+                    amount,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -411,13 +421,15 @@ library IDAv1Library {
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
-            idaLibrary.ida, 
-            abi.encodeWithSelector(
-                idaLibrary.ida.distribute.selector,
-                token,
-                indexId,
-                amount,
-                new bytes(0) // ctx placeholder
+            idaLibrary.ida,
+            abi.encodeCall(
+                idaLibrary.ida.distribute,
+                (
+                    token,
+                    indexId,
+                    amount,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -462,12 +474,14 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.approveSubscription.selector,
-                token,
-                publisher,
-                indexId,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.approveSubscription,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -517,12 +531,14 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.approveSubscription.selector,
-                token,
-                publisher,
-                indexId,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.approveSubscription,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -558,12 +574,14 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.revokeSubscription.selector,
-                token,
-                publisher,
-                indexId,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.revokeSubscription,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -610,12 +628,14 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.revokeSubscription.selector,
-                token,
-                publisher,
-                indexId,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.revokeSubscription,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -657,13 +677,15 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.updateSubscription.selector,
-                token,
-                indexId,
-                subscriber,
-                units,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.updateSubscription,
+                (
+                    token,
+                    indexId,
+                    subscriber,
+                    units,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -716,13 +738,15 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.updateSubscription.selector,
-                token,
-                indexId,
-                subscriber,
-                units,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.updateSubscription,
+                (
+                    token,
+                    indexId,
+                    subscriber,
+                    units,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -763,13 +787,15 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.deleteSubscription.selector,
-                token,
-                publisher,
-                indexId,
-                subscriber,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.deleteSubscription,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    subscriber,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -821,13 +847,15 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.deleteSubscription.selector,
-                token,
-                publisher,
-                indexId,
-                subscriber,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.deleteSubscription,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    subscriber,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx
@@ -868,13 +896,15 @@ library IDAv1Library {
     ) internal {
         idaLibrary.host.callAgreement(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.claim.selector,
-                token,
-                publisher,
-                indexId,
-                subscriber,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.claim,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    subscriber,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData
         );
@@ -925,13 +955,15 @@ library IDAv1Library {
     ) internal returns (bytes memory newCtx) {
         (newCtx, ) = idaLibrary.host.callAgreementWithContext(
             idaLibrary.ida,
-            abi.encodeWithSelector(
-                idaLibrary.ida.claim.selector,
-                token,
-                publisher,
-                indexId,
-                subscriber,
-                new bytes(0) // ctx placeholder
+            abi.encodeCall(
+                idaLibrary.ida.claim,
+                (
+                    token,
+                    publisher,
+                    indexId,
+                    subscriber,
+                    new bytes(0) // ctx placeholder
+                )
             ),
             userData,
             ctx

@@ -1,0 +1,41 @@
+query tokenStatisticLogs(
+    $first: Int = 10
+    $skip: Int = 0
+    $orderBy: TokenStatisticLog_orderBy = id
+    $orderDirection: OrderDirection = asc
+    $where: TokenStatisticLog_filter = {}
+    $block: Block_height
+) {
+    tokenStatisticLogs(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        id
+        timestamp
+        blockNumber
+        transactionHash
+        logIndex
+        order
+        triggeredByEventName
+        totalNumberOfActiveStreams
+        totalNumberOfClosedStreams
+        totalNumberOfIndexes
+        totalNumberOfActiveIndexes
+        totalSubscriptionsWithUnits
+        totalApprovedSubscriptions
+        totalDeposit
+        totalOutflowRate
+        totalAmountStreamed
+        totalAmountTransferred
+        totalAmountDistributed
+        totalSupply
+        token {
+            id
+            symbol
+        }
+    }
+}

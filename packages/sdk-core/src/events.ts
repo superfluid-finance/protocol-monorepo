@@ -2,6 +2,7 @@ export type EventBase = {
     id: string;
     blockNumber: number;
     transactionHash: string;
+    gasPrice: string;
     order: number;
     timestamp: number;
     logIndex: number;
@@ -57,8 +58,15 @@ export type OtherEvents =
 
 export type AllEvents = AccountEvents | OtherEvents;
 
+export enum FlowUpdateType {
+    Create = 0,
+    Update = 1,
+    Terminate = 2,
+}
+
 export interface FlowUpdatedEvent extends EventBase {
     name: "FlowUpdated";
+    type: FlowUpdateType;
     token: string;
     sender: string;
     receiver: string;
@@ -187,10 +195,12 @@ export interface AgreementLiquidatedV2Event extends EventBase {
     targetAccount: string;
     rewardAmountReceiver: string;
     rewardAmount: string;
-    rewardAccount: string;
     targetAccountBalanceDelta: string;
     version: string;
     liquidationType: number;
+
+    /** @deprecated TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead */
+    rewardAccount: string;
 }
 
 export interface AppRegisteredEvent extends EventBase {
@@ -204,12 +214,14 @@ export interface BurnedEvent extends EventBase {
     data: string;
     from: string;
     operator: string;
+    token: string;
     operatorData: string;
 }
 
 export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
     name: "CFAv1LiquidationPeriodChanged";
     host: string;
+    governanceAddress: string;
     isKeySet: boolean;
     liquidationPeriod: number;
     superToken: string;
@@ -218,6 +230,7 @@ export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
 export interface ConfigChangedEvent extends EventBase {
     name: "ConfigChanged";
     host: string;
+    governanceAddress: string;
     isKeySet: boolean;
     key: string;
     superToken: string;
@@ -247,12 +260,14 @@ export interface MintedEvent extends EventBase {
     to: string;
     amount: string;
     data: string;
+    token: string;
     operatorData: string;
 }
 
 export interface RewardAddressChangedEvent extends EventBase {
     name: "RewardAddressChanged";
     host: string;
+    governanceAddress: string;
     superToken: string;
     isKeySet: boolean;
     rewardAddress: string;
@@ -285,6 +300,7 @@ export interface SentEvent extends EventBase {
     to: string;
     amount: string;
     data: string;
+    token: string;
     operatorData: string;
 }
 
@@ -353,6 +369,7 @@ export interface SuperTokenLogicUpdatedEvent extends EventBase {
 export interface PPPConfigurationChangedEvent extends EventBase {
     name: "PPPConfigurationChanged";
     host: string;
+    governanceAddress: string;
     superToken: string;
     isKeySet: boolean;
     liquidationPeriod: string;
@@ -362,6 +379,7 @@ export interface PPPConfigurationChangedEvent extends EventBase {
 export interface TrustedForwarderChangedEvent extends EventBase {
     name: "TrustedForwarderChanged";
     host: string;
+    governanceAddress: string;
     superToken: string;
     isKeySet: boolean;
     forwarder: string;

@@ -61,6 +61,16 @@ jobs:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
     if: github.repository == 'superfluid-finance/protocol-monorepo'
+    with:
+      subgraph-release: ''
+      run-sdk-core-tests: false
+
+  test-subraph-on-previous-sdk-core-versions:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Build and Test Current Subgraph Implementation with Previous SDK-Core Versions
+    with:
+      subgraph-release: dev
+      run-sdk-core-tests: true
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch

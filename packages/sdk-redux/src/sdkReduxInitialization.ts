@@ -1,7 +1,6 @@
 import {CreateApi} from '@reduxjs/toolkit/dist/query';
 import type {ModuleName} from '@reduxjs/toolkit/dist/query/apiTypes';
 import {Framework} from '@superfluid-finance/sdk-core';
-import {Signer} from 'ethers';
 
 import {createRpcApiSlice} from './reduxSlices/rtkQuery/rpcApiSlice/rpcApiSlice';
 import {createSubgraphApiSlice} from './reduxSlices/rtkQuery/subgraphApiSlice/subgraphApiSlice';
@@ -40,14 +39,6 @@ export const initializeTransactionTrackerSlice = () => {
     getConfig().setTransactionTrackerSlice(transactiontTrackerSlice);
     return transactiontTrackerSlice;
 };
-
-/**
- * SDK-Redux needs to know where to get the signer for mutations (i.e. transaction signing & broadcasting)
- * @param chainId The chain.
- * @param signer The Ethers signer getter. Can be either Promise or instance.
- */
-export const setSignerForSdkRedux = (chainId: number, signer: (() => Promise<Signer>) | Signer) =>
-    getConfig().setSigner(chainId, signer);
 
 /**
  * SDK-Redux needs to know where to get SDK-Core's Framework for data querying.

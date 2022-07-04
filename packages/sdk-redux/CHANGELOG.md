@@ -3,8 +3,15 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking
+- Pass in `signer` through mutation payload
+- Remove `setSignerForSdkRedux`
+
 ### Added
 - Query for transfer events
+- Make it possible to pass in Ether's `Overrides` object through mutations
+- Add `accountTokenSnapshotLog` & `tokenStatisticLog` endpoints
+- Add `isSubgraphInSync` to a tracked transaction 
 
 ## [0.3.0] - 2022-04-13
 

@@ -2,8 +2,6 @@ const { Framework } = require("@superfluid-finance/sdk-core");
 const { assert, expect } = require("chai");
 const { ethers, web3 } = require("hardhat");
 const daiABI = require("./abis/fDAIABI");
-const MoneyRouterArtifact = require("../artifacts/contracts/MoneyRouter.sol/MoneyRouter.json");
-const MoneyRouterABI = MoneyRouterArtifact.abi;
 
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");

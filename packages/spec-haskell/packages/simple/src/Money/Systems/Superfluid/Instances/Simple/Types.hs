@@ -1,15 +1,11 @@
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia    #-}
+{-# LANGUAGE TypeFamilies   #-}
 
 module Money.Systems.Superfluid.Instances.Simple.Types
     ( module Money.Systems.Superfluid.Concepts
     -- Double
     , SFDouble (..)
-    -- SimpleAddress
-    , SimpleAddress
-    , createSimpleAddress
     -- Wad
     , Wad (..)
     , toWad
@@ -28,11 +24,8 @@ module Money.Systems.Superfluid.Instances.Simple.Types
 
 import           Control.Exception                                                (assert)
 import           Data.Binary
-import           Data.Char                                                        (isAlpha)
 import           Data.Default
-import           Data.Maybe
 import           Data.Proxy
-import           Data.String
 import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                     (Generic)
 import           Text.Printf                                                      (printf)
@@ -87,19 +80,14 @@ instance Show (AnyTappedLiquidity Wad) where
     show (AnyTappedLiquidity (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag
 
 
--- ============================================================================
--- SimpleTimestamp Type
---
+-- | Simple timestamp Type .
 newtype SimpleTimestamp = SimpleTimestamp Int
-    deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Binary)
-    deriving anyclass (Timestamp)
+    deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Binary, Timestamp)
 
 instance Show SimpleTimestamp where
     show (SimpleTimestamp t) = show t ++ "s"
 
--- ============================================================================
--- SimpleRealtimeBalance Type
---
+-- | Simple realtime balance Type.
 data SimpleRealtimeBalance = SimpleRealtimeBalance
     { untappedLiquidityVal :: Wad
     , mintedVal            :: Wad
@@ -142,23 +130,6 @@ instance RealtimeBalance SimpleRealtimeBalance Wad where
               mliq = foldr ((+) . (`fromAnyTappedLiquidity` TBA.mintedLiquidityTag)) def tvec
               od = def
 
--- ============================================================================
--- SimpleAddress Type
---
--- Note: It must consist of only alphabetical letters
---
-newtype SimpleAddress = SimpleAddress String
-    deriving newtype (Eq, Ord, Binary, Show)
-    deriving anyclass (Address)
-
--- SimpleAddress public constructor
-createSimpleAddress :: String -> Maybe SimpleAddress
-createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Nothing
-    where isValidAddress = all (\x -> any ($ x) [isAlpha, (== '_')])
-
-instance IsString SimpleAddress where
-    fromString = fromJust . createSimpleAddress
-
 data SimpleSuperfluidTypes
 
 instance SuperfluidTypes SimpleSuperfluidTypes where
@@ -166,7 +137,6 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_LQ SimpleSuperfluidTypes = Wad
     type SFT_TS SimpleSuperfluidTypes = SimpleTimestamp
     type SFT_RTB SimpleSuperfluidTypes = SimpleRealtimeBalance
-    type SFT_ADDR SimpleSuperfluidTypes = SimpleAddress
 
 -- ============================================================================
 -- Agreement Types

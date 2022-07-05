@@ -85,7 +85,7 @@ sumTotalLiquidity :: HasCallStack => SimData -> TokenMonad SF.SimpleRealtimeBala
 sumTotalLiquidity _ = do
     t <- SF.getCurrentTime
     accounts <- SF.listAccounts
-    return $ SF.sumAccounts (map snd accounts) t
+    return $ SF.sumBalancesAt (map snd accounts) t
 
 printTokenState :: HasCallStack => SimData -> TokenMonad ()
 printTokenState s = do

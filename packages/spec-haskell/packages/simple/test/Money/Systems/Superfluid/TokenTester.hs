@@ -93,13 +93,13 @@ expectZeroTotalLiquidity = do
     t <- runToken SF.getCurrentTime
     accounts <- runToken SF.listAccounts
     liftIO $ assertBool "Zero Liquidity Invariance"
-        ((== 0) . RTB.liquidityRequiredForRTB $ SF.sumAccounts (map snd accounts) t)
+        ((== 0) . RTB.liquidityRequiredForRTB $ SF.sumBalancesAt (map snd accounts) t)
 
 expectCFANetFlowRateTo :: HasCallStack
     => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFANetFlowRateTo label addr expr = do
     account <- runToken $ SF.getAccount addr
-    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.viewAccountCFA $ account)
+    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.viewCFA $ account)
 
 expectCFAFlowRateTo :: HasCallStack
     => String -> (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Bool) -> TokenTester ()

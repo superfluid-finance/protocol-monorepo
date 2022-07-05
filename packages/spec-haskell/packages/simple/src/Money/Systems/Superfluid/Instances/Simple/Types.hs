@@ -168,6 +168,10 @@ instance SuperfluidDistribution SimpleSuperfluidDistribution where
     type SFT_RTB SimpleSuperfluidDistribution = SimpleRealtimeBalance
     type SFT_ADDR SimpleSuperfluidDistribution = SimpleAddress
 
+instance LiquidityDistribution SimpleSuperfluidDistribution where
+    bearers = undefined
+    liquidityOf = undefined
+
 -- ============================================================================
 -- Agreement Types
 --

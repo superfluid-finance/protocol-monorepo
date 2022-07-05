@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia    #-}
 
 module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
     ( BufferLiquidityTag
@@ -11,18 +11,13 @@ module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
 import           Data.Type.TaggedTypeable
 import           Data.Typeable
 
-import           Money.Systems.Superfluid.Concepts.Liquidity
-    ( Liquidity
-    , TappedLiquidity (..)
-    , TappedLiquidityTag
-    , TypedLiquidityTag
-    )
+import           Money.Systems.Superfluid.Concepts.Liquidity (Liquidity, TappedLiquidity (..), TappedLiquidityTag)
 
 -- TODO use TH: $(defineTappedLiquidity BufferLiquidityTag "d" BufferLiquidity)
-data BufferLiquidityTag deriving anyclass (TypedLiquidityTag, TappedLiquidityTag)
+data BufferLiquidityTag deriving anyclass (TappedLiquidityTag)
 instance TaggedTypeable BufferLiquidityTag where tagFromProxy _ = "b"
+type BufferLiquidity lq = TappedLiquidity BufferLiquidityTag lq
 bufferLiquidityTag :: Proxy BufferLiquidityTag
 bufferLiquidityTag = Proxy @BufferLiquidityTag
-type BufferLiquidity lq = TappedLiquidity BufferLiquidityTag lq
 mkBufferLiquidity :: Liquidity lq => lq -> BufferLiquidity lq
 mkBufferLiquidity = TappedLiquidity

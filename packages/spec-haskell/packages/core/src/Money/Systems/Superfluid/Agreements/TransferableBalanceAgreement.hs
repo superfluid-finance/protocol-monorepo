@@ -1,6 +1,6 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia    #-}
+{-# LANGUAGE TypeFamilies   #-}
 
 module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
     ( MintedLiquidity
@@ -28,7 +28,6 @@ import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
     , TappedLiquidity (..)
     , TappedLiquidityTag
-    , TypedLiquidityTag
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
     )
@@ -40,11 +39,11 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTy
 
 -- | MintedLiquidity Type
 --
-data MintedLiquidityTag deriving anyclass (TypedLiquidityTag, TappedLiquidityTag)
+data MintedLiquidityTag deriving anyclass (TappedLiquidityTag)
 instance TaggedTypeable MintedLiquidityTag where tagFromProxy _ = "m"
+type MintedLiquidity lq = TappedLiquidity MintedLiquidityTag lq
 mintedLiquidityTag :: Proxy MintedLiquidityTag
 mintedLiquidityTag = Proxy @MintedLiquidityTag
-type MintedLiquidity lq = TappedLiquidity MintedLiquidityTag lq
 mkMintedLiquidity :: Liquidity lq => lq -> MintedLiquidity lq
 mkMintedLiquidity = TappedLiquidity
 

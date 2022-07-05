@@ -28,9 +28,7 @@ async function main() {
 
   const sf = await Framework.create({
     chainId: (await provider.getNetwork()).chainId,
-    provider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider
   });
 
   const signers = await hre.ethers.getSigners();

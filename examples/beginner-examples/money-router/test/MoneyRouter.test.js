@@ -51,9 +51,8 @@ before(async function () {
 
     //initialize the superfluid framework...put custom and web3 only bc we are using hardhat locally
     sf = await Framework.create({
-        networkName: "custom",
+        chainId: 31337,
         provider,
-        dataMode: "WEB3_ONLY",
         resolverAddress: process.env.RESOLVER_ADDRESS, //this is how you get the resolver address
         protocolReleaseVersion: "test",
     });    

@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE TypeFamilies   #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ( AgreementContractData (..)

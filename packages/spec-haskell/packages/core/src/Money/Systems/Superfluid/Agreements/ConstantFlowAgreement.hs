@@ -9,6 +9,7 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     , CFAAccountData
     ) where
 
+import           Data.Coerce
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
@@ -20,9 +21,9 @@ import           Money.Systems.Superfluid.Concepts.Agreement
     )
 import           Money.Systems.Superfluid.Concepts.Liquidity
     ( Liquidity
+    , TappedLiquidity (..)
     , UntappedLiquidity (..)
     , mkAnyTappedLiquidity
-    , untypeLiquidity
     )
 import           Money.Systems.Superfluid.Concepts.RealtimeBalance
     ( RealtimeBalance (..)
@@ -67,7 +68,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
         CFAAccountData
         { settledAt = t'
         , netFlowRate = negate flowRateDelta
-        , settledUntappedLiquidity = UntappedLiquidity $ negate flowPeriodDelta - untypeLiquidity flowBufferDelta
+        , settledUntappedLiquidity = UntappedLiquidity $ negate flowPeriodDelta - coerce flowBufferDelta
         , settledBufferLiquidity = flowBufferDelta
         }
         CFAAccountData

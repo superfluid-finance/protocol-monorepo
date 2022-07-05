@@ -38,7 +38,6 @@ class (Default fr, RealFloat fr) => SFTFloat fr
 --  * Type name : sft
 --
 class ( Typeable sft
-      , Typeable (SFT_LQ sft)
       , SFTFloat (SFT_FLOAT sft)
       , Liquidity (SFT_LQ sft)
       , Timestamp (SFT_TS sft)

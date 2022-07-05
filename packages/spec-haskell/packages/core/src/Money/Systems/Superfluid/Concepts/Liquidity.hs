@@ -58,7 +58,7 @@ module Money.Systems.Superfluid.Concepts.Liquidity
 
 import           Data.Default                (Default (..))
 import           Data.Type.TaggedTypeable    (TaggedTypeable (..))
-import           Data.Typeable               (Proxy (..), Typeable, typeRep)
+import           Data.Typeable               (Proxy (..), typeRep)
 
 import           Money.Concepts.Distribution (Liquidity)
 
@@ -67,8 +67,8 @@ import           Money.Concepts.Distribution (Liquidity)
 --
 -- Naming conventions:
 --  * Type name: tlq
-class (Liquidity lq, Typeable tlq) => TypedLiquidity tlq lq | tlq -> lq where
-    typeLiquidity :: lq -> tlq -- FIXME use coerce??
+class Liquidity lq => TypedLiquidity tlq lq | tlq -> lq where
+    typeLiquidity :: lq -> tlq
     untypeLiquidity :: tlq -> lq
     isLiquidityOfType :: TaggedTypeable ltag => tlq -> Proxy ltag -> Bool
 
@@ -84,8 +84,7 @@ newtype UntappedLiquidity lq = UntappedLiquidity lq
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
     deriving stock (Functor)
 
-instance Typeable lq => TaggedTypeable (UntappedLiquidity lq) where tagFromProxy _ = "_"
-instance (Typeable lq, Liquidity lq) => TypedLiquidity (UntappedLiquidity lq) lq where
+instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq where
     typeLiquidity = UntappedLiquidity
     untypeLiquidity (UntappedLiquidity liq) = liq
     isLiquidityOfType _ liqt1 = typeRep liqt1 == typeRep untappedLiquidityTag
@@ -106,7 +105,7 @@ newtype TappedLiquidity ltag lq = TappedLiquidity lq
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
     deriving stock (Functor)
 
-instance (Liquidity lq, Typeable lq, TappedLiquidityTag ltag)
+instance (Liquidity lq, TappedLiquidityTag ltag)
     => TypedLiquidity (TappedLiquidity ltag lq) lq where
     typeLiquidity = TappedLiquidity
     untypeLiquidity (TappedLiquidity uliq) = uliq
@@ -129,7 +128,7 @@ mkAnyTappedLiquidity
     => TappedLiquidity ltag lq -> AnyTappedLiquidity lq
 mkAnyTappedLiquidity (TappedLiquidity uliq) = AnyTappedLiquidity (MkTappedLiquidityTag (Proxy @ltag), uliq)
 
-instance (Liquidity lq, Typeable lq) => TypedLiquidity (AnyTappedLiquidity lq) lq where
+instance Liquidity lq  => TypedLiquidity (AnyTappedLiquidity lq) lq where
     typeLiquidity _ = error "No TypedLiquidity information for AnyTappedLiquidity"
     untypeLiquidity (AnyTappedLiquidity (_, liq)) = liq
     isLiquidityOfType (AnyTappedLiquidity (MkTappedLiquidityTag tag1, _)) tag2 = typeRep tag1 == typeRep tag2

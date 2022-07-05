@@ -49,16 +49,13 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 -- TBA
 instance Serializable (TBA.TBAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
-        putTS (TBA.settledAt s)
         putLQ (coerce $ TBA.untappedLiquidity s)
         putLQ (coerce $ TBA.mintedLiquidity s)
     getter _ = do
-        t <- getTS
         l <- getLQ
         m <- getLQ
         return TBA.TBAAccountData
-            { TBA.settledAt = t
-            , TBA.untappedLiquidity = UntappedLiquidity l
+            { TBA.untappedLiquidity = UntappedLiquidity l
             , TBA.mintedLiquidity = TBA.mkMintedLiquidity m
             }
 

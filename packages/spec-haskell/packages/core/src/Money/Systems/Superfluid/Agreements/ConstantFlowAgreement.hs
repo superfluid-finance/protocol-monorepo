@@ -5,6 +5,7 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ( AgreementContractData (..)
     , AgreementAccountData (..)
     , AgreementPartiesF (..)
+    , AgreementOperation (..)
     , CFAContractData
     , CFAAccountData
     , CFAPartiesF
@@ -51,13 +52,19 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
         , flowRate          :: SFT_LQ sft
         , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
         }
+
     data AgreementAccountData (CFA sft) = CFAAccountData
         { settledAt                :: SFT_TS sft
         , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
         , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
         , netFlowRate              :: SFT_LQ sft
         }
+
     data AgreementPartiesF (CFA sft) a = CFAPartiesF a a deriving stock (Functor)
+
+    data AgreementOperation (CFA sft) =
+        -- flowRate, newFlowBuffer, t'
+        Updatelow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 
     providedBalanceByAgreement CFAAccountData
         { settledAt = t_s
@@ -69,26 +76,27 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
             ( UntappedLiquidity $ uliq_s + calc_liquidity_delta fr t_s t )
             [ mkAnyTappedLiquidity buf_s ]
 
-    createAgreementPartiesDelta old new = CFAPartiesF
-        CFAAccountData
-        { settledAt = t'
-        , netFlowRate = negate flowRateDelta
-        , settledUntappedLiquidity = UntappedLiquidity $ negate flowPeriodDelta - coerce flowBufferDelta
-        , settledBufferLiquidity = flowBufferDelta
-        }
-        CFAAccountData
-        { settledAt = t'
-        , netFlowRate = flowRateDelta
-        , settledUntappedLiquidity = UntappedLiquidity $ flowPeriodDelta
-        , settledBufferLiquidity = def
-        }
+    createAgreementPartiesDelta acd (Updatelow newFlowRate newFlowBuffer t') = let
+        acd' = acd { flowRate = newFlowRate, flowBuffer = newFlowBuffer, flowLastUpdatedAt = t' }
+        aps' = CFAPartiesF CFAAccountData
+                           { settledAt = t'
+                           , netFlowRate = negate flowRateDelta
+                           , settledUntappedLiquidity = UntappedLiquidity $ negate flowPeriodDelta - coerce flowBufferDelta
+                           , settledBufferLiquidity = flowBufferDelta
+                           }
+                           CFAAccountData
+                           { settledAt = t'
+                           , netFlowRate = flowRateDelta
+                           , settledUntappedLiquidity = UntappedLiquidity $ flowPeriodDelta
+                           , settledBufferLiquidity = def
+                           }
+        in (acd', aps')
         where
-            fr = flowRate old
-            t = flowLastUpdatedAt old
-            t' = flowLastUpdatedAt new
+            fr = flowRate acd
+            t = flowLastUpdatedAt acd
             flowPeriodDelta = calc_liquidity_delta fr t t'
-            flowRateDelta = flowRate new - fr
-            flowBufferDelta = flowBuffer new - flowBuffer old
+            flowRateDelta = newFlowRate - fr
+            flowBufferDelta = newFlowBuffer - flowBuffer acd
 
 instance SuperfluidTypes sft => Applicative (CFAPartiesF sft) where
     pure a = CFAPartiesF a a

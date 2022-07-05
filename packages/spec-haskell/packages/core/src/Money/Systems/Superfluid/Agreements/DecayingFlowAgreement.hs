@@ -8,6 +8,7 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
     ( AgreementContractData (..)
     , AgreementAccountData (..)
     , AgreementPartiesF (..)
+    , AgreementOperation (..)
     , DFAContractData
     , DFAAccountData
     , DFAPartiesF
@@ -41,19 +42,26 @@ type DFAPartiesF sft = AgreementPartiesF (DFA sft)
 type DFAParties sft = (DFAPartiesF sft) (DFAAccountData sft)
 instance SuperfluidTypes sft => Agreement (DFA sft) where
     type DistributionForAgreement (DFA sft) = sft
+
     data AgreementContractData (DFA sft) = DFAContractData
         { flowLastUpdatedAt :: SFT_TS sft
         , decayingFactor    :: SFT_FLOAT sft
         , distributionLimit :: SFT_LQ sft
         , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
         }
+
     data AgreementAccountData (DFA sft) = DFAAccountData
         { settledAt     :: SFT_TS sft
         , αVal          :: SFT_FLOAT sft
         , εVal          :: SFT_FLOAT sft
         , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sft)
         }
+
     data AgreementPartiesF (DFA sft) a = DFAPartiesF a a deriving stock (Functor)
+
+    data AgreementOperation (DFA sft) =
+        -- θ (Distribution Limit), newFlowBuffer, t'
+        UpdateDecayingFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 
     -- | Provided balance by DFA
     --
@@ -72,13 +80,14 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
     --
     -- Formula:
     --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = DFA_AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
-    createAgreementPartiesDelta old new = DFAPartiesF
-        DFAAccountData { settledAt = t', αVal = θ_Δ, εVal = -θ_Δ, settledBuffer = flowBufferDelta }
-        DFAAccountData { settledAt = t', αVal = -θ_Δ, εVal = θ_Δ, settledBuffer = def }
+    createAgreementPartiesDelta acd (UpdateDecayingFlow θ newFlowBuffer t') = let
+        acd' = acd { distributionLimit = θ, flowBuffer = newFlowBuffer, flowLastUpdatedAt = t' }
+        aps' = DFAPartiesF DFAAccountData { settledAt = t', αVal = θ_Δ, εVal = -θ_Δ, settledBuffer = flowBufferDelta }
+                           DFAAccountData { settledAt = t', αVal = -θ_Δ, εVal = θ_Δ, settledBuffer = def }
+        in (acd', aps')
         where
-            t' = flowLastUpdatedAt new
-            θ_Δ = fromIntegral (distributionLimit new - distributionLimit old)
-            flowBufferDelta = flowBuffer new - flowBuffer old
+            θ_Δ = fromIntegral (θ - distributionLimit acd)
+            flowBufferDelta = newFlowBuffer - flowBuffer acd
 
 instance SuperfluidTypes sft => Applicative (DFAPartiesF sft) where
     pure a = DFAPartiesF a a

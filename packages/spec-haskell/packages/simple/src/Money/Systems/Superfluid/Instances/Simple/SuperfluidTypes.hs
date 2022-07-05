@@ -204,8 +204,7 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreement Types
 --
 instance Show (TBA.TBAAccountData SimpleSuperfluidTypes) where
-    show x = printf "{ t = %s, uliq = %s, mliq = %s }"
-        (show $ TBA.settledAt x)
+    show x = printf "{ uliq = %s, mliq = %s }"
         (show $ TBA.untappedLiquidity x)
         (show $ TBA.mintedLiquidity x)
 

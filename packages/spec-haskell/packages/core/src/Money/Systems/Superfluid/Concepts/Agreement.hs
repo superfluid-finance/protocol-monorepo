@@ -26,17 +26,19 @@ class ( SuperfluidTypes (DistributionForAgreement a)
 
     data AgreementAccountData a :: Type
 
+    data AgreementOperation a :: Type
+
     -- | Balance provided by the agreement of an account
     providedBalanceByAgreement :: AgreementAccountData a -> TS a -> RTB a
 
     -- | Create data of agreement parties from the changes of the agreement contract
-    createAgreementPartiesDelta :: AgreementContractData a -> AgreementContractData a -> AgreementParties a
+    createAgreementPartiesDelta :: AgreementContractData a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
 
 -- | Update the data of parties of an agreement from the changes of the agreement contract
-updateAgreement :: Agreement a => AgreementContractData a -> AgreementContractData a -> AgreementParties a -> AgreementParties a
-updateAgreement old new parties = -- applicatively map the semigroup binary operator over parites and their delta
-    (<>) <$> parties <*> partiesDelta
-    where partiesDelta = createAgreementPartiesDelta old new
+updateAgreement :: Agreement a => AgreementContractData a -> AgreementParties a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
+updateAgreement acd aps ao = let (acd', apsDelta) = createAgreementPartiesDelta acd ao
+    -- applicatively map the semigroup binary operator over parites and their
+    in (acd', (<>) <$> aps <*> apsDelta)
 
 -- ============================================================================
 -- Internal Type Aliases

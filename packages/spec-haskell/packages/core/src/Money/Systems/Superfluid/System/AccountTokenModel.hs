@@ -107,16 +107,17 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
     getMinterAddress :: tk (SFT_ADDR (TK_SFT tk))
 
     mintLiquidity :: SFT_ADDR (TK_SFT tk) -> SFT_LQ (TK_SFT tk) -> tk ()
-    mintLiquidity toAddr liquidity = do
+    mintLiquidity toAddr amount = do
         t <- getCurrentTime
         minterAddress <- getMinterAddress
         mintFrom <- getAccount minterAddress
         mintTo <- getAccount toAddr
-        let (TBA.TBAPartiesF mintFromTBA' mintToTBA') = TBA.mintLiquidity
+        let (_, TBA.TBAPartiesF mintFromACD' mintToACD') = updateAgreement
+                TBA.TBAContractData
                 (TBA.TBAPartiesF (viewAccountTBA mintFrom) (viewAccountTBA mintTo))
-                liquidity
-        putAccount minterAddress $ setAccountTBA mintFrom mintFromTBA' t
-        putAccount toAddr $ setAccountTBA mintTo mintToTBA' t
+                (TBA.MintLiquidity amount)
+        putAccount minterAddress $ setAccountTBA mintFrom mintFromACD' t
+        putAccount toAddr $ setAccountTBA mintTo mintToACD' t
 
     --
     -- CFA functions
@@ -132,20 +133,14 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
         flowACD <- fromMaybe def <$> viewFlow senderAddr receiverAddr
-        flowBuffer <-  calcFlowBuffer newFlowRate
-        let flowACD' = CFA.CFAContractData
-                { CFA.flowLastUpdatedAt = t
-                , CFA.flowRate = newFlowRate
-                , CFA.flowBuffer = BBS.mkBufferLiquidity flowBuffer
-                }
-        let (CFA.CFAPartiesF senderFlowAAD' receiverFlowAAD') =
-                updateAgreement flowACD flowACD'
+        newFlowBuffer <- BBS.mkBufferLiquidity <$> calcFlowBuffer newFlowRate
+        let (flowACD', CFA.CFAPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
+                flowACD
                 (CFA.CFAPartiesF (viewAccountCFA senderAccount) (viewAccountCFA receiverAccount))
-        let senderAccount' = setAccountCFA senderAccount senderFlowAAD' t
-        let receiverAccount' = setAccountCFA receiverAccount receiverFlowAAD' t
+                (CFA.Updatelow newFlowRate newFlowBuffer t)
         setFlow senderAddr receiverAddr flowACD' t
-        putAccount senderAddr senderAccount'
-        putAccount receiverAddr receiverAccount'
+        putAccount senderAddr $ setAccountCFA senderAccount senderFlowAAD' t
+        putAccount receiverAddr $ setAccountCFA receiverAccount receiverFlowAAD' t
 
     --
     -- DFA functions
@@ -159,17 +154,10 @@ class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) =
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
         flowACD <- fromMaybe def <$> viewDecayingFlow senderAddr receiverAddr
-        let flowACD' = DFA.DFAContractData
-                { DFA.flowLastUpdatedAt = t
-                , DFA.distributionLimit = newDistributionLimit
-                , DFA.decayingFactor = DFA.decayingFactor flowACD
-                , DFA.flowBuffer = def
-                }
-        let (DFA.DFAPartiesF senderFlowAAD' receiverFlowAAD') =
-                updateAgreement flowACD flowACD'
+        let (flowACD', DFA.DFAPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
+                flowACD
                 (DFA.DFAPartiesF (viewAccountDFA senderAccount) (viewAccountDFA receiverAccount))
-        let senderAccount' = setAccountDFA senderAccount senderFlowAAD' t
-        let receiverAccount' = setAccountDFA receiverAccount receiverFlowAAD' t
+                (DFA.UpdateDecayingFlow newDistributionLimit def t)
         setDecayingFlow senderAddr receiverAddr flowACD' t
-        putAccount senderAddr senderAccount'
-        putAccount receiverAddr receiverAccount'
+        putAccount senderAddr $ setAccountDFA senderAccount senderFlowAAD' t
+        putAccount receiverAddr $ setAccountDFA receiverAccount receiverFlowAAD' t

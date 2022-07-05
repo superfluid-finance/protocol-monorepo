@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies      #-}
 
 module Money.Systems.Superfluid.Instances.Simple.System
-    ( module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+    ( module Money.Systems.Superfluid.Instances.Simple.Types
     -- SimpleAccount
     , SF.Account (..)
     , SF.balanceOfAccountAt
@@ -37,11 +37,10 @@ import           Data.Type.TaggedTypeable
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
-import           Money.Systems.Superfluid.Concepts.Agreement                      (Agreement (..))
 --
 import qualified Money.Systems.Superfluid.System.AccountTokenModel                as SF
 
-import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+import           Money.Systems.Superfluid.Instances.Simple.Types
 
 
 -- ============================================================================
@@ -49,17 +48,17 @@ import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
 --
 data SimpleAccount = SimpleAccount
     { address              :: SimpleAddress
-    , tbaAccountData       :: TBA.TBAAccountData SimpleSuperfluidTypes
-    , cfaAccountData       :: CFA.CFAAccountData SimpleSuperfluidTypes
-    , dfaAccountData       :: DFA.DFAAccountData SimpleSuperfluidTypes
+    , tbaAccountData       :: TBA.TBAAccountData SimpleSuperfluidDistribution
+    , cfaAccountData       :: CFA.CFAAccountData SimpleSuperfluidDistribution
+    , dfaAccountData       :: DFA.DFAAccountData SimpleSuperfluidDistribution
     , accountLastUpdatedAt :: SimpleTimestamp
     }
 
 -- agreement_of_Account
---   :: (Agreement a, S.Serializable (AgreementAccountData a) SimpleSuperfluidTypes)
+--   :: (Agreement a, S.Serializable (AgreementAccountData a) SimpleSuperfluidDistribution)
 --    => Proxy (AgreementAccountData a) -> SimpleAccount -> Maybe (AgreementAccountData a)
 
-instance SF.Account SimpleAccount SimpleSuperfluidTypes where
+instance SF.Account SimpleAccount SimpleSuperfluidDistribution where
     addressOfAccount = address
 
     type AnyAgreementAccountData SimpleAccount = AnySimpleAgreementAccountData
@@ -105,8 +104,8 @@ newtype SimpleSystemData = SimpleSystemData
 --
 data SimpleTokenData = SimpleTokenData
     { accounts           :: M.Map SimpleAddress SimpleAccount
-    , cfaContractData    :: M.Map String (CFA.CFAContractData SimpleSuperfluidTypes)
-    , dfaContractData    :: M.Map String (DFA.DFAContractData SimpleSuperfluidTypes)
+    , cfaContractData    :: M.Map String (CFA.CFAContractData SimpleSuperfluidDistribution)
+    , dfaContractData    :: M.Map String (DFA.DFAContractData SimpleSuperfluidDistribution)
     , tokenLastUpdatedAt :: SimpleTimestamp
     }
 instance Default SimpleTokenData where
@@ -166,7 +165,7 @@ modify_token_data = SimpleTokenStateT . modify
 -- | SimpleTokenStateT m is a SuperfluidToken instance
 --
 instance (Monad m) => SF.Token (SimpleTokenStateT m) where
-    type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidTypes
+    type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidDistribution
 
     type TK_ACC (SimpleTokenStateT m) = SimpleAccount
 

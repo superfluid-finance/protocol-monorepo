@@ -20,13 +20,7 @@ import           Data.Default                                            (Defaul
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable
 
-import           Money.Systems.Superfluid.Concepts.Agreement             (Agreement (..))
-import           Money.Systems.Superfluid.Concepts.Liquidity             (UntappedLiquidity (..), mkAnyTappedLiquidity)
-import           Money.Systems.Superfluid.Concepts.RealtimeBalance
-    ( RealtimeBalance (..)
-    , TypedLiquidityVector (..)
-    )
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
@@ -40,7 +34,7 @@ type DFAContractData sft = AgreementContractData (DFA sft)
 type DFAAccountData sft = AgreementAccountData (DFA sft)
 type DFAPartiesF sft = AgreementPartiesF (DFA sft)
 type DFAParties sft = (DFAPartiesF sft) (DFAAccountData sft)
-instance SuperfluidTypes sft => Agreement (DFA sft) where
+instance SuperfluidDistribution sft => Agreement (DFA sft) where
     type DistributionForAgreement (DFA sft) = sft
 
     data AgreementContractData (DFA sft) = DFAContractData
@@ -89,13 +83,13 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
             θ_Δ = fromIntegral (θ - distributionLimit acd)
             flowBufferDelta = newFlowBuffer - flowBuffer acd
 
-instance SuperfluidTypes sft => Applicative (DFAPartiesF sft) where
+instance SuperfluidDistribution sft => Applicative (DFAPartiesF sft) where
     pure a = DFAPartiesF a a
     liftA2 f (DFAPartiesF s r) (DFAPartiesF s' r') = DFAPartiesF (f s s') (f r r')
 
-instance SuperfluidTypes sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
+instance SuperfluidDistribution sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
 
-instance SuperfluidTypes sft => Default (DFAContractData sft) where
+instance SuperfluidDistribution sft => Default (DFAContractData sft) where
     def = DFAContractData
         { flowLastUpdatedAt = def
         , decayingFactor = default_lambda
@@ -103,15 +97,15 @@ instance SuperfluidTypes sft => Default (DFAContractData sft) where
         , flowBuffer = def
         }
 
-instance SuperfluidTypes sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
-instance SuperfluidTypes sft => Default (DFAAccountData sft) where
+instance SuperfluidDistribution sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
+instance SuperfluidDistribution sft => Default (DFAAccountData sft) where
     def = DFAAccountData
         { settledAt = def
         , αVal = def
         , εVal = def
         , settledBuffer = def
         }
-instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
+instance SuperfluidDistribution sft => Semigroup (DFAAccountData sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'

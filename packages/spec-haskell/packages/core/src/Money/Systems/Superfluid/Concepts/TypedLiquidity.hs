@@ -38,7 +38,7 @@
 -- * Atomic Composite Agreement (ACA)
 -- * Buffer Based Solvency (BBS)
 --
-module Money.Systems.Superfluid.Concepts.Liquidity
+module Money.Systems.Superfluid.Concepts.TypedLiquidity
     -- Untyped Liquidity
     ( Liquidity
     -- Typed Liquidity

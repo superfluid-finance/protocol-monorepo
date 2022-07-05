@@ -15,7 +15,7 @@ build-type:    Simple
 
 library
     exposed-modules:
-        Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+        Money.Systems.Superfluid.Instances.Simple.Types
         Money.Systems.Superfluid.Instances.Simple.Integrations.Serialization
         Money.Systems.Superfluid.Instances.Simple.System
 

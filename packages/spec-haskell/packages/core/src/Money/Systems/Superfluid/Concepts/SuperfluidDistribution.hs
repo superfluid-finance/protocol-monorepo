@@ -1,10 +1,10 @@
 {-# LANGUAGE TypeFamilies #-}
 
-module Money.Systems.Superfluid.Concepts.SuperfluidTypes
+module Money.Systems.Superfluid.Concepts.SuperfluidDistribution
     ( Address
     , Timestamp
     , SFTFloat
-    , SuperfluidTypes (..)
+    , SuperfluidDistribution (..)
     ) where
 
 import           Data.Default                                      (Default)
@@ -17,33 +17,32 @@ import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBala
 
 -- | Address Type Class
 --
--- Naming conventions:
+-- Notional conventions:
 --  * Type name: addr
---  * Type family name: ACC_ADDR
+--  * SuperfluidDistribution indexed type synonym: SFT_ADDR
 class (Eq addr) => Address addr
 
 -- | Timestamp Type Class
 --
--- Naming conventions:
+-- Notional conventions:
 --  * Type name: ts
---  * SuperfluidTypes type indexer: SFT_TS
+--  * SuperfluidDistribution type indexer: SFT_TS
 class (Default ts, Integral ts) => Timestamp ts
 
 -- | Actual Float Type
 class (Default fr, RealFloat fr) => SFTFloat fr
 
--- | SuperfluidTypes Type Class
+-- | SuperfluidDistribution Type Class
 --
--- Naming conventions:
+-- Notional conventions:
 --  * Type name : sft
---
 class ( Typeable sft
       , SFTFloat (SFT_FLOAT sft)
       , Liquidity (SFT_LQ sft)
       , Timestamp (SFT_TS sft)
       , RealtimeBalance (SFT_RTB sft) (SFT_LQ sft)
       , Address (SFT_ADDR sft)
-      ) => SuperfluidTypes sft where
+      ) => SuperfluidDistribution sft where
 
     -- Associated Type Synonyms
     type SFT_FLOAT sft :: Type

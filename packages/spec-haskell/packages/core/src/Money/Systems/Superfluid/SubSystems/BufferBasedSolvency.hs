@@ -11,7 +11,7 @@ module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
 import           Data.Type.TaggedTypeable
 import           Data.Typeable
 
-import           Money.Systems.Superfluid.Concepts.Liquidity (Liquidity, TappedLiquidity (..), TappedLiquidityTag)
+import           Money.Systems.Superfluid.Concepts.TypedLiquidity (Liquidity, TappedLiquidity (..), TappedLiquidityTag)
 
 -- TODO use TH: $(defineTappedLiquidity BufferLiquidityTag "d" BufferLiquidity)
 data BufferLiquidityTag deriving anyclass (TappedLiquidityTag)

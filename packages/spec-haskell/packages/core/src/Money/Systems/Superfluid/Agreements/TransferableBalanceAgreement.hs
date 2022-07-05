@@ -16,26 +16,14 @@ module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
     , TBAParties
     ) where
 
-import           Control.Applicative                               (Applicative (..))
-import           Data.Coerce                                       (coerce)
-import           Data.Default                                      (Default (..))
-import           Data.Kind                                         (Type)
-import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
-import           Data.Typeable                                     (Proxy (..))
+import           Control.Applicative               (Applicative (..))
+import           Data.Coerce                       (coerce)
+import           Data.Default                      (Default (..))
+import           Data.Kind                         (Type)
+import           Data.Type.TaggedTypeable          (TaggedTypeable (..))
+import           Data.Typeable                     (Proxy (..))
 
-import           Money.Systems.Superfluid.Concepts.Agreement       (AgreementAccountData (..))
-import           Money.Systems.Superfluid.Concepts.Liquidity
-    ( Liquidity
-    , TappedLiquidity (..)
-    , TappedLiquidityTag
-    , UntappedLiquidity (..)
-    , mkAnyTappedLiquidity
-    )
-import           Money.Systems.Superfluid.Concepts.RealtimeBalance
-    ( TypedLiquidityVector (..)
-    , typedLiquidityVectorToRTB
-    )
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts
 
 -- MintedLiquidity Type
 --
@@ -55,7 +43,7 @@ type TBAContractData sft = AgreementContractData (TBA sft)
 type TBAAccountData sft = AgreementAccountData (TBA sft)
 type TBAPartiesF sft = AgreementPartiesF (TBA sft)
 type TBAParties sft = (TBAPartiesF sft) (TBAAccountData sft)
-instance SuperfluidTypes sft => Agreement (TBA sft) where
+instance SuperfluidDistribution sft => Agreement (TBA sft) where
     type DistributionForAgreement (TBA sft) = sft
 
     data AgreementContractData (TBA sft) = TBAContractData
@@ -95,17 +83,17 @@ instance SuperfluidTypes sft => Agreement (TBA sft) where
                            def { untappedLiquidity = coerce amount }
         in (acd', aps')
 
-instance SuperfluidTypes sft => Applicative (TBAPartiesF sft) where
+instance SuperfluidDistribution sft => Applicative (TBAPartiesF sft) where
     pure a = TBAPartiesF a a
     liftA2 f (TBAPartiesF s r) (TBAPartiesF s' r') = TBAPartiesF (f s s') (f r r')
 
-instance (SuperfluidTypes sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
-instance (SuperfluidTypes sft) => Default (TBAContractData sft) where def = TBAContractData
+instance (SuperfluidDistribution sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
+instance (SuperfluidDistribution sft) => Default (TBAContractData sft) where def = TBAContractData
 
-instance (SuperfluidTypes sft) => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
-instance SuperfluidTypes sft => Default (TBAAccountData sft) where
+instance (SuperfluidDistribution sft) => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
+instance SuperfluidDistribution sft => Default (TBAAccountData sft) where
     def = TBAAccountData { untappedLiquidity = def, mintedLiquidity = def }
-instance SuperfluidTypes sft => Semigroup (TBAAccountData sft) where
+instance SuperfluidDistribution sft => Semigroup (TBAAccountData sft) where
     (<>) a b = TBAAccountData
         { untappedLiquidity = untappedLiquidity a + untappedLiquidity b
         , mintedLiquidity = mintedLiquidity a + mintedLiquidity b

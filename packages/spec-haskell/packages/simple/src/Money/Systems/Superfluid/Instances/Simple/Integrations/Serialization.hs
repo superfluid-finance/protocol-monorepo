@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Money.Systems.Superfluid.Instances.Simple.Integrations.Serialization
   ( SimpleSerialized
+  , Serialized (..)
   )
 where
 
@@ -10,35 +12,58 @@ import qualified Data.Binary.Get                                                
 import qualified Data.Binary.Put                                                  as B (PutM, runPut)
 import           Data.ByteString.Lazy                                             (ByteString)
 import           Data.Coerce                                                      (coerce)
+import           Data.Proxy
 
-import           Money.Systems.Superfluid.Concepts.Liquidity
---
+
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import           Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
+import           Money.Systems.Superfluid.Instances.Simple.Types
+
 
 -- ============================================================================
--- Serializable For Simple SuperfluidTypes
+-- Putter/Getter Serializable Framework
+--
+
+class (Monad srl, SuperfluidDistribution sft) => Putter srl sft | srl -> sft where
+    putFloat :: SFT_FLOAT sft -> srl ()
+    putLQ :: SFT_LQ sft -> srl ()
+    putTS :: SFT_TS sft -> srl ()
+
+class (Monad srl, SuperfluidDistribution sft) => Getter srl sft | srl -> sft where
+    getFloat :: srl (SFT_FLOAT sft)
+    getLQ :: srl (SFT_LQ sft)
+    getTS :: srl (SFT_TS sft)
+
+class SuperfluidDistribution sft => Serializable a sft | a -> sft where
+    getter :: Getter srl sft => Proxy a -> srl a
+    putter :: Putter srl sft => a -> srl ()
+
+class SuperfluidDistribution sft => Serialized s sft | s -> sft where
+    runGetter :: Serializable a sft => Proxy a -> s -> a
+    runPutter :: Serializable a sft => a -> s
+
+-- ============================================================================
+-- Serializable For Simple SuperfluidDistribution
 --
 
 newtype SimpleSerialized = SimpleSerialized ByteString
 newtype SimpleGetter a = SimpleGetter (B.Get a) deriving (Functor, Applicative, Monad)
 newtype SimplePutter a = SimplePutter (B.PutM a) deriving (Functor, Applicative, Monad)
 
-instance Getter SimpleGetter SimpleSuperfluidTypes where
+instance Getter SimpleGetter SimpleSuperfluidDistribution where
     getFloat = SFDouble <$> SimpleGetter B.get
     getLQ = SimpleGetter B.get
     getTS = SimpleGetter B.get
 
-instance Putter SimplePutter SimpleSuperfluidTypes where
+instance Putter SimplePutter SimpleSuperfluidDistribution where
     putFloat x = SimplePutter . B.put $ (coerce x :: Double)
     putLQ = SimplePutter . B.put
     putTS = SimplePutter . B.put
 
-instance Serialized SimpleSerialized SimpleSuperfluidTypes where
+instance Serialized SimpleSerialized SimpleSuperfluidDistribution where
     runGetter taggedProxy (SimpleSerialized s) = B.runGet m s where (SimpleGetter m) = getter taggedProxy
     runPutter a = SimpleSerialized $ B.runPut m where (SimplePutter m) = putter a
 
@@ -47,7 +72,7 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --
 
 -- TBA
-instance Serializable (TBA.TBAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (TBA.TBAAccountData SimpleSuperfluidDistribution) SimpleSuperfluidDistribution where
     putter s = do
         putLQ (coerce $ TBA.untappedLiquidity s)
         putLQ (coerce $ TBA.mintedLiquidity s)
@@ -60,7 +85,7 @@ instance Serializable (TBA.TBAAccountData SimpleSuperfluidTypes) SimpleSuperflui
             }
 
 -- CFA
-instance Serializable (CFA.CFAContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (CFA.CFAContractData SimpleSuperfluidDistribution) SimpleSuperfluidDistribution where
     putter s = do
         putTS (CFA.flowLastUpdatedAt s)
         putLQ (coerce $ CFA.flowBuffer s)
@@ -75,7 +100,7 @@ instance Serializable (CFA.CFAContractData SimpleSuperfluidTypes) SimpleSuperflu
             , CFA.flowBuffer = BBS.mkBufferLiquidity b
             }
 
-instance Serializable (CFA.CFAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (CFA.CFAAccountData SimpleSuperfluidDistribution) SimpleSuperfluidDistribution where
     putter s = do
         putTS (CFA.settledAt s)
         putLQ (coerce $ CFA.settledUntappedLiquidity s)
@@ -94,7 +119,7 @@ instance Serializable (CFA.CFAAccountData SimpleSuperfluidTypes) SimpleSuperflui
             }
 
 -- DFA
-instance Serializable (DFA.DFAContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (DFA.DFAContractData SimpleSuperfluidDistribution) SimpleSuperfluidDistribution where
     putter s = do
         putTS (DFA.flowLastUpdatedAt s)
         putFloat (DFA.decayingFactor s)
@@ -112,7 +137,7 @@ instance Serializable (DFA.DFAContractData SimpleSuperfluidTypes) SimpleSuperflu
             , DFA.flowBuffer = BBS.mkBufferLiquidity b
             }
 
-instance Serializable (DFA.DFAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (DFA.DFAAccountData SimpleSuperfluidDistribution) SimpleSuperfluidDistribution where
     putter s = do
         putTS (DFA.settledAt s)
         putFloat (DFA.αVal s)

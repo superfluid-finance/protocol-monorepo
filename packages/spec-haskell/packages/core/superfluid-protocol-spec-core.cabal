@@ -18,10 +18,11 @@ library
         Data.Type.TaggedTypeable
         Money.Concepts.Distribution
         Money.Systems.Communism
-        Money.Systems.Superfluid.Concepts.Liquidity
+        Money.Systems.Superfluid.Concepts.TypedLiquidity
         Money.Systems.Superfluid.Concepts.RealtimeBalance
-        Money.Systems.Superfluid.Concepts.SuperfluidTypes
+        Money.Systems.Superfluid.Concepts.SuperfluidDistribution
         Money.Systems.Superfluid.Concepts.Agreement
+        Money.Systems.Superfluid.Concepts
         Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
         Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement

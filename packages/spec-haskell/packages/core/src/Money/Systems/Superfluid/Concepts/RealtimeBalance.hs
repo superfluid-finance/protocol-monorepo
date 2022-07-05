@@ -9,7 +9,7 @@ module Money.Systems.Superfluid.Concepts.RealtimeBalance
 
 import           Data.Default
 
-import           Money.Systems.Superfluid.Concepts.Liquidity (AnyTappedLiquidity, Liquidity, UntappedLiquidity)
+import           Money.Systems.Superfluid.Concepts.TypedLiquidity (AnyTappedLiquidity, Liquidity, UntappedLiquidity)
 
 -- | UntypedLiquidityVector type
 --

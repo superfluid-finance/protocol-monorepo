@@ -1,16 +1,10 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
-    ( module Money.Systems.Superfluid.Concepts.Liquidity
-    -- Serializable
-    , Putter (..)
-    , Getter (..)
-    , Serializable (..)
-    , Serialized (..)
+module Money.Systems.Superfluid.Instances.Simple.Types
+    ( module Money.Systems.Superfluid.Concepts
     -- Double
     , SFDouble (..)
     -- SimpleAddress
@@ -24,10 +18,9 @@ module Money.Systems.Superfluid.Instances.Simple.SuperfluidTypes
     -- SimpleTimestamp
     , SimpleTimestamp (..)
     -- SimpleRealtimeBalance
-    , module Money.Systems.Superfluid.Concepts.RealtimeBalance
     , SimpleRealtimeBalance (..)
-    -- SimpleSuperfluidTypes
-    , SimpleSuperfluidTypes
+    -- SimpleSuperfluidDistribution
+    , SimpleSuperfluidDistribution
     -- Agreement
     -- , AnySimpleAgreementContractData (..)
     , AnySimpleAgreementAccountData (..)
@@ -44,10 +37,7 @@ import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                     (Generic)
 import           Text.Printf                                                      (printf)
 
-import           Money.Systems.Superfluid.Concepts.Agreement
-import           Money.Systems.Superfluid.Concepts.Liquidity
-import           Money.Systems.Superfluid.Concepts.RealtimeBalance
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
@@ -55,28 +45,6 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
-
--- ============================================================================
--- Putter/Getter Serializable Framework
---
-
-class (Monad srl, SuperfluidTypes sft) => Putter srl sft | srl -> sft where
-    putFloat :: SFT_FLOAT sft -> srl ()
-    putLQ :: SFT_LQ sft -> srl ()
-    putTS :: SFT_TS sft -> srl ()
-
-class (Monad srl, SuperfluidTypes sft) => Getter srl sft | srl -> sft where
-    getFloat :: srl (SFT_FLOAT sft)
-    getLQ :: srl (SFT_LQ sft)
-    getTS :: srl (SFT_TS sft)
-
-class SuperfluidTypes sft => Serializable a sft | a -> sft where
-    getter :: Getter srl sft => Proxy a -> srl a
-    putter :: Putter srl sft => a -> srl ()
-
-class SuperfluidTypes sft => Serialized s sft | s -> sft where
-    runGetter :: Serializable a sft => Proxy a -> s -> a
-    runPutter :: Serializable a sft => a -> s
 
 -- ============================================================================
 -- SFDouble Type
@@ -191,39 +159,39 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 instance IsString SimpleAddress where
     fromString = fromJust . createSimpleAddress
 
-data SimpleSuperfluidTypes
+data SimpleSuperfluidDistribution
 
-instance SuperfluidTypes SimpleSuperfluidTypes where
-    type SFT_FLOAT SimpleSuperfluidTypes = SFDouble
-    type SFT_LQ SimpleSuperfluidTypes = Wad
-    type SFT_TS SimpleSuperfluidTypes = SimpleTimestamp
-    type SFT_RTB SimpleSuperfluidTypes = SimpleRealtimeBalance
-    type SFT_ADDR SimpleSuperfluidTypes = SimpleAddress
+instance SuperfluidDistribution SimpleSuperfluidDistribution where
+    type SFT_FLOAT SimpleSuperfluidDistribution = SFDouble
+    type SFT_LQ SimpleSuperfluidDistribution = Wad
+    type SFT_TS SimpleSuperfluidDistribution = SimpleTimestamp
+    type SFT_RTB SimpleSuperfluidDistribution = SimpleRealtimeBalance
+    type SFT_ADDR SimpleSuperfluidDistribution = SimpleAddress
 
 -- ============================================================================
 -- Agreement Types
 --
-instance Show (TBA.TBAAccountData SimpleSuperfluidTypes) where
+instance Show (TBA.TBAAccountData SimpleSuperfluidDistribution) where
     show x = printf "{ uliq = %s, mliq = %s }"
         (show $ TBA.untappedLiquidity x)
         (show $ TBA.mintedLiquidity x)
 
-instance Show (CFA.CFAContractData SimpleSuperfluidTypes) where
+instance Show (CFA.CFAContractData SimpleSuperfluidDistribution) where
     show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
         (show $ CFA.flowLastUpdatedAt x) (show $ CFA.flowRate x) (show $ CFA.flowBuffer x)
 
-instance Show (CFA.CFAAccountData SimpleSuperfluidTypes) where
+instance Show (CFA.CFAAccountData SimpleSuperfluidDistribution) where
     show x = printf "{ t = %s, uliq = %s, buf = %s, fr = %s }"
         (show $ CFA.settledAt x)
         (show $ CFA.settledUntappedLiquidity x)
         (show $ CFA.settledBufferLiquidity x)
         (show $ CFA.netFlowRate x)
 
-instance Show (DFA.DFAContractData SimpleSuperfluidTypes) where
+instance Show (DFA.DFAContractData SimpleSuperfluidDistribution) where
     show x = printf "{ t_u = %s, δ = %s, λ = %s }"
         (show $ DFA.flowLastUpdatedAt x) (show $ DFA.distributionLimit x) (show $ DFA.decayingFactor x)
 
-instance Show (DFA.DFAAccountData SimpleSuperfluidTypes) where
+instance Show (DFA.DFAAccountData SimpleSuperfluidDistribution) where
     show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
         (show $ DFA.settledAt x)
         (show $ DFA.αVal x)
@@ -233,22 +201,22 @@ instance Show (DFA.DFAAccountData SimpleSuperfluidTypes) where
 -- | AnyAgreementContractData type
 -- data AnySimpleAgreementContractData =
 --     forall a. ( Agreement a
---               , DistributionForAgreement a ~ SimpleSuperfluidTypes
---               , Serializable (AgreementContractData a) SimpleSuperfluidTypes
+--               , DistributionForAgreement a ~ SimpleSuperfluidDistribution
+--               , Serializable (AgreementContractData a) SimpleSuperfluidDistribution
 --               )
 --     => MkSimpleAgreementContractData (AgreementContractData a)
 
 -- instance Show AnySimpleAgreementContractData where
 --    show (MkSimpleAgreementContractData g) = show g
 
--- instance Serializable AnySimpleAgreementContractData SimpleSuperfluidTypes where
+-- instance Serializable AnySimpleAgreementContractData SimpleSuperfluidDistribution where
 --     getter = undefined -- not possible, and no need to define
 --     putter (MkSimpleAgreementContractData a) = putter a
 
 -- | AnyAgreementAccountData type
 data AnySimpleAgreementAccountData =
     forall a. ( Agreement a
-              , DistributionForAgreement a ~ SimpleSuperfluidTypes
+              , DistributionForAgreement a ~ SimpleSuperfluidDistribution
               , Show (AgreementAccountData a)
               )
     => MkSimpleAgreementAccountData (AgreementAccountData a)

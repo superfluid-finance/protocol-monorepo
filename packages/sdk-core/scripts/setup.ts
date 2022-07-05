@@ -55,7 +55,7 @@ export const setup = async (props: ISetupProps) => {
         superTokenClass.underlyingToken.address,
         TestTokenABI,
         Deployer
-    ) as TestToken;
+    ) as unknown as TestToken;
     if (props.amount) {
         const initialAmount = ethers.utils.parseUnits(props.amount);
         for (let i = 0; i < signers.length; i++) {

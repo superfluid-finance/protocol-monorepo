@@ -56,7 +56,7 @@ export const beforeSetup = async (tokenAmount: number) => {
     const fDAI = new ethers.Contract(
         fDAIx.underlyingToken.address,
         TestTokenABI
-    ) as TestToken;
+    ) as unknown as TestToken;
 
     console.log(
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."

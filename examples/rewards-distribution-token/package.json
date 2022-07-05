@@ -28,7 +28,7 @@
     "@openzeppelin/contracts": "^4.6.0",
     "@superfluid-finance/ethereum-contracts": "^1.2.1",
     "@superfluid-finance/js-sdk": "^0.5.13",
-    "@superfluid-finance/sdk-core": "^0.4.0",
+    "@superfluid-finance/sdk-core": "^0.4.4",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^6.0.0",
     "@types/mocha": "^9.1.1",

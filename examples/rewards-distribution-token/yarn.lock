@@ -992,10 +992,10 @@
     auto-bind "^4.0.0"
     node-fetch "^2.6.7"
 
-"@superfluid-finance/sdk-core@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/@superfluid-finance/sdk-core/-/sdk-core-0.4.0.tgz"
-  integrity sha512-OMTEEH+f9736kVwAH/fcLkY7AO/M8ghDUTn49ZzZQFdNuPzRR7MspltteHfv+sHdRjQY++o5zudDd5RXN13BYQ==
+"@superfluid-finance/sdk-core@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.4.4.tgz#157fcc830bfca80c9c79e0db4ab9d29f5d82c4aa"
+  integrity sha512-QFuhCdEW5W+aBYjkU8hSSXWW2+PUoweBmXXt7S8sANhf9WLtjEk/uIKqO+q+EXHYInaGpig7Q4PmJG2dDriz2Q==
   dependencies:
     ajv "^8.11.0"
     browserify "^17.0.0"

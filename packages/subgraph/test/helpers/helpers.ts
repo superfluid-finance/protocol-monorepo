@@ -14,6 +14,7 @@ import TestTokenABI from "../../abis/TestToken.json";
 import {TestToken} from "../../typechain";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber} from "ethers";
+import {BigInt} from "@graphprotocol/graph-ts";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -55,7 +56,7 @@ export const beforeSetup = async (tokenAmount: number) => {
     const fDAI = new ethers.Contract(
         fDAIx.underlyingToken.address,
         TestTokenABI
-    ) as TestToken;
+    ) as unknown as TestToken;
 
     console.log(
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."

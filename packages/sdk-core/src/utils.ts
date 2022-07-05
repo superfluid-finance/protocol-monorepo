@@ -52,6 +52,10 @@ export const isNullOrEmpty = (str: string | null | undefined) => {
     return str == null || str === "";
 };
 
+export function toBN(num: any) {
+    return ethers.BigNumber.from(num);
+}
+
 /**
  * Removes the 8-character signature hash from `callData`.
  * @param callData
@@ -154,10 +158,9 @@ export const flowedAmountSinceUpdatedAt = ({
     currentTimestamp: string;
     updatedAtTimestamp: string;
 }) => {
-    return (
-        (Number(currentTimestamp) - Number(updatedAtTimestamp)) *
-        Number(netFlowRate)
-    );
+    return toBN(currentTimestamp)
+        .sub(toBN(updatedAtTimestamp))
+        .mul(toBN(netFlowRate));
 };
 
 /**
@@ -170,10 +173,14 @@ export const subscriptionTotalAmountDistributedSinceUpdated = (
 ) => {
     return indexSubscriptions.reduce(
         (x, y) =>
-            x +
-            (Number(y.index.indexValue) - Number(y.indexValueUntilUpdatedAt)) *
-                Number(y.units),
-        0
+            toBN(x)
+                .add(
+                    toBN(y.index.indexValue).sub(
+                        toBN(y.indexValueUntilUpdatedAt)
+                    )
+                )
+                .mul(toBN(y.units)),
+        toBN(0)
     );
 };
 
@@ -189,11 +196,14 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
         .filter((x) => x.approved)
         .reduce(
             (x, y) =>
-                x +
-                (Number(y.index.indexValue) -
-                    Number(y.indexValueUntilUpdatedAt)) *
-                    Number(y.units),
-            0
+                toBN(x)
+                    .add(
+                        toBN(y.index.indexValue).sub(
+                            toBN(y.indexValueUntilUpdatedAt)
+                        )
+                    )
+                    .mul(toBN(y.units)),
+            toBN(0)
         );
 };
 
@@ -205,10 +215,9 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
 export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
     indexSubscriptions: IIndexSubscription[]
 ) => {
-    return (
-        subscriptionTotalAmountDistributedSinceUpdated(indexSubscriptions) -
-        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
-    );
+    return subscriptionTotalAmountDistributedSinceUpdated(
+        indexSubscriptions
+    ).sub(subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions));
 };
 
 export const getStringCurrentTimeInSeconds = () =>
@@ -225,7 +234,7 @@ export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) =>
  * @param updatedAtTimestamp the updated at timestamp of the `AccountTokenSnapshot` entity
  * @returns the balance since the updated at timestamp
  */
-export const getBalance = ({
+export const calculateAvailableBalance = ({
     currentBalance,
     netFlowRate,
     currentTimestamp,
@@ -238,15 +247,15 @@ export const getBalance = ({
     updatedAtTimestamp: string;
     indexSubscriptions: IIndexSubscription[];
 }) => {
-    return (
-        Number(currentBalance) +
-        flowedAmountSinceUpdatedAt({
-            netFlowRate,
-            currentTimestamp,
-            updatedAtTimestamp,
-        }) +
-        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
-    );
+    return toBN(currentBalance)
+        .add(
+            flowedAmountSinceUpdatedAt({
+                netFlowRate,
+                currentTimestamp,
+                updatedAtTimestamp,
+            })
+        )
+        .add(subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions));
 };
 
 // NOTE: This is the only places we are allowed to use explicit any in the

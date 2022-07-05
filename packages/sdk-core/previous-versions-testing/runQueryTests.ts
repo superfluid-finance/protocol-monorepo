@@ -27,6 +27,11 @@ describe("Query Tests", () => {
                     process.env.SUBGRAPH_RELEASE_TAG
                 );
         }
+
+        customSubgraphQueriesEndpoint = process.env.SUBGRAPH_ENDPOINT
+            ? process.env.SUBGRAPH_ENDPOINT
+            : customSubgraphQueriesEndpoint;
+
         query = new Query({
             customSubgraphQueriesEndpoint,
         });

@@ -29,33 +29,33 @@ default_lambda :: RealFloat b => b
 default_lambda = log 2 / (3600 * 24 * 7)
 
 type DFA :: Type -> Type
-data DFA sft
-type DFAContractData sft = AgreementContractData (DFA sft)
-type DFAAccountData sft = AgreementAccountData (DFA sft)
-type DFAPartiesF sft = AgreementPartiesF (DFA sft)
-type DFAParties sft = (DFAPartiesF sft) (DFAAccountData sft)
-instance SuperfluidDistribution sft => Agreement (DFA sft) where
-    type DistributionForAgreement (DFA sft) = sft
+data DFA sfd
+type DFAContractData sfd = AgreementContractData (DFA sfd)
+type DFAAccountData sfd = AgreementAccountData (DFA sfd)
+type DFAPartiesF sfd = AgreementPartiesF (DFA sfd)
+type DFAParties sfd = (DFAPartiesF sfd) (DFAAccountData sfd)
+instance SuperfluidDistribution sfd => Agreement (DFA sfd) where
+    type DistributionForAgreement (DFA sfd) = sfd
 
-    data AgreementContractData (DFA sft) = DFAContractData
-        { flowLastUpdatedAt :: SFT_TS sft
-        , decayingFactor    :: SFT_FLOAT sft
-        , distributionLimit :: SFT_LQ sft
-        , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
+    data AgreementContractData (DFA sfd) = DFAContractData
+        { flowLastUpdatedAt :: SFT_TS sfd
+        , decayingFactor    :: SFT_FLOAT sfd
+        , distributionLimit :: SFT_LQ sfd
+        , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sfd)
         }
 
-    data AgreementAccountData (DFA sft) = DFAAccountData
-        { settledAt     :: SFT_TS sft
-        , αVal          :: SFT_FLOAT sft
-        , εVal          :: SFT_FLOAT sft
-        , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sft)
+    data AgreementAccountData (DFA sfd) = DFAAccountData
+        { settledAt     :: SFT_TS sfd
+        , αVal          :: SFT_FLOAT sfd
+        , εVal          :: SFT_FLOAT sfd
+        , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sfd)
         }
 
-    data AgreementPartiesF (DFA sft) a = DFAPartiesF a a deriving stock (Functor)
+    data AgreementPartiesF (DFA sfd) a = DFAPartiesF a a deriving stock (Functor)
 
-    data AgreementOperation (DFA sft) =
+    data AgreementOperation (DFA sfd) =
         -- θ (Distribution Limit), newFlowBuffer, t'
-        UpdateDecayingFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
+        UpdateDecayingFlow (SFT_LQ sfd) (BBS.BufferLiquidity (SFT_LQ sfd)) (SFT_TS sfd)
 
     -- | Provided balance by DFA
     --
@@ -83,13 +83,13 @@ instance SuperfluidDistribution sft => Agreement (DFA sft) where
             θ_Δ = fromIntegral (θ - distributionLimit acd)
             flowBufferDelta = newFlowBuffer - flowBuffer acd
 
-instance SuperfluidDistribution sft => Applicative (DFAPartiesF sft) where
+instance SuperfluidDistribution sfd => Applicative (DFAPartiesF sfd) where
     pure a = DFAPartiesF a a
     liftA2 f (DFAPartiesF s r) (DFAPartiesF s' r') = DFAPartiesF (f s s') (f r r')
 
-instance SuperfluidDistribution sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
+instance SuperfluidDistribution sfd => TaggedTypeable (DFAContractData sfd) where tagFromProxy _ = "DFA#"
 
-instance SuperfluidDistribution sft => Default (DFAContractData sft) where
+instance SuperfluidDistribution sfd => Default (DFAContractData sfd) where
     def = DFAContractData
         { flowLastUpdatedAt = def
         , decayingFactor = default_lambda
@@ -97,15 +97,15 @@ instance SuperfluidDistribution sft => Default (DFAContractData sft) where
         , flowBuffer = def
         }
 
-instance SuperfluidDistribution sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
-instance SuperfluidDistribution sft => Default (DFAAccountData sft) where
+instance SuperfluidDistribution sfd => TaggedTypeable (DFAAccountData sfd) where tagFromProxy _ = "DFA"
+instance SuperfluidDistribution sfd => Default (DFAAccountData sfd) where
     def = DFAAccountData
         { settledAt = def
         , αVal = def
         , εVal = def
         , settledBuffer = def
         }
-instance SuperfluidDistribution sft => Semigroup (DFAAccountData sft) where
+instance SuperfluidDistribution sfd => Semigroup (DFAAccountData sfd) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'

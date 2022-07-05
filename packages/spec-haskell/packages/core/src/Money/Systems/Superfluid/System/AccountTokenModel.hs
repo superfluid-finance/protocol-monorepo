@@ -28,8 +28,8 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 --   * Type name: acc
 --   * Type family name: SF_ACC
 --   * Term name: *Account
-class SuperfluidDistribution sft => Account acc sft | acc -> sft where
-    addressOfAccount :: acc -> SFT_ADDR sft
+class SuperfluidDistribution sfd => Account acc sfd | acc -> sfd where
+    addressOfAccount :: acc -> SFT_ADDR sfd
 
     --
     -- Polymorphic agreement account data functions
@@ -39,28 +39,28 @@ class SuperfluidDistribution sft => Account acc sft | acc -> sft where
 
     agreementsOfAccount :: acc -> [AnyAgreementAccountData acc]
 
-    providedBalanceByAnyAgreement :: acc -> AnyAgreementAccountData acc -> SFT_TS sft -> SFT_RTB sft
+    providedBalanceByAnyAgreement :: acc -> AnyAgreementAccountData acc -> SFT_TS sfd -> SFT_RTB sfd
 
     --
     -- Specialized agreement account data functions
     --
 
-    viewAccountTBA :: acc -> TBA.TBAAccountData sft
-    setAccountTBA :: acc -> TBA.TBAAccountData sft -> SFT_TS sft -> acc
+    viewAccountTBA :: acc -> TBA.TBAAccountData sfd
+    setAccountTBA :: acc -> TBA.TBAAccountData sfd -> SFT_TS sfd -> acc
 
-    viewAccountCFA :: acc -> CFA.CFAAccountData sft
-    setAccountCFA :: acc -> CFA.CFAAccountData sft -> SFT_TS sft -> acc
+    viewAccountCFA :: acc -> CFA.CFAAccountData sfd
+    setAccountCFA :: acc -> CFA.CFAAccountData sfd -> SFT_TS sfd -> acc
 
-    viewAccountDFA ::  acc -> DFA.DFAAccountData sft
-    setAccountDFA :: acc -> DFA.DFAAccountData sft -> SFT_TS sft -> acc
+    viewAccountDFA ::  acc -> DFA.DFAAccountData sfd
+    setAccountDFA :: acc -> DFA.DFAAccountData sfd -> SFT_TS sfd -> acc
 
-balanceOfAccountAt :: (SuperfluidDistribution sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
+balanceOfAccountAt :: (SuperfluidDistribution sfd, Account acc sfd) => acc -> SFT_TS sfd -> SFT_RTB sfd
 balanceOfAccountAt account t = foldr
     ((+) . (\a -> providedBalanceByAnyAgreement account a t))
     def
     (agreementsOfAccount account)
 
-sumAccounts :: (SuperfluidDistribution sft, Account acc sft) => [acc] -> SFT_TS sft -> SFT_RTB sft
+sumAccounts :: (SuperfluidDistribution sfd, Account acc sfd) => [acc] -> SFT_TS sfd -> SFT_RTB sfd
 sumAccounts alist t = foldr ((+) . (`balanceOfAccountAt` t)) def alist
 
 -- ============================================================================

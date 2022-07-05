@@ -42,8 +42,7 @@ module Money.Systems.Superfluid.Concepts.Liquidity
     -- Untyped Liquidity
     ( Liquidity
     -- Typed Liquidity
-    , TypedLiquidity (..)
-    , untypeLiquidityOfType
+    , TypedLiquidity
     -- Untapped Liquidity
     , untappedLiquidityTag
     , UntappedLiquidity (..)
@@ -54,8 +53,10 @@ module Money.Systems.Superfluid.Concepts.Liquidity
     , AnyTappedLiquidityTag (..)
     , AnyTappedLiquidity (..)
     , mkAnyTappedLiquidity
+    , fromAnyTappedLiquidity
     ) where
 
+import           Data.Coerce                 (Coercible)
 import           Data.Default                (Default (..))
 import           Data.Type.TaggedTypeable    (TaggedTypeable (..))
 import           Data.Typeable               (Proxy (..), typeRep)
@@ -63,72 +64,58 @@ import           Data.Typeable               (Proxy (..), typeRep)
 import           Money.Concepts.Distribution (Liquidity)
 
 
--- | TypedLiquidity Type Class
+-- | Typed liquidity type class
 --
--- Naming conventions:
+-- Notional conventions:
 --  * Type name: tlq
-class Liquidity lq => TypedLiquidity tlq lq | tlq -> lq where
-    typeLiquidity :: lq -> tlq
-    untypeLiquidity :: tlq -> lq
-    isLiquidityOfType :: TaggedTypeable ltag => tlq -> Proxy ltag -> Bool
+class (Liquidity lq, Coercible tlq lq) => TypedLiquidity tlq lq | tlq -> lq
 
-untypeLiquidityOfType :: (TypedLiquidity tlq lq, TaggedTypeable ltag) => tlq -> Proxy ltag -> lq
-untypeLiquidityOfType tliq tag = if tliq `isLiquidityOfType` tag then untypeLiquidity tliq else def
-
--- | UntappedLiquidity Type
+-- | Untapped liquidity type
 --
--- Naming conventions:
+-- Notional conventions:
 --  * Term name: uliq
---
 newtype UntappedLiquidity lq = UntappedLiquidity lq
-    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
+    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Liquidity)
     deriving stock (Functor)
 
-instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq where
-    typeLiquidity = UntappedLiquidity
-    untypeLiquidity (UntappedLiquidity liq) = liq
-    isLiquidityOfType _ liqt1 = typeRep liqt1 == typeRep untappedLiquidityTag
+instance Liquidity lq => TypedLiquidity (UntappedLiquidity lq) lq
 
+-- | Create untapped liquidity tag
 untappedLiquidityTag :: Proxy UntappedLiquidity
 untappedLiquidityTag = Proxy @UntappedLiquidity
 
--- | Tapped LiquidityTag Tag
+-- | Tag for tapped liquidity type class
 --
+-- Notional conventions for TypedLiquidity:
+--  * Type name: ltag
 class TaggedTypeable ltag => TappedLiquidityTag ltag
 
--- | TappedLiquidity Type
+-- | Tapped liquidity type
 --
--- Naming conventions for TypedLiquidity:
+-- Notional conventions for TypedLiquidity:
 --  * Term name: tliq
---
 newtype TappedLiquidity ltag lq = TappedLiquidity lq
-    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral)
+    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Liquidity)
     deriving stock (Functor)
 
-instance (Liquidity lq, TappedLiquidityTag ltag)
-    => TypedLiquidity (TappedLiquidity ltag lq) lq where
-    typeLiquidity = TappedLiquidity
-    untypeLiquidity (TappedLiquidity uliq) = uliq
-    isLiquidityOfType _ tag2 = typeRep (Proxy @ltag) == typeRep tag2
+instance (Liquidity lq, TappedLiquidityTag ltag) => TypedLiquidity (TappedLiquidity ltag lq) lq
 
--- | AnyTappedLiquidityTag
---
+-- | Tag for any tapped liquidity
 data AnyTappedLiquidityTag = forall ltag. TappedLiquidityTag ltag => MkTappedLiquidityTag (Proxy ltag)
 
--- | AnyTappedLiquidity Type
+-- | Any tapped liquidity Type
 --
--- Naming conventions for TypedLiquidity:
---  * Term name: tliq
---
+-- Notional conventions for TypedLiquidity:
+--  * Term name: aliq
 newtype AnyTappedLiquidity lq = AnyTappedLiquidity (AnyTappedLiquidityTag, lq)
-    deriving stock (Functor)
 
+-- | Create any tapped liquidity
 mkAnyTappedLiquidity
     :: forall ltag lq. (Liquidity lq, TappedLiquidityTag ltag)
     => TappedLiquidity ltag lq -> AnyTappedLiquidity lq
 mkAnyTappedLiquidity (TappedLiquidity uliq) = AnyTappedLiquidity (MkTappedLiquidityTag (Proxy @ltag), uliq)
 
-instance Liquidity lq  => TypedLiquidity (AnyTappedLiquidity lq) lq where
-    typeLiquidity _ = error "No TypedLiquidity information for AnyTappedLiquidity"
-    untypeLiquidity (AnyTappedLiquidity (_, liq)) = liq
-    isLiquidityOfType (AnyTappedLiquidity (MkTappedLiquidityTag tag1, _)) tag2 = typeRep tag1 == typeRep tag2
+-- | Get liquidity from any tapped liquidity if liquidity tag matches, or return default value
+fromAnyTappedLiquidity :: (Liquidity lq, TaggedTypeable ltag) => AnyTappedLiquidity lq -> Proxy ltag -> lq
+fromAnyTappedLiquidity (AnyTappedLiquidity (MkTappedLiquidityTag tag1, uliq)) tag2 =
+    if typeRep tag1 == typeRep tag2 then uliq else def

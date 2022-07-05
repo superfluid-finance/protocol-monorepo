@@ -50,8 +50,8 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 instance Serializable (TBA.TBAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (TBA.settledAt s)
-        putLQ (untypeLiquidity $ TBA.untappedLiquidity s)
-        putLQ (untypeLiquidity $ TBA.mintedLiquidity s)
+        putLQ (coerce $ TBA.untappedLiquidity s)
+        putLQ (coerce $ TBA.mintedLiquidity s)
     getter _ = do
         t <- getTS
         l <- getLQ
@@ -66,7 +66,7 @@ instance Serializable (TBA.TBAAccountData SimpleSuperfluidTypes) SimpleSuperflui
 instance Serializable (CFA.CFAContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (CFA.flowLastUpdatedAt s)
-        putLQ (untypeLiquidity $ CFA.flowBuffer s)
+        putLQ (coerce $ CFA.flowBuffer s)
         putLQ (CFA.flowRate s)
     getter _ = do
         t <- getTS
@@ -81,8 +81,8 @@ instance Serializable (CFA.CFAContractData SimpleSuperfluidTypes) SimpleSuperflu
 instance Serializable (CFA.CFAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (CFA.settledAt s)
-        putLQ (untypeLiquidity $ CFA.settledUntappedLiquidity s)
-        putLQ (untypeLiquidity $ CFA.settledBufferLiquidity s)
+        putLQ (coerce $ CFA.settledUntappedLiquidity s)
+        putLQ (coerce $ CFA.settledBufferLiquidity s)
         putLQ (CFA.netFlowRate s)
     getter _ = do
         t <- getTS
@@ -102,7 +102,7 @@ instance Serializable (DFA.DFAContractData SimpleSuperfluidTypes) SimpleSuperflu
         putTS (DFA.flowLastUpdatedAt s)
         putFloat (DFA.decayingFactor s)
         putLQ (DFA.distributionLimit s)
-        putLQ (untypeLiquidity $ DFA.flowBuffer s)
+        putLQ (coerce $ DFA.flowBuffer s)
     getter _ = do
         t <- getTS
         λ <- getFloat
@@ -120,7 +120,7 @@ instance Serializable (DFA.DFAAccountData SimpleSuperfluidTypes) SimpleSuperflui
         putTS (DFA.settledAt s)
         putFloat (DFA.αVal s)
         putFloat (DFA.εVal s)
-        putLQ (untypeLiquidity $ DFA.settledBuffer s)
+        putLQ (coerce $ DFA.settledBuffer s)
     getter _ = do
         t <- getTS
         α <- getFloat

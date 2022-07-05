@@ -37,7 +37,7 @@ import           Money.Systems.Superfluid.Concepts.RealtimeBalance
     )
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 
--- | MintedLiquidity Type
+-- MintedLiquidity Type
 --
 data MintedLiquidityTag deriving anyclass (TappedLiquidityTag)
 instance TaggedTypeable MintedLiquidityTag where tagFromProxy _ = "m"

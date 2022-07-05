@@ -48,17 +48,17 @@ import           Money.Systems.Superfluid.Instances.Simple.Types
 --
 data SimpleAccount = SimpleAccount
     { address              :: SimpleAddress
-    , tbaAccountData       :: TBA.TBAAccountData SimpleSuperfluidDistribution
-    , cfaAccountData       :: CFA.CFAAccountData SimpleSuperfluidDistribution
-    , dfaAccountData       :: DFA.DFAAccountData SimpleSuperfluidDistribution
+    , tbaAccountData       :: TBA.TBAAccountData SimpleSuperfluidTypes
+    , cfaAccountData       :: CFA.CFAAccountData SimpleSuperfluidTypes
+    , dfaAccountData       :: DFA.DFAAccountData SimpleSuperfluidTypes
     , accountLastUpdatedAt :: SimpleTimestamp
     }
 
 -- agreement_of_Account
---   :: (Agreement a, S.Serializable (AgreementAccountData a) SimpleSuperfluidDistribution)
+--   :: (Agreement a, S.Serializable (AgreementAccountData a) SimpleSuperfluidTypes)
 --    => Proxy (AgreementAccountData a) -> SimpleAccount -> Maybe (AgreementAccountData a)
 
-instance SF.Account SimpleAccount SimpleSuperfluidDistribution where
+instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     addressOfAccount = address
 
     type AnyAgreementAccountData SimpleAccount = AnySimpleAgreementAccountData
@@ -104,8 +104,8 @@ newtype SimpleSystemData = SimpleSystemData
 --
 data SimpleTokenData = SimpleTokenData
     { accounts           :: M.Map SimpleAddress SimpleAccount
-    , cfaContractData    :: M.Map String (CFA.CFAContractData SimpleSuperfluidDistribution)
-    , dfaContractData    :: M.Map String (DFA.DFAContractData SimpleSuperfluidDistribution)
+    , cfaContractData    :: M.Map String (CFA.CFAContractData SimpleSuperfluidTypes)
+    , dfaContractData    :: M.Map String (DFA.DFAContractData SimpleSuperfluidTypes)
     , tokenLastUpdatedAt :: SimpleTimestamp
     }
 instance Default SimpleTokenData where
@@ -165,7 +165,7 @@ modify_token_data = SimpleTokenStateT . modify
 -- | SimpleTokenStateT m is a SuperfluidToken instance
 --
 instance (Monad m) => SF.Token (SimpleTokenStateT m) where
-    type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidDistribution
+    type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidTypes
 
     type TK_ACC (SimpleTokenStateT m) = SimpleAccount
 

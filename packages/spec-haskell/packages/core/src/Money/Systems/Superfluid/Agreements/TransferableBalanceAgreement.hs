@@ -43,7 +43,7 @@ type TBAContractData sft = AgreementContractData (TBA sft)
 type TBAAccountData sft = AgreementAccountData (TBA sft)
 type TBAPartiesF sft = AgreementPartiesF (TBA sft)
 type TBAParties sft = (TBAPartiesF sft) (TBAAccountData sft)
-instance SuperfluidDistribution sft => Agreement (TBA sft) where
+instance SuperfluidTypes sft => Agreement (TBA sft) where
     type DistributionForAgreement (TBA sft) = sft
 
     data AgreementContractData (TBA sft) = TBAContractData
@@ -83,17 +83,17 @@ instance SuperfluidDistribution sft => Agreement (TBA sft) where
                            def { untappedLiquidity = coerce amount }
         in (acd', aps')
 
-instance SuperfluidDistribution sft => Applicative (TBAPartiesF sft) where
+instance SuperfluidTypes sft => Applicative (TBAPartiesF sft) where
     pure a = TBAPartiesF a a
     liftA2 f (TBAPartiesF s r) (TBAPartiesF s' r') = TBAPartiesF (f s s') (f r r')
 
-instance (SuperfluidDistribution sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
-instance (SuperfluidDistribution sft) => Default (TBAContractData sft) where def = TBAContractData
+instance (SuperfluidTypes sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
+instance (SuperfluidTypes sft) => Default (TBAContractData sft) where def = TBAContractData
 
-instance (SuperfluidDistribution sft) => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
-instance SuperfluidDistribution sft => Default (TBAAccountData sft) where
+instance (SuperfluidTypes sft) => TaggedTypeable (TBAAccountData sft) where tagFromProxy _ = "TBA"
+instance SuperfluidTypes sft => Default (TBAAccountData sft) where
     def = TBAAccountData { untappedLiquidity = def, mintedLiquidity = def }
-instance SuperfluidDistribution sft => Semigroup (TBAAccountData sft) where
+instance SuperfluidTypes sft => Semigroup (TBAAccountData sft) where
     (<>) a b = TBAAccountData
         { untappedLiquidity = untappedLiquidity a + untappedLiquidity b
         , mintedLiquidity = mintedLiquidity a + mintedLiquidity b

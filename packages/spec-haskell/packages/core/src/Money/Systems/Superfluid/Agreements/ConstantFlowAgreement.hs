@@ -29,7 +29,7 @@ type CFAContractData sft = AgreementContractData (CFA sft)
 type CFAAccountData sft = AgreementAccountData (CFA sft)
 type CFAPartiesF sft = AgreementPartiesF (CFA sft)
 type CFAParties sft = (CFAPartiesF sft) (CFAAccountData sft)
-instance SuperfluidDistribution sft => Agreement (CFA sft) where
+instance SuperfluidTypes sft => Agreement (CFA sft) where
     type DistributionForAgreement (CFA sft) = sft
 
     data AgreementContractData (CFA sft) = CFAContractData
@@ -83,27 +83,27 @@ instance SuperfluidDistribution sft => Agreement (CFA sft) where
             flowRateDelta = newFlowRate - fr
             flowBufferDelta = newFlowBuffer - flowBuffer acd
 
-instance SuperfluidDistribution sft => Applicative (CFAPartiesF sft) where
+instance SuperfluidTypes sft => Applicative (CFAPartiesF sft) where
     pure a = CFAPartiesF a a
     liftA2 f (CFAPartiesF s r) (CFAPartiesF s' r') = CFAPartiesF (f s s') (f r r')
 
-instance SuperfluidDistribution sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
-instance SuperfluidDistribution sft => Default (CFAContractData sft) where
+instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
+instance SuperfluidTypes sft => Default (CFAContractData sft) where
     def = CFAContractData
         { flowLastUpdatedAt = def
         , flowRate = def
         , flowBuffer = def
         }
 
-instance SuperfluidDistribution sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
-instance SuperfluidDistribution sft => Default (CFAAccountData sft) where
+instance SuperfluidTypes sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
+instance SuperfluidTypes sft => Default (CFAAccountData sft) where
     def = CFAAccountData
         { settledAt = def
         , settledUntappedLiquidity = def
         , settledBufferLiquidity = def
         , netFlowRate = def
         }
-instance SuperfluidDistribution sft => Semigroup (CFAAccountData sft) where
+instance SuperfluidTypes sft => Semigroup (CFAAccountData sft) where
     (<>) a b = CFAAccountData
                { settledAt = settledAt b
                , settledUntappedLiquidity = settledUntappedLiquidity a + settledUntappedLiquidity b

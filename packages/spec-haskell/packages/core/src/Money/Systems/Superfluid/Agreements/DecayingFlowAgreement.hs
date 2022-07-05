@@ -34,7 +34,7 @@ type DFAContractData sft = AgreementContractData (DFA sft)
 type DFAAccountData sft = AgreementAccountData (DFA sft)
 type DFAPartiesF sft = AgreementPartiesF (DFA sft)
 type DFAParties sft = (DFAPartiesF sft) (DFAAccountData sft)
-instance SuperfluidDistribution sft => Agreement (DFA sft) where
+instance SuperfluidTypes sft => Agreement (DFA sft) where
     type DistributionForAgreement (DFA sft) = sft
 
     data AgreementContractData (DFA sft) = DFAContractData
@@ -83,13 +83,13 @@ instance SuperfluidDistribution sft => Agreement (DFA sft) where
             θ_Δ = fromIntegral (θ - distributionLimit acd)
             flowBufferDelta = newFlowBuffer - flowBuffer acd
 
-instance SuperfluidDistribution sft => Applicative (DFAPartiesF sft) where
+instance SuperfluidTypes sft => Applicative (DFAPartiesF sft) where
     pure a = DFAPartiesF a a
     liftA2 f (DFAPartiesF s r) (DFAPartiesF s' r') = DFAPartiesF (f s s') (f r r')
 
-instance SuperfluidDistribution sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
+instance SuperfluidTypes sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
 
-instance SuperfluidDistribution sft => Default (DFAContractData sft) where
+instance SuperfluidTypes sft => Default (DFAContractData sft) where
     def = DFAContractData
         { flowLastUpdatedAt = def
         , decayingFactor = default_lambda
@@ -97,15 +97,15 @@ instance SuperfluidDistribution sft => Default (DFAContractData sft) where
         , flowBuffer = def
         }
 
-instance SuperfluidDistribution sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
-instance SuperfluidDistribution sft => Default (DFAAccountData sft) where
+instance SuperfluidTypes sft => TaggedTypeable (DFAAccountData sft) where tagFromProxy _ = "DFA"
+instance SuperfluidTypes sft => Default (DFAAccountData sft) where
     def = DFAAccountData
         { settledAt = def
         , αVal = def
         , εVal = def
         , settledBuffer = def
         }
-instance SuperfluidDistribution sft => Semigroup (DFAAccountData sft) where
+instance SuperfluidTypes sft => Semigroup (DFAAccountData sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'

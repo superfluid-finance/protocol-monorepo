@@ -8,11 +8,11 @@ module Money.Systems.Superfluid.Concepts.Agreement
 import           Data.Kind                                         (Type)
 import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
 
-import           Money.Systems.Superfluid.Concepts.SuperfluidDistribution (SuperfluidDistribution (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 
 
 -- | Agreement type class
-class ( SuperfluidDistribution (DistributionForAgreement a)
+class ( SuperfluidTypes (DistributionForAgreement a)
       , TaggedTypeable (AgreementContractData a)
       , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
       , Applicative (AgreementPartiesF a)

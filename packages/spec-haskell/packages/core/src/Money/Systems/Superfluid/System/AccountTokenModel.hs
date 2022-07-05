@@ -12,7 +12,7 @@ import           Data.Default
 import           Data.Kind                                                        (Type)
 import           Data.Maybe                                                       (fromMaybe)
 
-import           Money.Systems.Superfluid.Concepts.SuperfluidDistribution                (SuperfluidDistribution (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes                (SuperfluidTypes (..))
 --
 import           Money.Systems.Superfluid.Concepts.Agreement                      (updateAgreement)
 --
@@ -22,13 +22,13 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
--- | SuperfluidDistribution type class
+-- | SuperfluidTypes type class
 --
 -- Naming conventions:
 --   * Type name: acc
 --   * Type family name: SF_ACC
 --   * Term name: *Account
-class SuperfluidDistribution sft => Account acc sft | acc -> sft where
+class SuperfluidTypes sft => Account acc sft | acc -> sft where
     addressOfAccount :: acc -> SFT_ADDR sft
 
     --
@@ -54,13 +54,13 @@ class SuperfluidDistribution sft => Account acc sft | acc -> sft where
     viewAccountDFA ::  acc -> DFA.DFAAccountData sft
     setAccountDFA :: acc -> DFA.DFAAccountData sft -> SFT_TS sft -> acc
 
-balanceOfAccountAt :: (SuperfluidDistribution sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
+balanceOfAccountAt :: (SuperfluidTypes sft, Account acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
 balanceOfAccountAt account t = foldr
     ((+) . (\a -> providedBalanceByAnyAgreement account a t))
     def
     (agreementsOfAccount account)
 
-sumAccounts :: (SuperfluidDistribution sft, Account acc sft) => [acc] -> SFT_TS sft -> SFT_RTB sft
+sumAccounts :: (SuperfluidTypes sft, Account acc sft) => [acc] -> SFT_TS sft -> SFT_RTB sft
 sumAccounts alist t = foldr ((+) . (`balanceOfAccountAt` t)) def alist
 
 -- ============================================================================
@@ -78,7 +78,7 @@ sumAccounts alist t = foldr ((+) . (`balanceOfAccountAt` t)) def alist
 --   * and agreement (TBA/CFA/GDA) operations.
 -- * Instructions for write operations are executed in `execTokenInstructions`.
 --
-class (Monad tk, SuperfluidDistribution (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) => Token tk where
+class (Monad tk, SuperfluidTypes (TK_SFT tk), Account (TK_ACC tk) (TK_SFT tk)) => Token tk where
 
     type TK_SFT tk :: Type
     type TK_ACC tk :: Type

@@ -27,23 +27,23 @@ import           Money.Systems.Superfluid.Instances.Simple.Types
 -- Putter/Getter Serializable Framework
 --
 
-class (Monad srl, SuperfluidDistribution sfd) => Putter srl sfd | srl -> sfd where
-    putFloat :: SFT_FLOAT sfd -> srl ()
-    putLQ :: SFT_LQ sfd -> srl ()
-    putTS :: SFT_TS sfd -> srl ()
+class (Monad srl, SuperfluidDistribution sft) => Putter srl sft | srl -> sft where
+    putFloat :: SFT_FLOAT sft -> srl ()
+    putLQ :: SFT_LQ sft -> srl ()
+    putTS :: SFT_TS sft -> srl ()
 
-class (Monad srl, SuperfluidDistribution sfd) => Getter srl sfd | srl -> sfd where
-    getFloat :: srl (SFT_FLOAT sfd)
-    getLQ :: srl (SFT_LQ sfd)
-    getTS :: srl (SFT_TS sfd)
+class (Monad srl, SuperfluidDistribution sft) => Getter srl sft | srl -> sft where
+    getFloat :: srl (SFT_FLOAT sft)
+    getLQ :: srl (SFT_LQ sft)
+    getTS :: srl (SFT_TS sft)
 
-class SuperfluidDistribution sfd => Serializable a sfd | a -> sfd where
-    getter :: Getter srl sfd => Proxy a -> srl a
-    putter :: Putter srl sfd => a -> srl ()
+class SuperfluidDistribution sft => Serializable a sft | a -> sft where
+    getter :: Getter srl sft => Proxy a -> srl a
+    putter :: Putter srl sft => a -> srl ()
 
-class SuperfluidDistribution sfd => Serialized s sfd | s -> sfd where
-    runGetter :: Serializable a sfd => Proxy a -> s -> a
-    runPutter :: Serializable a sfd => a -> s
+class SuperfluidDistribution sft => Serialized s sft | s -> sft where
+    runGetter :: Serializable a sft => Proxy a -> s -> a
+    runPutter :: Serializable a sft => a -> s
 
 -- ============================================================================
 -- Serializable For Simple SuperfluidDistribution

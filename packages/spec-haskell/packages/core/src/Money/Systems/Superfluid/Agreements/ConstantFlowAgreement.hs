@@ -24,32 +24,32 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
 type CFA :: Type -> Type
-data CFA sfd
-type CFAContractData sfd = AgreementContractData (CFA sfd)
-type CFAAccountData sfd = AgreementAccountData (CFA sfd)
-type CFAPartiesF sfd = AgreementPartiesF (CFA sfd)
-type CFAParties sfd = (CFAPartiesF sfd) (CFAAccountData sfd)
-instance SuperfluidDistribution sfd => Agreement (CFA sfd) where
-    type DistributionForAgreement (CFA sfd) = sfd
+data CFA sft
+type CFAContractData sft = AgreementContractData (CFA sft)
+type CFAAccountData sft = AgreementAccountData (CFA sft)
+type CFAPartiesF sft = AgreementPartiesF (CFA sft)
+type CFAParties sft = (CFAPartiesF sft) (CFAAccountData sft)
+instance SuperfluidDistribution sft => Agreement (CFA sft) where
+    type DistributionForAgreement (CFA sft) = sft
 
-    data AgreementContractData (CFA sfd) = CFAContractData
-        { flowLastUpdatedAt :: SFT_TS sfd
-        , flowRate          :: SFT_LQ sfd
-        , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sfd)
+    data AgreementContractData (CFA sft) = CFAContractData
+        { flowLastUpdatedAt :: SFT_TS sft
+        , flowRate          :: SFT_LQ sft
+        , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
         }
 
-    data AgreementAccountData (CFA sfd) = CFAAccountData
-        { settledAt                :: SFT_TS sfd
-        , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sfd)
-        , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sfd)
-        , netFlowRate              :: SFT_LQ sfd
+    data AgreementAccountData (CFA sft) = CFAAccountData
+        { settledAt                :: SFT_TS sft
+        , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
+        , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
+        , netFlowRate              :: SFT_LQ sft
         }
 
-    data AgreementPartiesF (CFA sfd) a = CFAPartiesF a a deriving stock (Functor)
+    data AgreementPartiesF (CFA sft) a = CFAPartiesF a a deriving stock (Functor)
 
-    data AgreementOperation (CFA sfd) =
+    data AgreementOperation (CFA sft) =
         -- flowRate, newFlowBuffer, t'
-        Updatelow (SFT_LQ sfd) (BBS.BufferLiquidity (SFT_LQ sfd)) (SFT_TS sfd)
+        Updatelow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 
     providedBalanceByAgreement CFAAccountData
         { settledAt = t_s
@@ -83,27 +83,27 @@ instance SuperfluidDistribution sfd => Agreement (CFA sfd) where
             flowRateDelta = newFlowRate - fr
             flowBufferDelta = newFlowBuffer - flowBuffer acd
 
-instance SuperfluidDistribution sfd => Applicative (CFAPartiesF sfd) where
+instance SuperfluidDistribution sft => Applicative (CFAPartiesF sft) where
     pure a = CFAPartiesF a a
     liftA2 f (CFAPartiesF s r) (CFAPartiesF s' r') = CFAPartiesF (f s s') (f r r')
 
-instance SuperfluidDistribution sfd => TaggedTypeable (CFAContractData sfd) where tagFromProxy _ = "CFA#"
-instance SuperfluidDistribution sfd => Default (CFAContractData sfd) where
+instance SuperfluidDistribution sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
+instance SuperfluidDistribution sft => Default (CFAContractData sft) where
     def = CFAContractData
         { flowLastUpdatedAt = def
         , flowRate = def
         , flowBuffer = def
         }
 
-instance SuperfluidDistribution sfd => TaggedTypeable (CFAAccountData sfd) where tagFromProxy _ = "CFA"
-instance SuperfluidDistribution sfd => Default (CFAAccountData sfd) where
+instance SuperfluidDistribution sft => TaggedTypeable (CFAAccountData sft) where tagFromProxy _ = "CFA"
+instance SuperfluidDistribution sft => Default (CFAAccountData sft) where
     def = CFAAccountData
         { settledAt = def
         , settledUntappedLiquidity = def
         , settledBufferLiquidity = def
         , netFlowRate = def
         }
-instance SuperfluidDistribution sfd => Semigroup (CFAAccountData sfd) where
+instance SuperfluidDistribution sft => Semigroup (CFAAccountData sft) where
     (<>) a b = CFAAccountData
                { settledAt = settledAt b
                , settledUntappedLiquidity = settledUntappedLiquidity a + settledUntappedLiquidity b

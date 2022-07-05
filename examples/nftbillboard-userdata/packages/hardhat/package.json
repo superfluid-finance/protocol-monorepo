@@ -24,7 +24,7 @@
     "@openzeppelin/contracts": "^4.6.0",
     "@superfluid-finance/ethereum-contracts": "^1.2.2",
     "@superfluid-finance/js-sdk": "^0.6.1",
-    "@superfluid-finance/sdk-core": "^0.4.2",
+    "@superfluid-finance/sdk-core": "^0.4.4",
     "@tenderly/hardhat-tenderly": "^1.0.15",
     "@truffle/contract": "^4.5.14",
     "chai": "^4.3.6",

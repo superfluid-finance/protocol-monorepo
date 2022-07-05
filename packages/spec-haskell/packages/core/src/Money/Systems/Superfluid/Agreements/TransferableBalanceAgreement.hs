@@ -8,9 +8,10 @@ module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
     , mkMintedLiquidity
     , AgreementContractData (..)
     , AgreementAccountData (..)
-    , AgreementParties (..)
+    , AgreementPartiesF (..)
     , TBAContractData
     , TBAAccountData
+    , TBAPartiesF
     , TBAParties
     -- operations
     , mintLiquidity
@@ -18,6 +19,7 @@ module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
     , transferLiquidity
     ) where
 
+import           Control.Applicative                               (Applicative (..))
 import           Data.Default                                      (Default (..))
 import           Data.Kind                                         (Type)
 import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
@@ -47,11 +49,14 @@ mintedLiquidityTag = Proxy @MintedLiquidityTag
 mkMintedLiquidity :: Liquidity lq => lq -> MintedLiquidity lq
 mkMintedLiquidity = TappedLiquidity
 
+-- The Agrement
+--
 type TBA :: Type -> Type
 data TBA sft
 type TBAContractData sft = AgreementContractData (TBA sft)
 type TBAAccountData sft = AgreementAccountData (TBA sft)
-type TBAParties sft = AgreementParties (TBA sft)
+type TBAPartiesF sft = AgreementPartiesF (TBA sft)
+type TBAParties sft = (TBAPartiesF sft) (TBAAccountData sft)
 instance SuperfluidTypes sft => Agreement (TBA sft) where
     type DistributionForAgreement (TBA sft) = sft
     data AgreementContractData (TBA sft) = TBAContractData
@@ -60,17 +65,19 @@ instance SuperfluidTypes sft => Agreement (TBA sft) where
         , untappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
         , mintedLiquidity   :: MintedLiquidity (SFT_LQ sft)
         }
-    data AgreementParties (TBA sft) = TBAParties
-        { transferFrom :: TBAAccountData sft
-        , transferTo   :: TBAAccountData sft
-        }
+    data AgreementPartiesF (TBA sft) a = TBAPartiesF { transferFrom :: a
+                                                     , transferTo   :: a
+                                                     } deriving stock (Functor)
 
     providedBalanceByAgreement a _ = typedLiquidityVectorToRTB $ TypedLiquidityVector
         ( untappedLiquidity a )
         [ mkAnyTappedLiquidity $ mintedLiquidity a ]
 
-    createAgreementParties = undefined
-    unionAgreementPartiesWith = undefined
+    createAgreementPartiesDelta = undefined
+
+instance SuperfluidTypes sft => Applicative (TBAPartiesF sft) where
+    pure a = TBAPartiesF a a
+    liftA2 = undefined
 
 instance (SuperfluidTypes sft) => TaggedTypeable (TBAContractData sft) where tagFromProxy _ = "TBA#"
 instance (SuperfluidTypes sft) => Default (TBAContractData sft) where def = TBAContractData
@@ -85,16 +92,16 @@ instance SuperfluidTypes sft => Semigroup (TBAAccountData sft) where
 -- TBA Operations
 --
 mintLiquidity :: SuperfluidTypes sft => TBAParties sft -> SFT_LQ sft -> TBAParties sft
-mintLiquidity (TBAParties from to) l = TBAParties
+mintLiquidity (TBAPartiesF from to) l = TBAPartiesF
     ( from { mintedLiquidity = fmap (flip (-) l) (mintedLiquidity from) } )
     ( to { untappedLiquidity = fmap (+ l) (untappedLiquidity to) } )
 
 burnLiquidity :: SuperfluidTypes sft => TBAParties sft -> SFT_LQ sft -> TBAParties sft
-burnLiquidity (TBAParties from to) l = TBAParties
+burnLiquidity (TBAPartiesF from to) l = TBAPartiesF
     ( from { mintedLiquidity = fmap (+ l) (mintedLiquidity from) } )
     ( to { untappedLiquidity = fmap (flip (-) l) (untappedLiquidity to) } )
 
 transferLiquidity :: SuperfluidTypes sft => TBAParties sft -> SFT_LQ sft -> TBAParties sft
-transferLiquidity (TBAParties from to) l = TBAParties
+transferLiquidity (TBAPartiesF from to) l = TBAPartiesF
     ( from { untappedLiquidity = fmap (flip (-) l) (untappedLiquidity from) } )
     ( to   { untappedLiquidity = fmap (+ l) (untappedLiquidity to) })

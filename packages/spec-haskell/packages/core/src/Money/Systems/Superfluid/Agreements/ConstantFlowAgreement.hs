@@ -1,14 +1,18 @@
+{-# LANGUAGE DerivingVia  #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     ( AgreementContractData (..)
     , AgreementAccountData (..)
-    , AgreementParties (..)
+    , AgreementPartiesF (..)
     , CFAContractData
     , CFAAccountData
+    , CFAPartiesF
+    , CFAParties
     ) where
 
-import           Data.Coerce
+import           Control.Applicative                                     (Applicative (..))
+import           Data.Coerce                                             (coerce)
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
@@ -37,6 +41,8 @@ type CFA :: Type -> Type
 data CFA sft
 type CFAContractData sft = AgreementContractData (CFA sft)
 type CFAAccountData sft = AgreementAccountData (CFA sft)
+type CFAPartiesF sft = AgreementPartiesF (CFA sft)
+type CFAParties sft = (CFAPartiesF sft) (CFAAccountData sft)
 instance SuperfluidTypes sft => Agreement (CFA sft) where
     type DistributionForAgreement (CFA sft) = sft
 
@@ -51,7 +57,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
         , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
         , netFlowRate              :: SFT_LQ sft
         }
-    data AgreementParties (CFA sft) = CFAParties (CFAAccountData sft) (CFAAccountData sft)
+    data AgreementPartiesF (CFA sft) a = CFAPartiesF a a deriving stock (Functor)
 
     providedBalanceByAgreement CFAAccountData
         { settledAt = t_s
@@ -63,7 +69,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
             ( UntappedLiquidity $ uliq_s + calc_liquidity_delta fr t_s t )
             [ mkAnyTappedLiquidity buf_s ]
 
-    createAgreementParties old new = CFAParties
+    createAgreementPartiesDelta old new = CFAPartiesF
         CFAAccountData
         { settledAt = t'
         , netFlowRate = negate flowRateDelta
@@ -84,7 +90,9 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
             flowRateDelta = flowRate new - fr
             flowBufferDelta = flowBuffer new - flowBuffer old
 
-    unionAgreementPartiesWith f (CFAParties s r) (CFAParties s' r') = CFAParties (f s s') (f r r')
+instance SuperfluidTypes sft => Applicative (CFAPartiesF sft) where
+    pure a = CFAPartiesF a a
+    liftA2 f (CFAPartiesF s r) (CFAPartiesF s' r') = CFAPartiesF (f s s') (f r r')
 
 instance SuperfluidTypes sft => TaggedTypeable (CFAContractData sft) where tagFromProxy _ = "CFA#"
 instance SuperfluidTypes sft => Default (CFAContractData sft) where

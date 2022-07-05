@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies            #-}
-{-# LANGUAGE UndecidableSuperClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)
@@ -12,36 +11,35 @@ import           Data.Type.TaggedTypeable                          (TaggedTypeab
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 
 
-type SFT a = DistributionForAgreement a
-
 -- | Agreement type class
 class ( SuperfluidTypes (DistributionForAgreement a)
       , TaggedTypeable (AgreementContractData a)
-      , Semigroup (AgreementAccountData a)
-      , TaggedTypeable (AgreementAccountData a)
-      )
-      => Agreement a where
+      , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
+      , Applicative (AgreementPartiesF a)
+      ) => Agreement a where
 
     type DistributionForAgreement a :: Type
 
     data AgreementContractData a :: Type
 
+    data AgreementPartiesF a :: Type -> Type
+
     data AgreementAccountData a :: Type
 
-    data AgreementParties a :: Type
-
     -- | Balance provided by the agreement of an account
-    providedBalanceByAgreement :: AgreementAccountData a -> SFT_TS (SFT a) -> SFT_RTB (SFT a)
+    providedBalanceByAgreement :: AgreementAccountData a -> TS a -> RTB a
 
     -- | Create data of agreement parties from the changes of the agreement contract
-    createAgreementParties :: AgreementContractData a -> AgreementContractData a -> AgreementParties a
-
-    -- | Create an union of two sets of agreement parties with a binary function
-    unionAgreementPartiesWith
-        :: (AgreementAccountData a -> AgreementAccountData a -> AgreementAccountData a)
-        -> AgreementParties a -> AgreementParties a -> AgreementParties a
+    createAgreementPartiesDelta :: AgreementContractData a -> AgreementContractData a -> AgreementParties a
 
 -- | Update the data of parties of an agreement from the changes of the agreement contract
 updateAgreement :: Agreement a => AgreementContractData a -> AgreementContractData a -> AgreementParties a -> AgreementParties a
-updateAgreement old new parties = unionAgreementPartiesWith (<>) parties parties'
-    where parties' = createAgreementParties old new
+updateAgreement old new parties = -- applicatively map the semigroup binary operator over parites and their delta
+    (<>) <$> parties <*> partiesDelta
+    where partiesDelta = createAgreementPartiesDelta old new
+
+-- ============================================================================
+-- Internal Type Aliases
+type TS a = SFT_TS (DistributionForAgreement a)
+type RTB a = SFT_RTB (DistributionForAgreement a)
+type AgreementParties a = (AgreementPartiesF a) (AgreementAccountData a)

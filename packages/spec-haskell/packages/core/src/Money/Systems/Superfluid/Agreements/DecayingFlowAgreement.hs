@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia  #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -- | Decaying Flow Agreement (DFA)
@@ -6,11 +7,14 @@
 module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
     ( AgreementContractData (..)
     , AgreementAccountData (..)
-    , AgreementParties (..)
+    , AgreementPartiesF (..)
     , DFAContractData
     , DFAAccountData
+    , DFAPartiesF
+    , DFAParties
     ) where
 
+import           Control.Applicative                                     (Applicative (..))
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable
@@ -33,6 +37,8 @@ type DFA :: Type -> Type
 data DFA sft
 type DFAContractData sft = AgreementContractData (DFA sft)
 type DFAAccountData sft = AgreementAccountData (DFA sft)
+type DFAPartiesF sft = AgreementPartiesF (DFA sft)
+type DFAParties sft = (DFAPartiesF sft) (DFAAccountData sft)
 instance SuperfluidTypes sft => Agreement (DFA sft) where
     type DistributionForAgreement (DFA sft) = sft
     data AgreementContractData (DFA sft) = DFAContractData
@@ -47,7 +53,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
         , εVal          :: SFT_FLOAT sft
         , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sft)
         }
-    data AgreementParties (DFA sft) = DFAParties (DFAAccountData sft) (DFAAccountData sft)
+    data AgreementPartiesF (DFA sft) a = DFAPartiesF a a deriving stock (Functor)
 
     -- | Provided balance by DFA
     --
@@ -66,7 +72,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
     --
     -- Formula:
     --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = DFA_AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
-    createAgreementParties old new = DFAParties
+    createAgreementPartiesDelta old new = DFAPartiesF
         DFAAccountData { settledAt = t', αVal = θ_Δ, εVal = -θ_Δ, settledBuffer = flowBufferDelta }
         DFAAccountData { settledAt = t', αVal = -θ_Δ, εVal = θ_Δ, settledBuffer = def }
         where
@@ -74,7 +80,9 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
             θ_Δ = fromIntegral (distributionLimit new - distributionLimit old)
             flowBufferDelta = flowBuffer new - flowBuffer old
 
-    unionAgreementPartiesWith f (DFAParties s r) (DFAParties s' r') = DFAParties (f s s') (f r r')
+instance SuperfluidTypes sft => Applicative (DFAPartiesF sft) where
+    pure a = DFAPartiesF a a
+    liftA2 f (DFAPartiesF s r) (DFAPartiesF s' r') = DFAPartiesF (f s s') (f r r')
 
 instance SuperfluidTypes sft => TaggedTypeable (DFAContractData sft) where tagFromProxy _ = "DFA#"
 

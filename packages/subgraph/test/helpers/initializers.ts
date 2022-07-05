@@ -18,7 +18,14 @@ import {
     IStreamData,
     ITokenStatistic,
 } from "../interfaces";
-import {getATSId, getFlowOperatorId, getIndexId, getRevisionIndexId, getStreamId, getSubscriptionId,} from "./helpers";
+import {
+    getATSId,
+    getFlowOperatorId,
+    getIndexId,
+    getRevisionIndexId,
+    getStreamId,
+    getSubscriptionId,
+} from "./helpers";
 
 export const getOrInitRevisionIndex = (
     revisionIndexes: { [id: string]: number | undefined },
@@ -169,14 +176,16 @@ export const getOrInitAccountTokenSnapshot = (
             totalApprovedSubscriptions: 0,
             balanceUntilUpdatedAt: "0",
             totalAmountStreamedUntilUpdatedAt: "0",
+            totalAmountStreamedInUntilUpdatedAt: "0",
+            totalAmountStreamedOutUntilUpdatedAt: "0",
             totalAmountTransferredUntilUpdatedAt: "0",
             totalDeposit: "0",
             maybeCriticalAtTimestamp: "0",
             totalNetFlowRate: "0",
             totalInflowRate: "0",
             totalOutflowRate: "0",
-            account: {id: accountId},
-            token: {id: tokenId},
+            account: { id: accountId },
+            token: { id: tokenId },
             flowOperators: [],
             accountTokenSnapshotLogs: [],
         };
@@ -210,6 +219,7 @@ export const getOrInitTokenStatistics = (
             totalDeposit: "0",
             totalSupply: totalSupply || "0",
             token: { id: tokenId },
+            tokenStatisticLogs: [],
         };
     }
     return existingTokenStats;

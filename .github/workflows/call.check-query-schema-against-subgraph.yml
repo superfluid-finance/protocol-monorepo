@@ -1,0 +1,74 @@
+name: Reusable Workflow | Check SDK-Core Schema Against Deployed Subgraphs
+
+on:
+  workflow_call:
+    inputs:
+      subgraph-release:
+        required: true
+        type: string
+
+jobs:
+  check-subgraph-indexing-statuses-on-deployed-networks:
+    name: Check SDK-Core Schema Against Deployed Subgraphs (${{ inputs.subgraph-release }})
+
+    runs-on: ubuntu-latest
+
+    env:
+      contracts-working-directory: ./packages/ethereum-contracts
+      sdk-core-working-directory: ./packages/sdk-core
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: "Install contract dependencies"
+        run: yarn install
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Build contracts"
+        run: yarn build:contracts
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Install packages and start hardhat node"
+        run: |
+          yarn install
+          ./tasks/startHardhatNode.sh start
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      # duplicated in call.test-subgraph-on-previous-sdk-core-versions, call.setup-deploy-and-test-local-subgraph
+      - name: "Checkout graph node repo and set up local graph node"
+        uses: actions/checkout@v3
+        with:
+          repository: graphprotocol/graph-node
+          path: graph-node
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Run setup because linux and docker-compose"
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          chmod +x setup.sh
+          ./setup.sh
+        working-directory: ./graph-node/docker
+
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ./graph-node/docker
+
+      - name: "Prepare and Deploy Local Subgraph"
+        run: yarn testenv:start
+        working-directory: ./packages/subgraph
+      #
+
+      - name: Run schema check
+        run: |
+          ./tasks/setupTestEnvironment.sh
+          ./tasks/testSchemasAndQueries.sh
+        working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
+

@@ -11,7 +11,7 @@ import {
     IInstantDistributionAgreementV1
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
 
-import {IDAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+import { IDAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -30,7 +30,7 @@ contract TokenSpreader {
     ) {
 
         // Ensure _spreaderToken is indeed a super token
-        require(address(_host) == _spreaderToken.getHost(),"!superToken"); 
+        require(address(_host) == _spreaderToken.getHost(),"!superToken");
 
 
         spreaderToken = _spreaderToken;
@@ -60,7 +60,7 @@ contract TokenSpreader {
 
         (uint256 actualDistributionAmount,) = idaV1.ida.calculateDistribution(
             spreaderToken,
-            address(this), 
+            address(this),
             INDEX_ID,
             spreaderTokenBalance
         );
@@ -73,12 +73,12 @@ contract TokenSpreader {
     /// @param subscriber subscriber address whose units are to be incremented
     function gainShare(address subscriber) public {
 
-        // Get current units msg.sender holds
+        // Get current units subscriber holds
         (,,uint256 currentUnitsHeld,) = idaV1.getSubscription(
-            spreaderToken,   
-            address(this),   
-            INDEX_ID,        
-            subscriber       
+            spreaderToken,
+            address(this),
+            INDEX_ID,
+            subscriber
         );
 
         // Update to current amount + 1
@@ -95,12 +95,12 @@ contract TokenSpreader {
     /// @param subscriber subscriber address whose units are to be decremented
     function loseShare(address subscriber) public {
 
-        // Get current units msg.sender holds
+        // Get current units subscriber holds
         (,,uint256 currentUnitsHeld,) = idaV1.getSubscription(
-            spreaderToken,   
-            address(this),   
-            INDEX_ID,        
-            subscriber       
+            spreaderToken,
+            address(this),
+            INDEX_ID,
+            subscriber
         );
 
         // Update to current amount - 1 (reverts if currentUnitsHeld - 1 < 0, so basically if currentUnitsHeld = 0)

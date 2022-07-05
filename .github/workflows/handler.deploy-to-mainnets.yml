@@ -30,11 +30,12 @@ jobs:
       OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
       ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
       AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
+      BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}
 
     strategy:
       fail-fast: false
       matrix:
-          network: [xdai-mainnet, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c]
+          network: [xdai-mainnet, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet]
 
     steps:
       - uses: actions/checkout@v3
@@ -77,3 +78,4 @@ jobs:
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
           OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
           ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}

@@ -11,6 +11,7 @@ export interface TransactionInfo {
     chainId: number;
     /** The transaction hash. */
     hash: string;
+    // TODO(KK): Consider adding signer address here to for use of redux matching utilities which can't use the async getAddress call on the signer.
 }
 
 export interface BaseQuery<_TReturns> {

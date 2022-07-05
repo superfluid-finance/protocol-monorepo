@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "1.4.1",
+    "version": "1.4.3",
     "description": "Subgraph for the Superfluid Ethereum contracts.",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": {
@@ -18,6 +18,7 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test --network localhost",
         "posttest": "yarn testenv:stop",
+        "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
         "deploy-contracts-local": "npx hardhat run scripts/deployContractsAndToken.ts --network localhost",
         "prepare-local": "mustache config/ganache.json test-subgraph.template.yaml > subgraph.yaml",
@@ -51,15 +52,15 @@
     },
     "dependencies": {
         "@graphprotocol/graph-cli": "0.29.0",
-        "@graphprotocol/graph-ts": "0.26.0",
-        "@superfluid-finance/sdk-core": "0.4.3",
+        "@graphprotocol/graph-ts": "0.27.0",
+        "@superfluid-finance/sdk-core": "0.4.4",
         "mustache": "^4.2.0"
     },
     "devDependencies": {
         "coingecko-api": "^1.0.10",
-        "ethers": "^5.6.2",
-        "graphql": "^16.3.0",
-        "graphql-request": "^3.7.0",
+        "ethers": "^5.6.9",
+        "graphql": "^16.5.0",
+        "graphql-request": "^4.3.0",
         "lodash": "^4.17.21"
     },
     "workspaces": {

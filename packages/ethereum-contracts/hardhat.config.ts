@@ -47,17 +47,24 @@ const chainIds = {
     "avalanche-c": 43114,
     "avalanche-fuji": 43113,
 
+    "bsc-mainnet": 56,
+
     localhost: 1337,
     hardhat: 31337,
 };
+
 function createNetworkConfig(
     network: keyof typeof chainIds
 ): NetworkUserConfig {
     return {
-        accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        accounts:
+            process.env.PRIVATE_KEY !== undefined
+                ? [process.env.PRIVATE_KEY]
+                : [],
         chainId: chainIds[network],
     };
 }
+
 const config: HardhatUserConfig = {
     solidity: {
         version: "0.8.14",
@@ -80,6 +87,10 @@ const config: HardhatUserConfig = {
         "eth-rinkeby": {
             ...createNetworkConfig("eth-rinkeby"),
             url: process.env.RINKEBY_PROVIDER_URL || "",
+        },
+        "bsc-mainnet": {
+            ...createNetworkConfig("bsc-mainnet"),
+            url: process.env.BSC_PROVIDER_URL || "",
         },
         "eth-goerli": {
             ...createNetworkConfig("eth-goerli"),

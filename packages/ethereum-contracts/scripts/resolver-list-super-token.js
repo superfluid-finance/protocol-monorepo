@@ -66,7 +66,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
         !resetToken
     ) {
-        throw new Error("Super token already listed");
+        console.error("Super token already listed!");
+        console.error("A Transfer event may be needed for indexers to notice.");
     }
     await setResolver(sf, superTokenKey, superTokenAddress);
 });

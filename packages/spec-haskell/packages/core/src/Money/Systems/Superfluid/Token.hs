@@ -27,8 +27,7 @@ import           Money.Systems.Superfluid.MoneyUnit
 --
 -- Notional conventions:
 --  * Type name: addr
---  * SuperfluidTypes indexed type synonym: SFT_ADDR
-class (Eq addr) => Address addr
+class Eq addr => Address addr
 
 -- | MoneyUnit type class.
 --

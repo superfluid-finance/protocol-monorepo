@@ -52,7 +52,7 @@ instance SuperfluidTypes sft => Agreement (TBA sft) sft where
     data AgreementContractPartiesF (TBA sft) a = ContractPartiesF
         { transferFrom :: a
         , transferTo   :: a
-        } deriving stock (Functor, Foldable)
+        } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (TBA sft) =
         MintLiquidity (SFT_LQ sft) |

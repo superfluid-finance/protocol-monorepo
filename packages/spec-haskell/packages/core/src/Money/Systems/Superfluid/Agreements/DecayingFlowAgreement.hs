@@ -51,7 +51,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) sft where
     data AgreementContractPartiesF (DFA sft) a = ContractPartiesF
         { decayingFlowSender   :: a
         , decayingFlowReceiver :: a
-        } deriving stock (Functor, Foldable)
+        } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (DFA sft) =
         -- θ (Distribution Limit), newFlowBuffer, t'

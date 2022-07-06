@@ -99,7 +99,7 @@ expectCFANetFlowRateTo :: HasCallStack
     => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFANetFlowRateTo label addr expr = do
     account <- runToken $ SF.getAccount addr
-    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.viewCFA $ account)
+    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.viewCFAAccount $ account)
 
 expectCFAFlowRateTo :: HasCallStack
     => String -> (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Bool) -> TokenTester ()

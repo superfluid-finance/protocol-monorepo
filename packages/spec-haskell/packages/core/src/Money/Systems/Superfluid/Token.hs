@@ -9,6 +9,7 @@ module Money.Systems.Superfluid.Token
     ) where
 
 import           Data.Default
+import           Data.Foldable                                                    (toList)
 import           Data.Kind                                                        (Type)
 import           Data.Maybe                                                       (fromMaybe)
 
@@ -61,13 +62,13 @@ class ( Monad tk
     type TK_ACC tk :: Type
 
     --
-    -- System functions
+    -- System Functions
     --
 
     getCurrentTime :: tk (TS tk)
 
     --
-    -- Account data
+    -- Account Data Functions
     --
 
     getAccount :: ADDR tk -> tk (TK_ACC tk)
@@ -81,26 +82,49 @@ class ( Monad tk
         return $ balanceOfAt account t
 
     --
-    -- TBA functions
+    -- Polymorphic Agreement Functions
+    --
+
+    changeAgreement
+        :: Agreement a (TK_SFT tk)
+        => TS tk
+        -> (AgreementContractPartiesF a) (ADDR tk)                                                -- acpAddrs
+        -> AgreementOperation a                                                                   -- ao
+        -> ((AgreementContractPartiesF a) (ADDR tk) -> tk (Maybe (AgreementContractData a)))      -- acdGetter
+        -> ((AgreementContractPartiesF a) (ADDR tk) -> AgreementContractData a -> TS tk -> tk ()) -- acdSetter
+        -> (TK_ACC tk -> AgreementAccountData a)                                                  -- aadGetter
+        -> (TK_ACC tk -> AgreementAccountData a -> TS tk -> TK_ACC tk)                            -- aadSetter
+        -> tk ()
+    changeAgreement t acpAddrs ao acdGetter acdSetter aadGetter aadSetter = do
+        acpAccounts <- mapM getAccount acpAddrs
+        acd <- fromMaybe def <$> acdGetter acpAddrs
+        let (acd', acpAADs') = updateAgreement acd (fmap aadGetter acpAccounts) ao
+        acdSetter acpAddrs acd' t
+        mapM_ (uncurry putAccount)
+            (zip (toList acpAddrs)
+                 (fmap (\(account, aad') -> aadSetter account aad' t) (zip (toList acpAccounts) (toList acpAADs'))))
+
+    --
+    -- TBA Functions
     --
 
     getMinterAddress :: tk (ADDR tk)
+
+    viewTBAContract :: TBA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (TBA.ContractData (TK_SFT tk)))
+    viewTBAContract _ = return $ Just TBA.ContractData
+    setTBAContract :: TBA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> TBA.ContractData (TK_SFT tk) -> TS tk -> tk ()
+    setTBAContract _ _ _ = return ()
 
     mintLiquidity :: ADDR tk -> LQ tk-> tk ()
     mintLiquidity toAddr amount = do
         t <- getCurrentTime
         minterAddress <- getMinterAddress
-        mintFrom <- getAccount minterAddress
-        mintTo <- getAccount toAddr
-        let (_, TBA.ContractPartiesF mintFromACD' mintToACD') = updateAgreement
-                TBA.ContractData
-                (TBA.ContractPartiesF (viewTBA mintFrom) (viewTBA mintTo))
-                (TBA.MintLiquidity amount)
-        putAccount minterAddress $ setTBA mintFrom mintFromACD' t
-        putAccount toAddr $ setTBA mintTo mintToACD' t
+        changeAgreement
+            t (TBA.ContractPartiesF minterAddress toAddr) (TBA.MintLiquidity amount)
+            viewTBAContract setTBAContract viewTBAAccount setTBAAccount
 
     --
-    -- CFA functions
+    -- CFA Functions
     --
 
     calcFlowBuffer :: LQ tk-> tk (LQ tk)
@@ -109,40 +133,26 @@ class ( Monad tk
     setFlow :: CFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> CFA.ContractData (TK_SFT tk) -> TS tk -> tk ()
 
     updateFlow :: CFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> LQ tk-> tk ()
-    updateFlow (CFA.ContractPartiesF senderAddr receiverAddr) newFlowRate = do
+    updateFlow acpAddrs newFlowRate = do
         t <- getCurrentTime
-        senderAccount <- getAccount senderAddr
-        receiverAccount <- getAccount receiverAddr
-        flowACD <- fromMaybe def <$> viewFlow (CFA.ContractPartiesF senderAddr receiverAddr)
         newFlowBuffer <- BBS.mkBufferLiquidity <$> calcFlowBuffer newFlowRate
-        let (flowACD', CFA.ContractPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
-                flowACD
-                (CFA.ContractPartiesF (viewCFA senderAccount) (viewCFA receiverAccount))
-                (CFA.UpdateFlow newFlowRate newFlowBuffer t)
-        setFlow (CFA.ContractPartiesF senderAddr receiverAddr) flowACD' t
-        putAccount senderAddr $ setCFA senderAccount senderFlowAAD' t
-        putAccount receiverAddr $ setCFA receiverAccount receiverFlowAAD' t
+        changeAgreement
+            t acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer t)
+            viewFlow setFlow viewCFAAccount setCFAAccount
 
     --
-    -- DFA functions
+    -- DFA Functions
     --
 
     viewDecayingFlow :: DFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (DFA.ContractData (TK_SFT tk)))
     setDecayingFlow :: DFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> DFA.ContractData (TK_SFT tk) -> TS tk -> tk ()
 
     updateDecayingFlow :: DFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> LQ tk-> tk ()
-    updateDecayingFlow (DFA.ContractPartiesF senderAddr receiverAddr) newDistributionLimit = do
+    updateDecayingFlow acpAddrs newDistributionLimit = do
         t <- getCurrentTime
-        senderAccount <- getAccount senderAddr
-        receiverAccount <- getAccount receiverAddr
-        flowACD <- fromMaybe def <$> viewDecayingFlow (DFA.ContractPartiesF senderAddr receiverAddr)
-        let (flowACD', DFA.ContractPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
-                flowACD
-                (DFA.ContractPartiesF (viewDFA senderAccount) (viewDFA receiverAccount))
-                (DFA.UpdateDecayingFlow newDistributionLimit def t)
-        setDecayingFlow (DFA.ContractPartiesF senderAddr receiverAddr) flowACD' t
-        putAccount senderAddr $ setDFA senderAccount senderFlowAAD' t
-        putAccount receiverAddr $ setDFA receiverAccount receiverFlowAAD' t
+        changeAgreement
+            t acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def t)
+            viewDecayingFlow setDecayingFlow viewDFAAccount setDFAAccount
 
 -- ============================================================================
 -- Internal

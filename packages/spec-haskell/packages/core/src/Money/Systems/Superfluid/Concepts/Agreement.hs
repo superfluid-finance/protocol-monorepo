@@ -6,6 +6,7 @@ module Money.Systems.Superfluid.Concepts.Agreement
     , updateAgreement
     ) where
 
+import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
 import           Data.Type.TaggedTypeable                          (TaggedTypeable (..))
 
@@ -14,14 +15,14 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTy
 
 -- | Agreement type class
 class ( SuperfluidTypes sft
-      , TaggedTypeable (AgreementContractData a)
+      , TaggedTypeable (AgreementContractData a), Default (AgreementContractData a)
       , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
-      , Applicative (AgreementContractPartiesF a), Foldable (AgreementContractPartiesF a)
+      , Applicative (AgreementContractPartiesF a), Traversable (AgreementContractPartiesF a)
       ) => Agreement a sft | a -> sft where
     -- | Agreement contract data type
     data AgreementContractData a :: Type
 
-    -- | Agreement contract parties foldable applicative functor type
+    -- | Agreement contract parties traversable applicative functor type
     data AgreementContractPartiesF a :: Type -> Type
 
     -- | Agreement account semigroup data type

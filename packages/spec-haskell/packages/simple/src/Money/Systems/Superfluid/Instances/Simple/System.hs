@@ -77,18 +77,18 @@ data SimpleAccount = SimpleAccount
 
 instance SF.MoneyUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementAccountData SimpleAccount = AnySimpleAgreementAccountData
-    agreementsOf acc = [ MkSimpleAgreementAccountData (SF.viewTBA acc)
-                       , MkSimpleAgreementAccountData (SF.viewCFA acc)
-                       , MkSimpleAgreementAccountData  (SF.viewDFA acc)
+    agreementsOf acc = [ MkSimpleAgreementAccountData (SF.viewTBAAccount acc)
+                       , MkSimpleAgreementAccountData (SF.viewCFAAccount acc)
+                       , MkSimpleAgreementAccountData  (SF.viewDFAAccount acc)
                        ]
     providedBalanceByAnyAgreement _ (MkSimpleAgreementAccountData g) = balanceProvidedByAgreement g
 
-    viewTBA = tbaAccountData
-    setTBA acc aad t = acc { tbaAccountData = aad, accountLastUpdatedAt = t }
-    viewCFA = cfaAccountData
-    setCFA acc aad t = acc { cfaAccountData = aad, accountLastUpdatedAt = t }
-    viewDFA = dfaAccountData
-    setDFA acc aad t = acc { dfaAccountData = aad, accountLastUpdatedAt = t }
+    viewTBAAccount = tbaAccountData
+    setTBAAccount acc aad t = acc { tbaAccountData = aad, accountLastUpdatedAt = t }
+    viewCFAAccount = cfaAccountData
+    setCFAAccount acc aad t = acc { cfaAccountData = aad, accountLastUpdatedAt = t }
+    viewDFAAccount = dfaAccountData
+    setDFAAccount acc aad t = acc { dfaAccountData = aad, accountLastUpdatedAt = t }
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress

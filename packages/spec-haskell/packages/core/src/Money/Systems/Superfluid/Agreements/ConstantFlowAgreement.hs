@@ -45,7 +45,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) sft where
     data AgreementContractPartiesF (CFA sft) a = ContractPartiesF
         { flowSender   :: a
         , flowReceiver :: a
-        } deriving stock (Functor, Foldable)
+        } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (CFA sft) =
         -- flowRate, newFlowBuffer, t'

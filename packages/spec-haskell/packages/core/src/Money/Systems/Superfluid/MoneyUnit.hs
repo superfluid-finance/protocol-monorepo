@@ -32,14 +32,14 @@ class SuperfluidTypes sft => MoneyUnit acc sft | acc -> sft where
     -- Specialized agreement account data functions
     --
 
-    viewTBA :: acc -> TBA.AccountData sft
-    setTBA :: acc -> TBA.AccountData sft -> SFT_TS sft -> acc
+    viewTBAAccount :: acc -> TBA.AccountData sft
+    setTBAAccount :: acc -> TBA.AccountData sft -> SFT_TS sft -> acc
 
-    viewCFA :: acc -> CFA.AccountData sft
-    setCFA :: acc -> CFA.AccountData sft -> SFT_TS sft -> acc
+    viewCFAAccount :: acc -> CFA.AccountData sft
+    setCFAAccount :: acc -> CFA.AccountData sft -> SFT_TS sft -> acc
 
-    viewDFA ::  acc -> DFA.AccountData sft
-    setDFA :: acc -> DFA.AccountData sft -> SFT_TS sft -> acc
+    viewDFAAccount ::  acc -> DFA.AccountData sft
+    setDFAAccount :: acc -> DFA.AccountData sft -> SFT_TS sft -> acc
 
 balanceOfAt :: (SuperfluidTypes sft, MoneyUnit acc sft) => acc -> SFT_TS sft -> SFT_RTB sft
 balanceOfAt account t = foldr

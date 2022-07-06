@@ -108,8 +108,8 @@ class ( Monad tk
     viewFlow :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
     setFlow :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> CFA.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateFlow :: ADDR tk -> ADDR tk -> LQ tk-> tk ()
-    updateFlow senderAddr receiverAddr newFlowRate = do
+    updateFlow :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> LQ tk-> tk ()
+    updateFlow (CFA.CFAPartiesF senderAddr receiverAddr) newFlowRate = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
@@ -130,8 +130,8 @@ class ( Monad tk
     viewDecayingFlow :: DFA.DFAPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (DFA.DFAContractData (TK_SFT tk)))
     setDecayingFlow :: DFA.DFAPartiesF (TK_SFT tk) (ADDR tk) -> DFA.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateDecayingFlow :: ADDR tk -> ADDR tk -> LQ tk-> tk ()
-    updateDecayingFlow senderAddr receiverAddr newDistributionLimit = do
+    updateDecayingFlow :: DFA.DFAPartiesF (TK_SFT tk) (ADDR tk) -> LQ tk-> tk ()
+    updateDecayingFlow (DFA.DFAPartiesF senderAddr receiverAddr) newDistributionLimit = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr

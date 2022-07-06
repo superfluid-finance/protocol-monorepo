@@ -29,4 +29,5 @@ executable superfluid-validator
         containers,
         transformers,
         time,
+        superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

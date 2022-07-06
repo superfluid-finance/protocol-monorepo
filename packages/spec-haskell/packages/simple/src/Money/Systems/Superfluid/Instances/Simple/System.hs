@@ -13,8 +13,6 @@ module Money.Systems.Superfluid.Instances.Simple.System
     , SF.sumBalancesAt
     , SimpleAccount
     , showAccountAt
-    , listAccounts
-    , addAccount
     -- Token
     , SimpleSystemData (..)
     , SimpleTokenData
@@ -24,8 +22,10 @@ module Money.Systems.Superfluid.Instances.Simple.System
     , execSimpleTokenStateT
     , getSimpleTokenData
     , SF.Token (..)
-    , initSimpleToken)
-    where
+    , initSimpleToken
+    , listAccounts
+    , addAccount
+    ) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class

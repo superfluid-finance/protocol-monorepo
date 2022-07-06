@@ -51,7 +51,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
         , settledBuffer :: BBS.BufferLiquidity (SFT_LQ sft)
         }
 
-    data AgreementPartiesF (DFA sft) a = DFAPartiesF a a deriving stock (Functor)
+    data AgreementPartiesF (DFA sft) a = DFAPartiesF a a deriving stock (Functor, Foldable)
 
     data AgreementOperation (DFA sft) =
         -- θ (Distribution Limit), newFlowBuffer, t'
@@ -62,7 +62,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
     -- Formula:
     --   rtb(aad, t) = α * e ^ (-λ * (t - t_s)) + ε
     --       where { t_s = t_s, αVal = α, εVal = ε } = aad
-    providedBalanceByAgreement DFAAccountData
+    balanceProvidedByAgreement DFAAccountData
         { settledAt = t_s, αVal = α, εVal = ε, settledBuffer = buf_s } t =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
             ( UntappedLiquidity $ ceiling $ α * exp (-λ * t_Δ) + ε )
@@ -74,7 +74,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) where
     --
     -- Formula:
     --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = DFA_AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
-    createAgreementPartiesDelta acd (UpdateDecayingFlow θ newFlowBuffer t') = let
+    applyAgreementOperation acd (UpdateDecayingFlow θ newFlowBuffer t') = let
         acd' = acd { distributionLimit = θ, flowBuffer = newFlowBuffer, flowLastUpdatedAt = t' }
         aps' = DFAPartiesF DFAAccountData { settledAt = t', αVal = θ_Δ, εVal = -θ_Δ, settledBuffer = flowBufferDelta }
                            DFAAccountData { settledAt = t', αVal = -θ_Δ, εVal = θ_Δ, settledBuffer = def }

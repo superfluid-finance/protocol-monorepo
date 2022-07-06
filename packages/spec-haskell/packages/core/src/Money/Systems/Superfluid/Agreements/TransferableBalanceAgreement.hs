@@ -56,28 +56,28 @@ instance SuperfluidTypes sft => Agreement (TBA sft) where
     data AgreementPartiesF (TBA sft) a = TBAPartiesF
         { transferFrom :: a
         , transferTo   :: a
-        } deriving stock (Functor)
+        } deriving stock (Functor, Foldable)
 
     data AgreementOperation (TBA sft) =
         MintLiquidity (SFT_LQ sft) |
         BurnLiquidity (SFT_LQ sft) |
         TransferLiquidity (SFT_LQ sft)
 
-    providedBalanceByAgreement a _ = typedLiquidityVectorToRTB $ TypedLiquidityVector
+    balanceProvidedByAgreement a _ = typedLiquidityVectorToRTB $ TypedLiquidityVector
         ( untappedLiquidity a )
         [ mkAnyTappedLiquidity $ mintedLiquidity a ]
 
-    createAgreementPartiesDelta acd (MintLiquidity amount) = let
+    applyAgreementOperation acd (MintLiquidity amount) = let
         acd' = acd
         aps' = TBAPartiesF def { mintedLiquidity = coerce (- amount) }
                            def { untappedLiquidity = coerce amount }
         in (acd', aps')
-    createAgreementPartiesDelta acd (BurnLiquidity amount) = let
+    applyAgreementOperation acd (BurnLiquidity amount) = let
         acd' = acd
         aps' = TBAPartiesF def { mintedLiquidity = coerce amount }
                            def { untappedLiquidity = coerce (- amount) }
         in (acd', aps')
-    createAgreementPartiesDelta acd (TransferLiquidity amount) = let
+    applyAgreementOperation acd (TransferLiquidity amount) = let
         acd' = acd
         aps' = TBAPartiesF def { untappedLiquidity = coerce (- amount) }
                            def { untappedLiquidity = coerce amount }

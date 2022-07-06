@@ -15,7 +15,7 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTy
 class ( SuperfluidTypes (DistributionForAgreement a)
       , TaggedTypeable (AgreementContractData a)
       , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
-      , Applicative (AgreementPartiesF a)
+      , Applicative (AgreementPartiesF a), Foldable (AgreementPartiesF a)
       ) => Agreement a where
 
     type DistributionForAgreement a :: Type
@@ -29,16 +29,18 @@ class ( SuperfluidTypes (DistributionForAgreement a)
     data AgreementOperation a :: Type
 
     -- | Balance provided by the agreement of an account
-    providedBalanceByAgreement :: AgreementAccountData a -> TS a -> RTB a
+    balanceProvidedByAgreement :: AgreementAccountData a -> TS a -> RTB a
 
     -- | Create data of agreement parties from the changes of the agreement contract
-    createAgreementPartiesDelta :: AgreementContractData a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
+    applyAgreementOperation :: AgreementContractData a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
 
 -- | Update the data of parties of an agreement from the changes of the agreement contract
 updateAgreement :: Agreement a => AgreementContractData a -> AgreementParties a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
-updateAgreement acd aps ao = let (acd', apsDelta) = createAgreementPartiesDelta acd ao
-    -- applicatively map the semigroup binary operator over parites and their
-    in (acd', (<>) <$> aps <*> apsDelta)
+updateAgreement acd aps ao = let
+    (acd', apsDelta) = applyAgreementOperation acd ao
+    -- applicatively map the semigroup binary operator over account data of agreement parites
+    aps' = (<>) <$> aps <*> apsDelta
+    in (acd', aps')
 
 -- ============================================================================
 -- Internal Type Aliases

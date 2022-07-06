@@ -101,6 +101,7 @@ class ( Monad tk
     --
     calcFlowBuffer :: LQ tk-> tk (LQ tk)
 
+    viewFlow' :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
     viewFlow :: ADDR tk -> ADDR tk -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
     setFlow :: ADDR tk -> ADDR tk -> CFA.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
@@ -114,7 +115,7 @@ class ( Monad tk
         let (flowACD', CFA.CFAPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
                 flowACD
                 (CFA.CFAPartiesF (viewCFA senderAccount) (viewCFA receiverAccount))
-                (CFA.Updatelow newFlowRate newFlowBuffer t)
+                (CFA.UpdateFlow newFlowRate newFlowBuffer t)
         setFlow senderAddr receiverAddr flowACD' t
         putAccount senderAddr $ setCFA senderAccount senderFlowAAD' t
         putAccount receiverAddr $ setCFA receiverAccount receiverFlowAAD' t

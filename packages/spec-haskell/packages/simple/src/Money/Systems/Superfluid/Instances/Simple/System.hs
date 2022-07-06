@@ -33,6 +33,7 @@ import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
 import           Data.Binary                                                      (Binary)
 import           Data.Char                                                        (isAlpha)
+import           Data.Coerce                                                      (coerce)
 import           Data.Default
 import           Data.Functor
 import qualified Data.Map                                                         as M
@@ -80,7 +81,7 @@ instance SF.MoneyUnit SimpleAccount SimpleSuperfluidTypes where
                        , MkSimpleAgreementAccountData (SF.viewCFA acc)
                        , MkSimpleAgreementAccountData  (SF.viewDFA acc)
                        ]
-    providedBalanceByAnyAgreement _ (MkSimpleAgreementAccountData g) = providedBalanceByAgreement g
+    providedBalanceByAnyAgreement _ (MkSimpleAgreementAccountData g) = balanceProvidedByAgreement g
 
     viewTBA = tbaAccountData
     setTBA acc aad t = acc { tbaAccountData = aad, accountLastUpdatedAt = t }
@@ -135,7 +136,7 @@ minter_address :: SimpleAddress
 minter_address = "_minter"
 
 flow_acd_key :: SimpleAddress -> SimpleAddress -> String
-flow_acd_key a b = (show a) ++ (show b)
+flow_acd_key a b = (coerce a) ++ (coerce b)
 
 -- | Simple Monad Transformer stack
 newtype SimpleSystemStateT m a = SimpleSystemStateT (ReaderT SimpleSystemData m a)
@@ -193,6 +194,7 @@ instance (Monad m) => SF.Token (SimpleTokenStateT m) where
     getMinterAddress = return minter_address
 
     calcFlowBuffer = return  . (* Wad 3600)
+    viewFlow' aps = getSimpleTokenData >>= \s -> return $ M.lookup (foldr ((++) . (++ ".") . coerce) def aps) (cfaContractData s)
     viewFlow a b = getSimpleTokenData >>= \s -> return $ M.lookup (flow_acd_key a b) (cfaContractData s)
     setFlow a b acd t = modify_token_data (
         \vs -> vs

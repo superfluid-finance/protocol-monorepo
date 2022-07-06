@@ -45,13 +45,13 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
         , netFlowRate              :: SFT_LQ sft
         }
 
-    data AgreementPartiesF (CFA sft) a = CFAPartiesF a a deriving stock (Functor)
+    data AgreementPartiesF (CFA sft) a = CFAPartiesF a a deriving stock (Functor, Foldable)
 
     data AgreementOperation (CFA sft) =
         -- flowRate, newFlowBuffer, t'
-        Updatelow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
+        UpdateFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 
-    providedBalanceByAgreement CFAAccountData
+    balanceProvidedByAgreement CFAAccountData
         { settledAt = t_s
         , settledUntappedLiquidity = (UntappedLiquidity uliq_s)
         , settledBufferLiquidity = buf_s
@@ -61,7 +61,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) where
             ( UntappedLiquidity $ uliq_s + calc_liquidity_delta fr t_s t )
             [ mkAnyTappedLiquidity buf_s ]
 
-    createAgreementPartiesDelta acd (Updatelow newFlowRate newFlowBuffer t') = let
+    applyAgreementOperation acd (UpdateFlow newFlowRate newFlowBuffer t') = let
         acd' = acd { flowRate = newFlowRate, flowBuffer = newFlowBuffer, flowLastUpdatedAt = t' }
         aps' = CFAPartiesF CFAAccountData
                            { settledAt = t'

@@ -18,29 +18,46 @@ class ( SuperfluidTypes sft
       , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
       , Applicative (AgreementContractPartiesF a), Foldable (AgreementContractPartiesF a)
       ) => Agreement a sft | a -> sft where
-
+    -- | Agreement contract data type
     data AgreementContractData a :: Type
 
+    -- | Agreement contract parties foldable applicative functor type
     data AgreementContractPartiesF a :: Type -> Type
 
+    -- | Agreement account semigroup data type
     data AgreementAccountData a :: Type
 
+    -- | Agreement operation algebraic data type
     data AgreementOperation a :: Type
 
-    -- | Balance provided by the agreement of an account
-    balanceProvidedByAgreement :: AgreementAccountData a -> SFT_TS sft -> SFT_RTB sft
+    -- | Balance provided by the agreement account data
+    balanceProvidedByAgreement
+        :: AgreementAccountData a -- aad
+        -> SFT_TS sft             -- t
+        -> SFT_RTB sft            -- returns rtb
 
-    -- | Create data of agreement parties from the changes of the agreement contract
-    applyAgreementOperation :: AgreementContractData a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
+    -- | Applying agreement operation to a agreement contract data
+    --   to get agreement account data delta of the agreement contract parties.
+    applyAgreementOperation
+        :: AgreementContractData a                               -- acd
+        -> AgreementOperation a                                  -- ao
+        -> (AgreementContractData a, AgreementContractParties a) -- (acd', acpsDelta)
 
 -- | Update the data of parties of an agreement from the changes of the agreement contract
-updateAgreement :: Agreement a sft => AgreementContractData a -> AgreementParties a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
+updateAgreement :: (SuperfluidTypes sft, Agreement a sft)
+    => AgreementContractData a
+    -> AgreementContractParties a
+    -> AgreementOperation a
+    -> (AgreementContractData a, AgreementContractParties a)
 updateAgreement acd acps ao = let
     (acd', acpsDelta) = applyAgreementOperation acd ao
-    -- applicatively map the semigroup binary operator over account data of agreement parites
+    -- Applicatively fmap (<$> <*>) the semigroup binary operator (<>)
+    -- over the current value (acps) and the delta (acpsDelta)
+    -- of the agreement account data of the agreement contract parites
     acps' = (<>) <$> acps <*> acpsDelta
     in (acd', acps')
 
 -- ============================================================================
--- Internal Type Aliases
-type AgreementParties a = (AgreementContractPartiesF a) (AgreementAccountData a)
+-- * Internal Type Aliases
+
+type AgreementContractParties a = (AgreementContractPartiesF a) (AgreementAccountData a)

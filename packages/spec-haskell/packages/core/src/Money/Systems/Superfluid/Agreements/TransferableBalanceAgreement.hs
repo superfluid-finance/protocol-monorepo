@@ -25,7 +25,7 @@ import           Data.Typeable                     (Proxy (..))
 
 import           Money.Systems.Superfluid.Concepts
 
--- MintedLiquidity Type
+-- * MintedLiquidity Type
 --
 data MintedLiquidityTag deriving anyclass (TappedLiquidityTag)
 instance TaggedTypeable MintedLiquidityTag where tagFromProxy _ = "m"
@@ -35,11 +35,12 @@ mintedLiquidityTag = Proxy @MintedLiquidityTag
 mkMintedLiquidity :: Liquidity lq => lq -> MintedLiquidity lq
 mkMintedLiquidity = TappedLiquidity
 
+-- * Agreement Definition
+--
+
 type TBA :: Type -> Type -- kind signature is required to make GHC happy
 data TBA sft
 
--- Agreement Definition
---
 instance SuperfluidTypes sft => Agreement (TBA sft) sft where
     data AgreementContractData (TBA sft) = ContractData
 

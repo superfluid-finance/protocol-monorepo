@@ -2,6 +2,9 @@
 
 This plugin brings a Superfluid framework deployer for development environments using `ethers`.
 
+> **NOTICE**: This is not suitable for public deployments.
+> This is designed for local testing andd requires unusually high gas limits.
+
 ## What does it do?
 
 The `hardhat-superfluid` plugin handles deployment and initialization of Superfluid contracts in a
@@ -10,7 +13,7 @@ development environment.
 ## Installation
 
 ```bash
-npm install hardhat-superfluid @superfluid-finance/ethereum-contracts@1.2.2
+npm install hardhat-superfluid @superfluid-finance/ethereum-contracts
 ```
 
 Import the plugin in `hardhat.config.js`:

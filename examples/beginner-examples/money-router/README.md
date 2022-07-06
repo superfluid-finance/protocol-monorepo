@@ -1,7 +1,7 @@
 ### Welcome to the Money Router - a basic example to get you started with the Superfluid Constant Flow Agreement
 
 1) Run `yarn` to install 
-2) `yarn compile` to compile contracts
+2) `yarn build` to compile contracts
 3) `yarn test` to run the test suite.
 4) Create a .env file based on .env.example. Note: if you're using a different network from Goerli, make sure you specify that
 5) Make sure that you've set `goerli` (or your other preferred network) as the default network and ensure that it is added to your list of accounts.

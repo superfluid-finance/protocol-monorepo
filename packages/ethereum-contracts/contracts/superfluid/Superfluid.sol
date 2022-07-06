@@ -537,7 +537,7 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        context.appCreditUsed = context.appCreditUsed + appCreditUsedDelta;
+        context.appCreditUsed += appCreditUsedDelta;
         newCtx = _updateContext(context);
     }
 
@@ -553,8 +553,8 @@ contract Superfluid is
     {
         Context memory context = decodeCtx(ctx);
 
-        context.appCreditWanted = context.appCreditWanted + appCreditWantedMore;
-        context.appCreditUsed = context.appCreditUsed + appCreditUsedDelta;
+        context.appCreditWanted += appCreditWantedMore;
+        context.appCreditUsed += appCreditUsedDelta;
 
         newCtx = _updateContext(context);
     }

@@ -2525,8 +2525,6 @@ describe("Using ConstantFlowAgreement v1", function () {
         const receiver2 = "carol";
         const lowFlowRate = FLOW_RATE1.mul(toBN(9)).div(toBN(10));
         const highFlowRate = FLOW_RATE1.mul(toBN(11)).div(toBN(10));
-        //const receiver2 = "carol";
-        //const agent = "dan";
         let app;
 
         beforeEach(async () => {
@@ -3236,9 +3234,19 @@ describe("Using ConstantFlowAgreement v1", function () {
             await timeTravelOnceAndVerifyAll();
         });
 
-        it("#2.6 mfa-1to1-101pct_create-should-fail-without-extra-funds", async () => {
+        it("#2.6 mfa-1to1-?pct_create-should-fail-without-extra-funds", async () => {
+            // @note - the ratio pct is dependent on the additional app credit amount
+            // in proportion to the flow deposit
+            const deposit = CFADataModel.clipDepositNumber(
+                FLOW_RATE1.muln(LIQUIDATION_PERIOD)
+            );
+            const minDepositToDepositRatio =
+                Number(MINIMUM_DEPOSIT.toString()) / Number(deposit.toString());
+            const ratioPercentage = minDepositToDepositRatio * 100;
+            const exceededRatioPct = 100 + ratioPercentage + 1;
+
             const mfa = {
-                ratioPct: 101,
+                ratioPct: exceededRatioPct,
                 sender,
                 receivers: {
                     [receiver1]: {
@@ -3312,7 +3320,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await timeTravelOnceAndVerifyAll();
 
-            // delete flow of receiver 1
+            // delete flow of mfa => receiver 1
             mfa = {
                 ratioPct: 100,
                 sender,
@@ -3700,10 +3708,13 @@ describe("Using ConstantFlowAgreement v1", function () {
                 "CFA: sender account is not critical"
             );
 
+            // @note - need to consider new additional app credit rule CFA-2
+            const minDepTime = MINIMUM_DEPOSIT.div(mfaNetFlowRate);
             await timeTravelOnceAndVerifyAll({
                 time:
                     -toWad(50).div(mfaNetFlowRate).toNumber() -
                     LIQUIDATION_PERIOD +
+                    Number(minDepTime.mul(toBN(-1)).toString()) +
                     60,
                 allowCriticalAccount: true,
             });

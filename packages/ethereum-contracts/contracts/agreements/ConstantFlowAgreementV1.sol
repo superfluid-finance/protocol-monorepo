@@ -19,7 +19,6 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
-
 /**
  * @title ConstantFlowAgreementV1 contract
  * @author Superfluid
@@ -966,7 +965,7 @@ contract ConstantFlowAgreementV1 is
             // Allow apps to take an additional amount of app credit (minimum deposit)
             uint256 minimumDeposit = gov.getConfigAsUint256(
                 ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-            uint256 additionalAppCredit = AgreementLibrary.max(
+            uint256 additionalAppCreditAmount = AgreementLibrary.max(
                 DEFAULT_MINIMUM_DEPOSIT,
                 minimumDeposit
             );
@@ -977,7 +976,7 @@ contract ConstantFlowAgreementV1 is
                     token, flowParams, oldFlowData);
             cbStates.appCreditGranted = cbStates.appCreditGranted
                 * uint256(currentContext.appLevel + 1)
-                + additionalAppCredit;
+                + additionalAppCreditAmount;
             cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of credit

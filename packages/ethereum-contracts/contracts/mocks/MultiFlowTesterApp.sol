@@ -88,7 +88,8 @@ contract MultiFlowTesterApp is SuperAppBase {
         newCtx = ctx;
 
         // in case of mfa, we underutlize the app credit for simplicity
-        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(superToken, appCreditGranted - 1);
+        uint256 flowRateDeposit = _cfa.getDepositRequiredForFlowRate(superToken, flowRate);
+        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(superToken, flowRateDeposit - 1);
         appCreditGranted = _cfa.getDepositRequiredForFlowRate(superToken, safeFlowRate);
 
         // scale the flow rate and app credit numbers

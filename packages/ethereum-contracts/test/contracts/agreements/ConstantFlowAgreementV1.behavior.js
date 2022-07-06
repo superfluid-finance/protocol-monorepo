@@ -132,23 +132,31 @@ async function _shouldChangeFlow({
         const mainFlowDepositUnclipped = toBN(flowRate).mul(
             toBN(testenv.configs.LIQUIDATION_PERIOD)
         );
-        // Aren't these two the exact same?
         const mainFlowDeposit = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
-        const mainFlowAppCredit = CFADataModel.clipDepositNumber(
+        let mainFlowAppCreditGranted = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
+        // @note - add minimum deposit amount to appCreditGranted when
+        // sending to an app (mfa)
+        mainFlowAppCreditGranted = mfa
+            ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
+            : mainFlowAppCreditGranted;
         const newAppCreditUsed = Object.values(cfaDataModel.expectedFlowInfo)
             .map((i) => i.deposit)
             .reduce((acc, cur) => {
                 return acc.add(cur);
             }, toBN(0));
         const mainFlowCreditUsed = CFADataModel.adjustNewAppCreditUsed(
-            mainFlowAppCredit,
-            mainFlowDeposit, // appCreditUsed
+            mainFlowAppCreditGranted,
+            // @note - condition for using sum of all receiver deposits
+            // when mfa or just the main flow deposit here
+            mfa
+                ? CFADataModel.clipDepositNumber(newAppCreditUsed, false)
+                : mainFlowDeposit, // appCreditWanted
             newAppCreditUsed
         );
 
@@ -161,7 +169,7 @@ async function _shouldChangeFlow({
                 toBN(flowRate).gt(toBN(0))
                     ? testenv.configs.MINIMUM_DEPOSIT
                     : mainFlowDeposit.add(mainFlowCreditUsed),
-            owedDeposit: mainFlowCreditUsed,
+            owedDeposit: mfa ? mainFlowCreditUsed : toBN(0),
         };
     }
 
@@ -252,7 +260,7 @@ async function _shouldChangeFlow({
         await MFASupport.postCheck({testenv, roles: cfaDataModel.roles});
     }
 
-    // caculate additional expected balance changes per liquidation rules
+    // calculate additional expected balance changes per liquidation rules
     if (isDeleteFlow) {
         if (isSenderCritical) {
             console.log("validating liquidation rules...");

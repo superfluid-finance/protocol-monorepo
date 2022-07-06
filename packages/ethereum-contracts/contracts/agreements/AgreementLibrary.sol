@@ -144,7 +144,6 @@ library AgreementLibrary {
                 appContext.appCreditUsed = max(0, min(
                     inputs.appCreditGranted.toInt256(),
                     max(appContext.appCreditWanted.toInt256(), appContext.appCreditUsed)));
-
             }
             // [SECURITY] NOTE: ctx should be const, do not modify it ever to ensure callback stack correctness
             newCtx = _popCallbackStack(ctx, appContext.appCreditUsed);

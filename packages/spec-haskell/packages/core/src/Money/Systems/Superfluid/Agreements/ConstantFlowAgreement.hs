@@ -29,9 +29,7 @@ type CFAContractData sft = AgreementContractData (CFA sft)
 type CFAAccountData sft = AgreementAccountData (CFA sft)
 type CFAPartiesF sft = AgreementPartiesF (CFA sft)
 type CFAParties sft = (CFAPartiesF sft) (CFAAccountData sft)
-instance SuperfluidTypes sft => Agreement (CFA sft) where
-    type DistributionForAgreement (CFA sft) = sft
-
+instance SuperfluidTypes sft => Agreement (CFA sft) sft where
     data AgreementContractData (CFA sft) = CFAContractData
         { flowLastUpdatedAt :: SFT_TS sft
         , flowRate          :: SFT_LQ sft

@@ -135,7 +135,7 @@ instance Default SimpleTokenData where
 minter_address :: SimpleAddress
 minter_address = "_minter"
 
-acd_key :: Agreement a => (AgreementPartiesF a) SimpleAddress -> String
+acd_key :: Agreement a SimpleSuperfluidTypes => (AgreementPartiesF a) SimpleAddress -> String
 acd_key = foldr ((++) . (++ ".") . coerce) def
 
 -- | Simple Monad Transformer stack

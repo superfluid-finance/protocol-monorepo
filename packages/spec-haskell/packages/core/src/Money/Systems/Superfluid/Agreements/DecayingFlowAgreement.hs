@@ -34,9 +34,7 @@ type DFAContractData sft = AgreementContractData (DFA sft)
 type DFAAccountData sft = AgreementAccountData (DFA sft)
 type DFAPartiesF sft = AgreementPartiesF (DFA sft)
 type DFAParties sft = (DFAPartiesF sft) (DFAAccountData sft)
-instance SuperfluidTypes sft => Agreement (DFA sft) where
-    type DistributionForAgreement (DFA sft) = sft
-
+instance SuperfluidTypes sft => Agreement (DFA sft) sft where
     data AgreementContractData (DFA sft) = DFAContractData
         { flowLastUpdatedAt :: SFT_TS sft
         , decayingFactor    :: SFT_FLOAT sft

@@ -185,8 +185,7 @@ instance Show (DFA.DFAAccountData SimpleSuperfluidTypes) where
 
 -- | AnyAgreementAccountData type
 data AnySimpleAgreementAccountData =
-    forall a. ( Agreement a
-              , DistributionForAgreement a ~ SimpleSuperfluidTypes
+    forall a. ( Agreement a SimpleSuperfluidTypes
               , Show (AgreementAccountData a)
               )
     => MkSimpleAgreementAccountData (AgreementAccountData a)

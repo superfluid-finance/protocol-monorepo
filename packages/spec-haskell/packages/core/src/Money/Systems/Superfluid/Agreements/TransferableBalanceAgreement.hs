@@ -43,9 +43,7 @@ type TBAContractData sft = AgreementContractData (TBA sft)
 type TBAAccountData sft = AgreementAccountData (TBA sft)
 type TBAPartiesF sft = AgreementPartiesF (TBA sft)
 type TBAParties sft = (TBAPartiesF sft) (TBAAccountData sft)
-instance SuperfluidTypes sft => Agreement (TBA sft) where
-    type DistributionForAgreement (TBA sft) = sft
-
+instance SuperfluidTypes sft => Agreement (TBA sft) sft where
     data AgreementContractData (TBA sft) = TBAContractData
 
     data AgreementAccountData (TBA sft) = TBAAccountData

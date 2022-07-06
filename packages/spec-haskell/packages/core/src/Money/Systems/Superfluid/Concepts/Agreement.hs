@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( Agreement (..)
@@ -12,13 +13,11 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTy
 
 
 -- | Agreement type class
-class ( SuperfluidTypes (DistributionForAgreement a)
+class ( SuperfluidTypes sft
       , TaggedTypeable (AgreementContractData a)
       , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
       , Applicative (AgreementPartiesF a), Foldable (AgreementPartiesF a)
-      ) => Agreement a where
-
-    type DistributionForAgreement a :: Type
+      ) => Agreement a sft | a -> sft where
 
     data AgreementContractData a :: Type
 
@@ -29,13 +28,13 @@ class ( SuperfluidTypes (DistributionForAgreement a)
     data AgreementOperation a :: Type
 
     -- | Balance provided by the agreement of an account
-    balanceProvidedByAgreement :: AgreementAccountData a -> TS a -> RTB a
+    balanceProvidedByAgreement :: AgreementAccountData a -> SFT_TS sft -> SFT_RTB sft
 
     -- | Create data of agreement parties from the changes of the agreement contract
     applyAgreementOperation :: AgreementContractData a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
 
 -- | Update the data of parties of an agreement from the changes of the agreement contract
-updateAgreement :: Agreement a => AgreementContractData a -> AgreementParties a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
+updateAgreement :: Agreement a sft => AgreementContractData a -> AgreementParties a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
 updateAgreement acd aps ao = let
     (acd', apsDelta) = applyAgreementOperation acd ao
     -- applicatively map the semigroup binary operator over account data of agreement parites
@@ -44,6 +43,4 @@ updateAgreement acd aps ao = let
 
 -- ============================================================================
 -- Internal Type Aliases
-type TS a = SFT_TS (DistributionForAgreement a)
-type RTB a = SFT_RTB (DistributionForAgreement a)
 type AgreementParties a = (AgreementPartiesF a) (AgreementAccountData a)

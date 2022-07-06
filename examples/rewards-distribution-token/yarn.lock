@@ -385,7 +385,7 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/transactions" "^5.6.0"
 
-"@ethersproject/hash@5.6.0", "@ethersproject/hash@^5.0.4", "@ethersproject/hash@^5.5.0", "@ethersproject/hash@^5.6.0":
+"@ethersproject/hash@5.6.0", "@ethersproject/hash@^5.0.4", "@ethersproject/hash@^5.6.0":
   version "5.6.0"
   resolved "https://registry.npmjs.org/@ethersproject/hash/-/hash-5.6.0.tgz"
   integrity sha512-fFd+k9gtczqlr0/BruWLAu7UAOas1uRRJvOR84uDf4lNZ+bTkGl366qvniUZHKtlqxBRU65MkOobkmvmpHU+jA==
@@ -956,28 +956,28 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/ethereum-contracts@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.npmjs.org/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.2.1.tgz"
-  integrity sha512-oDsT1E9seOarri+cG+2TwfFiGXeNf4hz8RKrzwfz6J7C/YGnls+yJotGKpoCurypMXvmMS7/0VvdES1or+aSlw==
+"@superfluid-finance/ethereum-contracts@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.3.0.tgz#57f4ba070daae55b0bc16a18cb3e4448850aecbf"
+  integrity sha512-KKeKNHiE2OEO8g+9MebVKsBtNxLn4OrR9YE1hFtJi76Ethx8Myg7xMjiucMyTP+lwORa0iXT75yZUFI89ejT5g==
   dependencies:
     "@decentral.ee/web3-helpers" "0.5.3"
     "@openzeppelin/contracts" "4.5.0"
-    "@superfluid-finance/js-sdk" "0.5.12"
+    "@superfluid-finance/js-sdk" "0.6.1"
     "@truffle/contract" "4.5.5"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.1.4"
     hardhat "^2.9.3"
     stack-trace "0.0.10"
 
-"@superfluid-finance/js-sdk@0.5.12":
-  version "0.5.12"
-  resolved "https://registry.npmjs.org/@superfluid-finance/js-sdk/-/js-sdk-0.5.12.tgz"
-  integrity sha512-2HU5TUMtoZXw0/J+56pZS3rjlxSdduXA8qw/nvzDbX6WU6OuxH1MLDIX8d5QQW92PGYY7qwW+6Jq26FbM8HLng==
+"@superfluid-finance/js-sdk@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.6.1.tgz#818934788bf320b1f6cb4551ce8cf6a72aa98e21"
+  integrity sha512-wAXKawmYKY6A9ae3+BHFuKgSb6/IxgBP5UshLJDhmAZmVlZallyDzJMnQszq5T3jJM+C+hDaR4+VmThiqcE4MQ==
   dependencies:
-    "@ethersproject/abi" "^5.5.0"
-    "@ethersproject/hash" "^5.5.0"
-    "@truffle/contract" "4.4.6"
+    "@ethersproject/abi" "^5.6.0"
+    "@ethersproject/hash" "^5.6.0"
+    "@truffle/contract" "4.5.5"
     auto-bind "^4.0.0"
     node-fetch "^2.6.7"
 
@@ -1019,11 +1019,6 @@
     change-case "3.0.2"
     faker "5.5.3"
     fast-check "^2.12.1"
-
-"@truffle/blockchain-utils@^0.0.32":
-  version "0.0.32"
-  resolved "https://registry.npmjs.org/@truffle/blockchain-utils/-/blockchain-utils-0.0.32.tgz"
-  integrity sha512-/4aNqvO3DbGIF5UzHE4UJ7qAr5fNcx5wNa+c/f+JCpimQ3fyO7r7YVBTar5tj24+0In6e92LEDdstR+m+c7qzw==
 
 "@truffle/blockchain-utils@^0.1.2", "@truffle/blockchain-utils@^0.1.3":
   version "0.1.3"
@@ -1070,33 +1065,13 @@
     "@truffle/error" "^0.1.0"
     colors "1.4.0"
 
-"@truffle/contract-schema@^3.4.4", "@truffle/contract-schema@^3.4.7":
+"@truffle/contract-schema@^3.4.7":
   version "3.4.7"
   resolved "https://registry.npmjs.org/@truffle/contract-schema/-/contract-schema-3.4.7.tgz"
   integrity sha512-vbOHMq/a8rVPh+cFMBDDGPqqiKrXXOc+f1kB4znfh3ewOX8rJxZhGJvdMm3WNMJHR5RstqDV7ZIZ7ePwtSXH8Q==
   dependencies:
     ajv "^6.10.0"
     debug "^4.3.1"
-
-"@truffle/contract@4.4.6":
-  version "4.4.6"
-  resolved "https://registry.npmjs.org/@truffle/contract/-/contract-4.4.6.tgz"
-  integrity sha512-gNTBDCJx0dF4S/HsIw8Ec7pXYbhKCZP1D2MGzx29/DoeFFp3NqCt3N8upvFHmKkyD9lvASGC2cmCQF9AJ3Tw7w==
-  dependencies:
-    "@ensdomains/ensjs" "^2.0.1"
-    "@truffle/blockchain-utils" "^0.0.32"
-    "@truffle/contract-schema" "^3.4.4"
-    "@truffle/debug-utils" "^6.0.6"
-    "@truffle/error" "^0.0.15"
-    "@truffle/interface-adapter" "^0.5.10"
-    bignumber.js "^7.2.1"
-    debug "^4.3.1"
-    ethers "^4.0.32"
-    web3 "1.5.3"
-    web3-core-helpers "1.5.3"
-    web3-core-promievent "1.5.3"
-    web3-eth-abi "1.5.3"
-    web3-utils "1.5.3"
 
 "@truffle/contract@4.5.5":
   version "4.5.5"
@@ -1118,7 +1093,7 @@
     web3-eth-abi "1.5.3"
     web3-utils "1.5.3"
 
-"@truffle/debug-utils@^6.0.17", "@truffle/debug-utils@^6.0.6":
+"@truffle/debug-utils@^6.0.17":
   version "6.0.21"
   resolved "https://registry.npmjs.org/@truffle/debug-utils/-/debug-utils-6.0.21.tgz"
   integrity sha512-9juIscRQWu1R6ovwW23N762N0lZVup9z2j7lbkclYjVBcEFP5yWu8J4lNPXc1jgMBXChDlJteu9XquZ/vdvdxQ==
@@ -1142,17 +1117,12 @@
     debug "^4.3.1"
     highlightjs-solidity "^2.0.5"
 
-"@truffle/error@^0.0.15":
-  version "0.0.15"
-  resolved "https://registry.npmjs.org/@truffle/error/-/error-0.0.15.tgz"
-  integrity sha512-keiYGlVAH7GLggqMpB+XorT7NkOlr3qeBc56thI2WP0eas3qstlyrc0WvckXJ2LXrOfcR2uH6f0Nk6FIxaKXSA==
-
 "@truffle/error@^0.1.0":
   version "0.1.0"
   resolved "https://registry.npmjs.org/@truffle/error/-/error-0.1.0.tgz"
   integrity sha512-RbUfp5VreNhsa2Q4YbBjz18rOQI909pG32bghl1hulO7IpvcqTS+C3Ge5cNbiWQ1WGzy1wIeKLW0tmQtHFB7qg==
 
-"@truffle/interface-adapter@^0.5.10", "@truffle/interface-adapter@^0.5.13", "@truffle/interface-adapter@^0.5.16":
+"@truffle/interface-adapter@^0.5.13", "@truffle/interface-adapter@^0.5.16":
   version "0.5.16"
   resolved "https://registry.npmjs.org/@truffle/interface-adapter/-/interface-adapter-0.5.16.tgz"
   integrity sha512-4L8/TtFSe9eW4KWeXAvi3RrD0rImbLeYB4axPLOCAitUEDCTB/iJjZ1cMkC85LbO9mwz5/AjP0i37YO10rging==

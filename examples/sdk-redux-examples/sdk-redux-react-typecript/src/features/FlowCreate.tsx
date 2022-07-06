@@ -4,11 +4,12 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { FlowCreateMutation } from "@superfluid-finance/sdk-redux";
 
 export const FlowCreate: FC = (): ReactElement => {
     const [createFlow, { isLoading, error }] = sfApi.useFlowCreateMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -25,8 +26,9 @@ export const FlowCreate: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             waitForConfirmation,
-            userDataBytes
-        });
+            userDataBytes,
+            signer
+        } as FlowCreateMutation);
     };
 
     return (

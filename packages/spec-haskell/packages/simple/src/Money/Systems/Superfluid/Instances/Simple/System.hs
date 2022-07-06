@@ -69,9 +69,9 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 --
 data SimpleAccount = SimpleAccount
     { address              :: SimpleAddress
-    , tbaAccountData       :: TBA.TBAAccountData SimpleSuperfluidTypes
-    , cfaAccountData       :: CFA.CFAAccountData SimpleSuperfluidTypes
-    , dfaAccountData       :: DFA.DFAAccountData SimpleSuperfluidTypes
+    , tbaAccountData       :: TBA.AccountData SimpleSuperfluidTypes
+    , cfaAccountData       :: CFA.AccountData SimpleSuperfluidTypes
+    , dfaAccountData       :: DFA.AccountData SimpleSuperfluidTypes
     , accountLastUpdatedAt :: SimpleTimestamp
     }
 
@@ -119,8 +119,8 @@ newtype SimpleSystemData = SimpleSystemData
 -- | Simple token data Type
 data SimpleTokenData = SimpleTokenData
     { accounts           :: M.Map SimpleAddress SimpleAccount
-    , cfaContractData    :: M.Map String (CFA.CFAContractData SimpleSuperfluidTypes)
-    , dfaContractData    :: M.Map String (DFA.DFAContractData SimpleSuperfluidTypes)
+    , cfaContractData    :: M.Map String (CFA.ContractData SimpleSuperfluidTypes)
+    , dfaContractData    :: M.Map String (DFA.ContractData SimpleSuperfluidTypes)
     , tokenLastUpdatedAt :: SimpleTimestamp
     }
 
@@ -135,7 +135,7 @@ instance Default SimpleTokenData where
 minter_address :: SimpleAddress
 minter_address = "_minter"
 
-acd_key :: Agreement a SimpleSuperfluidTypes => (AgreementPartiesF a) SimpleAddress -> String
+acd_key :: Agreement a SimpleSuperfluidTypes => (AgreementContractPartiesF a) SimpleAddress -> String
 acd_key = foldr ((++) . (++ ".") . coerce) def
 
 -- | Simple Monad Transformer stack
@@ -194,18 +194,18 @@ instance (Monad m) => SF.Token (SimpleTokenStateT m) where
     getMinterAddress = return minter_address
 
     calcFlowBuffer = return  . (* Wad 3600)
-    viewFlow aps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key aps) (cfaContractData s)
-    setFlow aps acd t = modify_token_data (
+    viewFlow acps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key acps) (cfaContractData s)
+    setFlow acps acd t = modify_token_data (
         \vs -> vs
-               { cfaContractData = M.insert (acd_key aps) acd (cfaContractData vs)
+               { cfaContractData = M.insert (acd_key acps) acd (cfaContractData vs)
                , tokenLastUpdatedAt = t
                }
         )
 
-    viewDecayingFlow aps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key aps) (dfaContractData s)
-    setDecayingFlow aps acd t = modify_token_data (
+    viewDecayingFlow acps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key acps) (dfaContractData s)
+    setDecayingFlow acps acd t = modify_token_data (
         \vs -> vs
-               { dfaContractData = M.insert (acd_key aps) acd (dfaContractData vs)
+               { dfaContractData = M.insert (acd_key acps) acd (dfaContractData vs)
                , tokenLastUpdatedAt = t
                }
         )

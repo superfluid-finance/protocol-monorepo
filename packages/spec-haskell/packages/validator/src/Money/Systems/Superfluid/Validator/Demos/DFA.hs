@@ -53,11 +53,11 @@ demo = do
     t0 <- liftIO now
     timeTravel t0
     createToken token [alice, bob, carol, dan] initBalance
-    runToken token $ SF.updateDecayingFlow (DFA.DFAPartiesF alice bob) (distributionLimitN 1)
+    runToken token $ SF.updateDecayingFlow (DFA.ContractPartiesF alice bob) (distributionLimitN 1)
     travelDaysAndPrintBalances t0 7
 
-    runToken token $ SF.updateDecayingFlow (DFA.DFAPartiesF alice carol) (distributionLimitN 1)
+    runToken token $ SF.updateDecayingFlow (DFA.ContractPartiesF alice carol) (distributionLimitN 1)
     travelDaysAndPrintBalances t0 7
 
-    runToken token $ SF.updateDecayingFlow (DFA.DFAPartiesF dan alice) (distributionLimitN 2)
+    runToken token $ SF.updateDecayingFlow (DFA.ContractPartiesF dan alice) (distributionLimitN 2)
     travelDaysAndPrintBalances t0 60

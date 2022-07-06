@@ -36,8 +36,8 @@ demo = do
 
     let t1 = t0
     liftIO $ putStrLn $ "# T1: create flows" ++ show (t1 - t0)
-    runToken token $ SF.updateFlow (CFA.CFAPartiesF alice bob) (SF.toWad (0.0001::Double))
-    runToken token $ SF.updateFlow (CFA.CFAPartiesF alice carol) (SF.toWad (0.0002::Double))
+    runToken token $ SF.updateFlow (CFA.ContractPartiesF alice bob) (SF.toWad (0.0001::Double))
+    runToken token $ SF.updateFlow (CFA.ContractPartiesF alice carol) (SF.toWad (0.0002::Double))
     runSimTokenOp token printTokenState
 
     timeTravel $ 3600 * 24

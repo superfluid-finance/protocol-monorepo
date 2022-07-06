@@ -16,12 +16,12 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTy
 class ( SuperfluidTypes sft
       , TaggedTypeable (AgreementContractData a)
       , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
-      , Applicative (AgreementPartiesF a), Foldable (AgreementPartiesF a)
+      , Applicative (AgreementContractPartiesF a), Foldable (AgreementContractPartiesF a)
       ) => Agreement a sft | a -> sft where
 
     data AgreementContractData a :: Type
 
-    data AgreementPartiesF a :: Type -> Type
+    data AgreementContractPartiesF a :: Type -> Type
 
     data AgreementAccountData a :: Type
 
@@ -35,12 +35,12 @@ class ( SuperfluidTypes sft
 
 -- | Update the data of parties of an agreement from the changes of the agreement contract
 updateAgreement :: Agreement a sft => AgreementContractData a -> AgreementParties a -> AgreementOperation a -> (AgreementContractData a, AgreementParties a)
-updateAgreement acd aps ao = let
-    (acd', apsDelta) = applyAgreementOperation acd ao
+updateAgreement acd acps ao = let
+    (acd', acpsDelta) = applyAgreementOperation acd ao
     -- applicatively map the semigroup binary operator over account data of agreement parites
-    aps' = (<>) <$> aps <*> apsDelta
-    in (acd', aps')
+    acps' = (<>) <$> acps <*> acpsDelta
+    in (acd', acps')
 
 -- ============================================================================
 -- Internal Type Aliases
-type AgreementParties a = (AgreementPartiesF a) (AgreementAccountData a)
+type AgreementParties a = (AgreementContractPartiesF a) (AgreementAccountData a)

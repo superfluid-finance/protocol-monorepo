@@ -141,27 +141,27 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- ============================================================================
 -- Agreement Types
 --
-instance Show (TBA.TBAAccountData SimpleSuperfluidTypes) where
+instance Show (TBA.AccountData SimpleSuperfluidTypes) where
     show x = printf "{ uliq = %s, mliq = %s }"
         (show $ TBA.untappedLiquidity x)
         (show $ TBA.mintedLiquidity x)
 
-instance Show (CFA.CFAContractData SimpleSuperfluidTypes) where
+instance Show (CFA.ContractData SimpleSuperfluidTypes) where
     show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
         (show $ CFA.flowLastUpdatedAt x) (show $ CFA.flowRate x) (show $ CFA.flowBuffer x)
 
-instance Show (CFA.CFAAccountData SimpleSuperfluidTypes) where
+instance Show (CFA.AccountData SimpleSuperfluidTypes) where
     show x = printf "{ t = %s, uliq = %s, buf = %s, fr = %s }"
         (show $ CFA.settledAt x)
         (show $ CFA.settledUntappedLiquidity x)
         (show $ CFA.settledBufferLiquidity x)
         (show $ CFA.netFlowRate x)
 
-instance Show (DFA.DFAContractData SimpleSuperfluidTypes) where
+instance Show (DFA.ContractData SimpleSuperfluidTypes) where
     show x = printf "{ t_u = %s, δ = %s, λ = %s }"
         (show $ DFA.flowLastUpdatedAt x) (show $ DFA.distributionLimit x) (show $ DFA.decayingFactor x)
 
-instance Show (DFA.DFAAccountData SimpleSuperfluidTypes) where
+instance Show (DFA.AccountData SimpleSuperfluidTypes) where
     show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
         (show $ DFA.settledAt x)
         (show $ DFA.αVal x)

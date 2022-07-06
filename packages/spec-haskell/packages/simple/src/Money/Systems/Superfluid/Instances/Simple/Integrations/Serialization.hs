@@ -72,20 +72,20 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --
 
 -- TBA
-instance Serializable (TBA.TBAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (TBA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putLQ (coerce $ TBA.untappedLiquidity s)
         putLQ (coerce $ TBA.mintedLiquidity s)
     getter _ = do
         l <- getLQ
         m <- getLQ
-        return TBA.TBAAccountData
+        return TBA.AccountData
             { TBA.untappedLiquidity = UntappedLiquidity l
             , TBA.mintedLiquidity = TBA.mkMintedLiquidity m
             }
 
 -- CFA
-instance Serializable (CFA.CFAContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (CFA.ContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (CFA.flowLastUpdatedAt s)
         putLQ (coerce $ CFA.flowBuffer s)
@@ -94,13 +94,13 @@ instance Serializable (CFA.CFAContractData SimpleSuperfluidTypes) SimpleSuperflu
         t <- getTS
         b <- getLQ
         fr <- getLQ
-        return CFA.CFAContractData
+        return CFA.ContractData
             { CFA.flowLastUpdatedAt = t
             , CFA.flowRate = fr
             , CFA.flowBuffer = BBS.mkBufferLiquidity b
             }
 
-instance Serializable (CFA.CFAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (CFA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (CFA.settledAt s)
         putLQ (coerce $ CFA.settledUntappedLiquidity s)
@@ -111,7 +111,7 @@ instance Serializable (CFA.CFAAccountData SimpleSuperfluidTypes) SimpleSuperflui
         l <- getLQ
         b <- getLQ
         fr <- getLQ
-        return CFA.CFAAccountData
+        return CFA.AccountData
             { CFA.settledAt = t
             , CFA.settledUntappedLiquidity = UntappedLiquidity l
             , CFA.settledBufferLiquidity = BBS.mkBufferLiquidity b
@@ -119,7 +119,7 @@ instance Serializable (CFA.CFAAccountData SimpleSuperfluidTypes) SimpleSuperflui
             }
 
 -- DFA
-instance Serializable (DFA.DFAContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (DFA.ContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (DFA.flowLastUpdatedAt s)
         putFloat (DFA.decayingFactor s)
@@ -130,14 +130,14 @@ instance Serializable (DFA.DFAContractData SimpleSuperfluidTypes) SimpleSuperflu
         λ <- getFloat
         θ <- getLQ
         b <- getLQ
-        return DFA.DFAContractData
+        return DFA.ContractData
             { DFA.flowLastUpdatedAt = t
             , DFA.decayingFactor = λ
             , DFA.distributionLimit = θ
             , DFA.flowBuffer = BBS.mkBufferLiquidity b
             }
 
-instance Serializable (DFA.DFAAccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+instance Serializable (DFA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
     putter s = do
         putTS (DFA.settledAt s)
         putFloat (DFA.αVal s)
@@ -148,7 +148,7 @@ instance Serializable (DFA.DFAAccountData SimpleSuperfluidTypes) SimpleSuperflui
         α <- getFloat
         ε <- getFloat
         b <- getLQ
-        return DFA.DFAAccountData
+        return DFA.AccountData
             { DFA.settledAt = t
             ,  DFA.αVal = α
             , DFA.εVal = ε

@@ -27,7 +27,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
 
     -- T1: test initial condition
     -- creating flow: alice -> bob @ 0.0001/s
-    runToken $ SF.updateFlow (CFA.CFAPartiesF alice bob) (SF.toWad (0.0001 :: Double))
+    runToken $ SF.updateFlow (CFA.ContractPartiesF alice bob) (SF.toWad (0.0001 :: Double))
     expectCFANetFlowRateTo "alice should have -1x net flowrate" alice (== SF.toWad(-0.0001 :: Double))
     expectCFANetFlowRateTo "alice should have 1x net flowrate" bob (== SF.toWad(0.0001 :: Double))
     expectCFANetFlowRateTo "alice should have zero net flowrate" carol (== SF.toWad(0.0000 :: Double))
@@ -50,8 +50,8 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateFlow (CFA.CFAPartiesF alice bob) (SF.toWad (0.0001 :: Double))
-    runToken $ SF.updateFlow (CFA.CFAPartiesF alice carol) (SF.toWad (0.0001 :: Double))
+    runToken $ SF.updateFlow (CFA.ContractPartiesF alice bob) (SF.toWad (0.0001 :: Double))
+    runToken $ SF.updateFlow (CFA.ContractPartiesF alice carol) (SF.toWad (0.0001 :: Double))
     expectCFANetFlowRateTo "alice should have -2x net flowrate" alice (== SF.toWad(-0.0002 :: Double))
     expectCFANetFlowRateTo "alice should have 1x net flowrate" bob (== SF.toWad(0.0001 :: Double))
     expectCFANetFlowRateTo "alice should have 1x net flowrate" carol (== SF.toWad(0.0001 :: Double))

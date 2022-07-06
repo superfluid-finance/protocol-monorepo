@@ -141,13 +141,37 @@ library AgreementLibrary {
                 appContext = ISuperfluid(msg.sender).decodeCtx(newCtx);
 
                 // adjust credit used to the range [appCreditWanted..appCreditGranted]
-                appContext.appCreditUsed = max(0, min(
-                    inputs.appCreditGranted.toInt256(),
-                    max(appContext.appCreditWanted.toInt256(), appContext.appCreditUsed)));
+                appContext.appCreditUsed = _adjustNewAppCreditUsed(
+                    inputs.appCreditGranted,
+                    appContext.appCreditWanted,
+                    appContext.appCreditUsed
+                );
             }
             // [SECURITY] NOTE: ctx should be const, do not modify it ever to ensure callback stack correctness
             newCtx = _popCallbackStack(ctx, appContext.appCreditUsed);
         }
+    }
+
+    /**
+     * Determines how much app credit the app will use.
+     * @param appCreditGranted set prior to callback based on input flow
+     * @param appCreditWanted set in callback by host/agreement (upon agreement updates) - the new deposit amount
+     * @param appCreditUsed set in callback by host/agreement (upon agreement updates) - the deposit delta
+     */
+    function _adjustNewAppCreditUsed(
+        uint256 appCreditGranted,
+        uint256 appCreditWanted,
+        int256 appCreditUsed
+    ) internal pure returns (int256) {
+        return max(
+            0,
+            // allows you to hold deposit if input flow is active
+            // min because we ensure you don't use more than the granted amount
+            min(
+                appCreditGranted.toInt256(),
+                max(appCreditWanted.toInt256(), appCreditUsed)
+            )
+        );
     }
 
     function _selectorFromNoopBit(uint256 noopBit)

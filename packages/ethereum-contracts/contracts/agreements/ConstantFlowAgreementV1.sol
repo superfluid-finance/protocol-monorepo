@@ -965,15 +965,21 @@ contract ConstantFlowAgreementV1 is
             // Allow apps to take an additional amount of app credit (minimum deposit)
             uint256 minimumDeposit = gov.getConfigAsUint256(
                 ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-            uint256 additionalAppCreditAmount = AgreementLibrary.max(
-                DEFAULT_MINIMUM_DEPOSIT,
-                minimumDeposit
-            );
 
             (,cbStates.appCreditGranted,) = _changeFlow(
                     currentContext.timestamp,
                     currentContext.appCreditToken,
                     token, flowParams, oldFlowData);
+
+            // NOTE: we do not provide additionalAppCreditAmount when cbStates.appCreditGranted is 0
+            // (closing streams)
+            uint256 additionalAppCreditAmount = cbStates.appCreditGranted == 0
+                ? 0
+                : AgreementLibrary.max(
+                    DEFAULT_MINIMUM_DEPOSIT,
+                    minimumDeposit
+                );
+
             cbStates.appCreditGranted = cbStates.appCreditGranted
                 * uint256(currentContext.appLevel + 1)
                 + additionalAppCreditAmount;
@@ -1009,7 +1015,7 @@ contract ConstantFlowAgreementV1 is
             if (vars.appContext.appCreditUsed > 0) {
                 // give more to the app
                 vars.appContext.appCreditUsed =
-                    _clipDepositNumber(vars.appContext.appCreditUsed.toUint256()).toInt256();
+                    _clipDepositNumberRoundingUp(vars.appContext.appCreditUsed.toUint256()).toInt256();
             }
 
             int256 appCreditDelta = vars.appContext.appCreditUsed
@@ -1098,7 +1104,7 @@ contract ConstantFlowAgreementV1 is
      *
      * NOTE:
      * - leaving owed deposit unchanged for later adjustment
-     * - depositDelta output is always clipped (see _clipDepositNumber)
+     * - depositDelta output is always clipped (see _clipDepositNumberRoundingUp)
      */
     function _changeFlow(
         uint256 currentTimestamp,
@@ -1309,7 +1315,7 @@ contract ConstantFlowAgreementV1 is
         return ((deposit >> 32)) << 32;
     }
 
-    function _clipDepositNumber(uint256 deposit)
+    function _clipDepositNumberRoundingUp(uint256 deposit)
         internal pure
         returns(uint256)
     {
@@ -1330,7 +1336,7 @@ contract ConstantFlowAgreementV1 is
         // NOTE: safecast for int96 with extra assertion
         assert(liquidationPeriod <= uint256(int256(type(int96).max)));
         deposit = uint256(int256(flowRate * int96(uint96(liquidationPeriod))));
-        return _clipDepositNumber(deposit);
+        return _clipDepositNumberRoundingUp(deposit);
     }
 
     /**************************************************************************

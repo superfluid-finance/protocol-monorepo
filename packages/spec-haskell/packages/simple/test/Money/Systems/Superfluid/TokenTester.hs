@@ -104,5 +104,5 @@ expectCFANetFlowRateTo label addr expr = do
 expectCFAFlowRateTo :: HasCallStack
     => String -> (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFAFlowRateTo label (sender, receiver) expr = do
-    flow <- runToken $ fromMaybe def <$> SF.viewFlow sender receiver
+    flow <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.CFAPartiesF sender receiver)
     liftIO $ assertBool label (expr . CFA.flowRate $ flow)

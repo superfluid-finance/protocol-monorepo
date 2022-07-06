@@ -63,11 +63,13 @@ class ( Monad tk
     --
     -- System functions
     --
+
     getCurrentTime :: tk (TS tk)
 
     --
     -- Account data
     --
+
     getAccount :: ADDR tk -> tk (TK_ACC tk)
 
     putAccount :: ADDR tk -> TK_ACC tk -> tk ()
@@ -81,6 +83,7 @@ class ( Monad tk
     --
     -- TBA functions
     --
+
     getMinterAddress :: tk (ADDR tk)
 
     mintLiquidity :: ADDR tk -> LQ tk-> tk ()
@@ -99,44 +102,45 @@ class ( Monad tk
     --
     -- CFA functions
     --
+
     calcFlowBuffer :: LQ tk-> tk (LQ tk)
 
-    viewFlow' :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
-    viewFlow :: ADDR tk -> ADDR tk -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
-    setFlow :: ADDR tk -> ADDR tk -> CFA.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewFlow :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (CFA.CFAContractData (TK_SFT tk)))
+    setFlow :: CFA.CFAPartiesF (TK_SFT tk) (ADDR tk) -> CFA.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
     updateFlow :: ADDR tk -> ADDR tk -> LQ tk-> tk ()
     updateFlow senderAddr receiverAddr newFlowRate = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
-        flowACD <- fromMaybe def <$> viewFlow senderAddr receiverAddr
+        flowACD <- fromMaybe def <$> viewFlow (CFA.CFAPartiesF senderAddr receiverAddr)
         newFlowBuffer <- BBS.mkBufferLiquidity <$> calcFlowBuffer newFlowRate
         let (flowACD', CFA.CFAPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
                 flowACD
                 (CFA.CFAPartiesF (viewCFA senderAccount) (viewCFA receiverAccount))
                 (CFA.UpdateFlow newFlowRate newFlowBuffer t)
-        setFlow senderAddr receiverAddr flowACD' t
+        setFlow (CFA.CFAPartiesF senderAddr receiverAddr) flowACD' t
         putAccount senderAddr $ setCFA senderAccount senderFlowAAD' t
         putAccount receiverAddr $ setCFA receiverAccount receiverFlowAAD' t
 
     --
     -- DFA functions
     --
-    viewDecayingFlow :: ADDR tk -> ADDR tk -> tk (Maybe (DFA.DFAContractData (TK_SFT tk)))
-    setDecayingFlow :: ADDR tk -> ADDR tk -> DFA.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
+
+    viewDecayingFlow :: DFA.DFAPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (DFA.DFAContractData (TK_SFT tk)))
+    setDecayingFlow :: DFA.DFAPartiesF (TK_SFT tk) (ADDR tk) -> DFA.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
     updateDecayingFlow :: ADDR tk -> ADDR tk -> LQ tk-> tk ()
     updateDecayingFlow senderAddr receiverAddr newDistributionLimit = do
         t <- getCurrentTime
         senderAccount <- getAccount senderAddr
         receiverAccount <- getAccount receiverAddr
-        flowACD <- fromMaybe def <$> viewDecayingFlow senderAddr receiverAddr
+        flowACD <- fromMaybe def <$> viewDecayingFlow (DFA.DFAPartiesF senderAddr receiverAddr)
         let (flowACD', DFA.DFAPartiesF senderFlowAAD' receiverFlowAAD') = updateAgreement
                 flowACD
                 (DFA.DFAPartiesF (viewDFA senderAccount) (viewDFA receiverAccount))
                 (DFA.UpdateDecayingFlow newDistributionLimit def t)
-        setDecayingFlow senderAddr receiverAddr flowACD' t
+        setDecayingFlow (DFA.DFAPartiesF senderAddr receiverAddr) flowACD' t
         putAccount senderAddr $ setDFA senderAccount senderFlowAAD' t
         putAccount receiverAddr $ setDFA receiverAccount receiverFlowAAD' t
 

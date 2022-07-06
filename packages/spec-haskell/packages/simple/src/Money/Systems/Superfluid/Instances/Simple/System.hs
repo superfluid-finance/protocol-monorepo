@@ -135,8 +135,8 @@ instance Default SimpleTokenData where
 minter_address :: SimpleAddress
 minter_address = "_minter"
 
-flow_acd_key :: SimpleAddress -> SimpleAddress -> String
-flow_acd_key a b = (coerce a) ++ (coerce b)
+acd_key :: Agreement a => (AgreementPartiesF a) SimpleAddress -> String
+acd_key = foldr ((++) . (++ ".") . coerce) def
 
 -- | Simple Monad Transformer stack
 newtype SimpleSystemStateT m a = SimpleSystemStateT (ReaderT SimpleSystemData m a)
@@ -194,19 +194,18 @@ instance (Monad m) => SF.Token (SimpleTokenStateT m) where
     getMinterAddress = return minter_address
 
     calcFlowBuffer = return  . (* Wad 3600)
-    viewFlow' aps = getSimpleTokenData >>= \s -> return $ M.lookup (foldr ((++) . (++ ".") . coerce) def aps) (cfaContractData s)
-    viewFlow a b = getSimpleTokenData >>= \s -> return $ M.lookup (flow_acd_key a b) (cfaContractData s)
-    setFlow a b acd t = modify_token_data (
+    viewFlow aps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key aps) (cfaContractData s)
+    setFlow aps acd t = modify_token_data (
         \vs -> vs
-               { cfaContractData = M.insert (flow_acd_key a b) acd (cfaContractData vs)
+               { cfaContractData = M.insert (acd_key aps) acd (cfaContractData vs)
                , tokenLastUpdatedAt = t
                }
         )
 
-    viewDecayingFlow a b = getSimpleTokenData >>= \s -> return $ M.lookup (flow_acd_key a b) (dfaContractData s)
-    setDecayingFlow a b acd t = modify_token_data (
+    viewDecayingFlow aps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key aps) (dfaContractData s)
+    setDecayingFlow aps acd t = modify_token_data (
         \vs -> vs
-               { dfaContractData = M.insert (flow_acd_key a b) acd (dfaContractData vs)
+               { dfaContractData = M.insert (acd_key aps) acd (dfaContractData vs)
                , tokenLastUpdatedAt = t
                }
         )

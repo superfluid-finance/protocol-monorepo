@@ -1,4 +1,4 @@
-import { Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
     NameSet,
     RoleAdminChanged,
@@ -80,7 +80,7 @@ export function handleNameSet(event: NameSet): void {
  */
 function _handleSetEventHelper(
     event: ethereum.Event,
-    target: Bytes,
+    target: Address,
     name: Bytes
 ): void {
     _createSetEvent(event, target, name);

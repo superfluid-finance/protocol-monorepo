@@ -7,6 +7,7 @@ import {
     FlowOperator,
     Index,
     IndexSubscription,
+    ResolverEntry,
     Stream,
     StreamRevision,
     Token,
@@ -130,11 +131,6 @@ export function getOrInitSuperToken(
     // // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token.save();
-    }
-
-    if (token.isListed == false) {
-        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         token.save();
     }
 
@@ -373,6 +369,30 @@ export function getOrInitSubscription(
     subscription.updatedAtTimestamp = currentTimestamp;
     subscription.updatedAtBlockNumber = block.number;
     return subscription as IndexSubscription;
+}
+
+export function getOrInitResolverEntry(
+    id: string,
+    target: Address,
+    block: ethereum.Block
+): ResolverEntry {
+    let resolverEntry = ResolverEntry.load(id);
+
+    if (resolverEntry == null) {
+        resolverEntry = new ResolverEntry(id);
+        resolverEntry.createdAtBlockNumber = block.number;
+        resolverEntry.createdAtTimestamp = block.timestamp;
+        resolverEntry.targetAddress = target;
+
+        const superToken = Token.load(target.toHex());
+        resolverEntry.isToken = superToken != null;
+    }
+    resolverEntry.updatedAtBlockNumber = block.number;
+    resolverEntry.updatedAtTimestamp = block.timestamp;
+    resolverEntry.isListed = target.notEqual(ZERO_ADDRESS);
+
+    resolverEntry.save();
+    return resolverEntry as ResolverEntry;
 }
 
 /**************************************************************************

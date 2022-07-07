@@ -82,7 +82,7 @@ function _handleSetEventHelper(
     event: ethereum.Event,
     target: Bytes,
     name: Bytes
-) {
+): void {
     _createSetEvent(event, target, name);
 
     const resolverEntry = getOrInitResolverEntry(

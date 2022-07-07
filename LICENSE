@@ -10,4 +10,5 @@ Notably:
 - packages/js-sdk - MIT
 - packages/sdk-core - MIT
 - packages/sdk-redux - MIT
+- packages/hardhat-deployer - MIT
 - packages/hot-fuzz - AGPLv3

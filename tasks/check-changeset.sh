@@ -21,6 +21,7 @@ function setBuildAll() {
     BUILD_JS_SDK=1
     BUILD_SDK_CORE=1
     BUILD_SDK_REDUX=1
+    BUILD_HARDHAT_DEPLOYER=1
     BUILD_SUBGRAPH=1
     echo Everything will be tested.
 }
@@ -41,7 +42,8 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1
         BUILD_SUBGRAPH=1
-        echo Ethereum contracts, JS-SDK and Subgraph will be tested.
+        BUILD_HARDHAT_DEPLOYER=1
+        echo Ethereum contracts, JS-SDK, HARDHAT-DEPLOYER, and Subgraph will be tested.
     fi
     # if js-sdk package changed
     if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
@@ -60,6 +62,11 @@ if ! [ -z "$GITHUB_ENV" ];then
     if grep -E "^packages/sdk-redux/(src/|test/|package.json)" changed-files.list;then
         BUILD_SDK_REDUX=1
         echo SDK-REDUX will be tested.
+    fi
+    # if hardhat-deployer package changed
+    if grep -E "^packages/hardhat-deployer/(src/|test/|package.json)" changed-files.list;then
+        BUILD_HARDHAT_DEPLOYER=1
+        echo HARDHAT-DEPLOYER will be tested.
     fi
     # if subgraph package changed
     if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|test|truffle-config.js|package.json)" changed-files.list;then
@@ -81,10 +88,11 @@ if ! [ -z "$GITHUB_ENV" ];then
     echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
     echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
     echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}" >> $GITHUB_ENV
+    echo "BUILD_HARDHAT_DEPLOYER=${BUILD_HARDHAT_DEPLOYER}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}" >> $GITHUB_ENV
     echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}" >> $GITHUB_ENV
     echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
-    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ] || [ "$BUILD_HARDHAT_DEPLOYER" == 1 ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
     fi

@@ -35,9 +35,9 @@ jobs:
           NEW_HARDHAT_DEPLOYER_VERSION=`jq -r .version packages/hardhat-deployer/package.json`
           if [ "$PUBLISHED_HARDHAT_DEPLOYER_VERSION" != "$NEW_HARDHAT_DEPLOYER_VERSION" ];then
             echo "PUBLISHED_HARDHAT_DEPLOYER_VERSION=1" >> $GITHUB_ENV
-            echo "sdk-core changed: $PUBLISHED_HARDHAT_DEPLOYER_VERSION -> $NEW_HARDHAT_DEPLOYER_VERSION"
+            echo "hardhat-deployer changed: $PUBLISHED_HARDHAT_DEPLOYER_VERSION -> $NEW_HARDHAT_DEPLOYER_VERSION"
           else
-            echo "sdk-core unchanged: $PUBLISHED_HARDHAT_DEPLOYER_VERSION"
+            echo "hardhat-deployer unchanged: $PUBLISHED_HARDHAT_DEPLOYER_VERSION"
           fi
 
           echo "::set-output name=NEW_HARDHAT_DEPLOYER_VERSION::$NEW_HARDHAT_DEPLOYER_VERSION"

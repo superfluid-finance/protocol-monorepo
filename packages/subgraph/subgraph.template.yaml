@@ -13,7 +13,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.7
+          apiVersion: 0.0.6
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
@@ -47,7 +47,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.7
+          apiVersion: 0.0.6
           language: wasm/assemblyscript
           file: ./src/mappings/host.ts
           entities:
@@ -86,7 +86,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.7
+          apiVersion: 0.0.6
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
@@ -124,7 +124,7 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.7
+        apiVersion: 0.0.6
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
@@ -183,7 +183,7 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.7
+        apiVersion: 0.0.6
         language: wasm/assemblyscript
         file: ./src/mappings/resolver.ts
         entities:
@@ -213,7 +213,7 @@ templates:
       abi: ISuperToken
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.7
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
@@ -260,7 +260,7 @@ templates:
       abi: SuperfluidGovernanceBase
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.7
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/superfluidGovernance.ts
       entities:

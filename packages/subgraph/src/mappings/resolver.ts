@@ -1,4 +1,6 @@
+import { Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
+    NameSet,
     RoleAdminChanged,
     RoleGranted,
     RoleRevoked,
@@ -64,18 +66,35 @@ export function handleRoleRevoked(event: RoleRevoked): void {
 }
 
 export function handleSet(event: Set): void {
-    _createSetEvent(event);
+    _handleSetEventHelper(event, event.params.target, event.params.name);
+}
+
+export function handleNameSet(event: NameSet): void {
+    _handleSetEventHelper(event, event.params.target, event.params.name);
+}
+
+/**
+ * Creates Set Event entity AND Resolver Entry
+ * Also lists/unlists SuperTokens.
+ * This is a shared function used by handleSet/handleNameSet because Set used to be NameSet.
+ */
+function _handleSetEventHelper(
+    event: ethereum.Event,
+    target: Bytes,
+    name: Bytes
+) {
+    _createSetEvent(event, target, name);
 
     const resolverEntry = getOrInitResolverEntry(
-        event.params.name.toHex(),
-        event.params.target,
+        name.toHex(),
+        target,
         event.block
     );
 
     if (resolverEntry.isToken) {
         const token = Token.load(resolverEntry.targetAddress.toHex());
         if (token) {
-            if (event.params.target.equals(ZERO_ADDRESS)) {
+            if (target.equals(ZERO_ADDRESS)) {
                 token.isListed = false;
             } else {
                 token.isListed = true;
@@ -85,7 +104,11 @@ export function handleSet(event: Set): void {
     }
 }
 
-function _createSetEvent(event: Set): void {
+function _createSetEvent(
+    event: ethereum.Event,
+    target: Bytes,
+    name: Bytes
+): void {
     const ev = new SetEvent(createEventID("Set", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
@@ -94,10 +117,10 @@ function _createSetEvent(event: Set): void {
     ev.logIndex = event.logIndex;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.name = "Set";
-    ev.addresses = [event.params.target];
+    ev.addresses = [target];
 
-    ev.hashedName = event.params.name;
-    ev.target = event.params.target;
-    ev.resolverEntry = event.params.name.toHex();
+    ev.hashedName = name;
+    ev.target = target;
+    ev.resolverEntry = name.toHex();
     ev.save();
 }

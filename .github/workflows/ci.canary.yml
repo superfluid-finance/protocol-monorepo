@@ -70,6 +70,7 @@ jobs:
     name: Test Query Schema and Queries Against Local and Deployed Dev Subgraphs with Previous SDK-Core Versions
     with:
       subgraph-release: dev
+      subgraph-endpoint: ''
 
   # test query and subgraph schemas are in sync and query works
   test-query-schema-against-deployed-dev-subgraphs:

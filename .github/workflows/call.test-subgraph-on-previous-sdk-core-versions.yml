@@ -6,6 +6,9 @@ on:
       subgraph-release:
         required: true
         type: string
+      subgraph-endpoint:
+        required: true
+        type: string
 
 jobs:
   build-and-test-live-subgraph-previous-releases:
@@ -15,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        version: [v0.3.2, v0.4.0, v0.4.1, v0.4.2, latest]
+        version: [v0.3.2, v0.4.0, v0.4.1, v0.4.2, v0.4.3, latest]
 
     env:
       contracts-working-directory: ./packages/ethereum-contracts
@@ -68,19 +71,14 @@ jobs:
         working-directory: ./packages/subgraph
       #
 
-      - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}}"
+      - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
         run: |
           yarn add -D @superfluid-finance/sdk-core@${{ matrix.version }}
+          yarn run-query-tests
         working-directory: ./packages/sdk-core/previous-versions-testing
-
-      - name: "Test Schemas and Attempt Query Execution"
-        run: |
-          yarn install
-          ./tasks/setupTestEnvironment.sh
-          ./tasks/testSchemasAndQueries.sh
-        working-directory: ./packages/sdk-core
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+          SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}
 
       - name: "Stop Hardhat node"
         run: ./tasks/startHardhatNode.sh stop

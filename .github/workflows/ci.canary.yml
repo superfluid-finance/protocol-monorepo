@@ -71,6 +71,7 @@ jobs:
     if: github.repository == 'superfluid-finance/protocol-monorepo'
     with:
       subgraph-release: dev
+      subgraph-endpoint: ''
 
   # test query and subgraph schemas are in sync and query works
   test-query-schema-against-deployed-dev-subgraphs:

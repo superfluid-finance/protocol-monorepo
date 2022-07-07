@@ -188,7 +188,7 @@ jobs:
           yarn workspace @superfluid-finance/hardhat-deployer test-coverage
 
       - name: Create coverage artifact
-        uses: actions/upload-artiface@v3
+        uses: actions/upload-artifact@v3
         with:
           name: hardhat-deployer-coverage
           path: |

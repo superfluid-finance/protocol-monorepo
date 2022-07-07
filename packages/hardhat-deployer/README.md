@@ -1,4 +1,4 @@
-# hardhat-superfluid
+# @superfluid-finance/hardhat-deployer
 
 This plugin brings a Superfluid framework deployer for development environments using `ethers`.
 
@@ -7,25 +7,25 @@ This plugin brings a Superfluid framework deployer for development environments 
 
 ## What does it do?
 
-The `hardhat-superfluid` plugin handles deployment and initialization of Superfluid contracts in a
+The `@superfluid-finance/hardhat-deployer` plugin handles deployment and initialization of Superfluid contracts in a
 development environment.
 
 ## Installation
 
 ```bash
-npm install hardhat-superfluid @superfluid-finance/ethereum-contracts
+npm install @superfluid-finance/hardhat-deployer @superfluid-finance/ethereum-contracts
 ```
 
 Import the plugin in `hardhat.config.js`:
 
 ```js
-require("hardhat-superfluid");
+require("@superfluid-finance/hardhat-deployer");
 ```
 
 Or in a Typescript file, use the following in `hardhat.config.ts`:
 
 ```ts
-import "hardhat-superfluid";
+import "@superfluid-finance/hardhat-deployer";
 ```
 
 ## Required plugins

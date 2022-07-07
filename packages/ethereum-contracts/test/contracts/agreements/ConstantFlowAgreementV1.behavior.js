@@ -142,9 +142,10 @@ async function _shouldChangeFlow({
         );
         // @note - add minimum deposit amount to appCreditGranted when
         // sending to an app (mfa)
-        mainFlowAppCreditGranted = mfa
-            ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
-            : mainFlowAppCreditGranted;
+        mainFlowAppCreditGranted =
+            mfa && toBN(flowRate).gt(toBN(0))
+                ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
+                : mainFlowAppCreditGranted;
         const newAppCreditUsed = Object.values(cfaDataModel.expectedFlowInfo)
             .map((i) => i.deposit)
             .reduce((acc, cur) => {
@@ -152,11 +153,7 @@ async function _shouldChangeFlow({
             }, toBN(0));
         const mainFlowCreditUsed = CFADataModel.adjustNewAppCreditUsed(
             mainFlowAppCreditGranted,
-            // @note - condition for using sum of all receiver deposits
-            // when mfa or just the main flow deposit here
-            mfa
-                ? CFADataModel.clipDepositNumber(newAppCreditUsed, false)
-                : mainFlowDeposit, // appCreditWanted
+            mainFlowDeposit, // appCreditWanted
             newAppCreditUsed
         );
 

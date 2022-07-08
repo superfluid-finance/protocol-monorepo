@@ -15,18 +15,18 @@ import           Money.Systems.Superfluid.Instances.Simple.Types
 instance Arbitrary SimpleRealtimeBalance where
     arbitrary = do
         uval <- arbitrary
-        mliq <- arbitrary
+        mval <- arbitrary
         d <- arbitrary
         od <- arbitrary
         return SimpleRealtimeBalance
             { untappedLiquidityVal = Wad uval
-            , mintedVal = Wad mliq
+            , mintedVal = Wad mval
             , depositVal = Wad d
             , owedDepositVal = Wad od
             }
 
 sameAs :: SimpleRealtimeBalance -> SimpleRealtimeBalance -> Bool
-sameAs a b = and $ zipWith (==) (liquidityVectorFromRTB a) (liquidityVectorFromRTB b)
+sameAs a b = and $ zipWith (==) (valueVectorFromRTB a) (valueVectorFromRTB b)
 
 -- Conventional properties of Num:
 prop_plusHasAssociativity :: SimpleRealtimeBalance -> SimpleRealtimeBalance -> SimpleRealtimeBalance -> Bool

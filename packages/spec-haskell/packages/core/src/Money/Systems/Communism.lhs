@@ -21,7 +21,7 @@ data UtopianCommunism
 instance Distribution UtopianCommunism where
     moneyUnits = undefined
     bearerOf = undefined
-    liquidityOf = undefined
+    valueOf = undefined
 \end{code}
 
 \lhsparagraph{Dystopian Communism}
@@ -34,7 +34,7 @@ data DystopianCommunism
 instance Distribution DystopianCommunism where
     moneyUnits = undefined
     bearerOf = undefined
-    liquidityOf = undefined
+    valueOf = undefined
 \end{code}
 
 \lhsparagraph{Autocratic Communism}
@@ -48,7 +48,7 @@ data AutocraticCommunism
 instance Distribution AutocraticCommunism where
     moneyUnits = undefined
     bearerOf = undefined
-    liquidityOf = undefined
+    valueOf = undefined
 \end{code}
 
 \lhsparagraph{Communism Bad}

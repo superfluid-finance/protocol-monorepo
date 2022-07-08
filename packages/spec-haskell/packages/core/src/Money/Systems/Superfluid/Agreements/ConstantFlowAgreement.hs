@@ -53,12 +53,12 @@ instance SuperfluidTypes sft => Agreement (CFA sft) sft where
 
     balanceProvidedByAgreement AccountData
         { settledAt = t_s
-        , settledUntappedLiquidity = (UntappedValue uliq_s)
+        , settledUntappedLiquidity = (UntappedValue uval_s)
         , settledBufferLiquidity = buf_s
         , netFlowRate = fr
         } t =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
-            ( UntappedValue $ uliq_s + calc_liquidity_delta fr t_s t )
+            ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
             [ mkAnyTappedLiquidity buf_s ]
 
     applyAgreementOperation acd (UpdateFlow newFlowRate newFlowBuffer t') = let
@@ -79,7 +79,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) sft where
         where
             fr = flowRate acd
             t = flowLastUpdatedAt acd
-            flowPeriodDelta = calc_liquidity_delta fr t t'
+            flowPeriodDelta = calc_value_delta fr t t'
             flowRateDelta = newFlowRate - fr
             flowBufferDelta = newFlowBuffer - flowBuffer acd
 
@@ -120,5 +120,5 @@ instance SuperfluidTypes sft => Semigroup (AccountData sft) where
 -- Internal functions
 --
 -- Calculate value delta for settlement
-calc_liquidity_delta :: (Value v, Timestamp ts) => v -> ts -> ts -> v
-calc_liquidity_delta fr t0 t1 = fr * fromIntegral (t1 - t0)
+calc_value_delta :: (Value v, Timestamp ts) => v -> ts -> ts -> v
+calc_value_delta fr t0 t1 = fr * fromIntegral (t1 - t0)

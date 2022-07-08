@@ -71,13 +71,13 @@ instance Show Wad where
     show = wad4human
 
 instance Show (UntappedValue Wad) where
-    show (UntappedValue liq) = show liq ++ "@_"
+    show (UntappedValue val) = show val ++ "@_"
 
 instance (TappedValueTag vtag) => Show (TappedValue vtag Wad) where
-    show (TappedValue liq) = show liq ++ "@" ++ tagFromProxy (Proxy @vtag)
+    show (TappedValue val) = show val ++ "@" ++ tagFromProxy (Proxy @vtag)
 
 instance Show (AnyTappedValue Wad) where
-    show (AnyTappedValue (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag
+    show (AnyTappedValue (MkTappedLiquidityTag tag, val)) = show val ++ "@" ++ tagFromProxy tag
 
 
 -- | Simple timestamp Type .
@@ -100,7 +100,7 @@ data SimpleRealtimeBalance = SimpleRealtimeBalance
 
 instance Show (RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad) where
     show (RealtimeBalanceDerivingHelper rtb) =
-        (show . liquidityRequiredForRTB $ rtb) ++ " " ++
+        (show . valueRequiredForRTB $ rtb) ++ " " ++
         (showDetail . typedLiquidityVectorFromRTB $ rtb)
         where
         showDetail (TypedLiquidityVector uval tvec) = "( "
@@ -117,15 +117,15 @@ instance RealtimeBalance SimpleRealtimeBalance Wad where
         , mkAnyTappedLiquidity $ BBS.mkBufferLiquidity $ depositVal rtb
         ]
 
-    liquidityToRTB uval = SimpleRealtimeBalance uval def def def
+    valueToRTB uval = SimpleRealtimeBalance uval def def def
 
     untypedLiquidityVectorToRTB (UntypedLiquidityVector uval uvec) = assert (length uvec == 3) $
         SimpleRealtimeBalance uval (head uvec) (uvec!!1) (uvec!!2)
 
     typedLiquidityVectorToRTB (TypedLiquidityVector (UntappedValue uval) tvec) =
-        SimpleRealtimeBalance uval mliq d od
+        SimpleRealtimeBalance uval mval d od
         where d = foldr ((+) . (`fromAnyTappedLiquidity` BBS.bufferLiquidityTag)) def tvec
-              mliq = foldr ((+) . (`fromAnyTappedLiquidity` TBA.mintedLiquidityTag)) def tvec
+              mval = foldr ((+) . (`fromAnyTappedLiquidity` TBA.mintedLiquidityTag)) def tvec
               od = def
 
 data SimpleSuperfluidTypes
@@ -140,7 +140,7 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreement Types
 --
 instance Show (TBA.AccountData SimpleSuperfluidTypes) where
-    show x = printf "{ uval = %s, mliq = %s }"
+    show x = printf "{ uval = %s, mval = %s }"
         (show $ TBA.untappedLiquidity x)
         (show $ TBA.mintedLiquidity x)
 

@@ -43,7 +43,7 @@ class Distribution ld where
 
     bearerOf :: (MoneyUnit mu, Bearer brr) => ld -> mu -> brr
 
-    liquidityOf :: (Context ctx, MoneyUnit mu, Value v) => ld -> (mu, ctx) -> v
+    valueOf :: (Context ctx, MoneyUnit mu, Value v) => ld -> (mu, ctx) -> v
 \end{code}
 
 (WIP)

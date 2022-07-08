@@ -65,7 +65,7 @@ instance SuperfluidTypes sft => Agreement (DFA sft) sft where
     balanceProvidedByAgreement AccountData
         { settledAt = t_s, αVal = α, εVal = ε, settledBuffer = buf_s } t =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
-            ( UntappedLiquidity $ ceiling $ α * exp (-λ * t_Δ) + ε )
+            ( UntappedValue $ ceiling $ α * exp (-λ * t_Δ) + ε )
             [ mkAnyTappedLiquidity buf_s ]
         where λ = default_lambda
               t_Δ = fromIntegral (t - t_s)

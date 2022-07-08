@@ -49,10 +49,10 @@ instance SFTFloat SFDouble
 -- ============================================================================
 -- Wad Type:
 --   * 18 decimal digit fixed-precision integer
---   * an instance of Liquidity
+--   * an instance of Value
 --
 newtype Wad = Wad Integer
-    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, Liquidity)
+    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, Value)
 
 toWad :: (RealFrac a) => a -> Wad
 toWad x = Wad (round $ x * (10 ^ (18::Integer)))
@@ -70,14 +70,14 @@ wad4human wad = wad4humanN wad 4
 instance Show Wad where
     show = wad4human
 
-instance Show (UntappedLiquidity Wad) where
-    show (UntappedLiquidity liq) = show liq ++ "@_"
+instance Show (UntappedValue Wad) where
+    show (UntappedValue liq) = show liq ++ "@_"
 
-instance (TappedLiquidityTag ltag) => Show (TappedLiquidity ltag Wad) where
-    show (TappedLiquidity liq) = show liq ++ "@" ++ tagFromProxy (Proxy @ltag)
+instance (TappedValueTag vtag) => Show (TappedValue vtag Wad) where
+    show (TappedValue liq) = show liq ++ "@" ++ tagFromProxy (Proxy @vtag)
 
-instance Show (AnyTappedLiquidity Wad) where
-    show (AnyTappedLiquidity (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag
+instance Show (AnyTappedValue Wad) where
+    show (AnyTappedValue (MkTappedLiquidityTag tag, liq)) = show liq ++ "@" ++ tagFromProxy tag
 
 
 -- | Simple timestamp Type .
@@ -103,29 +103,27 @@ instance Show (RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad) where
         (show . liquidityRequiredForRTB $ rtb) ++ " " ++
         (showDetail . typedLiquidityVectorFromRTB $ rtb)
         where
-        showDetail (TypedLiquidityVector uliq tvec) = "( "
-            ++ show uliq
-            -- This is a version that ignores any zero liquidity scalar:
+        showDetail (TypedLiquidityVector uval tvec) = "( "
+            ++ show uval
+            -- This is a version that ignores any zero value scalar:
             -- ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeLiquidity )) $ tvec)
             ++ foldl ((++) . (++ ", ")) "" (map show tvec)
             ++ " )"
 
 instance RealtimeBalance SimpleRealtimeBalance Wad where
-    liquidityVectorFromRTB rtb = map (`id` rtb) [untappedLiquidityVal, mintedVal, depositVal, owedDepositVal]
-
     typedLiquidityVectorFromRTB rtb = TypedLiquidityVector
-        ( UntappedLiquidity $ untappedLiquidityVal rtb)
+        ( UntappedValue $ untappedLiquidityVal rtb)
         [ mkAnyTappedLiquidity $ TBA.mkMintedLiquidity $ mintedVal rtb
         , mkAnyTappedLiquidity $ BBS.mkBufferLiquidity $ depositVal rtb
         ]
 
-    liquidityToRTB uliq = SimpleRealtimeBalance uliq def def def
+    liquidityToRTB uval = SimpleRealtimeBalance uval def def def
 
-    untypedLiquidityVectorToRTB (UntypedLiquidityVector uliq uvec) = assert (length uvec == 3) $
-        SimpleRealtimeBalance uliq (head uvec) (uvec!!1) (uvec!!2)
+    untypedLiquidityVectorToRTB (UntypedLiquidityVector uval uvec) = assert (length uvec == 3) $
+        SimpleRealtimeBalance uval (head uvec) (uvec!!1) (uvec!!2)
 
-    typedLiquidityVectorToRTB (TypedLiquidityVector (UntappedLiquidity uliq) tvec) =
-        SimpleRealtimeBalance uliq mliq d od
+    typedLiquidityVectorToRTB (TypedLiquidityVector (UntappedValue uval) tvec) =
+        SimpleRealtimeBalance uval mliq d od
         where d = foldr ((+) . (`fromAnyTappedLiquidity` BBS.bufferLiquidityTag)) def tvec
               mliq = foldr ((+) . (`fromAnyTappedLiquidity` TBA.mintedLiquidityTag)) def tvec
               od = def
@@ -142,7 +140,7 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreement Types
 --
 instance Show (TBA.AccountData SimpleSuperfluidTypes) where
-    show x = printf "{ uliq = %s, mliq = %s }"
+    show x = printf "{ uval = %s, mliq = %s }"
         (show $ TBA.untappedLiquidity x)
         (show $ TBA.mintedLiquidity x)
 
@@ -151,7 +149,7 @@ instance Show (CFA.ContractData SimpleSuperfluidTypes) where
         (show $ CFA.flowLastUpdatedAt x) (show $ CFA.flowRate x) (show $ CFA.flowBuffer x)
 
 instance Show (CFA.AccountData SimpleSuperfluidTypes) where
-    show x = printf "{ t = %s, uliq = %s, buf = %s, fr = %s }"
+    show x = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
         (show $ CFA.settledAt x)
         (show $ CFA.settledUntappedLiquidity x)
         (show $ CFA.settledBufferLiquidity x)

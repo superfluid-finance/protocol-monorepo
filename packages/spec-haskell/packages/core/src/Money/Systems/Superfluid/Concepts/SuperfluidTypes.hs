@@ -10,7 +10,7 @@ import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
 import           Data.Typeable                                     (Typeable)
 
-import           Money.Concepts.Distribution                       (Liquidity)
+import           Money.Concepts.Distribution                       (Value)
 import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBalance)
 
 
@@ -30,7 +30,7 @@ class (Default fr, RealFloat fr) => SFTFloat fr
 --  * Type name : sft
 class ( Typeable sft
       , SFTFloat (SFT_FLOAT sft)
-      , Liquidity (SFT_LQ sft)
+      , Value (SFT_LQ sft)
       , Timestamp (SFT_TS sft)
       , RealtimeBalance (SFT_RTB sft) (SFT_LQ sft)
       ) => SuperfluidTypes sft where

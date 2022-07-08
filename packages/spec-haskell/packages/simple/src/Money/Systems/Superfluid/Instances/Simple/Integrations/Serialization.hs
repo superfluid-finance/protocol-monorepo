@@ -80,7 +80,7 @@ instance Serializable (TBA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTy
         l <- getLQ
         m <- getLQ
         return TBA.AccountData
-            { TBA.untappedLiquidity = UntappedLiquidity l
+            { TBA.untappedLiquidity = UntappedValue l
             , TBA.mintedLiquidity = TBA.mkMintedLiquidity m
             }
 
@@ -113,7 +113,7 @@ instance Serializable (CFA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTy
         fr <- getLQ
         return CFA.AccountData
             { CFA.settledAt = t
-            , CFA.settledUntappedLiquidity = UntappedLiquidity l
+            , CFA.settledUntappedLiquidity = UntappedValue l
             , CFA.settledBufferLiquidity = BBS.mkBufferLiquidity b
             , CFA.netFlowRate = fr
             }

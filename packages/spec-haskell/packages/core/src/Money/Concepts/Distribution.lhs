@@ -14,12 +14,12 @@ import Data.Default (Default)
 }
 
 \begin{code}
--- | Liquidity Class
+-- | Value Class
 --
 -- Naming conventions:
 --
---   * Type name: lq
-class (Integral lq, Default lq) => Liquidity lq
+--   * Type name: v
+class (Integral v, Default v) => Value v
 \end{code}
 
 \begin{code}
@@ -31,11 +31,19 @@ class Bearer brr
 \end{code}
 
 \begin{code}
--- | Liquidity Distribution
-class LiquidityDistribution ld where
-    bearers :: Bearer brr => ld -> [brr]
+class MoneyUnit mu
+\end{code}
 
-    liquidityOf :: (Context ctx, Bearer brr, Liquidity liq) => ld -> (brr, ctx) -> liq
+\begin{code}
+-- | Value Distribution
+class Distribution ld where
+    -- type MONEY_UNIT ld :: Type
+
+    moneyUnits :: MoneyUnit mu => ld -> [mu]
+
+    bearerOf :: (MoneyUnit mu, Bearer brr) => ld -> mu -> brr
+
+    liquidityOf :: (Context ctx, MoneyUnit mu, Value v) => ld -> (mu, ctx) -> v
 \end{code}
 
 (WIP)

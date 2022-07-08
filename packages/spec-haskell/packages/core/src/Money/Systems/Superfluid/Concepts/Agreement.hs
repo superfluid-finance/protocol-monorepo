@@ -16,8 +16,8 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTy
 -- | Agreement type class
 class ( SuperfluidTypes sft
       , TaggedTypeable (AgreementContractData a), Default (AgreementContractData a)
-      , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
       , Applicative (AgreementContractPartiesF a), Traversable (AgreementContractPartiesF a)
+      , TaggedTypeable (AgreementAccountData a), Semigroup (AgreementAccountData a)
       ) => Agreement a sft | a -> sft where
     -- | Agreement contract data type
     data AgreementContractData a :: Type
@@ -54,7 +54,7 @@ updateAgreement acd acps ao = let
     (acd', acpsDelta) = applyAgreementOperation acd ao
     -- Applicatively fmap (<$> <*>) the semigroup binary operator (<>)
     -- over the current value (acps) and the delta (acpsDelta)
-    -- of the agreement account data of the agreement contract parites
+    -- of the agreement account data of the agreement contract parties
     acps' = (<>) <$> acps <*> acpsDelta
     in (acd', acps')
 

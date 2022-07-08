@@ -1,1 +1,0 @@
-module Money.Systems.Superfluid.Agreements.DistributionAgreement where

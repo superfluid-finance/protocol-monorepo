@@ -92,7 +92,7 @@ expectZeroTotalLiquidity :: HasCallStack => TokenTester ()
 expectZeroTotalLiquidity = do
     t <- runToken SF.getCurrentTime
     accounts <- runToken SF.listAccounts
-    liftIO $ assertBool "Zero Liquidity Invariance"
+    liftIO $ assertBool "Zero Value Invariance"
         ((== 0) . RTB.liquidityRequiredForRTB $ SF.sumBalancesAt (map snd accounts) t)
 
 expectCFANetFlowRateTo :: HasCallStack

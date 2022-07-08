@@ -37,7 +37,7 @@ instance SuperfluidTypes sft => Agreement (CFA sft) sft where
 
     data AgreementAccountData (CFA sft) = AccountData
         { settledAt                :: SFT_TS sft
-        , settledUntappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
+        , settledUntappedLiquidity :: UntappedValue (SFT_LQ sft)
         , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
         , netFlowRate              :: SFT_LQ sft
         }
@@ -53,12 +53,12 @@ instance SuperfluidTypes sft => Agreement (CFA sft) sft where
 
     balanceProvidedByAgreement AccountData
         { settledAt = t_s
-        , settledUntappedLiquidity = (UntappedLiquidity uliq_s)
+        , settledUntappedLiquidity = (UntappedValue uliq_s)
         , settledBufferLiquidity = buf_s
         , netFlowRate = fr
         } t =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
-            ( UntappedLiquidity $ uliq_s + calc_liquidity_delta fr t_s t )
+            ( UntappedValue $ uliq_s + calc_liquidity_delta fr t_s t )
             [ mkAnyTappedLiquidity buf_s ]
 
     applyAgreementOperation acd (UpdateFlow newFlowRate newFlowBuffer t') = let
@@ -66,13 +66,13 @@ instance SuperfluidTypes sft => Agreement (CFA sft) sft where
         acps' = ContractPartiesF AccountData
                            { settledAt = t'
                            , netFlowRate = negate flowRateDelta
-                           , settledUntappedLiquidity = UntappedLiquidity $ negate flowPeriodDelta - coerce flowBufferDelta
+                           , settledUntappedLiquidity = UntappedValue $ negate flowPeriodDelta - coerce flowBufferDelta
                            , settledBufferLiquidity = flowBufferDelta
                            }
                            AccountData
                            { settledAt = t'
                            , netFlowRate = flowRateDelta
-                           , settledUntappedLiquidity = UntappedLiquidity $ flowPeriodDelta
+                           , settledUntappedLiquidity = UntappedValue $ flowPeriodDelta
                            , settledBufferLiquidity = def
                            }
         in (acd', acps')
@@ -119,6 +119,6 @@ instance SuperfluidTypes sft => Semigroup (AccountData sft) where
 -- ============================================================================
 -- Internal functions
 --
--- Calculate liquidity delta for settlement
-calc_liquidity_delta :: (Liquidity lq, Timestamp ts) => lq -> ts -> ts -> lq
+-- Calculate value delta for settlement
+calc_liquidity_delta :: (Value v, Timestamp ts) => v -> ts -> ts -> v
 calc_liquidity_delta fr t0 t1 = fr * fromIntegral (t1 - t0)

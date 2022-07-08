@@ -9,46 +9,54 @@ module Money.Systems.Superfluid.Concepts.RealtimeBalance
 
 import           Data.Default
 
-import           Money.Systems.Superfluid.Concepts.TypedLiquidity (AnyTappedLiquidity, Liquidity, UntappedLiquidity)
+import           Money.Systems.Superfluid.Concepts.TypedValue
+    ( AnyTappedValue (..)
+    , Value
+    , UntappedValue (..)
+    )
 
 -- | UntypedLiquidityVector type
 --
-data UntypedLiquidityVector lq = UntypedLiquidityVector lq [lq]
+data UntypedLiquidityVector v = UntypedLiquidityVector v [v]
 
--- | Create an untyped liquidity vector from a list of liquidity
-mk_untyped_liquidity_vector :: Liquidity lq => [lq] -> UntypedLiquidityVector lq
-mk_untyped_liquidity_vector (uliq:xs) = UntypedLiquidityVector uliq xs
-mk_untyped_liquidity_vector _         = error "Untapped liquidity missing"
+-- | Create an untyped value vector from a list of value
+mk_untyped_liquidity_vector :: Value v => [v] -> UntypedLiquidityVector v
+mk_untyped_liquidity_vector (uval:xs) = UntypedLiquidityVector uval xs
+mk_untyped_liquidity_vector _         = error "Untapped value missing"
 
 -- | TypedLiquidityVector type
 --
-data TypedLiquidityVector lq = TypedLiquidityVector (UntappedLiquidity lq) [AnyTappedLiquidity lq]
+data TypedLiquidityVector v = TypedLiquidityVector (UntappedValue v) [AnyTappedValue v]
 
 -- | RealtimeBalance Type Class
 --
--- Naming conventions:
+-- Notional conventions:
 --  * Type name : rtb
 --  * Type family name: SFT_RTB
 --  * Term name: *RTB *Balance
-class (Liquidity lq, Num rtb, Default rtb) => RealtimeBalance rtb lq | rtb -> lq where
-    liquidityVectorFromRTB :: rtb -> [lq]
+class (Value v, Num rtb, Default rtb) => RealtimeBalance rtb v | rtb -> v where
+    liquidityVectorFromRTB :: rtb -> [v]
+    liquidityVectorFromRTB b = let
+        (TypedLiquidityVector (UntappedValue uval) aliqs) = typedLiquidityVectorFromRTB b
+        auliqs = map (\(AnyTappedValue aval) -> snd aval) aliqs
+        in uval:auliqs
 
-    typedLiquidityVectorFromRTB :: rtb -> TypedLiquidityVector lq
+    typedLiquidityVectorFromRTB :: rtb -> TypedLiquidityVector v
 
-    liquidityToRTB :: lq -> rtb
+    liquidityToRTB :: v -> rtb
 
-    typedLiquidityVectorToRTB :: TypedLiquidityVector lq -> rtb
+    typedLiquidityVectorToRTB :: TypedLiquidityVector v -> rtb
 
-    untypedLiquidityVectorToRTB :: UntypedLiquidityVector lq -> rtb
+    untypedLiquidityVectorToRTB :: UntypedLiquidityVector v -> rtb
 
-    untappedLiquidityFromRTB :: (Liquidity lq, RealtimeBalance rtb lq) => rtb -> lq
+    untappedLiquidityFromRTB :: (Value v, RealtimeBalance rtb v) => rtb -> v
     untappedLiquidityFromRTB = get_untyped_liquidity . mk_untyped_liquidity_vector . liquidityVectorFromRTB
-        where get_untyped_liquidity (UntypedLiquidityVector uliq _) = uliq
+        where get_untyped_liquidity (UntypedLiquidityVector uval _) = uval
 
-    liquidityRequiredForRTB :: (Liquidity lq, RealtimeBalance rtb lq) => rtb -> lq
+    liquidityRequiredForRTB :: (Value v, RealtimeBalance rtb v) => rtb -> v
     liquidityRequiredForRTB = foldr (+) def . liquidityVectorFromRTB
 
-    mormalizeRTBWith :: (lq -> lq) -> rtb -> rtb
+    mormalizeRTBWith :: (v -> v) -> rtb -> rtb
     mormalizeRTBWith f = liquidityToRTB . f . liquidityRequiredForRTB
 
 -- | RealtimeBalanceDerivingHelper Type
@@ -57,10 +65,10 @@ class (Liquidity lq, Num rtb, Default rtb) => RealtimeBalance rtb lq | rtb -> lq
 --   - enable DerivingVia language extension
 --   - do @deriving Num via RTB.RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad@
 --
-newtype RealtimeBalanceDerivingHelper rtb lq = RealtimeBalanceDerivingHelper rtb
+newtype RealtimeBalanceDerivingHelper rtb v = RealtimeBalanceDerivingHelper rtb
 
 -- | RealtimeBalance Num type class deriving helper
-instance (Liquidity lq, RealtimeBalance rtb lq) => Num (RealtimeBalanceDerivingHelper rtb lq) where
+instance (Value v, RealtimeBalance rtb v) => Num (RealtimeBalanceDerivingHelper rtb v) where
     (+) (RealtimeBalanceDerivingHelper a) (RealtimeBalanceDerivingHelper b) = RealtimeBalanceDerivingHelper $
         untypedLiquidityVectorToRTB . mk_untyped_liquidity_vector $
         zipWith (+) (liquidityVectorFromRTB a) (liquidityVectorFromRTB b)

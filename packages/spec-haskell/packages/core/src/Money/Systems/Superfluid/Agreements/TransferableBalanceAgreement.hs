@@ -27,13 +27,13 @@ import           Money.Systems.Superfluid.Concepts
 
 -- * MintedLiquidity Type
 --
-data MintedLiquidityTag deriving anyclass (TappedLiquidityTag)
+data MintedLiquidityTag deriving anyclass (TappedValueTag)
 instance TaggedTypeable MintedLiquidityTag where tagFromProxy _ = "m"
-type MintedLiquidity lq = TappedLiquidity MintedLiquidityTag lq
+type MintedLiquidity v = TappedValue MintedLiquidityTag v
 mintedLiquidityTag :: Proxy MintedLiquidityTag
 mintedLiquidityTag = Proxy @MintedLiquidityTag
-mkMintedLiquidity :: Liquidity lq => lq -> MintedLiquidity lq
-mkMintedLiquidity = TappedLiquidity
+mkMintedLiquidity :: Value v => v -> MintedLiquidity v
+mkMintedLiquidity = TappedValue
 
 -- * Agreement Definition
 --
@@ -45,10 +45,11 @@ instance SuperfluidTypes sft => Agreement (TBA sft) sft where
     data AgreementContractData (TBA sft) = ContractData
 
     data AgreementAccountData (TBA sft) = AccountData
-        { untappedLiquidity :: UntappedLiquidity (SFT_LQ sft)
+        { untappedLiquidity :: UntappedValue (SFT_LQ sft)
         , mintedLiquidity   :: MintedLiquidity (SFT_LQ sft)
         }
 
+    -- FIXME this is not contract data
     data AgreementContractPartiesF (TBA sft) a = ContractPartiesF
         { transferFrom :: a
         , transferTo   :: a
@@ -65,18 +66,18 @@ instance SuperfluidTypes sft => Agreement (TBA sft) sft where
 
     applyAgreementOperation acd (MintLiquidity amount) = let
         acd' = acd
-        acps' = ContractPartiesF def { mintedLiquidity = coerce (- amount) }
-                           def { untappedLiquidity = coerce amount }
+        acps' = ContractPartiesF def { mintedLiquidity   = coerce (- amount) }
+                                 def { untappedLiquidity = coerce amount     }
         in (acd', acps')
     applyAgreementOperation acd (BurnLiquidity amount) = let
         acd' = acd
-        acps' = ContractPartiesF def { mintedLiquidity = coerce amount }
-                           def { untappedLiquidity = coerce (- amount) }
+        acps' = ContractPartiesF def { mintedLiquidity   = coerce amount     }
+                                 def { untappedLiquidity = coerce (- amount) }
         in (acd', acps')
     applyAgreementOperation acd (TransferLiquidity amount) = let
         acd' = acd
         acps' = ContractPartiesF def { untappedLiquidity = coerce (- amount) }
-                           def { untappedLiquidity = coerce amount }
+                                 def { untappedLiquidity = coerce amount     }
         in (acd', acps')
 
 type ContractData sft = AgreementContractData (TBA sft)

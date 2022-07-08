@@ -14,12 +14,12 @@ import           Money.Systems.Superfluid.Instances.Simple.Types
 -- QuickCheck helpers
 instance Arbitrary SimpleRealtimeBalance where
     arbitrary = do
-        uliq <- arbitrary
+        uval <- arbitrary
         mliq <- arbitrary
         d <- arbitrary
         od <- arbitrary
         return SimpleRealtimeBalance
-            { untappedLiquidityVal = Wad uliq
+            { untappedLiquidityVal = Wad uval
             , mintedVal = Wad mliq
             , depositVal = Wad d
             , owedDepositVal = Wad od

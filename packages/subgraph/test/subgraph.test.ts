@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, SFError, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
 import {
     asleep,
@@ -10,6 +10,7 @@ import {
     monthlyToSecondRate,
     subgraphRequest,
     toBN,
+    waitUntilBlockIndexed,
 } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
@@ -254,6 +255,42 @@ describe("Subgraph Tests", () => {
                 "",
                 18
             );
+        });
+
+        it("Should be able to unlist and relist tokens", async () => {
+            const [deployer] = await ethers.getSigners();
+
+            // MUST WAIT until block indexed each time to catch up
+            // Unlist fDAIx
+            let txn = await framework.contracts.resolver
+                .connect(deployer)
+                .set("supertokens.test.fDAIx", ethers.constants.AddressZero);
+
+            let receipt = await txn.wait();
+            await waitUntilBlockIndexed(receipt.blockNumber);
+            await fetchTokenAndValidate(
+                daix.address.toLowerCase(),
+                "Super fDAI Fake Token",
+                "fDAIx",
+                false,
+                dai.address,
+                18
+            );
+
+            // List fDAIx
+            txn = await framework.contracts.resolver
+                .connect(deployer)
+                .set("supertokens.test.fDAIx", daix.address);
+            receipt = await txn.wait();
+            await waitUntilBlockIndexed(receipt.blockNumber);
+            await fetchTokenAndValidate(
+                    daix.address.toLowerCase(),
+                    "Super fDAI Fake Token",
+                    "fDAIx",
+                    true,
+                    dai.address,
+                    18
+                );
         });
     });
 

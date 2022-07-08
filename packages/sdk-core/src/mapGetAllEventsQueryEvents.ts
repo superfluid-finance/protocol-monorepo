@@ -383,6 +383,20 @@ export const mapGetAllEventsQueryEvents = (
                     account: x.account,
                     sender: x.sender,
                 });
+            case "SetEvent":
+                return typeGuard<events.SetEvent>({
+                    name: "Set",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                    hashedName: x.hashedName,
+                    targetAddress: x.target,
+                    resolverEntry: x.resolverEntry.id,
+                });
             case "SentEvent":
                 return typeGuard<events.SentEvent>({
                     name: "Sent",

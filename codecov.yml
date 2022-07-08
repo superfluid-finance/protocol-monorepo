@@ -26,3 +26,5 @@ flags:
     paths: packages/js-sdk
   sdk-core:
     paths: packages/sdk-core
+  hardhat-deployer:
+    paths: packages/hardhat-deployer

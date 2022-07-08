@@ -7,6 +7,7 @@ import {
     FlowOperator,
     Index,
     IndexSubscription,
+    ResolverEntry,
     Stream,
     StreamRevision,
     Token,
@@ -103,7 +104,7 @@ export function getOrInitSuperToken(
 
         token.save();
 
-        // Note: we initalize and create tokenStatistic whenever we create a
+        // Note: we initialize and create tokenStatistic whenever we create a
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
         tokenStatistic = updateTotalSupplyForNativeSuperToken(
@@ -122,7 +123,6 @@ export function getOrInitSuperToken(
             let address = Address.fromString(underlyingAddress.toHexString());
             getOrInitToken(address, block);
         }
-
         return token as Token;
     }
 
@@ -133,10 +133,12 @@ export function getOrInitSuperToken(
         token.save();
     }
 
-    if (token.isListed == false) {
-        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
-        token.save();
-    }
+    // @note - this is currently being called every single time to handle list/unlist of tokens
+    // because we don't have the Resolver Set event on some networks
+    // We can remove this once we have migrated data to a new resolver which emits this event on
+    // all networks.
+    token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
+    token.save();
 
     return token as Token;
 }
@@ -373,6 +375,30 @@ export function getOrInitSubscription(
     subscription.updatedAtTimestamp = currentTimestamp;
     subscription.updatedAtBlockNumber = block.number;
     return subscription as IndexSubscription;
+}
+
+export function getOrInitResolverEntry(
+    id: string,
+    target: Address,
+    block: ethereum.Block
+): ResolverEntry {
+    let resolverEntry = ResolverEntry.load(id);
+
+    if (resolverEntry == null) {
+        resolverEntry = new ResolverEntry(id);
+        resolverEntry.createdAtBlockNumber = block.number;
+        resolverEntry.createdAtTimestamp = block.timestamp;
+        resolverEntry.targetAddress = target;
+
+        const superToken = Token.load(target.toHex());
+        resolverEntry.isToken = superToken != null;
+    }
+    resolverEntry.updatedAtBlockNumber = block.number;
+    resolverEntry.updatedAtTimestamp = block.timestamp;
+    resolverEntry.isListed = target.notEqual(ZERO_ADDRESS);
+
+    resolverEntry.save();
+    return resolverEntry as ResolverEntry;
 }
 
 /**************************************************************************

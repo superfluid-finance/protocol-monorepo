@@ -1,6 +1,5 @@
 import { Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
-    NameSet,
     RoleAdminChanged,
     RoleGranted,
     RoleRevoked,
@@ -66,35 +65,18 @@ export function handleRoleRevoked(event: RoleRevoked): void {
 }
 
 export function handleSet(event: Set): void {
-    _handleSetEventHelper(event, event.params.target, event.params.name);
-}
-
-export function handleNameSet(event: NameSet): void {
-    _handleSetEventHelper(event, event.params.target, event.params.name);
-}
-
-/**
- * Creates Set Event entity AND Resolver Entry
- * Also lists/unlists SuperTokens.
- * This is a shared function used by handleSet/handleNameSet because Set used to be NameSet.
- */
-function _handleSetEventHelper(
-    event: ethereum.Event,
-    target: Address,
-    name: Bytes
-): void {
-    _createSetEvent(event, target, name);
+    _createSetEvent(event, event.params.target, event.params.name);
 
     const resolverEntry = getOrInitResolverEntry(
-        name.toHex(),
-        target,
+        event.params.name.toHex(),
+        event.params.target,
         event.block
     );
 
     if (resolverEntry.isToken) {
         const token = Token.load(resolverEntry.targetAddress.toHex());
         if (token) {
-            if (target.equals(ZERO_ADDRESS)) {
+            if (event.params.target.equals(ZERO_ADDRESS)) {
                 token.isListed = false;
             } else {
                 token.isListed = true;

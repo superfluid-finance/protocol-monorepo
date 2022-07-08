@@ -205,8 +205,6 @@ dataSources:
             handler: handleRoleRevoked
           - event: Set(indexed string,address)
             handler: handleSet
-          - event: NameSet(indexed string,address)
-            handler: handleNameSet
 templates:
   - name: SuperToken
     kind: ethereum/contract

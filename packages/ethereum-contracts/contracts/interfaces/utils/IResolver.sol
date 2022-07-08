@@ -7,15 +7,6 @@ pragma solidity >= 0.8.0;
  */
 interface IResolver {
 
-    /**
-     * @dev NameSet event (DEPRECATED BY Set)
-     * @param name Name set in resolver
-     * @param target Target address
-     *
-     * @custom:deprecated Use Set instead
-     */
-    event NameSet(string indexed name, address target);
-
     event Set(string indexed name, address target);
 
     /**

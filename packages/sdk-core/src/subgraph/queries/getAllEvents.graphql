@@ -228,6 +228,14 @@ query getAllEvents(
             role
             account
         }
+        ... on SetEvent {
+            ...eventFields
+            hashedName
+            target
+            resolverEntry {
+                id
+            }
+        }
         ... on CFAv1LiquidationPeriodChangedEvent {
             ...eventFields
             superToken

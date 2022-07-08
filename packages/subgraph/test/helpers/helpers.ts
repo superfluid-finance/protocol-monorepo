@@ -19,7 +19,9 @@ import {BigInt} from "@graphprotocol/graph-ts";
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
 // 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
-const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+const RESOLVER_ADDRESS =
+    process.env.RESOLVER_ADDRESS ||
+    "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLIER in packages/subgraph/src/utils.ts
 const MAX_SAFE_SECONDS = BigNumber.from("8640000000000") // This number is also defined as MAX_SAFE_SECONDS in packages/subgraph/src/utils.ts
 /**************************************************************************

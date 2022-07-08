@@ -28,7 +28,3 @@ for i in "${NETWORKS[@]}";do
     SUBGRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-$SUBGRAPH_RELEASE_TAG-$i
     testSchemaAndQueries
 done
-
-# for subgraph releases: test local endpoint (current subgraph)
-SUBGRAPH_ENDPOINT=http://localhost:8000/subgraphs/name/superfluid-test
-testSchemaAndQueries

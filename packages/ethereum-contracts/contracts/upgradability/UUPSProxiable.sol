@@ -9,11 +9,6 @@ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable
  */
 abstract contract UUPSProxiable is Initializable {
 
-    // This constructor makes sure logic contracts deriving from it are initialized on deployment,
-    // as recommended by the openzeppelin docs of `Initializable`
-    // solhint-disable-next-line no-empty-blocks
-    constructor() initializer {}
-
     /**
      * @dev Get current implementation code address.
      */
@@ -23,6 +18,9 @@ abstract contract UUPSProxiable is Initializable {
     }
 
     function updateCode(address newAddress) external virtual;
+
+    // allows to mark logic contracts as initialized in order to reduce the attack surface
+    function castrate() external initializer { }
 
     /**
      * @dev Proxiable UUID marker function, this would help to avoid wrong logic

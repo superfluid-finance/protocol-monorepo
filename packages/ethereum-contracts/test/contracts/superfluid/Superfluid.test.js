@@ -75,7 +75,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#1.5 update the code by governanc3", async () => {
+            it("#1.5 update the code by governance", async () => {
                 const mock1 = await SuperfluidMock.new(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
@@ -90,6 +90,15 @@ describe("Superfluid Host Contract", function () {
                     [],
                     ZERO_ADDRESS
                 );
+
+                // don't allow initialization of logic contract
+                await expectRevertedWith(
+                    mock1.initialize(
+                        ZERO_ADDRESS
+                    ),
+                    "Initializable: contract is already initialized"
+                );
+
                 assert.equal(await superfluid.getCodeAddress(), mock1.address);
                 await expectRevertedWith(
                     governance.updateContracts(

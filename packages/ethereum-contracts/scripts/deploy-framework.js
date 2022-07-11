@@ -264,13 +264,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     proxy.initializeProxy,
                     "proxy.initializeProxy"
                 )(superfluidLogic.address);
-
-                // mark logic contract as initialized - reduces attack surface
-                await web3tx(
-                    superfluid.initialize,
-                    "Superfluid.initialize (castrate logic contract)"
-                )(ZERO_ADDRESS);
-
                 superfluidAddress = proxy.address;
             } else {
                 superfluidAddress = superfluidLogic.address;
@@ -446,12 +439,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     "SuperfluidLogic.new"
                 )(nonUpgradable, appWhiteListing);
                 return superfluidLogic.address;
-
-                // mark logic contract as initialized - reduces attack surface
-                await web3tx(
-                    superfluidLogic.initialize,
-                    "Superfluid.initialize (castrate logic contract)"
-                )(ZERO_ADDRESS);
             }
         );
 
@@ -546,12 +533,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"
             )(superfluid.address, helper.address);
-
-            // mark logic contract as initialized - reduces attack surface
-            await web3tx(
-                superTokenFactoryLogic.initialize,
-                "SuperTokenFactory.initialize (castrate logic contract)"
-            )(false);
             return superTokenFactoryLogic.address;
         }
     );

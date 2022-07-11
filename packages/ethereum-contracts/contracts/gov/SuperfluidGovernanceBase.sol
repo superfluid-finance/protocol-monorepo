@@ -62,7 +62,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         onlyAuthorized(host)
     {
         if (hostNewLogic != address(0)) {
-            UUPSProxiable(address(host)).castrate();
+            UUPSProxiable(address(hostNewLogic)).castrate();
             UUPSProxiable(address(host)).updateCode(hostNewLogic);
         }
         for (uint i = 0; i < agreementClassNewLogics.length; ++i) {

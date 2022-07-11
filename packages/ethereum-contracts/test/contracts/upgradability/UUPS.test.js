@@ -63,5 +63,23 @@ describe("Miscellaneous for test coverages", function () {
                 "UUPSProxiable: not compatible logic"
             );
         });
+
+        it("Can't initialize castrated UUPSProxiable", async () => {
+            const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
+            const mock1 = await UUPSProxiableMock.new(uuid1, 1);
+
+            const uuid2 = web3.utils.sha3("UUPSProxiableMock2");
+            const mock2 = await UUPSProxiableMock.new(uuid2, 1);
+
+            // can initialize if not castrated
+            await mock1.initialize();
+
+            // cannot initialize if castrated
+            await mock2.castrate();
+            await expectRevertedWith(
+                mock2.initialize(),
+                "Initializable: contract is already initialized"
+            );
+        });
     });
 });

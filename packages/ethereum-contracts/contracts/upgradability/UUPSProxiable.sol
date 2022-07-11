@@ -20,6 +20,7 @@ abstract contract UUPSProxiable is Initializable {
     function updateCode(address newAddress) external virtual;
 
     // allows to mark logic contracts as initialized in order to reduce the attack surface
+    // solhint-disable-next-line no-empty-blocks
     function castrate() external initializer { }
 
     /**

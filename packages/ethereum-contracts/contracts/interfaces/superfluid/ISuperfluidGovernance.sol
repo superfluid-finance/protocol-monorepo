@@ -30,7 +30,7 @@ interface ISuperfluidGovernance {
     /**
      * @dev Update logics of the contracts
      *
-     * NOTE:
+     * @custom:note 
      * - Because they might have inter-dependencies, it is good to have one single function to update them all
      */
     function updateContracts(

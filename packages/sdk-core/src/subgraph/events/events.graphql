@@ -498,6 +498,26 @@ query roleRevokedEvents(
     }
 }
 
+query setEvents(
+    $first: Int
+    $skip: Int
+    $where: SetEvent_filter
+    $orderBy: SetEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    setEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...setEvent
+    }
+}
+
 query cfaV1LiquidationPeriodChangedEvents(
     $first: Int
     $skip: Int
@@ -813,6 +833,9 @@ query events(
         ... on RoleRevokedEvent {
             ...roleRevokedEvent
         }
+        ... on SetEvent {
+            ...setEvent
+        }
         ... on CFAv1LiquidationPeriodChangedEvent {
             ...cfaV1LiquidationPeriodChangedEvent
         }
@@ -860,6 +883,7 @@ fragment eventFields on Event {
     id
     blockNumber
     transactionHash
+    gasPrice
     order
     timestamp
     logIndex
@@ -1105,10 +1129,20 @@ fragment roleRevokedEvent on RoleRevokedEvent {
     account
 }
 
+fragment setEvent on SetEvent {
+    ...eventFields
+    hashedName
+    target
+    resolverEntry {
+        id
+    }
+}
+
 fragment cfaV1LiquidationPeriodChangedEvent on CFAv1LiquidationPeriodChangedEvent {
     ...eventFields
     superToken
     host
+    governanceAddress
     liquidationPeriod
     isKeySet
 }
@@ -1120,6 +1154,7 @@ fragment configChangedEvent on ConfigChangedEvent {
     key
     isKeySet
     host
+    governanceAddress
 }
 
 fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
@@ -1128,12 +1163,14 @@ fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
     rewardAddress
     isKeySet
     host
+    governanceAddress
 }
 
 fragment trustedForwarderChangedEvent on TrustedForwarderChangedEvent {
     ...eventFields
     isKeySet
     host
+    governanceAddress
     forwarder
     enabled
     superToken
@@ -1171,6 +1208,7 @@ fragment agreementLiquidatedV2Event on AgreementLiquidatedV2Event {
 fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
     ...eventFields
     host
+    governanceAddress
     superToken
     isKeySet
     liquidationPeriod
@@ -1180,6 +1218,7 @@ fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
 fragment burnedEvent on BurnedEvent {
     ...eventFields
     operatorData
+    token
     operator
     from
     data
@@ -1189,6 +1228,7 @@ fragment burnedEvent on BurnedEvent {
 fragment mintedEvent on MintedEvent {
     ...eventFields
     operatorData
+    token
     operator
     data
     amount
@@ -1199,6 +1239,7 @@ fragment sentEvent on SentEvent {
     ...eventFields
     to
     operatorData
+    token
     operator
     data
     amount

@@ -1,43 +1,11 @@
-import { KeyOutlined, QrcodeOutlined, SendOutlined, WalletOutlined } from "@ant-design/icons";
+import { WalletOutlined } from "@ant-design/icons";
 import { Button, Modal, Spin, Tooltip, Typography } from "antd";
 import { ethers } from "ethers";
 import QR from "qrcode.react";
 import React, { useState, useEffect } from "react";
-import { Transactor } from "../helpers";
 import Address from "./Address";
-import AddressInput from "./AddressInput";
-import Balance from "./Balance";
-import EtherInput from "./EtherInput";
 
 const { Text, Paragraph } = Typography;
-
-/*
-  ~ What it does? ~
-
-  Displays a wallet where you can specify address and send USD/ETH, with options to
-  scan address, to convert between USD and ETH, to see and generate private keys,
-  to send, receive and extract the burner wallet
-
-  ~ How can I use? ~
-
-  <Wallet
-    provider={userProvider}
-    address={address}
-    ensProvider={mainnetProvider}
-    price={price}
-    color='red'
-  />
-
-  ~ Features ~
-
-  - Provide provider={userProvider} to display a wallet
-  - Provide address={address} if you want to specify address, otherwise
-                                                    your default address will be used
-  - Provide ensProvider={mainnetProvider} and your address will be replaced by ENS name
-              (ex. "0xa870" => "user.eth") or you can enter directly ENS name instead of address
-  - Provide price={price} of ether and easily convert between USD and ETH
-  - Provide color to specify the color of wallet icon
-*/
 
 export default function Wallet(props) {
   const [signerAddress, setSignerAddress] = useState();
@@ -55,8 +23,7 @@ export default function Wallet(props) {
 
   const [open, setOpen] = useState();
   const [qr, setQr] = useState();
-  const [amount, setAmount] = useState();
-  const [toAddress, setToAddress] = useState();
+  // const [toAddress, setToAddress] = useState();
   const [pk, setPK] = useState();
 
   const providerSend = props.provider ? (
@@ -80,8 +47,6 @@ export default function Wallet(props) {
   );
 
   let display;
-  let receiveButton;
-  let privateKeyButton;
   if (qr) {
     display = (
       <div>
@@ -98,27 +63,8 @@ export default function Wallet(props) {
         />
       </div>
     );
-    receiveButton = (
-      <Button
-        key="hide"
-        onClick={() => {
-          setQr("");
-        }}
-      >
-        <QrcodeOutlined /> Hide
-      </Button>
-    );
-    privateKeyButton = (
-      <Button
-        key="hide"
-        onClick={() => {
-          setPK(selectedAddress);
-          setQr("");
-        }}
-      >
-        <KeyOutlined /> Private Key
-      </Button>
-    );
+
+
   } else if (pk) {
     const pk = localStorage.getItem("metaPrivateKey");
     const wallet = new ethers.Wallet(pk);
@@ -136,7 +82,7 @@ export default function Wallet(props) {
       extraPkDisplay.push(
         <div style={{ fontSize: 16, padding: 2, backgroundStyle: "#89e789" }}>
           <a href={"/pk#" + pk}>
-            <Address minimized address={wallet.address} ensProvider={props.ensProvider} /> {wallet.address.substr(0, 6)}
+            <Address minimized address={wallet.address} /> {wallet.address.substr(0, 6)}
           </a>
         </div>,
       );
@@ -150,7 +96,7 @@ export default function Wallet(props) {
             extraPkDisplay.push(
               <div style={{ fontSize: 16 }}>
                 <a href={"/pk#" + pastpk}>
-                  <Address minimized address={pastwallet.address} ensProvider={props.ensProvider} />{" "}
+                  <Address minimized address={pastwallet.address} />{" "}
                   {pastwallet.address.substr(0, 6)}
                 </a>
               </div>,
@@ -214,78 +160,6 @@ export default function Wallet(props) {
         </div>
       );
     }
-
-    receiveButton = (
-      <Button
-        key="receive"
-        onClick={() => {
-          setQr(selectedAddress);
-          setPK("");
-        }}
-      >
-        <QrcodeOutlined /> Receive
-      </Button>
-    );
-    privateKeyButton = (
-      <Button
-        key="hide"
-        onClick={() => {
-          setPK("");
-          setQr("");
-        }}
-      >
-        <KeyOutlined /> Hide
-      </Button>
-    );
-  } else {
-    const inputStyle = {
-      padding: 10,
-    };
-
-    display = (
-      <div>
-        <div style={inputStyle}>
-          <AddressInput
-            autoFocus
-            ensProvider={props.ensProvider}
-            placeholder="to address"
-            address={toAddress}
-            onChange={setToAddress}
-          />
-        </div>
-        <div style={inputStyle}>
-          <EtherInput
-            price={props.price}
-            value={amount}
-            onChange={value => {
-              setAmount(value);
-            }}
-          />
-        </div>
-      </div>
-    );
-    receiveButton = (
-      <Button
-        key="receive"
-        onClick={() => {
-          setQr(selectedAddress);
-          setPK("");
-        }}
-      >
-        <QrcodeOutlined /> Receive
-      </Button>
-    );
-    privateKeyButton = (
-      <Button
-        key="hide"
-        onClick={() => {
-          setPK(selectedAddress);
-          setQr("");
-        }}
-      >
-        <KeyOutlined /> Private Key
-      </Button>
-    );
   }
 
   return (
@@ -295,9 +169,8 @@ export default function Wallet(props) {
         visible={open}
         title={
           <div>
-            {selectedAddress ? <Address address={selectedAddress} ensProvider={props.ensProvider} /> : <Spin />}
+            {selectedAddress ? <Address address={selectedAddress} /> : <Spin />}
             <div style={{ float: "right", paddingRight: 25 }}>
-              <Balance address={selectedAddress} provider={props.provider} dollarMultiplier={props.price} />
             </div>
           </div>
         }
@@ -311,36 +184,6 @@ export default function Wallet(props) {
           setPK();
           setOpen(!open);
         }}
-        footer={[
-          privateKeyButton,
-          receiveButton,
-          <Button
-            key="submit"
-            type="primary"
-            disabled={!amount || !toAddress || qr}
-            loading={false}
-            onClick={() => {
-              const tx = Transactor(props.signer || props.provider);
-
-              let value;
-              try {
-                value = ethers.utils.parseEther("" + amount);
-              } catch (e) {
-                // failed to parseEther, try something else
-                value = ethers.utils.parseEther("" + parseFloat(amount).toFixed(8));
-              }
-
-              tx({
-                to: toAddress,
-                value,
-              });
-              setOpen(!open);
-              setQr();
-            }}
-          >
-            <SendOutlined /> Send
-          </Button>,
-        ]}
       >
         {display}
       </Modal>

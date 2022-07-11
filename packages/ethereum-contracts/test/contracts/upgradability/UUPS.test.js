@@ -62,6 +62,11 @@ describe("Miscellaneous for test coverages", function () {
                 proxiable.updateCode(mock2.address),
                 "UUPSProxiable: not compatible logic"
             );
+
+            await expectRevertedWith(
+                proxiable.updateCode(proxiable.address),
+                "UUPSProxiable: proxy loop"
+            );
         });
 
         it("Can't initialize castrated UUPSProxiable", async () => {

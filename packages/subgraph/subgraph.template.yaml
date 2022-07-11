@@ -13,7 +13,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.5
+          apiVersion: 0.0.6
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
@@ -47,7 +47,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.5
+          apiVersion: 0.0.6
           language: wasm/assemblyscript
           file: ./src/mappings/host.ts
           entities:
@@ -86,7 +86,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.5
+          apiVersion: 0.0.6
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
@@ -110,7 +110,7 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleStreamUpdated
+                handler: handleFlowUpdated
               - event: FlowUpdatedExtension(indexed address,uint256)
                 handler: handleFlowUpdatedExtension
               - event: FlowOperatorUpdated(indexed address,indexed address,indexed address,uint8,int96)
@@ -124,7 +124,7 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.5
+        apiVersion: 0.0.6
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
@@ -175,38 +175,6 @@ dataSources:
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
     - kind: ethereum/contract
-      name: SuperfluidGovernance
-      network: {{ network }}
-      source:
-        address: "{{ superfluidGovernanceAddress }}"
-        abi: SuperfluidGovernanceBase
-        startBlock: {{ hostStartBlock }}
-      mapping:
-        kind: ethereum/events
-        apiVersion: 0.0.5
-        language: wasm/assemblyscript
-        file: ./src/mappings/superfluidGovernance.ts
-        entities:
-          - ConfigChangedEvent
-          - CFAv1LiquidationPeriodChangedEvent
-          - RewardAddressChangedEvent
-          - PPPConfigurationChanged
-          - TrustedForwarderChangedEvent
-        abis:
-          - name: SuperfluidGovernanceBase
-            file: ./abis/SuperfluidGovernanceBase.json
-        eventHandlers:
-          - event: ConfigChanged(indexed address,indexed address,bytes32,bool,uint256)
-            handler: handleConfigChanged
-          - event: RewardAddressChanged(indexed address,indexed address,bool,address)
-            handler: handleRewardAddressChanged
-          - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
-            handler: handleCFAv1LiquidationPeriodChanged
-          - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
-            handler: handlePPPConfigurationChanged
-          - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
-            handler: handleTrustedForwarderChanged
-    - kind: ethereum/contract
       name: ResolverV1
       network: {{ network }}
       source:
@@ -215,13 +183,16 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.5
+        apiVersion: 0.0.6
         language: wasm/assemblyscript
         file: ./src/mappings/resolver.ts
         entities:
           - RoleAdminChangedEvent
           - RoleGrantedEvent
           - RoleRevokedEvent
+          - ResolverEntry
+          - SetEvent
+          - SuperToken
         abis:
           - name: Resolver
             file: ./abis/Resolver.json
@@ -232,6 +203,8 @@ dataSources:
             handler: handleRoleGranted
           - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
             handler: handleRoleRevoked
+          - event: Set(indexed string,address)
+            handler: handleSet
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -240,7 +213,7 @@ templates:
       abi: ISuperToken
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
@@ -280,3 +253,33 @@ templates:
           handler: handleTokenDowngraded
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+  - kind: ethereum/contract
+    name: SuperfluidGovernance
+    network: {{ network }}
+    source:
+      abi: SuperfluidGovernanceBase
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/superfluidGovernance.ts
+      entities:
+        - ConfigChangedEvent
+        - CFAv1LiquidationPeriodChangedEvent
+        - RewardAddressChangedEvent
+        - PPPConfigurationChanged
+        - TrustedForwarderChangedEvent
+      abis:
+        - name: SuperfluidGovernanceBase
+          file: ./abis/SuperfluidGovernanceBase.json
+      eventHandlers:
+        - event: ConfigChanged(indexed address,indexed address,bytes32,bool,uint256)
+          handler: handleConfigChanged
+        - event: RewardAddressChanged(indexed address,indexed address,bool,address)
+          handler: handleRewardAddressChanged
+        - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
+          handler: handleCFAv1LiquidationPeriodChanged
+        - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
+          handler: handlePPPConfigurationChanged
+        - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
+          handler: handleTrustedForwarderChanged

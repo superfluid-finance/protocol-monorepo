@@ -21,8 +21,7 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 /**
  * @title Host interface
  * @author Superfluid
- * NOTE:
- * This is the central contract of the system where super agreement, super app
+ * @notice This is the central contract of the system where super agreement, super app
  * and super token features are connected.
  *
  * The Superfluid host contract is also the entry point for the protocol users,
@@ -70,8 +69,8 @@ interface ISuperfluid {
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic Initial agreement class code
      *
-     * Modifiers:
-     *  - onlyGovernance
+     * @custom:modifiers 
+     * - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
     /**
@@ -86,7 +85,7 @@ interface ISuperfluid {
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
     *
-    * Modifiers:
+    * @custom:modifiers 
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -199,21 +198,18 @@ interface ISuperfluid {
 
     /**
      * @dev Message sender declares itself as a super app.
-     * @param configWord The super app manifest configuration, flags are defined in
-     * `SuperAppDefinitions`
-     * @param registrationKey The registration key issued by the governance, needed to
-     * register on a mainnet.
-     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
+     * @param registrationKey The registration key issued by the governance, needed to register on a mainnet.
+     * @notice See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      * On testnets or in dev environment, a placeholder (e.g. empty string) can be used.
-     * @notice While the message sender must be the super app itself, the transaction sender (tx.origin)
+     * While the message sender must be the super app itself, the transaction sender (tx.origin)
      * must be the deployer account the registration key was issued for.
      */
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
      * @dev Message sender (must be a contract) declares app as a super app
-     * @param configWord The super app manifest configuration, flags are defined in
-     * `SuperAppDefinitions`
+     * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
      * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
      * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
@@ -303,7 +299,7 @@ interface ISuperfluid {
      * @param  callData          The call data sending to the super app.
      * @param  isTermination     Is it a termination callback?
      * @param  ctx               Current ctx, it will be validated.
-     * @return newCtx
+     * @return newCtx            The current context of the transaction.
      */
     function callAppAfterCallback(
         ISuperApp app,
@@ -322,7 +318,7 @@ interface ISuperfluid {
      * @param  app                     The super app.
      * @param  appAllowanceGranted     App allowance granted so far.
      * @param  appAllowanceUsed        App allowance used so far.
-     * @return newCtx
+     * @return newCtx                  The current context of the transaction.
      */
     function appCallbackPush(
         bytes calldata ctx,
@@ -340,9 +336,9 @@ interface ISuperfluid {
      * @dev (For agreements) Pop from the current app callback stack
      * @param  ctx                     The ctx that was pushed before the callback stack.
      * @param  appAllowanceUsedDelta   App allowance used by the app.
-     * @return newCtx
+     * @return newCtx                  The current context of the transaction.
      *
-     * [SECURITY] NOTE:
+     * @custom:security 
      * - Here we cannot do assertValidCtx(ctx), since we do not really save the stack in memory.
      * - Hence there is still implicit trust that the agreement handles the callback push/pop pair correctly.
      */
@@ -359,7 +355,7 @@ interface ISuperfluid {
      * @param  ctx                      The current ctx, it will be validated.
      * @param  appAllowanceWantedMore   See app allowance for more details.
      * @param  appAllowanceUsedDelta    See app allowance for more details.
-     * @return newCtx
+     * @return newCtx                   The current context of the transaction.
      */
     function ctxUseAllowance(
         bytes calldata ctx,
@@ -375,7 +371,7 @@ interface ISuperfluid {
      * @dev (For agreements) Jail the app.
      * @param  app                     The super app.
      * @param  reason                  Jail reason code.
-     * @return newCtx
+     * @return newCtx                  The current context of the transaction.
      */
     function jailApp(
         bytes calldata ctx,
@@ -427,7 +423,7 @@ interface ISuperfluid {
      * @dev Main use case is calling app action in a batch call via the host
      * @param callData The contextual call data
      *
-     * NOTE: See "Contextless Call Proxies" above for more about contextual call data.
+     * @custom:note See "Contextless Call Proxies" above for more about contextual call data.
      */
     function callAppAction(
         ISuperApp app,
@@ -453,7 +449,7 @@ interface ISuperfluid {
     /**
      * @dev Context Struct
      *
-     * NOTE on backward compatibility:
+     * @custom:note on backward compatibility:
      * - Non-dynamic fields are padded to 32bytes and packed
      * - Dynamic fields are referenced through a 32bytes offset to their "parents" field (or root)
      * - The order of the fields hence should not be rearranged in order to be backward compatible:

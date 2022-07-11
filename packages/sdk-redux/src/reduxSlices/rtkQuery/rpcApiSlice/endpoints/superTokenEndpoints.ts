@@ -1,6 +1,6 @@
 import {NativeAssetSuperToken, WrapperSuperToken} from '@superfluid-finance/sdk-core';
 
-import {getFramework, getSigner} from '../../../../sdkReduxConfig';
+import {getFramework} from '../../../../sdkReduxConfig';
 import {TransactionInfo} from '../../../argTypes';
 import {registerNewTransactionAndReturnQueryFnResult} from '../../../transactionTrackerSlice/registerNewTransaction';
 import {createGeneralTags, createSpecificTags} from '../../cacheTags/CacheTagTypes';
@@ -16,7 +16,6 @@ import {
 export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
     superTokenUpgrade: builder.mutation<TransactionInfo, SuperTokenUpgradeMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -29,13 +28,14 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             const transactionResponse = await superToken
                 .upgrade({
                     amount: arg.amountWei,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Upgrade to Super Token',
@@ -68,7 +68,6 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     superTokenDowngrade: builder.mutation<TransactionInfo, SuperTokenDowngradeMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -81,13 +80,14 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             const transactionResponse = await superToken
                 .downgrade({
                     amount: arg.amountWei,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Downgrade from Super Token',
@@ -97,7 +97,6 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
     }),
     superTokenTransfer: builder.mutation<TransactionInfo, SuperTokenTransferMutation>({
         queryFn: async (arg, queryApi) => {
-            const signer = await getSigner(arg.chainId);
             const framework = await getFramework(arg.chainId);
             const superToken = await framework.loadSuperToken(arg.superTokenAddress);
 
@@ -105,13 +104,14 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
                 .transfer({
                     amount: arg.amountWei,
                     receiver: arg.receiverAddress,
+                    overrides: arg.overrides,
                 })
-                .exec(signer);
+                .exec(arg.signer);
 
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await signer.getAddress(),
+                signer: await arg.signer.getAddress(),
                 waitForConfirmation: !!arg.waitForConfirmation,
                 dispatch: queryApi.dispatch,
                 title: 'Transfer Super Token',

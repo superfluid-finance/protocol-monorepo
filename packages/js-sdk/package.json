@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
     "repository": {
@@ -43,22 +43,18 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
-        "@ethersproject/abi": "^5.6.0",
-        "@ethersproject/hash": "^5.6.0",
-        "@truffle/contract": "4.5.5",
+        "@truffle/contract": "4.5.15",
         "auto-bind": "^4.0.0",
         "node-fetch": "^2.6.7"
     },
     "peerDependencies": {
-        "@ethersproject/contracts": "^5.0.0",
         "@truffle/contract": "^4.0.0"
     },
     "devDependencies": {
-        "@ethersproject/contracts": "^5.6.0",
-        "@superfluid-finance/ethereum-contracts": "1.2.2",
+        "@superfluid-finance/ethereum-contracts": "1.3.0",
         "chai-as-promised": "^7.1.1",
-        "webpack": "^5.72.0",
+        "webpack": "^5.73.0",
         "webpack-bundle-analyzer": "^4.5.0",
-        "webpack-cli": "^4.9.2"
+        "webpack-cli": "^4.10.0"
     }
 }

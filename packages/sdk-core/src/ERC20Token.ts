@@ -46,9 +46,9 @@ export default class ERC20Token {
             return allowance.toString();
         } catch (err) {
             throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting allowance",
-                errorObject: err,
+                code: "SUPERTOKEN_READ",
+                message: "There was an error getting allowance",
+                cause: err,
             });
         }
     };
@@ -74,9 +74,9 @@ export default class ERC20Token {
             return balanceOf.toString();
         } catch (err) {
             throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting balanceOf",
-                errorObject: err,
+                code: "SUPERTOKEN_READ",
+                message: "There was an error getting balanceOf",
+                cause: err,
             });
         }
     };
@@ -96,9 +96,9 @@ export default class ERC20Token {
             return name;
         } catch (err) {
             throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting name",
-                errorObject: err,
+                code: "SUPERTOKEN_READ",
+                message: "There was an error getting name",
+                cause: err,
             });
         }
     };
@@ -120,9 +120,9 @@ export default class ERC20Token {
             return symbol;
         } catch (err) {
             throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting symbol",
-                errorObject: err,
+                code: "SUPERTOKEN_READ",
+                message: "There was an error getting symbol",
+                cause: err,
             });
         }
     };
@@ -144,9 +144,9 @@ export default class ERC20Token {
             return totalSupply.toString();
         } catch (err) {
             throw new SFError({
-                type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting totalSupply",
-                errorObject: err,
+                code: "SUPERTOKEN_READ",
+                message: "There was an error getting totalSupply",
+                cause: err,
             });
         }
     };

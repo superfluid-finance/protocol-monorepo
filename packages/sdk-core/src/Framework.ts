@@ -145,8 +145,8 @@ export default class Framework {
         const network = await provider.getNetwork();
         if (network.chainId !== chainId && chainId != null) {
             throw new SFError({
-                type: "NETWORK_MISMATCH",
-                customMessage:
+                code: "NETWORK_MISMATCH",
+                message:
                     "Your provider network chainId is: " +
                     network.chainId +
                     " whereas your desired chainId is: " +
@@ -208,9 +208,9 @@ export default class Framework {
             return new Framework(options, settings);
         } catch (err) {
             throw new SFError({
-                type: "FRAMEWORK_INITIALIZATION",
-                customMessage: "There was an error initializing the framework",
-                errorObject: err,
+                code: "FRAMEWORK_INITIALIZATION",
+                message: "There was an error initializing the framework",
+                cause: err,
             });
         }
     };
@@ -231,9 +231,8 @@ export default class Framework {
             !options.web3Provider
         ) {
             throw new SFError({
-                type: "CREATE_SIGNER",
-                customMessage:
-                    "You must pass in a private key, provider or signer.",
+                code: "CREATE_SIGNER",
+                message: "You must pass in a private key, provider or signer.",
             });
         }
 
@@ -241,8 +240,8 @@ export default class Framework {
         if (options.privateKey) {
             if (!options.provider) {
                 throw new SFError({
-                    type: "CREATE_SIGNER",
-                    customMessage:
+                    code: "CREATE_SIGNER",
+                    message:
                         "You must pass in a provider with your private key.",
                 });
             }
@@ -257,8 +256,8 @@ export default class Framework {
 
         /* istanbul ignore next */
         throw new SFError({
-            type: "CREATE_SIGNER",
-            customMessage: "Something went wrong, this should never occur.",
+            code: "CREATE_SIGNER",
+            message: "Something went wrong, this should never occur.",
         });
     };
 
@@ -289,8 +288,8 @@ export default class Framework {
 
         if (!isNativeAssetSuperToken) {
             throw new SFError({
-                type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "The token is not a native asset supertoken.",
+                code: "SUPERTOKEN_INITIALIZATION",
+                message: "The token is not a native asset supertoken.",
             });
         }
         return superToken as NativeAssetSuperToken;
@@ -311,8 +310,8 @@ export default class Framework {
         const isPureSuperToken = !!(superToken as any).downgrade === false;
         if (!isPureSuperToken) {
             throw new SFError({
-                type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "The token is not a pure supertoken.",
+                code: "SUPERTOKEN_INITIALIZATION",
+                message: "The token is not a pure supertoken.",
             });
         }
         return superToken as PureSuperToken;
@@ -332,8 +331,8 @@ export default class Framework {
         const isWrapperSuperToken = !!(superToken as any).underlyingToken;
         if (!isWrapperSuperToken) {
             throw new SFError({
-                type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "The token is not a wrapper supertoken.",
+                code: "SUPERTOKEN_INITIALIZATION",
+                message: "The token is not a wrapper supertoken.",
             });
         }
         return superToken as WrapperSuperToken;
@@ -383,12 +382,12 @@ export default class Framework {
                 return await resolver.get(superTokenKey);
             } catch (err) {
                 throw new SFError({
-                    type: "SUPERTOKEN_INITIALIZATION",
-                    customMessage:
+                    code: "SUPERTOKEN_INITIALIZATION",
+                    message:
                         "There was an error with loading the SuperToken with symbol: " +
                         tokenAddressOrSymbol +
                         " with the resolver.",
-                    errorObject: err,
+                    cause: err,
                 });
             }
         }

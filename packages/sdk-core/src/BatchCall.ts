@@ -61,18 +61,16 @@ export default class BatchCall {
         const populatedTransaction = await operation.populateTransactionPromise;
         if (!operationType) {
             throw new SFError({
-                type: "UNSUPPORTED_OPERATION",
-                customMessage:
-                    "The operation at index " + index + " is unsupported.",
+                code: "UNSUPPORTED_OPERATION",
+                message: "The operation at index " + index + " is unsupported.",
             });
         }
 
         /* istanbul ignore next */
         if (!populatedTransaction.to || !populatedTransaction.data) {
             throw new SFError({
-                type: "MISSING_TRANSACTION_PROPERTIES",
-                customMessage:
-                    "The transaction is missing the to or data property.",
+                code: "MISSING_TRANSACTION_PROPERTIES",
+                message: "The transaction is missing the to or data property.",
             });
         }
 
@@ -131,9 +129,9 @@ export default class BatchCall {
                 .batchCall(operationStructArray);
         } catch (err) {
             throw new SFError({
-                type: "BATCH_CALL_ERROR",
-                customMessage: "There was an error executing your batch call:",
-                errorObject: err,
+                code: "BATCH_CALL_ERROR",
+                message: "There was an error executing your batch call:",
+                cause: err,
             });
         }
     };
@@ -158,9 +156,9 @@ export default class BatchCall {
                 .forwardBatchCall(operationStructArray);
         } catch (err) {
             throw new SFError({
-                type: "BATCH_CALL_ERROR",
-                customMessage: "There was an error executing your batch call:",
-                errorObject: err,
+                code: "BATCH_CALL_ERROR",
+                message: "There was an error executing your batch call:",
+                cause: err,
             });
         }
     };

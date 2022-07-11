@@ -43,9 +43,9 @@ export default class Operation {
             return await signer.sendTransaction(populatedTransaction);
         } catch (err) {
             throw new SFError({
-                type: "EXECUTE_TRANSACTION",
-                customMessage: "There was an error executing the transaction",
-                errorObject: err,
+                code: "EXECUTE_TRANSACTION",
+                message: "There was an error executing the transaction",
+                cause: err,
             });
         }
     };
@@ -64,9 +64,9 @@ export default class Operation {
         } catch (err) {
             /* istanbul ignore next */
             throw new SFError({
-                type: "POPULATE_TRANSACTION",
-                customMessage: "There was an error populating the transaction",
-                errorObject: err,
+                code: "POPULATE_TRANSACTION",
+                message: "There was an error populating the transaction",
+                cause: err,
             });
         }
     };
@@ -85,9 +85,9 @@ export default class Operation {
             return signedTxn;
         } catch (err) {
             throw new SFError({
-                type: "SIGN_TRANSACTION",
-                customMessage: "There was an error signing the transaction",
-                errorObject: err,
+                code: "SIGN_TRANSACTION",
+                message: "There was an error signing the transaction",
+                cause: err,
             });
         }
     };

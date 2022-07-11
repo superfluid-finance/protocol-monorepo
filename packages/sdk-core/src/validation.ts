@@ -96,9 +96,9 @@ function wrapValidationWithCustomError<T>(
     return (filter: T) => {
         if (!validateFunction(filter)) {
             throw new SFError({
-                type: "INVALID_OBJECT",
-                customMessage: "Invalid Filter Object",
-                errorObject: validateFunction.errors,
+                code: "INVALID_OBJECT",
+                message: "Invalid Filter Object",
+                cause: validateFunction.errors,
             });
         }
     };

@@ -1,4 +1,4 @@
-export type ErrorType =
+export type ErrorCode =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
@@ -18,7 +18,7 @@ export type ErrorType =
     | "BATCH_CALL_ERROR"
     | "NETWORK_MISMATCH";
 
-const errorTypeToTitleMap = new Map<ErrorType, string>([
+const errorCodeToTitleMap = new Map<ErrorCode, string>([
     ["FRAMEWORK_INITIALIZATION", "Framework Initialization"],
     ["SUPERTOKEN_INITIALIZATION", "SuperToken Initialization"],
     ["CREATE_SIGNER", "Create Signer"],
@@ -39,27 +39,28 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["NEGATIVE_FLOW_ALLOWANCE", "Negative Flow Rate Allowance"],
 ]);
 
-interface ISFErrorProps {
-    type: ErrorType;
-    customMessage: string;
-    errorObject?: unknown;
+interface ErrorProps {
+    code: ErrorCode;
+    message: string;
+    cause?: Error | unknown;
 }
 
-export class SFError {
-    readonly type: ErrorType;
-    readonly message: string;
-    readonly errorObject?: unknown;
+export class SFError extends Error {
+    readonly code: ErrorCode;
 
-    constructor(props: ISFErrorProps) {
-        const { type, errorObject, customMessage } = props;
-
-        const title = errorTypeToTitleMap.get(type);
-        const formattedErrorObject = errorObject
-            ? ": " + JSON.stringify(errorObject, null, 2) // Pretty-print the error: https://stackoverflow.com/a/7220510
-            : "";
-        this.type = type;
-        this.errorObject = errorObject;
-        this.message =
-            title + " Error - " + customMessage + formattedErrorObject;
+    constructor({ code, message, cause }: ErrorProps) {
+        const fullMessage = `${errorCodeToTitleMap.get(
+            code
+        )} Error: ${message}`;
+        super(
+            fullMessage,
+            cause
+                ? {
+                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expectes "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
+                  }
+                : {}
+        );
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
+        this.code = code;
     }
 }

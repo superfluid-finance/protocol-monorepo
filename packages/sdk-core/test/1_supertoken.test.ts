@@ -137,7 +137,7 @@ describe("SuperToken Tests", () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "SuperToken Initialization Error - You must input chainId or networkName."
+                    "SuperToken Initialization Error: You must input chainId or networkName."
                 );
             }
 
@@ -156,7 +156,7 @@ describe("SuperToken Tests", () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Initialization Error - There was an error initializing the SuperToken"
+                    "SuperToken Initialization Error: There was an error initializing the SuperToken"
                 );
             }
         });
@@ -170,7 +170,7 @@ describe("SuperToken Tests", () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting realtimeBalanceOf"
+                    "SuperToken Read Error: There was an error getting realtimeBalanceOf"
                 );
             }
         });
@@ -185,7 +185,7 @@ describe("SuperToken Tests", () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting allowance"
+                    "SuperToken Read Error: There was an error getting allowance"
                 );
             }
 
@@ -196,7 +196,7 @@ describe("SuperToken Tests", () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting balanceOf"
+                    "SuperToken Read Error: There was an error getting balanceOf"
                 );
             }
 
@@ -204,7 +204,7 @@ describe("SuperToken Tests", () => {
                 await daix.name({ providerOrSigner: "" as any });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting name"
+                    "SuperToken Read Error: There was an error getting name"
                 );
             }
 
@@ -212,7 +212,7 @@ describe("SuperToken Tests", () => {
                 await daix.symbol({ providerOrSigner: "" as any });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting symbol"
+                    "SuperToken Read Error: There was an error getting symbol"
                 );
             }
 
@@ -220,7 +220,7 @@ describe("SuperToken Tests", () => {
                 await daix.totalSupply({ providerOrSigner: "" as any });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "SuperToken Read Error - There was an error getting totalSupply"
+                    "SuperToken Read Error: There was an error getting totalSupply"
                 );
             }
         });
@@ -412,7 +412,7 @@ describe("SuperToken Tests", () => {
                 await framework.loadWrapperSuperToken("ETHx");
             } catch (err: any) {
                 expect(err.message).to.eql(
-                    "SuperToken Initialization Error - The token is not a wrapper supertoken."
+                    "SuperToken Initialization Error: The token is not a wrapper supertoken."
                 );
             }
         });
@@ -428,7 +428,7 @@ describe("SuperToken Tests", () => {
                 await framework.loadNativeAssetSuperToken(daix.address);
             } catch (err: any) {
                 expect(err.message).to.eql(
-                    "SuperToken Initialization Error - The token is not a native asset supertoken."
+                    "SuperToken Initialization Error: The token is not a native asset supertoken."
                 );
             }
         });
@@ -446,7 +446,7 @@ describe("SuperToken Tests", () => {
                 await framework.loadPureSuperToken(daix.address);
             } catch (err: any) {
                 expect(err.message).to.eql(
-                    "SuperToken Initialization Error - The token is not a pure supertoken."
+                    "SuperToken Initialization Error: The token is not a pure supertoken."
                 );
             }
         });
@@ -491,7 +491,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.eql(
-                        "Invalid Address Error - The address you have entered is not a valid ethereum address"
+                        "Invalid Address Error: The address you have entered is not a valid ethereum address"
                     );
                 }
             });
@@ -507,7 +507,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "ConstantFlowAgreementV1 Read Error - There was an error getting the flow"
+                        "ConstantFlowAgreementV1 Read Error: There was an error getting the flow"
                     );
                 }
 
@@ -519,7 +519,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "ConstantFlowAgreementV1 Read Error - There was an error getting the account flow information"
+                        "ConstantFlowAgreementV1 Read Error: There was an error getting the account flow information"
                     );
                 }
 
@@ -531,7 +531,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "ConstantFlowAgreementV1 Read Error - There was an error getting net flow"
+                        "ConstantFlowAgreementV1 Read Error: There was an error getting net flow"
                     );
                 }
             });
@@ -547,7 +547,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "ConstantFlowAgreementV1 Read Error - There was an error getting flow operator data"
+                        "ConstantFlowAgreementV1 Read Error: There was an error getting flow operator data"
                     );
                 }
                 try {
@@ -557,7 +557,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "ConstantFlowAgreementV1 Read Error - There was an error getting flow operator data"
+                        "ConstantFlowAgreementV1 Read Error: There was an error getting flow operator data"
                     );
                 }
             });
@@ -708,7 +708,7 @@ describe("SuperToken Tests", () => {
                 await operation.exec(sender);
             } catch (err: any) {
                 expect(err.message).to.eql(
-                    "Unclean Permissions Error - The desired permissions are unclean"
+                    "Unclean Permissions Error: The desired permissions are unclean"
                 );
             }
         });
@@ -725,7 +725,7 @@ describe("SuperToken Tests", () => {
                 await operation.exec(sender);
             } catch (err: any) {
                 expect(err.message).to.eql(
-                    "Negative Flow Rate Allowance Error - No negative flow allowance allowed"
+                    "Negative Flow Rate Allowance Error: No negative flow allowance allowed"
                 );
             }
         });
@@ -885,7 +885,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.eql(
-                        "Invalid Address Error - The address you have entered is not a valid ethereum address"
+                        "Invalid Address Error: The address you have entered is not a valid ethereum address"
                     );
                 }
             });
@@ -901,7 +901,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "InstantDistributionAgreementV1 Read Error - There was an error getting the index"
+                        "InstantDistributionAgreementV1 Read Error: There was an error getting the index"
                     );
                 }
 
@@ -915,7 +915,7 @@ describe("SuperToken Tests", () => {
                     });
                 } catch (err: any) {
                     expect(err.message).to.contain(
-                        "InstantDistributionAgreementV1 Read Error - There was an error getting the subscription"
+                        "InstantDistributionAgreementV1 Read Error: There was an error getting the subscription"
                     );
                 }
             });

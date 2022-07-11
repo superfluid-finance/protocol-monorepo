@@ -49,7 +49,7 @@ describe("Batch Call Tests", () => {
             await Promise.all(promises);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Unsupported Batch Call Operation Error - The operation at index 0 is unsupported"
+                "Unsupported Batch Call Operation Error: The operation at index 0 is unsupported"
             );
         }
     });
@@ -65,7 +65,7 @@ describe("Batch Call Tests", () => {
             await framework.batchCall([createFlowOp]).exec(deployer);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Batch Call Error - There was an error executing your batch call:"
+                "Batch Call Error: There was an error executing your batch call:"
             );
         }
     });

@@ -45,7 +45,7 @@ describe("Framework Tests", async () => {
                 await Framework.create({ provider: deployer.provider!, chainId: null as any });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must input chainId."
+                    "Framework Initialization Error: You must input chainId."
                 );
             }
         });
@@ -59,7 +59,7 @@ describe("Framework Tests", async () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Network Mismatch Error - Your provider network chainId is: " +
+                    "Network Mismatch Error: Your provider network chainId is: " +
                         chainId +
                         " whereas your desired chainId is: " +
                         ETH_RINKEBY_CHAIN_ID
@@ -75,7 +75,7 @@ describe("Framework Tests", async () => {
                 } as any);
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
+                    "Framework Initialization Error: You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
                 );
             }
         });
@@ -91,7 +91,7 @@ describe("Framework Tests", async () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must input your own resolver address if you use an unsupported network."
+                    "Framework Initialization Error: You must input your own resolver address if you use an unsupported network."
                 );
             }
         });
@@ -111,7 +111,7 @@ describe("Framework Tests", async () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.contain(
-                    "Framework Initialization Error - There was an error initializing the framework"
+                    "Framework Initialization Error: There was an error initializing the framework"
                 );
             }
         });
@@ -163,7 +163,7 @@ describe("Framework Tests", async () => {
                 framework.createSigner({});
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Create Signer Error - You must pass in a private key, provider or signer."
+                    "Create Signer Error: You must pass in a private key, provider or signer."
                 );
             }
         });
@@ -175,7 +175,7 @@ describe("Framework Tests", async () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Create Signer Error - You must pass in a provider with your private key."
+                    "Create Signer Error: You must pass in a provider with your private key."
                 );
             }
         });

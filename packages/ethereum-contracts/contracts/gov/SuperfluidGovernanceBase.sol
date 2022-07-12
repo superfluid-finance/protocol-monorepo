@@ -70,8 +70,14 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             host.updateAgreementClass(ISuperAgreement(agreementClassNewLogics[i]));
         }
         if (superTokenFactoryNewLogic != address(0)) {
-            UUPSProxiable(address(superTokenFactoryNewLogic)).castrate();
             host.updateSuperTokenFactory(ISuperTokenFactory(superTokenFactoryNewLogic));
+
+            // the factory logic can be updated for non-upgradable hosts too,
+            // in this case it's used without proxy and already initialized.
+            // solhint-disable-next-line no-empty-blocks
+            try UUPSProxiable(address(superTokenFactoryNewLogic)).castrate() {}
+            // solhint-disable-next-line no-empty-blocks
+            catch {}
         }
     }
 

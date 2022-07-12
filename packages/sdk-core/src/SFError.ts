@@ -52,7 +52,11 @@ export class SFError extends Error {
     constructor({ type, message, cause }: ErrorProps) {
         const fullMessage = `${errorTypeToTitleMap.get(
             type
-        )} Error: ${message}`;
+        )} Error: ${message}${
+            cause &&
+            `
+Caused by: ${cause}`
+        }`;
         super(
             fullMessage,
             cause

@@ -96,7 +96,7 @@ const ajv = new Ajv({
     ],
     formats: require("./ajvCustomFormats.js"),
     code: {
-        lines: true, // Please format after generation.
+        lines: true,
         optimize: true,
         source: true,
         esm: true,
@@ -107,4 +107,4 @@ const ajv = new Ajv({
 let moduleCode = standaloneCode(ajv);
 
 // Now you can write the module code to file
-writeFileSync(join(__dirname, "..", "./src/", "./validation.js"), moduleCode);
+writeFileSync(join(__dirname, "..", "./src/", "./ajvValidations.generated.js"), moduleCode);

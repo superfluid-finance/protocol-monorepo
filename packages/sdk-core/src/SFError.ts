@@ -53,9 +53,10 @@ export class SFError extends Error {
         const fullMessage = `${errorTypeToTitleMap.get(
             type
         )} Error: ${message}${
-            cause &&
-            `
+            cause
+                ? `
 Caused by: ${cause}`
+                : ""
         }`;
         super(
             fullMessage,

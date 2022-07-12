@@ -1,6 +1,7 @@
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
-import { DocumentNode } from "graphql";
+import { DocumentNode, print } from "graphql";
 import { request } from "graphql-request";
+import { isString } from "lodash";
 
 import { SFError } from "../SFError";
 
@@ -29,9 +30,13 @@ export class SubgraphClient {
                 cleanVariables(variables)
             );
         } catch (err) {
+            const queryString: string = isString(document)
+                ? document
+                : print(document);
             throw new SFError({
                 type: "SUBGRAPH_ERROR",
-                message: `Failed call to subgraph with query ${document}`,
+                message: `Failed call to subgraph with: 
+${queryString}`,
                 cause: err,
             });
         }

@@ -47,6 +47,7 @@ describe("Framework Tests", async () => {
                 expect(err.message).to.equal(
                     "Framework Initialization Error: You must input chainId."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -77,6 +78,7 @@ describe("Framework Tests", async () => {
                 expect(err.message).to.equal(
                     "Framework Initialization Error: You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -93,6 +95,7 @@ describe("Framework Tests", async () => {
                 expect(err.message).to.equal(
                     "Framework Initialization Error: You must input your own resolver address if you use an unsupported network."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
     });
@@ -113,6 +116,7 @@ describe("Framework Tests", async () => {
                 expect(err.message).to.contain(
                     "Framework Initialization Error: There was an error initializing the framework"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -165,6 +169,7 @@ describe("Framework Tests", async () => {
                 expect(err.message).to.equal(
                     "Create Signer Error: You must pass in a private key, provider or signer."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -177,6 +182,7 @@ describe("Framework Tests", async () => {
                 expect(err.message).to.equal(
                     "Create Signer Error: You must pass in a provider with your private key."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 

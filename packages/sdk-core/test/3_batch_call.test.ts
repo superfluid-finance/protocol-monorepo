@@ -51,6 +51,7 @@ describe("Batch Call Tests", () => {
             expect(err.message).to.contain(
                 "Unsupported Batch Call Operation Error: The operation at index 0 is unsupported"
             );
+            expect(err.cause).to.be.undefined;
         }
     });
 
@@ -67,6 +68,7 @@ describe("Batch Call Tests", () => {
             expect(err.message).to.contain(
                 "Batch Call Error: There was an error executing your batch call:"
             );
+            expect(err.cause).to.be.instanceOf(Error)
         }
     });
 

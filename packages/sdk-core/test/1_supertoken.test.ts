@@ -139,6 +139,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.equal(
                     "SuperToken Initialization Error: You must input chainId or networkName."
                 );
+                expect(err.cause).to.be.undefined;
             }
 
             try {
@@ -158,6 +159,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Initialization Error: There was an error initializing the SuperToken"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -172,6 +174,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting realtimeBalanceOf"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -187,6 +190,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting allowance"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -198,6 +202,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting balanceOf"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -206,6 +211,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting name"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -214,6 +220,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting symbol"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -222,6 +229,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting totalSupply"
                 );
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -414,6 +422,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.eql(
                     "SuperToken Initialization Error: The token is not a wrapper supertoken."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -430,6 +439,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.eql(
                     "SuperToken Initialization Error: The token is not a native asset supertoken."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -448,6 +458,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.eql(
                     "SuperToken Initialization Error: The token is not a pure supertoken."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -493,6 +504,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.eql(
                         "Invalid Address Error: The address you have entered is not a valid ethereum address"
                     );
+                    expect(err.cause).to.be.undefined;
                 }
             });
 
@@ -509,6 +521,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting the flow"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
 
                 // get account flow info throw
@@ -521,6 +534,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting the account flow information"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
 
                 // get net flow throw
@@ -533,6 +547,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting net flow"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
             });
 
@@ -549,6 +564,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting flow operator data"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
                 try {
                     await daix.getFlowOperatorDataByID({
@@ -559,6 +575,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting flow operator data"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
             });
         });
@@ -710,6 +727,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.eql(
                     "Unclean Permissions Error: The desired permissions are unclean"
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -727,6 +745,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.eql(
                     "Negative Flow Rate Allowance Error: No negative flow allowance allowed"
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -887,6 +906,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.eql(
                         "Invalid Address Error: The address you have entered is not a valid ethereum address"
                     );
+                    expect(err.cause).to.be.undefined;
                 }
             });
 
@@ -903,6 +923,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "InstantDistributionAgreementV1 Read Error: There was an error getting the index"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
 
                 try {
@@ -917,6 +938,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "InstantDistributionAgreementV1 Read Error: There was an error getting the subscription"
                     );
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
             });
         });

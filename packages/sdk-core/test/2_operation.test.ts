@@ -77,6 +77,7 @@ describe("Operation Tests", () => {
             expect(err.message).to.contain(
                 "Execute Transaction Error: There was an error executing the transaction"
             );
+            expect(err.cause).to.be.instanceOf(Error)
         }
     });
 
@@ -92,6 +93,7 @@ describe("Operation Tests", () => {
             expect(err.message).to.contain(
                 "Sign Transaction Error: There was an error signing the transaction"
             );
+            expect(err.cause).to.be.instanceOf(Error)
         }
     });
 

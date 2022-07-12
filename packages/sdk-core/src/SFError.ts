@@ -47,6 +47,7 @@ interface ErrorProps {
 
 export class SFError extends Error {
     readonly type: ErrorType;
+    override readonly cause?: Error;
 
     constructor({ type, message, cause }: ErrorProps) {
         const fullMessage = `${errorTypeToTitleMap.get(
@@ -60,7 +61,11 @@ export class SFError extends Error {
                   }
                 : {}
         );
-        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
+        // Fallback back environments where `Error.cause` is now yet natively supported
+        if (cause && !this.cause) {
+            this.cause = cause as Error;
+        }
         this.type = type;
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }
 }

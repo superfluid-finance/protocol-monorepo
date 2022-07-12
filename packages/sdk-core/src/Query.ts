@@ -71,7 +71,7 @@ import {
     validateIndexSubscriptionRequest,
     validateStreamRequest,
     validateSuperTokenRequest,
-} from "./validation";
+} from "./ajvValidations.generated";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;

@@ -10,6 +10,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Added
 - Support for SetEvent and Subgraph v1.4.4
 
+## Fixes
+- Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
+
 ### Changed
 - `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
 - Remove serialized internal error from the messages of `SFError` (it's now just included in the `.cause` property)

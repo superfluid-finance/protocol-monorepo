@@ -6,9 +6,9 @@ on:
       subgraph-release:
         required: true
         type: string
-      run-sdk-core-tests:
+      subgraph-endpoint:
         required: true
-        type: boolean
+        type: string
 
 jobs:
   build-and-test-live-subgraph-previous-releases:
@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        version: [0.3.2, 0.4.0, 0.4.1]
+        version: [v0.3.2, v0.4.0, v0.4.1, v0.4.2, v0.4.3, latest]
 
     env:
       contracts-working-directory: ./packages/ethereum-contracts
@@ -46,9 +46,8 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
-      # duplicated in call.setup-deploy-and-test-local-subgraph.yml #
+      # duplicated in call.setup-deploy-and-test-local-subgraph
       - name: "Checkout graph node repo and set up local graph node"
-        if: inputs.run-sdk-core-tests == true
         uses: actions/checkout@v3
         with:
           repository: graphprotocol/graph-node
@@ -56,7 +55,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Run setup because linux and docker-compose"
-        if: inputs.run-sdk-core-tests == true
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
@@ -65,37 +63,22 @@ jobs:
         working-directory: ./graph-node/docker
 
       - name: "Docker compose"
-        if: inputs.run-sdk-core-tests == true
         run: docker-compose up &
         working-directory: ./graph-node/docker
-      #                                                             #
 
-      - name: "Setup subgraph test environment"
-        if: inputs.run-sdk-core-tests == true
-        run: ./tasks/testenv-ctl.sh start
+      - name: "Prepare and Deploy Local Subgraph"
+        run: yarn testenv:start
         working-directory: ./packages/subgraph
-
-      - name: "Set up SDK-Core test environment"
-        run: |
-          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
-          yarn generate
-        working-directory: ${{ env.sdk-core-working-directory }}
-
-      # If we use a local endpoint for testing, we need to generate data in the graph to query
-      - name: "Run SDK-Core tests"
-        if: inputs.run-sdk-core-tests == true
-        run: npx hardhat test --network localhost
-        working-directory: ${{ env.sdk-core-working-directory }}
-        env:
-          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+      #
 
       - name: "Install @superfluid-finance/sdk-core@${{ matrix.version}} and test subgraph queries"
         run: |
-          yarn add -D @superfluid-finance/sdk-core@v${{ matrix.version }}
+          yarn add -D @superfluid-finance/sdk-core@${{ matrix.version }}
           yarn run-query-tests
         working-directory: ./packages/sdk-core/previous-versions-testing
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+          SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}
 
       - name: "Stop Hardhat node"
         run: ./tasks/startHardhatNode.sh stop

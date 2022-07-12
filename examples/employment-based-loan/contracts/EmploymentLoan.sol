@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.0;
 
-import { ISuperfluid, ISuperToken, ISuperApp, ISuperAgreement, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol"; 
+import { ISuperfluid, ISuperToken, ISuperApp, ISuperAgreement, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 
@@ -100,7 +100,7 @@ contract EmploymentLoan is SuperAppBase {
         int secondsLeft = (paybackMonths * int((365 * 86400) / 12)) - int(block.timestamp - loanStartTime);
         if (secondsLeft <= 0) {
             return 0;
-        } 
+        }
         //if an amount is left, return the total amount to be paid
         else {
             return uint(secondsLeft) * uint(int(getPaymentFlowRate()));
@@ -118,7 +118,7 @@ contract EmploymentLoan is SuperAppBase {
 
     //lender can use this function to send funds to the borrower and start the loan
     function lend() external {
-        
+
         (, int96 employerFlowRate, , ) = cfaV1.cfa.getFlow(
             borrowToken,
             employer,
@@ -126,7 +126,7 @@ contract EmploymentLoan is SuperAppBase {
         );
 
         require(employerFlowRate >= getPaymentFlowRate());
-        
+
         if (collateralAmount > 0) {
             require(collateralToken.balanceOf(address(this)) >= uint256(collateralAmount));
         }
@@ -143,19 +143,19 @@ contract EmploymentLoan is SuperAppBase {
 
         lender = msg.sender;
         loanStartTime = block.timestamp;
-    }  
+    }
 
      ///If a new stream is opened, or an existing one is opened
      //1) get expected payment flowRte, current netflowRate, etc.
      //2) check how much the employer is sending - if they're not sending enough, revert
 
      function _updateOutFlowCreate(
-         bytes calldata ctx, 
+         bytes calldata ctx,
          int96 paymentFlowRate,
          int96 collateralFlow,
          int96 inFlowRate
-         ) 
-        private 
+         )
+        private
         returns (bytes memory newCtx)
     {
         newCtx = ctx;
@@ -169,7 +169,7 @@ contract EmploymentLoan is SuperAppBase {
             newCtx = cfaV1.deleteFlowWithCtx(newCtx, address(this), lender, collateralToken);
             newCtx = cfaV1.createFlowWithCtx(newCtx, lender, borrowToken, paymentFlowRate);
             newCtx = cfaV1.createFlowWithCtx(newCtx, borrower, borrowToken, inFlowRate - paymentFlowRate);
-        }        
+        }
     }
 
     function _updateOutFlowUpdate(
@@ -178,8 +178,8 @@ contract EmploymentLoan is SuperAppBase {
         int96 outFlowRateLender,
         int96 collateralFlow,
         int96 inFlowRate
-        ) 
-        private 
+        )
+        private
         returns (bytes memory newCtx)
     {
         newCtx = ctx;
@@ -190,7 +190,7 @@ contract EmploymentLoan is SuperAppBase {
             if(collateralFlow > 0) {
                 //loan is solvent again so delete the flow of collateral to lender
                 newCtx = cfaV1.deleteFlowWithCtx(newCtx, address(this), lender, collateralToken);
-                //re open payment flow to lender 
+                //re open payment flow to lender
                 newCtx = cfaV1.updateFlowWithCtx(newCtx, borrower, borrowToken, inFlowRate - paymentFlowRate);
                 newCtx = cfaV1.createFlowWithCtx(newCtx, lender, borrowToken, paymentFlowRate);
             }
@@ -203,7 +203,7 @@ contract EmploymentLoan is SuperAppBase {
                 //update the flow to the borrower with the full inflow rate
                 newCtx = cfaV1.updateFlowWithCtx(newCtx, borrower, borrowToken, inFlowRate);
             }
-        } 
+        }
 
         else {
             //if inFlowRate is less than the required amount to pay interest, we need to start streaming out the collateral
@@ -211,7 +211,7 @@ contract EmploymentLoan is SuperAppBase {
                 if(outFlowRateLender == 0 && collateralFlow == 0) {
                     //if current outflow rate to lender is zero, just update the flow to borrower
                     newCtx = cfaV1.updateFlowWithCtx(newCtx, borrower, borrowToken, inFlowRate);
-                } 
+                }
                 else {
                     //the borrow token amount has been reduced below our threshold, so we must:
                     //update flow to borrower to reflect inflow amount
@@ -237,8 +237,8 @@ contract EmploymentLoan is SuperAppBase {
     function _updateOutFlowDelete(
         bytes calldata ctx,
         int96 outFlowRateLender
-    ) 
-        private 
+    )
+        private
         returns (bytes memory newCtx)
     {
         newCtx = ctx;
@@ -264,7 +264,7 @@ contract EmploymentLoan is SuperAppBase {
         int96 paymentFlowRate = getPaymentFlowRate();
         // @dev This will give me the new flowRate, as it is called in after callbacks
         int96 netFlowRate = cfaV1.cfa.getNetFlow(borrowToken, address(this));
-        
+
         //current amount being sent to lender
         (, int96 outFlowRateLender, , ) = cfaV1.cfa.getFlow(borrowToken, address(this), lender);
         //current amount being sent to borrower
@@ -280,14 +280,14 @@ contract EmploymentLoan is SuperAppBase {
             inFlowRate = inFlowRate * -1; // Fixes issue when inFlowRate is negative
         }
 
-        // @dev If inFlow === 0 && outflowRate > 0, then delete existing flows. 
+        // @dev If inFlow === 0 && outflowRate > 0, then delete existing flows.
         if (inFlowRate == int96(0)) {
             newCtx = _updateOutFlowDelete(ctx, outFlowRateLender);
         }
         //if flow exists, update the flow according to various params
         else if (outFlowRate != int96(0)) {
-            newCtx = _updateOutFlowUpdate(ctx, paymentFlowRate, outFlowRateLender, collateralFlow, inFlowRate);         
-        } 
+            newCtx = _updateOutFlowUpdate(ctx, paymentFlowRate, outFlowRateLender, collateralFlow, inFlowRate);
+        }
         //no flow exists into the contract in borrow token
         else {
             newCtx = _updateOutFlowCreate(ctx, paymentFlowRate, collateralFlow, inFlowRate);
@@ -308,7 +308,7 @@ contract EmploymentLoan is SuperAppBase {
         cfaV1.deleteFlow(address(this), lender, borrowToken);
 
         (,int96 currentFlowRate,,) = cfaV1.cfa.getFlow(borrowToken, address(this), borrower);
-        cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);        
+        cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
     }
     //allows lender or borrower to close a loan
     //if the loan is paid off, or if the loan is closed by the lender, pass 0
@@ -322,7 +322,7 @@ contract EmploymentLoan is SuperAppBase {
             cfaV1.updateFlow(borrower, borrowToken, currentFlowRate + currentLenderFlowRate);
         }
         else {
-    
+
             if (getTotalAmountRemaining() > 0) {
                 require (amountForPayoff >= (getTotalAmountRemaining()), "insuf funds");
                 borrowToken.transferFrom(msg.sender, lender, amountForPayoff);
@@ -346,11 +346,11 @@ contract EmploymentLoan is SuperAppBase {
         bytes calldata, /*_agreementData*/
         bytes calldata, // _cbdata,
         bytes calldata ctx
-    ) 
-        external 
-        override 
+    )
+        external
+        override
         onlyCFA(_agreementClass)
-        returns (bytes memory newCtx) 
+        returns (bytes memory newCtx)
     {
         newCtx = _updateOutflow(ctx);
     }
@@ -362,12 +362,12 @@ contract EmploymentLoan is SuperAppBase {
         bytes calldata, /*_agreementData*/
         bytes calldata, // _cbdata,
         bytes calldata ctx
-    ) 
-        external 
-        override 
+    )
+        external
+        override
         onlyCFA(_agreementClass)
         onlyHost
-        returns (bytes memory newCtx) 
+        returns (bytes memory newCtx)
     {
         newCtx = _updateOutflow(ctx);
     }
@@ -379,11 +379,11 @@ contract EmploymentLoan is SuperAppBase {
         bytes calldata, /*_agreementData*/
         bytes calldata, // _cbdata,
         bytes calldata ctx
-    ) 
-        external 
-        override 
+    )
+        external
+        override
         onlyHost
-        returns (bytes memory newCtx) 
+        returns (bytes memory newCtx)
     {
         if (!_isCFAv1(_agreementClass)) {
             return ctx;

@@ -35,7 +35,7 @@ import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
 type SupportedProvider =
     | ethers.providers.Provider
-    | (typeof ethers & HardhatEthersHelpers)
+    | HardhatEthersHelpers
     | Web3;
 
 // TODO: add convenience function of utilizing provider (optional)

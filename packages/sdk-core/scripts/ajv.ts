@@ -1,36 +1,27 @@
-import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
-import { ethers } from "ethers";
-
-import { SFError } from "./SFError";
+import Ajv, { JSONSchemaType, _ } from "ajv";
+import standaloneCode from "ajv/dist/standalone";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
     IIndexSubscriptionRequestFilter,
     IStreamRequestFilter,
     ISuperTokenRequestFilter,
-} from "./interfaces";
+} from "../src/interfaces";
+import { writeFileSync } from "fs";
+import { join } from "path";
+import { IEventFilter } from "../src/events";
 
-import { IEventFilter } from ".";
-
-const ajv = new Ajv();
-ajv.addFormat("addressOrEmpty", {
-    type: "string",
-    validate: (x: string) => x === "" || ethers.utils.isAddress(x),
-});
-ajv.addFormat("stringNumber", {
-    type: "string",
-    validate: (x: string) => !isNaN(Number(x)),
-});
-
-// Schemas
 const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
+    $id: "validateSuperTokenRequest",
     type: "object",
     additionalProperties: false,
     properties: {
         isListed: { type: "boolean", nullable: true },
     },
 };
+
 const eventRequestSchema: JSONSchemaType<IEventFilter> = {
+    $id: "validateEventRequest",
     type: "object",
     additionalProperties: false,
     properties: {
@@ -43,10 +34,11 @@ const eventRequestSchema: JSONSchemaType<IEventFilter> = {
 };
 
 const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
+    $id: "validateIndexRequest",
     type: "object",
     additionalProperties: false,
     properties: {
-        indexId: { type: "string", format: "stringNumber", nullable: true },
+        indexId: { type: "string", format: "stringInteger", nullable: true },
         publisher: { type: "string", format: "addressOrEmpty", nullable: true },
         token: { type: "string", format: "addressOrEmpty", nullable: true },
     },
@@ -54,6 +46,7 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
 
 const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> =
     {
+        $id: "validateAccountTokenSnapshotRequest",
         type: "object",
         additionalProperties: false,
         properties: {
@@ -68,12 +61,13 @@ const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFil
 
 const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> =
     {
+        $id: "validateIndexSubscriptionRequest",
         type: "object",
         additionalProperties: false,
         properties: {
             subscriber: {
                 type: "string",
-                format: "stringNumber",
+                format: "stringInteger",
                 nullable: true,
             },
             approved: { type: "boolean", nullable: true },
@@ -81,6 +75,7 @@ const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFi
     };
 
 const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
+    $id: "validateStreamRequest",
     type: "object",
     additionalProperties: false,
     properties: {
@@ -90,39 +85,26 @@ const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     },
 };
 
-function wrapValidationWithCustomError<T>(
-    validateFunction: ValidateFunction<T>
-) {
-    return (filter: T) => {
-        if (!validateFunction(filter)) {
-            throw new SFError({
-                type: "INVALID_OBJECT",
-                customMessage: "Invalid Filter Object",
-                errorObject: validateFunction.errors,
-            });
-        }
-    };
-}
+const ajv = new Ajv({
+    schemas: [
+        superTokenRequestSchema,
+        eventRequestSchema,
+        indexRequestSchema,
+        accountTokenSnapshotRequestSchema,
+        indexSubscriptionRequestSchema,
+        streamRequestSchema,
+    ],
+    formats: require("./ajvCustomFormats.js"),
+    code: {
+        lines: true,
+        optimize: true,
+        source: true,
+        esm: true,
+        formats: _`require("./ajvCustomFormats.js")`,
+    },
+});
 
-// Validate functions
-export const validateSuperTokenRequest = wrapValidationWithCustomError(
-    ajv.compile<ISuperTokenRequestFilter>(superTokenRequestSchema)
-);
-export const validateEventRequest = wrapValidationWithCustomError(
-    ajv.compile<IEventFilter>(eventRequestSchema)
-);
-export const validateIndexRequest = wrapValidationWithCustomError(
-    ajv.compile<IIndexRequestFilter>(indexRequestSchema)
-);
-export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(
-    ajv.compile<IIndexSubscriptionRequestFilter>(indexSubscriptionRequestSchema)
-);
-export const validateStreamRequest = wrapValidationWithCustomError(
-    ajv.compile<IStreamRequestFilter>(streamRequestSchema)
-);
-export const validateAccountTokenSnapshotRequest =
-    wrapValidationWithCustomError(
-        ajv.compile<IAccountTokenSnapshotFilter>(
-            accountTokenSnapshotRequestSchema
-        )
-    );
+let moduleCode = standaloneCode(ajv);
+
+// Now you can write the module code to file
+writeFileSync(join(__dirname, "..", "./src/", "./ajvValidations.generated.js"), moduleCode);

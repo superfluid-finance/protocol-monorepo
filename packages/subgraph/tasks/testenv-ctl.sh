@@ -10,7 +10,9 @@ if [ "$CMD" == "start" ];then
     cd ../ethereum-contracts
     # Install contract dependencies and build contracts
     yarn install
-    yarn run build:contracts
+    if [ "$BUILT" == "" ];then
+        yarn run build:contracts
+    fi
     # Get ABIs and generate typechain in subgraph folder based on ABIs
     cd ../subgraph
     yarn getAbi

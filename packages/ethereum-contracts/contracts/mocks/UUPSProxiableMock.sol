@@ -14,6 +14,9 @@ contract UUPSProxiableMock is UUPSProxiable {
         waterMark = w;
     }
 
+    // solhint-disable-next-line no-empty-blocks
+    function initialize() public initializer { }
+
     function proxiableUUID() public view override returns (bytes32)
     {
         return _uuid;

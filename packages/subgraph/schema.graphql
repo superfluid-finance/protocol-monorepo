@@ -559,6 +559,32 @@ type RoleRevokedEvent implements Event @entity {
     sender: Bytes!
 }
 
+type SetEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    Because the name property is indexed, the
+    returned value will be a keccak256 hash
+    of the string.
+    """
+    hashedName: Bytes!
+    target: Bytes!
+
+    resolverEntry: ResolverEntry!
+}
+
 #     SuperfluidGovernance    #
 type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     id: ID!
@@ -1251,6 +1277,22 @@ type Token @entity {
     null for a regular ERC20 token.
     """
     underlyingToken: Token
+}
+
+type ResolverEntry @entity {
+    """
+    ID: the keccak256 hash of the set name
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlockNumber: BigInt!
+    targetAddress: Bytes!
+    isToken: Boolean!
+    isListed: Boolean!
+
+    setEvents: [SetEvent!]! @derivedFrom(field: "resolverEntry")
 }
 
 ####################

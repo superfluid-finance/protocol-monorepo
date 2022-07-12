@@ -99,9 +99,7 @@ describe("Superfluid Host Contract", function () {
 
                 // don't allow initialization of logic contract
                 await expectRevertedWith(
-                    mock1.initialize(
-                        ZERO_ADDRESS
-                    ),
+                    mock1.initialize(ZERO_ADDRESS),
                     "Initializable: contract is already initialized"
                 );
 

@@ -145,7 +145,7 @@ export default class Framework {
         const network = await provider.getNetwork();
         if (network.chainId !== chainId && chainId != null) {
             throw new SFError({
-                code: "NETWORK_MISMATCH",
+                type: "NETWORK_MISMATCH",
                 message:
                     "Your provider network chainId is: " +
                     network.chainId +
@@ -208,7 +208,7 @@ export default class Framework {
             return new Framework(options, settings);
         } catch (err) {
             throw new SFError({
-                code: "FRAMEWORK_INITIALIZATION",
+                type: "FRAMEWORK_INITIALIZATION",
                 message: "There was an error initializing the framework",
                 cause: err,
             });
@@ -231,7 +231,7 @@ export default class Framework {
             !options.web3Provider
         ) {
             throw new SFError({
-                code: "CREATE_SIGNER",
+                type: "CREATE_SIGNER",
                 message: "You must pass in a private key, provider or signer.",
             });
         }
@@ -240,7 +240,7 @@ export default class Framework {
         if (options.privateKey) {
             if (!options.provider) {
                 throw new SFError({
-                    code: "CREATE_SIGNER",
+                    type: "CREATE_SIGNER",
                     message:
                         "You must pass in a provider with your private key.",
                 });
@@ -256,7 +256,7 @@ export default class Framework {
 
         /* istanbul ignore next */
         throw new SFError({
-            code: "CREATE_SIGNER",
+            type: "CREATE_SIGNER",
             message: "Something went wrong, this should never occur.",
         });
     };
@@ -288,7 +288,7 @@ export default class Framework {
 
         if (!isNativeAssetSuperToken) {
             throw new SFError({
-                code: "SUPERTOKEN_INITIALIZATION",
+                type: "SUPERTOKEN_INITIALIZATION",
                 message: "The token is not a native asset supertoken.",
             });
         }
@@ -310,7 +310,7 @@ export default class Framework {
         const isPureSuperToken = !!(superToken as any).downgrade === false;
         if (!isPureSuperToken) {
             throw new SFError({
-                code: "SUPERTOKEN_INITIALIZATION",
+                type: "SUPERTOKEN_INITIALIZATION",
                 message: "The token is not a pure supertoken.",
             });
         }
@@ -331,7 +331,7 @@ export default class Framework {
         const isWrapperSuperToken = !!(superToken as any).underlyingToken;
         if (!isWrapperSuperToken) {
             throw new SFError({
-                code: "SUPERTOKEN_INITIALIZATION",
+                type: "SUPERTOKEN_INITIALIZATION",
                 message: "The token is not a wrapper supertoken.",
             });
         }
@@ -382,7 +382,7 @@ export default class Framework {
                 return await resolver.get(superTokenKey);
             } catch (err) {
                 throw new SFError({
-                    code: "SUPERTOKEN_INITIALIZATION",
+                    type: "SUPERTOKEN_INITIALIZATION",
                     message:
                         "There was an error with loading the SuperToken with symbol: " +
                         tokenAddressOrSymbol +

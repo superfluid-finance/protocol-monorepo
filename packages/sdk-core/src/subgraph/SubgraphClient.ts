@@ -30,7 +30,7 @@ export class SubgraphClient {
             );
         } catch (err) {
             throw new SFError({
-                code: "SUBGRAPH_ERROR",
+                type: "SUBGRAPH_ERROR",
                 message: `Failed call to subgraph with query ${document}`,
                 cause: err,
             });

@@ -71,7 +71,7 @@ export default class ConstantFlowAgreementV1 {
             return this._sanitizeFlowInfo(flowData);
         } catch (err) {
             throw new SFError({
-                code: "CFAV1_READ",
+                type: "CFAV1_READ",
                 message: "There was an error getting the flow",
                 cause: err,
             });
@@ -97,7 +97,7 @@ export default class ConstantFlowAgreementV1 {
             return this._sanitizeFlowInfo(flowData);
         } catch (err) {
             throw new SFError({
-                code: "CFAV1_READ",
+                type: "CFAV1_READ",
                 message:
                     "There was an error getting the account flow information",
                 cause: err,
@@ -123,7 +123,7 @@ export default class ConstantFlowAgreementV1 {
             ).toString();
         } catch (err) {
             throw new SFError({
-                code: "CFAV1_READ",
+                type: "CFAV1_READ",
                 message: "There was an error getting net flow",
                 cause: err,
             });
@@ -155,7 +155,7 @@ export default class ConstantFlowAgreementV1 {
             return this._sanitizeFlowOperatorData(flowOperatorData);
         } catch (err) {
             throw new SFError({
-                code: "CFAV1_READ",
+                type: "CFAV1_READ",
                 message: "There was an error getting flow operator data",
                 cause: err,
             });
@@ -186,7 +186,7 @@ export default class ConstantFlowAgreementV1 {
             });
         } catch (err) {
             throw new SFError({
-                code: "CFAV1_READ",
+                type: "CFAV1_READ",
                 message: "There was an error getting flow operator data",
                 cause: err,
             });
@@ -299,14 +299,14 @@ export default class ConstantFlowAgreementV1 {
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
         if (!isPermissionsClean(params.permissions)) {
             throw new SFError({
-                code: "UNCLEAN_PERMISSIONS",
+                type: "UNCLEAN_PERMISSIONS",
                 message: "The desired permissions are unclean",
             });
         }
 
         if (Number(params.flowRateAllowance) < 0) {
             throw new SFError({
-                code: "NEGATIVE_FLOW_ALLOWANCE",
+                type: "NEGATIVE_FLOW_ALLOWANCE",
                 message: "No negative flow allowance allowed",
             });
         }

@@ -80,7 +80,7 @@ export default class InstantDistributionAgreementV1 {
             };
         } catch (err) {
             throw new SFError({
-                code: "IDAV1_READ",
+                type: "IDAV1_READ",
                 message: "There was an error getting the subscription",
                 cause: err,
             });
@@ -110,7 +110,7 @@ export default class InstantDistributionAgreementV1 {
             };
         } catch (err) {
             throw new SFError({
-                code: "IDAV1_READ",
+                type: "IDAV1_READ",
                 message: "There was an error getting the index",
                 cause: err,
             });

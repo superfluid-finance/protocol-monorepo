@@ -1,4 +1,4 @@
-export type ErrorCode =
+export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
@@ -18,7 +18,7 @@ export type ErrorCode =
     | "BATCH_CALL_ERROR"
     | "NETWORK_MISMATCH";
 
-const errorCodeToTitleMap = new Map<ErrorCode, string>([
+const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["FRAMEWORK_INITIALIZATION", "Framework Initialization"],
     ["SUPERTOKEN_INITIALIZATION", "SuperToken Initialization"],
     ["CREATE_SIGNER", "Create Signer"],
@@ -40,17 +40,17 @@ const errorCodeToTitleMap = new Map<ErrorCode, string>([
 ]);
 
 interface ErrorProps {
-    code: ErrorCode;
+    type: ErrorType;
     message: string;
     cause?: Error | unknown;
 }
 
 export class SFError extends Error {
-    readonly code: ErrorCode;
+    readonly type: ErrorType;
 
-    constructor({ code, message, cause }: ErrorProps) {
-        const fullMessage = `${errorCodeToTitleMap.get(
-            code
+    constructor({ type, message, cause }: ErrorProps) {
+        const fullMessage = `${errorTypeToTitleMap.get(
+            type
         )} Error: ${message}`;
         super(
             fullMessage,
@@ -61,6 +61,6 @@ export class SFError extends Error {
                 : {}
         );
         Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
-        this.code = code;
+        this.type = type;
     }
 }

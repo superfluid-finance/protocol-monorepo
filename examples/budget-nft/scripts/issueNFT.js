@@ -18,9 +18,7 @@ async function main() {
 
   const sf = await Framework.create({
     chainId: network.chainId,
-    provider: customHttpProvider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider: customHttpProvider
   });
 
   //NOTE: you will need to input your own receiver address which will get this issued NFT

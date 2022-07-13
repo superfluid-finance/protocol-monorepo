@@ -2,13 +2,14 @@
     "name": "stream-in-distribute-out",
     "dependencies": {
         "@openzeppelin/contracts": "^4.5.0",
-        "@superfluid-finance/ethereum-contracts": "^1.2.0",
-        "@uniswap/v2-periphery": "1.1.0-beta.0"
+        "@superfluid-finance/ethereum-contracts": "^1.3.0",
+        "@uniswap/v2-periphery": "1.1.0-beta.0",
+        "graphql": "^16.5.0"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-ethers": "^2.0.6",
         "@nomiclabs/hardhat-waffle": "^2.0.3",
-        "@superfluid-finance/sdk-core": "^0.3.2",
+        "@superfluid-finance/sdk-core": "^0.4.4",
         "chai": "^4.3.6",
         "dotenv": "^10.0.0",
         "ethereum-waffle": "^3.4.4",

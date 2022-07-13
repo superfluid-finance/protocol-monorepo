@@ -34,7 +34,7 @@
         "@nomiclabs/hardhat-ethers": "^2.0.5",
         "@nomiclabs/hardhat-etherscan": "^3.0.3",
         "@nomiclabs/hardhat-web3": "^2.0.0",
-        "@superfluid-finance/ethereum-contracts": "^1.2.2",
+        "@superfluid-finance/ethereum-contracts": "^1.3.0",
         "@superfluid-finance/sdk-core": "0.3.3-dev.2bc50bf.0",
         "@typechain/ethers-v5": "^10.0.0",
         "@typechain/hardhat": "^6.0.0",

@@ -29,7 +29,7 @@ jobs:
 
       - name: "Install packages and start hardhat node"
         run: |
-          yarn install
+          yarn install --frozen-lockfile
           ./tasks/startHardhatNode.sh start
         working-directory: ./packages/sdk-core
 

@@ -6,6 +6,7 @@
         "declaration": false,
         "declarationMap": false,
         "strict": true,
+        "allowJs": true,
         "esModuleInterop": true,
         "outDir": "dist/test",
         "sourceMap": false

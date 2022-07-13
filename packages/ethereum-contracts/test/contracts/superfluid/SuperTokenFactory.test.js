@@ -86,6 +86,24 @@ describe("SuperTokenFactory Contract", function () {
                 "Initializable: contract is already initialized"
             );
         });
+
+        it("#1.5 block initialization of logic contracts", async () => {
+            const factoryLogic = await SuperTokenFactory.at(
+                await factory.getCodeAddress()
+            );
+            await expectRevertedWith(
+                factoryLogic.initialize(),
+                "Initializable: contract is already initialized"
+            );
+
+            const superTokenLogic = await SuperTokenMock.at(
+                await factory.getSuperTokenLogic()
+            );
+            await expectRevertedWith(
+                superTokenLogic.initialize(ZERO_ADDRESS, 0, "", ""),
+                "Initializable: contract is already initialized"
+            );
+        });
     });
 
     describe("#2 createERC20Wrapper", () => {

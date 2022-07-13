@@ -190,6 +190,9 @@ export function getOrInitStreamRevision(
 
 /**
  * Gets or initializes a Stream, always sets the updatedAt.
+ * NOTE: this is only called in one place in handleFlowUpdated
+ * and we always save the Stream entity OUTSIDE of this function
+ * after initializing it here.
  */
 export function getOrInitStream(event: FlowUpdated): Stream {
     // Create accounts if they do not exist
@@ -238,7 +241,6 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         // also handles the fact that custom super tokens are
         // initialized after event is first initialized
         getOrInitSuperToken(event.params.token, event.block);
-        stream.save();
     }
     return stream as Stream;
 }
@@ -269,6 +271,7 @@ export function getOrInitFlowOperator(
             senderAddress,
             tokenAddress
         );
+        flowOperatorEntity.flowOperator = flowOperatorAddress;
         flowOperatorEntity.updatedAtBlockNumber = block.number;
         flowOperatorEntity.updatedAtTimestamp = currentTimestamp;
         flowOperatorEntity.save();

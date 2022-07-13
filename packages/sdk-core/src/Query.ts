@@ -1,5 +1,13 @@
 import _ from "lodash";
 
+import {
+    validateAccountTokenSnapshotRequest,
+    validateEventRequest,
+    validateIndexRequest,
+    validateIndexSubscriptionRequest,
+    validateStreamRequest,
+    validateSuperTokenRequest,
+} from "./ajvValidations.generated";
 import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,
@@ -64,14 +72,6 @@ import {
     Token_OrderBy,
 } from "./subgraph/schema.generated";
 import { typeGuard } from "./utils";
-import {
-    validateAccountTokenSnapshotRequest,
-    validateEventRequest,
-    validateIndexRequest,
-    validateIndexSubscriptionRequest,
-    validateStreamRequest,
-    validateSuperTokenRequest,
-} from "./validation";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;

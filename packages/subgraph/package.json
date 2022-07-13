@@ -18,6 +18,7 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test --network localhost",
         "posttest": "yarn testenv:stop",
+        "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
         "deploy-contracts-local": "npx hardhat run scripts/deployContractsAndToken.ts --network localhost",
         "prepare-local": "mustache config/ganache.json test-subgraph.template.yaml > subgraph.yaml",
@@ -57,9 +58,9 @@
     },
     "devDependencies": {
         "coingecko-api": "^1.0.10",
-        "ethers": "^5.6.2",
-        "graphql": "^16.3.0",
-        "graphql-request": "^3.7.0",
+        "ethers": "^5.6.9",
+        "graphql": "^16.5.0",
+        "graphql-request": "^4.3.0",
         "lodash": "^4.17.21"
     },
     "workspaces": {

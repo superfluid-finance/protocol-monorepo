@@ -18,9 +18,7 @@ async function main() {
 
   const sf = await Framework.create({
     chainId: network.chainId,
-    provider: customHttpProvider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider: customHttpProvider
   });
 
   //NOTE: splitor needs to be the owner of the NFT

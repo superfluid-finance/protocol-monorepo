@@ -1,8 +1,12 @@
 const ISuperTokenFactory = require("@superfluid-finance/ethereum-contracts/build/contracts/ISuperTokenFactory.json");
 const ISuperToken = require("@superfluid-finance/ethereum-contracts/build/contracts/ISuperToken.json");
+const ISuperfluid = require("@superfluid-finance/ethereum-contracts/build/contracts/ISuperfluid.json")
+
+
 
 const createSuperToken = async (underlyingAddress, name, symbol, sf, deployer) => {
-    const superTokenFactoryAddress = await sf.host.hostContract
+    const host = new ethers.Contract(sf.settings.config.hostAddress, ISuperfluid.abi);
+    const superTokenFactoryAddress = await host
         .connect(deployer)
         .getSuperTokenFactory();
 

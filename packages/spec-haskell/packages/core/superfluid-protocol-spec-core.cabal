@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
-tested-with:   ghc ==9.2.2 ghc ==8.10.7
+tested-with:   ghc ==9.2.2
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol core specifications in Haskell.
 description:
@@ -27,13 +27,14 @@ library
         Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
+        Money.Systems.Superfluid.Indexes.Universalndexes
         Money.Systems.Superfluid.MoneyUnit
         Money.Systems.Superfluid.Token
     hs-source-dirs:   src
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
-        base >=4.12 && <5,
+        base >=4.15 && <5,
         data-default,
-        containers,
-        transformers
+        transformers >=0.2,
+        microlens >0.4.11

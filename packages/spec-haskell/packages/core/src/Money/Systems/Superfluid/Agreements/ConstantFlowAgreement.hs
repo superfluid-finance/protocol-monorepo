@@ -1,15 +1,16 @@
-{-# LANGUAGE DerivingVia  #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DerivingVia            #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
-    ( AgreementContractData (..)
-    , AgreementAccountData (..)
+    ( MonetaryUnitLenses (..)
+    , MonetaryUnitData (..)
+    , ContractLenses (..)
+    , ContractData (..)
     , AgreementContractPartiesF (..)
     , AgreementOperation (..)
-    , ContractData
-    , AccountData
     , ContractPartiesF
-    , ContractParties
+    , ContractPartiesMUD
     ) where
 
 import           Control.Applicative                                     (Applicative (..))
@@ -17,104 +18,104 @@ import           Data.Coerce                                             (coerce
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
+import           Data.Typeable                                           (Typeable)
+import           Lens.Micro
 
 import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
--- Agreement Definition
+-- FIXME use: newtype FlowRate sft = FlowRate (SFT_LQ sft)
+
+-- * CFA.MonetaryUnitData
 --
-type CFA :: Type -> Type -- kind signature is required to make GHC happy
-data CFA sft
 
-instance SuperfluidTypes sft => Agreement (CFA sft) sft where
-    data AgreementContractData (CFA sft) = ContractData
-        { flowLastUpdatedAt :: SFT_TS sft
-        , flowRate          :: SFT_LQ sft
-        , flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
-        }
+class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLenses mud sft | mud -> sft where
+    settledAt                :: Lens' mud (SFT_TS sft)
+    settledUntappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
+    settledBufferLiquidity   :: Lens' mud (BBS.BufferLiquidity (SFT_LQ sft))
+    netFlowRate              :: Lens' mud (SFT_LQ sft)
 
-    data AgreementAccountData (CFA sft) = AccountData
-        { settledAt                :: SFT_TS sft
-        , settledUntappedLiquidity :: UntappedValue (SFT_LQ sft)
-        , settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
-        , netFlowRate              :: SFT_LQ sft
-        }
+type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
+newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
+instance MonetaryUnitLenses mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
+    tagFromProxy _ = "CFA"
 
-    data AgreementContractPartiesF (CFA sft) a = ContractPartiesF
+instance MonetaryUnitLenses _mud sft => Semigroup (MonetaryUnitData _mud sft) where
+    (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
+        let c = a & set  settledAt                (  b^.settledAt)
+                  & over settledUntappedLiquidity (+ b^.settledUntappedLiquidity)
+                  & over netFlowRate              (+ b^.netFlowRate)
+                  & over settledBufferLiquidity   (+ b^.settledBufferLiquidity)
+        in MkMonetaryUnitData c
+instance MonetaryUnitLenses _mud sft => Monoid (MonetaryUnitData _mud sft) where mempty = MkMonetaryUnitData def
+
+instance MonetaryUnitLenses _mud sft => AgreementMonetaryUnitData (MonetaryUnitData _mud sft) sft where
+    balanceProvidedByAgreement (MkMonetaryUnitData a) t =
+        typedLiquidityVectorToRTB $ TypedLiquidityVector
+            ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
+            [ mkAnyTappedLiquidity buf_s ]
+        where t_s                  = a^.settledAt
+              UntappedValue uval_s = a^.settledUntappedLiquidity
+              buf_s                = a^.settledBufferLiquidity
+              fr                   = a^.netFlowRate
+
+-- * TBA.ContractData
+--
+
+class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLenses cd sft | cd -> sft where
+    flowLastUpdatedAt :: Lens' cd (SFT_TS sft)
+    flowRate          :: Lens' cd (SFT_LQ sft)
+    flowBuffer        :: Lens' cd (BBS.BufferLiquidity (SFT_LQ sft))
+
+type ContractData :: Type -> Type -> Type -> Type
+newtype ContractData _cd mud sft = MkContractData _cd
+instance (ContractLenses _cd sft, Typeable mud) => TaggedTypeable (ContractData _cd mud sft) where
+    tagFromProxy _ = "CFA#"
+instance ContractLenses _cd sft => Default (ContractData _cd mud sft) where def = MkContractData def
+
+instance ( ContractLenses _cd sft
+         , MonetaryUnitLenses mud sft
+         , AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft
+         ) => AgreementContractData (ContractData _cd mud sft) (MonetaryUnitData mud sft) sft where
+
+    data AgreementContractPartiesF (ContractData _cd mud sft) a = ContractPartiesF
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (CFA sft) =
-        -- flowRate, newFlowBuffer, t'
+    data AgreementOperation (ContractData _cd mud sft) =
+        --         flowRate     newFlowBuffer                      t'
         UpdateFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 
-    balanceProvidedByAgreement AccountData
-        { settledAt = t_s
-        , settledUntappedLiquidity = (UntappedValue uval_s)
-        , settledBufferLiquidity = buf_s
-        , netFlowRate = fr
-        } t =
-        typedLiquidityVectorToRTB $ TypedLiquidityVector
-            ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
-            [ mkAnyTappedLiquidity buf_s ]
-
-    applyAgreementOperation acd (UpdateFlow newFlowRate newFlowBuffer t') = let
-        acd' = acd { flowRate = newFlowRate, flowBuffer = newFlowBuffer, flowLastUpdatedAt = t' }
-        acps' = ContractPartiesF AccountData
-                           { settledAt = t'
-                           , netFlowRate = negate flowRateDelta
-                           , settledUntappedLiquidity = UntappedValue $ negate flowPeriodDelta - coerce flowBufferDelta
-                           , settledBufferLiquidity = flowBufferDelta
-                           }
-                           AccountData
-                           { settledAt = t'
-                           , netFlowRate = flowRateDelta
-                           , settledUntappedLiquidity = UntappedValue $ flowPeriodDelta
-                           , settledBufferLiquidity = def
-                           }
-        in (acd', acps')
+    applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer t') = let
+        acd' = acd & set flowRate newFlowRate
+                   & set flowBuffer newFlowBuffer
+                   & set flowLastUpdatedAt t'
+        acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
+                    (def & set settledAt t'
+                         & set netFlowRate (- flowRateDelta)
+                         & set settledUntappedLiquidity (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
+                         & set settledBufferLiquidity flowBufferDelta)
+                    (def & set settledAt t'
+                         & set netFlowRate flowRateDelta
+                         & set settledUntappedLiquidity (UntappedValue flowPeriodDelta)
+                         & set settledBufferLiquidity def))
+        in (MkContractData acd', acps')
         where
-            fr = flowRate acd
-            t = flowLastUpdatedAt acd
+            t               = acd^.flowLastUpdatedAt
+            fr              = acd^.flowRate
             flowPeriodDelta = calc_value_delta fr t t'
-            flowRateDelta = newFlowRate - fr
-            flowBufferDelta = newFlowBuffer - flowBuffer acd
+            flowRateDelta   = newFlowRate - fr
+            flowBufferDelta = newFlowBuffer - acd^.flowBuffer
 
-type ContractData sft = AgreementContractData (CFA sft)
-type AccountData sft = AgreementAccountData (CFA sft)
-type ContractPartiesF sft = AgreementContractPartiesF (CFA sft)
-type ContractParties sft = (ContractPartiesF sft) (AccountData sft)
+type ContractPartiesF   sft _cd mud = AgreementContractPartiesF (ContractData _cd mud sft)
+type ContractPartiesMUD sft _cd mud = ContractPartiesF sft _cd (MonetaryUnitData mud sft)
 
-instance SuperfluidTypes sft => Applicative (ContractPartiesF sft) where
+instance Applicative (ContractPartiesF sft cd mud) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')
-
-instance SuperfluidTypes sft => TaggedTypeable (ContractData sft) where tagFromProxy _ = "CFA#"
-instance SuperfluidTypes sft => Default (ContractData sft) where
-    def = ContractData
-        { flowLastUpdatedAt = def
-        , flowRate = def
-        , flowBuffer = def
-        }
-
-instance SuperfluidTypes sft => TaggedTypeable (AccountData sft) where tagFromProxy _ = "CFA"
-instance SuperfluidTypes sft => Default (AccountData sft) where
-    def = AccountData
-        { settledAt = def
-        , settledUntappedLiquidity = def
-        , settledBufferLiquidity = def
-        , netFlowRate = def
-        }
-instance SuperfluidTypes sft => Semigroup (AccountData sft) where
-    (<>) a b = AccountData
-               { settledAt = settledAt b
-               , settledUntappedLiquidity = settledUntappedLiquidity a + settledUntappedLiquidity b
-               , netFlowRate = netFlowRate a + netFlowRate b
-               , settledBufferLiquidity = settledBufferLiquidity a + settledBufferLiquidity b
-               }
 
 -- ============================================================================
 -- Internal functions

@@ -19,7 +19,7 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , SimpleSuperfluidTypes
     -- Agreement
     -- , AnySimpleAgreementContractData (..)
-    , AnySimpleAgreementAccountData (..)
+    , AnySimpleAgreementMonetaryUnitData (..)
     ) where
 
 import           Control.Exception                                                (assert)
@@ -28,6 +28,7 @@ import           Data.Default
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                     (Generic)
+import           Lens.Micro
 import           Text.Printf                                                      (printf)
 
 import           Money.Systems.Superfluid.Concepts
@@ -37,6 +38,8 @@ import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+--
+import qualified Money.Systems.Superfluid.Indexes.Universalndexes                 as UIDX
 
 
 -- ============================================================================
@@ -139,32 +142,37 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- ============================================================================
 -- Agreement Types
 --
-instance Show (TBA.AccountData SimpleSuperfluidTypes) where
-    show x = printf "{ uval = %s, mval = %s }"
-        (show $ TBA.untappedLiquidity x)
-        (show $ TBA.mintedLiquidity x)
 
-instance Show (CFA.ContractData SimpleSuperfluidTypes) where
-    show x = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
-        (show $ CFA.flowLastUpdatedAt x) (show $ CFA.flowRate x) (show $ CFA.flowBuffer x)
+instance Show (UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes) where
+    show (TBA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
+        (show $ x^.TBA.untappedLiquidity)
+        (show $ x^.TBA.mintedLiquidity)
 
-instance Show (CFA.AccountData SimpleSuperfluidTypes) where
-    show x = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
-        (show $ CFA.settledAt x)
-        (show $ CFA.settledUntappedLiquidity x)
-        (show $ CFA.settledBufferLiquidity x)
-        (show $ CFA.netFlowRate x)
+instance Show (UIDX.CFAContractData SimpleSuperfluidTypes) where
+    show (CFA.MkContractData x) = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
+        (show $ x^.CFA.flowLastUpdatedAt)
+        (show $ x^.CFA.flowRate)
+        (show $ x^.CFA.flowBuffer)
 
-instance Show (DFA.ContractData SimpleSuperfluidTypes) where
-    show x = printf "{ t_u = %s, δ = %s, λ = %s }"
-        (show $ DFA.flowLastUpdatedAt x) (show $ DFA.distributionLimit x) (show $ DFA.decayingFactor x)
+instance Show (UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes) where
+    show (CFA.MkMonetaryUnitData x) = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
+        (show $ x^.CFA.settledAt)
+        (show $ x^.CFA.settledUntappedLiquidity)
+        (show $ x^.CFA.settledBufferLiquidity)
+        (show $ x^.CFA.netFlowRate)
 
-instance Show (DFA.AccountData SimpleSuperfluidTypes) where
-    show x = printf "{ t_s = %s, α = %s, ε = %s, buf = %s }"
-        (show $ DFA.settledAt x)
-        (show $ DFA.αVal x)
-        (show $ DFA.εVal x)
-        (show $ DFA.settledBuffer x)
+instance Show (UIDX.DFAContractData SimpleSuperfluidTypes) where
+    show (DFA.MkContractData x) = printf "{ t_u = %s, δ = %s }"
+        (show $ x^.DFA.flowLastUpdatedAt)
+        (show $ x^.DFA.distributionLimit)
+
+instance Show (UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes) where
+    show (DFA.MkMonetaryUnitData x) = printf "{ λ = %s, t_s = %s, α = %s, ε = %s, buf = %s, }"
+        (show $ x^.DFA.decayingFactor)
+        (show $ x^.DFA.settledAt)
+        (show $ x^.DFA.αVal)
+        (show $ x^.DFA.εVal)
+        (show $ x^.DFA.settledBuffer)
 
 -- | AnyAgreementContractData type
 -- data AnySimpleAgreementContractData =
@@ -181,12 +189,11 @@ instance Show (DFA.AccountData SimpleSuperfluidTypes) where
 --     getter = undefined -- not possible, and no need to define
 --     putter (MkSimpleAgreementContractData a) = putter a
 
--- | AnyAgreementAccountData type
-data AnySimpleAgreementAccountData =
-    forall a. ( Agreement a SimpleSuperfluidTypes
-              , Show (AgreementAccountData a)
-              )
-    => MkSimpleAgreementAccountData (AgreementAccountData a)
+-- | AnyAgreementMonetaryUnitData type
+data AnySimpleAgreementMonetaryUnitData = forall amu.
+    ( AgreementMonetaryUnitData amu SimpleSuperfluidTypes
+    , Show amu
+    ) => MkSimpleAgreementMonetaryUnitData amu
 
-instance Show AnySimpleAgreementAccountData where
-    show (MkSimpleAgreementAccountData a) = show a
+instance Show AnySimpleAgreementMonetaryUnitData where
+    show (MkSimpleAgreementMonetaryUnitData a) = show a

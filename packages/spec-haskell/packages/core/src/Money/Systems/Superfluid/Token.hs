@@ -12,6 +12,7 @@ import           Data.Default
 import           Data.Foldable                                                    (toList)
 import           Data.Kind                                                        (Type)
 import           Data.Maybe                                                       (fromMaybe)
+import           Lens.Micro
 
 import           Money.Systems.Superfluid.Concepts
 --
@@ -20,6 +21,8 @@ import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      
 import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+--
+import qualified Money.Systems.Superfluid.Indexes.Universalndexes                 as UIDX
 --
 import           Money.Systems.Superfluid.MoneyUnit
 
@@ -85,23 +88,24 @@ class ( Monad tk
     --
 
     changeAgreement
-        :: Agreement a (TK_SFT tk)
+        :: ( AgreementMonetaryUnitData amu (TK_SFT tk)
+           , AgreementContractData acd amu (TK_SFT tk)
+           )
         => TS tk
-        -> (AgreementContractPartiesF a) (ADDR tk)                                                -- acpAddrs
-        -> AgreementOperation a                                                                   -- ao
-        -> ((AgreementContractPartiesF a) (ADDR tk) -> tk (Maybe (AgreementContractData a)))      -- acdGetter
-        -> ((AgreementContractPartiesF a) (ADDR tk) -> AgreementContractData a -> TS tk -> tk ()) -- acdSetter
-        -> (TK_ACC tk -> AgreementAccountData a)                                                  -- aadGetter
-        -> (TK_ACC tk -> AgreementAccountData a -> TS tk -> TK_ACC tk)                            -- aadSetter
+        -> (AgreementContractPartiesF acd) (ADDR tk)                             -- acpAddrs
+        -> AgreementOperation acd                                                -- ao
+        -> ((AgreementContractPartiesF acd) (ADDR tk) -> tk (Maybe acd))         -- acdGetter
+        -> ((AgreementContractPartiesF acd) (ADDR tk) -> acd -> TS tk -> tk ())  -- acdSetter
+        -> Lens' (TK_ACC tk) amu                                                 -- amuLens
         -> tk ()
-    changeAgreement t acpAddrs ao acdGetter acdSetter aadGetter aadSetter = do
+    changeAgreement t acpAddrs ao acdGetter acdSetter amuLens = do
         acpAccounts <- mapM getAccount acpAddrs
         acd <- fromMaybe def <$> acdGetter acpAddrs
-        let (acd', acpAADs') = updateAgreement acd (fmap aadGetter acpAccounts) ao
+        let (acd', acpAADs') = applyAgreementOperation acd (fmap (^. amuLens) acpAccounts) ao
         acdSetter acpAddrs acd' t
         mapM_ (uncurry putAccount)
             (zip (toList acpAddrs)
-                 (fmap (\(account, aad') -> aadSetter account aad' t) (zip (toList acpAccounts) (toList acpAADs'))))
+                 (fmap (\(aad', account) -> set amuLens aad' account) (zip (toList acpAADs') (toList acpAccounts))))
 
     --
     -- TBA Functions
@@ -109,10 +113,8 @@ class ( Monad tk
 
     getMinterAddress :: tk (ADDR tk)
 
-    viewTBAContract :: TBA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (TBA.ContractData (TK_SFT tk)))
-    viewTBAContract _ = return $ Just TBA.ContractData
-    setTBAContract :: TBA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> TBA.ContractData (TK_SFT tk) -> TS tk -> tk ()
-    setTBAContract _ _ _ = return ()
+    viewTBAContract :: CONTRACT_ADDR tk (UIDX.TBAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.TBAContractData (TK_SFT tk)))
+    setTBAContract  :: CONTRACT_ADDR tk (UIDX.TBAContractData (TK_SFT tk)) -> UIDX.TBAContractData (TK_SFT tk) -> TS tk -> tk ()
 
     mintLiquidity :: ADDR tk -> LQ tk-> tk ()
     mintLiquidity toAddr amount = do
@@ -120,7 +122,7 @@ class ( Monad tk
         minterAddress <- getMinterAddress
         changeAgreement
             t (TBA.ContractPartiesF minterAddress toAddr) (TBA.MintLiquidity amount)
-            viewTBAContract setTBAContract viewTBAAccount setTBAAccount
+            viewTBAContract setTBAContract tbaMonetaryUnitLens
 
     --
     -- CFA Functions
@@ -128,30 +130,30 @@ class ( Monad tk
 
     calcFlowBuffer :: LQ tk-> tk (LQ tk)
 
-    viewFlow :: CFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (CFA.ContractData (TK_SFT tk)))
-    setFlow :: CFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> CFA.ContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.CFAContractData (TK_SFT tk)))
+    setFlow  :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> UIDX.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateFlow :: CFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> LQ tk-> tk ()
+    updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> LQ tk-> tk ()
     updateFlow acpAddrs newFlowRate = do
         t <- getCurrentTime
         newFlowBuffer <- BBS.mkBufferLiquidity <$> calcFlowBuffer newFlowRate
         changeAgreement
             t acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer t)
-            viewFlow setFlow viewCFAAccount setCFAAccount
+            viewFlow setFlow cfaMonetaryUnitLens
 
     --
     -- DFA Functions
     --
 
-    viewDecayingFlow :: DFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> tk (Maybe (DFA.ContractData (TK_SFT tk)))
-    setDecayingFlow :: DFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> DFA.ContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.DFAContractData (TK_SFT tk)))
+    setDecayingFlow  :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> UIDX.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateDecayingFlow :: DFA.ContractPartiesF (TK_SFT tk) (ADDR tk) -> LQ tk-> tk ()
+    updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> LQ tk-> tk ()
     updateDecayingFlow acpAddrs newDistributionLimit = do
         t <- getCurrentTime
         changeAgreement
             t acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def t)
-            viewDecayingFlow setDecayingFlow viewDFAAccount setDFAAccount
+            viewDecayingFlow setDecayingFlow dfaMonetaryUnitLens
 
 -- ============================================================================
 -- Internal
@@ -160,3 +162,4 @@ type TS tk = SFT_TS (TK_SFT tk)
 type LQ tk = SFT_LQ (TK_SFT tk)
 type RTB tk = SFT_RTB (TK_SFT tk)
 type ADDR tk = ACC_ADDR (TK_ACC tk)
+type CONTRACT_ADDR tk acd = AgreementContractPartiesF acd (ADDR tk)

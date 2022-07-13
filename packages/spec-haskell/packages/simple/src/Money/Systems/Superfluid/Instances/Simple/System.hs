@@ -31,21 +31,20 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
-import           Data.Binary                                                      (Binary)
-import           Data.Char                                                        (isAlpha)
-import           Data.Coerce                                                      (coerce)
+import           Data.Binary                                      (Binary)
+import           Data.Char                                        (isAlpha)
+import           Data.Coerce                                      (coerce)
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                                         as M
+import qualified Data.Map                                         as M
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
+import           Lens.Micro
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.Token                   as SF
 --
-import qualified Money.Systems.Superfluid.Token                                   as SF
+import qualified Money.Systems.Superfluid.Indexes.Universalndexes as UIDX
 
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
@@ -69,26 +68,22 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 --
 data SimpleAccount = SimpleAccount
     { address              :: SimpleAddress
-    , tbaAccountData       :: TBA.AccountData SimpleSuperfluidTypes
-    , cfaAccountData       :: CFA.AccountData SimpleSuperfluidTypes
-    , dfaAccountData       :: DFA.AccountData SimpleSuperfluidTypes
+    , tbaMonetaryUnitData  :: UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes
+    , cfaMonetaryUnitData  :: UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes
+    , dfaMonetaryUnitData  :: UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes
     , accountLastUpdatedAt :: SimpleTimestamp
     }
 
 instance SF.MoneyUnit SimpleAccount SimpleSuperfluidTypes where
-    type AnyAgreementAccountData SimpleAccount = AnySimpleAgreementAccountData
-    agreementsOf acc = [ MkSimpleAgreementAccountData (SF.viewTBAAccount acc)
-                       , MkSimpleAgreementAccountData (SF.viewCFAAccount acc)
-                       , MkSimpleAgreementAccountData  (SF.viewDFAAccount acc)
+    type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
+    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.tbaMonetaryUnitLens)
+                       , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitLens)
+                       , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitLens)
                        ]
-    providedBalanceByAnyAgreement _ (MkSimpleAgreementAccountData g) = balanceProvidedByAgreement g
-
-    viewTBAAccount = tbaAccountData
-    setTBAAccount acc aad t = acc { tbaAccountData = aad, accountLastUpdatedAt = t }
-    viewCFAAccount = cfaAccountData
-    setCFAAccount acc aad t = acc { cfaAccountData = aad, accountLastUpdatedAt = t }
-    viewDFAAccount = dfaAccountData
-    setDFAAccount acc aad t = acc { dfaAccountData = aad, accountLastUpdatedAt = t }
+    providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
+    tbaMonetaryUnitLens = lens tbaMonetaryUnitData (\acc mud' -> acc { tbaMonetaryUnitData = mud' })
+    cfaMonetaryUnitLens = lens cfaMonetaryUnitData (\acc mud' -> acc { cfaMonetaryUnitData = mud' })
+    dfaMonetaryUnitLens = lens dfaMonetaryUnitData (\acc mud' -> acc { dfaMonetaryUnitData = mud' })
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -100,14 +95,14 @@ showAccountAt acc t =
     "\n  Balance: " ++ show(SF.balanceOfAt acc t) ++
     concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOf acc) ++
     "\n  Last Update: " ++ show(accountLastUpdatedAt acc)
-    where agreementTypeTag (MkSimpleAgreementAccountData g) = tagFromValue g
+    where agreementTypeTag (MkSimpleAgreementMonetaryUnitData g) = tagFromValue g
 
 create_simple_account :: SimpleAddress -> SimpleTimestamp -> SimpleAccount
 create_simple_account toAddress t = SimpleAccount
     { address = toAddress
-    , tbaAccountData = def
-    , cfaAccountData = def
-    , dfaAccountData = def
+    , tbaMonetaryUnitData = mempty
+    , cfaMonetaryUnitData = mempty
+    , dfaMonetaryUnitData = mempty
     , accountLastUpdatedAt = t
     }
 
@@ -119,8 +114,8 @@ newtype SimpleSystemData = SimpleSystemData
 -- | Simple token data Type
 data SimpleTokenData = SimpleTokenData
     { accounts           :: M.Map SimpleAddress SimpleAccount
-    , cfaContractData    :: M.Map String (CFA.ContractData SimpleSuperfluidTypes)
-    , dfaContractData    :: M.Map String (DFA.ContractData SimpleSuperfluidTypes)
+    , cfaContractData    :: M.Map String (UIDX.CFAContractData SimpleSuperfluidTypes)
+    , dfaContractData    :: M.Map String (UIDX.DFAContractData SimpleSuperfluidTypes)
     , tokenLastUpdatedAt :: SimpleTimestamp
     }
 
@@ -135,7 +130,7 @@ instance Default SimpleTokenData where
 minter_address :: SimpleAddress
 minter_address = "_minter"
 
-acd_key :: Agreement a SimpleSuperfluidTypes => (AgreementContractPartiesF a) SimpleAddress -> String
+acd_key :: AgreementContractData acd amud SimpleSuperfluidTypes => (AgreementContractPartiesF acd) SimpleAddress -> String
 acd_key = foldr ((++) . (++ ".") . coerce) def
 
 -- | Simple Monad Transformer stack
@@ -191,8 +186,14 @@ instance (Monad m) => SF.Token (SimpleTokenStateT m) where
 
     putAccount addr acc = modify_token_data (\vs -> vs { accounts = M.insert addr acc (accounts vs) })
 
+    -- * TBA
+    --
     getMinterAddress = return minter_address
+    viewTBAContract _ = return $ Just def
+    setTBAContract  _ _ _ = return ()
 
+    -- * CFA
+    --
     calcFlowBuffer = return  . (* Wad 3600)
     viewFlow acps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key acps) (cfaContractData s)
     setFlow acps acd t = modify_token_data (
@@ -202,6 +203,8 @@ instance (Monad m) => SF.Token (SimpleTokenStateT m) where
                }
         )
 
+    -- * DFA
+    --
     viewDecayingFlow acps = getSimpleTokenData >>= \s -> return $ M.lookup (acd_key acps) (dfaContractData s)
     setDecayingFlow acps acd t = modify_token_data (
         \vs -> vs

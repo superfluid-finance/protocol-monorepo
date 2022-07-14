@@ -1,4 +1,8 @@
-module Data.Type.TaggedTypeable where
+module Data.Type.TaggedTypeable
+    ( module Data.Typeable
+    , TaggedTypeable (..)
+    , tagFromValue
+    ) where
 
 import           Data.Typeable (Proxy (..), Typeable)
 

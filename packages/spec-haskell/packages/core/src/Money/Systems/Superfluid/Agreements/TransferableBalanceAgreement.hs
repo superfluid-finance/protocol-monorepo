@@ -21,8 +21,7 @@ import           Control.Applicative               (Applicative (..))
 import           Data.Coerce                       (coerce)
 import           Data.Default                      (Default (..))
 import           Data.Kind                         (Type)
-import           Data.Type.TaggedTypeable          (TaggedTypeable (..))
-import           Data.Typeable                     (Proxy (..), Typeable)
+import           Data.Proxy                        (Proxy (..))
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -30,8 +29,8 @@ import           Money.Systems.Superfluid.Concepts
 -- * MintedLiquidity Type
 --
 
-data MintedLiquidityTag deriving anyclass (TappedValueTag)
-instance TaggedTypeable MintedLiquidityTag where tagFromProxy _ = "m"
+data MintedLiquidityTag
+instance TappedValueTag MintedLiquidityTag where tappedValueTag _ = "m"
 type MintedLiquidity v = TappedValue MintedLiquidityTag v
 mintedLiquidityTag :: Proxy MintedLiquidityTag
 mintedLiquidityTag = Proxy @MintedLiquidityTag
@@ -40,15 +39,12 @@ mkMintedLiquidity = TappedValue
 
 -- * TBA.MonetaryUnitData
 --
-class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
+class (Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     untappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
     mintedLiquidity   :: Lens' mud (MintedLiquidity (SFT_LQ sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
-
-instance MonetaryUnitLens mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
-    tagFromProxy _ = "TBA"
 
 instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
@@ -66,13 +62,10 @@ instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData
 -- * TBA.ContractData
 --
 
-class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft
+class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft
 
 type ContractData :: Type -> Type -> Type -> Type
 newtype ContractData cdL mud sft = MkContractData cdL
-
-instance (ContractLens cd sft, Typeable mud) => TaggedTypeable (ContractData cd mud sft) where
-    tagFromProxy _ = "TBA#"
 
 instance ContractLens cd sft => Default (ContractData cd mud sft) where def = MkContractData def
 

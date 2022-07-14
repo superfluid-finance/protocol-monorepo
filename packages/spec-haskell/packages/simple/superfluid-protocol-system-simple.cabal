@@ -18,6 +18,7 @@ library
         Money.Systems.Superfluid.Instances.Simple.Types
         Money.Systems.Superfluid.Instances.Simple.System
     other-modules:
+        Data.Type.TaggedTypeable
         Money.Systems.Superfluid.Instances.Simple.Integrations.Serialization
 
     hs-source-dirs:   src

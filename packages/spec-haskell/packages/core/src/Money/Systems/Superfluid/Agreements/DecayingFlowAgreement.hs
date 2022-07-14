@@ -19,8 +19,6 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
 import           Control.Applicative                                     (Applicative (..))
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
-import           Data.Type.TaggedTypeable
-import           Data.Typeable                                           (Typeable)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -30,7 +28,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 -- * DFA.MonetaryUnitData
 --
-class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
+class (Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     decayingFactor  :: Lens' mud (SFT_FLOAT sft)
     settledAt       :: Lens' mud (SFT_TS sft)
     αVal            :: Lens' mud (SFT_FLOAT sft)
@@ -39,8 +37,6 @@ class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud s
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
-instance MonetaryUnitLens mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
-    tagFromProxy _ = "DFA"
 
 instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
     -- Formula:
@@ -82,15 +78,14 @@ instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData
 -- * DFA.ContractData
 --
 
-class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
+class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
     flowLastUpdatedAt :: Lens' cd (SFT_TS sft)
     distributionLimit :: Lens' cd (SFT_LQ sft)
     flowBuffer        :: Lens' cd (BBS.BufferLiquidity (SFT_LQ sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 data ContractData _cd mud sft = MkContractData _cd
-instance (ContractLens cd sft, Typeable mud) => TaggedTypeable (ContractData cd mud sft) where
-    tagFromProxy _ = "DFA#"
+
 instance ContractLens cd sft => Default (ContractData cd mud sft) where def = MkContractData def
 
 instance ( ContractLens cd sft

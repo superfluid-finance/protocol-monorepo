@@ -47,7 +47,7 @@ module Money.Systems.Superfluid.Concepts.TypedValue
     , untappedValueTag
     , UntappedValue (..)
     -- Tapped Value
-    , TappedValueTag
+    , TappedValueTag (..)
     , TappedValue (..)
     -- Any Tapped Value
     , AnyTappedValueTag (..)
@@ -58,8 +58,7 @@ module Money.Systems.Superfluid.Concepts.TypedValue
 
 import           Data.Coerce                 (Coercible)
 import           Data.Default                (Default (..))
-import           Data.Type.TaggedTypeable    (TaggedTypeable (..))
-import           Data.Typeable               (Proxy (..), typeRep)
+import           Data.Typeable               (Proxy (..), Typeable, typeRep)
 
 import           Money.Concepts.Distribution (Value)
 
@@ -88,7 +87,7 @@ untappedValueTag = Proxy @UntappedValue
 --
 -- Notional conventions for TypedValue:
 --  * Type name: vtag
-class TaggedTypeable vtag => TappedValueTag vtag
+class Typeable vtag => TappedValueTag vtag where tappedValueTag :: (Proxy vtag) -> String
 
 -- | Tapped value type
 --
@@ -104,7 +103,7 @@ instance (Value v, TappedValueTag vtag) => TypedValue (TappedValue vtag v) v
 --
 -- Notional conventions for TypedValue:
 --  * Term name: avtag
-data AnyTappedValueTag = forall vtag. TappedValueTag vtag => MkTappedLiquidityTag (Proxy vtag)
+data AnyTappedValueTag = forall vtag. TappedValueTag vtag => MkTappedValueTag (Proxy vtag)
 
 -- | Any tapped value Type
 --
@@ -116,9 +115,9 @@ newtype AnyTappedValue v = AnyTappedValue (AnyTappedValueTag, v)
 mkAnyTappedLiquidity
     :: forall vtag v. (Value v, TappedValueTag vtag)
     => TappedValue vtag v -> AnyTappedValue v
-mkAnyTappedLiquidity (TappedValue uval) = AnyTappedValue (MkTappedLiquidityTag (Proxy @vtag), uval)
+mkAnyTappedLiquidity (TappedValue uval) = AnyTappedValue (MkTappedValueTag (Proxy @vtag), uval)
 
 -- | Get value from any tapped value if value tag matches, or return default value
-fromAnyTappedLiquidity :: (Value v, TaggedTypeable vtag) => AnyTappedValue v -> Proxy vtag -> v
-fromAnyTappedLiquidity (AnyTappedValue (MkTappedLiquidityTag tag1, uval)) tag2 =
+fromAnyTappedLiquidity :: (Value v, Typeable vtag) => AnyTappedValue v -> Proxy vtag -> v
+fromAnyTappedLiquidity (AnyTappedValue (MkTappedValueTag tag1, uval)) tag2 =
     if typeRep tag1 == typeRep tag2 then uval else def

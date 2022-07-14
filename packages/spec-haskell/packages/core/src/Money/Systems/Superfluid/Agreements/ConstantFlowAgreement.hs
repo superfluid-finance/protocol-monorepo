@@ -17,8 +17,6 @@ import           Control.Applicative                                     (Applic
 import           Data.Coerce                                             (coerce)
 import           Data.Default                                            (Default (..))
 import           Data.Kind                                               (Type)
-import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
-import           Data.Typeable                                           (Typeable)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -31,7 +29,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 -- * CFA.MonetaryUnitData
 --
 
-class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
+class (Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     settledAt                :: Lens' mud (SFT_TS sft)
     settledUntappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
     settledBufferLiquidity   :: Lens' mud (BBS.BufferLiquidity (SFT_LQ sft))
@@ -39,8 +37,6 @@ class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud s
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
-instance MonetaryUnitLens mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
-    tagFromProxy _ = "CFA"
 
 instance MonetaryUnitLens _mud sft => Semigroup (MonetaryUnitData _mud sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
@@ -64,15 +60,14 @@ instance MonetaryUnitLens _mud sft => AgreementMonetaryUnitData (MonetaryUnitDat
 -- * TBA.ContractData
 --
 
-class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
+class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
     flowLastUpdatedAt :: Lens' cd (SFT_TS sft)
     flowRate          :: Lens' cd (SFT_LQ sft)
     flowBuffer        :: Lens' cd (BBS.BufferLiquidity (SFT_LQ sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 newtype ContractData _cd mud sft = MkContractData _cd
-instance (ContractLens _cd sft, Typeable mud) => TaggedTypeable (ContractData _cd mud sft) where
-    tagFromProxy _ = "CFA#"
+
 instance ContractLens _cd sft => Default (ContractData _cd mud sft) where def = MkContractData def
 
 instance ( ContractLens _cd sft

@@ -18,7 +18,7 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     -- SimpleSuperfluidTypes
     , SimpleSuperfluidTypes
     -- Agreement
-    -- , AnySimpleAgreementContractData (..)
+    , AnySimpleAgreementContractData (..)
     , AnySimpleAgreementMonetaryUnitData (..)
     ) where
 
@@ -39,21 +39,21 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                 as UIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
 
 
 -- ============================================================================
 -- SFDouble Type
---
+
 newtype SFDouble = SFDouble Double
     deriving newtype (Default, Eq, Ord, Num, Real, Fractional, RealFrac, Floating, RealFloat, Show)
 instance SFTFloat SFDouble
 
 -- ============================================================================
--- Wad Type:
+-- Value Type:
 --   * 18 decimal digit fixed-precision integer
 --   * an instance of Value
---
+
 newtype Wad = Wad Integer
     deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, Value)
 
@@ -73,22 +73,30 @@ wad4human wad = wad4humanN wad 4
 instance Show Wad where
     show = wad4human
 
+-- ============================================================================
+-- Type Values:
+
 instance Show (UntappedValue Wad) where
     show (UntappedValue val) = show val ++ "@_"
 
-instance (TappedValueTag vtag) => Show (TappedValue vtag Wad) where
-    show (TappedValue val) = show val ++ "@" ++ tagFromProxy (Proxy @vtag)
+instance TappedValueTag vtag => Show (TappedValue vtag Wad) where
+    show (TappedValue val) = show val ++ "@" ++ tappedValueTag (Proxy @vtag)
 
 instance Show (AnyTappedValue Wad) where
-    show (AnyTappedValue (MkTappedLiquidityTag tag, val)) = show val ++ "@" ++ tagFromProxy tag
+    show (AnyTappedValue (MkTappedValueTag vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
 
+-- ============================================================================
+-- Timestamp type
 
--- | Simple timestamp Type .
+-- | Simple timestamp Type.
 newtype SimpleTimestamp = SimpleTimestamp Int
     deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Binary, Timestamp)
 
 instance Show SimpleTimestamp where
     show (SimpleTimestamp t) = show t ++ "s"
+
+-- ============================================================================
+-- RealtimeBalance Type
 
 -- | Simple realtime balance Type.
 data SimpleRealtimeBalance = SimpleRealtimeBalance
@@ -131,6 +139,9 @@ instance RealtimeBalance SimpleRealtimeBalance Wad where
               mval = foldr ((+) . (`fromAnyTappedLiquidity` TBA.mintedLiquidityTag)) def tvec
               od = def
 
+-- ============================================================================
+-- SuperfluidTypes Type
+
 data SimpleSuperfluidTypes
 
 instance SuperfluidTypes SimpleSuperfluidTypes where
@@ -143,10 +154,26 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreement Types
 --
 
+-- TBA
+
+instance TaggedTypeable (UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "TBA@U"
+
+instance TaggedTypeable (UIDX.TBAContractData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "TBA#"
+
 instance Show (UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes) where
     show (TBA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
         (show $ x^.TBA.untappedLiquidity)
         (show $ x^.TBA.mintedLiquidity)
+
+-- CFA
+
+instance TaggedTypeable (UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "CFA@U"
+
+instance TaggedTypeable (UIDX.CFAContractData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "CFA#"
 
 instance Show (UIDX.CFAContractData SimpleSuperfluidTypes) where
     show (CFA.MkContractData x) = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
@@ -161,37 +188,41 @@ instance Show (UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes) where
         (show $ x^.CFA.settledBufferLiquidity)
         (show $ x^.CFA.netFlowRate)
 
+-- DFA
+
+instance TaggedTypeable (UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "DFA@U"
+
+instance TaggedTypeable (UIDX.DFAContractData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "DFA#"
+
 instance Show (UIDX.DFAContractData SimpleSuperfluidTypes) where
     show (DFA.MkContractData x) = printf "{ t_u = %s, δ = %s }"
         (show $ x^.DFA.flowLastUpdatedAt)
         (show $ x^.DFA.distributionLimit)
 
 instance Show (UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes) where
-    show (DFA.MkMonetaryUnitData x) = printf "{ λ = %s, t_s = %s, α = %s, ε = %s, buf = %s, }"
+    show (DFA.MkMonetaryUnitData x) = printf "{ λ = %s, t_s = %s, α = %s, ε = %s, buf = %s }"
         (show $ x^.DFA.decayingFactor)
         (show $ x^.DFA.settledAt)
         (show $ x^.DFA.αVal)
         (show $ x^.DFA.εVal)
         (show $ x^.DFA.settledBuffer)
 
--- | AnyAgreementContractData type
--- data AnySimpleAgreementContractData =
---     forall a. ( Agreement a
---               , DistributionForAgreement a ~ SimpleSuperfluidTypes
---               , Serializable (AgreementContractData a) SimpleSuperfluidTypes
---               )
---     => MkSimpleAgreementContractData (AgreementContractData a)
+-- | AnyAgreementContractData type.
+data AnySimpleAgreementContractData = forall acd amu.
+    ( AgreementContractData acd amu SimpleSuperfluidTypes
+    , TaggedTypeable acd
+    , Show acd
+    ) => MkSimpleAgreementContractData acd
 
--- instance Show AnySimpleAgreementContractData where
---    show (MkSimpleAgreementContractData g) = show g
+instance Show AnySimpleAgreementContractData where
+   show (MkSimpleAgreementContractData g) = show g
 
--- instance Serializable AnySimpleAgreementContractData SimpleSuperfluidTypes where
---     getter = undefined -- not possible, and no need to define
---     putter (MkSimpleAgreementContractData a) = putter a
-
--- | AnyAgreementMonetaryUnitData type
+-- | AnyAgreementMonetaryUnitData type.
 data AnySimpleAgreementMonetaryUnitData = forall amu.
     ( AgreementMonetaryUnitData amu SimpleSuperfluidTypes
+    , TaggedTypeable amu
     , Show amu
     ) => MkSimpleAgreementMonetaryUnitData amu
 

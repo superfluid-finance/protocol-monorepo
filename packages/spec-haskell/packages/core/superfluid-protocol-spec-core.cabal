@@ -15,7 +15,6 @@ build-type:    Simple
 
 library
     exposed-modules:
-        Data.Type.TaggedTypeable
         Money.Concepts.Distribution
         Money.Systems.Communism
         Money.Systems.Superfluid.Concepts.TypedValue

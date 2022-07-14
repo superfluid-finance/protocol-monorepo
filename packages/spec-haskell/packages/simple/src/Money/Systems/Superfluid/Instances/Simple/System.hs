@@ -53,7 +53,7 @@ import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes              
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
 
--- | SimpleAddress Type
+-- | SimpleAddress type.
 --
 -- Note: It must consist of only alphabetical letters
 --
@@ -63,13 +63,12 @@ newtype SimpleAddress = SimpleAddress String
 instance IsString SimpleAddress where
     fromString = fromJust . createSimpleAddress
 
--- | SimpleAddress public constructor
+-- | SimpleAddress public constructor.
 createSimpleAddress :: String -> Maybe SimpleAddress
 createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Nothing
     where isValidAddress = all (\x -> any ($ x) [isAlpha, (== '_')])
 
--- | Simple account type
---
+-- | Simple account type.
 data SimpleAccount = SimpleAccount
     { address              :: SimpleAddress
     , tbaMonetaryUnitData  :: UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes
@@ -113,12 +112,12 @@ create_simple_account toAddress t = SimpleAccount
     , accountLastUpdatedAt = t
     }
 
--- | Simple system data Type
+-- | Simple system data type.
 newtype SimpleSystemData = SimpleSystemData
     { currentTime   :: SimpleTimestamp
     }
 
--- | Simple token data Type
+-- | Simple token data type.
 data SimpleTokenData = SimpleTokenData
     { accounts           :: M.Map SimpleAddress SimpleAccount
     , cfaContractData    :: M.Map String (UIDX.CFAContractData SimpleSuperfluidTypes)
@@ -171,7 +170,7 @@ execSimpleTokenStateT :: (Monad m)
     => SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m SimpleTokenData
 execSimpleTokenStateT m sys token = runSimpleTokenStateT m sys token <&> snd
 
--- | SimpleTokenStateT State Internal Operations
+-- | SimpleTokenStateT State Internal Operations.
 --
 put_simple_token_data :: (Monad m) => SimpleTokenData -> SimpleTokenStateT m ()
 put_simple_token_data = SimpleTokenStateT . put
@@ -179,8 +178,7 @@ put_simple_token_data = SimpleTokenStateT . put
 modify_token_data :: (Monad m) => (SimpleTokenData -> SimpleTokenData) -> SimpleTokenStateT m ()
 modify_token_data = SimpleTokenStateT . modify
 
--- | SimpleTokenStateT m is a SuperfluidToken instance
---
+-- | SimpleTokenStateT m is a @SF.Token@ instance.
 instance (Monad m) => SF.Token (SimpleTokenStateT m) where
 
     type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidTypes

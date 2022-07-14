@@ -8,7 +8,6 @@ module Money.Systems.Superfluid.Concepts.SuperfluidTypes
 
 import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
-import           Data.Typeable                                     (Typeable)
 
 import           Money.Concepts.Distribution                       (Value)
 import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBalance)
@@ -28,8 +27,7 @@ class (Default fr, RealFloat fr) => SFTFloat fr
 --
 -- Notional conventions:
 --  * Type name : sft
-class ( Typeable sft
-      , SFTFloat (SFT_FLOAT sft)
+class ( SFTFloat (SFT_FLOAT sft)
       , Value (SFT_LQ sft)
       , Timestamp (SFT_TS sft)
       , RealtimeBalance (SFT_RTB sft) (SFT_LQ sft)

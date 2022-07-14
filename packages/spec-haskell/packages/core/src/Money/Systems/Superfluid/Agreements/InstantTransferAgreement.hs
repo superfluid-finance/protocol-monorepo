@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -84,19 +83,19 @@ instance ( ContractLens cdL sft
         Burn (SFT_MVAL sft) |
         Transfer (SFT_MVAL sft)
 
-    applyAgreementOperation acd acps (Mint amount) = let
+    applyAgreementOperation acd acps (Mint amount) _ = let
         acd'  = acd
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
                     (def & mintedValue   .~ coerce (- amount))
                     (def & untappedValue .~ coerce    amount))
         in (acd', acps')
-    applyAgreementOperation acd acps (Burn amount) = let
+    applyAgreementOperation acd acps (Burn amount) _ = let
         acd' = acd
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
                     (def & mintedValue   .~ coerce    amount)
                     (def & untappedValue .~ coerce (- amount)))
         in (acd', acps')
-    applyAgreementOperation acd acps (Transfer amount) = let
+    applyAgreementOperation acd acps (Transfer amount) _ = let
         acd' = acd
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
                     (def & untappedValue .~ coerce (- amount))

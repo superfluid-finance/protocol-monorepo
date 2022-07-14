@@ -81,10 +81,10 @@ instance ( ContractLens cdL sft
         } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (ContractData cdL mudL sft) =
-        --         flowRate     newFlowBuffer                      t'
-        UpdateFlow (SFT_MVAL sft) (BBS.BufferValue (SFT_MVAL sft)) (SFT_TS sft)
+        --         flowRate       newFlowBuffer
+        UpdateFlow (SFT_MVAL sft) (BBS.BufferValue (SFT_MVAL sft))
 
-    applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer t') = let
+    applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer) t' = let
         acd' = acd & set flowRate newFlowRate
                    & set flowBuffer newFlowBuffer
                    & set flowLastUpdatedAt t'

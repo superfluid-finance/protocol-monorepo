@@ -13,6 +13,7 @@ import           Data.Kind                                         (Type)
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
 
 
+-- | Agreement monetary unit data type class.
 class ( SuperfluidTypes sft
       , Monoid amud
       ) => AgreementMonetaryUnitData amud sft | amud -> sft where
@@ -22,15 +23,19 @@ class ( SuperfluidTypes sft
         -> SFT_TS sft    -- t
         -> SFT_RTB sft   -- rtb
 
+-- | Agreement contract data type class.
+--
+-- Note the usage of functional dependency: the type of the monetary unit data is uniquely determined by the type of the
+-- contract data.
 class ( SuperfluidTypes sft
       , AgreementMonetaryUnitData amud sft
       , Default acd
       , Applicative (AgreementContractPartiesF acd), Traversable (AgreementContractPartiesF acd)
       ) => AgreementContractData acd amud sft | acd -> sft, acd -> amud where
-    -- | Agreement contract parties traversable applicative functor type
+    -- | Agreement contract parties traversable applicative functor type.
     data AgreementContractPartiesF acd elem_t :: Type
 
-    -- | Agreement operation algebraic data type
+    -- | Agreement operation algebraic data type.
     data AgreementOperation acd :: Type
 
     -- | Applying agreement operation to a agreement contract data
@@ -39,4 +44,5 @@ class ( SuperfluidTypes sft
         :: acd                                        -- acd
         -> AgreementContractPartiesF acd amud         -- acps
         -> AgreementOperation acd                     -- ao
+        -> SFT_TS (sft)                               -- t
         -> (acd, AgreementContractPartiesF acd amud)  -- (acd', acps')

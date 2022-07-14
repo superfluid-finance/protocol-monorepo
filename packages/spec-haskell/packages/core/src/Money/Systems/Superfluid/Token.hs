@@ -9,20 +9,20 @@ module Money.Systems.Superfluid.Token
     ) where
 
 import           Data.Default
-import           Data.Foldable                                                    (toList)
-import           Data.Kind                                                        (Type)
-import           Data.Maybe                                                       (fromMaybe)
+import           Data.Foldable                                                (toList)
+import           Data.Kind                                                    (Type)
+import           Data.Maybe                                                   (fromMaybe)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
 --
 import           Money.Systems.Superfluid.MonetaryUnit
 
@@ -88,19 +88,18 @@ class ( Monad tk
     --
 
     changeAgreement
-        :: ( AgreementContractData acd amu (TK_SFT tk)
-           )
-        => TS tk
-        -> (AgreementContractPartiesF acd) (ADDR tk)                             -- acpAddrs
+        :: AgreementContractData acd amu (TK_SFT tk)
+        => (AgreementContractPartiesF acd) (ADDR tk)                             -- acpAddrs
         -> AgreementOperation acd                                                -- ao
         -> ((AgreementContractPartiesF acd) (ADDR tk) -> tk (Maybe acd))         -- acdGetter
         -> ((AgreementContractPartiesF acd) (ADDR tk) -> acd -> TS tk -> tk ())  -- acdSetter
         -> Lens' (TK_ACC tk) amu                                                 -- amu
         -> tk ()
-    changeAgreement t acpAddrs ao acdGetter acdSetter amuData = do
+    changeAgreement acpAddrs ao acdGetter acdSetter amuData = do
+        t <- getCurrentTime
         acpAccounts <- mapM getAccount acpAddrs
         acd <- fromMaybe def <$> acdGetter acpAddrs
-        let (acd', acpAADs') = applyAgreementOperation acd (fmap (^. amuData) acpAccounts) ao
+        let (acd', acpAADs') = applyAgreementOperation acd (fmap (^. amuData) acpAccounts) ao t
         acdSetter acpAddrs acd' t
         mapM_ (uncurry putAccount)
             (zip (toList acpAddrs)
@@ -117,10 +116,9 @@ class ( Monad tk
 
     mintValue :: ADDR tk -> MVAL tk-> tk ()
     mintValue toAddr amount = do
-        t <- getCurrentTime
         minterAddress <- getMinterAddress
         changeAgreement
-            t (ITA.ContractPartiesF minterAddress toAddr) (ITA.Mint amount)
+            (ITA.ContractPartiesF minterAddress toAddr) (ITA.Mint amount)
             viewITAContract setITAContract itaMonetaryUnitData
 
     --
@@ -134,10 +132,9 @@ class ( Monad tk
 
     updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> MVAL tk-> tk ()
     updateFlow acpAddrs newFlowRate = do
-        t <- getCurrentTime
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         changeAgreement
-            t acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer t)
+            acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
             viewFlow setFlow cfaMonetaryUnitData
 
     --
@@ -149,9 +146,8 @@ class ( Monad tk
 
     updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> MVAL tk-> tk ()
     updateDecayingFlow acpAddrs newDistributionLimit = do
-        t <- getCurrentTime
         changeAgreement
-            t acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def t)
+            acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
             viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
 
 -- ============================================================================

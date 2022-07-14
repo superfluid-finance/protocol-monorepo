@@ -99,14 +99,14 @@ instance ( ContractLens cdL sft
         } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (ContractData cdL mudL sft) =
-        -- θ (Distribution Limit), newFlowBuffer, t'
-        UpdateDecayingFlow (SFT_MVAL sft) (BBS.BufferValue (SFT_MVAL sft)) (SFT_TS sft)
+        --                 θ/distributionLimit newFlowBuffer
+        UpdateDecayingFlow (SFT_MVAL sft)      (BBS.BufferValue (SFT_MVAL sft))
 
     -- | Create data of agreement parties from the changes of the DFA contract
     --
     -- Formula:
     --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = DFA_AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
-    applyAgreementOperation (MkContractData acd) acps (UpdateDecayingFlow θ newFlowBuffer t') = let
+    applyAgreementOperation (MkContractData acd) acps (UpdateDecayingFlow θ newFlowBuffer) t' = let
         acd' = acd & set distributionLimit θ
                    & set flowBuffer        newFlowBuffer
                    & set flowLastUpdatedAt t'

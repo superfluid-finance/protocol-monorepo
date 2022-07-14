@@ -31,24 +31,24 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
-import           Data.Binary                                                      (Binary)
-import           Data.Char                                                        (isAlpha)
-import           Data.Coerce                                                      (coerce)
+import           Data.Binary                                                  (Binary)
+import           Data.Char                                                    (isAlpha)
+import           Data.Coerce                                                  (coerce)
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                                         as M
+import qualified Data.Map                                                     as M
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Micro
 
-import qualified Money.Systems.Superfluid.Token                                   as SF
+import qualified Money.Systems.Superfluid.Token                               as SF
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
 
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
@@ -84,11 +84,11 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
     providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
-    itaMonetaryUnitData   = lens itaMonetaryUnitData (\acc mud' -> acc { itaMonetaryUnitData = mud' })
+    itaMonetaryUnitData = lens itaMonetaryUnitData (\acc mud' -> acc { itaMonetaryUnitData = mud' })
     itaMonetaryUnitLens = to $ \acc -> let ITA.MkMonetaryUnitData l = itaMonetaryUnitData acc in l
-    cfaMonetaryUnitData   = lens cfaMonetaryUnitData (\acc mud' -> acc { cfaMonetaryUnitData = mud' })
+    cfaMonetaryUnitData = lens cfaMonetaryUnitData (\acc mud' -> acc { cfaMonetaryUnitData = mud' })
     cfaMonetaryUnitLens = to $ \acc -> let CFA.MkMonetaryUnitData l = cfaMonetaryUnitData acc in l
-    dfaMonetaryUnitData   = lens dfaMonetaryUnitData (\acc mud' -> acc { dfaMonetaryUnitData = mud' })
+    dfaMonetaryUnitData = lens dfaMonetaryUnitData (\acc mud' -> acc { dfaMonetaryUnitData = mud' })
     dfaMonetaryUnitLens = to $ \acc -> let DFA.MkMonetaryUnitData l = dfaMonetaryUnitData acc in l
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where

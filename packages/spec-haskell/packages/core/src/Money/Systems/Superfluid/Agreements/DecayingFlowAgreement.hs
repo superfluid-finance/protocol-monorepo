@@ -28,17 +28,17 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 -- * DFA.MonetaryUnitData
 --
-class (Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
-    decayingFactor  :: Lens' mud (SFT_FLOAT sft)
-    settledAt       :: Lens' mud (SFT_TS sft)
-    αVal            :: Lens' mud (SFT_FLOAT sft)
-    εVal            :: Lens' mud (SFT_FLOAT sft)
-    settledBuffer   :: Lens' mud (BBS.BufferLiquidity (SFT_LQ sft))
+class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
+    decayingFactor  :: Lens' mudL (SFT_FLOAT sft)
+    settledAt       :: Lens' mudL (SFT_TS sft)
+    αVal            :: Lens' mudL (SFT_FLOAT sft)
+    εVal            :: Lens' mudL (SFT_FLOAT sft)
+    settledBuffer   :: Lens' mudL (BBS.BufferLiquidity (SFT_LQ sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
-newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
+newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
 
-instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'
@@ -56,9 +56,9 @@ instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
         where ε'  = b^.εVal
               λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
-instance MonetaryUnitLens mud sft => Monoid (MonetaryUnitData mud sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft where
+instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
     -- | Provided balance by DFA
     --
     -- Formula:
@@ -78,27 +78,27 @@ instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData
 -- * DFA.ContractData
 --
 
-class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
-    flowLastUpdatedAt :: Lens' cd (SFT_TS sft)
-    distributionLimit :: Lens' cd (SFT_LQ sft)
-    flowBuffer        :: Lens' cd (BBS.BufferLiquidity (SFT_LQ sft))
+class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft where
+    flowLastUpdatedAt :: Lens' cdL (SFT_TS sft)
+    distributionLimit :: Lens' cdL (SFT_LQ sft)
+    flowBuffer        :: Lens' cdL (BBS.BufferLiquidity (SFT_LQ sft))
 
 type ContractData :: Type -> Type -> Type -> Type
-data ContractData _cd mud sft = MkContractData _cd
+data ContractData cdL mudL sft = MkContractData cdL
 
-instance ContractLens cd sft => Default (ContractData cd mud sft) where def = MkContractData def
+instance ContractLens cdL sft => Default (ContractData cdL mudL sft) where def = MkContractData def
 
-instance ( ContractLens cd sft
-         , MonetaryUnitLens mud sft
-         , AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft
-         ) => AgreementContractData (ContractData cd mud sft) (MonetaryUnitData mud sft) sft where
+instance ( ContractLens cdL sft
+         , MonetaryUnitLens mudL sft
+         , AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft
+         ) => AgreementContractData (ContractData cdL mudL sft) (MonetaryUnitData mudL sft) sft where
 
-    data AgreementContractPartiesF (ContractData cd mud sft) a = ContractPartiesF
+    data AgreementContractPartiesF (ContractData cdL mudL sft) a = ContractPartiesF
         { decayingFlowSender   :: a
         , decayingFlowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (ContractData cd mud sft) =
+    data AgreementOperation (ContractData cdL mudL sft) =
         -- θ (Distribution Limit), newFlowBuffer, t'
         UpdateDecayingFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 
@@ -123,9 +123,9 @@ instance ( ContractLens cd sft
             θ_Δ             = fromIntegral (θ - acd^.distributionLimit)
             flowBufferDelta = newFlowBuffer - acd^.flowBuffer
 
-type ContractPartiesF   sft cd mud = AgreementContractPartiesF (ContractData cd mud sft)
-type ContractPartiesMUD sft cd mud = ContractPartiesF sft cd (MonetaryUnitData mud sft)
+type ContractPartiesF   sft cdL mudL = AgreementContractPartiesF (ContractData cdL mudL sft)
+type ContractPartiesMUD sft cdL mudL = ContractPartiesF sft cdL (MonetaryUnitData mudL sft)
 
-instance MonetaryUnitLens mud sft => Applicative (ContractPartiesF sft cd mud) where
+instance MonetaryUnitLens mudL sft => Applicative (ContractPartiesF sft cdL mudL) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')

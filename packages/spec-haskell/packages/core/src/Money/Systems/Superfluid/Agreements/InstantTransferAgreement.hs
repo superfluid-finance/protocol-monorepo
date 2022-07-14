@@ -39,21 +39,21 @@ mkMintedLiquidity = TappedValue
 
 -- * ITA.MonetaryUnitData
 --
-class (Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
-    untappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
-    mintedLiquidity   :: Lens' mud (MintedLiquidity (SFT_LQ sft))
+class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
+    untappedLiquidity :: Lens' mudL (UntappedValue (SFT_LQ sft))
+    mintedLiquidity   :: Lens' mudL (MintedLiquidity (SFT_LQ sft))
 
-type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
+type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
 
-instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & over untappedLiquidity (+ b^.untappedLiquidity)
                   & over mintedLiquidity   (+ b^.mintedLiquidity)
         in MkMonetaryUnitData c
-instance MonetaryUnitLens mud sft => Monoid (MonetaryUnitData mud sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft where
+instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) _ =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
         ( a^.untappedLiquidity )
@@ -62,24 +62,24 @@ instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData
 -- * ITA.ContractData
 --
 
-class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft
+class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft
 
-type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData cdL mud sft = MkContractData cdL
+type ContractData :: Type -> Type -> Type -> Type -- make GHC happy
+newtype ContractData cdL mudL sft = MkContractData cdL
 
-instance ContractLens cd sft => Default (ContractData cd mud sft) where def = MkContractData def
+instance ContractLens cdL sft => Default (ContractData cdL mudL sft) where def = MkContractData def
 
-instance ( ContractLens cd sft
-         , MonetaryUnitLens mud sft
-         , AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft
-         ) => AgreementContractData (ContractData cd mud sft) (MonetaryUnitData mud sft) sft where
+instance ( ContractLens cdL sft
+         , MonetaryUnitLens mudL sft
+         , AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft
+         ) => AgreementContractData (ContractData cdL mudL sft) (MonetaryUnitData mudL sft) sft where
 
-    data AgreementContractPartiesF (ContractData cd mud sft) a = ContractPartiesF
+    data AgreementContractPartiesF (ContractData cdL mudL sft) a = ContractPartiesF
         { transferFrom :: a
         , transferTo   :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (ContractData cd mud sft) =
+    data AgreementOperation (ContractData cdL mudL sft) =
         MintLiquidity (SFT_LQ sft) |
         BurnLiquidity (SFT_LQ sft) |
         TransferLiquidity (SFT_LQ sft)
@@ -103,9 +103,9 @@ instance ( ContractLens cd sft
                     (def & untappedLiquidity .~ coerce    amount))
         in (acd', acps')
 
-type ContractPartiesF   sft cd mud = AgreementContractPartiesF (ContractData cd mud sft)
-type ContractPartiesMUD sft cd mud = ContractPartiesF sft cd (MonetaryUnitData mud sft)
+type ContractPartiesF   sft cdL mudL = AgreementContractPartiesF (ContractData cdL mudL sft)
+type ContractPartiesMUD sft cdL mudL = ContractPartiesF sft cdL (MonetaryUnitData mudL sft)
 
-instance Applicative (ContractPartiesF sft cd mud) where
+instance Applicative (ContractPartiesF sft cdL mudL) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')

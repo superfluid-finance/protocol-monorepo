@@ -8,6 +8,7 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
     , ContractLens (..)
     , ContractData (..)
     , AgreementContractPartiesF (..)
+    , FlowRate
     , AgreementOperation (..)
     , ContractPartiesF
     , ContractPartiesMUD
@@ -23,8 +24,6 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
-
--- FIXME use: newtype FlowRate sft = FlowRate (SFT_MVAL sft)
 
 -- * CFA.MonetaryUnitData
 --
@@ -70,6 +69,8 @@ newtype ContractData cdL mudL sft = MkContractData cdL
 
 instance ContractLens cdL sft => Default (ContractData cdL mudL sft) where def = MkContractData def
 
+type FlowRate sft = SFT_MVAL sft
+
 instance ( ContractLens cdL sft
          , MonetaryUnitLens mudL sft
          , AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft
@@ -82,7 +83,7 @@ instance ( ContractLens cdL sft
 
     data AgreementOperation (ContractData cdL mudL sft) =
         --         flowRate       newFlowBuffer
-        UpdateFlow (SFT_MVAL sft) (BBS.BufferValue (SFT_MVAL sft))
+        UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
     applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer) t' = let
         acd' = acd & set flowRate newFlowRate

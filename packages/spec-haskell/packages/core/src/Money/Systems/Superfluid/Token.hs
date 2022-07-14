@@ -130,7 +130,7 @@ class ( Monad tk
     viewFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.CFAContractData (TK_SFT tk)))
     setFlow  :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> UIDX.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> MVAL tk-> tk ()
+    updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> CFA.FlowRate (TK_SFT tk) -> tk ()
     updateFlow acpAddrs newFlowRate = do
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         changeAgreement
@@ -144,7 +144,7 @@ class ( Monad tk
     viewDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.DFAContractData (TK_SFT tk)))
     setDecayingFlow  :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> UIDX.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> MVAL tk-> tk ()
+    updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> DFA.DistributionLimit (TK_SFT tk) -> tk ()
     updateDecayingFlow acpAddrs newDistributionLimit = do
         changeAgreement
             acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)

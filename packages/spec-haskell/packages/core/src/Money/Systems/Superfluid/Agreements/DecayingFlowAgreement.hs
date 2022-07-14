@@ -11,6 +11,7 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
     , ContractLens (..)
     , ContractData (..)
     , AgreementContractPartiesF (..)
+    , DistributionLimit
     , AgreementOperation (..)
     , ContractPartiesF
     , ContractPartiesMUD
@@ -88,6 +89,8 @@ data ContractData cdL mudL sft = MkContractData cdL
 
 instance ContractLens cdL sft => Default (ContractData cdL mudL sft) where def = MkContractData def
 
+type DistributionLimit sft = SFT_MVAL sft
+
 instance ( ContractLens cdL sft
          , MonetaryUnitLens mudL sft
          , AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft
@@ -99,8 +102,8 @@ instance ( ContractLens cdL sft
         } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (ContractData cdL mudL sft) =
-        --                 θ/distributionLimit newFlowBuffer
-        UpdateDecayingFlow (SFT_MVAL sft)      (BBS.BufferValue (SFT_MVAL sft))
+        --                 θ/distributionLimit     newFlowBuffer
+        UpdateDecayingFlow (DistributionLimit sft) (BBS.BufferValue (SFT_MVAL sft))
 
     -- | Create data of agreement parties from the changes of the DFA contract
     --

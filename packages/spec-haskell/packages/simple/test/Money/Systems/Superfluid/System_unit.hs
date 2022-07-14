@@ -21,7 +21,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     let [alice, bob, carol] = testAddresses ctx
     -- T0: test initial condition
-    expectZeroTotalLiquidity
+    expectZeroTotalValue
     accounts' <- runToken SF.listAccounts
     liftIO $ assertEqual "expected number of accounts" 4 (length accounts')
 
@@ -40,7 +40,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     expectAccountBalanceTo "alice should send money" alice (< constInitBalance)
     expectAccountBalanceTo "bob should receive money" bob (> constInitBalance)
     expectAccountBalanceTo "carol should be the same" carol (== constInitBalance)
-    expectZeroTotalLiquidity
+    expectZeroTotalValue
     )
 
 simple1to2ScenarioTest = TokenTestCase TokenTestSpec
@@ -64,7 +64,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectAccountBalanceTo "alice should send money" alice (< constInitBalance)
     expectAccountBalanceTo "bob should receive money" bob (> constInitBalance)
     expectAccountBalanceTo "carol should also receive money" carol (> constInitBalance)
-    expectZeroTotalLiquidity
+    expectZeroTotalValue
     )
 
 tests = hUnitTestToTests $ createTokenTestList

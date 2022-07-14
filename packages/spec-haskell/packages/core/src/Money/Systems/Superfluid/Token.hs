@@ -115,12 +115,12 @@ class ( Monad tk
     viewITAContract :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.ITAContractData (TK_SFT tk)))
     setITAContract  :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> UIDX.ITAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    mintLiquidity :: ADDR tk -> LQ tk-> tk ()
-    mintLiquidity toAddr amount = do
+    mintValue :: ADDR tk -> LQ tk-> tk ()
+    mintValue toAddr amount = do
         t <- getCurrentTime
         minterAddress <- getMinterAddress
         changeAgreement
-            t (ITA.ContractPartiesF minterAddress toAddr) (ITA.MintLiquidity amount)
+            t (ITA.ContractPartiesF minterAddress toAddr) (ITA.Mint amount)
             viewITAContract setITAContract itaMonetaryUnitData
 
     --
@@ -135,7 +135,7 @@ class ( Monad tk
     updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> LQ tk-> tk ()
     updateFlow acpAddrs newFlowRate = do
         t <- getCurrentTime
-        newFlowBuffer <- BBS.mkBufferLiquidity <$> calcFlowBuffer newFlowRate
+        newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         changeAgreement
             t acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer t)
             viewFlow setFlow cfaMonetaryUnitData

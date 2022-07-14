@@ -76,14 +76,14 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 -- ITA
 -- instance Serializable (ITA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
 --     putter s = do
---         putLQ (coerce $ ITA.untappedLiquidity s)
---         putLQ (coerce $ ITA.mintedLiquidity s)
+--         putLQ (coerce $ ITA.untappedValue s)
+--         putLQ (coerce $ ITA.mintedValue s)
 --     getter _ = do
 --         l <- getLQ
 --         m <- getLQ
 --         return ITA.AccountData
---             { ITA.untappedLiquidity = UntappedValue l
---             , ITA.mintedLiquidity = ITA.mkMintedLiquidity m
+--             { ITA.untappedValue = UntappedValue l
+--             , ITA.mintedValue = ITA.mkMintedValue m
 --             }
 
 -- CFA
@@ -99,14 +99,14 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --         return CFA.ContractData
 --             { CFA.flowLastUpdatedAt = t
 --             , CFA.flowRate = fr
---             , CFA.flowBuffer = BBS.mkBufferLiquidity b
+--             , CFA.flowBuffer = BBS.mkBufferValue b
 --             }
 
 -- instance Serializable (CFA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
 --     putter s = do
 --         putTS (CFA.settledAt s)
---         putLQ (coerce $ CFA.settledUntappedLiquidity s)
---         putLQ (coerce $ CFA.settledBufferLiquidity s)
+--         putLQ (coerce $ CFA.settledUntappedValue s)
+--         putLQ (coerce $ CFA.settledBufferValue s)
 --         putLQ (CFA.netFlowRate s)
 --     getter _ = do
 --         t <- getTS
@@ -115,8 +115,8 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --         fr <- getLQ
 --         return CFA.AccountData
 --             { CFA.settledAt = t
---             , CFA.settledUntappedLiquidity = UntappedValue l
---             , CFA.settledBufferLiquidity = BBS.mkBufferLiquidity b
+--             , CFA.settledUntappedValue = UntappedValue l
+--             , CFA.settledBufferValue = BBS.mkBufferValue b
 --             , CFA.netFlowRate = fr
 --             }
 
@@ -136,7 +136,7 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --             { DFA.flowLastUpdatedAt = t
 --             , DFA.decayingFactor = λ
 --             , DFA.distributionLimit = θ
---             , DFA.flowBuffer = BBS.mkBufferLiquidity b
+--             , DFA.flowBuffer = BBS.mkBufferValue b
 --             }
 
 -- instance Serializable (DFA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
@@ -154,5 +154,5 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --             { DFA.settledAt = t
 --             ,  DFA.αVal = α
 --             , DFA.εVal = ε
---             , DFA.settledBuffer = BBS.mkBufferLiquidity b
+--             , DFA.settledBuffer = BBS.mkBufferValue b
 --             }

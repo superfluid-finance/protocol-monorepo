@@ -19,7 +19,7 @@ instance Arbitrary SimpleRealtimeBalance where
         d <- arbitrary
         od <- arbitrary
         return SimpleRealtimeBalance
-            { untappedLiquidityVal = Wad uval
+            { untappedValueVal = Wad uval
             , mintedVal = Wad mval
             , depositVal = Wad d
             , owedDepositVal = Wad od
@@ -57,11 +57,11 @@ prop_mulAddDistributivity a b c =
 --   1. abs x * signum x = normalized x
 --   2. (signum x * abs x) + negate x = fromInteger 0
 --   3. x * fromInteger 1 = normalized x and fromInteger 1 * x = normalized x
-prop_requiredLiquidityRTB :: SimpleRealtimeBalance -> Bool
-prop_requiredLiquidityRTB x = (abs x * signum x) `sameAs` mormalizeRTBWith id x
+prop_requiredValueRTB :: SimpleRealtimeBalance -> Bool
+prop_requiredValueRTB x = (abs x * signum x) `sameAs` mormalizeRTBWith id x
 
-prop_requiredLiquidityRTBInv :: SimpleRealtimeBalance -> Bool
-prop_requiredLiquidityRTBInv x = ((signum x * abs x) - x) `sameAs` 0
+prop_requiredValueRTBInv :: SimpleRealtimeBalance -> Bool
+prop_requiredValueRTBInv x = ((signum x * abs x) - x) `sameAs` 0
 
 prop_fromIntegerOneIsMulId :: SimpleRealtimeBalance -> Bool
 prop_fromIntegerOneIsMulId x = let mulId = 1 in
@@ -72,8 +72,8 @@ tests =
     [ testProperty "(+) has associativity" prop_plusHasAssociativity
     , testProperty "(+) has commutativity" prop_plusHasCommutativity
     , testProperty "(fromInteger 0) is the additive identity" prop_fromIntegerZeroIsAddId
-    , testProperty "(abs x * signum x) equals normalized x" prop_requiredLiquidityRTB
-    , testProperty "(signum x * abs x) - x equals zero" prop_requiredLiquidityRTBInv
+    , testProperty "(abs x * signum x) equals normalized x" prop_requiredValueRTB
+    , testProperty "(signum x * abs x) - x equals zero" prop_requiredValueRTBInv
     , testProperty "(*) has associativity" prop_mulHasAssociativity
     , testProperty "(fromInteger 1) is the multiplicative identity normalized" prop_fromIntegerOneIsMulId
     , testProperty "distributivity of (*) with respect to (+)" prop_mulAddDistributivity

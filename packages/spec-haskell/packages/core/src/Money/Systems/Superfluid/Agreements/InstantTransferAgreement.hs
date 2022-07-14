@@ -4,9 +4,9 @@
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Agreements.InstantTransferAgreement
-    ( MintedLiquidity
-    , mintedLiquidityTag
-    , mkMintedLiquidity
+    ( MintedValue
+    , mintedValueTag
+    , mkMintedValue
     , MonetaryUnitLens (..)
     , MonetaryUnitData (..)
     , ContractLens
@@ -26,38 +26,38 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 
--- * MintedLiquidity Type
+-- * MintedValue Type
 --
 
-data MintedLiquidityTag
-instance TappedValueTag MintedLiquidityTag where tappedValueTag _ = "m"
-type MintedLiquidity v = TappedValue MintedLiquidityTag v
-mintedLiquidityTag :: Proxy MintedLiquidityTag
-mintedLiquidityTag = Proxy @MintedLiquidityTag
-mkMintedLiquidity :: Value v => v -> MintedLiquidity v
-mkMintedLiquidity = TappedValue
+data MintedValueTag
+instance TappedValueTag MintedValueTag where tappedValueTag _ = "m"
+type MintedValue v = TappedValue MintedValueTag v
+mintedValueTag :: Proxy MintedValueTag
+mintedValueTag = Proxy @MintedValueTag
+mkMintedValue :: Value v => v -> MintedValue v
+mkMintedValue = TappedValue
 
 -- * ITA.MonetaryUnitData
 --
 class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
-    untappedLiquidity :: Lens' mudL (UntappedValue (SFT_LQ sft))
-    mintedLiquidity   :: Lens' mudL (MintedLiquidity (SFT_LQ sft))
+    untappedValue :: Lens' mudL (UntappedValue (SFT_LQ sft))
+    mintedValue   :: Lens' mudL (MintedValue (SFT_LQ sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
 
 instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
-        let c = a & over untappedLiquidity (+ b^.untappedLiquidity)
-                  & over mintedLiquidity   (+ b^.mintedLiquidity)
+        let c = a & over untappedValue (+ b^.untappedValue)
+                  & over mintedValue   (+ b^.mintedValue)
         in MkMonetaryUnitData c
 instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) _ =
-        typedLiquidityVectorToRTB $ TypedLiquidityVector
-        ( a^.untappedLiquidity )
-        [ mkAnyTappedLiquidity $ a^.mintedLiquidity ]
+        typedValueVectorToRTB $ TypedValueVector
+        ( a^.untappedValue )
+        [ mkAnyTappedValue $ a^.mintedValue ]
 
 -- * ITA.ContractData
 --
@@ -80,27 +80,27 @@ instance ( ContractLens cdL sft
         } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (ContractData cdL mudL sft) =
-        MintLiquidity (SFT_LQ sft) |
-        BurnLiquidity (SFT_LQ sft) |
-        TransferLiquidity (SFT_LQ sft)
+        Mint (SFT_LQ sft) |
+        Burn (SFT_LQ sft) |
+        Transfer (SFT_LQ sft)
 
-    applyAgreementOperation acd acps (MintLiquidity amount) = let
+    applyAgreementOperation acd acps (Mint amount) = let
         acd'  = acd
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
-                    (def & mintedLiquidity   .~ coerce (- amount))
-                    (def & untappedLiquidity .~ coerce    amount))
+                    (def & mintedValue   .~ coerce (- amount))
+                    (def & untappedValue .~ coerce    amount))
         in (acd', acps')
-    applyAgreementOperation acd acps (BurnLiquidity amount) = let
+    applyAgreementOperation acd acps (Burn amount) = let
         acd' = acd
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
-                    (def & mintedLiquidity   .~ coerce    amount)
-                    (def & untappedLiquidity .~ coerce (- amount)))
+                    (def & mintedValue   .~ coerce    amount)
+                    (def & untappedValue .~ coerce (- amount)))
         in (acd', acps')
-    applyAgreementOperation acd acps (TransferLiquidity amount) = let
+    applyAgreementOperation acd acps (Transfer amount) = let
         acd' = acd
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
-                    (def & untappedLiquidity .~ coerce (- amount))
-                    (def & untappedLiquidity .~ coerce    amount))
+                    (def & untappedValue .~ coerce (- amount))
+                    (def & untappedValue .~ coerce    amount))
         in (acd', acps')
 
 type ContractPartiesF   sft cdL mudL = AgreementContractPartiesF (ContractData cdL mudL sft)

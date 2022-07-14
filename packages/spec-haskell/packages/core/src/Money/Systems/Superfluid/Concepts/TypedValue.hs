@@ -14,21 +14,7 @@
 -- Here is how their relations look like:
 --
 -- @
---                 +--------------+
---                 |TaggedTypeable|
---                 +-------^------+
---                         |
---                +--------+--------+                                   +--------------+
---            +--->TypedLiquidityTag<-----+                       +----->TypedValue<----+
---            |   +-----------------+     |                       |     +--------------+    |
---            |                           |                       |                         |
--- +----------+---------+     +-----------+---------+       +-----+-----------+   +---------+--------+
--- |UntappedLiquidityTag|     |(C)TappedValueTag| ===>> |UntappedValue|   |(C)TappedValue|
--- +--------------------+     +-----------@---------+       +-----------------+   +---------@--------+
---                                        |                                                 |
---                            +-----------+---------+                             +---------+--------+
---                            |AnyTappedValueTag|                             |AnyTappedValue|
---                            +---------------------+                             +------------------+
+-- TODO
 -- @
 -- [(ASCIIFlow Link)](https://asciiflow.com/#/share/eJyrVspLzE1VslIKLi1ILUrLKc1MUfDJLARSmSWVSjpKOYmVqUVA6eoYpYoYJStLcwOdGKVKIMvIEsQqSa0oAXJilBTQwKMpe0hCMTF5WIwISUxPT00JqSxITUzKScWpDDuatotYm5CMwpQl1SdwhMsWqoUSmm9BwZQCjztg0GENAeJdgm7io%2BkthJxDcXDhdSBZQYY1XvHHDmFH4JADWkK29zHCgUomURYjlFgPCY3QvJLEAvSEifClhrNmCFZ5W1tbOzsFbAbAXYapl%2B5x4DDAMYDPfjwFHQnJGn9yx6%2BAShFBCxsIut0xrxJ7wiTgIkx9Qz2klGqVagHvSCn9)
 --
@@ -52,8 +38,9 @@ module Money.Systems.Superfluid.Concepts.TypedValue
     -- Any Tapped Value
     , AnyTappedValueTag (..)
     , AnyTappedValue (..)
-    , mkAnyTappedLiquidity
-    , fromAnyTappedLiquidity
+    , mkAnyTappedValue
+    , fromAnyTappedValue
+    , getUntypedValue
     ) where
 
 import           Data.Coerce                 (Coercible)
@@ -112,12 +99,16 @@ data AnyTappedValueTag = forall vtag. TappedValueTag vtag => MkTappedValueTag (P
 newtype AnyTappedValue v = AnyTappedValue (AnyTappedValueTag, v)
 
 -- | Create any tapped value
-mkAnyTappedLiquidity
+mkAnyTappedValue
     :: forall vtag v. (Value v, TappedValueTag vtag)
     => TappedValue vtag v -> AnyTappedValue v
-mkAnyTappedLiquidity (TappedValue uval) = AnyTappedValue (MkTappedValueTag (Proxy @vtag), uval)
+mkAnyTappedValue (TappedValue uval) = AnyTappedValue (MkTappedValueTag (Proxy @vtag), uval)
 
 -- | Get value from any tapped value if value tag matches, or return default value
-fromAnyTappedLiquidity :: (Value v, Typeable vtag) => AnyTappedValue v -> Proxy vtag -> v
-fromAnyTappedLiquidity (AnyTappedValue (MkTappedValueTag tag1, uval)) tag2 =
+fromAnyTappedValue :: (Value v, Typeable vtag) => AnyTappedValue v -> Proxy vtag -> v
+fromAnyTappedValue (AnyTappedValue (MkTappedValueTag tag1, uval)) tag2 =
     if typeRep tag1 == typeRep tag2 then uval else def
+
+-- | Get value from any tapped value
+getUntypedValue :: Value v => AnyTappedValue v -> v
+getUntypedValue (AnyTappedValue (_, uval)) = uval

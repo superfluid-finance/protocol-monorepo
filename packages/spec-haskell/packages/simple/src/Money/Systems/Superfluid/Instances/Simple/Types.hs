@@ -22,24 +22,24 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , AnySimpleAgreementMonetaryUnitData (..)
     ) where
 
-import           Control.Exception                                                (assert)
+import           Control.Exception                                            (assert)
 import           Data.Binary
 import           Data.Default
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
-import           GHC.Generics                                                     (Generic)
+import           GHC.Generics                                                 (Generic)
 import           Lens.Micro
-import           Text.Printf                                                      (printf)
+import           Text.Printf                                                  (printf)
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
 
 
 -- ============================================================================
@@ -100,10 +100,10 @@ instance Show SimpleTimestamp where
 
 -- | Simple realtime balance Type.
 data SimpleRealtimeBalance = SimpleRealtimeBalance
-    { untappedLiquidityVal :: Wad
-    , mintedVal            :: Wad
-    , depositVal           :: Wad
-    , owedDepositVal       :: Wad
+    { untappedValueVal :: Wad
+    , mintedVal        :: Wad
+    , depositVal       :: Wad
+    , owedDepositVal   :: Wad
     }
     deriving stock (Generic)
     deriving anyclass (Binary, Default)
@@ -111,32 +111,30 @@ data SimpleRealtimeBalance = SimpleRealtimeBalance
 
 instance Show (RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad) where
     show (RealtimeBalanceDerivingHelper rtb) =
-        (show . valueRequiredForRTB $ rtb) ++ " " ++
-        (showDetail . typedLiquidityVectorFromRTB $ rtb)
+        (show       . valueRequiredForRTB     $ rtb) ++ " " ++
+        (showDetail . typedValueVectorFromRTB $ rtb)
         where
-        showDetail (TypedLiquidityVector uval tvec) = "( "
+        showDetail (TypedValueVector uval tvec) = "( "
             ++ show uval
-            -- This is a version that ignores any zero value scalar:
-            -- ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeLiquidity )) $ tvec)
-            ++ foldl ((++) . (++ ", ")) "" (map show tvec)
+            ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . getUntypedValue )) $ tvec)
             ++ " )"
 
 instance RealtimeBalance SimpleRealtimeBalance Wad where
-    typedLiquidityVectorFromRTB rtb = TypedLiquidityVector
-        ( UntappedValue $ untappedLiquidityVal rtb)
-        [ mkAnyTappedLiquidity $ ITA.mkMintedLiquidity $ mintedVal rtb
-        , mkAnyTappedLiquidity $ BBS.mkBufferLiquidity $ depositVal rtb
+    typedValueVectorFromRTB rtb = TypedValueVector
+        ( UntappedValue $ untappedValueVal rtb)
+        [ mkAnyTappedValue $ ITA.mkMintedValue $ mintedVal rtb
+        , mkAnyTappedValue $ BBS.mkBufferValue $ depositVal rtb
         ]
 
     valueToRTB uval = SimpleRealtimeBalance uval def def def
 
-    untypedLiquidityVectorToRTB (UntypedLiquidityVector uval uvec) = assert (length uvec == 3) $
+    untypedValueVectorToRTB (UntypedValueVector uval uvec) = assert (length uvec == 3) $
         SimpleRealtimeBalance uval (head uvec) (uvec!!1) (uvec!!2)
 
-    typedLiquidityVectorToRTB (TypedLiquidityVector (UntappedValue uval) tvec) =
+    typedValueVectorToRTB (TypedValueVector (UntappedValue uval) tvec) =
         SimpleRealtimeBalance uval mval d od
-        where d = foldr ((+) . (`fromAnyTappedLiquidity` BBS.bufferLiquidityTag)) def tvec
-              mval = foldr ((+) . (`fromAnyTappedLiquidity` ITA.mintedLiquidityTag)) def tvec
+        where d = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
+              mval = foldr ((+) . (`fromAnyTappedValue` ITA.mintedValueTag)) def tvec
               od = def
 
 -- ============================================================================
@@ -164,8 +162,8 @@ instance TaggedTypeable (UIDX.ITAContractData SimpleSuperfluidTypes) where
 
 instance Show (UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
-        (show $ x^.ITA.untappedLiquidity)
-        (show $ x^.ITA.mintedLiquidity)
+        (show $ x^.ITA.untappedValue)
+        (show $ x^.ITA.mintedValue)
 
 -- CFA
 
@@ -184,8 +182,8 @@ instance Show (UIDX.CFAContractData SimpleSuperfluidTypes) where
 instance Show (UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes) where
     show (CFA.MkMonetaryUnitData x) = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
         (show $ x^.CFA.settledAt)
-        (show $ x^.CFA.settledUntappedLiquidity)
-        (show $ x^.CFA.settledBufferLiquidity)
+        (show $ x^.CFA.settledUntappedValue)
+        (show $ x^.CFA.settledBufferValue)
         (show $ x^.CFA.netFlowRate)
 
 -- DFA

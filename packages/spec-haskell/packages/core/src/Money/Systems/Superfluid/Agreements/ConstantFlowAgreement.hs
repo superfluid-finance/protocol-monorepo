@@ -30,10 +30,10 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 --
 
 class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
-    settledAt                :: Lens' mudL (SFT_TS sft)
-    settledUntappedLiquidity :: Lens' mudL (UntappedValue (SFT_LQ sft))
-    settledBufferLiquidity   :: Lens' mudL (BBS.BufferLiquidity (SFT_LQ sft))
-    netFlowRate              :: Lens' mudL (SFT_LQ sft)
+    settledAt            :: Lens' mudL (SFT_TS sft)
+    settledUntappedValue :: Lens' mudL (UntappedValue (SFT_LQ sft))
+    settledBufferValue   :: Lens' mudL (BBS.BufferValue (SFT_LQ sft))
+    netFlowRate          :: Lens' mudL (SFT_LQ sft)
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
@@ -41,20 +41,20 @@ newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
 instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & set  settledAt                (  b^.settledAt)
-                  & over settledUntappedLiquidity (+ b^.settledUntappedLiquidity)
+                  & over settledUntappedValue (+ b^.settledUntappedValue)
                   & over netFlowRate              (+ b^.netFlowRate)
-                  & over settledBufferLiquidity   (+ b^.settledBufferLiquidity)
+                  & over settledBufferValue   (+ b^.settledBufferValue)
         in MkMonetaryUnitData c
 instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) t =
-        typedLiquidityVectorToRTB $ TypedLiquidityVector
+        typedValueVectorToRTB $ TypedValueVector
             ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
-            [ mkAnyTappedLiquidity buf_s ]
+            [ mkAnyTappedValue buf_s ]
         where t_s                  = a^.settledAt
-              UntappedValue uval_s = a^.settledUntappedLiquidity
-              buf_s                = a^.settledBufferLiquidity
+              UntappedValue uval_s = a^.settledUntappedValue
+              buf_s                = a^.settledBufferValue
               fr                   = a^.netFlowRate
 
 -- * ITA.ContractData
@@ -63,7 +63,7 @@ instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitDat
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft where
     flowLastUpdatedAt :: Lens' cdL (SFT_TS sft)
     flowRate          :: Lens' cdL (SFT_LQ sft)
-    flowBuffer        :: Lens' cdL (BBS.BufferLiquidity (SFT_LQ sft))
+    flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_LQ sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 newtype ContractData cdL mudL sft = MkContractData cdL
@@ -82,7 +82,7 @@ instance ( ContractLens cdL sft
 
     data AgreementOperation (ContractData cdL mudL sft) =
         --         flowRate     newFlowBuffer                      t'
-        UpdateFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
+        UpdateFlow (SFT_LQ sft) (BBS.BufferValue (SFT_LQ sft)) (SFT_TS sft)
 
     applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer t') = let
         acd' = acd & set flowRate newFlowRate
@@ -91,12 +91,12 @@ instance ( ContractLens cdL sft
         acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
                     (def & set settledAt t'
                          & set netFlowRate (- flowRateDelta)
-                         & set settledUntappedLiquidity (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
-                         & set settledBufferLiquidity flowBufferDelta)
+                         & set settledUntappedValue (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
+                         & set settledBufferValue flowBufferDelta)
                     (def & set settledAt t'
                          & set netFlowRate flowRateDelta
-                         & set settledUntappedLiquidity (UntappedValue flowPeriodDelta)
-                         & set settledBufferLiquidity def))
+                         & set settledUntappedValue (UntappedValue flowPeriodDelta)
+                         & set settledBufferValue def))
         in (MkContractData acd', acps')
         where
             t               = acd^.flowLastUpdatedAt

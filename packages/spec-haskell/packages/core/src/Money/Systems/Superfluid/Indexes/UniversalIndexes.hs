@@ -18,14 +18,14 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 
 type ITAMonetaryUnitLens :: Type -> Type
 data ITAMonetaryUnitLens sft = ITAMonetaryUnitData
-    { ita_untappedLiquidity :: UntappedValue (SFT_LQ sft)
-    , ita_mintedLiquidity   :: ITA.MintedLiquidity (SFT_LQ sft)
+    { ita_untappedValue :: UntappedValue (SFT_LQ sft)
+    , ita_mintedValue   :: ITA.MintedValue (SFT_LQ sft)
     }
 instance SuperfluidTypes sft => Default (ITAMonetaryUnitLens sft) where
-    def = ITAMonetaryUnitData { ita_untappedLiquidity = def, ita_mintedLiquidity = def }
+    def = ITAMonetaryUnitData { ita_untappedValue = def, ita_mintedValue = def }
 instance SuperfluidTypes sft => ITA.MonetaryUnitLens (ITAMonetaryUnitLens sft) sft where
-    untappedLiquidity = $(field 'ita_untappedLiquidity)
-    mintedLiquidity   = $(field 'ita_mintedLiquidity)
+    untappedValue = $(field 'ita_untappedValue)
+    mintedValue   = $(field 'ita_mintedValue)
 type ITAMonetaryUnitData sft = ITA.MonetaryUnitData (ITAMonetaryUnitLens sft) sft
 
 type ITAContractLens :: Type -> Type
@@ -41,20 +41,20 @@ type ITAContractData sft = ITA.ContractData (ITAContractLens sft) (ITAMonetaryUn
 type CFAMonetaryUnitLens :: Type -> Type
 data CFAMonetaryUnitLens sft = CFAMonetaryUnitData
     { cfa_settledAt                :: SFT_TS sft
-    , cfa_settledUntappedLiquidity :: UntappedValue (SFT_LQ sft)
-    , cfa_settledBufferLiquidity   :: BBS.BufferLiquidity (SFT_LQ sft)
+    , cfa_settledUntappedValue :: UntappedValue (SFT_LQ sft)
+    , cfa_settledBufferValue   :: BBS.BufferValue (SFT_LQ sft)
     , cfa_netFlowRate              :: SFT_LQ sft
     }
 instance SuperfluidTypes sft => Default (CFAMonetaryUnitLens sft) where
     def = CFAMonetaryUnitData { cfa_settledAt = def
-                              , cfa_settledUntappedLiquidity = def
-                              , cfa_settledBufferLiquidity = def
+                              , cfa_settledUntappedValue = def
+                              , cfa_settledBufferValue = def
                               , cfa_netFlowRate = def
                               }
 instance SuperfluidTypes sft => CFA.MonetaryUnitLens (CFAMonetaryUnitLens sft) sft where
     settledAt                = $(field 'cfa_settledAt)
-    settledUntappedLiquidity = $(field 'cfa_settledUntappedLiquidity)
-    settledBufferLiquidity   = $(field 'cfa_settledBufferLiquidity)
+    settledUntappedValue = $(field 'cfa_settledUntappedValue)
+    settledBufferValue   = $(field 'cfa_settledBufferValue)
     netFlowRate              = $(field 'cfa_netFlowRate)
 type CFAMonetaryUnitData sft = CFA.MonetaryUnitData (CFAMonetaryUnitLens sft) sft
 
@@ -62,7 +62,7 @@ type CFAContractLens :: Type -> Type
 data CFAContractLens sft = CFAContractData
     { cfa_flowLastUpdatedAt :: SFT_TS sft
     , cfa_flowRate          :: SFT_LQ sft
-    , cfa_flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
+    , cfa_flowBuffer        :: BBS.BufferValue (SFT_LQ sft)
     }
 instance SuperfluidTypes sft => Default (CFAContractLens sft) where
     def = CFAContractData { cfa_flowLastUpdatedAt = def, cfa_flowRate = def, cfa_flowBuffer = def }
@@ -81,7 +81,7 @@ data DFAMonetaryUnitLens sft = DFAMonetaryUnitData
     , dfa_settledAt      :: SFT_TS sft
     , dfa_αVal           :: SFT_FLOAT sft
     , dfa_εVal           :: SFT_FLOAT sft
-    , dfa_settledBuffer  :: BBS.BufferLiquidity (SFT_LQ sft)
+    , dfa_settledBuffer  :: BBS.BufferValue (SFT_LQ sft)
     }
 instance SuperfluidTypes sft => Default (DFAMonetaryUnitLens sft) where
     def = DFAMonetaryUnitData { dfa_decayingFactor = default_lambda
@@ -103,7 +103,7 @@ type DFAContractLens :: Type -> Type
 data DFAContractLens sft = DFAContractData
     { dfa_flowLastUpdatedAt :: SFT_TS sft
     , dfa_distributionLimit :: SFT_LQ sft
-    , dfa_flowBuffer        :: BBS.BufferLiquidity (SFT_LQ sft)
+    , dfa_flowBuffer        :: BBS.BufferValue (SFT_LQ sft)
     }
 instance SuperfluidTypes sft => Default (DFAContractLens sft) where
     def = DFAContractData { dfa_flowLastUpdatedAt = def, dfa_distributionLimit = def, dfa_flowBuffer = def }

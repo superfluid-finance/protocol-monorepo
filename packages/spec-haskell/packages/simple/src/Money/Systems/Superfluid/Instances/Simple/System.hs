@@ -230,7 +230,7 @@ initSimpleToken alist initBalance = do
         , dfaContractData = M.empty
         , tokenLastUpdatedAt = t
         }
-    mapM_ (`SF.mintLiquidity` initBalance) alist
+    mapM_ (`SF.mintValue` initBalance) alist
 
 addAccount :: (Monad m) => SimpleAddress -> SimpleAccount -> SimpleTokenStateT m ()
 addAccount accountAddr account = modify_token_data (\vs -> vs {

@@ -42,10 +42,10 @@ travelDaysAndPrintBalances t0 days = do
         danBalance <- runToken token $ SF.balanceOfAccount dan
         liftIO $ putStrLn $ printf "%f %s %s %s %s"
             ((fromIntegral (coerce t_offset + i * 3600) :: Double) / (3600.0 * 24))
-            (show . SF.untappedLiquidityFromRTB $ aliceBalance)
-            (show . SF.untappedLiquidityFromRTB $ bobBalance)
-            (show . SF.untappedLiquidityFromRTB $ carolBalance)
-            (show . SF.untappedLiquidityFromRTB $ danBalance)
+            (show . SF.untappedValueFromRTB $ aliceBalance)
+            (show . SF.untappedValueFromRTB $ bobBalance)
+            (show . SF.untappedValueFromRTB $ carolBalance)
+            (show . SF.untappedValueFromRTB $ danBalance)
 
 demo :: HasCallStack => SimMonad ()
 demo = do

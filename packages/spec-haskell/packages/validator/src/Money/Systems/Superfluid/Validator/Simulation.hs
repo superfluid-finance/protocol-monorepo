@@ -81,8 +81,8 @@ printAccount acc _ = do
 printAccountByAlias :: HasCallStack => String -> SimData -> TokenMonad ()
 printAccountByAlias alias s = getAccountByAlias alias s >>= flip printAccount s
 
-sumTotalLiquidity :: HasCallStack => SimData -> TokenMonad SF.SimpleRealtimeBalance
-sumTotalLiquidity _ = do
+sumTotalValue :: HasCallStack => SimData -> TokenMonad SF.SimpleRealtimeBalance
+sumTotalValue _ = do
     t <- SF.getCurrentTime
     accounts <- SF.listAccounts
     return $ SF.sumBalancesAt (map snd accounts) t
@@ -95,7 +95,7 @@ printTokenState s = do
     accounts <- SF.listAccounts
     -- mapM_ (\x -> printAccount (snd x) s) accounts
     mapM_ (flip (printAccount . snd) s) accounts
-    totalLiquidtySum <- sumTotalLiquidity s
+    totalLiquidtySum <- sumTotalValue s
     liftIO $ putStrLn "## Token Info\n"
     liftIO $ putStrLn $ "Total Balance: " ++ show totalLiquidtySum
     liftIO $ putStrLn (banner ++ "\n")

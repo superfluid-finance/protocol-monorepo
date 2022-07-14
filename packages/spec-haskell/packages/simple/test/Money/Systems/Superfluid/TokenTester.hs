@@ -78,7 +78,7 @@ runToken m = do
 
 createTestAccount :: HasCallStack => SF.SimpleAddress -> SF.Wad -> TokenTester ()
 createTestAccount addr initBalance = runToken $ do
-    SF.mintLiquidity addr initBalance
+    SF.mintValue addr initBalance
     acc <- SF.getAccount addr
     SF.addAccount addr acc
 
@@ -90,8 +90,8 @@ expectAccountBalanceTo label addr expr = do
     balance <- runToken $ SF.balanceOfAccount addr
     liftIO $ assertBool label (expr . RTB.valueRequiredForRTB $ balance)
 
-expectZeroTotalLiquidity :: HasCallStack => TokenTester ()
-expectZeroTotalLiquidity = do
+expectZeroTotalValue :: HasCallStack => TokenTester ()
+expectZeroTotalValue = do
     t <- runToken SF.getCurrentTime
     accounts <- runToken SF.listAccounts
     liftIO $ assertBool "Zero Value Invariance"

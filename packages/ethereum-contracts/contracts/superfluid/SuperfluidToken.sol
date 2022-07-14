@@ -30,8 +30,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev Active agreement bitmap
     mapping(address => uint256) internal _inactiveAgreementBitmap;
 
-    /// @dev Settled balance for the account
-    mapping(address => int256) internal _balances;
+    /// @dev Shared Settled balance for the account
+    mapping(address => int256) internal _sharedSettledBalances;
 
     /// @dev Total supply
     uint256 internal _totalSupply;
@@ -79,7 +79,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
            uint256 deposit,
            uint256 owedDeposit)
     {
-        availableBalance = _balances[account];
+        availableBalance = _sharedSettledBalances[account];
         ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
         for (uint256 i = 0; i < activeAgreements.length; i++) {
             (
@@ -185,7 +185,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     )
         internal
     {
-        _balances[account] = _balances[account] + amount.toInt256();
+        _sharedSettledBalances[account] = _sharedSettledBalances[account] + amount.toInt256();
         _totalSupply = _totalSupply + amount;
     }
 
@@ -197,7 +197,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, _host.getNow());
         require(availableBalance >= amount.toInt256(), "SuperfluidToken: burn amount exceeds balance");
-        _balances[account] = _balances[account] - amount.toInt256();
+        _sharedSettledBalances[account] = _sharedSettledBalances[account] - amount.toInt256();
         _totalSupply = _totalSupply - amount;
     }
 
@@ -210,8 +210,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         (int256 availableBalance,,) = realtimeBalanceOf(from, _host.getNow());
         require(availableBalance >= amount, "SuperfluidToken: move amount exceeds balance");
-        _balances[from] = _balances[from] - amount;
-        _balances[to] = _balances[to] + amount;
+        _sharedSettledBalances[from] = _sharedSettledBalances[from] - amount;
+        _sharedSettledBalances[to] = _sharedSettledBalances[to] + amount;
     }
 
     function _getRewardAccount() internal view returns (address rewardAccount) {
@@ -311,7 +311,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         external override
         onlyAgreement
     {
-        _balances[account] = _balances[account] + delta;
+        _sharedSettledBalances[account] = _sharedSettledBalances[account] + delta;
     }
 
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
@@ -338,17 +338,17 @@ abstract contract SuperfluidToken is ISuperfluidToken
             // LIKELY BRANCH: target account pays penalty to rewarded account
             assert(rewardAmount.toInt256() == -targetAccountBalanceDelta);
 
-            _balances[rewardAmountReceiver] += rewardAmount.toInt256();
-            _balances[targetAccount] += targetAccountBalanceDelta;
+            _sharedSettledBalances[rewardAmountReceiver] += rewardAmount.toInt256();
+            _sharedSettledBalances[targetAccount] += targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(targetAccount, rewardAmountReceiver, rewardAmount);
         } else {
             // LESS LIKELY BRANCH: target account is bailed out
             // NOTE: useDefaultRewardAccount being true is undefined behavior
             // because the default reward account isn't receiving the rewardAmount by default
             assert(!useDefaultRewardAccount);
-            _balances[rewardAccount] -= (rewardAmount.toInt256() + targetAccountBalanceDelta);
-            _balances[liquidatorAccount] += rewardAmount.toInt256();
-            _balances[targetAccount] += targetAccountBalanceDelta;
+            _sharedSettledBalances[rewardAccount] -= (rewardAmount.toInt256() + targetAccountBalanceDelta);
+            _sharedSettledBalances[liquidatorAccount] += rewardAmount.toInt256();
+            _sharedSettledBalances[targetAccount] += targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(rewardAccount, liquidatorAccount, rewardAmount);
             EventsEmitter.emitTransfer(rewardAccount, targetAccount, uint256(targetAccountBalanceDelta));
         }

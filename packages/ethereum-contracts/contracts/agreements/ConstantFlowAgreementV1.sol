@@ -980,9 +980,7 @@ contract ConstantFlowAgreementV1 is
                     minimumDeposit
                 );
 
-            cbStates.appCreditGranted = cbStates.appCreditGranted
-                * uint256(currentContext.appLevel + 1)
-                + additionalAppCreditAmount;
+            cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
             cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of credit

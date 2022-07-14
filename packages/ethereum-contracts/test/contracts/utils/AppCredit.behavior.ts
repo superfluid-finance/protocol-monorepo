@@ -1,6 +1,6 @@
 // -- Monetary Unit Data
 interface MonetaryUnitData {
-    // TODO: add availableBalance
+    readonly realtimeBalanceOf: number;
     readonly deposit: number;
     readonly owedDeposit: number;
 }
@@ -98,12 +98,15 @@ const getDeltas = (
 
 const ADDITIONAL_AMOUNT = 5;
 
-const applyAdditionalAppCreditRule = (newBuffer: number, bufferDelta: number) => {
+const applyAdditionalAppCreditRule = (
+    newBuffer: number,
+    bufferDelta: number
+) => {
     if (newBuffer === 0) {
         return bufferDelta;
     }
-    return bufferDelta + ADDITIONAL_AMOUNT;
-}
+    return bufferDelta; // + ADDITIONAL_AMOUNT;
+};
 
 const getSummedAgreementBufferDelta = (
     deltas: AgreementOperationOutputDelta[]
@@ -113,12 +116,16 @@ const getSummedAgreementBufferDelta = (
 
 const initialBufferFunction = (
     agreementOperation: AgreementOperation,
-    callbackAgreementOperations: AgreementOperation[]
+    // maybe this can be an array of arrays, where each subsequent array is passed into
+    // the previous function, e.g. index 0 array is passed into this initial function
+    callbackAgreementOperations: AgreementOperation[][]
 ): AgreementOperationOutput => {
     // recursively call this bufferFunction on any callbackAgreementOperations to get an array of
     // callbackAgreementOperationOutputs
-    const callbackAgreementOperationOutputs = callbackAgreementOperations.map(
-        (x) => initialBufferFunction(x, [])
+    const firstLevelAgreementOperations =
+        callbackAgreementOperations.shift() || [];
+    const callbackAgreementOperationOutputs = firstLevelAgreementOperations.map(
+        (x) => initialBufferFunction(x, callbackAgreementOperations)
     );
 
     // get array of deltas of all the relevant fields (sender/receiver mud, agreementData)
@@ -128,10 +135,12 @@ const initialBufferFunction = (
     const callbackBufferDeltaSum = getSummedAgreementBufferDelta(deltas);
     const currentAgreement = agreementOperation.currentAgreementData;
 
+    const bufferGranted = agreementOperation.newBuffer;
+
     // buffer granted in modified agreement vs previous buffer delta
     const bufferDelta = applyAdditionalAppCreditRule(
-        agreementOperation.newBuffer,
-        agreementOperation.newBuffer - currentAgreement.buffer
+        bufferGranted,
+        bufferGranted - currentAgreement.buffer
     );
 
     // app credit rule formula - amount app credit should change by given modified agreements in callback
@@ -139,6 +148,11 @@ const initialBufferFunction = (
         Math.min(bufferDelta, callbackBufferDeltaSum),
         -agreementOperation.currentAgreementData.appCredit
     );
+
+    const newSenderDeposit =
+        agreementOperation.currentSenderMUD.deposit +
+        bufferDelta +
+        appCreditDelta;
 
     return {
         agreementDataStates: {
@@ -154,12 +168,13 @@ const initialBufferFunction = (
         senderMUDStates: {
             initialMonetaryUnitData: agreementOperation.currentSenderMUD,
             modifiedMonetaryUnitData: {
+                realtimeBalanceOf:
+                    agreementOperation.currentSenderMUD.realtimeBalanceOf -
+                    bufferDelta -
+                    appCreditDelta,
                 // add bufferDelta and appCreditDelta to the current sender deposit
                 // it is the sender's responsibility to
-                deposit:
-                    agreementOperation.currentSenderMUD.deposit +
-                    bufferDelta +
-                    appCreditDelta,
+                deposit: newSenderDeposit,
 
                 // the agreement sender does not ever accrue owedDeposit
                 owedDeposit: agreementOperation.currentSenderMUD.owedDeposit,
@@ -168,6 +183,8 @@ const initialBufferFunction = (
         receiverMUDStates: {
             initialMonetaryUnitData: agreementOperation.currentReceiverMUD,
             modifiedMonetaryUnitData: {
+                realtimeBalanceOf:
+                    agreementOperation.currentReceiverMUD.realtimeBalanceOf, // should - (d - od)
                 deposit:
                     agreementOperation.currentReceiverMUD.deposit +
                     callbackBufferDeltaSum,
@@ -180,24 +197,31 @@ const initialBufferFunction = (
     };
 };
 
-const nextBufferFunction = (
-    output: AgreementOperationOutput,
-    newEntryBuffer: number,
-    newCallbackBuffer?: number
-) => {
+const nextBufferFunction = ({
+    output,
+    newStartBuffer,
+    newCbBuffer,
+    newCbOps,
+}: {
+    output: AgreementOperationOutput;
+    newStartBuffer: number;
+    newCbBuffer?: number;
+    newCbOps?: AgreementOperation[][];
+}) => {
     const newOperation: AgreementOperation = {
-        newBuffer: newEntryBuffer,
+        newBuffer: newStartBuffer,
         currentAgreementData: output.agreementDataStates.modifiedAgreementData,
         currentSenderMUD: output.senderMUDStates.modifiedMonetaryUnitData,
         currentReceiverMUD: output.receiverMUDStates.modifiedMonetaryUnitData,
     };
-    const newCallbackOperations: AgreementOperation[] =
+    const newCallbackOperations: AgreementOperation[][] = newCbOps || [
         output.callbackGeneratedDataList.map((x) => ({
-            newBuffer: newCallbackBuffer || newEntryBuffer,
+            newBuffer: newCbBuffer || newStartBuffer,
             currentAgreementData: x.agreementDataStates.modifiedAgreementData,
             currentSenderMUD: x.senderMUDStates.modifiedMonetaryUnitData,
             currentReceiverMUD: x.receiverMUDStates.modifiedMonetaryUnitData,
-        }));
+        })),
+    ];
 
     return initialBufferFunction(newOperation, newCallbackOperations);
 };
@@ -209,12 +233,13 @@ const printOutput = (title: string, output: AgreementOperationOutput) => {
 const INIT_MUD: MonetaryUnitData = {
     deposit: 0,
     owedDeposit: 0,
+    realtimeBalanceOf: 10,
 };
 const INIT_AGREEMENT_DATA: AgreementData = {
     appCredit: 0,
     buffer: 0,
 };
-// CASE 1 - no callback
+// // CASE 1 - no callback
 const c1_agreementOperation0: AgreementOperation = {
     newBuffer: 1,
     currentAgreementData: INIT_AGREEMENT_DATA,
@@ -223,13 +248,13 @@ const c1_agreementOperation0: AgreementOperation = {
 };
 const c1a_result = initialBufferFunction(c1_agreementOperation0, []);
 printOutput("CASE 1a: NO CB CREATE", c1a_result);
-const c1b_result = nextBufferFunction(c1a_result, 2);
+const c1b_result = nextBufferFunction({output: c1a_result, newStartBuffer: 2});
 printOutput("CASE 1b: NO CB UPDATE (INCREMENT)", c1b_result);
-const c1c_result = nextBufferFunction(c1b_result, 1);
+const c1c_result = nextBufferFunction({output: c1b_result, newStartBuffer: 1});
 printOutput("CASE 1c: NO CB UPDATE (DECREMENT)", c1c_result);
-const c1d_result = nextBufferFunction(c1c_result, 1);
+const c1d_result = nextBufferFunction({output: c1c_result, newStartBuffer: 1});
 printOutput("CASE 1d: NO CB UPDATE (SAME)", c1d_result);
-const c1e_result = nextBufferFunction(c1d_result, 0);
+const c1e_result = nextBufferFunction({output: c1d_result, newStartBuffer: 0});
 printOutput("CASE 1e: NO CB DELETE", c1e_result);
 
 // CASE 2 - 1-to-1 forwarding @ 100% INPUT
@@ -246,16 +271,16 @@ const c2_callback_agreementOperation0: AgreementOperation = {
     currentReceiverMUD: INIT_MUD,
 };
 const c2a_result = initialBufferFunction(c2_agreementOperation0, [
-    c2_callback_agreementOperation0,
+    [c2_callback_agreementOperation0],
 ]);
 printOutput("CASE 2a: 1-TO-1 FORWARDING CREATE", c2a_result);
-const c2b_result = nextBufferFunction(c2a_result, 2);
+const c2b_result = nextBufferFunction({output: c2a_result, newStartBuffer: 2});
 printOutput("CASE 2b: 1-TO-1 FORWARDING UPDATE (INCREMENT)", c2b_result);
-const c2c_result = nextBufferFunction(c2b_result, 1);
+const c2c_result = nextBufferFunction({output: c2b_result, newStartBuffer: 1});
 printOutput("CASE 2c: 1-TO-1 FORWARDING UPDATE (DECREMENT)", c2c_result);
-const c2d_result = nextBufferFunction(c2c_result, 1);
+const c2d_result = nextBufferFunction({output: c2c_result, newStartBuffer: 1});
 printOutput("CASE 2d: 1-TO-1 FORWARDING UPDATE (SAME)", c2d_result);
-const c2e = nextBufferFunction(c2d_result, 0);
+const c2e = nextBufferFunction({output: c2d_result, newStartBuffer: 0});
 printOutput("CASE 2e: 1-TO-1 FORWARDING DELETE", c2e);
 
 // CASE 3 - 1-to-1 forwarding @ 50% INPUT
@@ -272,16 +297,28 @@ const c3_callback_agreementOperation0: AgreementOperation = {
     currentReceiverMUD: INIT_MUD,
 };
 const c3a_result = initialBufferFunction(c3_agreementOperation0, [
-    c3_callback_agreementOperation0,
+    [c3_callback_agreementOperation0],
 ]);
 printOutput("CASE 3a: 1-TO-1 FORWARDING CREATE", c3a_result);
-const c3b_result = nextBufferFunction(c3a_result, 2, 1);
+const c3b_result = nextBufferFunction({
+    output: c3a_result,
+    newStartBuffer: 2,
+    newCbBuffer: 1,
+});
 printOutput("CASE 3b: 1-TO-1 FORWARDING UPDATE (INCREMENT)", c3b_result);
-const c3c_result = nextBufferFunction(c3b_result, 1, 0.5);
+const c3c_result = nextBufferFunction({
+    output: c3b_result,
+    newStartBuffer: 1,
+    newCbBuffer: 0.5,
+});
 printOutput("CASE 3c: 1-TO-1 FORWARDING UPDATE (DECREMENT)", c3c_result);
-const c3d_result = nextBufferFunction(c3c_result, 1, 0.5);
+const c3d_result = nextBufferFunction({
+    output: c3c_result,
+    newStartBuffer: 1,
+    newCbBuffer: 0.5,
+});
 printOutput("CASE 3d: 1-TO-1 FORWARDING UPDATE (SAME)", c3d_result);
-const c3e = nextBufferFunction(c3d_result, 0);
+const c3e = nextBufferFunction({output: c3d_result, newStartBuffer: 0});
 printOutput("CASE 3e: 1-TO-1 FORWARDING DELETE", c3e);
 
 // CASE 4 - 1-to-1 forwarding @ 150% INPUT
@@ -298,20 +335,30 @@ const c4_callback_agreementOperation0: AgreementOperation = {
     currentReceiverMUD: INIT_MUD,
 };
 const c4a_result = initialBufferFunction(c4_agreementOperation0, [
-    c4_callback_agreementOperation0,
+    [c4_callback_agreementOperation0],
 ]);
 printOutput("CASE 4a: 1-TO-1 FORWARDING CREATE", c4a_result);
-const c4b_result = nextBufferFunction(c4a_result, 2, 3);
+const c4b_result = nextBufferFunction({
+    output: c4a_result,
+    newStartBuffer: 2,
+    newCbBuffer: 3,
+});
 printOutput("CASE 4b: 1-TO-1 FORWARDING UPDATE (INCREMENT)", c4b_result);
-const c4c_result = nextBufferFunction(c4b_result, 1, 1.5);
+const c4c_result = nextBufferFunction({
+    output: c4b_result,
+    newStartBuffer: 1,
+    newCbBuffer: 1.5,
+});
 printOutput("CASE 4c: 1-TO-1 FORWARDING UPDATE (DECREMENT)", c4c_result);
-const c4d_result = nextBufferFunction(c4c_result, 1, 1.5);
+const c4d_result = nextBufferFunction({
+    output: c4c_result,
+    newStartBuffer: 1,
+    newCbBuffer: 1.5,
+});
 printOutput("CASE 4d: 1-TO-1 FORWARDING UPDATE (SAME)", c4d_result);
-const c4e = nextBufferFunction(c4d_result, 0);
+const c4e = nextBufferFunction({output: c4d_result, newStartBuffer: 0});
 printOutput("CASE 4e: 1-TO-1 FORWARDING DELETE", c4e);
 
 // next steps:
-// available balance and law/rule of negative balance leading to jailing (can't return funds to user)
-// - would be an interesting exercise to think of ways to be able to plug in rules which get checked
-// -
+// law/rule of negative balance leading to jailing (can't return funds to user)
 // we also need to include whether the receiver is an app as behavior changes because of this

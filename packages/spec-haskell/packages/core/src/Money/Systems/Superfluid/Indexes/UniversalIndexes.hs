@@ -18,8 +18,8 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 
 type ITAMonetaryUnitLens :: Type -> Type
 data ITAMonetaryUnitLens sft = ITAMonetaryUnitData
-    { ita_untappedValue :: UntappedValue (SFT_LQ sft)
-    , ita_mintedValue   :: ITA.MintedValue (SFT_LQ sft)
+    { ita_untappedValue :: UntappedValue (SFT_MVAL sft)
+    , ita_mintedValue   :: ITA.MintedValue (SFT_MVAL sft)
     }
 instance SuperfluidTypes sft => Default (ITAMonetaryUnitLens sft) where
     def = ITAMonetaryUnitData { ita_untappedValue = def, ita_mintedValue = def }
@@ -41,9 +41,9 @@ type ITAContractData sft = ITA.ContractData (ITAContractLens sft) (ITAMonetaryUn
 type CFAMonetaryUnitLens :: Type -> Type
 data CFAMonetaryUnitLens sft = CFAMonetaryUnitData
     { cfa_settledAt                :: SFT_TS sft
-    , cfa_settledUntappedValue :: UntappedValue (SFT_LQ sft)
-    , cfa_settledBufferValue   :: BBS.BufferValue (SFT_LQ sft)
-    , cfa_netFlowRate              :: SFT_LQ sft
+    , cfa_settledUntappedValue :: UntappedValue (SFT_MVAL sft)
+    , cfa_settledBufferValue   :: BBS.BufferValue (SFT_MVAL sft)
+    , cfa_netFlowRate              :: SFT_MVAL sft
     }
 instance SuperfluidTypes sft => Default (CFAMonetaryUnitLens sft) where
     def = CFAMonetaryUnitData { cfa_settledAt = def
@@ -61,8 +61,8 @@ type CFAMonetaryUnitData sft = CFA.MonetaryUnitData (CFAMonetaryUnitLens sft) sf
 type CFAContractLens :: Type -> Type
 data CFAContractLens sft = CFAContractData
     { cfa_flowLastUpdatedAt :: SFT_TS sft
-    , cfa_flowRate          :: SFT_LQ sft
-    , cfa_flowBuffer        :: BBS.BufferValue (SFT_LQ sft)
+    , cfa_flowRate          :: SFT_MVAL sft
+    , cfa_flowBuffer        :: BBS.BufferValue (SFT_MVAL sft)
     }
 instance SuperfluidTypes sft => Default (CFAContractLens sft) where
     def = CFAContractData { cfa_flowLastUpdatedAt = def, cfa_flowRate = def, cfa_flowBuffer = def }
@@ -81,7 +81,7 @@ data DFAMonetaryUnitLens sft = DFAMonetaryUnitData
     , dfa_settledAt      :: SFT_TS sft
     , dfa_αVal           :: SFT_FLOAT sft
     , dfa_εVal           :: SFT_FLOAT sft
-    , dfa_settledBuffer  :: BBS.BufferValue (SFT_LQ sft)
+    , dfa_settledBuffer  :: BBS.BufferValue (SFT_MVAL sft)
     }
 instance SuperfluidTypes sft => Default (DFAMonetaryUnitLens sft) where
     def = DFAMonetaryUnitData { dfa_decayingFactor = default_lambda
@@ -102,8 +102,8 @@ type DFAMonetaryUnitData sft = DFA.MonetaryUnitData (DFAMonetaryUnitLens sft) sf
 type DFAContractLens :: Type -> Type
 data DFAContractLens sft = DFAContractData
     { dfa_flowLastUpdatedAt :: SFT_TS sft
-    , dfa_distributionLimit :: SFT_LQ sft
-    , dfa_flowBuffer        :: BBS.BufferValue (SFT_LQ sft)
+    , dfa_distributionLimit :: SFT_MVAL sft
+    , dfa_flowBuffer        :: BBS.BufferValue (SFT_MVAL sft)
     }
 instance SuperfluidTypes sft => Default (DFAContractLens sft) where
     def = DFAContractData { dfa_flowLastUpdatedAt = def, dfa_distributionLimit = def, dfa_flowBuffer = def }

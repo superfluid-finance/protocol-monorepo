@@ -115,7 +115,7 @@ class ( Monad tk
     viewITAContract :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.ITAContractData (TK_SFT tk)))
     setITAContract  :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> UIDX.ITAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    mintValue :: ADDR tk -> LQ tk-> tk ()
+    mintValue :: ADDR tk -> MVAL tk-> tk ()
     mintValue toAddr amount = do
         t <- getCurrentTime
         minterAddress <- getMinterAddress
@@ -127,12 +127,12 @@ class ( Monad tk
     -- CFA Functions
     --
 
-    calcFlowBuffer :: LQ tk-> tk (LQ tk)
+    calcFlowBuffer :: MVAL tk-> tk (MVAL tk)
 
     viewFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.CFAContractData (TK_SFT tk)))
     setFlow  :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> UIDX.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> LQ tk-> tk ()
+    updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> MVAL tk-> tk ()
     updateFlow acpAddrs newFlowRate = do
         t <- getCurrentTime
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
@@ -147,7 +147,7 @@ class ( Monad tk
     viewDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.DFAContractData (TK_SFT tk)))
     setDecayingFlow  :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> UIDX.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
 
-    updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> LQ tk-> tk ()
+    updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> MVAL tk-> tk ()
     updateDecayingFlow acpAddrs newDistributionLimit = do
         t <- getCurrentTime
         changeAgreement
@@ -158,7 +158,7 @@ class ( Monad tk
 -- Internal
 --
 type TS tk = SFT_TS (TK_SFT tk)
-type LQ tk = SFT_LQ (TK_SFT tk)
+type MVAL tk = SFT_MVAL (TK_SFT tk)
 type RTB tk = SFT_RTB (TK_SFT tk)
 type ADDR tk = ACC_ADDR (TK_ACC tk)
 type CONTRACT_ADDR tk acd = AgreementContractPartiesF acd (ADDR tk)

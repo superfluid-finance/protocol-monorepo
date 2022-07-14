@@ -33,7 +33,7 @@ class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL ->
     settledAt       :: Lens' mudL (SFT_TS sft)
     αVal            :: Lens' mudL (SFT_FLOAT sft)
     εVal            :: Lens' mudL (SFT_FLOAT sft)
-    settledBuffer   :: Lens' mudL (BBS.BufferValue (SFT_LQ sft))
+    settledBuffer   :: Lens' mudL (BBS.BufferValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
@@ -80,8 +80,8 @@ instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitDat
 
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft where
     flowLastUpdatedAt :: Lens' cdL (SFT_TS sft)
-    distributionLimit :: Lens' cdL (SFT_LQ sft)
-    flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_LQ sft))
+    distributionLimit :: Lens' cdL (SFT_MVAL sft)
+    flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_MVAL sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 data ContractData cdL mudL sft = MkContractData cdL
@@ -100,7 +100,7 @@ instance ( ContractLens cdL sft
 
     data AgreementOperation (ContractData cdL mudL sft) =
         -- θ (Distribution Limit), newFlowBuffer, t'
-        UpdateDecayingFlow (SFT_LQ sft) (BBS.BufferValue (SFT_LQ sft)) (SFT_TS sft)
+        UpdateDecayingFlow (SFT_MVAL sft) (BBS.BufferValue (SFT_MVAL sft)) (SFT_TS sft)
 
     -- | Create data of agreement parties from the changes of the DFA contract
     --

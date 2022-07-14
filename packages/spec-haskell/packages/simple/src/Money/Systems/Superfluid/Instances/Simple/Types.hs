@@ -144,7 +144,7 @@ data SimpleSuperfluidTypes
 
 instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_FLOAT SimpleSuperfluidTypes = SFDouble
-    type SFT_LQ SimpleSuperfluidTypes = Wad
+    type SFT_MVAL SimpleSuperfluidTypes = Wad
     type SFT_TS SimpleSuperfluidTypes = SimpleTimestamp
     type SFT_RTB SimpleSuperfluidTypes = SimpleRealtimeBalance
 

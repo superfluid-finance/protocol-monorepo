@@ -31,12 +31,12 @@ import           Money.Systems.Superfluid.Instances.Simple.Types
 
 class (Monad srl, SuperfluidTypes sft) => Putter srl sft | srl -> sft where
     putFloat :: SFT_FLOAT sft -> srl ()
-    putLQ :: SFT_LQ sft -> srl ()
+    putMVAL :: SFT_MVAL sft -> srl ()
     putTS :: SFT_TS sft -> srl ()
 
 class (Monad srl, SuperfluidTypes sft) => Getter srl sft | srl -> sft where
     getFloat :: srl (SFT_FLOAT sft)
-    getLQ :: srl (SFT_LQ sft)
+    getMVAL :: srl (SFT_MVAL sft)
     getTS :: srl (SFT_TS sft)
 
 class SuperfluidTypes sft => Serializable a sft | a -> sft where
@@ -57,12 +57,12 @@ newtype SimplePutter a = SimplePutter (B.PutM a) deriving (Functor, Applicative,
 
 instance Getter SimpleGetter SimpleSuperfluidTypes where
     getFloat = SFDouble <$> SimpleGetter B.get
-    getLQ = SimpleGetter B.get
+    getMVAL = SimpleGetter B.get
     getTS = SimpleGetter B.get
 
 instance Putter SimplePutter SimpleSuperfluidTypes where
     putFloat x = SimplePutter . B.put $ (coerce x :: Double)
-    putLQ = SimplePutter . B.put
+    putMVAL = SimplePutter . B.put
     putTS = SimplePutter . B.put
 
 instance Serialized SimpleSerialized SimpleSuperfluidTypes where
@@ -76,11 +76,11 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 -- ITA
 -- instance Serializable (ITA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
 --     putter s = do
---         putLQ (coerce $ ITA.untappedValue s)
---         putLQ (coerce $ ITA.mintedValue s)
+--         putMVAL (coerce $ ITA.untappedValue s)
+--         putMVAL (coerce $ ITA.mintedValue s)
 --     getter _ = do
---         l <- getLQ
---         m <- getLQ
+--         l <- getMVAL
+--         m <- getMVAL
 --         return ITA.AccountData
 --             { ITA.untappedValue = UntappedValue l
 --             , ITA.mintedValue = ITA.mkMintedValue m
@@ -90,12 +90,12 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 -- instance Serializable (CFA.ContractData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
 --     putter s = do
 --         putTS (CFA.flowLastUpdatedAt s)
---         putLQ (coerce $ CFA.flowBuffer s)
---         putLQ (CFA.flowRate s)
+--         putMVAL (coerce $ CFA.flowBuffer s)
+--         putMVAL (CFA.flowRate s)
 --     getter _ = do
 --         t <- getTS
---         b <- getLQ
---         fr <- getLQ
+--         b <- getMVAL
+--         fr <- getMVAL
 --         return CFA.ContractData
 --             { CFA.flowLastUpdatedAt = t
 --             , CFA.flowRate = fr
@@ -105,14 +105,14 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 -- instance Serializable (CFA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
 --     putter s = do
 --         putTS (CFA.settledAt s)
---         putLQ (coerce $ CFA.settledUntappedValue s)
---         putLQ (coerce $ CFA.settledBufferValue s)
---         putLQ (CFA.netFlowRate s)
+--         putMVAL (coerce $ CFA.settledUntappedValue s)
+--         putMVAL (coerce $ CFA.settledBufferValue s)
+--         putMVAL (CFA.netFlowRate s)
 --     getter _ = do
 --         t <- getTS
---         l <- getLQ
---         b <- getLQ
---         fr <- getLQ
+--         l <- getMVAL
+--         b <- getMVAL
+--         fr <- getMVAL
 --         return CFA.AccountData
 --             { CFA.settledAt = t
 --             , CFA.settledUntappedValue = UntappedValue l
@@ -125,13 +125,13 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --     putter s = do
 --         putTS (DFA.flowLastUpdatedAt s)
 --         putFloat (DFA.decayingFactor s)
---         putLQ (DFA.distributionLimit s)
---         putLQ (coerce $ DFA.flowBuffer s)
+--         putMVAL (DFA.distributionLimit s)
+--         putMVAL (coerce $ DFA.flowBuffer s)
 --     getter _ = do
 --         t <- getTS
 --         λ <- getFloat
---         θ <- getLQ
---         b <- getLQ
+--         θ <- getMVAL
+--         b <- getMVAL
 --         return DFA.ContractData
 --             { DFA.flowLastUpdatedAt = t
 --             , DFA.decayingFactor = λ
@@ -144,12 +144,12 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 --         putTS (DFA.settledAt s)
 --         putFloat (DFA.αVal s)
 --         putFloat (DFA.εVal s)
---         putLQ (coerce $ DFA.settledBuffer s)
+--         putMVAL (coerce $ DFA.settledBuffer s)
 --     getter _ = do
 --         t <- getTS
 --         α <- getFloat
 --         ε <- getFloat
---         b <- getLQ
+--         b <- getMVAL
 --         return DFA.AccountData
 --             { DFA.settledAt = t
 --             ,  DFA.αVal = α

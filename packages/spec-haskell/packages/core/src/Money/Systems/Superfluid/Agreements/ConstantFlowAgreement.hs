@@ -24,16 +24,16 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
--- FIXME use: newtype FlowRate sft = FlowRate (SFT_LQ sft)
+-- FIXME use: newtype FlowRate sft = FlowRate (SFT_MVAL sft)
 
 -- * CFA.MonetaryUnitData
 --
 
 class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
     settledAt            :: Lens' mudL (SFT_TS sft)
-    settledUntappedValue :: Lens' mudL (UntappedValue (SFT_LQ sft))
-    settledBufferValue   :: Lens' mudL (BBS.BufferValue (SFT_LQ sft))
-    netFlowRate          :: Lens' mudL (SFT_LQ sft)
+    settledUntappedValue :: Lens' mudL (UntappedValue (SFT_MVAL sft))
+    settledBufferValue   :: Lens' mudL (BBS.BufferValue (SFT_MVAL sft))
+    netFlowRate          :: Lens' mudL (SFT_MVAL sft)
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
@@ -62,8 +62,8 @@ instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitDat
 
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft where
     flowLastUpdatedAt :: Lens' cdL (SFT_TS sft)
-    flowRate          :: Lens' cdL (SFT_LQ sft)
-    flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_LQ sft))
+    flowRate          :: Lens' cdL (SFT_MVAL sft)
+    flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_MVAL sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 newtype ContractData cdL mudL sft = MkContractData cdL
@@ -82,7 +82,7 @@ instance ( ContractLens cdL sft
 
     data AgreementOperation (ContractData cdL mudL sft) =
         --         flowRate     newFlowBuffer                      t'
-        UpdateFlow (SFT_LQ sft) (BBS.BufferValue (SFT_LQ sft)) (SFT_TS sft)
+        UpdateFlow (SFT_MVAL sft) (BBS.BufferValue (SFT_MVAL sft)) (SFT_TS sft)
 
     applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer t') = let
         acd' = acd & set flowRate newFlowRate

@@ -40,8 +40,8 @@ mkMintedValue = TappedValue
 -- * ITA.MonetaryUnitData
 --
 class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
-    untappedValue :: Lens' mudL (UntappedValue (SFT_LQ sft))
-    mintedValue   :: Lens' mudL (MintedValue (SFT_LQ sft))
+    untappedValue :: Lens' mudL (UntappedValue (SFT_MVAL sft))
+    mintedValue   :: Lens' mudL (MintedValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
 newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
@@ -80,9 +80,9 @@ instance ( ContractLens cdL sft
         } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (ContractData cdL mudL sft) =
-        Mint (SFT_LQ sft) |
-        Burn (SFT_LQ sft) |
-        Transfer (SFT_LQ sft)
+        Mint (SFT_MVAL sft) |
+        Burn (SFT_MVAL sft) |
+        Transfer (SFT_MVAL sft)
 
     applyAgreementOperation acd acps (Mint amount) = let
         acd'  = acd

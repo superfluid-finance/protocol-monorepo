@@ -28,13 +28,11 @@ class (Default fr, RealFloat fr) => SFTFloat fr
 -- Notional conventions:
 --  * Type name : sft
 class ( SFTFloat (SFT_FLOAT sft)
-      , Value (SFT_LQ sft)
+      , Value (SFT_MVAL sft)
       , Timestamp (SFT_TS sft)
-      , RealtimeBalance (SFT_RTB sft) (SFT_LQ sft)
+      , RealtimeBalance (SFT_RTB sft) (SFT_MVAL sft)
       ) => SuperfluidTypes sft where
-
-    -- Associated Type Synonyms
     type SFT_FLOAT sft :: Type
-    type SFT_LQ sft :: Type
-    type SFT_TS sft :: Type
-    type SFT_RTB sft :: Type
+    type SFT_MVAL  sft :: Type
+    type SFT_TS    sft :: Type
+    type SFT_RTB   sft :: Type

@@ -9,11 +9,7 @@ module Money.Systems.Superfluid.Concepts.RealtimeBalance
 
 import           Data.Default
 
-import           Money.Systems.Superfluid.Concepts.TypedValue
-    ( AnyTappedValue (..)
-    , Value
-    , UntappedValue (..)
-    )
+import           Money.Systems.Superfluid.Concepts.TypedValue (AnyTappedValue (..), UntappedValue (..), Value)
 
 -- | UntypedValueVector type
 --
@@ -56,8 +52,8 @@ class (Value v, Num rtb, Default rtb) => RealtimeBalance rtb v | rtb -> v where
     valueRequiredForRTB :: (Value v, RealtimeBalance rtb v) => rtb -> v
     valueRequiredForRTB = foldr (+) def . valueVectorFromRTB
 
-    mormalizeRTBWith :: (v -> v) -> rtb -> rtb
-    mormalizeRTBWith f = valueToRTB . f . valueRequiredForRTB
+    normalizeRTBWith :: (v -> v) -> rtb -> rtb
+    normalizeRTBWith f = valueToRTB . f . valueRequiredForRTB
 
 -- | RealtimeBalanceDerivingHelper Type
 --
@@ -78,8 +74,8 @@ instance (Value v, RealtimeBalance rtb v) => Num (RealtimeBalanceDerivingHelper 
     fromInteger x = RealtimeBalanceDerivingHelper $
         valueToRTB . fromInteger $ x
     signum (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
-        mormalizeRTBWith signum x
+        normalizeRTBWith signum x
     abs (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
-        mormalizeRTBWith abs x
+        normalizeRTBWith abs x
     negate (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
-        mormalizeRTBWith negate x
+        normalizeRTBWith negate x

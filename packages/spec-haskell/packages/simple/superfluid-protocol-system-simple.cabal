@@ -30,8 +30,8 @@ library
         containers,
         transformers >=0.2,
         microlens >0.4.11,
-        bytestring,
         binary,
+        bytestring,
         superfluid-protocol-spec-core ==0.0.1.0
 
 test-suite tests
@@ -41,7 +41,7 @@ test-suite tests
     other-modules:
         Money.Systems.Superfluid.RealtimeBalance_prop
         Money.Systems.Superfluid.TokenTester
-        Money.Systems.Superfluid.System_unit
+        Money.Systems.Superfluid.System_test
 
     default-language: GHC2021
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
@@ -50,11 +50,9 @@ test-suite tests
         data-default,
         transformers,
         microlens >0.4.11,
-        test-framework >=0.8,
-        HUnit >=1.6.0.0,
-        test-framework-hunit >=0.3.0,
-        test-framework-quickcheck2 >=0.3.0,
         QuickCheck >=2.13,
+        hspec >=2.0,
+        HUnit >=1.6.0.0,
         time,
         superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

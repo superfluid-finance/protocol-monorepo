@@ -1,14 +1,14 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+
 module Money.Systems.Superfluid.TokenTester where
+
+import           Test.Hspec
+import           Test.HUnit
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.Default
 import           Data.Maybe                                                (fromMaybe)
-import           GHC.Stack
-import           Test.HUnit
-    ( Test (TestCase, TestLabel, TestList)
-    , assertBool
-    )
 
 import           Lens.Micro
 
@@ -37,7 +37,7 @@ data TokenTesterData = TokenTesterData
 type TokenTester = StateT TokenTesterData IO
 
 data TokenTestSpec = TokenTestSpec
-    { testLabel              :: String
+    { testCaseLabel          :: String
     , testAddressesToInit    :: [SF.SimpleAddress]
     , testAccountInitBalance :: SF.Wad
     }
@@ -49,8 +49,7 @@ data TokenTestContext = TokenTestContext
 
 data TokenTestCase = TokenTestCase TokenTestSpec (TokenTestContext -> TokenTester ())
 
-createTokenTestCase :: TokenTestCase -> Test
-createTokenTestCase (TokenTestCase spec runner) = TestLabel (testLabel spec) $ TestCase $ do
+createTokenTestCase (TokenTestCase spec runner) = it (testCaseLabel spec) $ do
     evalStateT (do
         let addresses = testAddressesToInit spec
         mapM_ (`createTestAccount` testAccountInitBalance spec) addresses
@@ -60,8 +59,7 @@ createTokenTestCase (TokenTestCase spec runner) = TestLabel (testLabel spec) $ T
         , token = def
         }
 
-createTokenTestList :: [TokenTestCase] -> Test
-createTokenTestList = TestList . map createTokenTestCase
+createTokenTestSuite name tests = describe name $ mapM_ createTokenTestCase tests
 
 -- ============================================================================
 -- | TokenTester Operations

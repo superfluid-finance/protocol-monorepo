@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Money.Systems.Superfluid.System_unit (tests) where
+module Money.Systems.Superfluid.System_test (tests) where
+
+import           Test.HUnit                                                (assertEqual)
 
 import           Control.Monad.IO.Class
-import           Test.Framework.Providers.HUnit                            (hUnitTestToTests)
-import           Test.HUnit                                                (assertEqual)
 
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement as CFA
 --
@@ -15,7 +15,7 @@ import           Money.Systems.Superfluid.TokenTester
 
 
 simple1to1ScenarioTest = TokenTestCase TokenTestSpec
-    { testLabel = "Simple 1to1 Scenario Test"
+    { testCaseLabel = "Simple 1to1 Scenario Test"
     , testAddressesToInit = ["alice", "bob", "carol"]
     , testAccountInitBalance = constInitBalance
     } (\ctx -> do
@@ -44,7 +44,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     )
 
 simple1to2ScenarioTest = TokenTestCase TokenTestSpec
-    { testLabel = "Simple 1to2 Scenario Test"
+    { testCaseLabel = "Simple 1to2 Scenario Test"
     , testAddressesToInit = ["alice", "bob", "carol"]
     , testAccountInitBalance = constInitBalance
     } (\ctx -> do
@@ -67,7 +67,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
     )
 
-tests = hUnitTestToTests $ createTokenTestList
+tests = createTokenTestSuite "System Testsuite"
     [ simple1to1ScenarioTest
     , simple1to2ScenarioTest
     ]

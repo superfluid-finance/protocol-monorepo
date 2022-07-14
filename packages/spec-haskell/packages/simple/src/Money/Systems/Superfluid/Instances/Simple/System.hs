@@ -164,37 +164,33 @@ instance Monad m => SF.Token (SimpleTokenStateT m) where
 
     getCurrentTime = getSystemData <&> currentTime
 
-    getAccount addr = getSimpleTokenData >>= \s -> return $
-        fromMaybe (create_simple_account 0) $ M.lookup addr (accounts s)
-
-    putAccount addr acc = modify (\vs -> vs { accounts = M.insert addr acc (accounts vs) })
+    getAccount addr     = getSimpleTokenData <&> accounts <&> M.lookup addr <&> fromMaybe (create_simple_account 0)
+    putAccount addr acc = modify $ \vs -> vs { accounts = M.insert addr acc (accounts vs) }
 
     -- * ITA
     --
     getMinterAddress = return minter_address
-    viewITAContract _ = return $ Just def
+
+    viewITAContract _     = return $ Just def
     setITAContract  _ _ _ = return ()
 
     -- * CFA
     --
     calcFlowBuffer = return  . (* Wad 3600)
-    viewFlow acdAddr = getSimpleTokenData >>= \s -> return $ M.lookup acdAddr (cfaContractData s)
-    setFlow acdAddr acd t = modify (
-        \vs -> vs
-               { cfaContractData = M.insert acdAddr acd (cfaContractData vs)
-               , tokenLastUpdatedAt = t
-               }
-        )
+
+    viewFlow acdAddr       = getSimpleTokenData <&> cfaContractData <&> M.lookup acdAddr
+    setFlow  acdAddr acd t = modify $ \vs -> vs
+        { cfaContractData = M.insert acdAddr acd (cfaContractData vs)
+        , tokenLastUpdatedAt = t
+        }
 
     -- * DFA
     --
-    viewDecayingFlow acdAddr = getSimpleTokenData >>= \s -> return $ M.lookup acdAddr (dfaContractData s)
-    setDecayingFlow acdAddr acd t = modify (
-        \vs -> vs
-               { dfaContractData = M.insert acdAddr acd (dfaContractData vs)
-               , tokenLastUpdatedAt = t
-               }
-        )
+    viewDecayingFlow acdAddr       = getSimpleTokenData <&> dfaContractData <&> M.lookup acdAddr
+    setDecayingFlow  acdAddr acd t = modify $ \vs -> vs
+        { dfaContractData = M.insert acdAddr acd (dfaContractData vs)
+        , tokenLastUpdatedAt = t
+        }
 
 -- ============================================================================
 -- Other SimpleTokenStateT Operations

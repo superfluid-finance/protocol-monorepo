@@ -31,7 +31,7 @@ class Bearer brr
 \end{code}
 
 \begin{code}
-class MoneyUnit mu
+class MonetaryUnit mu
 \end{code}
 
 \begin{code}
@@ -39,11 +39,11 @@ class MoneyUnit mu
 class Distribution ld where
     -- type MONEY_UNIT ld :: Type
 
-    moneyUnits :: MoneyUnit mu => ld -> [mu]
+    moneyUnits :: MonetaryUnit mu => ld -> [mu]
 
-    bearerOf :: (MoneyUnit mu, Bearer brr) => ld -> mu -> brr
+    bearerOf :: (MonetaryUnit mu, Bearer brr) => ld -> mu -> brr
 
-    valueOf :: (Context ctx, MoneyUnit mu, Value v) => ld -> (mu, ctx) -> v
+    valueOf :: (Context ctx, MonetaryUnit mu, Value v) => ld -> (mu, ctx) -> v
 \end{code}
 
 (WIP)

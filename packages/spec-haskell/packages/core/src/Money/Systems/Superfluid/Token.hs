@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Token
-    ( module Money.Systems.Superfluid.MoneyUnit
+    ( module Money.Systems.Superfluid.MonetaryUnit
     , Address
     , Account (..)
     , Token (..)
@@ -12,7 +12,7 @@ import           Data.Default
 import           Data.Foldable                                                    (toList)
 import           Data.Kind                                                        (Type)
 import           Data.Maybe                                                       (fromMaybe)
-import           Lens.Micro
+import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
@@ -22,9 +22,9 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.Universalndexes                 as UIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
 --
-import           Money.Systems.Superfluid.MoneyUnit
+import           Money.Systems.Superfluid.MonetaryUnit
 
 -- | Address type class.
 --
@@ -32,13 +32,13 @@ import           Money.Systems.Superfluid.MoneyUnit
 --  * Type name: addr
 class Eq addr => Address addr
 
--- | MoneyUnit type class.
+-- | MonetaryUnit type class.
 --
 -- Notional conventions:
 --   * Type name: acc
 --   * Type family name: SF_ACC
---   * Term name: *MoneyUnit
-class (SuperfluidTypes sft, MoneyUnit acc sft) => Account acc sft | acc -> sft where
+--   * Term name: *MonetaryUnit
+class (SuperfluidTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sft where
     type ACC_ADDR acc :: Type
     addressOfAccount :: acc -> ACC_ADDR acc
 
@@ -88,24 +88,23 @@ class ( Monad tk
     --
 
     changeAgreement
-        :: ( AgreementMonetaryUnitData amu (TK_SFT tk)
-           , AgreementContractData acd amu (TK_SFT tk)
+        :: ( AgreementContractData acd amu (TK_SFT tk)
            )
         => TS tk
         -> (AgreementContractPartiesF acd) (ADDR tk)                             -- acpAddrs
         -> AgreementOperation acd                                                -- ao
         -> ((AgreementContractPartiesF acd) (ADDR tk) -> tk (Maybe acd))         -- acdGetter
         -> ((AgreementContractPartiesF acd) (ADDR tk) -> acd -> TS tk -> tk ())  -- acdSetter
-        -> Lens' (TK_ACC tk) amu                                                 -- amuLens
+        -> Lens' (TK_ACC tk) amu                                                 -- amu
         -> tk ()
-    changeAgreement t acpAddrs ao acdGetter acdSetter amuLens = do
+    changeAgreement t acpAddrs ao acdGetter acdSetter amuData = do
         acpAccounts <- mapM getAccount acpAddrs
         acd <- fromMaybe def <$> acdGetter acpAddrs
-        let (acd', acpAADs') = applyAgreementOperation acd (fmap (^. amuLens) acpAccounts) ao
+        let (acd', acpAADs') = applyAgreementOperation acd (fmap (^. amuData) acpAccounts) ao
         acdSetter acpAddrs acd' t
         mapM_ (uncurry putAccount)
             (zip (toList acpAddrs)
-                 (fmap (\(aad', account) -> set amuLens aad' account) (zip (toList acpAADs') (toList acpAccounts))))
+                 (fmap (\(aad', account) -> set amuData aad' account) (zip (toList acpAADs') (toList acpAccounts))))
 
     --
     -- TBA Functions
@@ -122,7 +121,7 @@ class ( Monad tk
         minterAddress <- getMinterAddress
         changeAgreement
             t (TBA.ContractPartiesF minterAddress toAddr) (TBA.MintLiquidity amount)
-            viewTBAContract setTBAContract tbaMonetaryUnitLens
+            viewTBAContract setTBAContract tbaMonetaryUnitData
 
     --
     -- CFA Functions
@@ -139,7 +138,7 @@ class ( Monad tk
         newFlowBuffer <- BBS.mkBufferLiquidity <$> calcFlowBuffer newFlowRate
         changeAgreement
             t acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer t)
-            viewFlow setFlow cfaMonetaryUnitLens
+            viewFlow setFlow cfaMonetaryUnitData
 
     --
     -- DFA Functions
@@ -153,7 +152,7 @@ class ( Monad tk
         t <- getCurrentTime
         changeAgreement
             t acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def t)
-            viewDecayingFlow setDecayingFlow dfaMonetaryUnitLens
+            viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
 
 -- ============================================================================
 -- Internal

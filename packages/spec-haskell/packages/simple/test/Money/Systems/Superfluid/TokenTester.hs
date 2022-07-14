@@ -10,6 +10,8 @@ import           Test.HUnit
     , assertBool
     )
 
+import           Lens.Micro
+
 import qualified Money.Systems.Superfluid.Concepts.RealtimeBalance         as RTB
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement as CFA
@@ -98,11 +100,11 @@ expectZeroTotalLiquidity = do
 expectCFANetFlowRateTo :: HasCallStack
     => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFANetFlowRateTo label addr expr = do
-    account <- runToken $ SF.getAccount addr
-    liftIO $ assertBool label (expr . CFA.netFlowRate . SF.viewCFAAccount $ account)
+    acc <- runToken $ SF.getAccount addr
+    liftIO $ assertBool label $ expr $ acc^.SF.cfaMonetaryUnitLens^.CFA.netFlowRate
 
 expectCFAFlowRateTo :: HasCallStack
     => String -> (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Bool) -> TokenTester ()
 expectCFAFlowRateTo label (sender, receiver) expr = do
-    flow <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.ContractPartiesF sender receiver)
-    liftIO $ assertBool label (expr . CFA.flowRate $ flow)
+    (CFA.MkContractData flow) <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.ContractPartiesF sender receiver)
+    liftIO $ assertBool label $ expr $ flow^.CFA.flowRate

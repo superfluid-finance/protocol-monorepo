@@ -3,9 +3,9 @@
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
-    ( MonetaryUnitLenses (..)
+    ( MonetaryUnitLens (..)
     , MonetaryUnitData (..)
-    , ContractLenses (..)
+    , ContractLens (..)
     , ContractData (..)
     , AgreementContractPartiesF (..)
     , AgreementOperation (..)
@@ -19,7 +19,7 @@ import           Data.Default                                            (Defaul
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable                                (TaggedTypeable (..))
 import           Data.Typeable                                           (Typeable)
-import           Lens.Micro
+import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
@@ -31,7 +31,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 -- * CFA.MonetaryUnitData
 --
 
-class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLenses mud sft | mud -> sft where
+class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     settledAt                :: Lens' mud (SFT_TS sft)
     settledUntappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
     settledBufferLiquidity   :: Lens' mud (BBS.BufferLiquidity (SFT_LQ sft))
@@ -39,19 +39,19 @@ class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLenses mud
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
-instance MonetaryUnitLenses mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
     tagFromProxy _ = "CFA"
 
-instance MonetaryUnitLenses _mud sft => Semigroup (MonetaryUnitData _mud sft) where
+instance MonetaryUnitLens _mud sft => Semigroup (MonetaryUnitData _mud sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & set  settledAt                (  b^.settledAt)
                   & over settledUntappedLiquidity (+ b^.settledUntappedLiquidity)
                   & over netFlowRate              (+ b^.netFlowRate)
                   & over settledBufferLiquidity   (+ b^.settledBufferLiquidity)
         in MkMonetaryUnitData c
-instance MonetaryUnitLenses _mud sft => Monoid (MonetaryUnitData _mud sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens _mud sft => Monoid (MonetaryUnitData _mud sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses _mud sft => AgreementMonetaryUnitData (MonetaryUnitData _mud sft) sft where
+instance MonetaryUnitLens _mud sft => AgreementMonetaryUnitData (MonetaryUnitData _mud sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) t =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
             ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
@@ -64,28 +64,28 @@ instance MonetaryUnitLenses _mud sft => AgreementMonetaryUnitData (MonetaryUnitD
 -- * TBA.ContractData
 --
 
-class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLenses cd sft | cd -> sft where
+class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
     flowLastUpdatedAt :: Lens' cd (SFT_TS sft)
     flowRate          :: Lens' cd (SFT_LQ sft)
     flowBuffer        :: Lens' cd (BBS.BufferLiquidity (SFT_LQ sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 newtype ContractData _cd mud sft = MkContractData _cd
-instance (ContractLenses _cd sft, Typeable mud) => TaggedTypeable (ContractData _cd mud sft) where
+instance (ContractLens _cd sft, Typeable mud) => TaggedTypeable (ContractData _cd mud sft) where
     tagFromProxy _ = "CFA#"
-instance ContractLenses _cd sft => Default (ContractData _cd mud sft) where def = MkContractData def
+instance ContractLens _cd sft => Default (ContractData _cd mud sft) where def = MkContractData def
 
-instance ( ContractLenses _cd sft
-         , MonetaryUnitLenses mud sft
-         , AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft
-         ) => AgreementContractData (ContractData _cd mud sft) (MonetaryUnitData mud sft) sft where
+instance ( ContractLens _cd sft
+         , MonetaryUnitLens _mud sft
+         , AgreementMonetaryUnitData (MonetaryUnitData _mud sft) sft
+         ) => AgreementContractData (ContractData _cd _mud sft) (MonetaryUnitData _mud sft) sft where
 
-    data AgreementContractPartiesF (ContractData _cd mud sft) a = ContractPartiesF
+    data AgreementContractPartiesF (ContractData _cd _mud sft) a = ContractPartiesF
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (ContractData _cd mud sft) =
+    data AgreementOperation (ContractData _cd _mud sft) =
         --         flowRate     newFlowBuffer                      t'
         UpdateFlow (SFT_LQ sft) (BBS.BufferLiquidity (SFT_LQ sft)) (SFT_TS sft)
 

@@ -46,13 +46,14 @@ test-suite tests
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
     build-depends:
         base >=4.15 && <5,
+        data-default,
+        transformers,
+        microlens >0.4.11,
         test-framework >=0.8,
         HUnit >=1.6.0.0,
         test-framework-hunit >=0.3.0,
         test-framework-quickcheck2 >=0.3.0,
         QuickCheck >=2.13,
         time,
-        data-default,
-        transformers,
-        superfluid-protocol-spec-core ==0.0.1.0,
+        superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

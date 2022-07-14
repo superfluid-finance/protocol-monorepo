@@ -7,9 +7,9 @@ module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
     ( MintedLiquidity
     , mintedLiquidityTag
     , mkMintedLiquidity
-    , MonetaryUnitLenses (..)
+    , MonetaryUnitLens (..)
     , MonetaryUnitData (..)
-    , ContractLenses
+    , ContractLens
     , ContractData (..)
     , AgreementContractPartiesF (..)
     , AgreementOperation (..)
@@ -23,7 +23,7 @@ import           Data.Default                      (Default (..))
 import           Data.Kind                         (Type)
 import           Data.Type.TaggedTypeable          (TaggedTypeable (..))
 import           Data.Typeable                     (Proxy (..), Typeable)
-import           Lens.Micro
+import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 
@@ -40,24 +40,24 @@ mkMintedLiquidity = TappedValue
 
 -- * TBA.MonetaryUnitData
 --
-class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLenses mud sft | mud -> sft where
+class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     untappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
     mintedLiquidity   :: Lens' mud (MintedLiquidity (SFT_LQ sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
-newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
+newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
 
-instance MonetaryUnitLenses mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
     tagFromProxy _ = "TBA"
 
-instance MonetaryUnitLenses mud sft => Semigroup (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & over untappedLiquidity (+ b^.untappedLiquidity)
                   & over mintedLiquidity   (+ b^.mintedLiquidity)
         in MkMonetaryUnitData c
-instance MonetaryUnitLenses mud sft => Monoid (MonetaryUnitData mud sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens mud sft => Monoid (MonetaryUnitData mud sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses mud sft => AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft where
+instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) _ =
         typedLiquidityVectorToRTB $ TypedLiquidityVector
         ( a^.untappedLiquidity )
@@ -66,18 +66,18 @@ instance MonetaryUnitLenses mud sft => AgreementMonetaryUnitData (MonetaryUnitDa
 -- * TBA.ContractData
 --
 
-class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLenses cd sft | cd -> sft
+class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft
 
 type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData _cd mud sft = MkContractData _cd
+newtype ContractData cdL mud sft = MkContractData cdL
 
-instance (ContractLenses cd sft, Typeable mud) => TaggedTypeable (ContractData cd mud sft) where
+instance (ContractLens cd sft, Typeable mud) => TaggedTypeable (ContractData cd mud sft) where
     tagFromProxy _ = "TBA#"
 
-instance ContractLenses cd sft => Default (ContractData cd mud sft) where def = MkContractData def
+instance ContractLens cd sft => Default (ContractData cd mud sft) where def = MkContractData def
 
-instance ( ContractLenses cd sft
-         , MonetaryUnitLenses mud sft
+instance ( ContractLens cd sft
+         , MonetaryUnitLens mud sft
          , AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft
          ) => AgreementContractData (ContractData cd mud sft) (MonetaryUnitData mud sft) sft where
 

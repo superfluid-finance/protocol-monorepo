@@ -6,9 +6,9 @@
 --
 -- NOTE: The formulas can be obtained from the output of maths/DFA.py
 module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-    ( MonetaryUnitLenses(..)
+    ( MonetaryUnitLens(..)
     , MonetaryUnitData (..)
-    , ContractLenses (..)
+    , ContractLens (..)
     , ContractData (..)
     , AgreementContractPartiesF (..)
     , AgreementOperation (..)
@@ -21,19 +21,16 @@ import           Data.Default                                            (Defaul
 import           Data.Kind                                               (Type)
 import           Data.Type.TaggedTypeable
 import           Data.Typeable                                           (Typeable)
-import           Lens.Micro
+import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
-default_lambda :: RealFloat b => b
-default_lambda = log 2 / (3600 * 24 * 7)
-
 -- * DFA.MonetaryUnitData
 --
-class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLenses mud sft | mud -> sft where
+class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     decayingFactor  :: Lens' mud (SFT_FLOAT sft)
     settledAt       :: Lens' mud (SFT_TS sft)
     αVal            :: Lens' mud (SFT_FLOAT sft)
@@ -42,10 +39,10 @@ class (Typeable mud, Default mud, SuperfluidTypes sft) => MonetaryUnitLenses mud
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
 newtype MonetaryUnitData _mud sft = MkMonetaryUnitData _mud
-instance MonetaryUnitLenses mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mud sft => TaggedTypeable (MonetaryUnitData mud sft) where
     tagFromProxy _ = "DFA"
 
-instance MonetaryUnitLenses mud sft => Semigroup (MonetaryUnitData mud sft) where
+instance MonetaryUnitLens mud sft => Semigroup (MonetaryUnitData mud sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'
@@ -61,11 +58,11 @@ instance MonetaryUnitLenses mud sft => Semigroup (MonetaryUnitData mud sft) wher
                   & over settledBuffer (+ b^.settledBuffer)
         in MkMonetaryUnitData c
         where ε'  = b^.εVal
-              λ   = default_lambda
+              λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
-instance MonetaryUnitLenses mud sft => Monoid (MonetaryUnitData mud sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens mud sft => Monoid (MonetaryUnitData mud sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses mud sft => AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft where
+instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft where
     -- | Provided balance by DFA
     --
     -- Formula:
@@ -79,25 +76,25 @@ instance MonetaryUnitLenses mud sft => AgreementMonetaryUnitData (MonetaryUnitDa
               α     = a^.αVal
               ε     = a^.εVal
               buf_s = a^.settledBuffer
-              λ     = default_lambda
+              λ     = a^.decayingFactor
               t_Δ   = fromIntegral (t - t_s)
 
 -- * DFA.ContractData
 --
 
-class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLenses cd sft | cd -> sft where
+class (Typeable cd, Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where
     flowLastUpdatedAt :: Lens' cd (SFT_TS sft)
     distributionLimit :: Lens' cd (SFT_LQ sft)
     flowBuffer        :: Lens' cd (BBS.BufferLiquidity (SFT_LQ sft))
 
 type ContractData :: Type -> Type -> Type -> Type
 data ContractData _cd mud sft = MkContractData _cd
-instance (ContractLenses cd sft, Typeable mud) => TaggedTypeable (ContractData cd mud sft) where
+instance (ContractLens cd sft, Typeable mud) => TaggedTypeable (ContractData cd mud sft) where
     tagFromProxy _ = "DFA#"
-instance ContractLenses cd sft => Default (ContractData cd mud sft) where def = MkContractData def
+instance ContractLens cd sft => Default (ContractData cd mud sft) where def = MkContractData def
 
-instance ( ContractLenses cd sft
-         , MonetaryUnitLenses mud sft
+instance ( ContractLens cd sft
+         , MonetaryUnitLens mud sft
          , AgreementMonetaryUnitData (MonetaryUnitData mud sft) sft
          ) => AgreementContractData (ContractData cd mud sft) (MonetaryUnitData mud sft) sft where
 
@@ -134,6 +131,6 @@ instance ( ContractLenses cd sft
 type ContractPartiesF   sft cd mud = AgreementContractPartiesF (ContractData cd mud sft)
 type ContractPartiesMUD sft cd mud = ContractPartiesF sft cd (MonetaryUnitData mud sft)
 
-instance MonetaryUnitLenses mud sft => Applicative (ContractPartiesF sft cd mud) where
+instance MonetaryUnitLens mud sft => Applicative (ContractPartiesF sft cd mud) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')

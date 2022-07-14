@@ -39,7 +39,7 @@ import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreemen
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.Universalndexes                 as UIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                 as UIDX
 
 
 -- ============================================================================

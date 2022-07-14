@@ -27,14 +27,17 @@ library
         Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Systems.Superfluid.Indexes.Universalndexes
-        Money.Systems.Superfluid.MoneyUnit
+        Money.Systems.Superfluid.Indexes.UniversalIndexes
+        Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
+    other-modules:
+        Lens.Internal
     hs-source-dirs:   src
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
         base >=4.15 && <5,
+        template-haskell,
         data-default,
         transformers >=0.2,
         microlens >0.4.11

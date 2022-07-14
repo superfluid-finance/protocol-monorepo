@@ -46,7 +46,7 @@ import qualified Money.Systems.Superfluid.Token                                 
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
 import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
 
@@ -71,7 +71,7 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 -- | Simple account type.
 data SimpleAccount = SimpleAccount
     { address              :: SimpleAddress
-    , tbaMonetaryUnitData  :: UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes
+    , itaMonetaryUnitData  :: UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes
     , cfaMonetaryUnitData  :: UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes
     , dfaMonetaryUnitData  :: UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes
     , accountLastUpdatedAt :: SimpleTimestamp
@@ -79,13 +79,13 @@ data SimpleAccount = SimpleAccount
 
 instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
-    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.tbaMonetaryUnitData)
+    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
     providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
-    tbaMonetaryUnitData   = lens tbaMonetaryUnitData (\acc mud' -> acc { tbaMonetaryUnitData = mud' })
-    tbaMonetaryUnitLens = to $ \acc -> let TBA.MkMonetaryUnitData l = tbaMonetaryUnitData acc in l
+    itaMonetaryUnitData   = lens itaMonetaryUnitData (\acc mud' -> acc { itaMonetaryUnitData = mud' })
+    itaMonetaryUnitLens = to $ \acc -> let ITA.MkMonetaryUnitData l = itaMonetaryUnitData acc in l
     cfaMonetaryUnitData   = lens cfaMonetaryUnitData (\acc mud' -> acc { cfaMonetaryUnitData = mud' })
     cfaMonetaryUnitLens = to $ \acc -> let CFA.MkMonetaryUnitData l = cfaMonetaryUnitData acc in l
     dfaMonetaryUnitData   = lens dfaMonetaryUnitData (\acc mud' -> acc { dfaMonetaryUnitData = mud' })
@@ -106,7 +106,7 @@ showAccountAt acc t =
 create_simple_account :: SimpleAddress -> SimpleTimestamp -> SimpleAccount
 create_simple_account toAddress t = SimpleAccount
     { address = toAddress
-    , tbaMonetaryUnitData = mempty
+    , itaMonetaryUnitData = mempty
     , cfaMonetaryUnitData = mempty
     , dfaMonetaryUnitData = mempty
     , accountLastUpdatedAt = t
@@ -191,11 +191,11 @@ instance (Monad m) => SF.Token (SimpleTokenStateT m) where
 
     putAccount addr acc = modify_token_data (\vs -> vs { accounts = M.insert addr acc (accounts vs) })
 
-    -- * TBA
+    -- * ITA
     --
     getMinterAddress = return minter_address
-    viewTBAContract _ = return $ Just def
-    setTBAContract  _ _ _ = return ()
+    viewITAContract _ = return $ Just def
+    setITAContract  _ _ _ = return ()
 
     -- * CFA
     --

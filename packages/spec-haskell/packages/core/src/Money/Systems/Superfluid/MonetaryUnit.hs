@@ -29,8 +29,8 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Lens of agreement monetary unit data
     --
 
-    tbaMonetaryUnitData :: Lens'        mu (UIDX.TBAMonetaryUnitData sft)
-    tbaMonetaryUnitLens :: SimpleGetter mu (UIDX.TBAMonetaryUnitLens sft)
+    itaMonetaryUnitData :: Lens'        mu (UIDX.ITAMonetaryUnitData sft)
+    itaMonetaryUnitLens :: SimpleGetter mu (UIDX.ITAMonetaryUnitLens sft)
 
     cfaMonetaryUnitData :: Lens'        mu (UIDX.CFAMonetaryUnitData sft)
     cfaMonetaryUnitLens :: SimpleGetter mu (UIDX.CFAMonetaryUnitLens sft)

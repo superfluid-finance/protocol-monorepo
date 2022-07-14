@@ -19,7 +19,7 @@ import           Data.Proxy
 
 -- import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 -- import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
--- import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+-- import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 -- import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
 import           Money.Systems.Superfluid.Instances.Simple.Types
@@ -73,17 +73,17 @@ instance Serialized SimpleSerialized SimpleSuperfluidTypes where
 -- Known Serializable Instances
 --
 
--- TBA
--- instance Serializable (TBA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
+-- ITA
+-- instance Serializable (ITA.AccountData SimpleSuperfluidTypes) SimpleSuperfluidTypes where
 --     putter s = do
---         putLQ (coerce $ TBA.untappedLiquidity s)
---         putLQ (coerce $ TBA.mintedLiquidity s)
+--         putLQ (coerce $ ITA.untappedLiquidity s)
+--         putLQ (coerce $ ITA.mintedLiquidity s)
 --     getter _ = do
 --         l <- getLQ
 --         m <- getLQ
---         return TBA.AccountData
---             { TBA.untappedLiquidity = UntappedValue l
---             , TBA.mintedLiquidity = TBA.mkMintedLiquidity m
+--         return ITA.AccountData
+--             { ITA.untappedLiquidity = UntappedValue l
+--             , ITA.mintedLiquidity = ITA.mkMintedLiquidity m
 --             }
 
 -- CFA

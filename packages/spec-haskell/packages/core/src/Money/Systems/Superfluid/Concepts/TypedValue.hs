@@ -34,7 +34,7 @@
 --
 -- == Known Sub-systems
 --
--- * Agreements (TBA, CFA, IDA, etc.)
+-- * Agreements (ITA, CFA, IDA, etc.)
 -- * Atomic Composite Agreement (ACA)
 -- * Buffer Based Solvency (BBS)
 --

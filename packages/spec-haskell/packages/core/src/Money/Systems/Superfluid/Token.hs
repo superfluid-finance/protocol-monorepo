@@ -18,7 +18,7 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
@@ -53,7 +53,7 @@ class (SuperfluidTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sf
 -- * Token is a monadic type, where all its functions run within the monadic context.
 -- * Token provides:
 --   * addressable account,
---   * and agreement (TBA/CFA/GDA) operations.
+--   * and agreement (ITA/CFA/GDA) operations.
 -- * Instructions for write operations are executed in `execTokenInstructions`.
 class ( Monad tk
       , SuperfluidTypes (TK_SFT tk)
@@ -107,21 +107,21 @@ class ( Monad tk
                  (fmap (\(aad', account) -> set amuData aad' account) (zip (toList acpAADs') (toList acpAccounts))))
 
     --
-    -- TBA Functions
+    -- ITA Functions
     --
 
     getMinterAddress :: tk (ADDR tk)
 
-    viewTBAContract :: CONTRACT_ADDR tk (UIDX.TBAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.TBAContractData (TK_SFT tk)))
-    setTBAContract  :: CONTRACT_ADDR tk (UIDX.TBAContractData (TK_SFT tk)) -> UIDX.TBAContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewITAContract :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.ITAContractData (TK_SFT tk)))
+    setITAContract  :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> UIDX.ITAContractData (TK_SFT tk) -> TS tk -> tk ()
 
     mintLiquidity :: ADDR tk -> LQ tk-> tk ()
     mintLiquidity toAddr amount = do
         t <- getCurrentTime
         minterAddress <- getMinterAddress
         changeAgreement
-            t (TBA.ContractPartiesF minterAddress toAddr) (TBA.MintLiquidity amount)
-            viewTBAContract setTBAContract tbaMonetaryUnitData
+            t (ITA.ContractPartiesF minterAddress toAddr) (ITA.MintLiquidity amount)
+            viewITAContract setITAContract itaMonetaryUnitData
 
     --
     -- CFA Functions

@@ -3,7 +3,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilies           #-}
 
-module Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement
+module Money.Systems.Superfluid.Agreements.InstantTransferAgreement
     ( MintedLiquidity
     , mintedLiquidityTag
     , mkMintedLiquidity
@@ -37,7 +37,7 @@ mintedLiquidityTag = Proxy @MintedLiquidityTag
 mkMintedLiquidity :: Value v => v -> MintedLiquidity v
 mkMintedLiquidity = TappedValue
 
--- * TBA.MonetaryUnitData
+-- * ITA.MonetaryUnitData
 --
 class (Default mud, SuperfluidTypes sft) => MonetaryUnitLens mud sft | mud -> sft where
     untappedLiquidity :: Lens' mud (UntappedValue (SFT_LQ sft))
@@ -59,7 +59,7 @@ instance MonetaryUnitLens mud sft => AgreementMonetaryUnitData (MonetaryUnitData
         ( a^.untappedLiquidity )
         [ mkAnyTappedLiquidity $ a^.mintedLiquidity ]
 
--- * TBA.ContractData
+-- * ITA.ContractData
 --
 
 class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft

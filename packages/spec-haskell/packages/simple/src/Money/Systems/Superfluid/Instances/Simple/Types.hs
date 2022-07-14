@@ -35,7 +35,7 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
@@ -124,7 +124,7 @@ instance Show (RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad) where
 instance RealtimeBalance SimpleRealtimeBalance Wad where
     typedLiquidityVectorFromRTB rtb = TypedLiquidityVector
         ( UntappedValue $ untappedLiquidityVal rtb)
-        [ mkAnyTappedLiquidity $ TBA.mkMintedLiquidity $ mintedVal rtb
+        [ mkAnyTappedLiquidity $ ITA.mkMintedLiquidity $ mintedVal rtb
         , mkAnyTappedLiquidity $ BBS.mkBufferLiquidity $ depositVal rtb
         ]
 
@@ -136,7 +136,7 @@ instance RealtimeBalance SimpleRealtimeBalance Wad where
     typedLiquidityVectorToRTB (TypedLiquidityVector (UntappedValue uval) tvec) =
         SimpleRealtimeBalance uval mval d od
         where d = foldr ((+) . (`fromAnyTappedLiquidity` BBS.bufferLiquidityTag)) def tvec
-              mval = foldr ((+) . (`fromAnyTappedLiquidity` TBA.mintedLiquidityTag)) def tvec
+              mval = foldr ((+) . (`fromAnyTappedLiquidity` ITA.mintedLiquidityTag)) def tvec
               od = def
 
 -- ============================================================================
@@ -154,18 +154,18 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreement Types
 --
 
--- TBA
+-- ITA
 
-instance TaggedTypeable (UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "TBA@U"
+instance TaggedTypeable (UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "ITA@U"
 
-instance TaggedTypeable (UIDX.TBAContractData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "TBA#"
+instance TaggedTypeable (UIDX.ITAContractData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "ITA#"
 
-instance Show (UIDX.TBAMonetaryUnitData SimpleSuperfluidTypes) where
-    show (TBA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
-        (show $ x^.TBA.untappedLiquidity)
-        (show $ x^.TBA.mintedLiquidity)
+instance Show (UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes) where
+    show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
+        (show $ x^.ITA.untappedLiquidity)
+        (show $ x^.ITA.mintedLiquidity)
 
 -- CFA
 

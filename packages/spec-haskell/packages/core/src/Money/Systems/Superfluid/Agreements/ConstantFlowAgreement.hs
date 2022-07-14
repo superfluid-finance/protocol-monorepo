@@ -57,7 +57,7 @@ instance MonetaryUnitLens _mud sft => AgreementMonetaryUnitData (MonetaryUnitDat
               buf_s                = a^.settledBufferLiquidity
               fr                   = a^.netFlowRate
 
--- * TBA.ContractData
+-- * ITA.ContractData
 --
 
 class (Default cd, SuperfluidTypes sft) => ContractLens cd sft | cd -> sft where

@@ -10,30 +10,30 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Systems.Superfluid.Agreements.TransferableBalanceAgreement as TBA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
 -- * ITA
 --
 
-type TBAMonetaryUnitLens :: Type -> Type
-data TBAMonetaryUnitLens sft = TBAMonetaryUnitData
-    { tba_untappedLiquidity :: UntappedValue (SFT_LQ sft)
-    , tba_mintedLiquidity   :: TBA.MintedLiquidity (SFT_LQ sft)
+type ITAMonetaryUnitLens :: Type -> Type
+data ITAMonetaryUnitLens sft = ITAMonetaryUnitData
+    { ita_untappedLiquidity :: UntappedValue (SFT_LQ sft)
+    , ita_mintedLiquidity   :: ITA.MintedLiquidity (SFT_LQ sft)
     }
-instance SuperfluidTypes sft => Default (TBAMonetaryUnitLens sft) where
-    def = TBAMonetaryUnitData { tba_untappedLiquidity = def, tba_mintedLiquidity = def }
-instance SuperfluidTypes sft => TBA.MonetaryUnitLens (TBAMonetaryUnitLens sft) sft where
-    untappedLiquidity = $(field 'tba_untappedLiquidity)
-    mintedLiquidity   = $(field 'tba_mintedLiquidity)
-type TBAMonetaryUnitData sft = TBA.MonetaryUnitData (TBAMonetaryUnitLens sft) sft
+instance SuperfluidTypes sft => Default (ITAMonetaryUnitLens sft) where
+    def = ITAMonetaryUnitData { ita_untappedLiquidity = def, ita_mintedLiquidity = def }
+instance SuperfluidTypes sft => ITA.MonetaryUnitLens (ITAMonetaryUnitLens sft) sft where
+    untappedLiquidity = $(field 'ita_untappedLiquidity)
+    mintedLiquidity   = $(field 'ita_mintedLiquidity)
+type ITAMonetaryUnitData sft = ITA.MonetaryUnitData (ITAMonetaryUnitLens sft) sft
 
-type TBAContractLens :: Type -> Type
-data TBAContractLens sft = TBAContractData
-instance Default (TBAContractLens sft) where
-    def = TBAContractData
-instance SuperfluidTypes sft => TBA.ContractLens (TBAContractLens sft) sft
-type TBAContractData sft = TBA.ContractData (TBAContractLens sft) (TBAMonetaryUnitLens sft) sft
+type ITAContractLens :: Type -> Type
+data ITAContractLens sft = ITAContractData
+instance Default (ITAContractLens sft) where
+    def = ITAContractData
+instance SuperfluidTypes sft => ITA.ContractLens (ITAContractLens sft) sft
+type ITAContractData sft = ITA.ContractData (ITAContractLens sft) (ITAMonetaryUnitLens sft) sft
 
 -- * CFA
 --

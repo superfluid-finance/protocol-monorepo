@@ -29,7 +29,6 @@ module Money.Systems.Superfluid.Instances.Simple.System
     , listDFAContracts
     ) where
 
-import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
@@ -135,42 +134,27 @@ instance Default SimpleTokenData where
 minter_address :: SimpleAddress
 minter_address = "_minter"
 
--- | Simple Monad Transformer stack
-newtype SimpleSystemStateT m a = SimpleSystemStateT (ReaderT SimpleSystemData m a)
-    deriving newtype (Functor, Applicative, Monad, MonadTrans, MonadIO)
-newtype SimpleTokenStateT m a = SimpleTokenStateT
-    ( StateT SimpleTokenData
-    ( SimpleSystemStateT m )
-    a )
-    deriving newtype (Functor, Applicative, Monad, MonadIO)
-instance MonadTrans SimpleTokenStateT where
-    lift m = SimpleTokenStateT $ StateT $ \s -> lift m >>= \a -> return (a, s)
+-- | Monad transformer stack for the simple token state
+type SimpleTokenStateT m = (StateT  SimpleTokenData
+                            (ReaderT SimpleSystemData
+                             m))
 
-getSystemData :: (Monad m) => SimpleTokenStateT m SimpleSystemData
-getSystemData = SimpleTokenStateT . lift . SimpleSystemStateT $ ask
+getSystemData :: Monad m => SimpleTokenStateT m SimpleSystemData
+getSystemData = lift ask
 
-getSimpleTokenData :: (Monad m) => SimpleTokenStateT m SimpleTokenData
-getSimpleTokenData = SimpleTokenStateT get
+getSimpleTokenData :: Monad m => SimpleTokenStateT m SimpleTokenData
+getSimpleTokenData = get
 
-runSimpleTokenStateT :: (Monad m)
-    => SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m (a, SimpleTokenData)
-runSimpleTokenStateT (SimpleTokenStateT m) sys token = m'' where
-        (SimpleSystemStateT m') = runStateT m token
-        m'' = runReaderT m' sys
+runSimpleTokenStateT :: SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m (a, SimpleTokenData)
+runSimpleTokenStateT m sys token = let m'  = runStateT  m  token
+                                       m'' = runReaderT m' sys
+                                   in  m''
 
-evalSimpleTokenStateT :: (Monad m)
-    => SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m a
+evalSimpleTokenStateT :: Monad m => SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m a
 evalSimpleTokenStateT m sys token = runSimpleTokenStateT m sys token <&> fst
 
-execSimpleTokenStateT :: (Monad m)
-    => SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m SimpleTokenData
+execSimpleTokenStateT :: Monad m => SimpleTokenStateT m a -> SimpleSystemData -> SimpleTokenData -> m SimpleTokenData
 execSimpleTokenStateT m sys token = runSimpleTokenStateT m sys token <&> snd
-
-put_simple_token_data :: (Monad m) => SimpleTokenData -> SimpleTokenStateT m ()
-put_simple_token_data = SimpleTokenStateT . put
-
-modify_token_data :: (Monad m) => (SimpleTokenData -> SimpleTokenData) -> SimpleTokenStateT m ()
-modify_token_data = SimpleTokenStateT . modify
 
 -- | SimpleTokenStateT m is a @SF.Token@ instance.
 instance Monad m => SF.Token (SimpleTokenStateT m) where
@@ -183,7 +167,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) where
     getAccount addr = getSimpleTokenData >>= \s -> return $
         fromMaybe (create_simple_account 0) $ M.lookup addr (accounts s)
 
-    putAccount addr acc = modify_token_data (\vs -> vs { accounts = M.insert addr acc (accounts vs) })
+    putAccount addr acc = modify (\vs -> vs { accounts = M.insert addr acc (accounts vs) })
 
     -- * ITA
     --
@@ -195,7 +179,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) where
     --
     calcFlowBuffer = return  . (* Wad 3600)
     viewFlow acdAddr = getSimpleTokenData >>= \s -> return $ M.lookup acdAddr (cfaContractData s)
-    setFlow acdAddr acd t = modify_token_data (
+    setFlow acdAddr acd t = modify (
         \vs -> vs
                { cfaContractData = M.insert acdAddr acd (cfaContractData vs)
                , tokenLastUpdatedAt = t
@@ -205,7 +189,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) where
     -- * DFA
     --
     viewDecayingFlow acdAddr = getSimpleTokenData >>= \s -> return $ M.lookup acdAddr (dfaContractData s)
-    setDecayingFlow acdAddr acd t = modify_token_data (
+    setDecayingFlow acdAddr acd t = modify (
         \vs -> vs
                { dfaContractData = M.insert acdAddr acd (dfaContractData vs)
                , tokenLastUpdatedAt = t
@@ -218,7 +202,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) where
 initSimpleToken :: Monad m => [SimpleAddress] -> Wad -> SimpleTokenStateT m ()
 initSimpleToken alist initBalance = do
     t <- SF.getCurrentTime
-    put_simple_token_data SimpleTokenData
+    put SimpleTokenData
         { accounts = M.fromList $ map (\a -> (a, create_simple_account t)) alist
         , cfaContractData = M.empty
         , dfaContractData = M.empty
@@ -227,7 +211,7 @@ initSimpleToken alist initBalance = do
     mapM_ (`SF.mintValue` initBalance) alist
 
 addAccount :: Monad m => SimpleAddress -> SimpleAccount -> SimpleTokenStateT m ()
-addAccount accountAddr account = modify_token_data (\vs -> vs {
+addAccount accountAddr account = modify (\vs -> vs {
     accounts = M.insert
         accountAddr
         account

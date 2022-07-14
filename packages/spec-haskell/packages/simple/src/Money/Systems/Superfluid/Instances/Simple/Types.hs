@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingVia    #-}
 {-# LANGUAGE TypeFamilies   #-}
@@ -11,13 +12,19 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , toWad
     , wad4humanN
     , wad4human
-    -- SimpleTimestamp
+    -- Timestamp
     , SimpleTimestamp (..)
-    -- SimpleRealtimeBalance
+    -- RealtimeBalance
     , SimpleRealtimeBalance (..)
-    -- SimpleSuperfluidTypes
+    -- SuperfluidTypes
     , SimpleSuperfluidTypes
-    -- Agreement
+    -- Agreements
+    , SimpleITAContractData
+    , SimpleITAMonetaryUnitData
+    , SimpleCFAContractData
+    , SimpleCFAMonetaryUnitData
+    , SimpleDFAContractData
+    , SimpleDFAMonetaryUnitData
     , AnySimpleAgreementContractData (..)
     , AnySimpleAgreementMonetaryUnitData (..)
     ) where
@@ -25,11 +32,14 @@ module Money.Systems.Superfluid.Instances.Simple.Types
 import           Control.Exception                                            (assert)
 import           Data.Binary
 import           Data.Default
+import           Data.Foldable                                                (toList)
+import           Data.List                                                    (intercalate)
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                 (Generic)
 import           Lens.Micro
 import           Text.Printf                                                  (printf)
+
 
 import           Money.Systems.Superfluid.Concepts
 --
@@ -154,52 +164,64 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 
 -- ITA
 
-instance TaggedTypeable (UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "ITA@U"
+type SimpleITAContractData = UIDX.ITAContractData SimpleSuperfluidTypes
 
-instance TaggedTypeable (UIDX.ITAContractData SimpleSuperfluidTypes) where
+instance TaggedTypeable SimpleITAContractData where
     tagFromProxy _ = "ITA#"
 
-instance Show (UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes) where
+type SimpleITAMonetaryUnitData = UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes
+
+instance TaggedTypeable SimpleITAMonetaryUnitData where
+    tagFromProxy _ = "ITA"
+
+instance Show SimpleITAMonetaryUnitData where
     show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
         (show $ x^.ITA.untappedValue)
         (show $ x^.ITA.mintedValue)
 
 -- CFA
 
-instance TaggedTypeable (UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "CFA@U"
+type SimpleCFAContractData = UIDX.CFAContractData SimpleSuperfluidTypes
 
-instance TaggedTypeable (UIDX.CFAContractData SimpleSuperfluidTypes) where
+instance TaggedTypeable SimpleCFAContractData where
     tagFromProxy _ = "CFA#"
 
-instance Show (UIDX.CFAContractData SimpleSuperfluidTypes) where
+instance Show SimpleCFAContractData where
     show (CFA.MkContractData x) = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
         (show $ x^.CFA.flowLastUpdatedAt)
         (show $ x^.CFA.flowRate)
         (show $ x^.CFA.flowBuffer)
 
-instance Show (UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes) where
+type SimpleCFAMonetaryUnitData = UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes
+
+instance Show SimpleCFAMonetaryUnitData where
     show (CFA.MkMonetaryUnitData x) = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
         (show $ x^.CFA.settledAt)
         (show $ x^.CFA.settledUntappedValue)
         (show $ x^.CFA.settledBufferValue)
         (show $ x^.CFA.netFlowRate)
 
+instance TaggedTypeable SimpleCFAMonetaryUnitData where
+    tagFromProxy _ = "CFA"
+
 -- DFA
 
-instance TaggedTypeable (UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "DFA@U"
+type SimpleDFAContractData = UIDX.DFAContractData SimpleSuperfluidTypes
 
-instance TaggedTypeable (UIDX.DFAContractData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "DFA#"
-
-instance Show (UIDX.DFAContractData SimpleSuperfluidTypes) where
+instance Show SimpleDFAContractData where
     show (DFA.MkContractData x) = printf "{ t_u = %s, δ = %s }"
         (show $ x^.DFA.flowLastUpdatedAt)
         (show $ x^.DFA.distributionLimit)
 
-instance Show (UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes) where
+instance TaggedTypeable SimpleDFAContractData where
+    tagFromProxy _ = "DFA#"
+
+type SimpleDFAMonetaryUnitData = UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes
+
+instance TaggedTypeable SimpleDFAMonetaryUnitData where
+    tagFromProxy _ = "DFA"
+
+instance Show SimpleDFAMonetaryUnitData where
     show (DFA.MkMonetaryUnitData x) = printf "{ λ = %s, t_s = %s, α = %s, ε = %s, buf = %s }"
         (show $ x^.DFA.decayingFactor)
         (show $ x^.DFA.settledAt)
@@ -207,9 +229,11 @@ instance Show (UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes) where
         (show $ x^.DFA.εVal)
         (show $ x^.DFA.settledBuffer)
 
+-- Any
+
 -- | AnyAgreementContractData type.
-data AnySimpleAgreementContractData = forall acd amu.
-    ( AgreementContractData acd amu SimpleSuperfluidTypes
+data AnySimpleAgreementContractData = forall acd amud.
+    ( AgreementContractData acd amud SimpleSuperfluidTypes
     , TaggedTypeable acd
     , Show acd
     ) => MkSimpleAgreementContractData acd
@@ -218,11 +242,26 @@ instance Show AnySimpleAgreementContractData where
    show (MkSimpleAgreementContractData g) = show g
 
 -- | AnyAgreementMonetaryUnitData type.
-data AnySimpleAgreementMonetaryUnitData = forall amu.
-    ( AgreementMonetaryUnitData amu SimpleSuperfluidTypes
-    , TaggedTypeable amu
-    , Show amu
-    ) => MkSimpleAgreementMonetaryUnitData amu
+data AnySimpleAgreementMonetaryUnitData = forall amud.
+    ( AgreementMonetaryUnitData amud SimpleSuperfluidTypes
+    , TaggedTypeable amud
+    , Show amud
+    ) => MkSimpleAgreementMonetaryUnitData amud
 
 instance Show AnySimpleAgreementMonetaryUnitData where
     show (MkSimpleAgreementMonetaryUnitData a) = show a
+
+instance ( Foldable (AgreementContractPartiesF acd)
+         , Eq elem
+         ) => Eq (AgreementContractPartiesF acd elem) where
+    a == b = foldr (&&) True $ zipWith (==) (toList a) (toList b)
+
+instance ( Foldable (AgreementContractPartiesF acd)
+         , Ord elem
+         ) => Ord (AgreementContractPartiesF acd elem) where
+    a <= b = foldr (&&) True $ zipWith (<=) (toList a) (toList b)
+
+instance ( Foldable (AgreementContractPartiesF acd)
+         , Show elem
+         ) => Show (AgreementContractPartiesF acd elem) where
+    show elems = "(" ++ (elems & toList & map show & intercalate ", ") ++ ")"

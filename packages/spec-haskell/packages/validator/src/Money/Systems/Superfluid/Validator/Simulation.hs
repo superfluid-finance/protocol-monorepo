@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+
 module Money.Systems.Superfluid.Validator.Simulation
     -- SimMonad operations
     ( SimMonad
@@ -10,14 +12,15 @@ module Money.Systems.Superfluid.Validator.Simulation
     -- TokenMonad operations
     , TokenMonad
     , getAccountByAlias
-    , printAccount
     , printAccountByAlias
     , printTokenState
     ) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
+import           Data.Coerce
 import           Data.Default
+import           Data.Function                                    ((&))
 import           Data.Functor
 import qualified Data.Map                                         as M
 import           Data.Maybe
@@ -71,15 +74,13 @@ createToken tokenId alist initBalance = runToken tokenId $ SF.initSimpleToken al
 -- | Sim Operations
 --
 getAccountByAlias :: HasCallStack => String -> SimData -> TokenMonad SF.SimpleAccount
-getAccountByAlias alias _= SF.getAccount $ fromJust $ SF.createSimpleAddress alias
-
-printAccount :: HasCallStack => SF.SimpleAccount -> SimData -> TokenMonad ()
-printAccount acc _ = do
-    t <- SF.getCurrentTime
-    liftIO $ putStrLn $ SF.showAccountAt acc t ++ "\n"
+getAccountByAlias alias _ = SF.getAccount $ fromJust $ SF.createSimpleAddress alias
 
 printAccountByAlias :: HasCallStack => String -> SimData -> TokenMonad ()
-printAccountByAlias alias s = getAccountByAlias alias s >>= flip printAccount s
+printAccountByAlias alias s = do
+    t <- SF.getCurrentTime
+    acc <- getAccountByAlias alias s
+    liftIO $ print_account t (alias, acc)
 
 sumTotalValue :: HasCallStack => SimData -> TokenMonad SF.SimpleRealtimeBalance
 sumTotalValue _ = do
@@ -89,13 +90,36 @@ sumTotalValue _ = do
 
 printTokenState :: HasCallStack => SimData -> TokenMonad ()
 printTokenState s = do
-    let banner = 60 `replicate` '-'
-    liftIO $ putStrLn banner
-    liftIO $ putStrLn "## Accounts\n"
-    accounts <- SF.listAccounts
-    -- mapM_ (\x -> printAccount (snd x) s) accounts
-    mapM_ (flip (printAccount . snd) s) accounts
-    totalLiquidtySum <- sumTotalValue s
-    liftIO $ putStrLn "## Token Info\n"
-    liftIO $ putStrLn $ "Total Balance: " ++ show totalLiquidtySum
-    liftIO $ putStrLn (banner ++ "\n")
+      t <- SF.getCurrentTime
+      accounts <- SF.listAccounts
+      cfaContracts <- SF.listCFAContracts
+      dfaContracts <- SF.listDFAContracts
+      totalLiquidtySum <- sumTotalValue s
+      liftIO $ do
+          let banner = 60 `replicate` '-'
+          putStrLn banner
+
+          putStrLn "## CFA Contracts\n"
+          mapM_ print_contract cfaContracts
+          putStrLn ""
+
+          mapM_ print_contract dfaContracts
+          putStrLn "## DFA Contracts\n"
+          putStrLn ""
+
+          putStrLn "## Accounts\n"
+          mapM_ (\(addr, acc) -> print_account t (coerce addr, acc)) accounts
+          putStrLn ""
+
+          putStrLn "## Token Info\n"
+          putStrLn $ "Total Balance: " ++ show totalLiquidtySum
+          putStrLn banner
+          putStrLn ""
+
+print_account t (alias, acc) =
+    putStr $ "Account @" ++ alias ++ "\n" ++ accountDetails
+    where accountDetails = lines (SF.showAccountAt acc t) & map ("  " ++) & unlines
+
+print_contract (acdAddr, acd) =
+    putStr $ show acdAddr ++ "\n" ++ acdDetails
+    where acdDetails = lines (show acd) & map ("  " ++) & unlines

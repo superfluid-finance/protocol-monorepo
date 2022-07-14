@@ -33,7 +33,7 @@ class ( SuperfluidTypes sft
       , Applicative (AgreementContractPartiesF acd), Traversable (AgreementContractPartiesF acd)
       ) => AgreementContractData acd amud sft | acd -> sft, acd -> amud where
     -- | Agreement contract parties traversable applicative functor type.
-    data AgreementContractPartiesF acd elem_t :: Type
+    data AgreementContractPartiesF acd elem :: Type
 
     -- | Agreement operation algebraic data type.
     data AgreementOperation acd :: Type

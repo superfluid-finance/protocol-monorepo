@@ -40,7 +40,6 @@ class Eq addr => Address addr
 --   * Term name: *MonetaryUnit
 class (SuperfluidTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sft where
     type ACC_ADDR acc :: Type
-    addressOfAccount :: acc -> ACC_ADDR acc
 
 -- | Token Type Class
 --

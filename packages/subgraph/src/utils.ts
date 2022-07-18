@@ -73,11 +73,6 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
-    const nativeAssetSuperTokenSymbol = getNativeAssetSuperTokenSymbol();
-    if (token.symbol == nativeAssetSuperTokenSymbol && token.isListed == true) {
-        token.isNativeAssetSuperToken = true;
-    }
-
     token = getIsNativeAssetSuperToken(token);
 
     return token;

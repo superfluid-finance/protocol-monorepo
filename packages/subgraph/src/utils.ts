@@ -60,12 +60,12 @@ export function handleTokenRPCCalls(
 }
 
 export function getTokenInfoAndReturn(token: Token): Token {
-    let tokenAddress = Address.fromHexString(token.id);
-    let tokenContract = SuperToken.bind(tokenAddress);
-    let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
-    let nameResult = tokenContract.try_name();
-    let symbolResult = tokenContract.try_symbol();
-    let decimalsResult = tokenContract.try_decimals();
+    const tokenAddress = Address.fromString(token.id);
+    const tokenContract = SuperToken.bind(tokenAddress);
+    const underlyingAddressResult = tokenContract.try_getUnderlyingToken();
+    const nameResult = tokenContract.try_name();
+    const symbolResult = tokenContract.try_symbol();
+    const decimalsResult = tokenContract.try_decimals();
     token.underlyingAddress = underlyingAddressResult.reverted
         ? ZERO_ADDRESS
         : underlyingAddressResult.value;

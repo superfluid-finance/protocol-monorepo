@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { Framework, SFError, SuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { TestToken } from "../typechain";
 import {
     asleep,
@@ -241,6 +241,7 @@ describe("Subgraph Tests", () => {
                 "Super fDAI Fake Token",
                 "fDAIx",
                 true,
+                false,
                 dai.address,
                 18
             );
@@ -251,6 +252,7 @@ describe("Subgraph Tests", () => {
                 dai.address.toLowerCase(),
                 "fDAI Fake Token",
                 "fDAI",
+                false,
                 false,
                 "",
                 18
@@ -273,6 +275,7 @@ describe("Subgraph Tests", () => {
                 "Super fDAI Fake Token",
                 "fDAIx",
                 false,
+                false,
                 dai.address,
                 18
             );
@@ -284,13 +287,36 @@ describe("Subgraph Tests", () => {
             receipt = await txn.wait();
             await waitUntilBlockIndexed(receipt.blockNumber);
             await fetchTokenAndValidate(
-                    daix.address.toLowerCase(),
-                    "Super fDAI Fake Token",
-                    "fDAIx",
-                    true,
-                    dai.address,
-                    18
-                );
+                daix.address.toLowerCase(),
+                "Super fDAI Fake Token",
+                "fDAIx",
+                true,
+                false,
+                dai.address,
+                18
+            );
+        });
+
+        it("Should properly set native asset as listed SuperToken", async () => {
+            const [deployer, alice] = await ethers.getSigners();
+            const ETHx = await framework.loadNativeAssetSuperToken("ETHx");
+
+            // NOTE: we execute a transaction here with ETHx to get the name/symbol indexed on the subgraph
+            let txn = await ETHx.upgrade({
+                amount: ethers.utils.parseEther("100").toString(),
+            }).exec(deployer);
+            let receipt = await txn.wait();
+            await waitUntilBlockIndexed(receipt.blockNumber);
+
+            await fetchTokenAndValidate(
+                ETHx.address.toLowerCase(),
+                "Super ETH",
+                "ETHx",
+                true,
+                true,
+                ethers.constants.AddressZero,
+                18
+            );
         });
     });
 

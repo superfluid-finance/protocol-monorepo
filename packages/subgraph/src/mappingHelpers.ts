@@ -153,7 +153,7 @@ export function getOrInitToken(
     token.createdAtBlockNumber = block.number;
     token.isSuperToken = false;
     token.isListed = false;
-    token = getTokenInfoAndReturn(token as Token, tokenAddress);
+    token = getTokenInfoAndReturn(token as Token);
     token.save();
 }
 

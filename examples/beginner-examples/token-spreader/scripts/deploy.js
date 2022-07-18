@@ -14,9 +14,7 @@ async function main() {
   // Setting up the out Framework object with Goerli (knows it's Goerli when we pass in network.chainId)
   const sf = await Framework.create({
     chainId: network.chainId,
-    provider: customHttpProvider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider: customHttpProvider
   });
 
   // Getting the Goerli fDAIx Super Token object from the Framework object

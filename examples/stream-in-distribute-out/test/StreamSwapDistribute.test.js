@@ -39,9 +39,8 @@ before(async function () {
     sf = await Framework.create({
         provider: admin.provider,
         resolverAddress,
-        dataMode: "WEB3_ONLY",
         protocolReleaseVersion: "test",
-        networkName: "custom",
+        chainId: 31337,
     });
 });
 

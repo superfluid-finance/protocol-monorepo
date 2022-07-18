@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.4.5",
+    "version": "0.5.0",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -43,6 +43,7 @@
         "generate": "run-s generate:*",
         "generate:abi-files": "rm -rf src/abi && mkdir -p src/abi && tasks/build-abi-json.sh",
         "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
+        "generate:ajv-validations": "ts-node scripts/ajv.ts",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
         "generate-graphql-schema": "yarn generate-graphql-schema:v1",
         "generate-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
@@ -55,7 +56,6 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
-        "ajv": "^8.11.0",
         "browserify": "^17.0.0",
         "graphql-request": "^4.3.0",
         "lodash": "^4.17.21",
@@ -69,6 +69,7 @@
         "@graphql-codegen/typescript": "^2.5.1",
         "@graphql-codegen/typescript-operations": "^2.4.2",
         "@graphql-typed-document-node/core": "^3.1.1",
+        "ajv": "^8.11.0",
         "ethers": "^5.6.9",
         "get-graphql-schema": "^2.1.2",
         "mocha": "^10.0.0"

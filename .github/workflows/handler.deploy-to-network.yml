@@ -1,5 +1,4 @@
-name: Deploy to Mainnets
-# TODO: RENAME
+name: Deploy to Network
 
 on:
   workflow_dispatch:
@@ -20,8 +19,8 @@ on:
 
 jobs:
 
-  deploy-to-mainnets:
-    name: Deploy to mainnets
+  deploy-to-network:
+    name: Deploy to network
 
     runs-on: ubuntu-latest
 

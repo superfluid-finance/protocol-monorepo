@@ -97,6 +97,7 @@ export function getOrInitSuperToken(
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
+        token.isNativeAssetSuperToken = false;
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
         token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         let underlyingAddress = token.underlyingAddress;

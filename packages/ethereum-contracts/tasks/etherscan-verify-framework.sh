@@ -41,7 +41,7 @@ echo NETWORK_ID=$NETWORK_ID
 
 FAILED_VERIFICATIONS=()
 function try_verify() {
-    npx truffle --network $TRUFFLE_NETWORK run verify "$@"
+    npx truffle run --network $TRUFFLE_NETWORK verify "$@"
     # NOTE: append using length so that having spaces in the element is not a problem
     [ $? != 0 ] && FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$@"
 }

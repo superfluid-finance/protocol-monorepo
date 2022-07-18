@@ -18897,10 +18897,9 @@ truffle-flattener@^1.6.0:
     mkdirp "^1.0.4"
     tsort "0.0.1"
 
-truffle-plugin-verify@^0.5.26:
+truffle-plugin-verify@d10r/truffle-plugin-verify#verifyProxyFixed:
   version "0.5.26"
-  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.5.26.tgz#5bdec00b83c6cea9448dc5807ccedc88c35399c2"
-  integrity sha512-TFpmh2vBNLLFo9GxV+vf91XPs5cox9C5yd+cTKeLF1j2e/C1izUsc+5upG7fLJhuDOvKMB8X8S8ELKmSKRh+/g==
+  resolved "https://codeload.github.com/d10r/truffle-plugin-verify/tar.gz/e913c3db14f37c9c8c858e707cf550b3ab56aa16"
   dependencies:
     axios "^0.26.1"
     cli-logger "^0.5.40"

@@ -81,7 +81,7 @@ contract("My Test", accounts => {
             from: admin
         });
     });
-}
+})
 ```
 In order to write concise testing code, we further recommend the use of [`@superfluid-finance/sdk-core`](/packages/sdk-core) not only in your UI code, but also in JS contract tests.
 

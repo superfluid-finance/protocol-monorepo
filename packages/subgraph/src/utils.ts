@@ -2,6 +2,7 @@ import {Address, BigInt, Bytes, ethereum, log,} from "@graphprotocol/graph-ts";
 import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
 import {Resolver} from "../generated/ResolverV1/Resolver";
 import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../generated/schema";
+import { getNativeAssetSuperTokenSymbol } from "./addresses.template";
 
 /**************************************************************************
  * Constants
@@ -55,6 +56,12 @@ export function getTokenInfoAndReturn(
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
+
+    const nativeAssetSuperTokenSymbol = getNativeAssetSuperTokenSymbol();
+    if (token.symbol == nativeAssetSuperTokenSymbol) {
+        token.isNativeAssetSuperToken = true;
+    }
+
     return token;
 }
 

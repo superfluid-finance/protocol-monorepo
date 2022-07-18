@@ -31,6 +31,7 @@ import {
     streamRevisionExists,
     updateTotalSupplyForNativeSuperToken,
     ZERO_ADDRESS,
+    handleTokenRPCCalls,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -98,9 +99,8 @@ export function getOrInitSuperToken(
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
         token.isNativeAssetSuperToken = false;
-        token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
-        let underlyingAddress = token.underlyingAddress;
+        token = handleTokenRPCCalls(token, resolverAddress);
+        const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
 
         token.save();
@@ -127,18 +127,8 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
-    // // we must handle the case when the native token hasn't been initialized
-    // // there is no name/symbol, but this may occur later
-    if (token.name.length == 0 || token.symbol.length == 0) {
-        token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token.save();
-    }
+    token = handleTokenRPCCalls(token, resolverAddress);
 
-    // @note - this is currently being called every single time to handle list/unlist of tokens
-    // because we don't have the Resolver Set event on some networks
-    // We can remove this once we have migrated data to a new resolver which emits this event on
-    // all networks.
-    token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
     token.save();
 
     return token as Token;

@@ -41,10 +41,26 @@ export function createEventID(
  * HOL entities util functions
  *************************************************************************/
 
-export function getTokenInfoAndReturn(
+export function handleTokenRPCCalls(
     token: Token,
-    tokenAddress: Address
+    resolverAddress: Address
 ): Token {
+    // @note - this is currently being called every single time to handle list/unlist of tokens
+    // because we don't have the Resolver Set event on some networks
+    // We can remove this once we have migrated data to a new resolver which emits this event on
+    // all networks.
+    token = getIsListedToken(token, resolverAddress);
+
+    // // we must handle the case when the native token hasn't been initialized
+    // // there is no name/symbol, but this may occur later
+    if (token.name.length == 0 || token.symbol.length == 0) {
+        token = getTokenInfoAndReturn(token);
+    }
+    return token;
+}
+
+export function getTokenInfoAndReturn(token: Token): Token {
+    let tokenAddress = Address.fromHexString(token.id);
     let tokenContract = SuperToken.bind(tokenAddress);
     let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
     let nameResult = tokenContract.try_name();
@@ -58,16 +74,30 @@ export function getTokenInfoAndReturn(
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
     const nativeAssetSuperTokenSymbol = getNativeAssetSuperTokenSymbol();
-    if (token.symbol == nativeAssetSuperTokenSymbol) {
+    if (token.symbol == nativeAssetSuperTokenSymbol && token.isListed == true) {
         token.isNativeAssetSuperToken = true;
     }
 
+    token = getIsNativeAssetSuperToken(token);
+
+    return token;
+}
+
+/**
+ * @note We rely on the native asset super token being listed by us in our resolver
+ * to be considered a native asset super token. If this changes, this code needs
+ * to change as well.
+ */
+export function getIsNativeAssetSuperToken(token: Token): Token {
+    const nativeAssetSuperTokenSymbol = getNativeAssetSuperTokenSymbol();
+    if (token.symbol == nativeAssetSuperTokenSymbol && token.isListed == true) {
+        token.isNativeAssetSuperToken = true;
+    }
     return token;
 }
 
 export function getIsListedToken(
     token: Token,
-    tokenAddress: Address,
     resolverAddress: Address
 ): Token {
     let resolverContract = Resolver.bind(resolverAddress);
@@ -79,7 +109,10 @@ export function getIsListedToken(
         "supertokens." + version + "." + token.symbol
     );
     let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
-    token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
+    token.isListed = token.id == superTokenAddress.toHex();
+
+    token = getIsNativeAssetSuperToken(token);
+
     return token as Token;
 }
 

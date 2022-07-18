@@ -7,7 +7,6 @@ module Money.Systems.Superfluid.MonetaryUnit
     , sumBalancesAt
     ) where
 
-import           Data.Default                                      (Default (def))
 import           Data.Kind                                         (Type)
 import           Lens.Internal
 
@@ -40,9 +39,9 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
 
 balanceOfAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => mu -> SFT_TS sft -> SFT_RTB sft
 balanceOfAt account t = foldr
-    ((+) . (\a -> providedBalanceByAnyAgreement account a t))
-    def
+    ((<>) . (\a -> providedBalanceByAnyAgreement account a t))
+    mempty
     (agreementsOf account)
 
 sumBalancesAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => [mu] -> SFT_TS sft -> SFT_RTB sft
-sumBalancesAt alist t = foldr ((+) . (`balanceOfAt` t)) def alist
+sumBalancesAt alist t = foldr ((<>) . (`balanceOfAt` t)) mempty alist

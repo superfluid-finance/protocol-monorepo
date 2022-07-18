@@ -115,10 +115,9 @@ instance Show SimpleTimestamp where
 
 -- | Simple Real Time Balance Type.
 data SimpleRealTimeBalanceF a = SimpleRealTimeBalanceF
-    { untappedValue    :: a
-    , mintedValue      :: a
-    , depositValue     :: a
-    , owedDepositValue :: a
+    { untappedValue :: a
+    , mintedValue   :: a
+    , depositValue  :: a
     }
     deriving stock (Generic, Functor, Foldable, Traversable)
     deriving anyclass (Binary, Default)
@@ -135,9 +134,9 @@ depositValueL   = lensOfRTB BBS.bufferValueTag
 --  deriving (Num, Show) via RTBDerivingHelper (SimpleRealTimeBalanceF Wad) Wad
 
 instance Applicative SimpleRealTimeBalanceF where
-    pure a = SimpleRealTimeBalanceF a a a a
-    liftA2 f (SimpleRealTimeBalanceF a b c d) (SimpleRealTimeBalanceF a' b' c' d') =
-        SimpleRealTimeBalanceF (f a a') (f b b') (f c c') (f d d')
+    pure a = SimpleRealTimeBalanceF a a a
+    liftA2 f (SimpleRealTimeBalanceF a b c) (SimpleRealTimeBalanceF a' b' c') =
+        SimpleRealTimeBalanceF (f a a') (f b b') (f c c')
 
 instance Show (SimpleRealTimeBalanceF Wad) where
     show rtb =
@@ -151,25 +150,21 @@ instance Show (SimpleRealTimeBalanceF Wad) where
             ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . getUntypedValue )) $ tvec)
             ++ " )"
 
--- boiler plate :(
-instance Num (SimpleRealTimeBalanceF Wad) where
-    (+)         = liftA2 (+)
-    -- be aware of the normalization semantics
-    (*)     a b = liftA2 (*) (normalizeRTBWith id a) (normalizeRTBWith id b)
-    signum      = normalizeRTBWith signum
-    abs         = normalizeRTBWith abs
-    negate      = normalizeRTBWith negate
-    fromInteger = valueToRTB . fromInteger
+
+instance Semigroup (SimpleRealTimeBalanceF Wad) where
+    (<>) = liftA2 (+)
+
+instance Monoid (SimpleRealTimeBalanceF Wad) where
+    mempty   = pure 0
 
 instance RealTimeBalance SimpleRealTimeBalanceF Wad where
-    valueToRTB uval = SimpleRealTimeBalanceF uval def def def
+    valueToRTB uval = SimpleRealTimeBalanceF uval def def
 
     typedValuesToRTB (UntappedValue uval) tvec =
-        SimpleRealTimeBalanceF uval mval d od
+        SimpleRealTimeBalanceF uval mval d
         -- FIXME use Traversable
-        where d    = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
-              mval = foldr ((+) . (`fromAnyTappedValue` ITA.mintedValueTag)) def tvec
-              od   = def
+        where  mval = foldr ((+) . (`fromAnyTappedValue` ITA.mintedValueTag)) def tvec
+               d    = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
 
     typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
                               [ mkAnyTappedValue $ ITA.mkMintedValue $ mintedValue rtb
@@ -179,7 +174,7 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
     lensOfRTB p | t == typeRep untappedValueTag   = $(field 'untappedValue)
                 | t == typeRep ITA.mintedValueTag = $(field 'mintedValue)
                 | t == typeRep BBS.bufferValueTag = $(field 'depositValue)
-                | otherwise = lens (const def) const
+                | otherwise = error "Invalid monetary value tag"
         where t = typeRep p
 
 -- ============================================================================

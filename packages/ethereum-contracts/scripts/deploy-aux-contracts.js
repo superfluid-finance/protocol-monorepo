@@ -55,6 +55,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("governance proxy deployed at:", govProxy.address);
     const govLogic = await SuperfluidGovernanceII.new();
     console.log("governance logic deployed at:", govLogic.address);
+    await govLogic.castrate();
+    console.log("marked gov logic as initialized (castrate)");
     await govProxy.initializeProxy(govLogic.address);
     console.log("governance proxy initialized with logic");
     const gov = await SuperfluidGovernanceII.at(govProxy.address);

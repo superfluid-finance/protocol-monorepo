@@ -16,7 +16,7 @@ const SuperfluidLoader = artifacts.require("SuperfluidLoader");
  * Usage: npx truffle exec scripts/deploy-deterministic-loader.js : {PRIVATE KEY} [{NONCE}]
  *        If NONCE is not defined, 1 is assumed (-> first tx done from the deployer account)
  *
- * Supported ENV vars:
+ * (optional) ENV vars:
  *        GASLIMIT: override the gas limit for networks with misbehaving estimation (Arbitrum)
  *        ESTTXCOST: override the estimated tx cost (amount to be sent to deployer)
  *                   for networks with different cost derivation structure (Optimism)

@@ -4,6 +4,7 @@ const SuperToken = artifacts.require("SuperToken");
 
 /**
  * @dev Trigger a token Transfer event in order to have the subgraph index it.
+ * Also needed for a change of the resolver listing state to take effect.
  * TODO: remove once not needed anymore
  *
  * Usage: npx truffle exec scripts/tmp-trigger-token-transfer.js : {TOKEN_ADDRESS}

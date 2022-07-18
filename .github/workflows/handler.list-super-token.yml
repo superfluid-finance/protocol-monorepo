@@ -51,8 +51,8 @@ jobs:
           echo "Admin type: ${{ github.event.inputs.admin_type }}"
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle \
-            --network ${{ github.event.inputs.network }} \
             exec \
+            --network ${{ github.event.inputs.network }} \
             scripts/resolver-list-super-token.js \
             : ${{ github.event.inputs.token_address }}
 

@@ -1,81 +1,50 @@
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Systems.Superfluid.Concepts.RealtimeBalance
-    ( UntypedValueVector (..)
-    , TypedValueVector (..)
-    , RealtimeBalance (..)
-    , RealtimeBalanceDerivingHelper (..)
-    ) where
+module Money.Systems.Superfluid.Concepts.RealtimeBalance where
 
 import           Data.Default
+import           Data.Proxy
+import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts.TypedValue (AnyTappedValue (..), UntappedValue (..), Value)
-
--- | UntypedValueVector type
---
-data UntypedValueVector v = UntypedValueVector v [v]
-
--- | Create an untyped value vector from a list of value
-mk_untyped_value_vector :: Value v => [v] -> UntypedValueVector v
-mk_untyped_value_vector (uval:xs) = UntypedValueVector uval xs
-mk_untyped_value_vector _         = error "Untapped value missing"
-
--- | TypedValueVector type
---
-data TypedValueVector v = TypedValueVector (UntappedValue v) [AnyTappedValue v]
+import           Money.Systems.Superfluid.Concepts.TypedValue
 
 -- | RealtimeBalance Type Class
 --
 -- Notional conventions:
 --  * Type name : rtb
 --  * Type family name: SFT_RTB
---  * Term name: *RTB *Balance
-class (Value v, Num rtb, Default rtb) => RealtimeBalance rtb v | rtb -> v where
-    valueVectorFromRTB :: rtb -> [v]
-    valueVectorFromRTB b = let
-        (TypedValueVector (UntappedValue uval) avals) = typedValueVectorFromRTB b
-        auvals = map (\(AnyTappedValue aval) -> snd aval) avals
-        in uval:auvals
+--  * Term name: bal, balance, ...
+class ( Value v
+      , Applicative rtbF, Traversable rtbF
+      , Num (rtbF v)
+      , Default (rtbF v)
+      ) => RealtimeBalance rtbF v | v -> rtbF where
 
-    typedValueVectorFromRTB :: rtb -> TypedValueVector v
+    -- * RTB Constructors
+    --
 
-    valueToRTB :: v -> rtb
+    -- | Convert a single monetary value to a RTB
+    --
+    -- *Law*
+    -- 1. ??
+    valueToRTB :: v -> rtbF v
 
-    typedValueVectorToRTB :: TypedValueVector v -> rtb
+    -- | Convert typed values to a RTB
+    typedValuesToRTB :: UntappedValue v -> [AnyTappedValue v] -> rtbF v
 
-    untypedValueVectorToRTB :: UntypedValueVector v -> rtb
+    -- * RTB Utils
+    --
 
-    untappedValueFromRTB :: (Value v, RealtimeBalance rtb v) => rtb -> v
-    untappedValueFromRTB = get_untyped_value . mk_untyped_value_vector . valueVectorFromRTB
-        where get_untyped_value (UntypedValueVector uval _) = uval
+    -- | Get typed values from a RTB
+    typedValuesFromRTB :: rtbF v -> (UntappedValue v, [AnyTappedValue v])
 
-    valueRequiredForRTB :: (Value v, RealtimeBalance rtb v) => rtb -> v
-    valueRequiredForRTB = foldr (+) def . valueVectorFromRTB
+    -- | Get the lens of a typed value of RTB.
+    lensOfRTB :: TypedValueTag vtag => Proxy vtag -> Lens' (rtbF v) v
 
-    normalizeRTBWith :: (v -> v) -> rtb -> rtb
-    normalizeRTBWith f = valueToRTB . f . valueRequiredForRTB
+    -- | Net monetary value of the RTB
+    netValueOfRTB :: (Value v, RealtimeBalance rtb v) => rtbF v -> v
+    netValueOfRTB = foldr (+) def
 
--- | RealtimeBalanceDerivingHelper Type
---
--- To use:
---   - enable DerivingVia language extension
---   - do @deriving Num via RTB.RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad@
---
-newtype RealtimeBalanceDerivingHelper rtb v = RealtimeBalanceDerivingHelper rtb
-
--- | RealtimeBalance Num type class deriving helper
-instance (Value v, RealtimeBalance rtb v) => Num (RealtimeBalanceDerivingHelper rtb v) where
-    (+) (RealtimeBalanceDerivingHelper a) (RealtimeBalanceDerivingHelper b) = RealtimeBalanceDerivingHelper $
-        untypedValueVectorToRTB . mk_untyped_value_vector $
-        zipWith (+) (valueVectorFromRTB a) (valueVectorFromRTB b)
-    (*) (RealtimeBalanceDerivingHelper a) (RealtimeBalanceDerivingHelper b) = RealtimeBalanceDerivingHelper $
-        valueToRTB $
-        valueRequiredForRTB a * valueRequiredForRTB b
-    fromInteger x = RealtimeBalanceDerivingHelper $
-        valueToRTB . fromInteger $ x
-    signum (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
-        normalizeRTBWith signum x
-    abs (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
-        normalizeRTBWith abs x
-    negate (RealtimeBalanceDerivingHelper x) = RealtimeBalanceDerivingHelper $
-        normalizeRTBWith negate x
+    -- | Apply a binary function onto a normalized RTB
+    normalizeRTBWith :: (v -> v) -> rtbF v -> rtbF v
+    normalizeRTBWith f = valueToRTB . f . netValueOfRTB

@@ -8,6 +8,7 @@ import           Control.Monad.IO.Class
 import           Data.Coerce
 import           Data.Time.Clock.POSIX                                     (getPOSIXTime)
 import           GHC.Stack
+import           Lens.Micro
 import           Text.Printf
 
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement as DFA
@@ -42,10 +43,10 @@ travelDaysAndPrintBalances t0 days = do
         danBalance <- runToken token $ SF.balanceOfAccount dan
         liftIO $ putStrLn $ printf "%f %s %s %s %s"
             ((fromIntegral (coerce t_offset + i * 3600) :: Double) / (3600.0 * 24))
-            (show . SF.untappedValueFromRTB $ aliceBalance)
-            (show . SF.untappedValueFromRTB $ bobBalance)
-            (show . SF.untappedValueFromRTB $ carolBalance)
-            (show . SF.untappedValueFromRTB $ danBalance)
+            (show $ aliceBalance^.SF.untappedValueL)
+            (show $ bobBalance^.SF.untappedValueL)
+            (show $ carolBalance^.SF.untappedValueL)
+            (show $ danBalance^.SF.untappedValueL)
 
 demo :: HasCallStack => SimMonad ()
 demo = do

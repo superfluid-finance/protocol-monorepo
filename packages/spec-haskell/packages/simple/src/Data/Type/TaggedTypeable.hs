@@ -4,7 +4,7 @@ module Data.Type.TaggedTypeable
     , tagFromValue
     ) where
 
-import           Data.Typeable (Proxy (..), Typeable)
+import           Data.Typeable (Proxy (..), Typeable, typeRep)
 
 -- | Tagged typeable, giving a convenient string tag to a typeable
 class (Typeable k, Typeable a) => TaggedTypeable (a :: k) where

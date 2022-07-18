@@ -1,5 +1,6 @@
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Money.Systems.Superfluid.Instances.Simple.System
@@ -40,7 +41,7 @@ import qualified Data.Map                                                     as
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
-import           Lens.Micro
+import           Lens.Internal
 
 import qualified Money.Systems.Superfluid.Token                               as SF
 --
@@ -82,11 +83,11 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
     providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
-    itaMonetaryUnitData = lens itaMonetaryUnitData (\acc mud' -> acc { itaMonetaryUnitData = mud' })
+    itaMonetaryUnitData = $(field 'itaMonetaryUnitData)
     itaMonetaryUnitLens = to $ \acc -> let ITA.MkMonetaryUnitData l = itaMonetaryUnitData acc in l
-    cfaMonetaryUnitData = lens cfaMonetaryUnitData (\acc mud' -> acc { cfaMonetaryUnitData = mud' })
+    cfaMonetaryUnitData = $(field 'cfaMonetaryUnitData)
     cfaMonetaryUnitLens = to $ \acc -> let CFA.MkMonetaryUnitData l = cfaMonetaryUnitData acc in l
-    dfaMonetaryUnitData = lens dfaMonetaryUnitData (\acc mud' -> acc { dfaMonetaryUnitData = mud' })
+    dfaMonetaryUnitData = $(field 'dfaMonetaryUnitData)
     dfaMonetaryUnitLens = to $ \acc -> let DFA.MkMonetaryUnitData l = dfaMonetaryUnitData acc in l
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where

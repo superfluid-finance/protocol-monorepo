@@ -1,32 +1,29 @@
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-orphans #-}
 module Money.Systems.Superfluid.RealtimeBalance_prop (tests) where
 
+import           Data.Foldable                                   (toList)
 import           Test.Hspec
 import           Test.QuickCheck
 
 import           Money.Systems.Superfluid.Instances.Simple.Types
-    ( RealtimeBalance (..)
-    , SimpleRealtimeBalance (..)
-    , Wad (..)
-    )
 
 
 -- QuickCheck helpers
 instance Arbitrary SimpleRealtimeBalance where
     arbitrary = do
-        uval <- arbitrary
-        mval <- arbitrary
-        d <- arbitrary
+        u  <- arbitrary
+        m  <- arbitrary
+        d  <- arbitrary
         od <- arbitrary
-        return SimpleRealtimeBalance
-            { untappedValueVal = Wad uval
-            , mintedVal = Wad mval
-            , depositVal = Wad d
-            , owedDepositVal = Wad od
+        return SimpleRealtimeBalanceF
+            { untappedValue    = Wad u
+            , mintedValue      = Wad m
+            , depositValue     = Wad d
+            , owedDepositValue = Wad od
             }
 
 sameAs :: SimpleRealtimeBalance -> SimpleRealtimeBalance -> Bool
-sameAs a b = and $ zipWith (==) (valueVectorFromRTB a) (valueVectorFromRTB b)
+sameAs a b = and $ zipWith (==) (toList a) (toList b)
 
 -- Conventional properties of Num:
 prop_plus_has_associativity :: SimpleRealtimeBalance -> SimpleRealtimeBalance -> SimpleRealtimeBalance -> Bool
@@ -58,11 +55,11 @@ prop_mul_add_distributivity a b c =
 --   2. (signum x * abs x) + negate x = fromInteger 0
 --   3. x * fromInteger 1 = normalized x and fromInteger 1 * x = normalized x
 
-prop_abssignum_eq_normalize_rtb_with_id :: SimpleRealtimeBalance -> Bool
-prop_abssignum_eq_normalize_rtb_with_id x = (signum x * abs x) `sameAs` normalizeRTBWith id x
+prop_abs_signum_eq_normalize_rtb_with_id :: SimpleRealtimeBalance -> Bool
+prop_abs_signum_eq_normalize_rtb_with_id x = (signum x * abs x) `sameAs` normalizeRTBWith id x
 
-prop_abssignum_plus_inv_eq_zero :: SimpleRealtimeBalance -> Bool
-prop_abssignum_plus_inv_eq_zero x = (signum x * abs x - x) `sameAs` 0
+prop_abs_signum_plus_inv_eq_zero :: SimpleRealtimeBalance -> Bool
+prop_abs_signum_plus_inv_eq_zero x = (signum x * abs x - x) `sameAs` 0
 
 prop_from_integer_one_is_mul_id :: SimpleRealtimeBalance -> Bool
 prop_from_integer_one_is_mul_id x = let mulId = 1 in
@@ -76,6 +73,6 @@ tests = describe "RealtimeBalance properties" $ do
     it "(*) has associativity" $ property prop_mul_has_associativity
     it "distributivity of (*) with respect to (+)" $ property prop_mul_add_distributivity
 
-    it "(abs x * signum x) equals normalized x" $ property prop_abssignum_eq_normalize_rtb_with_id
-    it "(abs x * signum x) plus -x equals 0" $ property prop_abssignum_plus_inv_eq_zero
-    it "(fromInteger 1) is the multiplicative identity normalized" $ property prop_from_integer_one_is_mul_id
+    it "(abs x * signum x) equals x" $ property prop_abs_signum_eq_normalize_rtb_with_id
+    it "(abs x * signum x) plus -x equals 0" $ property prop_abs_signum_plus_inv_eq_zero
+    it "(fromInteger 1) is the multiplicative identity" $ property prop_from_integer_one_is_mul_id

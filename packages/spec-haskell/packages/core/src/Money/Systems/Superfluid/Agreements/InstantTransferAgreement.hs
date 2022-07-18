@@ -3,8 +3,9 @@
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Agreements.InstantTransferAgreement
-    ( MintedValue
+    ( MintedValueTag
     , mintedValueTag
+    , MintedValue
     , mkMintedValue
     , MonetaryUnitLens (..)
     , MonetaryUnitData (..)
@@ -24,12 +25,22 @@ import           Data.Proxy                        (Proxy (..))
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
+    ( AgreementContractData (..)
+    , AgreementMonetaryUnitData (..)
+    , RealtimeBalance (typedValuesToRTB)
+    , SuperfluidTypes (SFT_MVAL)
+    , TappedValue (..)
+    , TypedValueTag (..)
+    , UntappedValue (..)
+    , Value
+    , mkAnyTappedValue
+    )
 
 -- * MintedValue Type
 --
 
 data MintedValueTag
-instance TappedValueTag MintedValueTag where tappedValueTag _ = "m"
+instance TypedValueTag MintedValueTag where tappedValueTag _ = "m"
 type MintedValue v = TappedValue MintedValueTag v
 mintedValueTag :: Proxy MintedValueTag
 mintedValueTag = Proxy @MintedValueTag
@@ -53,8 +64,7 @@ instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) wher
 instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
-    balanceProvidedByAgreement (MkMonetaryUnitData a) _ =
-        typedValueVectorToRTB $ TypedValueVector
+    balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB
         ( a^.untappedValue )
         [ mkAnyTappedValue $ a^.mintedValue ]
 

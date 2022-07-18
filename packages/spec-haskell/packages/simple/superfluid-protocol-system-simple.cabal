@@ -18,6 +18,7 @@ library
         Money.Systems.Superfluid.Instances.Simple.Types
         Money.Systems.Superfluid.Instances.Simple.System
     other-modules:
+        Lens.Internal
         Data.Type.TaggedTypeable
         Money.Systems.Superfluid.Instances.Simple.Integrations.Serialization
 
@@ -26,6 +27,7 @@ library
     ghc-options:      -Wall
     build-depends:
         base >=4.15 && <5,
+        template-haskell,
         data-default,
         containers,
         transformers >=0.2,

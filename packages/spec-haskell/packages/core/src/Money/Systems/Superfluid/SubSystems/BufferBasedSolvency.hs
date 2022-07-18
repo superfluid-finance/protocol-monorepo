@@ -11,7 +11,7 @@ import           Money.Systems.Superfluid.Concepts
 
 -- TODO use TH: $(defineTappedValue BufferValueTag "b" BufferValue)
 data BufferValueTag
-instance TappedValueTag BufferValueTag where tappedValueTag _ = "b"
+instance TypedValueTag BufferValueTag where tappedValueTag _ = "b"
 type BufferValue v = TappedValue BufferValueTag v
 bufferValueTag :: Proxy BufferValueTag
 bufferValueTag = Proxy @BufferValueTag

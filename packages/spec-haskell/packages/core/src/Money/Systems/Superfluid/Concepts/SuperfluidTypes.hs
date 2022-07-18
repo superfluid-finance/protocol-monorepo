@@ -4,6 +4,7 @@ module Money.Systems.Superfluid.Concepts.SuperfluidTypes
     ( Timestamp
     , SFTFloat
     , SuperfluidTypes (..)
+    , SFT_RTB
     ) where
 
 import           Data.Default                                      (Default)
@@ -30,9 +31,11 @@ class (Default fr, RealFloat fr) => SFTFloat fr
 class ( SFTFloat (SFT_FLOAT sft)
       , Value (SFT_MVAL sft)
       , Timestamp (SFT_TS sft)
-      , RealtimeBalance (SFT_RTB sft) (SFT_MVAL sft)
+      , RealtimeBalance (SFT_RTB_F sft) (SFT_MVAL sft)
       ) => SuperfluidTypes sft where
     type SFT_FLOAT sft :: Type
     type SFT_MVAL  sft :: Type
     type SFT_TS    sft :: Type
-    type SFT_RTB   sft :: Type
+    type SFT_RTB_F sft :: Type -> Type
+
+type SFT_RTB sft = SFT_RTB_F sft (SFT_MVAL sft)

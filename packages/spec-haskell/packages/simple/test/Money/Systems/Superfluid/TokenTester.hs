@@ -12,10 +12,8 @@ import           Data.Maybe                                                (from
 
 import           Lens.Micro
 
-import qualified Money.Systems.Superfluid.Concepts.RealtimeBalance         as RTB
---
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement as CFA
-
+--
 import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
 
 
@@ -86,14 +84,14 @@ createTestAccount addr initBalance = runToken $ do
 expectAccountBalanceTo :: HasCallStack => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
 expectAccountBalanceTo label addr expr = do
     balance <- runToken $ SF.balanceOfAccount addr
-    liftIO $ assertBool label (expr . RTB.valueRequiredForRTB $ balance)
+    liftIO $ assertBool label (expr . SF.netValueOfRTB $ balance)
 
 expectZeroTotalValue :: HasCallStack => TokenTester ()
 expectZeroTotalValue = do
     t <- runToken SF.getCurrentTime
     accounts <- runToken SF.listAccounts
     liftIO $ assertBool "Zero Value Invariance"
-        ((== 0) . RTB.valueRequiredForRTB $ SF.sumBalancesAt (map snd accounts) t)
+        ((== 0) . SF.netValueOfRTB $ SF.sumBalancesAt (map snd accounts) t)
 
 expectCFANetFlowRateTo :: HasCallStack
     => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()

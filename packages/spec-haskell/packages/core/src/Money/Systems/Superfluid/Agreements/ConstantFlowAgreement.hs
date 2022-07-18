@@ -47,8 +47,7 @@ instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) wher
 instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
-    balanceProvidedByAgreement (MkMonetaryUnitData a) t =
-        typedValueVectorToRTB $ TypedValueVector
+    balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
             [ mkAnyTappedValue buf_s ]
         where t_s                  = a^.settledAt

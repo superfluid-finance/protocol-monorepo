@@ -10,7 +10,7 @@ module Money.Systems.Superfluid.Concepts.Agreement
 import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
 
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 
 
 -- | Agreement monetary unit data type class.

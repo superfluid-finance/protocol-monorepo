@@ -1,7 +1,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingVia    #-}
-{-# LANGUAGE TypeFamilies   #-}
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DerivingVia     #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies    #-}
 
 module Money.Systems.Superfluid.Instances.Simple.Types
     ( module Money.Systems.Superfluid.Concepts
@@ -15,7 +16,11 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     -- Timestamp
     , SimpleTimestamp (..)
     -- RealtimeBalance
-    , SimpleRealtimeBalance (..)
+    , SimpleRealtimeBalanceF (..)
+    , SimpleRealtimeBalance
+    , untappedValueL
+    , mintedValueL
+    , depositValueL
     -- SuperfluidTypes
     , SimpleSuperfluidTypes
     -- Agreements
@@ -29,7 +34,7 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , AnySimpleAgreementMonetaryUnitData (..)
     ) where
 
-import           Control.Exception                                            (assert)
+import           Control.Applicative                                          (Applicative (..))
 import           Data.Binary
 import           Data.Default
 import           Data.Foldable                                                (toList)
@@ -37,7 +42,7 @@ import           Data.List                                                    (i
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                 (Generic)
-import           Lens.Micro
+import           Lens.Internal
 import           Text.Printf                                                  (printf)
 
 
@@ -89,11 +94,11 @@ instance Show Wad where
 instance Show (UntappedValue Wad) where
     show (UntappedValue val) = show val ++ "@_"
 
-instance TappedValueTag vtag => Show (TappedValue vtag Wad) where
+instance TypedValueTag vtag => Show (TappedValue vtag Wad) where
     show (TappedValue val) = show val ++ "@" ++ tappedValueTag (Proxy @vtag)
 
 instance Show (AnyTappedValue Wad) where
-    show (AnyTappedValue (MkTappedValueTag vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
+    show (AnyTappedValue (MkTypedValueTag vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
 
 -- ============================================================================
 -- Timestamp type
@@ -109,43 +114,73 @@ instance Show SimpleTimestamp where
 -- RealtimeBalance Type
 
 -- | Simple realtime balance Type.
-data SimpleRealtimeBalance = SimpleRealtimeBalance
-    { untappedValueVal :: Wad
-    , mintedVal        :: Wad
-    , depositVal       :: Wad
-    , owedDepositVal   :: Wad
+data SimpleRealtimeBalanceF a = SimpleRealtimeBalanceF
+    { untappedValue    :: a
+    , mintedValue      :: a
+    , depositValue     :: a
+    , owedDepositValue :: a
     }
-    deriving stock (Generic)
+    deriving stock (Generic, Functor, Foldable, Traversable)
     deriving anyclass (Binary, Default)
-    deriving (Num, Show) via RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad
 
-instance Show (RealtimeBalanceDerivingHelper SimpleRealtimeBalance Wad) where
-    show (RealtimeBalanceDerivingHelper rtb) =
-        (show       . valueRequiredForRTB     $ rtb) ++ " " ++
-        (showDetail . typedValueVectorFromRTB $ rtb)
+type SimpleRealtimeBalance = SimpleRealtimeBalanceF Wad
+
+untappedValueL :: Lens' SimpleRealtimeBalance Wad
+untappedValueL  = lensOfRTB untappedValueTag
+mintedValueL   :: Lens' SimpleRealtimeBalance Wad
+mintedValueL    = lensOfRTB ITA.mintedValueTag
+depositValueL   :: Lens' SimpleRealtimeBalance Wad
+depositValueL   = lensOfRTB BBS.bufferValueTag
+
+--  deriving (Num, Show) via RTBDerivingHelper (SimpleRealtimeBalanceF Wad) Wad
+
+instance Applicative SimpleRealtimeBalanceF where
+    pure a = SimpleRealtimeBalanceF a a a a
+    liftA2 f (SimpleRealtimeBalanceF a b c d) (SimpleRealtimeBalanceF a' b' c' d') =
+        SimpleRealtimeBalanceF (f a a') (f b b') (f c c') (f d d')
+
+instance Show (SimpleRealtimeBalanceF Wad) where
+    show rtb =
+        (show       . netValueOfRTB      $ rtb) ++ " " ++
+        (showDetail . typedValuesFromRTB $ rtb)
         where
-        showDetail (TypedValueVector uval tvec) = "( "
+        showDetail :: (UntappedValue Wad, [AnyTappedValue Wad]) -> String
+        showDetail (UntappedValue uval, tvec) = "( "
             ++ show uval
+            -- skip zero/default values
             ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . getUntypedValue )) $ tvec)
             ++ " )"
 
-instance RealtimeBalance SimpleRealtimeBalance Wad where
-    typedValueVectorFromRTB rtb = TypedValueVector
-        ( UntappedValue $ untappedValueVal rtb)
-        [ mkAnyTappedValue $ ITA.mkMintedValue $ mintedVal rtb
-        , mkAnyTappedValue $ BBS.mkBufferValue $ depositVal rtb
-        ]
+-- boiler plate :(
+instance Num (SimpleRealtimeBalanceF Wad) where
+    (+)         = liftA2 (+)
+    -- be aware of the normalization semantics
+    (*)     a b = liftA2 (*) (normalizeRTBWith id a) (normalizeRTBWith id b)
+    signum      = normalizeRTBWith signum
+    abs         = normalizeRTBWith abs
+    negate      = normalizeRTBWith negate
+    fromInteger = valueToRTB . fromInteger
 
-    valueToRTB uval = SimpleRealtimeBalance uval def def def
+instance RealtimeBalance SimpleRealtimeBalanceF Wad where
+    valueToRTB uval = SimpleRealtimeBalanceF uval def def def
 
-    untypedValueVectorToRTB (UntypedValueVector uval uvec) = assert (length uvec == 3) $
-        SimpleRealtimeBalance uval (head uvec) (uvec!!1) (uvec!!2)
-
-    typedValueVectorToRTB (TypedValueVector (UntappedValue uval) tvec) =
-        SimpleRealtimeBalance uval mval d od
-        where d = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
+    typedValuesToRTB (UntappedValue uval) tvec =
+        SimpleRealtimeBalanceF uval mval d od
+        -- FIXME use Traversable
+        where d    = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
               mval = foldr ((+) . (`fromAnyTappedValue` ITA.mintedValueTag)) def tvec
-              od = def
+              od   = def
+
+    typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
+                              [ mkAnyTappedValue $ ITA.mkMintedValue $ mintedValue rtb
+                              , mkAnyTappedValue $ BBS.mkBufferValue $ depositValue rtb
+                              ])
+
+    lensOfRTB p | t == typeRep untappedValueTag   = $(field 'untappedValue)
+                | t == typeRep ITA.mintedValueTag = $(field 'mintedValue)
+                | t == typeRep BBS.bufferValueTag = $(field 'depositValue)
+                | otherwise = lens (const def) const
+        where t = typeRep p
 
 -- ============================================================================
 -- SuperfluidTypes Type
@@ -154,9 +189,9 @@ data SimpleSuperfluidTypes
 
 instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_FLOAT SimpleSuperfluidTypes = SFDouble
-    type SFT_MVAL SimpleSuperfluidTypes = Wad
-    type SFT_TS SimpleSuperfluidTypes = SimpleTimestamp
-    type SFT_RTB SimpleSuperfluidTypes = SimpleRealtimeBalance
+    type SFT_MVAL  SimpleSuperfluidTypes = Wad
+    type SFT_TS    SimpleSuperfluidTypes = SimpleTimestamp
+    type SFT_RTB_F SimpleSuperfluidTypes = SimpleRealtimeBalanceF
 
 -- ============================================================================
 -- Agreement Types

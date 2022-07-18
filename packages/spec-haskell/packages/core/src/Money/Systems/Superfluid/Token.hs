@@ -124,7 +124,7 @@ class ( Monad tk
     -- CFA Functions
     --
 
-    calcFlowBuffer :: MVAL tk-> tk (MVAL tk)
+    calcFlowBuffer :: MVAL tk -> tk (MVAL tk)
 
     viewFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.CFAContractData (TK_SFT tk)))
     setFlow  :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> UIDX.CFAContractData (TK_SFT tk) -> TS tk -> tk ()

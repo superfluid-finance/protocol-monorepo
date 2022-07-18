@@ -27,7 +27,9 @@ executable superfluid-validator
         base >=4.15 && <5,
         data-default,
         containers,
-        transformers,
+        binary,
         time,
+        transformers >=0.2,
+        microlens >0.4.11,
         superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

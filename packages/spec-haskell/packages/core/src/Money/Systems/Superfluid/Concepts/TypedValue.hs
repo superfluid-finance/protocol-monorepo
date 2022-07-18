@@ -28,15 +28,16 @@ module Money.Systems.Superfluid.Concepts.TypedValue
     -- Untyped Value
     ( Value
     -- Typed Value
+    , TypedValueTag (..)
     , TypedValue
     -- Untapped Value
+    , UntappedValueTag
     , untappedValueTag
     , UntappedValue (..)
     -- Tapped Value
-    , TappedValueTag (..)
     , TappedValue (..)
     -- Any Tapped Value
-    , AnyTappedValueTag (..)
+    , AnyTypedValueTag (..)
     , AnyTappedValue (..)
     , mkAnyTappedValue
     , fromAnyTappedValue
@@ -50,11 +51,24 @@ import           Data.Typeable               (Proxy (..), Typeable, typeRep)
 import           Money.Concepts.Distribution (Value)
 
 
+-- | Tag for typed value type class
+--
+-- Notional conventions for TypedValue:
+--  * Type name: vtag
+class Typeable vtag => TypedValueTag vtag where tappedValueTag :: (Proxy vtag) -> String
+
 -- | Typed value type class
 --
 -- Notional conventions:
 --  * Type name: tv
-class (Value v, Coercible tv v) => TypedValue tv v | tv -> v
+class (Typeable vtag, Value v, Coercible tv v) => TypedValue tv vtag v | tv -> v, tv -> vtag
+
+
+-- | Create untapped value tag
+data UntappedValueTag
+instance TypedValueTag UntappedValueTag where tappedValueTag _ = "_"
+untappedValueTag :: Proxy UntappedValueTag
+untappedValueTag = Proxy @UntappedValueTag
 
 -- | Untapped value type
 --
@@ -64,17 +78,7 @@ newtype UntappedValue v = UntappedValue v
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
     deriving stock (Functor)
 
-instance Value v => TypedValue (UntappedValue v) v
-
--- | Create untapped value tag
-untappedValueTag :: Proxy UntappedValue
-untappedValueTag = Proxy @UntappedValue
-
--- | Tag for tapped value type class
---
--- Notional conventions for TypedValue:
---  * Type name: vtag
-class Typeable vtag => TappedValueTag vtag where tappedValueTag :: (Proxy vtag) -> String
+instance Value v => TypedValue (UntappedValue v) UntappedValueTag v
 
 -- | Tapped value type
 --
@@ -84,29 +88,29 @@ newtype TappedValue vtag v = TappedValue v
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
     deriving stock (Functor)
 
-instance (Value v, TappedValueTag vtag) => TypedValue (TappedValue vtag v) v
+instance (Value v, TypedValueTag vtag) => TypedValue (TappedValue vtag v) vtag v
 
 -- | Tag for any tapped value
 --
 -- Notional conventions for TypedValue:
 --  * Term name: avtag
-data AnyTappedValueTag = forall vtag. TappedValueTag vtag => MkTappedValueTag (Proxy vtag)
+data AnyTypedValueTag = forall vtag. TypedValueTag vtag => MkTypedValueTag (Proxy vtag)
 
 -- | Any tapped value Type
 --
 -- Notional conventions for TypedValue:
 --  * Term name: aval
-newtype AnyTappedValue v = AnyTappedValue (AnyTappedValueTag, v)
+newtype AnyTappedValue v = AnyTappedValue (AnyTypedValueTag, v)
 
 -- | Create any tapped value
 mkAnyTappedValue
-    :: forall vtag v. (Value v, TappedValueTag vtag)
+    :: forall vtag v. (Value v, TypedValueTag vtag)
     => TappedValue vtag v -> AnyTappedValue v
-mkAnyTappedValue (TappedValue uval) = AnyTappedValue (MkTappedValueTag (Proxy @vtag), uval)
+mkAnyTappedValue (TappedValue uval) = AnyTappedValue (MkTypedValueTag (Proxy @vtag), uval)
 
 -- | Get value from any tapped value if value tag matches, or return default value
 fromAnyTappedValue :: (Value v, Typeable vtag) => AnyTappedValue v -> Proxy vtag -> v
-fromAnyTappedValue (AnyTappedValue (MkTappedValueTag tag1, uval)) tag2 =
+fromAnyTappedValue (AnyTappedValue (MkTypedValueTag tag1, uval)) tag2 =
     if typeRep tag1 == typeRep tag2 then uval else def
 
 -- | Get value from any tapped value

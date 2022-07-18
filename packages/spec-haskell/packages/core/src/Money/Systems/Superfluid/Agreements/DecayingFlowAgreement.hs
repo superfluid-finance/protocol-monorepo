@@ -65,8 +65,7 @@ instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitDat
     -- Formula:
     --   rtb(aad, t) = α * e ^ (-λ * (t - t_s)) + ε
     --       where { t_s = t_s, αVal = α, εVal = ε } = aad
-    balanceProvidedByAgreement (MkMonetaryUnitData a) t =
-        typedValueVectorToRTB $ TypedValueVector
+    balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ ceiling $ α * exp (-λ * t_Δ) + ε )
             [ mkAnyTappedValue buf_s ]
         where t_s   = a^.settledAt

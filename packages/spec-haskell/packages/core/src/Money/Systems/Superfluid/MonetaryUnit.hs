@@ -11,7 +11,7 @@ import           Data.Default                                      (Default (def
 import           Data.Kind                                         (Type)
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts                 (SuperfluidTypes (..))
+import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes as UIDX
 

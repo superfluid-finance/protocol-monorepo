@@ -18,7 +18,7 @@ library
         Money.Concepts.Distribution
         Money.Systems.Communism
         Money.Systems.Superfluid.Concepts.TypedValue
-        Money.Systems.Superfluid.Concepts.RealtimeBalance
+        Money.Systems.Superfluid.Concepts.RealTimeBalance
         Money.Systems.Superfluid.Concepts.SuperfluidTypes
         Money.Systems.Superfluid.Concepts.Agreement
         Money.Systems.Superfluid.Concepts

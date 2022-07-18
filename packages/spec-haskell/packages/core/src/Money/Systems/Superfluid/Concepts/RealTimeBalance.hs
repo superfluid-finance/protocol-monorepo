@@ -1,6 +1,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Systems.Superfluid.Concepts.RealtimeBalance where
+module Money.Systems.Superfluid.Concepts.RealTimeBalance where
 
 import           Data.Default
 import           Data.Proxy
@@ -8,7 +8,7 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts.TypedValue
 
--- | RealtimeBalance Type Class
+-- | RealTimeBalance Type Class
 --
 -- Notional conventions:
 --  * Type name : rtb
@@ -18,7 +18,7 @@ class ( Value v
       , Applicative rtbF, Traversable rtbF
       , Num (rtbF v)
       , Default (rtbF v)
-      ) => RealtimeBalance rtbF v | v -> rtbF where
+      ) => RealTimeBalance rtbF v | v -> rtbF where
 
     -- * RTB Constructors
     --
@@ -42,7 +42,7 @@ class ( Value v
     lensOfRTB :: TypedValueTag vtag => Proxy vtag -> Lens' (rtbF v) v
 
     -- | Net monetary value of the RTB
-    netValueOfRTB :: (Value v, RealtimeBalance rtb v) => rtbF v -> v
+    netValueOfRTB :: (Value v, RealTimeBalance rtb v) => rtbF v -> v
     netValueOfRTB = foldr (+) def
 
     -- | Apply a binary function onto a normalized RTB

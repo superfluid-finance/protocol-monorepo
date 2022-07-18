@@ -82,7 +82,7 @@ printAccountByAlias alias s = do
     acc <- getAccountByAlias alias s
     liftIO $ print_account t (alias, acc)
 
-sumTotalValue :: HasCallStack => SimData -> TokenMonad SF.SimpleRealtimeBalance
+sumTotalValue :: HasCallStack => SimData -> TokenMonad SF.SimpleRealTimeBalance
 sumTotalValue _ = do
     t <- SF.getCurrentTime
     accounts <- SF.listAccounts

@@ -27,7 +27,7 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
     ( AgreementContractData (..)
     , AgreementMonetaryUnitData (..)
-    , RealtimeBalance (typedValuesToRTB)
+    , RealTimeBalance (typedValuesToRTB)
     , SuperfluidTypes (SFT_MVAL)
     , TappedValue (..)
     , TypedValueTag (..)

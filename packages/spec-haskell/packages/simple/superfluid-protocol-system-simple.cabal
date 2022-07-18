@@ -41,7 +41,7 @@ test-suite tests
     main-is:          Tests.hs
     hs-source-dirs:   test
     other-modules:
-        Money.Systems.Superfluid.RealtimeBalance_prop
+        Money.Systems.Superfluid.RealTimeBalance_prop
         Money.Systems.Superfluid.TokenTester
         Money.Systems.Superfluid.System_test
 

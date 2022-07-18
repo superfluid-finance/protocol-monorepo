@@ -15,9 +15,9 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , wad4human
     -- Timestamp
     , SimpleTimestamp (..)
-    -- RealtimeBalance
-    , SimpleRealtimeBalanceF (..)
-    , SimpleRealtimeBalance
+    -- RealTimeBalance
+    , SimpleRealTimeBalanceF (..)
+    , SimpleRealTimeBalance
     , untappedValueL
     , mintedValueL
     , depositValueL
@@ -111,10 +111,10 @@ instance Show SimpleTimestamp where
     show (SimpleTimestamp t) = show t ++ "s"
 
 -- ============================================================================
--- RealtimeBalance Type
+-- RealTimeBalance Type
 
--- | Simple realtime balance Type.
-data SimpleRealtimeBalanceF a = SimpleRealtimeBalanceF
+-- | Simple Real Time Balance Type.
+data SimpleRealTimeBalanceF a = SimpleRealTimeBalanceF
     { untappedValue    :: a
     , mintedValue      :: a
     , depositValue     :: a
@@ -123,23 +123,23 @@ data SimpleRealtimeBalanceF a = SimpleRealtimeBalanceF
     deriving stock (Generic, Functor, Foldable, Traversable)
     deriving anyclass (Binary, Default)
 
-type SimpleRealtimeBalance = SimpleRealtimeBalanceF Wad
+type SimpleRealTimeBalance = SimpleRealTimeBalanceF Wad
 
-untappedValueL :: Lens' SimpleRealtimeBalance Wad
+untappedValueL :: Lens' SimpleRealTimeBalance Wad
 untappedValueL  = lensOfRTB untappedValueTag
-mintedValueL   :: Lens' SimpleRealtimeBalance Wad
+mintedValueL   :: Lens' SimpleRealTimeBalance Wad
 mintedValueL    = lensOfRTB ITA.mintedValueTag
-depositValueL   :: Lens' SimpleRealtimeBalance Wad
+depositValueL   :: Lens' SimpleRealTimeBalance Wad
 depositValueL   = lensOfRTB BBS.bufferValueTag
 
---  deriving (Num, Show) via RTBDerivingHelper (SimpleRealtimeBalanceF Wad) Wad
+--  deriving (Num, Show) via RTBDerivingHelper (SimpleRealTimeBalanceF Wad) Wad
 
-instance Applicative SimpleRealtimeBalanceF where
-    pure a = SimpleRealtimeBalanceF a a a a
-    liftA2 f (SimpleRealtimeBalanceF a b c d) (SimpleRealtimeBalanceF a' b' c' d') =
-        SimpleRealtimeBalanceF (f a a') (f b b') (f c c') (f d d')
+instance Applicative SimpleRealTimeBalanceF where
+    pure a = SimpleRealTimeBalanceF a a a a
+    liftA2 f (SimpleRealTimeBalanceF a b c d) (SimpleRealTimeBalanceF a' b' c' d') =
+        SimpleRealTimeBalanceF (f a a') (f b b') (f c c') (f d d')
 
-instance Show (SimpleRealtimeBalanceF Wad) where
+instance Show (SimpleRealTimeBalanceF Wad) where
     show rtb =
         (show       . netValueOfRTB      $ rtb) ++ " " ++
         (showDetail . typedValuesFromRTB $ rtb)
@@ -152,7 +152,7 @@ instance Show (SimpleRealtimeBalanceF Wad) where
             ++ " )"
 
 -- boiler plate :(
-instance Num (SimpleRealtimeBalanceF Wad) where
+instance Num (SimpleRealTimeBalanceF Wad) where
     (+)         = liftA2 (+)
     -- be aware of the normalization semantics
     (*)     a b = liftA2 (*) (normalizeRTBWith id a) (normalizeRTBWith id b)
@@ -161,11 +161,11 @@ instance Num (SimpleRealtimeBalanceF Wad) where
     negate      = normalizeRTBWith negate
     fromInteger = valueToRTB . fromInteger
 
-instance RealtimeBalance SimpleRealtimeBalanceF Wad where
-    valueToRTB uval = SimpleRealtimeBalanceF uval def def def
+instance RealTimeBalance SimpleRealTimeBalanceF Wad where
+    valueToRTB uval = SimpleRealTimeBalanceF uval def def def
 
     typedValuesToRTB (UntappedValue uval) tvec =
-        SimpleRealtimeBalanceF uval mval d od
+        SimpleRealTimeBalanceF uval mval d od
         -- FIXME use Traversable
         where d    = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
               mval = foldr ((+) . (`fromAnyTappedValue` ITA.mintedValueTag)) def tvec
@@ -191,7 +191,7 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_FLOAT SimpleSuperfluidTypes = SFDouble
     type SFT_MVAL  SimpleSuperfluidTypes = Wad
     type SFT_TS    SimpleSuperfluidTypes = SimpleTimestamp
-    type SFT_RTB_F SimpleSuperfluidTypes = SimpleRealtimeBalanceF
+    type SFT_RTB_F SimpleSuperfluidTypes = SimpleRealTimeBalanceF
 
 -- ============================================================================
 -- Agreement Types

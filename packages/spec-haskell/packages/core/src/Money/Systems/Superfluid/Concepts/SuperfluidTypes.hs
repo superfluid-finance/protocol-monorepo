@@ -11,7 +11,7 @@ import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
 
 import           Money.Concepts.Distribution                       (Value)
-import           Money.Systems.Superfluid.Concepts.RealtimeBalance (RealtimeBalance)
+import           Money.Systems.Superfluid.Concepts.RealTimeBalance (RealTimeBalance)
 
 
 -- | Timestamp type class.
@@ -31,7 +31,7 @@ class (Default fr, RealFloat fr) => SFTFloat fr
 class ( SFTFloat (SFT_FLOAT sft)
       , Value (SFT_MVAL sft)
       , Timestamp (SFT_TS sft)
-      , RealtimeBalance (SFT_RTB_F sft) (SFT_MVAL sft)
+      , RealTimeBalance (SFT_RTB_F sft) (SFT_MVAL sft)
       ) => SuperfluidTypes sft where
     type SFT_FLOAT sft :: Type
     type SFT_MVAL  sft :: Type

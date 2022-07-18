@@ -93,24 +93,24 @@ instance ( ContractLens cdL sft
         Burn (SFT_MVAL sft) |
         Transfer (SFT_MVAL sft)
 
-    applyAgreementOperation acd acps (Mint amount) _ = let
+    applyAgreementOperation acd (Mint amount) _ = let
         acd'  = acd
-        acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
+        acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
                     (def & mintedValue   .~ coerce (- amount))
                     (def & untappedValue .~ coerce    amount))
-        in (acd', acps')
-    applyAgreementOperation acd acps (Burn amount) _ = let
-        acd' = acd
-        acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
+        in (acd', acpsΔ)
+    applyAgreementOperation acd (Burn amount) _ = let
+        acd'  = acd
+        acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
                     (def & mintedValue   .~ coerce    amount)
                     (def & untappedValue .~ coerce (- amount)))
-        in (acd', acps')
-    applyAgreementOperation acd acps (Transfer amount) _ = let
-        acd' = acd
-        acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
+        in (acd', acpsΔ)
+    applyAgreementOperation acd (Transfer amount) _ = let
+        acd'  = acd
+        acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
                     (def & untappedValue .~ coerce (- amount))
                     (def & untappedValue .~ coerce    amount))
-        in (acd', acps')
+        in (acd', acpsΔ)
 
 type ContractPartiesF   sft cdL mudL = AgreementContractPartiesF (ContractData cdL mudL sft)
 type ContractPartiesMUD sft cdL mudL = ContractPartiesF sft cdL (MonetaryUnitData mudL sft)

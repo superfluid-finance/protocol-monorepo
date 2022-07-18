@@ -17,7 +17,7 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 class ( SuperfluidTypes sft
       , Monoid amud
       ) => AgreementMonetaryUnitData amud sft | amud -> sft where
-    -- | Balance provided by the agreement account data
+    -- | π function - balance provided by the agreement account data.
     balanceProvidedByAgreement
         :: amud          -- amud
         -> SFT_TS sft    -- t
@@ -38,11 +38,10 @@ class ( SuperfluidTypes sft
     -- | Agreement operation algebraic data type.
     data AgreementOperation acd :: Type
 
-    -- | Applying agreement operation to a agreement contract data
-    --   to get agreement account data delta of the agreement contract parties.
+    -- | ω function - applying agreement operation to a agreement contract data to get agreement account data delta of
+    --   the agreement contract parties.
     applyAgreementOperation
         :: acd                                        -- acd
-        -> AgreementContractPartiesF acd amud         -- acps
         -> AgreementOperation acd                     -- ao
         -> SFT_TS (sft)                               -- t
-        -> (acd, AgreementContractPartiesF acd amud)  -- (acd', acps')
+        -> (acd, AgreementContractPartiesF acd amud)  -- (acd', acpΔamud)

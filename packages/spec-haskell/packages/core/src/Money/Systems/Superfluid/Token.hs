@@ -95,14 +95,21 @@ class ( Monad tk
         -> Lens' (TK_ACC tk) amu                                                 -- amu
         -> tk ()
     changeAgreement acpAddrs ao acdGetter acdSetter amuData = do
+        -- load acd and accounts data
         t <- getCurrentTime
-        acpAccounts <- mapM getAccount acpAddrs
         acd <- fromMaybe def <$> acdGetter acpAddrs
-        let (acd', acpAADs') = applyAgreementOperation acd (fmap (^. amuData) acpAccounts) ao t
+        acpAccounts <- mapM getAccount acpAddrs
+        -- apply agreement operation
+        let (acd', acpΔamuds) = applyAgreementOperation acd ao t
+        -- append delta to existing amuds
+        let acpAMUDs' = (<>) <$> (fmap (^. amuData) acpAccounts) <*> acpΔamuds
+        -- set new acd
         acdSetter acpAddrs acd' t
+        -- set new amuds
         mapM_ (uncurry putAccount)
             (zip (toList acpAddrs)
-                 (fmap (\(aad', account) -> set amuData aad' account) (zip (toList acpAADs') (toList acpAccounts))))
+                (fmap (\(amud', account) -> set amuData amud' account)
+                    (zip (toList acpAMUDs') (toList acpAccounts))))
 
     --
     -- ITA Functions

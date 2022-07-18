@@ -84,11 +84,11 @@ instance ( ContractLens cdL sft
         --         flowRate       newFlowBuffer
         UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
-    applyAgreementOperation (MkContractData acd) acps (UpdateFlow newFlowRate newFlowBuffer) t' = let
-        acd' = acd & set flowRate newFlowRate
-                   & set flowBuffer newFlowBuffer
-                   & set flowLastUpdatedAt t'
-        acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
+    applyAgreementOperation (MkContractData acd) (UpdateFlow newFlowRate newFlowBuffer) t' = let
+        acd'  = acd & set flowRate newFlowRate
+                    & set flowBuffer newFlowBuffer
+                    & set flowLastUpdatedAt t'
+        acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
                     (def & set settledAt t'
                          & set netFlowRate (- flowRateDelta)
                          & set settledUntappedValue (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
@@ -97,7 +97,7 @@ instance ( ContractLens cdL sft
                          & set netFlowRate flowRateDelta
                          & set settledUntappedValue (UntappedValue flowPeriodDelta)
                          & set settledBufferValue def))
-        in (MkContractData acd', acps')
+        in (MkContractData acd', acpsΔ)
         where
             t               = acd^.flowLastUpdatedAt
             fr              = acd^.flowRate

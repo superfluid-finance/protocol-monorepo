@@ -108,11 +108,11 @@ instance ( ContractLens cdL sft
     --
     -- Formula:
     --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = DFA_AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
-    applyAgreementOperation (MkContractData acd) acps (UpdateDecayingFlow θ newFlowBuffer) t' = let
-        acd' = acd & set distributionLimit θ
-                   & set flowBuffer        newFlowBuffer
-                   & set flowLastUpdatedAt t'
-        acps' = (<>) <$> acps <*> fmap MkMonetaryUnitData (ContractPartiesF
+    applyAgreementOperation (MkContractData acd) (UpdateDecayingFlow θ newFlowBuffer) t' = let
+        acd'  = acd & set distributionLimit θ
+                    & set flowBuffer        newFlowBuffer
+                    & set flowLastUpdatedAt t'
+        acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
                     (def & set settledAt     t'
                          & set αVal          θ_Δ
                          & set εVal          (-θ_Δ)
@@ -120,7 +120,7 @@ instance ( ContractLens cdL sft
                     (def & set settledAt     t'
                          & set αVal          (-θ_Δ)
                          & set εVal          θ_Δ))
-        in (MkContractData acd', acps')
+        in (MkContractData acd', acpsΔ)
         where
             θ_Δ             = fromIntegral (θ - acd^.distributionLimit)
             flowBufferDelta = newFlowBuffer - acd^.flowBuffer

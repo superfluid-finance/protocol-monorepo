@@ -28,25 +28,25 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 -- * CFA.MonetaryUnitData
 --
 
-class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
-    settledAt            :: Lens' mudL (SFT_TS sft)
-    settledUntappedValue :: Lens' mudL (UntappedValue (SFT_MVAL sft))
-    settledBufferValue   :: Lens' mudL (BBS.BufferValue (SFT_MVAL sft))
-    netFlowRate          :: Lens' mudL (SFT_MVAL sft)
+class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLens amudL sft | amudL -> sft where
+    settledAt            :: Lens' amudL (SFT_TS sft)
+    settledUntappedValue :: Lens' amudL (UntappedValue (SFT_MVAL sft))
+    settledBufferValue   :: Lens' amudL (BBS.BufferValue (SFT_MVAL sft))
+    netFlowRate          :: Lens' amudL (SFT_MVAL sft)
 
 type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
-newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
+newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
 
-instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) where
+instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
-        let c = a & set  settledAt                (  b^.settledAt)
+        let c = a & set  settledAt            (  b^.settledAt)
                   & over settledUntappedValue (+ b^.settledUntappedValue)
-                  & over netFlowRate              (+ b^.netFlowRate)
+                  & over netFlowRate          (+ b^.netFlowRate)
                   & over settledBufferValue   (+ b^.settledBufferValue)
         in MkMonetaryUnitData c
-instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
+instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
             [ mkAnyTappedValue buf_s ]
@@ -64,23 +64,23 @@ class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft wh
     flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_MVAL sft))
 
 type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData cdL mudL sft = MkContractData cdL
+newtype ContractData cdL amudL sft = MkContractData cdL
 
-instance ContractLens cdL sft => Default (ContractData cdL mudL sft) where def = MkContractData def
+instance ContractLens cdL sft => Default (ContractData cdL amudL sft) where def = MkContractData def
 
 type FlowRate sft = SFT_MVAL sft
 
 instance ( ContractLens cdL sft
-         , MonetaryUnitLens mudL sft
-         , AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft
-         ) => AgreementContractData (ContractData cdL mudL sft) (MonetaryUnitData mudL sft) sft where
+         , MonetaryUnitLens amudL sft
+         , AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft
+         ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
 
-    data AgreementContractPartiesF (ContractData cdL mudL sft) a = ContractPartiesF
+    data AgreementContractPartiesF (ContractData cdL amudL sft) a = ContractPartiesF
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (ContractData cdL mudL sft) =
+    data AgreementOperation (ContractData cdL amudL sft) =
         --         flowRate       newFlowBuffer
         UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
@@ -105,10 +105,10 @@ instance ( ContractLens cdL sft
             flowRateDelta   = newFlowRate - fr
             flowBufferDelta = newFlowBuffer - acd^.flowBuffer
 
-type ContractPartiesF   sft cdL mudL = AgreementContractPartiesF (ContractData cdL mudL sft)
-type ContractPartiesMUD sft cdL mudL = ContractPartiesF sft cdL (MonetaryUnitData mudL sft)
+type ContractPartiesF   sft cdL amudL = AgreementContractPartiesF (ContractData cdL amudL sft)
+type ContractPartiesMUD sft cdL amudL = ContractPartiesF sft cdL (MonetaryUnitData amudL sft)
 
-instance Applicative (ContractPartiesF sft cdL mudL) where
+instance Applicative (ContractPartiesF sft cdL amudL) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')
 

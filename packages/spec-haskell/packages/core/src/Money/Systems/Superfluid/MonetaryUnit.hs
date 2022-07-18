@@ -25,16 +25,22 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
 
     providedBalanceByAnyAgreement        :: mu -> AnyAgreementMonetaryUnitData mu -> SFT_TS sft -> SFT_RTB sft
 
-    -- * Lens of agreement monetary unit data
+    -- * Lenses of agreement monetary unit data
     --
 
+    -- | Lens for ITA data in the mu.
     itaMonetaryUnitData :: Lens'        mu (UIDX.ITAMonetaryUnitData sft)
+    -- | Lens for the ITA data itself.
     itaMonetaryUnitLens :: SimpleGetter mu (UIDX.ITAMonetaryUnitLens sft)
 
+    -- | Lens for CFA data in the mu.
     cfaMonetaryUnitData :: Lens'        mu (UIDX.CFAMonetaryUnitData sft)
+    -- | Getter of the lens into the CFA data.
     cfaMonetaryUnitLens :: SimpleGetter mu (UIDX.CFAMonetaryUnitLens sft)
 
+    -- | Lens for DFA data in the mu.
     dfaMonetaryUnitData :: Lens'        mu (UIDX.DFAMonetaryUnitData sft)
+    -- | Getter of the lens into the DFA data.
     dfaMonetaryUnitLens :: SimpleGetter mu (UIDX.DFAMonetaryUnitLens sft)
 
 balanceOfAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => mu -> SFT_TS sft -> SFT_RTB sft

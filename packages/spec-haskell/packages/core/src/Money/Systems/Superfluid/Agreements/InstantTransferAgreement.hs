@@ -49,21 +49,21 @@ mkMintedValue = TappedValue
 
 -- * ITA.MonetaryUnitData
 --
-class (Default mudL, SuperfluidTypes sft) => MonetaryUnitLens mudL sft | mudL -> sft where
-    untappedValue :: Lens' mudL (UntappedValue (SFT_MVAL sft))
-    mintedValue   :: Lens' mudL (MintedValue (SFT_MVAL sft))
+class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLens amudL sft | amudL -> sft where
+    untappedValue :: Lens' amudL (UntappedValue (SFT_MVAL sft))
+    mintedValue   :: Lens' amudL (MintedValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
-newtype MonetaryUnitData mudL sft = MkMonetaryUnitData mudL
+newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
 
-instance MonetaryUnitLens mudL sft => Semigroup (MonetaryUnitData mudL sft) where
+instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & over untappedValue (+ b^.untappedValue)
                   & over mintedValue   (+ b^.mintedValue)
         in MkMonetaryUnitData c
-instance MonetaryUnitLens mudL sft => Monoid (MonetaryUnitData mudL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLens amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft where
+instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB
         ( a^.untappedValue )
         [ mkAnyTappedValue $ a^.mintedValue ]
@@ -74,21 +74,21 @@ instance MonetaryUnitLens mudL sft => AgreementMonetaryUnitData (MonetaryUnitDat
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft
 
 type ContractData :: Type -> Type -> Type -> Type -- make GHC happy
-newtype ContractData cdL mudL sft = MkContractData cdL
+newtype ContractData cdL amudL sft = MkContractData cdL
 
-instance ContractLens cdL sft => Default (ContractData cdL mudL sft) where def = MkContractData def
+instance ContractLens cdL sft => Default (ContractData cdL amudL sft) where def = MkContractData def
 
 instance ( ContractLens cdL sft
-         , MonetaryUnitLens mudL sft
-         , AgreementMonetaryUnitData (MonetaryUnitData mudL sft) sft
-         ) => AgreementContractData (ContractData cdL mudL sft) (MonetaryUnitData mudL sft) sft where
+         , MonetaryUnitLens amudL sft
+         , AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft
+         ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
 
-    data AgreementContractPartiesF (ContractData cdL mudL sft) a = ContractPartiesF
+    data AgreementContractPartiesF (ContractData cdL amudL sft) a = ContractPartiesF
         { transferFrom :: a
         , transferTo   :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (ContractData cdL mudL sft) =
+    data AgreementOperation (ContractData cdL amudL sft) =
         Mint (SFT_MVAL sft) |
         Burn (SFT_MVAL sft) |
         Transfer (SFT_MVAL sft)
@@ -112,9 +112,9 @@ instance ( ContractLens cdL sft
                     (def & untappedValue .~ coerce    amount))
         in (acd', acpsΔ)
 
-type ContractPartiesF   sft cdL mudL = AgreementContractPartiesF (ContractData cdL mudL sft)
-type ContractPartiesMUD sft cdL mudL = ContractPartiesF sft cdL (MonetaryUnitData mudL sft)
+type ContractPartiesF   sft cdL amudL = AgreementContractPartiesF (ContractData cdL amudL sft)
+type ContractPartiesMUD sft cdL amudL = ContractPartiesF sft cdL (MonetaryUnitData amudL sft)
 
-instance Applicative (ContractPartiesF sft cdL mudL) where
+instance Applicative (ContractPartiesF sft cdL amudL) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')

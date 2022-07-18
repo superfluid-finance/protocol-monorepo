@@ -15,6 +15,11 @@ const SuperfluidLoader = artifacts.require("SuperfluidLoader");
  *
  * Usage: npx truffle exec scripts/deploy-deterministic-loader.js : {PRIVATE KEY} [{NONCE}]
  *        If NONCE is not defined, 1 is assumed (-> first tx done from the deployer account)
+ *
+ * Supported ENV vars:
+ *        GASLIMIT: override the gas limit for networks with misbehaving estimation (Arbitrum)
+ *        ESTTXCOST: override the estimated tx cost (amount to be sent to deployer)
+ *                   for networks with different cost derivation structure (Optimism)
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -54,6 +59,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("deployer balance:", web3.utils.fromWei(deployerBalance));
 
     const gasPrice = await web3.eth.getGasPrice();
+    console.log("gas price:", gasPrice);
 
     const chainId = await web3.eth.getChainId();
     const resolverAddr = SuperfluidSDK.getConfig(
@@ -71,14 +77,17 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         arguments: [resolverAddr],
     });
 
-    const gasEstimate = await deployTx.estimateGas();
-    console.log("estimated gas:", gasEstimate);
+    const gasLimit = process.env.GASLIMIT || (await deployTx.estimateGas());
+    console.log("gas limit:", gasLimit);
 
     const deployCode = deployTx.encodeABI();
 
     const BN = web3.utils.BN;
     // calc delta between deployer balance and estimated deployment cost
-    const estTxCost = new BN(gasEstimate).mul(new BN(gasPrice));
+    // On Optimism, this won't reflect the actual cost bcs of missing L1 component, see https://community.optimism.io/docs/developers/build/transaction-fees/#estimating-the-total-fee
+    const estTxCost = process.env.ESTTXCOST
+        ? new BN(process.env.ESTTXCOST)
+        : new BN(gasLimit).mul(new BN(gasPrice));
     console.log("estimated tx cost:", estTxCost.toString());
     const missingBalance = estTxCost.sub(new BN(deployerBalance));
     if (missingBalance.gt(new BN(0))) {
@@ -102,9 +111,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const unsignedTx = {
         data: deployCode,
-        gas: gasEstimate,
-        chain: "custom", // not clear why web3.js requires this - the value seems to have no effect
-        hardfork: "London", // without specifying this and "chain", web3.js throws a weird error
+        gas: gasLimit,
     };
     if (hasEip1559) {
         console.log("creating EIP-1559 tx");

@@ -104,6 +104,9 @@ contract SuperToken is
 
         // register interfaces
         ERC777Helper.register(address(this));
+
+        // help tools like explorers detect the token contract
+        emit Transfer(address(0), address(0), 0);
     }
 
     function proxiableUUID() public pure override returns (bytes32) {

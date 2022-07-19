@@ -51,8 +51,8 @@ export function handleTokenRPCCalls(
     // all networks.
     token = getIsListedToken(token, resolverAddress);
 
-    // // we must handle the case when the native token hasn't been initialized
-    // // there is no name/symbol, but this may occur later
+    // we must handle the case when the native token hasn't been initialized
+    // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token);
     }
@@ -73,9 +73,7 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
-    token = getIsNativeAssetSuperToken(token);
-
-    return token;
+    return getIsNativeAssetSuperToken(token);
 }
 
 /**
@@ -106,9 +104,7 @@ export function getIsListedToken(
     let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
     token.isListed = token.id == superTokenAddress.toHex();
 
-    token = getIsNativeAssetSuperToken(token);
-
-    return token as Token;
+    return getIsNativeAssetSuperToken(token);
 }
 
 export function updateTotalSupplyForNativeSuperToken(

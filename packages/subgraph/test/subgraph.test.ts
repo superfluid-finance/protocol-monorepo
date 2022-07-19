@@ -234,7 +234,7 @@ describe("Subgraph Tests", () => {
         daix = fDAIx;
     });
 
-    describe("Token Tests", () => {
+    describe.only("Token Tests", () => {
         it("Should return the correct data for the superToken", async () => {
             await fetchTokenAndValidate(
                 daix.address.toLowerCase(),
@@ -306,6 +306,11 @@ describe("Subgraph Tests", () => {
                 amount: ethers.utils.parseEther("100").toString(),
             }).exec(deployer);
             let receipt = await txn.wait();
+            txn = await ETHx.transfer({
+                receiver: alice.address,
+                amount: ethers.utils.parseEther("1").toString(),
+            }).exec(deployer);
+            receipt = await txn.wait();
             await waitUntilBlockIndexed(receipt.blockNumber);
 
             await fetchTokenAndValidate(

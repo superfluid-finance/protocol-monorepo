@@ -9,6 +9,7 @@ export const fetchTokenAndValidate = async (
     expectedName: string,
     expectedSymbol: string,
     expectedIsListed: boolean,
+    expectedIsNativeAssetSuperToken: boolean,
     expectedUnderlyingAddress: string,
     expectedDecimals: number
 ) => {
@@ -23,6 +24,7 @@ export const fetchTokenAndValidate = async (
         expectedName,
         expectedSymbol,
         expectedIsListed,
+        expectedIsNativeAssetSuperToken,
         expectedUnderlyingAddress,
         expectedDecimals
     );
@@ -33,6 +35,7 @@ export const validateTokenEntity = (
     expectedName: string,
     expectedSymbol: string,
     expectedIsListed: boolean,
+    expectedIsNativeAssetSuperToken: boolean,
     expectedUnderlyingAddress: string,
     expectedDecimals: number
 ) => {
@@ -43,6 +46,10 @@ export const validateTokenEntity = (
     expect(subgraphToken.isListed, "SuperToken: isListed error").to.equal(
         expectedIsListed
     );
+    expect(
+        subgraphToken.isNativeAssetSuperToken,
+        "SuperToken: isNativeAssetSuperToken error"
+    ).to.equal(expectedIsNativeAssetSuperToken);
     expect(subgraphToken.decimals).to.equal(expectedDecimals);
 
     if (subgraphToken.underlyingAddress === ethers.constants.AddressZero) {

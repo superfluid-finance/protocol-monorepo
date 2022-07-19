@@ -45,9 +45,8 @@ before(async function () {
 
     // initialize framework
     sf = await Framework.create({
-        networkName: "custom",
+        chainId: 31337,
         provider: web3,
-        dataMode: "WEB3_ONLY",
         resolverAddress: process.env.RESOLVER_ADDRESS, // (empty)
         protocolReleaseVersion: "test",
     });

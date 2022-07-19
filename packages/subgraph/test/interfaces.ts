@@ -204,6 +204,7 @@ export interface IToken extends IBaseEntity {
     readonly name: string;
     readonly symbol: string;
     readonly underlyingAddress: string;
+    readonly isNativeAssetSuperToken: boolean;
     readonly isListed: boolean;
     readonly underlyingToken: ILightEntity | null;
 }

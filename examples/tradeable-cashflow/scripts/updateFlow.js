@@ -12,9 +12,7 @@ async function main() {
 
   const sf = await Framework.create({
     chainId: 42,
-    provider: customHttpProvider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider: customHttpProvider
   });
   const signer = sf.createSigner({
     privateKey:

@@ -39,27 +39,38 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["NEGATIVE_FLOW_ALLOWANCE", "Negative Flow Rate Allowance"],
 ]);
 
-interface ISFErrorProps {
+interface ErrorProps {
     type: ErrorType;
-    customMessage: string;
-    errorObject?: unknown;
+    message: string;
+    cause?: Error | unknown;
 }
 
-export class SFError {
+export class SFError extends Error {
     readonly type: ErrorType;
-    readonly message: string;
-    readonly errorObject?: unknown;
+    override readonly cause?: Error;
 
-    constructor(props: ISFErrorProps) {
-        const { type, errorObject, customMessage } = props;
-
-        const title = errorTypeToTitleMap.get(type);
-        const formattedErrorObject = errorObject
-            ? ": " + JSON.stringify(errorObject, null, 2) // Pretty-print the error: https://stackoverflow.com/a/7220510
-            : "";
+    constructor({ type, message, cause }: ErrorProps) {
+        const fullMessage = `${errorTypeToTitleMap.get(
+            type
+        )} Error: ${message}${
+            cause
+                ? `
+Caused by: ${cause}`
+                : ""
+        }`;
+        super(
+            fullMessage,
+            cause
+                ? {
+                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expectes "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
+                  }
+                : {}
+        );
+        // Fallback back environments where `Error.cause` is now yet natively supported
+        if (cause && !this.cause) {
+            this.cause = cause as Error;
+        }
         this.type = type;
-        this.errorObject = errorObject;
-        this.message =
-            title + " Error - " + customMessage + formattedErrorObject;
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }
 }

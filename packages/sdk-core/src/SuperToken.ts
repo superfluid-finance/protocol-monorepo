@@ -103,7 +103,7 @@ export default abstract class SuperToken extends ERC20Token {
         if (!options.chainId && !options.networkName) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "You must input chainId or networkName.",
+                message: "You must input chainId or networkName.",
             });
         }
         const networkName = getNetworkName(options);
@@ -154,8 +154,8 @@ export default abstract class SuperToken extends ERC20Token {
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "There was an error initializing the SuperToken",
-                errorObject: err,
+                message: "There was an error initializing the SuperToken",
+                cause: err,
             });
         }
     };
@@ -188,8 +188,8 @@ export default abstract class SuperToken extends ERC20Token {
         } catch (err) {
             throw new SFError({
                 type: "SUPERTOKEN_READ",
-                customMessage: "There was an error getting realtimeBalanceOf",
-                errorObject: err,
+                message: "There was an error getting realtimeBalanceOf",
+                cause: err,
             });
         }
     };

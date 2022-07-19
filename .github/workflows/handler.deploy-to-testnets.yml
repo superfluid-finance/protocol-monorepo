@@ -71,6 +71,7 @@ jobs:
           npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
+          SKIP_IF_UNSUPPORTED: 1
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}

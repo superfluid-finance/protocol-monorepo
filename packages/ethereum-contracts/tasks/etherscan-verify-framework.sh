@@ -28,7 +28,11 @@ case $TRUFFLE_NETWORK in
         ;;
     *)
         echo "Unknown network: $TRUFFLE_NETWORK"
-        exit 1;
+        if [ -z $SKIP_IF_UNSUPPORTED ]; then
+            exit 1;
+        else
+            exit 0;
+        fi
 esac
 
 echo "Reading addresses vars..."
@@ -37,33 +41,35 @@ echo NETWORK_ID=$NETWORK_ID
 
 FAILED_VERIFICATIONS=()
 function try_verify() {
-    npx truffle --network $TRUFFLE_NETWORK run verify "$@"
+    npx truffle run --network $TRUFFLE_NETWORK verify "$@"
     # NOTE: append using length so that having spaces in the element is not a problem
     [ $? != 0 ] && FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$@"
 }
 
 echo SUPERFLUID_HOST
-try_verify Superfluid@${SUPERFLUID_HOST_PROXY}
+try_verify UUPSProxy@${SUPERFLUID_HOST_PROXY} --implementation Superfluid
 
 echo SUPERFLUID_GOVERNANCE
 if [ ! -z "$IS_TESTNET" ];then
 try_verify TestGovernance@${SUPERFLUID_GOVERNANCE}
+else
+try_verify SuperfluidGovernanceIIProxy@${SUPERFLUID_GOVERNANCE} --implementation SuperfluidGovernanceII
 fi
 
 echo SUPERFLUID_SUPER_TOKEN_FACTORY
-try_verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}
+try_verify UUPSProxy@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY} --implementation SuperTokenFactory
 
 echo SUPERFLUID_SUPER_TOKEN_LOGIC
 if [ -z "$NO_FORCE_CONSTRUCTOR_ARGS" ];then
     # it is required to provide the constructor arguments manually, because the super token logic is created through a contract not an EOA
     SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log("'${SUPERFLUID_HOST_PROXY}'".toLowerCase().slice(2).padStart(64, "0"))')
-    try_verify SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC} --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
+    try_verify UUPSProxy@${SUPERFLUID_SUPER_TOKEN_LOGIC} --implementation SuperToken --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
 else
     echo "!!! WARNING !!! Cannot verify super token logic due to forceConstructorArgs not supported."
 fi
 
 echo CFA
-try_verify ConstantFlowAgreementV1@${CFA_PROXY}
+try_verify UUPSProxy@${CFA_PROXY} --implementation ConstantFlowAgreementV1
 
 echo SlotsBitmapLibrary
 try_verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
@@ -85,8 +91,13 @@ jq -s '.[0] * .[1]' \
 }
 EOF
     ) > build/contracts/InstantDistributionAgreementV1.json
-try_verify InstantDistributionAgreementV1@${IDA_LOGIC}
+try_verify UUPSProxy@${IDA_PROXY} --implementation InstantDistributionAgreementV1
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
+
+if [ ! -z "$SUPER_TOKEN_NATIVE_COIN" ];then
+    echo SUPER_TOKEN_NATIVE_COIN
+    try_verify SETHProxy@${SUPER_TOKEN_NATIVE_COIN} --implementation SuperToken
+fi
 
 set +x
 

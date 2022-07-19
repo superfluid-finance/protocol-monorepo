@@ -9,14 +9,14 @@ export const validateFrameworkConstructorOptions = (
     if (!options.chainId) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
-            customMessage: "You must input chainId.",
+            message: "You must input chainId.",
         });
     }
 
     if (!options.provider) {
         throw new SFError({
             type: "FRAMEWORK_INITIALIZATION",
-            customMessage:
+            message:
                 "You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework.",
         });
     }
@@ -27,7 +27,7 @@ export const validateFrameworkConstructorOptions = (
         if (isNullOrEmpty(options.resolverAddress)) {
             throw new SFError({
                 type: "FRAMEWORK_INITIALIZATION",
-                customMessage:
+                message:
                     "You must input your own resolver address if you use an unsupported network.",
             });
         }

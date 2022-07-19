@@ -72,8 +72,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting the flow",
-                errorObject: err,
+                message: "There was an error getting the flow",
+                cause: err,
             });
         }
     };
@@ -98,9 +98,9 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage:
+                message:
                     "There was an error getting the account flow information",
-                errorObject: err,
+                cause: err,
             });
         }
     };
@@ -124,8 +124,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting net flow",
-                errorObject: err,
+                message: "There was an error getting net flow",
+                cause: err,
             });
         }
     };
@@ -156,8 +156,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting flow operator data",
-                errorObject: err,
+                message: "There was an error getting flow operator data",
+                cause: err,
             });
         }
     };
@@ -187,8 +187,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting flow operator data",
-                errorObject: err,
+                message: "There was an error getting flow operator data",
+                cause: err,
             });
         }
     };
@@ -300,14 +300,14 @@ export default class ConstantFlowAgreementV1 {
         if (!isPermissionsClean(params.permissions)) {
             throw new SFError({
                 type: "UNCLEAN_PERMISSIONS",
-                customMessage: "The desired permissions are unclean",
+                message: "The desired permissions are unclean",
             });
         }
 
         if (Number(params.flowRateAllowance) < 0) {
             throw new SFError({
                 type: "NEGATIVE_FLOW_ALLOWANCE",
-                customMessage: "No negative flow allowance allowed",
+                message: "No negative flow allowance allowed",
             });
         }
 

@@ -55,7 +55,7 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${cause}`
+Caused by: ${JSON.stringify(cause, null, 2)}`
                 : ""
         }`;
         super(

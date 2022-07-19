@@ -25,6 +25,7 @@ query getIndexes($where: Index_filter! = {}, $skip: Int! = 0, $first: Int! = 10,
             name
             symbol
             isListed
+            isNativeAssetSuperToken
             underlyingAddress
         }
         publisher {

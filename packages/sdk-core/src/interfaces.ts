@@ -397,6 +397,7 @@ export interface ISuperToken extends IHOLEntityBase {
     readonly name: string;
     readonly symbol: string;
     readonly isListed: boolean;
+    readonly isNativeAssetSuperToken: boolean;
     readonly underlyingAddress: string;
 }
 

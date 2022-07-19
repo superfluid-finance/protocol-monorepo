@@ -12439,6 +12439,12 @@ type Token {
   isSuperToken: Boolean!
 
   """
+  This indicates whether the token is a NativeAssetSuperToken.
+  
+  """
+  isNativeAssetSuperToken: Boolean!
+
+  """
   This indicates whether the token is a part of our resolver list.
   
   """
@@ -12535,6 +12541,10 @@ input Token_filter {
   isSuperToken_not: Boolean
   isSuperToken_in: [Boolean!]
   isSuperToken_not_in: [Boolean!]
+  isNativeAssetSuperToken: Boolean
+  isNativeAssetSuperToken_not: Boolean
+  isNativeAssetSuperToken_in: [Boolean!]
+  isNativeAssetSuperToken_not_in: [Boolean!]
   isListed: Boolean
   isListed_not: Boolean
   isListed_in: [Boolean!]
@@ -12579,6 +12589,7 @@ enum Token_orderBy {
   name
   symbol
   isSuperToken
+  isNativeAssetSuperToken
   isListed
   underlyingAddress
   underlyingToken

@@ -9,7 +9,11 @@ on:
     inputs:
       some_field:
         description: 'Lorem ipsum'
+        required: false
 
 jobs:
   placeholder-for-testing:
     runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: echo test

@@ -158,10 +158,7 @@ execSimpleTokenStateT :: Monad m => SimpleTokenStateT m a -> SimpleSystemData ->
 execSimpleTokenStateT m sys token = runSimpleTokenStateT m sys token <&> snd
 
 -- | SimpleTokenStateT m is a @SF.Token@ instance.
-instance Monad m => SF.Token (SimpleTokenStateT m) where
-
-    type TK_SFT (SimpleTokenStateT m) = SimpleSuperfluidTypes
-    type TK_ACC (SimpleTokenStateT m) = SimpleAccount
+instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperfluidTypes where
 
     getCurrentTime = getSystemData <&> currentTime
 

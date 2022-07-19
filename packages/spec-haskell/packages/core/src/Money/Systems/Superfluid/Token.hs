@@ -55,28 +55,25 @@ class (SuperfluidTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sf
 --   * and agreement (ITA/CFA/GDA) operations.
 -- * Instructions for write operations are executed in `execTokenInstructions`.
 class ( Monad tk
-      , SuperfluidTypes (TK_SFT tk)
-      , Account (TK_ACC tk) (TK_SFT tk)
-      ) => Token tk where
-
-    type TK_SFT tk :: Type
-    type TK_ACC tk :: Type
+      , SuperfluidTypes sft
+      , Account acc sft
+      ) => Token tk acc sft | tk -> acc, tk -> sft where
 
     --
     -- System Functions
     --
 
-    getCurrentTime :: tk (TS tk)
+    getCurrentTime :: tk (SFT_TS sft)
 
     --
     -- Account Data Functions
     --
 
-    getAccount :: ADDR tk -> tk (TK_ACC tk)
+    getAccount :: ACC_ADDR acc -> tk acc
 
-    putAccount :: ADDR tk -> TK_ACC tk -> tk ()
+    putAccount :: ACC_ADDR acc -> acc -> tk ()
 
-    balanceOfAccount :: ADDR tk -> tk (RTB tk)
+    balanceOfAccount :: ACC_ADDR acc -> tk (SFT_RTB sft)
     balanceOfAccount addr = do
         t <- getCurrentTime
         account <- getAccount addr
@@ -87,12 +84,12 @@ class ( Monad tk
     --
 
     changeAgreement
-        :: AgreementContractData acd amu (TK_SFT tk)
-        => (AgreementContractPartiesF acd) (ADDR tk)                             -- acpAddrs
-        -> AgreementOperation acd                                                -- ao
-        -> ((AgreementContractPartiesF acd) (ADDR tk) -> tk (Maybe acd))         -- acdGetter
-        -> ((AgreementContractPartiesF acd) (ADDR tk) -> acd -> TS tk -> tk ())  -- acdSetter
-        -> Lens' (TK_ACC tk) amu                                                 -- amu
+        :: AgreementContractData acd amud sft
+        => (AgreementContractPartiesF acd) (ACC_ADDR acc)                                 -- acpAddrs
+        -> AgreementOperation acd                                                         -- ao
+        -> ((AgreementContractPartiesF acd) (ACC_ADDR acc) -> tk (Maybe acd))             -- acdGetter
+        -> ((AgreementContractPartiesF acd) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ()) -- acdSetter
+        -> Lens' acc amud                                                                 -- amudL
         -> tk ()
     changeAgreement acpAddrs ao acdGetter acdSetter amuData = do
         -- load acd and accounts data
@@ -115,12 +112,12 @@ class ( Monad tk
     -- ITA Functions
     --
 
-    getMinterAddress :: tk (ADDR tk)
+    getMinterAddress :: tk (ACC_ADDR acc)
 
-    viewITAContract :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.ITAContractData (TK_SFT tk)))
-    setITAContract  :: CONTRACT_ADDR tk (UIDX.ITAContractData (TK_SFT tk)) -> UIDX.ITAContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewITAContract :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> tk (Maybe (UIDX.ITAContractData sft))
+    setITAContract  :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> UIDX.ITAContractData sft -> SFT_TS sft -> tk ()
 
-    mintValue :: ADDR tk -> MVAL tk-> tk ()
+    mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
     mintValue toAddr amount = do
         minterAddress <- getMinterAddress
         changeAgreement
@@ -131,12 +128,12 @@ class ( Monad tk
     -- CFA Functions
     --
 
-    calcFlowBuffer :: MVAL tk -> tk (MVAL tk)
+    calcFlowBuffer :: SFT_MVAL sft -> tk (SFT_MVAL sft)
 
-    viewFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.CFAContractData (TK_SFT tk)))
-    setFlow  :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> UIDX.CFAContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewFlow :: CONTRACT_ACC_ADDR acc (UIDX.CFAContractData sft) -> tk (Maybe (UIDX.CFAContractData sft))
+    setFlow  :: CONTRACT_ACC_ADDR acc (UIDX.CFAContractData sft) -> UIDX.CFAContractData sft -> SFT_TS sft -> tk ()
 
-    updateFlow :: CONTRACT_ADDR tk (UIDX.CFAContractData (TK_SFT tk)) -> CFA.FlowRate (TK_SFT tk) -> tk ()
+    updateFlow :: CONTRACT_ACC_ADDR acc (UIDX.CFAContractData sft) -> CFA.FlowRate sft -> tk ()
     updateFlow acpAddrs newFlowRate = do
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         changeAgreement
@@ -147,10 +144,10 @@ class ( Monad tk
     -- DFA Functions
     --
 
-    viewDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> tk (Maybe (UIDX.DFAContractData (TK_SFT tk)))
-    setDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> UIDX.DFAContractData (TK_SFT tk) -> TS tk -> tk ()
+    viewDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAContractData sft) -> tk (Maybe (UIDX.DFAContractData sft))
+    setDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAContractData sft) -> UIDX.DFAContractData sft -> SFT_TS sft -> tk ()
 
-    updateDecayingFlow :: CONTRACT_ADDR tk (UIDX.DFAContractData (TK_SFT tk)) -> DFA.DistributionLimit (TK_SFT tk) -> tk ()
+    updateDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAContractData sft) -> DFA.DistributionLimit sft -> tk ()
     updateDecayingFlow acpAddrs newDistributionLimit = do
         changeAgreement
             acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
@@ -159,8 +156,4 @@ class ( Monad tk
 -- ============================================================================
 -- Internal
 --
-type TS tk = SFT_TS (TK_SFT tk)
-type MVAL tk = SFT_MVAL (TK_SFT tk)
-type RTB tk = SFT_RTB (TK_SFT tk)
-type ADDR tk = ACC_ADDR (TK_ACC tk)
-type CONTRACT_ADDR tk acd = AgreementContractPartiesF acd (ADDR tk)
+type CONTRACT_ACC_ADDR acc acd = AgreementContractPartiesF acd (ACC_ADDR acc)

@@ -306,11 +306,6 @@ describe("Subgraph Tests", () => {
                 amount: ethers.utils.parseEther("100").toString(),
             }).exec(deployer);
             let receipt = await txn.wait();
-            txn = await ETHx.transfer({
-                receiver: alice.address,
-                amount: ethers.utils.parseEther("1").toString(),
-            }).exec(deployer);
-            receipt = await txn.wait();
             await waitUntilBlockIndexed(receipt.blockNumber);
 
             await fetchTokenAndValidate(

@@ -178,9 +178,9 @@ export abstract class SubgraphQueryHandler<
                 (key) =>
                     [
                         filter[key],
-                        filter[`${key}_in` as keyof TFilter],
-                        filter[`${key}_not` as keyof TFilter],
-                        filter[`${key}_not_in` as keyof TFilter],
+                        filter[`${String(key)}_in` as keyof TFilter],
+                        filter[`${String(key)}_not` as keyof TFilter],
+                        filter[`${String(key)}_not_in` as keyof TFilter],
                     ]
                         .filter((x) => typeof x !== "undefined")
                         .flat()

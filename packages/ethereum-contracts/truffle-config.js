@@ -75,8 +75,10 @@ const ALIASES = {
     "avalanche-fuji": ["avafuji"],
 
     "bsc-mainnet": ["bsc"],
+    "bsc-chapel": ["chapel"],
 
     "celo-mainnet": ["celo"],
+    "celo-alfajores": ["alfajores"],
 };
 
 const DEFAULT_NETWORK_TIMEOUT = 60000;
@@ -99,19 +101,25 @@ function getEnvValue(networkName, key) {
 
 /**
  * Create default network configurations
+ *
+ * NOTE: set providerWrapper to createProviderWithOEWorkaround in case this is still needed,
+ *       by default it's an identity function.
  */
-function createNetworkDefaultConfiguration(networkName, chainId) {
+function createNetworkDefaultConfiguration(
+    networkName,
+    providerWrapper = (a) => a
+) {
     return {
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: createProviderWithOEWorkaround(
-                    getEnvValue(networkName, "PROVIDER_URL")
+                url: providerWrapper(
+                    process.env.OVERRIDE_PROVIDER_URL ||
+                        getEnvValue(networkName, "PROVIDER_URL")
                 ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,
-                chainId, // optional
             }),
         gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
     };
@@ -176,7 +184,10 @@ const E = (module.exports = {
         },
 
         "eth-kovan": {
-            ...createNetworkDefaultConfiguration("eth-kovan"),
+            ...createNetworkDefaultConfiguration(
+                "eth-kovan",
+                createProviderWithOEWorkaround
+            ),
             network_id: 42,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -283,12 +294,27 @@ const E = (module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
+        "bsc-chapel": {
+            ...createNetworkDefaultConfiguration("bsc-chapel"),
+            network_id: 97,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
         //
         // Celo: https://docs.celo.org/getting-started/choosing-a-network
         //
         "celo-mainnet": {
             ...createNetworkDefaultConfiguration("celo-mainnet"),
             network_id: 42220,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+        "celo-alfajores": {
+            ...createNetworkDefaultConfiguration("celo-alfajores"),
+            network_id: 44787,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -364,7 +390,7 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.13", // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.14", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {

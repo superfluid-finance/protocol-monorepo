@@ -8,6 +8,9 @@ const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMockHelper = artifacts.require(
     "SuperTokenFactoryMockHelper"
 );
+const FullUpgradableSuperTokenProxy = artifacts.require(
+    "FullUpgradableSuperTokenProxy"
+);
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -80,6 +83,24 @@ describe("SuperTokenFactory Contract", function () {
         it("#1.4 only can initialize once", async () => {
             await expectRevertedWith(
                 factory.initialize(),
+                "Initializable: contract is already initialized"
+            );
+        });
+
+        it("#1.5 block initialization of logic contracts", async () => {
+            const factoryLogic = await SuperTokenFactory.at(
+                await factory.getCodeAddress()
+            );
+            await expectRevertedWith(
+                factoryLogic.initialize(),
+                "Initializable: contract is already initialized"
+            );
+
+            const superTokenLogic = await SuperTokenMock.at(
+                await factory.getSuperTokenLogic()
+            );
+            await expectRevertedWith(
+                superTokenLogic.initialize(ZERO_ADDRESS, 0, "", ""),
                 "Initializable: contract is already initialized"
             );
         });
@@ -165,6 +186,9 @@ describe("SuperTokenFactory Contract", function () {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 2,
                 });
+                let proxy = await FullUpgradableSuperTokenProxy.at(
+                    superToken1.address
+                );
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
                     token: superToken1.address,
                 });
@@ -179,6 +203,10 @@ describe("SuperTokenFactory Contract", function () {
                         superToken1.address,
                     ]),
                     "UUPSProxiable: not upgradable"
+                );
+                await expectRevertedWith(
+                    proxy.initialize(),
+                    "Already initialized"
                 );
             });
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
@@ -104,6 +104,9 @@ contract SuperToken is
 
         // register interfaces
         ERC777Helper.register(address(this));
+
+        // help tools like explorers detect the token contract
+        emit Transfer(address(0), address(0), 0);
     }
 
     function proxiableUUID() public pure override returns (bytes32) {

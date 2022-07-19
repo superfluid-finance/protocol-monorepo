@@ -1,0 +1,19 @@
+name: Daily protocol-monorepo slack message
+
+on:
+  schedule:
+    - cron: 0 11 * * 1-5
+
+jobs:
+  send-slack-message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Send slack message
+        run: node tasks/daily-slack-bot.js ${{ secrets.CI_SLACK_WEBHOOK }}

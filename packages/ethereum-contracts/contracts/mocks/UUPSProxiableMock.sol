@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
@@ -13,6 +13,9 @@ contract UUPSProxiableMock is UUPSProxiable {
         _uuid = uuid;
         waterMark = w;
     }
+
+    // solhint-disable-next-line no-empty-blocks
+    function initialize() public initializer { }
 
     function proxiableUUID() public view override returns (bytes32)
     {

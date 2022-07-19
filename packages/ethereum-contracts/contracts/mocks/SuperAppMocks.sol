@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperfluid,
@@ -51,9 +51,9 @@ contract SuperAppMock is ISuperApp {
 
     constructor(ISuperfluid host, uint256 configWord, bool doubleRegistration) {
         _host = host;
-        _host.registerApp(configWord);
+        _host.registerAppWithKey(configWord, "");
         if (doubleRegistration) {
-            _host.registerApp(configWord);
+            _host.registerAppWithKey(configWord, "");
         }
         _aux = new SuperAppMockAux();
     }
@@ -461,7 +461,7 @@ contract SuperAppMockReturningEmptyCtx {
 
     constructor(ISuperfluid host) {
         _host = host;
-        _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
+        _host.registerAppWithKey(SuperAppDefinitions.APP_LEVEL_FINAL, "");
     }
 
     function beforeAgreementCreated(
@@ -522,7 +522,7 @@ contract SuperAppMockReturningInvalidCtx {
 
     constructor(ISuperfluid host) {
         _host = host;
-        _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
+        _host.registerAppWithKey(SuperAppDefinitions.APP_LEVEL_FINAL, "");
     }
 
     function afterAgreementCreated(
@@ -563,7 +563,7 @@ contract SuperAppMock2ndLevel {
 
     constructor(ISuperfluid host, SuperAppMock app, AgreementMock agreement) {
         _host = host;
-        _host.registerApp(SuperAppDefinitions.APP_LEVEL_SECOND);
+        _host.registerAppWithKey(SuperAppDefinitions.APP_LEVEL_SECOND, "");
         _app = app;
         _agreement = agreement;
     }
@@ -597,14 +597,17 @@ contract SuperAppMock2ndLevel {
     }
 }
 
-// The default SuperApp mock that does many tricks
+// An Super App that uses registerAppWithKey
 contract SuperAppMockWithRegistrationkey {
-
-    ISuperfluid private _host;
-
     constructor(ISuperfluid host, uint256 configWord, string memory registrationKey) {
-        _host = host;
-        _host.registerAppWithKey(configWord, registrationKey);
+        host.registerAppWithKey(configWord, registrationKey);
+    }
+}
+
+// An Super App that uses registerAppWithKey
+contract SuperAppMockUsingDeprecatedRegisterApp {
+    constructor(ISuperfluid host, uint256 configWord) {
+        host.registerApp(configWord);
     }
 }
 

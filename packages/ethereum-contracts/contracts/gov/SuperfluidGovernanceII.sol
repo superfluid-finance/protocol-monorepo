@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -27,8 +27,6 @@ contract SuperfluidGovernanceII is
     /**************************************************************************
     * UUPSProxiable
     **************************************************************************/
-
-    // TODO: do we need initialize() here?
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation");

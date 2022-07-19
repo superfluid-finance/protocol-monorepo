@@ -18,9 +18,7 @@ async function main() {
 
   const sf = await Framework.create({
     chainId: network.chainId,
-    provider: customHttpProvider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider: customHttpProvider
   });
 
   //NOTE: mergor needs to be the owner of the both NFTs that are being merged

@@ -1,55 +1,70 @@
-require("dotenv");
-const Web3 = require("web3");
+const ethers = require("ethers");
+const { Framework } = require("@superfluid-finance/sdk-core");
+const { defaultAbiCoder } = require("ethers/lib/utils");
+require("dotenv").config();
+const tradeableCashflowABI = require("../artifacts/contracts/TradeableCashflow.sol/TradeableCashflow.json").abi;
 
-//all addresses hardcoded for mumbai
-const hostJSON = require("../artifacts/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol/ISuperfluid.json")
-const hostABI = hostJSON.abi;
-const hostAddress = "0xEB796bdb90fFA0f28255275e16936D25d3418603";
+const tcfAddress = "0xdd28Bff0530681892A4b5d73ae7c97f2c7418fA7"; //NOTE: this must be changed to reflect the actual live contract address
 
-const cfaJSON = require("../artifacts/@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json")
-const cfaABI = cfaJSON.abi;
-const cfaAddress = "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873";
+//used for getting jailed status of app
+const hostABI = require("../artifacts/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol/ISuperfluid.json").abi
 
-const tradeableCashflowJSON = require("../artifacts/contracts/TradeableCashflow.sol/TradeableCashflow.json");
-const tradeableCashflowABI = tradeableCashflowJSON.abi; 
-
-  //temporarily hardcode contract address 
-  const deployedTradeableCashflow = require("../deployments/polytest/TradeableCashflow.json");
-  const tradeableCashflowAddress = deployedTradeableCashflow.address;
-  
 //read flowData
 async function main() {
 
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.MUMBAI_ALCHEMY_URL));
+  //NOTE: this is currently for usage on GOERLI
+  const url = `${process.env.GOERLI_URL}`;
+  const customHttpProvider = new ethers.providers.JsonRpcProvider(url);
 
-  //create contract instances for each of these
-  const host = new web3.eth.Contract(hostABI, hostAddress);
-  const cfa = new web3.eth.Contract(cfaABI, cfaAddress);
-  const tradeableCashflow = new web3.eth.Contract(tradeableCashflowABI, tradeableCashflowAddress);
-  const fDAIx = "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
+  const sf = await Framework.create({
+    chainId: (await customHttpProvider.getNetwork()).chainId,
+    provider: customHttpProvider
+  });
 
+  const sender = sf.createSigner({
+    privateKey:
+      process.env.PRIVATE_KEY,
+    provider: customHttpProvider
+  });
+
+  const fDAIx = await sf.loadSuperToken("fDAIx");
+
+  const host = new ethers.Contract(sf.settings.config.hostAddress, hostABI, customHttpProvider);
+
+  const tradeableCashflow = new ethers.Contract(tcfAddress, tradeableCashflowABI, customHttpProvider);
 
   //get data
-  const decodedContext = await tradeableCashflow.methods.uData().call();
-  const decodedUserData = web3.eth.abi.decodeParameter('string', decodedContext.userData);
-  console.log(decodedContext)
-  console.log(decodedUserData)
-  
-  //get jail info
-  const jailed = await host.methods.getAppManifest(tradeableCashflowAddress).call()
-  console.log(jailed)
-  const isJailed = await host.methods.isAppJailed(tradeableCashflowAddress).call();
+  const decodedContext = await tradeableCashflow.uData();
+  console.log("Full decoded Ctx: ", decodedContext)
+
+  const decodedUserData = defaultAbiCoder.decode(['string'], decodedContext.userData);
+  console.log("User data value: ", decodedUserData[0])
+
+  //get jail info - is this app jailed? Learn more at docs.superfluid.finance 
+  const isJailed = await host.isAppJailed(tcfAddress);
   console.log(`is jailed: ${isJailed}`);
 
-  const flowInfo = await cfa.methods.getFlow(fDAIx, tradeableCashflowAddress, "0x00471Eaad87b91f49b5614D452bd0444499c1bd9").call();
+  const flowInfo = await sf.cfaV1.getFlow({
+    superToken: fDAIx.address, 
+    sender: sender.address,
+    receiver: tcfAddress,
+    providerOrSigner: customHttpProvider
+  });
+
+  const netFlow = await sf.cfaV1.getNetFlow({
+    superToken: fDAIx.address,
+    account: tcfAddress,
+    providerOrSigner: customHttpProvider
+  })
+
   const outFlowRate = Number(flowInfo.flowRate);
   console.log(`Outflow Rate: ${outFlowRate}`);
 
-  const netFlow = await cfa.methods.getNetFlow(fDAIx, tradeableCashflowAddress).call();
-  console.log(`Net flow: ${netFlow}`);
-
   const inFlowRate = Number(netFlow) + outFlowRate;
   console.log(`Inflow rate: ${inFlowRate}`)
+
+  console.log(`Net flow: ${netFlow}`);
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

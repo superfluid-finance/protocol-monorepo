@@ -9,15 +9,16 @@ set -xe
 # build contracts
 EXAMPLES=(
     budget-nft
-    continuous-auction
-    flowlottery
+    beginner-examples/money-router
+    beginner-examples/token-spreader
     nftbillboard-userdata
+    employment-based-loan
+    simple-acl-close
+    stream-in-distribute-out
     rewards-distribution-token
-    sdk-redux-nextjs-typescript
-    sdk-redux-react-typescript
-    streaming-call-option
-    tradeable-cashflow-hardhat
-    tradeable-cashflow-truffle
+    sdk-redux-examples/sdk-redux-nextjs-typescript
+    sdk-redux-examples/sdk-redux-react-typescript
+    tradeable-cashflow
 )
 
 for i in "${EXAMPLES[@]}";do

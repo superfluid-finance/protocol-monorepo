@@ -6,8 +6,14 @@ const {
 
 const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
-const SuperAppMock = artifacts.require("SuperAppMock");
 const SuperAppFactoryMock = artifacts.require("SuperAppFactoryMock");
+const SuperAppMock = artifacts.require("SuperAppMock");
+const SuperAppMockUsingDeprecatedRegisterApp = artifacts.require(
+    "SuperAppMockUsingDeprecatedRegisterApp"
+);
+const SuperAppMockNotSelfRegistering = artifacts.require(
+    "SuperAppMockNotSelfRegistering"
+);
 const TestGovernance = artifacts.require("TestGovernance");
 const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
@@ -75,7 +81,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#1.5 update the code by governanc3", async () => {
+            it("#1.5 update the code by governance", async () => {
                 const mock1 = await SuperfluidMock.new(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
@@ -90,6 +96,13 @@ describe("Superfluid Host Contract", function () {
                     [],
                     ZERO_ADDRESS
                 );
+
+                // don't allow initialization of logic contract
+                await expectRevertedWith(
+                    mock1.initialize(ZERO_ADDRESS),
+                    "Initializable: contract is already initialized"
+                );
+
                 assert.equal(await superfluid.getCodeAddress(), mock1.address);
                 await expectRevertedWith(
                     governance.updateContracts(
@@ -443,6 +456,8 @@ describe("Superfluid Host Contract", function () {
                 assert.equal(manifest.isSuperApp, true);
                 assert.equal(manifest.isJailed, false);
                 assert.equal(manifest.noopMask, 0);
+                const nomanifest = await superfluid.getAppManifest(admin);
+                assert.equal(nomanifest.isSuperApp, false);
             });
 
             it("#4.2 app registration rules", async () => {
@@ -518,6 +533,34 @@ describe("Superfluid Host Contract", function () {
                         app.address
                     )
                 );
+            });
+
+            it("#4.6 deprecated register app should continues to work", async () => {
+                const app2 = await SuperAppMockUsingDeprecatedRegisterApp.new(
+                    superfluid.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */
+                );
+                assert.isTrue(await superfluid.isApp(app2.address));
+            });
+
+            it("#4.7 app registration as factory by EOA should fail", async () => {
+                await expectRevertedWith(
+                    superfluid.registerAppByFactory(ZERO_ADDRESS, 1),
+                    "SF: factory must be a contract"
+                );
+            });
+
+            it("#4.8 register app by factory", async () => {
+                const appFactory = await SuperAppFactoryMock.new();
+                // since whitelisting is disabled, so governance ain't required
+                const app = await SuperAppMockNotSelfRegistering.new();
+                assert.isFalse(await superfluid.isApp(app.address));
+                await appFactory.registerAppWithHost(
+                    superfluid.address,
+                    app.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */
+                );
+                assert.isTrue(await superfluid.isApp(app.address));
             });
         });
 
@@ -1218,6 +1261,25 @@ describe("Superfluid Host Contract", function () {
                         );
                     }
                 });
+
+                it("#6.19 Jail event should not be emitted twice", async () => {
+                    let tx = await superfluid.jailApp(app.address);
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app.address,
+                            reason: "6942", // it is scientific, check the code
+                        }
+                    );
+                    tx = await superfluid.jailApp(app.address);
+                    await expectEvent.notEmitted.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail"
+                    );
+                });
             });
 
             context("#6.2x callback gas limit", () => {
@@ -1880,6 +1942,26 @@ describe("Superfluid Host Contract", function () {
                     "SF: APP_RULE_CTX_IS_EMPTY"
                 );
             });
+
+            it("#8.12 should not be able to call callbacks", async () => {
+                await Promise.all(
+                    [
+                        "beforeAgreementCreated",
+                        "afterAgreementCreated",
+                        "beforeAgreementUpdated",
+                        "afterAgreementUpdated",
+                        "beforeAgreementTerminated",
+                        "afterAgreementTerminated",
+                    ].map(async (cbname) => {
+                        const sel = app.abi.filter((i) => i.name == cbname)[0]
+                            .signature;
+                        await expectRevertedWith(
+                            superfluid.callAppAction(app.address, sel),
+                            "SF: agreement callback is not action"
+                        );
+                    })
+                );
+            });
         });
 
         describe("#9 Contextual Call Proxies", () => {
@@ -2507,153 +2589,165 @@ describe("Superfluid Host Contract", function () {
             );
         }
 
-        it("#40.1 app registration without key should fail", async () => {
-            await expectRevertedWith(
-                SuperAppMock.new(
+        context("#40.x register app with key", () => {
+            it("#40.1 app registration without key should fail", async () => {
+                await expectRevertedWith(
+                    SuperAppMock.new(
+                        superfluid.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */,
+                        false
+                    ),
+                    "SF: invalid or expired registration key"
+                );
+            });
+
+            it("#40.2 app registration with invalid key should fail", async () => {
+                await expectRevertedWith(
+                    SuperAppMockWithRegistrationkey.new(
+                        superfluid.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */,
+                        "bad microsoft registration key"
+                    ),
+                    "SF: invalid or expired registration key"
+                );
+            });
+
+            it("#40.3 app can register with a correct key", async () => {
+                const appKey = createAppKey(bob, "hello world");
+                const expirationTs =
+                    Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
+                await governance.setConfig(
                     superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    false
-                ),
-                "SF: app registration requires permission"
-            );
-        });
-
-        it("#40.2 app registration with invalid key should fail", async () => {
-            await expectRevertedWith(
-                SuperAppMockWithRegistrationkey.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    "bad microsoft registration key"
-                ),
-                "SF: invalid or expired registration key"
-            );
-        });
-
-        it("#40.3 app can register with a correct key", async () => {
-            const appKey = createAppKey(bob, "hello world");
-            const expirationTs = Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
-            await governance.setConfig(
-                superfluid.address,
-                ZERO_ADDRESS,
-                appKey,
-                expirationTs
-            );
-            const app = await SuperAppMockWithRegistrationkey.new(
-                superfluid.address,
-                1 /* APP_TYPE_FINAL_LEVEL */,
-                "hello world",
-                {
-                    from: bob,
-                }
-            );
-            assert.isTrue(await superfluid.isApp(app.address));
-        });
-
-        it("#40.4 app registration with key for different deployer should fail", async () => {
-            const appKey = createAppKey(bob, "hello world");
-            const expirationTs = Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
-            await governance.setConfig(
-                superfluid.address,
-                ZERO_ADDRESS,
-                appKey,
-                expirationTs
-            );
-            await expectRevertedWith(
-                SuperAppMockWithRegistrationkey.new(
+                    ZERO_ADDRESS,
+                    appKey,
+                    expirationTs
+                );
+                const app = await SuperAppMockWithRegistrationkey.new(
                     superfluid.address,
                     1 /* APP_TYPE_FINAL_LEVEL */,
                     "hello world",
                     {
-                        from: alice,
-                    }
-                ),
-                "SF: invalid or expired registration key"
-            );
-        });
-
-        it("#40.5 app can register with an expired key should fail", async () => {
-            const appKey = createAppKey(bob, "hello world again");
-            const expirationTs = Math.floor(Date.now() / 1000) - 3600 * 24; // expired yesterday
-            await governance.setConfig(
-                superfluid.address,
-                ZERO_ADDRESS,
-                appKey,
-                expirationTs
-            );
-            await expectRevertedWith(
-                SuperAppMockWithRegistrationkey.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    "hello world again",
-                    {
                         from: bob,
                     }
-                ),
-                "SF: invalid or expired registration key"
-            );
+                );
+                assert.isTrue(await superfluid.isApp(app.address));
+            });
+
+            it("#40.4 app registration with key for different deployer should fail", async () => {
+                const appKey = createAppKey(bob, "hello world");
+                const expirationTs =
+                    Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
+                await governance.setConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    appKey,
+                    expirationTs
+                );
+                await expectRevertedWith(
+                    SuperAppMockWithRegistrationkey.new(
+                        superfluid.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */,
+                        "hello world",
+                        {
+                            from: alice,
+                        }
+                    ),
+                    "SF: invalid or expired registration key"
+                );
+            });
+
+            it("#40.5 app can register with an expired key should fail", async () => {
+                const appKey = createAppKey(bob, "hello world again");
+                const expirationTs = Math.floor(Date.now() / 1000) - 3600 * 24; // expired yesterday
+                await governance.setConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    appKey,
+                    expirationTs
+                );
+                await expectRevertedWith(
+                    SuperAppMockWithRegistrationkey.new(
+                        superfluid.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */,
+                        "hello world again",
+                        {
+                            from: bob,
+                        }
+                    ),
+                    "SF: invalid or expired registration key"
+                );
+            });
         });
 
-        it("#40.6 app registration by unauthorized factory should fail", async () => {
-            const SuperAppMockNotSelfRegistering = artifacts.require(
-                "SuperAppMockNotSelfRegistering"
-            );
-            const appFactory = await SuperAppFactoryMock.new();
-            // governance.authorizeAppFactory NOT done
-            const app = await SuperAppMockNotSelfRegistering.new();
-            await expectRevertedWith(
-                appFactory.registerAppWithHost(
+        context("#41.x register app by factory", () => {
+            it("#41.1 app registration by unauthorized factory should fail", async () => {
+                const appFactory = await SuperAppFactoryMock.new();
+                // governance.authorizeAppFactory NOT done
+                const app = await SuperAppMockNotSelfRegistering.new();
+                await expectRevertedWith(
+                    appFactory.registerAppWithHost(
+                        superfluid.address,
+                        app.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */
+                    ),
+                    "SF: authorized factory required"
+                );
+            });
+
+            it("#41.2 app registration by authorized factory", async () => {
+                const appFactory = await SuperAppFactoryMock.new();
+                await governance.authorizeAppFactory(
+                    superfluid.address,
+                    appFactory.address
+                );
+                const app = await SuperAppMockNotSelfRegistering.new();
+                assert.isFalse(await superfluid.isApp(app.address));
+                await appFactory.registerAppWithHost(
                     superfluid.address,
                     app.address,
                     1 /* APP_TYPE_FINAL_LEVEL */
-                ),
-                "SF: authorized factory required"
-            );
+                );
+                assert.isTrue(await superfluid.isApp(app.address));
+
+                // works for more than once app...
+                const app2 = await SuperAppMockNotSelfRegistering.new();
+                assert.isFalse(await superfluid.isApp(app2.address));
+                await appFactory.registerAppWithHost(
+                    superfluid.address,
+                    app2.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */
+                );
+                assert.isTrue(await superfluid.isApp(app2.address));
+
+                // withdrawal of authorization disallows further apps to be registered ...
+                await governance.unauthorizeAppFactory(
+                    superfluid.address,
+                    appFactory.address
+                );
+
+                const app3 = await SuperAppMockNotSelfRegistering.new();
+                assert.isFalse(await superfluid.isApp(app3.address));
+                await expectRevertedWith(
+                    appFactory.registerAppWithHost(
+                        superfluid.address,
+                        app3.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */
+                    ),
+                    "SF: authorized factory required"
+                );
+            });
         });
 
-        it("#40.7 app registration by authorized factory", async () => {
-            const SuperAppMockNotSelfRegistering = artifacts.require(
-                "SuperAppMockNotSelfRegistering"
-            );
-            const appFactory = await SuperAppFactoryMock.new();
-            await governance.authorizeAppFactory(
-                superfluid.address,
-                appFactory.address
-            );
-            const app = await SuperAppMockNotSelfRegistering.new();
-            assert.isFalse(await superfluid.isApp(app.address));
-            await appFactory.registerAppWithHost(
-                superfluid.address,
-                app.address,
-                1 /* APP_TYPE_FINAL_LEVEL */
-            );
-            assert.isTrue(await superfluid.isApp(app.address));
-
-            // works for more than once app...
-            const app2 = await SuperAppMockNotSelfRegistering.new();
-            assert.isFalse(await superfluid.isApp(app2.address));
-            await appFactory.registerAppWithHost(
-                superfluid.address,
-                app2.address,
-                1 /* APP_TYPE_FINAL_LEVEL */
-            );
-            assert.isTrue(await superfluid.isApp(app2.address));
-
-            // withdrawal of authorization disallows further apps to be registered ...
-            await governance.unauthorizeAppFactory(
-                superfluid.address,
-                appFactory.address
-            );
-
-            const app3 = await SuperAppMockNotSelfRegistering.new();
-            assert.isFalse(await superfluid.isApp(app3.address));
-            await expectRevertedWith(
-                appFactory.registerAppWithHost(
-                    superfluid.address,
-                    app3.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */
-                ),
-                "SF: authorized factory required"
-            );
+        context("#42.x (deprecated) register app", () => {
+            it("#42.1 app registration without key should fail", async () => {
+                await expectRevertedWith(
+                    SuperAppMockUsingDeprecatedRegisterApp.new(
+                        superfluid.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */
+                    ),
+                    "SF: app registration requires permission"
+                );
+            });
         });
     });
 });

@@ -34,7 +34,7 @@ Under the hood, SDK-Core leverages TypeScript, ethers.js and The Graph and Graph
 SDK-Core is in early active development and can have breaking releases without warning and without consideration for semantic versioning.
 
 # Features
-* Minimal Framework initialization (`networkName` or `chainId` and `provider`)
+* Minimal Framework initialization (`chainId` and `provider`)
 * New Operation syntax for transactions
 * Create/Update/Delete Agreement Operations (Constant Flow Agreement and Instant Distribution Agreement)
 * SuperToken Operations

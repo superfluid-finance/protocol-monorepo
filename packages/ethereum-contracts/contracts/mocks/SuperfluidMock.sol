@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     Superfluid,
@@ -171,7 +171,7 @@ contract SuperfluidMock is Superfluid {
     function jailApp(ISuperApp app)
         external
     {
-        _jailApp(app, 0);
+        _jailApp(app, 6942);
     }
 
 }

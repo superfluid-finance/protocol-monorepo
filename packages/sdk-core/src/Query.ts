@@ -1,6 +1,13 @@
 import _ from "lodash";
 
-import { SFError } from "./SFError";
+import {
+    validateAccountTokenSnapshotRequest,
+    validateEventRequest,
+    validateIndexRequest,
+    validateIndexSubscriptionRequest,
+    validateStreamRequest,
+    validateSuperTokenRequest,
+} from "./ajvValidations.generated";
 import { AllEvents, IEventFilter } from "./events";
 import {
     IAccountTokenSnapshotFilter,
@@ -64,20 +71,10 @@ import {
     Stream_OrderBy,
     Token_OrderBy,
 } from "./subgraph/schema.generated";
-import { DataMode } from "./types";
 import { typeGuard } from "./utils";
-import {
-    validateAccountTokenSnapshotRequest,
-    validateEventRequest,
-    validateIndexRequest,
-    validateIndexSubscriptionRequest,
-    validateStreamRequest,
-    validateSuperTokenRequest,
-} from "./validation";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
-    readonly dataMode: DataMode;
 }
 
 /**
@@ -103,13 +100,6 @@ export default class Query {
             orderDirection: "desc",
         }
     ): Promise<PagedResult<ISuperToken>> => {
-        if (this.options.dataMode === "WEB3_ONLY") {
-            throw new SFError({
-                type: "UNSUPPORTED_WEB_3_ONLY",
-                customMessage: "This query is not supported in WEB3_ONLY mode.",
-            });
-        }
-
         validateSuperTokenRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -146,13 +136,6 @@ export default class Query {
             orderDirection: "desc",
         }
     ): Promise<PagedResult<IIndex>> => {
-        if (this.options.dataMode === "WEB3_ONLY") {
-            throw new SFError({
-                type: "UNSUPPORTED_WEB_3_ONLY",
-                customMessage: "This query is not supported in WEB3_ONLY mode.",
-            });
-        }
-
         validateIndexRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -198,13 +181,6 @@ export default class Query {
             orderDirection: "desc",
         }
     ): Promise<PagedResult<IIndexSubscription>> => {
-        if (this.options.dataMode === "WEB3_ONLY") {
-            throw new SFError({
-                type: "UNSUPPORTED_WEB_3_ONLY",
-                customMessage: "This query is not supported in WEB3_ONLY mode.",
-            });
-        }
-
         validateIndexSubscriptionRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -256,13 +232,6 @@ export default class Query {
             orderDirection: "desc",
         }
     ): Promise<PagedResult<IStream>> => {
-        if (this.options.dataMode === "WEB3_ONLY") {
-            throw new SFError({
-                type: "UNSUPPORTED_WEB_3_ONLY",
-                customMessage: "This query is not supported in WEB3_ONLY mode.",
-            });
-        }
-
         validateStreamRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -314,13 +283,6 @@ export default class Query {
             orderDirection: "desc",
         }
     ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
-        if (this.options.dataMode === "WEB3_ONLY") {
-            throw new SFError({
-                type: "UNSUPPORTED_WEB_3_ONLY",
-                customMessage: "This query is not supported in WEB3_ONLY mode.",
-            });
-        }
-
         validateAccountTokenSnapshotRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -366,13 +328,6 @@ export default class Query {
             orderDirection: "desc",
         }
     ): Promise<PagedResult<AllEvents>> => {
-        if (this.options.dataMode === "WEB3_ONLY") {
-            throw new SFError({
-                type: "UNSUPPORTED_WEB_3_ONLY",
-                customMessage: "This query is not supported in WEB3_ONLY mode.",
-            });
-        }
-
         validateEventRequest(filter);
 
         const response = await this.subgraphClient.request<

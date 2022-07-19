@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperTokenFactory,
@@ -68,6 +68,7 @@ abstract contract SuperTokenFactoryBase is
     function _updateSuperTokenLogic() private {
         // use external call to trigger the new code to update the super token logic contract
         _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
+        UUPSProxiable(address(_superTokenLogic)).castrate();
         emit SuperTokenLogicCreated(_superTokenLogic);
     }
 
@@ -152,7 +153,7 @@ abstract contract SuperTokenFactoryBase is
 
 }
 
-// spliting this off because the contract is getting bigger
+// splitting this off because the contract is getting bigger
 contract SuperTokenFactoryHelper {
     function create(ISuperfluid host)
         external

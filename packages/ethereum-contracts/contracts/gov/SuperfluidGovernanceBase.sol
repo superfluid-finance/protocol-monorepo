@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {
     ISuperfluid,
@@ -63,12 +63,21 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     {
         if (hostNewLogic != address(0)) {
             UUPSProxiable(address(host)).updateCode(hostNewLogic);
+            UUPSProxiable(address(hostNewLogic)).castrate();
         }
         for (uint i = 0; i < agreementClassNewLogics.length; ++i) {
             host.updateAgreementClass(ISuperAgreement(agreementClassNewLogics[i]));
+            UUPSProxiable(address(agreementClassNewLogics[i])).castrate();
         }
         if (superTokenFactoryNewLogic != address(0)) {
             host.updateSuperTokenFactory(ISuperTokenFactory(superTokenFactoryNewLogic));
+
+            // the factory logic can be updated for non-upgradable hosts too,
+            // in this case it's used without proxy and already initialized.
+            // solhint-disable-next-line no-empty-blocks
+            try UUPSProxiable(address(superTokenFactoryNewLogic)).castrate() {}
+            // solhint-disable-next-line no-empty-blocks
+            catch {}
         }
     }
 

@@ -1,33 +1,28 @@
 require("dotenv").config();
-
-// mumbai addresses - change if using a different network
-const host = '0xEB796bdb90fFA0f28255275e16936D25d3418603';
-const cfa = '0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873';
-const fDAIx = '0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f';
-
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const Web3 = require("web3");
+const { Framework } = require("@superfluid-finance/sdk-core");
+const ethers = require("ethers")
+const { web3 } = require("hardhat");
 const { defaultNetwork } = require("../hardhat.config");
-const config = require("../hardhat.config");
 
-require("dotenv");
-//your address here...
+//your address and RPC here...
 const owner = process.env.OWNER_ADDRESS;
+const rpcProvider = new ethers.providers.JsonRpcProvider(process.env.GOERLI_URL);
+
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
 
+  let sf;
   const { deployer } = await getNamedAccounts();
-  console.log(deployer);
-
-  const errorHandler = (err) => {
-    if (err) throw err;
-  };
 
   if (defaultNetwork == 'ganache' || defaultNetwork == 'localhost') {
+
+    const errorHandler = (err) => {
+      if (err) throw err;
+    };
         
     await deployFramework(errorHandler, {
       web3,
@@ -42,30 +37,40 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       web3,
       from: deployer,
     });
-  
-    let sf = new SuperfluidSDK.Framework({
-      web3,
-      version: "test",
-      tokens: ["fDAI"],
+
+    console.log("deploying...")
+
+    sf = await Framework.create({
+      chainId: 1337,
+      provider: web3,
+      resolverAddress: process.env.RESOLVER_ADDRESS, //this is how you get the resolver address
+      protocolReleaseVersion: "test",
     });
-  
-    await sf.initialize();
-  
-    console.log(sf.host.address)
-    console.log(sf.agreements.cfa.address);
-    console.log(sf.tokens.fDAIx.address)
-  
+
+    console.log(sf)
+
+    const fDAIx = await sf.loadSuperToken("fDAIx");
+    
+    console.log("fake dai", fDAIx.address)
     await deploy("TradeableCashflow", {
       from: deployer,
-      args: [deployer, 'nifty_billboard', 'NFTBoard', sf.host.address, sf.agreements.cfa.address, sf.tokens.fDAIx.address],
+      args: [deployer, 'nifty_billboard', 'NFTBoard', sf.settings.config.hostAddress, fDAIx.address],
       log: true,
     })
   }
 
-  else {
+  else {    
+
+    sf = await Framework.create({
+      chainId: (await rpcProvider.getNetwork()).chainId,
+      provider: rpcProvider
+    });
+
+    const fDAIx = await sf.loadSuperToken("fDAIx");
+
     await deploy("TradeableCashflow", {
       from: deployer,
-      args: [deployer, 'nifty_billboard', 'NFTBoard', host, cfa, fDAIx],
+      args: [deployer, 'nifty_billboard', 'NFTBoard', sf.settings.config.hostAddress, fDAIx.address],
       log: true,
     })
   }

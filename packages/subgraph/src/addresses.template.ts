@@ -49,6 +49,9 @@ export function getHostAddress(): Address {
     if (network == "optimism") {
         address = "0x567c4B141ED61923967cA25Ef4906C8781069a10";
     }
+    if (network == "bsc") {
+        address = "0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E";
+    }
     return Address.fromString(address);
 }
 
@@ -97,5 +100,40 @@ export function getResolverAddress(): Address {
     if (network == "optimism") {
         address = "0x743B5f46BC86caF41bE4956d9275721E0531B186";
     }
+    if (network == "bsc") {
+        address = "0x69604aA4e9e8BF44A73C680997205Edb03A92E41";
+    }
     return Address.fromString(address);
+}
+
+export function getNativeAssetSuperTokenSymbol(): string {
+    let network = "{{network}}";
+    let symbol = "";
+    const ETH_NETWORKS = [
+        "mainnet",
+        "goerli",
+        "kovan",
+        "rinkeby",
+        "ropsten",
+        "optimism",
+        "arbitrum-rinkeby",
+        "optimism-kovan",
+        "arbitrum-one",
+    ];
+    if (ETH_NETWORKS.includes(network)) {
+        symbol = "ETHx";
+    }
+    if (network == "matic" || network == "mumbai") {
+        symbol = "MATICx";
+    }
+    if (network == "xdai") {
+        symbol = "xDAIx";
+    }
+    if (network == "fuji" || network == "avalanche") {
+        symbol = "AVAXx";
+    }
+    if (network == "bsc") {
+        symbol = "BNBx";
+    }
+    return symbol;
 }

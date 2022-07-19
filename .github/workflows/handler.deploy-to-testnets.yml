@@ -1,6 +1,4 @@
 name: Deploy to Testnets
-env:
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   workflow_dispatch:
@@ -22,7 +20,7 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-      DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
       # network web3 providers
       ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
       ETH_RINKEBY_PROVIDER_URL: ${{ secrets.ETH_RINKEBY_PROVIDER_URL }}
@@ -43,6 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # if only_network is set, skip all steps until the value matches one of the entries in matrix.network
       - name: Check only_network
         if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
         run: echo "DO_SKIP=1" >> $GITHUB_ENV
@@ -70,9 +69,9 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
-          source addresses.vars
-          source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
+          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
+          SKIP_IF_UNSUPPORTED: 1
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}

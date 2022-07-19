@@ -4,7 +4,7 @@ env:
 
 on:
   workflow_run:
-    workflows: ["Create PR Artifact"]
+    workflows: ["CD | Create PR Artifact"]
     types:
       - completed
 
@@ -84,6 +84,7 @@ jobs:
             yarn add @superfluid-finance/ethereum-contracts@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/sdk-core@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/sdk-redux@PR${{ steps.pr.outputs.pr_number }}
+            yarn add @superfluid-finance/hardhat-deployer@PR${{ steps.pr.outputs.pr_number }}
             ```
 
             <details><summary>:octocat: Click to learn how to use Github packages</summary>

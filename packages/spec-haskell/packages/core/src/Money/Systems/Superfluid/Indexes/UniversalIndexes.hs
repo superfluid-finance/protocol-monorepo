@@ -15,6 +15,7 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
+--
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
 
 -- * ITA

@@ -138,7 +138,7 @@ instance Show (SimpleRealTimeBalanceF Wad) where
         showDetail (UntappedValue uval, tvec) = "( "
             ++ show uval
             -- skip zero/default values
-            ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . getUntypedValue )) $ tvec)
+            ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeValue )) $ tvec)
             ++ " )"
 
 

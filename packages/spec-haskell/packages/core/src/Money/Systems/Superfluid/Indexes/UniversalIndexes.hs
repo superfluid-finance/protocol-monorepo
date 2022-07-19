@@ -81,7 +81,7 @@ data DFAMonetaryUnitLens sft = DFAMonetaryUnitData
 deriving instance SuperfluidTypes sft => Default (DFAMonetaryUnitLens sft)
 
 instance SuperfluidTypes sft => DFA.MonetaryUnitLens (DFAMonetaryUnitLens sft) sft where
-    decayingFactor = lens (\_ -> dfa_default_lambda (Proxy @sft)) (error "cannot be set")
+    decayingFactor = lens (\_ -> dfa_default_lambda (Proxy @sft)) (error "UIDX dfa λ cannot be set")
     settledAt      = $(field 'dfa_settledAt)
     αVal           = $(field 'dfa_αVal)
     εVal           = $(field 'dfa_εVal)

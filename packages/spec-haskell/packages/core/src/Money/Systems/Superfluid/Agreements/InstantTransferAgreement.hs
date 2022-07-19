@@ -74,9 +74,7 @@ instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitDa
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft
 
 type ContractData :: Type -> Type -> Type -> Type -- make GHC happy
-newtype ContractData cdL amudL sft = MkContractData cdL
-
-instance ContractLens cdL sft => Default (ContractData cdL amudL sft) where def = MkContractData def
+newtype ContractData cdL amudL sft = MkContractData cdL deriving (Default)
 
 instance ( ContractLens cdL sft
          , MonetaryUnitLens amudL sft

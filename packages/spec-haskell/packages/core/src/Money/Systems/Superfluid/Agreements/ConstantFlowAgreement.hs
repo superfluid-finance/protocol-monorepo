@@ -64,9 +64,7 @@ class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft wh
     flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_MVAL sft))
 
 type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData cdL amudL sft = MkContractData cdL
-
-instance ContractLens cdL sft => Default (ContractData cdL amudL sft) where def = MkContractData def
+newtype ContractData cdL amudL sft = MkContractData cdL deriving (Default)
 
 type FlowRate sft = SFT_MVAL sft
 

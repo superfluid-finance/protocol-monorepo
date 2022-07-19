@@ -8,29 +8,28 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev List a super token in resolver.
+ * @dev Unlist a previously listed super token in resolver.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/resolver-list-super-token.js : {SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec scripts/resolver-unlist-super-token.js : {SYMBOL}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("======== List new super token ========");
-    let {resetToken, protocolReleaseVersion} = options;
+    console.log("======== Unlist a super token ========");
+    let {protocolReleaseVersion} = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
     }
-    const superTokenAddress = args.pop();
-    console.log("Super Token Address", superTokenAddress);
+    const superTokenSymbol = args.pop();
+    console.log("Super Token Symbol", superTokenSymbol);
 
-    resetToken = resetToken || !!process.env.RESET_TOKEN;
     console.log("protocol release version:", protocolReleaseVersion);
 
     const sf = new SuperfluidSDK.Framework({
@@ -48,26 +47,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const superToken = await sf.contracts.SuperToken.at(superTokenAddress);
-    if (
-        (await superToken.proxiableUUID.call()) !==
-        web3.utils.sha3(
-            "org.superfluid-finance.contracts.SuperToken.implementation"
-        )
-    ) {
-        throw new Error("Not a super token");
-    }
-    const tokenSymbol = await superToken.symbol.call();
-    const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
+    const superTokenKey = `supertokens.${protocolReleaseVersion}.${superTokenSymbol}`;
     console.log("Super token key", superTokenKey);
 
     const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
-    if (
-        (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
-        !resetToken
-    ) {
-        console.error("Super token already listed!");
-        console.error("A Transfer event may be needed for indexers to notice.");
+    const superTokenAddress = await resolver.get.call(superTokenKey);
+
+    if (superTokenAddress === ZERO_ADDRESS) {
+        throw new Error("Super token is not listed");
     }
-    await setResolver(sf, superTokenKey, superTokenAddress);
+
+    await setResolver(sf, superTokenKey, ZERO_ADDRESS);
 });

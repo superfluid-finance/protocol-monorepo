@@ -1,4 +1,4 @@
-name: Run Ethereum Contracts Script
+name: List Super Token
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -9,31 +9,28 @@ on:
         description: 'Protocol release version (test/master/v1/etc.)'
         required: true
         default: 'v1'
-      network:
-        description: 'Network for the script to run on'
-        required: true
       admin_type:
         description: 'Choose the admin type: MULTISIG, or OWNABLE'
         required: true
-      script_name:
-        description: 'Script name'
+        default: 'MULTISIG'
+      network:
+        description: 'Network for the script to run on'
         required: true
-      script_args:
-        description: 'Script arguments'
-        required: false
+      token_address:
+        description: 'Address of the Super Token to be listed'
+        required: true
       environments:
         description: 'Additional env vars, separated by semicolons'
         required: false
 
 jobs:
 
-  run-ethereum-contracts-script:
+  list-super-token-script:
     runs-on: ubuntu-latest
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
-      GOVERNANCE_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
 
     steps:
       - uses: actions/checkout@v3
@@ -55,11 +52,10 @@ jobs:
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle exec \
             --network ${{ github.event.inputs.network }} \
-            ${{ github.event.inputs.script_name }} \
-            ${{ github.event.inputs.script_args }}
-        env:
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+            scripts/resolver-list-super-token.js \
+            : ${{ github.event.inputs.token_address }}
 
+        env:
           DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
           # network web3 providers
           ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}

@@ -62,13 +62,13 @@ contract SuperfluidFrameworkDeployer {
         host.initialize(governance);
 
         // Initialize Governance
-        address[] memory trustedForarders = new address[](0);
+        address[] memory trustedForwarders = new address[](0);
         governance.initialize(
             host,
             address(69),
             4 hours,
             30 minutes,
-            trustedForarders
+            trustedForwarders
         );
 
         // Deploy ConstantFlowAgreementV1
@@ -139,5 +139,4 @@ contract SuperfluidFrameworkDeployer {
             string.concat(symbol, "x"))
         ));
     }
-
 }

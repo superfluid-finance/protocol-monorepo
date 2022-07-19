@@ -43,7 +43,8 @@ test-suite tests
     other-modules:
         Money.Systems.Superfluid.RealTimeBalance_prop
         Money.Systems.Superfluid.TokenTester
-        Money.Systems.Superfluid.System_test
+        Money.Systems.Superfluid.ConstantFlowAgreement_test
+        Money.Systems.Superfluid.DecayingFlowAgreement_test
 
     default-language: GHC2021
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
@@ -55,6 +56,7 @@ test-suite tests
         QuickCheck >=2.13,
         hspec >=2.0,
         HUnit >=1.6.0.0,
+        math-extras,
         time,
         superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

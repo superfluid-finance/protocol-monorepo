@@ -6,8 +6,6 @@
 
 module Money.Systems.Superfluid.Instances.Simple.Types
     ( module Money.Systems.Superfluid.Concepts
-    -- Double
-    , SFDouble (..)
     -- Wad
     , Wad (..)
     , toWad
@@ -56,13 +54,6 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as
 --
 import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
 
-
--- ============================================================================
--- SFDouble Type
-
-newtype SFDouble = SFDouble Double
-    deriving newtype (Default, Eq, Ord, Num, Real, Fractional, RealFrac, Floating, RealFloat, Show)
-instance SFTFloat SFDouble
 
 -- ============================================================================
 -- Value Type:
@@ -182,8 +173,10 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
 
 data SimpleSuperfluidTypes
 
+instance SFTFloat Double
+
 instance SuperfluidTypes SimpleSuperfluidTypes where
-    type SFT_FLOAT SimpleSuperfluidTypes = SFDouble
+    type SFT_FLOAT SimpleSuperfluidTypes = Double
     type SFT_MVAL  SimpleSuperfluidTypes = Wad
     type SFT_TS    SimpleSuperfluidTypes = SimpleTimestamp
     type SFT_RTB_F SimpleSuperfluidTypes = SimpleRealTimeBalanceF

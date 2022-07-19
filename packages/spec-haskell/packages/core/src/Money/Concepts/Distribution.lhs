@@ -7,9 +7,11 @@ digital representations of money. Examples are bills, coins, bank accounts, Bitc
 
 \ignore{
 \begin{code}
+{-# LANGUAGE TypeFamilies #-}
 module Money.Concepts.Distribution where
 
 import Data.Default (Default)
+-- import Data.Kind (Type)
 \end{code}
 }
 
@@ -36,14 +38,17 @@ class MonetaryUnit mu
 
 \begin{code}
 -- | Value Distribution
-class Distribution ld where
-    -- type MONEY_UNIT ld :: Type
+class Distribution d where
+    -- type DistributionValueType        d :: Type
+    -- type DistributionMonetaryUnitType d :: Type
+    -- type DistributionBearerType       d :: Type
+    -- type DistributionContextType      d :: Type
 
-    moneyUnits :: MonetaryUnit mu => ld -> [mu]
+    monetaryUnits :: MonetaryUnit mu => d -> [mu]
 
-    bearerOf :: (MonetaryUnit mu, Bearer brr) => ld -> mu -> brr
+    valueOf :: (Context ctx, MonetaryUnit mu, Value v) => d -> (mu, ctx) -> v
 
-    valueOf :: (Context ctx, MonetaryUnit mu, Value v) => ld -> (mu, ctx) -> v
+    bearerOf :: (MonetaryUnit mu, Bearer brr) => d -> mu -> brr
 \end{code}
 
 (WIP)

@@ -1,20 +1,14 @@
-{-# OPTIONS_GHC -Wno-missing-signatures #-}
-
 module Money.Systems.Superfluid.TokenTester where
 
+import           Math.Extras.Double
 import           Test.Hspec
 import           Test.HUnit
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.Default
-import           Data.Maybe                                                (fromMaybe)
 
-import           Lens.Micro
-
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement as CFA
---
-import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System as SF
 
 
 constInitBalance :: SF.Wad
@@ -23,9 +17,10 @@ constInitBalance = SF.toWad (100.0 :: Double)
 cZeroWad :: SF.Wad
 cZeroWad = SF.toWad (0 :: Double)
 
--- ============================================================================
--- | TokenTester TestCase Creator
+-- =====================================================================================================================
+-- * TokenTester TestCase Creator
 --
+
 type TokenMonad = SF.SimpleTokenStateT IO
 
 data TokenTesterData = TokenTesterData
@@ -47,6 +42,7 @@ data TokenTestContext = TokenTestContext
 
 data TokenTestCase = TokenTestCase TokenTestSpec (TokenTestContext -> TokenTester ())
 
+createTokenTestCase :: TokenTestCase -> SpecWith ()
 createTokenTestCase (TokenTestCase spec runner) = it (testCaseLabel spec) $ do
     evalStateT (do
         let addresses = testAddressesToInit spec
@@ -57,11 +53,13 @@ createTokenTestCase (TokenTestCase spec runner) = it (testCaseLabel spec) $ do
         , token = def
         }
 
+createTokenTestSuite :: String -> [TokenTestCase] -> SpecWith ()
 createTokenTestSuite name tests = describe name $ mapM_ createTokenTestCase tests
 
--- ============================================================================
--- | TokenTester Operations
+-- =====================================================================================================================
+-- * TokenTester Operations
 --
+
 timeTravel :: HasCallStack => SF.SimpleTimestamp -> TokenTester ()
 timeTravel d = modify (\vs -> vs { sfSys = (sfSys vs) { SF.currentTime = (+ d) . SF.currentTime . sfSys $ vs } })
 
@@ -81,26 +79,17 @@ createTestAccount addr initBalance = runToken $ do
 -- ============================================================================
 -- | TokenTester Assertions
 --
-expectAccountBalanceTo :: HasCallStack => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
-expectAccountBalanceTo label addr expr = do
+expectAccountBalanceTo :: HasCallStack => SF.SimpleAddress -> (SF.Wad -> Bool) -> String -> TokenTester ()
+expectAccountBalanceTo addr expr label = do
     balance <- runToken $ SF.balanceOfAccount addr
     liftIO $ assertBool label (expr . SF.netValueOfRTB $ balance)
 
-expectZeroTotalValue :: HasCallStack => TokenTester ()
-expectZeroTotalValue = do
+expectZeroTotalValueFuzzily :: HasCallStack => Double -> TokenTester ()
+expectZeroTotalValueFuzzily tolerance = do
     t <- runToken SF.getCurrentTime
     accounts <- runToken SF.listAccounts
-    liftIO $ assertBool "Zero Value Invariance"
-        ((== 0) . SF.netValueOfRTB $ SF.sumBalancesAt (map snd accounts) t)
+    let (SF.Wad totalBalance) = SF.netValueOfRTB $ SF.sumBalancesAt (map snd accounts) t
+    liftIO $ assertBool "Zero Value Invariance" $ fuzzyEq tolerance (fromInteger totalBalance) (0 :: Double)
 
-expectCFANetFlowRateTo :: HasCallStack
-    => String -> SF.SimpleAddress -> (SF.Wad -> Bool) -> TokenTester ()
-expectCFANetFlowRateTo label addr expr = do
-    acc <- runToken $ SF.getAccount addr
-    liftIO $ assertBool label $ expr $ acc^.SF.cfaMonetaryUnitLens^.CFA.netFlowRate
-
-expectCFAFlowRateTo :: HasCallStack
-    => String -> (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Bool) -> TokenTester ()
-expectCFAFlowRateTo label (sender, receiver) expr = do
-    (CFA.MkContractData flow) <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.ContractPartiesF sender receiver)
-    liftIO $ assertBool label $ expr $ flow^.CFA.flowRate
+expectZeroTotalValue :: TokenTester ()
+expectZeroTotalValue = expectZeroTotalValueFuzzily 0

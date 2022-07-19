@@ -56,7 +56,7 @@ newtype SimpleGetter a = SimpleGetter (B.Get a) deriving (Functor, Applicative, 
 newtype SimplePutter a = SimplePutter (B.PutM a) deriving (Functor, Applicative, Monad)
 
 instance Getter SimpleGetter SimpleSuperfluidTypes where
-    getFloat = SFDouble <$> SimpleGetter B.get
+    getFloat = SimpleGetter B.get
     getMVAL = SimpleGetter B.get
     getTS = SimpleGetter B.get
 

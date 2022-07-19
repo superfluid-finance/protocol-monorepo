@@ -10,7 +10,7 @@ import Money.Concepts.Distribution
 
 \lhsparagraph{Utopian Communism}
 
-In its utopian form, there is no more scarcity, but the number of its members are finite. Hence the any meaningful money
+In its utopian form, there is no more scarcity, but the number of its members are finite. Hence the any meaningful monetary
 unit would also come with unlimited value.
 
 \begin{code}
@@ -19,7 +19,7 @@ data Infinite a = Infinite | Only a
 data UtopianCommunism
 
 instance Distribution UtopianCommunism where
-    moneyUnits = undefined
+    monetaryUnits = undefined
     bearerOf = undefined
     valueOf = undefined
 \end{code}
@@ -32,21 +32,21 @@ In its more likely form, there is simply nothing, and everyone owns nothing.
 data DystopianCommunism
 
 instance Distribution DystopianCommunism where
-    moneyUnits = undefined
+    monetaryUnits = undefined
     bearerOf = undefined
     valueOf = undefined
 \end{code}
 
 \lhsparagraph{Autocratic Communism}
 
-In a more realistic form, the one that determines the value amount of each money unit is at the mercy of the side
+In a more realistic form, the one that determines the value amount of each monetary unit is at the mercy of the side
 effect of the monadic autocrat.
 
 \begin{code}
 data AutocraticCommunism
 
 instance Distribution AutocraticCommunism where
-    moneyUnits = undefined
+    monetaryUnits = undefined
     bearerOf = undefined
     valueOf = undefined
 \end{code}

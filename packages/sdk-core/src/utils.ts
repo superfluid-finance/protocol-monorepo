@@ -28,7 +28,7 @@ export const normalizeAddress = (address?: string): string => {
     if (ethers.utils.isAddress(address) === false) {
         throw new SFError({
             type: "INVALID_ADDRESS",
-            customMessage:
+            message:
                 "The address you have entered is not a valid ethereum address",
         });
     }

@@ -90,6 +90,7 @@ describe("Operation Tests", () => {
             expect(err.message).to.contain(
                 "signing transactions is unsupported"
             );
+            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 

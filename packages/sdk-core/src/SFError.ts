@@ -52,7 +52,6 @@ const miniStringifyCause = (cause?: Error | unknown) => {
         return "[Couldn't serialize internal error. Error logged to console instead.]";
     }
 };
-
 export class SFError extends Error {
     readonly type: ErrorType;
     override readonly cause?: Error;

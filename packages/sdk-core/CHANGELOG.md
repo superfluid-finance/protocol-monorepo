@@ -5,24 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-### Breaking
-- Don't throw `SFError` when executing `Operation` or `BatchCall`; let the original error bubble up
-
-### Fixes
-- Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
-- Change `SFError.name` from "Error" to "SFError"
-
 ## [0.5.5] - 2022-08-31
 ### Added
 - Support for: `optimism-goerli` and `arbitrum-goerli` added
 ### Breaking
 - Support for: `rinkeby`, `ropsten`, `kovan`, `optimism-kovan` and `arbitrum-rinkeby` removed
-# [0.5.4] - 2022-08-19
+- Don't throw `SFError` when executing `Operation` or `BatchCall`; let the original error bubble up
 
 ### Fixes
-- Properly console the cause, not the caught serialization error
-
-## [0.5.3] - 2022-08-15
+- Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
+- Change `SFError.name` from "Error" to "SFError"
 
 ### Added
 - Map `indexId` to `IndexSubscription` when querying from Subgraph
@@ -59,13 +51,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Support for SetEvent and Subgraph v1.4.4
 - `Framework.operation` method for easily creating `Operation` instances
 
-### Fixes
+## Fixes
 - Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
 
 ### Changed
 - `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
 - Use `serialize-error` for serializing error object inside the message.
 - Export Operation & OperationType
+- Remove serialized internal error from the messages of `SFError` (it's now just included in the `.cause` property)
 
 ### Breaking
 - `SFError.errorObject` renamed to `SFError.cause`

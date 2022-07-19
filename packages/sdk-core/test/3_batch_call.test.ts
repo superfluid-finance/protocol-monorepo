@@ -49,8 +49,9 @@ describe("Batch Call Tests", () => {
             await Promise.all(promises);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Unsupported Batch Call Operation Error - The operation at index 0 is unsupported"
+                "Unsupported Batch Call Operation Error: The operation at index 0 is unsupported"
             );
+            expect(err.cause).to.be.undefined;
         }
     });
 
@@ -65,6 +66,7 @@ describe("Batch Call Tests", () => {
             await framework.batchCall([createFlowOp]).exec(deployer);
         } catch (err: any) {
             expect(err.message).to.contain("cannot estimate gas;");
+            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 

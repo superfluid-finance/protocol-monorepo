@@ -152,10 +152,12 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
     valueToRTB uval = SimpleRealTimeBalanceF uval def def
 
     typedValuesToRTB (UntappedValue uval) tvec =
-        SimpleRealTimeBalanceF uval mval d
-        -- FIXME use Traversable
-        where  mval = foldr ((+) . (`fromAnyTappedValue` ITA.mintedValueTag)) def tvec
-               d    = foldr ((+) . (`fromAnyTappedValue` BBS.bufferValueTag)) def tvec
+        (SimpleRealTimeBalanceF uval def def) <> (flip foldMap tvec g)
+        -- extra correctly typed RTB monoid
+        where g = \(AnyTappedValue (MkTypedValueTag p, v)) -> case typeRep p of
+                  t | t == typeRep ITA.mintedValueTag -> SimpleRealTimeBalanceF def   v def
+                    | t == typeRep BBS.bufferValueTag -> SimpleRealTimeBalanceF def def   v
+                    | otherwise -> error "Invalid monetary value tag"
 
     typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
                               [ mkAnyTappedValue $ ITA.mkMintedValue $ mintedValue rtb

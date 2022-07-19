@@ -76,9 +76,10 @@ createTestAccount addr initBalance = runToken $ do
     acc <- SF.getAccount addr
     SF.addAccount addr acc
 
--- ============================================================================
--- | TokenTester Assertions
+-- =====================================================================================================================
+-- * TokenTester Assertions
 --
+
 expectAccountBalanceTo :: HasCallStack => SF.SimpleAddress -> (SF.Wad -> Bool) -> String -> TokenTester ()
 expectAccountBalanceTo addr expr label = do
     balance <- runToken $ SF.balanceOfAccount addr

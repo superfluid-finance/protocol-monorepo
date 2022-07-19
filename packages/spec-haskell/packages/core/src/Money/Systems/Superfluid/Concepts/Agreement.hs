@@ -4,7 +4,6 @@
 module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementMonetaryUnitData (..)
     , AgreementContractData (..)
-    -- , updateAgreement
     ) where
 
 import           Data.Default                                      (Default)

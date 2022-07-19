@@ -1,8 +1,12 @@
-import {Address, BigInt, Bytes, ethereum, log,} from "@graphprotocol/graph-ts";
-import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
-import {Resolver} from "../generated/ResolverV1/Resolver";
-import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../generated/schema";
-import { getNativeAssetSuperTokenSymbol } from "./addresses.template";
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { Resolver } from "../generated/ResolverV1/Resolver";
+import {
+    IndexSubscription,
+    StreamRevision,
+    Token,
+    TokenStatistic,
+} from "../generated/schema";
 
 /**************************************************************************
  * Constants
@@ -45,10 +49,6 @@ export function handleTokenRPCCalls(
     token: Token,
     resolverAddress: Address
 ): Token {
-    // @note - this is currently being called every single time to handle list/unlist of tokens
-    // because we don't have the Resolver Set event on some networks
-    // We can remove this once we have migrated data to a new resolver which emits this event on
-    // all networks.
     token = getIsListedToken(token, resolverAddress);
 
     // we must handle the case when the native token hasn't been initialized
@@ -73,19 +73,6 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
-    return getIsNativeAssetSuperToken(token);
-}
-
-/**
- * @note We rely on the native asset super token being listed by us in our resolver
- * to be considered a native asset super token. If this changes, this code needs
- * to change as well.
- */
-export function getIsNativeAssetSuperToken(token: Token): Token {
-    const nativeAssetSuperTokenSymbol = getNativeAssetSuperTokenSymbol();
-    if (token.symbol == nativeAssetSuperTokenSymbol && token.isListed == true) {
-        token.isNativeAssetSuperToken = true;
-    }
     return token;
 }
 
@@ -104,7 +91,7 @@ export function getIsListedToken(
     let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
     token.isListed = token.id == superTokenAddress.toHex();
 
-    return getIsNativeAssetSuperToken(token);
+    return token;
 }
 
 export function updateTotalSupplyForNativeSuperToken(
@@ -284,7 +271,7 @@ export function calculateMaybeCriticalAtTimestamp(
     updatedAtTimestamp: BigInt,
     balanceUntilUpdatedAt: BigInt,
     totalNetFlowRate: BigInt,
-    previousMaybeCriticalAtTimestamp: BigInt | null,
+    previousMaybeCriticalAtTimestamp: BigInt | null
 ): BigInt | null {
     // When the flow rate is not negative then there's no way to have a critical balance timestamp anymore.
     if (totalNetFlowRate.ge(BIG_INT_ZERO)) return null;
@@ -292,10 +279,14 @@ export function calculateMaybeCriticalAtTimestamp(
     // When there's no balance then that either means:
     // 1. account is already critical, and we keep the existing timestamp when the liquidations supposedly started
     // 2. it's a new account without a critical balance timestamp to begin with
-    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO)) return previousMaybeCriticalAtTimestamp;
+    if (balanceUntilUpdatedAt.le(BIG_INT_ZERO))
+        return previousMaybeCriticalAtTimestamp;
 
-    const secondsUntilCritical = balanceUntilUpdatedAt.div(totalNetFlowRate.abs());
-    const calculatedCriticalTimestamp = updatedAtTimestamp.plus(secondsUntilCritical);
+    const secondsUntilCritical = balanceUntilUpdatedAt.div(
+        totalNetFlowRate.abs()
+    );
+    const calculatedCriticalTimestamp =
+        updatedAtTimestamp.plus(secondsUntilCritical);
     if (calculatedCriticalTimestamp.gt(MAX_SAFE_SECONDS)) {
         return MAX_SAFE_SECONDS;
     }
@@ -307,10 +298,7 @@ export function calculateMaybeCriticalAtTimestamp(
  * @param blockNumber
  * @param logIndex
  */
-export function getOrder(
-    blockNumber: BigInt,
-    logIndex: BigInt,
-): BigInt {
+export function getOrder(blockNumber: BigInt, logIndex: BigInt): BigInt {
     return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
 }
 
@@ -321,15 +309,15 @@ export function getOrder(
 export function createLogID(
     logPrefix: string,
     accountTokenSnapshotId: string,
-    event: ethereum.Event,
+    event: ethereum.Event
 ): string {
     return (
-        logPrefix
-        + "-" +
-        accountTokenSnapshotId
-        + "-" +
-        event.transaction.hash.toHexString()
-        + "-" +
+        logPrefix +
+        "-" +
+        accountTokenSnapshotId +
+        "-" +
+        event.transaction.hash.toHexString() +
+        "-" +
         event.logIndex.toString()
     );
 }

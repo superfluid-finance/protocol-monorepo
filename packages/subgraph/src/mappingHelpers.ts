@@ -22,7 +22,6 @@ import {
     getAmountStreamedSinceLastUpdatedAt,
     getFlowOperatorID,
     getIndexID,
-    getIsListedToken,
     getOrder,
     getStreamID,
     getStreamRevisionID,
@@ -35,7 +34,11 @@ import {
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { getHostAddress, getResolverAddress } from "./addresses";
+import {
+    getHostAddress,
+    getNativeAssetSuperTokenAddress,
+    getResolverAddress,
+} from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 /**************************************************************************
@@ -98,7 +101,12 @@ export function getOrInitSuperToken(
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
-        token.isNativeAssetSuperToken = false;
+
+        const nativeAssetSuperTokenAddress = getNativeAssetSuperTokenAddress();
+        token.isNativeAssetSuperToken = tokenAddress.equals(
+            nativeAssetSuperTokenAddress
+        );
+
         token = handleTokenRPCCalls(token, resolverAddress);
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
@@ -127,6 +135,10 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
+    // @note - this is currently being called every single time to handle list/unlist of tokens
+    // because we don't have the Resolver Set event on some networks
+    // We can remove this once we have migrated data to a new resolver which emits this event on
+    // all networks.
     token = handleTokenRPCCalls(token, resolverAddress);
 
     token.save();

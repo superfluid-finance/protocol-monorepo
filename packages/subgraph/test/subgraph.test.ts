@@ -234,7 +234,7 @@ describe("Subgraph Tests", () => {
         daix = fDAIx;
     });
 
-    describe.only("Token Tests", () => {
+    describe("Token Tests", () => {
         it("Should return the correct data for the superToken", async () => {
             await fetchTokenAndValidate(
                 daix.address.toLowerCase(),

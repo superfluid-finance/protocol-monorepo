@@ -29,11 +29,11 @@ jobs:
 
       - name: "Install packages and start hardhat node"
         run: |
-          yarn install
+          yarn install --frozen-lockfile
           ./tasks/startHardhatNode.sh start
         working-directory: ./packages/sdk-core
 
-      # duplicated in call.test-subgraph-on-previous-sdk-core-versions, call.check-query-schema-against-subgraph
+      # duplicated in call.test-subgraph-on-previous-sdk-core-versions
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v3
         with:

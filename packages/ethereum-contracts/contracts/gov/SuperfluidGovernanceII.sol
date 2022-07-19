@@ -28,8 +28,6 @@ contract SuperfluidGovernanceII is
     * UUPSProxiable
     **************************************************************************/
 
-    // TODO: do we need initialize() here?
-
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation");
     }

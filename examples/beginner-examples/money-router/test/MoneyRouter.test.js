@@ -2,8 +2,6 @@ const { Framework } = require("@superfluid-finance/sdk-core");
 const { assert, expect } = require("chai");
 const { ethers, web3 } = require("hardhat");
 const daiABI = require("./abis/fDAIABI");
-const MoneyRouterArtifact = require("../artifacts/contracts/MoneyRouter.sol/MoneyRouter.json");
-const MoneyRouterABI = MoneyRouterArtifact.abi;
 
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
@@ -51,9 +49,8 @@ before(async function () {
 
     //initialize the superfluid framework...put custom and web3 only bc we are using hardhat locally
     sf = await Framework.create({
-        networkName: "custom",
+        chainId: 31337,
         provider,
-        dataMode: "WEB3_ONLY",
         resolverAddress: process.env.RESOLVER_ADDRESS, //this is how you get the resolver address
         protocolReleaseVersion: "test",
     });    

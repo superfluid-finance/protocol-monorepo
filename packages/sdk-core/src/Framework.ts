@@ -35,7 +35,7 @@ import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
 type SupportedProvider =
     | ethers.providers.Provider
-    | (typeof ethers & HardhatEthersHelpers)
+    | HardhatEthersHelpers
     | Web3;
 
 // TODO: add convenience function of utilizing provider (optional)
@@ -146,7 +146,7 @@ export default class Framework {
         if (network.chainId !== chainId && chainId != null) {
             throw new SFError({
                 type: "NETWORK_MISMATCH",
-                customMessage:
+                message:
                     "Your provider network chainId is: " +
                     network.chainId +
                     " whereas your desired chainId is: " +
@@ -209,8 +209,8 @@ export default class Framework {
         } catch (err) {
             throw new SFError({
                 type: "FRAMEWORK_INITIALIZATION",
-                customMessage: "There was an error initializing the framework",
-                errorObject: err,
+                message: "There was an error initializing the framework",
+                cause: err,
             });
         }
     };
@@ -232,8 +232,7 @@ export default class Framework {
         ) {
             throw new SFError({
                 type: "CREATE_SIGNER",
-                customMessage:
-                    "You must pass in a private key, provider or signer.",
+                message: "You must pass in a private key, provider or signer.",
             });
         }
 
@@ -242,7 +241,7 @@ export default class Framework {
             if (!options.provider) {
                 throw new SFError({
                     type: "CREATE_SIGNER",
-                    customMessage:
+                    message:
                         "You must pass in a provider with your private key.",
                 });
             }
@@ -258,7 +257,7 @@ export default class Framework {
         /* istanbul ignore next */
         throw new SFError({
             type: "CREATE_SIGNER",
-            customMessage: "Something went wrong, this should never occur.",
+            message: "Something went wrong, this should never occur.",
         });
     };
 
@@ -290,7 +289,7 @@ export default class Framework {
         if (!isNativeAssetSuperToken) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "The token is not a native asset supertoken.",
+                message: "The token is not a native asset supertoken.",
             });
         }
         return superToken as NativeAssetSuperToken;
@@ -312,7 +311,7 @@ export default class Framework {
         if (!isPureSuperToken) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "The token is not a pure supertoken.",
+                message: "The token is not a pure supertoken.",
             });
         }
         return superToken as PureSuperToken;
@@ -333,7 +332,7 @@ export default class Framework {
         if (!isWrapperSuperToken) {
             throw new SFError({
                 type: "SUPERTOKEN_INITIALIZATION",
-                customMessage: "The token is not a wrapper supertoken.",
+                message: "The token is not a wrapper supertoken.",
             });
         }
         return superToken as WrapperSuperToken;
@@ -384,11 +383,11 @@ export default class Framework {
             } catch (err) {
                 throw new SFError({
                     type: "SUPERTOKEN_INITIALIZATION",
-                    customMessage:
+                    message:
                         "There was an error with loading the SuperToken with symbol: " +
                         tokenAddressOrSymbol +
                         " with the resolver.",
-                    errorObject: err,
+                    cause: err,
                 });
             }
         }

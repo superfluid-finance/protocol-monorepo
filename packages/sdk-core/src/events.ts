@@ -47,6 +47,7 @@ export type OtherEvents =
     | RoleAdminChangedEvent
     | RoleGrantedEvent
     | RoleRevokedEvent
+    | SetEvent
     | SentEvent
     | SuperTokenCreatedEvent
     | SuperTokenFactoryUpdatedEvent
@@ -292,6 +293,13 @@ export interface RoleRevokedEvent extends EventBase {
     role: string;
     account: string;
     sender: string;
+}
+
+export interface SetEvent extends EventBase {
+    name: "Set";
+    hashedName: string;
+    targetAddress: string;
+    resolverEntry: string;
 }
 
 export interface SentEvent extends EventBase {

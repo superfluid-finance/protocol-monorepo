@@ -706,24 +706,24 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/ethereum-contracts@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.2.2.tgz#888a3b25219de6916eb28d643e8bf02aad26b852"
-  integrity sha512-5dJLUC08F3kMFCmepwr/uRwOcaGzR/SpDl/v3fsKXZ5x89NCBlJzHRYD7BJHY6ZJY8t3dL/CXpovW9+b+nIxTw==
+"@superfluid-finance/ethereum-contracts@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.3.0.tgz#57f4ba070daae55b0bc16a18cb3e4448850aecbf"
+  integrity sha512-KKeKNHiE2OEO8g+9MebVKsBtNxLn4OrR9YE1hFtJi76Ethx8Myg7xMjiucMyTP+lwORa0iXT75yZUFI89ejT5g==
   dependencies:
     "@decentral.ee/web3-helpers" "0.5.3"
     "@openzeppelin/contracts" "4.5.0"
-    "@superfluid-finance/js-sdk" "0.5.13"
+    "@superfluid-finance/js-sdk" "0.6.1"
     "@truffle/contract" "4.5.5"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.1.4"
     hardhat "^2.9.3"
     stack-trace "0.0.10"
 
-"@superfluid-finance/js-sdk@0.5.13":
-  version "0.5.13"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.13.tgz#eed9f610508705e6a806fd1356b53945ebd6fd32"
-  integrity sha512-bkRYFD7aZIVnlxTwJUlViYBq7mXilNvDdBcJhBQ3vFlTPZPrNg+zL319u5C+vQGlkDwtvAD6J6nR0CnuQ0TR6w==
+"@superfluid-finance/js-sdk@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.6.1.tgz#818934788bf320b1f6cb4551ce8cf6a72aa98e21"
+  integrity sha512-wAXKawmYKY6A9ae3+BHFuKgSb6/IxgBP5UshLJDhmAZmVlZallyDzJMnQszq5T3jJM+C+hDaR4+VmThiqcE4MQ==
   dependencies:
     "@ethersproject/abi" "^5.6.0"
     "@ethersproject/hash" "^5.6.0"

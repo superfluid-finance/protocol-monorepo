@@ -39,7 +39,7 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     cfaMonetaryUnitLens :: SimpleGetter mu (UIDX.CFAMonetaryUnitLens sft)
 
     -- | Lens for DFA data in the mu.
-    dfaMonetaryUnitData :: Lens'        mu (UIDX.DFAMonetaryUnitData sft)
+    dfaMonetaryUnitData :: Lens' mu (UIDX.DFAMonetaryUnitData sft)
     -- | Getter of the lens into the DFA data.
     dfaMonetaryUnitLens :: SimpleGetter mu (UIDX.DFAMonetaryUnitLens sft)
 

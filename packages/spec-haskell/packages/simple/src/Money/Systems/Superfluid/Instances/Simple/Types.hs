@@ -55,7 +55,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as
 import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
 
 
--- ============================================================================
+-- =====================================================================================================================
 -- Value Type:
 --   * 18 decimal digit fixed-precision integer
 --   * an instance of Value
@@ -79,7 +79,7 @@ wad4human wad = wad4humanN wad 4
 instance Show Wad where
     show = wad4human
 
--- ============================================================================
+-- =====================================================================================================================
 -- Type Values:
 
 instance Show (UntappedValue Wad) where
@@ -91,7 +91,7 @@ instance TypedValueTag vtag => Show (TappedValue vtag Wad) where
 instance Show (AnyTappedValue Wad) where
     show (AnyTappedValue (MkTypedValueTag vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
 
--- ============================================================================
+-- =====================================================================================================================
 -- Timestamp type
 
 -- | Simple timestamp Type.
@@ -101,7 +101,7 @@ newtype SimpleTimestamp = SimpleTimestamp Int
 instance Show SimpleTimestamp where
     show (SimpleTimestamp t) = show t ++ "s"
 
--- ============================================================================
+-- =====================================================================================================================
 -- RealTimeBalance Type
 
 -- | Simple Real Time Balance Type.
@@ -170,7 +170,7 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
                 | otherwise = error "Invalid monetary value tag"
         where t = typeRep p
 
--- ============================================================================
+-- =====================================================================================================================
 -- SuperfluidTypes Type
 
 data SimpleSuperfluidTypes
@@ -182,12 +182,14 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
     type SFT_MVAL  SimpleSuperfluidTypes = Wad
     type SFT_TS    SimpleSuperfluidTypes = SimpleTimestamp
     type SFT_RTB_F SimpleSuperfluidTypes = SimpleRealTimeBalanceF
+    dfa_default_lambda _ = log 2 / (3600 * 24 * 7)
 
--- ============================================================================
+-- =====================================================================================================================
 -- Agreement Types
 --
 
--- ITA
+-- * ITA types.
+--
 
 type SimpleITAContractData = UIDX.ITAContractData SimpleSuperfluidTypes
 
@@ -204,7 +206,8 @@ instance Show SimpleITAMonetaryUnitData where
         (show $ x^.ITA.untappedValue)
         (show $ x^.ITA.mintedValue)
 
--- CFA
+-- * CFA types.
+--
 
 type SimpleCFAContractData = UIDX.CFAContractData SimpleSuperfluidTypes
 
@@ -229,7 +232,8 @@ instance Show SimpleCFAMonetaryUnitData where
 instance TaggedTypeable SimpleCFAMonetaryUnitData where
     tagFromProxy _ = "CFA"
 
--- DFA
+-- * DFA types.
+--
 
 type SimpleDFAContractData = UIDX.DFAContractData SimpleSuperfluidTypes
 
@@ -254,7 +258,8 @@ instance Show SimpleDFAMonetaryUnitData where
         (show $ x^.DFA.εVal)
         (show $ x^.DFA.settledBuffer)
 
--- Any
+-- * AnyX types.
+--
 
 -- | AnyAgreementContractData type.
 data AnySimpleAgreementContractData = forall acd amud.
@@ -275,6 +280,9 @@ data AnySimpleAgreementMonetaryUnitData = forall amud.
 
 instance Show AnySimpleAgreementMonetaryUnitData where
     show (MkSimpleAgreementMonetaryUnitData a) = show a
+
+-- * Some useful AgreementContractPartiesF instances
+--
 
 instance ( Foldable (AgreementContractPartiesF acd)
          , Eq elem

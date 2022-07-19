@@ -163,6 +163,8 @@ jobs:
   test-subgraph-on-previous-sdk-core-versions:
     uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
     name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs with Previous SDK-Core Versions
+    needs: [check]
+    if: needs.check.outputs.build_subgraph || needs.check.outputs.build_sdk_core
     with:
       subgraph-release: feature
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test

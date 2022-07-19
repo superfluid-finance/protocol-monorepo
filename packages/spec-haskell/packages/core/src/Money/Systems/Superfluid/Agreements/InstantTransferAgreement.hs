@@ -25,22 +25,14 @@ import           Data.Proxy                        (Proxy (..))
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
-    ( AgreementContractData (..)
-    , AgreementMonetaryUnitData (..)
-    , RealTimeBalance (typedValuesToRTB)
-    , SuperfluidTypes (SFT_MVAL)
-    , TappedValue (..)
-    , TypedValueTag (..)
-    , UntappedValue (..)
-    , Value
-    , mkAnyTappedValue
-    )
 
 -- * MintedValue Type
 --
 
+-- TODO use TH: $(defineTappedValue MintedValueTag "m" BufferValue)
 data MintedValueTag
 instance TypedValueTag MintedValueTag where tappedValueTag _ = "m"
+instance TappedValueTag MintedValueTag
 type MintedValue v = TappedValue MintedValueTag v
 mintedValueTag :: Proxy MintedValueTag
 mintedValueTag = Proxy @MintedValueTag

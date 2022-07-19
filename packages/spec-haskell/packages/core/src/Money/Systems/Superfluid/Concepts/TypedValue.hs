@@ -36,9 +36,10 @@ module Money.Systems.Superfluid.Concepts.TypedValue
     , untappedValueTag
     , UntappedValue (..)
     -- Tapped Value
+    , TappedValueTag
     , TappedValue (..)
     -- Any Tapped Value
-    , AnyTypedValueTag (..)
+    , AnyTappedValueTag (..)
     , AnyTappedValue (..)
     , mkAnyTappedValue
     ) where
@@ -81,7 +82,10 @@ newtype UntappedValue v = UntappedValue v
 
 instance Value v => TypedValue (UntappedValue v) UntappedValueTag v
 
--- | Tapped value type
+-- | Tapped value tag.
+class TypedValueTag tvtag => TappedValueTag tvtag
+
+-- | Tapped value type.
 --
 -- Notional conventions:
 --  * Term name: tval
@@ -95,19 +99,19 @@ instance (Value v, TypedValueTag vtag) => TypedValue (TappedValue vtag v) vtag v
 --
 -- Notional conventions:
 --  * Term name: avtag
-data AnyTypedValueTag = forall vtag. TypedValueTag vtag => MkTypedValueTag (Proxy vtag)
+data AnyTappedValueTag = forall vtag. TappedValueTag vtag => MkTappedValueTag (Proxy vtag)
 
 -- | Any tapped value Type
 --
 -- Notional conventions:
 --  * Term name: aval
-newtype AnyTappedValue v = AnyTappedValue (AnyTypedValueTag, v)
+newtype AnyTappedValue v = AnyTappedValue (AnyTappedValueTag, v)
 
 -- | Create any tapped value
 mkAnyTappedValue
-    :: forall vtag v. (Value v, TypedValueTag vtag)
+    :: forall vtag v. (Value v, TappedValueTag vtag)
     => TappedValue vtag v -> AnyTappedValue v
-mkAnyTappedValue (TappedValue uval) = AnyTappedValue (MkTypedValueTag (Proxy @vtag), uval)
+mkAnyTappedValue (TappedValue uval) = AnyTappedValue (MkTappedValueTag (Proxy @vtag), uval)
 
-instance Value v => TypedValue (AnyTappedValue v) AnyTypedValueTag v where
+instance Value v => TypedValue (AnyTappedValue v) AnyTappedValueTag v where
     untypeValue (AnyTappedValue (_, uval)) = uval

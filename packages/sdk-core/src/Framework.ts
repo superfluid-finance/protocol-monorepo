@@ -8,7 +8,7 @@ import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
-import Operation from "./Operation";
+import Operation, { OperationType } from "./Operation";
 import Query from "./Query";
 import { SFError } from "./SFError";
 import SuperToken, {
@@ -271,6 +271,19 @@ export default class Framework {
             operations,
             hostAddress: this.settings.config.hostAddress,
         });
+    };
+
+    /**
+     * Create an `Operation` class from the `Framework`.
+     * @param txn the populated transaction to execute
+     * @param type the operation type
+     * @returns `Operation` class
+     */
+    operation = (
+        txn: Promise<ethers.PopulatedTransaction>,
+        type: OperationType
+    ) => {
+        return new Operation(txn, type);
     };
 
     /**

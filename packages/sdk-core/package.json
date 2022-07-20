@@ -59,6 +59,7 @@
         "browserify": "^17.0.0",
         "graphql-request": "^4.3.0",
         "lodash": "^4.17.21",
+        "serialize-error": "8.1.0",
         "tsify": "^5.0.4"
     },
     "devDependencies": {

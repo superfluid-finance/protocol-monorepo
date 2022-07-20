@@ -1,3 +1,5 @@
+import { serializeError } from "serialize-error";
+
 export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
@@ -55,7 +57,7 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${JSON.stringify(cause, null, 2)}`
+Caused by: ${serializeError(cause)}`
                 : ""
         }`;
         super(

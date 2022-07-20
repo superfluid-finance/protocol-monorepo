@@ -57,7 +57,7 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${serializeError(cause)}`
+Caused by: ${JSON.stringify(serializeError(cause), null, 2)}`
                 : ""
         }`;
         super(

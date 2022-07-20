@@ -38,7 +38,7 @@ jobs:
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-redux@";then
             echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
           fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/hardhat-deployer@"";then
+          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/hardhat-deployer@";then
             echo "PUBLISH_HARDHAT_DEPLOYER=1" >> $GITHUB_ENV
           fi
 

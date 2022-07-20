@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 - `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
+- Use `serialize-error` for serializing error object inside the message.
 
 ### Breaking
 - `SFError.errorObject` renamed to `SFError.cause`

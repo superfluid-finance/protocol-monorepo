@@ -112,7 +112,7 @@ create_simple_account t = SimpleAccount
     , itaMonetaryUnitData   = mempty
     , cfaMonetaryUnitData   = mempty
     , dfaMonetaryUnitData   = mempty
-    , accountLastUpdatedAt   = t
+    , accountLastUpdatedAt  = t
     }
 
 -- | Simple system data type.
@@ -120,7 +120,7 @@ newtype SimpleSystemData = SimpleSystemData
     { currentTime   :: SimpleTimestamp
     }
 
-
+-- | Agreement contract data key using addresses.
 type ACD_KEY acd = SF.AgreementContractPartiesF acd SimpleAddress
 
 -- | Simple token data type.

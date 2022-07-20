@@ -1,6 +1,5 @@
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Money.Systems.Superfluid.Indexes.UniversalIndexes where
 
@@ -22,18 +21,18 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as
 --
 
 data ITAMonetaryUnitLens sft = ITAMonetaryUnitData
-    { ita_untappedValue :: UntappedValue (SFT_MVAL sft)
-    , ita_mintedValue   :: ITA.MintedValue (SFT_MVAL sft)
+    { ita_untapped_value :: UntappedValue (SFT_MVAL sft)
+    , ita_minted_value   :: ITA.MintedValue (SFT_MVAL sft)
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (ITAMonetaryUnitLens sft)
 
 instance SuperfluidTypes sft => ITA.MonetaryUnitLens (ITAMonetaryUnitLens sft) sft where
-    untappedValue = $(field 'ita_untappedValue)
-    mintedValue   = $(field 'ita_mintedValue)
+    untappedValue = $(field 'ita_untapped_value)
+    mintedValue   = $(field 'ita_minted_value)
 type ITAMonetaryUnitData sft = ITA.MonetaryUnitData (ITAMonetaryUnitLens sft) sft
 
-data ITAContractLens sft = ITAContractData deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (ITAContractLens sft)
+-- not much to look into really
+data ITAContractLens sft = ITAContractData deriving (Generic, Default)
 
 instance SuperfluidTypes sft => ITA.ContractLens (ITAContractLens sft) sft
 type ITAContractData sft = ITA.ContractData (ITAContractLens sft) (ITAMonetaryUnitLens sft) sft
@@ -42,31 +41,31 @@ type ITAContractData sft = ITA.ContractData (ITAContractLens sft) (ITAMonetaryUn
 --
 
 data CFAMonetaryUnitLens sft = CFAMonetaryUnitData
-    { cfa_settledAt            :: SFT_TS sft
-    , cfa_settledUntappedValue :: UntappedValue (SFT_MVAL sft)
-    , cfa_settledBufferValue   :: BBS.BufferValue (SFT_MVAL sft)
-    , cfa_netFlowRate          :: SFT_MVAL sft
+    { cfa_settled_at             :: SFT_TS sft
+    , cfa_settled_untapped_value :: UntappedValue (SFT_MVAL sft)
+    , cfa_settled_buffer_value   :: BBS.BufferValue (SFT_MVAL sft)
+    , cfa_net_flow_rate          :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (CFAMonetaryUnitLens sft)
 
 instance SuperfluidTypes sft => CFA.MonetaryUnitLens (CFAMonetaryUnitLens sft) sft where
-    settledAt            = $(field 'cfa_settledAt)
-    settledUntappedValue = $(field 'cfa_settledUntappedValue)
-    settledBufferValue   = $(field 'cfa_settledBufferValue)
-    netFlowRate          = $(field 'cfa_netFlowRate)
+    settledAt            = $(field 'cfa_settled_at)
+    settledUntappedValue = $(field 'cfa_settled_untapped_value)
+    settledBufferValue   = $(field 'cfa_settled_buffer_value)
+    netFlowRate          = $(field 'cfa_net_flow_rate)
 type CFAMonetaryUnitData sft = CFA.MonetaryUnitData (CFAMonetaryUnitLens sft) sft
 
 data CFAContractLens sft = CFAContractData
-    { cfa_flowLastUpdatedAt :: SFT_TS sft
-    , cfa_flowRate          :: SFT_MVAL sft
-    , cfa_flowBuffer        :: BBS.BufferValue (SFT_MVAL sft)
+    { cfa_flow_last_updated_at :: SFT_TS sft
+    , cfa_flow_rate            :: SFT_MVAL sft
+    , cfa_flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (CFAContractLens sft)
 
 instance SuperfluidTypes sft => CFA.ContractLens (CFAContractLens sft) sft where
-    flowLastUpdatedAt = $(field 'cfa_flowLastUpdatedAt)
-    flowRate          = $(field 'cfa_flowRate)
-    flowBuffer        = $(field 'cfa_flowBuffer)
+    flowLastUpdatedAt = $(field 'cfa_flow_last_updated_at)
+    flowRate          = $(field 'cfa_flow_rate)
+    flowBuffer        = $(field 'cfa_flow_buffer)
 type CFAContractData sft = CFA.ContractData (CFAContractLens sft) (CFAMonetaryUnitLens sft) sft
 
 -- * DFA
@@ -90,14 +89,14 @@ instance SuperfluidTypes sft => DFA.MonetaryUnitLens (DFAMonetaryUnitLens sft) s
 type DFAMonetaryUnitData sft = DFA.MonetaryUnitData (DFAMonetaryUnitLens sft) sft
 
 data DFAContractLens sft = DFAContractData
-    { dfa_flowLastUpdatedAt :: SFT_TS sft
-    , dfa_distributionLimit :: SFT_MVAL sft
-    , dfa_flowBuffer        :: BBS.BufferValue (SFT_MVAL sft)
+    { dfa_flow_last_updated_at :: SFT_TS sft
+    , dfa_distribution_limit   :: SFT_MVAL sft
+    , dfa_flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (DFAContractLens sft)
 
 instance SuperfluidTypes sft => DFA.ContractLens (DFAContractLens sft) sft where
-    flowLastUpdatedAt = $(field 'dfa_flowLastUpdatedAt)
-    distributionLimit = $(field 'dfa_distributionLimit)
-    flowBuffer        = $(field 'dfa_flowBuffer)
+    flowLastUpdatedAt = $(field 'dfa_flow_last_updated_at)
+    distributionLimit = $(field 'dfa_distribution_limit)
+    flowBuffer        = $(field 'dfa_flow_buffer)
 type DFAContractData sft = DFA.ContractData (DFAContractLens sft) (DFAMonetaryUnitLens sft) sft

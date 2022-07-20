@@ -2,8 +2,12 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilies           #-}
 
-module Money.Systems.Superfluid.Agreements.InstantTransferAgreement
-    ( MonetaryUnitLens (..)
+module Money.Systems.Superfluid.Agreements.MinterAgreement
+    ( MintedValueTag
+    , mintedValueTag
+    , MintedValue
+    , mkMintedValue
+    , MonetaryUnitLens (..)
     , MonetaryUnitData (..)
     , ContractLens
     , ContractData (..)
@@ -17,14 +21,29 @@ import           Control.Applicative               (Applicative (..))
 import           Data.Coerce                       (coerce)
 import           Data.Default                      (Default (..))
 import           Data.Kind                         (Type)
+import           Data.Proxy                        (Proxy (..))
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 
--- * ITA.MonetaryUnitData
+-- * MintedValue Type
+--
+
+-- TODO use TH: $(defineTappedValue MintedValueTag "m" BufferValue)
+data MintedValueTag
+instance TypedValueTag MintedValueTag where tappedValueTag _ = "m"
+instance TappedValueTag MintedValueTag
+type MintedValue v = TappedValue MintedValueTag v
+mintedValueTag :: Proxy MintedValueTag
+mintedValueTag = Proxy @MintedValueTag
+mkMintedValue :: Value v => v -> MintedValue v
+mkMintedValue = TappedValue
+
+-- * MINTA.MonetaryUnitData
 --
 class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLens amudL sft | amudL -> sft where
     untappedValue :: Lens' amudL (UntappedValue (SFT_MVAL sft))
+    mintedValue   :: Lens' amudL (MintedValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
 newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
@@ -32,13 +51,16 @@ newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
 instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & over untappedValue (+ b^.untappedValue)
+                  & over mintedValue   (+ b^.mintedValue)
         in MkMonetaryUnitData c
 instance MonetaryUnitLens amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
-    balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB (a^.untappedValue) []
+    balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB
+        ( a^.untappedValue )
+        [ mkAnyTappedValue $ a^.mintedValue ]
 
--- * ITA.ContractData
+-- * MINTA.ContractData
 --
 
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft
@@ -52,18 +74,25 @@ instance ( ContractLens cdL sft
          ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
 
     data AgreementContractPartiesF (ContractData cdL amudL sft) a = ContractPartiesF
-        { transferFrom :: a
-        , transferTo   :: a
+        { mintFrom :: a
+        , mintTo   :: a
         } deriving stock (Functor, Foldable, Traversable)
 
     data AgreementOperation (ContractData cdL amudL sft) =
-        Transfer (SFT_MVAL sft)
+        Mint (SFT_MVAL sft) |
+        Burn (SFT_MVAL sft)
 
-    applyAgreementOperation acd (Transfer amount) _ = let
+    applyAgreementOperation acd (Mint amount) _ = let
         acd'  = acd
         acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
-                    (def & untappedValue .~ coerce (- amount))
+                    (def & mintedValue   .~ coerce (- amount))
                     (def & untappedValue .~ coerce    amount))
+        in (acd', acpsΔ)
+    applyAgreementOperation acd (Burn amount) _ = let
+        acd'  = acd
+        acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
+                    (def & mintedValue   .~ coerce    amount)
+                    (def & untappedValue .~ coerce (- amount)))
         in (acd', acpsΔ)
 
 type ContractPartiesF   sft cdL amudL = AgreementContractPartiesF (ContractData cdL amudL sft)

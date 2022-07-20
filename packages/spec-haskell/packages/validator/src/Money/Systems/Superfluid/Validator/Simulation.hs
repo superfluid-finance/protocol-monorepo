@@ -99,7 +99,7 @@ printTokenState s = do
           let banner = 60 `replicate` '-'
           putStrLn banner
 
-          putStrLn "## CFA Contracts\n"
+          putStrLn "## CFA contracts\n"
           mapM_ print_contract cfaContracts
           putStrLn ""
 

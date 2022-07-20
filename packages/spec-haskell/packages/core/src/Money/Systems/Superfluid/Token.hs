@@ -19,6 +19,7 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
 --
@@ -108,24 +109,34 @@ class ( Monad tk
                 (fmap (\(amud', account) -> set amuData amud' account)
                     (zip (toList acpAMUDs') (toList acpAccounts))))
 
-    --
-    -- ITA Functions
+    -- * MINTA Functions
     --
 
     getMinterAddress :: tk (ACC_ADDR acc)
 
-    viewITAContract :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> tk (Maybe (UIDX.ITAContractData sft))
-    setITAContract  :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> UIDX.ITAContractData sft -> SFT_TS sft -> tk ()
+    viewMINTAContract :: CONTRACT_ACC_ADDR acc (UIDX.MINTAContractData sft) -> tk (Maybe (UIDX.MINTAContractData sft))
+    setMINTAContract  :: CONTRACT_ACC_ADDR acc (UIDX.MINTAContractData sft) -> UIDX.MINTAContractData sft -> SFT_TS sft -> tk ()
 
     mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
     mintValue toAddr amount = do
         minterAddress <- getMinterAddress
         changeAgreement
-            (ITA.ContractPartiesF minterAddress toAddr) (ITA.Mint amount)
+            (MINTA.ContractPartiesF minterAddress toAddr) (MINTA.Mint amount)
+            viewMINTAContract setMINTAContract mintaMonetaryUnitData
+
+    -- * ITA Functions
+    --
+
+    viewITAContract :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> tk (Maybe (UIDX.ITAContractData sft))
+    setITAContract  :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> UIDX.ITAContractData sft -> SFT_TS sft -> tk ()
+
+    transfer :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> SFT_MVAL sft -> tk ()
+    transfer acpAddrs amount = do
+        changeAgreement
+            acpAddrs (ITA.Transfer amount)
             viewITAContract setITAContract itaMonetaryUnitData
 
-    --
-    -- CFA Functions
+    -- * CFA Functions
     --
 
     calcFlowBuffer :: SFT_MVAL sft -> tk (SFT_MVAL sft)
@@ -140,8 +151,7 @@ class ( Monad tk
             acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
             viewFlow setFlow cfaMonetaryUnitData
 
-    --
-    -- DFA Functions
+    -- * DFA Functions
     --
 
     viewDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAContractData sft) -> tk (Maybe (UIDX.DFAContractData sft))

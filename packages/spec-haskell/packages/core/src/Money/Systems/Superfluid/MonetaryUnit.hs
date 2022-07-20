@@ -29,6 +29,11 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     --
 
     -- | Lens for ITA data in the mu.
+    mintaMonetaryUnitData :: Lens'        mu (UIDX.MINTAMonetaryUnitData sft)
+    -- | Lens for the ITA data itself.
+    mintaMonetaryUnitLens :: SimpleGetter mu (UIDX.MINTAMonetaryUnitLens sft)
+
+    -- | Lens for ITA data in the mu.
     itaMonetaryUnitData :: Lens'        mu (UIDX.ITAMonetaryUnitData sft)
     -- | Lens for the ITA data itself.
     itaMonetaryUnitLens :: SimpleGetter mu (UIDX.ITAMonetaryUnitLens sft)

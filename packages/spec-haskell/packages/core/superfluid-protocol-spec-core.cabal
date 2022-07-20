@@ -23,10 +23,12 @@ library
         Money.Systems.Superfluid.Concepts.Agreement
         Money.Systems.Superfluid.Concepts
         Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
+        Money.Systems.Superfluid.Agreements.MinterAgreement
         Money.Systems.Superfluid.Agreements.InstantTransferAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
         Money.Systems.Superfluid.Indexes.UniversalIndexes
+        Money.Systems.Superfluid.Indexes.ProportionalDistributionIndexes
         Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
     other-modules:

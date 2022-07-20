@@ -48,8 +48,10 @@ import qualified Money.Systems.Superfluid.Token                               as
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
-
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
+--
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as SF
+--
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
 
@@ -70,19 +72,23 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 
 -- | Simple account type.
 data SimpleAccount = SimpleAccount
-    { itaMonetaryUnitData  :: SimpleITAMonetaryUnitData
-    , cfaMonetaryUnitData  :: SimpleCFAMonetaryUnitData
-    , dfaMonetaryUnitData  :: SimpleDFAMonetaryUnitData
-    , accountLastUpdatedAt :: SimpleTimestamp
+    { mintaMonetaryUnitData :: SimpleMINTAMonetaryUnitData
+    , itaMonetaryUnitData   :: SimpleITAMonetaryUnitData
+    , cfaMonetaryUnitData   :: SimpleCFAMonetaryUnitData
+    , dfaMonetaryUnitData   :: SimpleDFAMonetaryUnitData
+    , accountLastUpdatedAt  :: SimpleTimestamp
     }
 
 instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
-    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
+    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.mintaMonetaryUnitData)
+                       , MkSimpleAgreementMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
     providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
+    mintaMonetaryUnitData = $(field 'mintaMonetaryUnitData)
+    mintaMonetaryUnitLens = to $ \acc -> let MINTA.MkMonetaryUnitData l = mintaMonetaryUnitData acc in l
     itaMonetaryUnitData = $(field 'itaMonetaryUnitData)
     itaMonetaryUnitLens = to $ \acc -> let ITA.MkMonetaryUnitData l = itaMonetaryUnitData acc in l
     cfaMonetaryUnitData = $(field 'cfaMonetaryUnitData)
@@ -102,10 +108,11 @@ showAccountAt acc t =
 
 create_simple_account :: SimpleTimestamp -> SimpleAccount
 create_simple_account t = SimpleAccount
-    { itaMonetaryUnitData = mempty
-    , cfaMonetaryUnitData = mempty
-    , dfaMonetaryUnitData = mempty
-    , accountLastUpdatedAt = t
+    { mintaMonetaryUnitData = mempty
+    , itaMonetaryUnitData   = mempty
+    , cfaMonetaryUnitData   = mempty
+    , dfaMonetaryUnitData   = mempty
+    , accountLastUpdatedAt   = t
     }
 
 -- | Simple system data type.
@@ -165,9 +172,16 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     getAccount addr     = getSimpleTokenData <&> accounts <&> M.lookup addr <&> fromMaybe (create_simple_account 0)
     putAccount addr acc = modify $ \vs -> vs { accounts = M.insert addr acc (accounts vs) }
 
+    -- * MINTA
+    --
+
+    getMinterAddress = return minter_address
+
+    viewMINTAContract _     = return $ Just def
+    setMINTAContract  _ _ _ = return ()
+
     -- * ITA
     --
-    getMinterAddress = return minter_address
 
     viewITAContract _     = return $ Just def
     setITAContract  _ _ _ = return ()

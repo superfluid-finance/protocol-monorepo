@@ -14,21 +14,40 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
+
+-- * MINTA
+--
+
+data MINTAMonetaryUnitLens sft = MINTAMonetaryUnitData
+    { minta_untapped_value :: UntappedValue (SFT_MVAL sft)
+    , minta_minted_value   :: MINTA.MintedValue (SFT_MVAL sft)
+    } deriving (Generic)
+deriving instance SuperfluidTypes sft => Default (MINTAMonetaryUnitLens sft)
+
+instance SuperfluidTypes sft => MINTA.MonetaryUnitLens (MINTAMonetaryUnitLens sft) sft where
+    untappedValue = $(field 'minta_untapped_value)
+    mintedValue   = $(field 'minta_minted_value)
+type MINTAMonetaryUnitData sft = MINTA.MonetaryUnitData (MINTAMonetaryUnitLens sft) sft
+
+-- not much to look into really
+data MINTAContractLens sft = MINTAContractData deriving (Generic, Default)
+
+instance SuperfluidTypes sft => MINTA.ContractLens (MINTAContractLens sft) sft
+type MINTAContractData sft = MINTA.ContractData (MINTAContractLens sft) (MINTAMonetaryUnitLens sft) sft
 
 -- * ITA
 --
 
 data ITAMonetaryUnitLens sft = ITAMonetaryUnitData
     { ita_untapped_value :: UntappedValue (SFT_MVAL sft)
-    , ita_minted_value   :: ITA.MintedValue (SFT_MVAL sft)
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (ITAMonetaryUnitLens sft)
 
 instance SuperfluidTypes sft => ITA.MonetaryUnitLens (ITAMonetaryUnitLens sft) sft where
     untappedValue = $(field 'ita_untapped_value)
-    mintedValue   = $(field 'ita_minted_value)
 type ITAMonetaryUnitData sft = ITA.MonetaryUnitData (ITAMonetaryUnitLens sft) sft
 
 -- not much to look into really

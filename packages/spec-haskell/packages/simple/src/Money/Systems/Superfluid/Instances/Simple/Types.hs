@@ -22,6 +22,8 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     -- SuperfluidTypes
     , SimpleSuperfluidTypes
     -- Agreements
+    , SimpleMINTAContractData
+    , SimpleMINTAMonetaryUnitData
     , SimpleITAContractData
     , SimpleITAMonetaryUnitData
     , SimpleCFAContractData
@@ -49,6 +51,7 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
 --
@@ -118,7 +121,7 @@ type SimpleRealTimeBalance = SimpleRealTimeBalanceF Wad
 untappedValueL :: Lens' SimpleRealTimeBalance Wad
 untappedValueL  = lensOfRTB untappedValueTag
 mintedValueL   :: Lens' SimpleRealTimeBalance Wad
-mintedValueL    = lensOfRTB ITA.mintedValueTag
+mintedValueL    = lensOfRTB MINTA.mintedValueTag
 depositValueL   :: Lens' SimpleRealTimeBalance Wad
 depositValueL   = lensOfRTB BBS.bufferValueTag
 
@@ -155,18 +158,18 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
         (SimpleRealTimeBalanceF uval def def) <> (flip foldMap tvec g)
         -- extra correctly typed RTB monoid
         where g = \(AnyTappedValue (MkTappedValueTag p, v)) -> case typeRep p of
-                  t | t == typeRep ITA.mintedValueTag -> SimpleRealTimeBalanceF def   v def
-                    | t == typeRep BBS.bufferValueTag -> SimpleRealTimeBalanceF def def   v
+                  t | t == typeRep MINTA.mintedValueTag -> SimpleRealTimeBalanceF def   v def
+                    | t == typeRep BBS.bufferValueTag   -> SimpleRealTimeBalanceF def def   v
                     | otherwise -> error "Invalid monetary value tag"
 
     typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
-                              [ mkAnyTappedValue $ ITA.mkMintedValue $ mintedValue rtb
-                              , mkAnyTappedValue $ BBS.mkBufferValue $ depositValue rtb
+                              [ mkAnyTappedValue $ MINTA.mkMintedValue $ mintedValue rtb
+                              , mkAnyTappedValue $ BBS.mkBufferValue   $ depositValue rtb
                               ])
 
-    lensOfRTB p | t == typeRep untappedValueTag   = $(field 'untappedValue)
-                | t == typeRep ITA.mintedValueTag = $(field 'mintedValue)
-                | t == typeRep BBS.bufferValueTag = $(field 'depositValue)
+    lensOfRTB p | t == typeRep untappedValueTag      = $(field 'untappedValue)
+                | t == typeRep MINTA.mintedValueTag  = $(field 'mintedValue)
+                | t == typeRep BBS.bufferValueTag    = $(field 'depositValue)
                 | otherwise = error "Invalid monetary value tag"
         where t = typeRep p
 
@@ -188,6 +191,24 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreement Types
 --
 
+-- * MINTA types.
+--
+
+type SimpleMINTAContractData = UIDX.MINTAContractData SimpleSuperfluidTypes
+
+instance TaggedTypeable SimpleMINTAContractData where
+    tagFromProxy _ = "MINTA#"
+
+type SimpleMINTAMonetaryUnitData = UIDX.MINTAMonetaryUnitData SimpleSuperfluidTypes
+
+instance TaggedTypeable SimpleMINTAMonetaryUnitData where
+    tagFromProxy _ = "MINTA"
+
+instance Show SimpleMINTAMonetaryUnitData where
+    show (MINTA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
+        (show $ x^.MINTA.untappedValue)
+        (show $ x^.MINTA.mintedValue)
+
 -- * ITA types.
 --
 
@@ -202,9 +223,8 @@ instance TaggedTypeable SimpleITAMonetaryUnitData where
     tagFromProxy _ = "ITA"
 
 instance Show SimpleITAMonetaryUnitData where
-    show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
+    show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITA.untappedValue)
-        (show $ x^.ITA.mintedValue)
 
 -- * CFA types.
 --

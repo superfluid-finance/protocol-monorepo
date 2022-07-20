@@ -7,6 +7,7 @@ import Framework from "./Framework";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import Operation, { OperationType } from "./Operation";
 import Query from "./Query";
 import SuperToken, {
     NativeAssetSuperToken,
@@ -22,6 +23,7 @@ export * from "./ordering";
 export * from "./events";
 export * from "./types";
 
+export { Operation, OperationType };
 export { BatchCall };
 export { ConstantFlowAgreementV1 };
 export { ERC20Token };

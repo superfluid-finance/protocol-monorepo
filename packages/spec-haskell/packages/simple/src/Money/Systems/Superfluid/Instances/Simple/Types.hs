@@ -144,7 +144,6 @@ instance Show (SimpleRealTimeBalanceF Wad) where
             ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeValue )) $ tvec)
             ++ " )"
 
-
 instance Semigroup (SimpleRealTimeBalanceF Wad) where
     (<>) = liftA2 (+)
 

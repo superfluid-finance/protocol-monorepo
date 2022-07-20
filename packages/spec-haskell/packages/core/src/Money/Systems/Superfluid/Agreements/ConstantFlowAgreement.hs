@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
-    ( MonetaryUnitLens (..)
+    ( MonetaryUnitLenses (..)
     , MonetaryUnitData (..)
     , ContractLens (..)
     , ContractData (..)
@@ -25,28 +25,28 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 
--- * CFA.MonetaryUnitData
+-- * MonetaryUnitData
 --
 
-class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLens amudL sft | amudL -> sft where
+class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLenses amudL sft | amudL -> sft where
     settledAt            :: Lens' amudL (SFT_TS sft)
     settledUntappedValue :: Lens' amudL (UntappedValue (SFT_MVAL sft))
     settledBufferValue   :: Lens' amudL (BBS.BufferValue (SFT_MVAL sft))
     netFlowRate          :: Lens' amudL (SFT_MVAL sft)
 
-type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
-newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
+type MonetaryUnitData :: Type -> Type -> Type
+newtype MonetaryUnitData amudL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amudL } deriving (Default)
 
-instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) where
+instance MonetaryUnitLenses amudL sft => Semigroup (MonetaryUnitData amudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & set  settledAt            (  b^.settledAt)
                   & over settledUntappedValue (+ b^.settledUntappedValue)
                   & over netFlowRate          (+ b^.netFlowRate)
                   & over settledBufferValue   (+ b^.settledBufferValue)
         in MkMonetaryUnitData c
-instance MonetaryUnitLens amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLenses amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
+instance MonetaryUnitLenses amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ uval_s + calc_value_delta fr t_s t )
             [ mkAnyTappedValue buf_s ]
@@ -55,7 +55,7 @@ instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitDa
               buf_s                = a^.settledBufferValue
               fr                   = a^.netFlowRate
 
--- * ITA.ContractData
+-- * ContractData
 --
 
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft where
@@ -64,12 +64,12 @@ class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft wh
     flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_MVAL sft))
 
 type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData cdL amudL sft = MkContractData cdL deriving (Default)
+newtype ContractData cdL amudL sft = MkContractData { getContractLenses :: cdL } deriving (Default)
 
 type FlowRate sft = SFT_MVAL sft
 
 instance ( ContractLens cdL sft
-         , MonetaryUnitLens amudL sft
+         , MonetaryUnitLenses amudL sft
          , AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft
          ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
 

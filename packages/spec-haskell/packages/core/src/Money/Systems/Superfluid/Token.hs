@@ -9,21 +9,22 @@ module Money.Systems.Superfluid.Token
     ) where
 
 import           Data.Default
-import           Data.Foldable                                                (toList)
-import           Data.Kind                                                    (Type)
-import           Data.Maybe                                                   (fromMaybe)
+import           Data.Foldable                                                    (toList)
+import           Data.Kind                                                        (Type)
+import           Data.Maybe                                                       (fromMaybe)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement     as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement              as MINTA
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
+import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndexes as PDIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
 --
 import           Money.Systems.Superfluid.MonetaryUnit
 
@@ -162,6 +163,11 @@ class ( Monad tk
         changeAgreement
             acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
             viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
+
+    -- * IDA Functions
+    --
+
+    -- distribute :: CONTRACT_ACC_ADDR acc (PDIDX.ITAContractData sft) -> SFT_MVAL sft -> tk ()
 
 -- ============================================================================
 -- Internal

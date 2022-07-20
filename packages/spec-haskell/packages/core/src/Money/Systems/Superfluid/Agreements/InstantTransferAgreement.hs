@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Agreements.InstantTransferAgreement
-    ( MonetaryUnitLens (..)
+    ( MonetaryUnitLenses (..)
     , MonetaryUnitData (..)
     , ContractLens
     , ContractData (..)
@@ -23,19 +23,19 @@ import           Money.Systems.Superfluid.Concepts
 
 -- * ITA.MonetaryUnitData
 --
-class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLens amudL sft | amudL -> sft where
+class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLenses amudL sft | amudL -> sft where
     untappedValue :: Lens' amudL (UntappedValue (SFT_MVAL sft))
 
-type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
-newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
+type MonetaryUnitData :: Type -> Type -> Type
+newtype MonetaryUnitData amudL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amudL } deriving (Default)
 
-instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) where
+instance MonetaryUnitLenses amudL sft => Semigroup (MonetaryUnitData amudL sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & over untappedValue (+ b^.untappedValue)
         in MkMonetaryUnitData c
-instance MonetaryUnitLens amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLenses amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
+instance MonetaryUnitLenses amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB (a^.untappedValue) []
 
 -- * ITA.ContractData
@@ -43,11 +43,11 @@ instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitDa
 
 class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft
 
-type ContractData :: Type -> Type -> Type -> Type -- make GHC happy
-newtype ContractData cdL amudL sft = MkContractData cdL deriving (Default)
+type ContractData :: Type -> Type -> Type -> Type
+newtype ContractData cdL amudL sft = MkContractData { getContractLenses :: cdL } deriving (Default)
 
 instance ( ContractLens cdL sft
-         , MonetaryUnitLens amudL sft
+         , MonetaryUnitLenses amudL sft
          , AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft
          ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
 
@@ -62,8 +62,8 @@ instance ( ContractLens cdL sft
     applyAgreementOperation acd (Transfer amount) _ = let
         acd'  = acd
         acpsΔ = fmap MkMonetaryUnitData (ContractPartiesF
-                    (def & untappedValue .~ coerce (- amount))
-                    (def & untappedValue .~ coerce    amount))
+                    (def & set untappedValue (coerce (- amount)))
+                    (def & set untappedValue (coerce    amount)))
         in (acd', acpsΔ)
 
 type ContractPartiesF   sft cdL amudL = AgreementContractPartiesF (ContractData cdL amudL sft)

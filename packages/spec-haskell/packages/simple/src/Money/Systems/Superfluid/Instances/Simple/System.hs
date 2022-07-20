@@ -33,24 +33,17 @@ module Money.Systems.Superfluid.Instances.Simple.System
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
-import           Data.Binary                                                  (Binary)
-import           Data.Char                                                    (isAlpha)
+import           Data.Binary                                     (Binary)
+import           Data.Char                                       (isAlpha)
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                                     as M
+import qualified Data.Map                                        as M
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Internal
 
-import qualified Money.Systems.Superfluid.Token                               as SF
---
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
---
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as SF
+import qualified Money.Systems.Superfluid.Token                  as SF
 --
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
@@ -81,20 +74,19 @@ data SimpleAccount = SimpleAccount
 
 instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
+    providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
+
     agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.mintaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
+                       -- , ... list all subscribed PDIDX ITA/CFA AMUD
                        ]
-    providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
+
     mintaMonetaryUnitData = $(field 'mintaMonetaryUnitData)
-    mintaMonetaryUnitLens = to $ \acc -> let MINTA.MkMonetaryUnitData l = mintaMonetaryUnitData acc in l
-    itaMonetaryUnitData = $(field 'itaMonetaryUnitData)
-    itaMonetaryUnitLens = to $ \acc -> let ITA.MkMonetaryUnitData l = itaMonetaryUnitData acc in l
-    cfaMonetaryUnitData = $(field 'cfaMonetaryUnitData)
-    cfaMonetaryUnitLens = to $ \acc -> let CFA.MkMonetaryUnitData l = cfaMonetaryUnitData acc in l
-    dfaMonetaryUnitData = $(field 'dfaMonetaryUnitData)
-    dfaMonetaryUnitLens = to $ \acc -> let DFA.MkMonetaryUnitData l = dfaMonetaryUnitData acc in l
+    itaMonetaryUnitData   = $(field 'itaMonetaryUnitData)
+    cfaMonetaryUnitData   = $(field 'cfaMonetaryUnitData)
+    dfaMonetaryUnitData   = $(field 'dfaMonetaryUnitData)
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -121,7 +113,7 @@ newtype SimpleSystemData = SimpleSystemData
     }
 
 -- | Agreement contract data key using addresses.
-type ACD_KEY acd = SF.AgreementContractPartiesF acd SimpleAddress
+type ACD_KEY acd = AgreementContractPartiesF acd SimpleAddress
 
 -- | Simple token data type.
 data SimpleTokenData = SimpleTokenData

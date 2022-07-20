@@ -80,10 +80,10 @@ createTestAccount addr initBalance = runToken $ do
 -- * TokenTester Assertions
 --
 
-expectAccountBalanceTo :: HasCallStack => SF.SimpleAddress -> (SF.Wad -> Bool) -> String -> TokenTester ()
-expectAccountBalanceTo addr expr label = do
+expectAccountBalanceTo :: HasCallStack => SF.SimpleAddress -> (SF.Wad -> Assertion) -> TokenTester ()
+expectAccountBalanceTo addr expr = do
     balance <- runToken $ SF.balanceOfAccount addr
-    liftIO $ assertBool label (expr . SF.netValueOfRTB $ balance)
+    liftIO $ expr $ SF.netValueOfRTB balance
 
 expectZeroTotalValueFuzzily :: HasCallStack => Double -> TokenTester ()
 expectZeroTotalValueFuzzily tolerance = do
@@ -94,3 +94,11 @@ expectZeroTotalValueFuzzily tolerance = do
 
 expectZeroTotalValue :: TokenTester ()
 expectZeroTotalValue = expectZeroTotalValueFuzzily 0
+
+-- Convenient utilities just for formatting prettiness (message in the end)
+
+assertBoolWith :: (a -> Bool) -> String -> a -> Assertion
+assertBoolWith f msg x = assertBool msg (f x)
+
+assertEqualWith :: (Show a, Eq a) => a -> String -> a -> Assertion
+assertEqualWith a msg = assertEqual msg a

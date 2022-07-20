@@ -6,7 +6,7 @@
 --
 -- NOTE: The formulas can be obtained from the output of maths/DFA.py
 module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-    ( MonetaryUnitLens(..)
+    ( MonetaryUnitLenses(..)
     , MonetaryUnitData (..)
     , ContractLens (..)
     , ContractData (..)
@@ -29,17 +29,17 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
 -- * DFA.MonetaryUnitData
 --
-class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLens amudL sft | amudL -> sft where
+class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLenses amudL sft | amudL -> sft where
     decayingFactor  :: Lens' amudL (SFT_FLOAT sft)
     settledAt       :: Lens' amudL (SFT_TS sft)
     αVal            :: Lens' amudL (SFT_FLOAT sft)
     εVal            :: Lens' amudL (SFT_FLOAT sft)
     settledBuffer   :: Lens' amudL (BBS.BufferValue (SFT_MVAL sft))
 
-type MonetaryUnitData :: Type -> Type -> Type -- kind signature is required to make GHC happy
-newtype MonetaryUnitData amudL sft = MkMonetaryUnitData amudL
+type MonetaryUnitData :: Type -> Type -> Type
+newtype MonetaryUnitData amudL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amudL } deriving (Default)
 
-instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) where
+instance MonetaryUnitLenses amudL sft => Semigroup (MonetaryUnitData amudL sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'
@@ -57,9 +57,9 @@ instance MonetaryUnitLens amudL sft => Semigroup (MonetaryUnitData amudL sft) wh
         where ε'  = b^.εVal
               λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
-instance MonetaryUnitLens amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLenses amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLens amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
+instance MonetaryUnitLenses amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
     -- | Provided balance by DFA
     --
     -- Formula:
@@ -84,12 +84,12 @@ class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft wh
     flowBuffer        :: Lens' cdL (BBS.BufferValue (SFT_MVAL sft))
 
 type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData cdL amudL sft = MkContractData cdL deriving (Default)
+newtype ContractData cdL amudL sft = MkContractData { getContractLenses :: cdL } deriving (Default)
 
 type DistributionLimit sft = SFT_MVAL sft
 
 instance ( ContractLens cdL sft
-         , MonetaryUnitLens amudL sft
+         , MonetaryUnitLenses amudL sft
          , AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft
          ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
 
@@ -126,6 +126,6 @@ instance ( ContractLens cdL sft
 type ContractPartiesF   sft cdL amudL = AgreementContractPartiesF (ContractData cdL amudL sft)
 type ContractPartiesMUD sft cdL amudL = ContractPartiesF sft cdL (MonetaryUnitData amudL sft)
 
-instance MonetaryUnitLens amudL sft => Applicative (ContractPartiesF sft cdL amudL) where
+instance MonetaryUnitLenses amudL sft => Applicative (ContractPartiesF sft cdL amudL) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')

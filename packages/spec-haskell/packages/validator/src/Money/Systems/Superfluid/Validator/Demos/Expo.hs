@@ -3,12 +3,12 @@
 module Money.Systems.Superfluid.Validator.Demos.Expo (demo) where
 
 import           Control.Monad.IO.Class
-import           Data.Time.Clock.POSIX                                     (getPOSIXTime)
+import           Data.Time.Clock.POSIX                              (getPOSIXTime)
 import           GHC.Stack
 
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlowAgreement as CFA
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex as UIDX
 --
-import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System   as SF
 --
 import           Money.Systems.Superfluid.Validator.Simulation
 
@@ -36,8 +36,8 @@ demo = do
 
     let t1 = t0
     liftIO $ putStrLn $ "# T1: create flows" ++ show (t1 - t0)
-    runToken token $ SF.updateFlow (CFA.ContractPartiesF alice bob) (SF.toWad (0.0001::Double))
-    runToken token $ SF.updateFlow (CFA.ContractPartiesF alice carol) (SF.toWad (0.0002::Double))
+    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice bob) (SF.toWad (0.0001::Double))
+    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice carol) (SF.toWad (0.0002::Double))
     runSimTokenOp token printTokenState
 
     timeTravel $ 3600 * 24

@@ -23,12 +23,17 @@ library
         Money.Systems.Superfluid.Concepts.Agreement
         Money.Systems.Superfluid.Concepts
         Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
-        Money.Systems.Superfluid.Agreements.MinterAgreement
-        Money.Systems.Superfluid.Agreements.InstantTransferAgreement
-        Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
-        Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Systems.Superfluid.Indexes.UniversalIndex
-        Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex
+        Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter
+        Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer
+        Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow
+        Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow
+        Money.Systems.Superfluid.Agreements.UniversalIndex.Data
+        Money.Systems.Superfluid.Agreements.UniversalIndex.Minter
+        Money.Systems.Superfluid.Agreements.UniversalIndex.InstantTransfer
+        Money.Systems.Superfluid.Agreements.UniversalIndex.ConstantFlow
+        Money.Systems.Superfluid.Agreements.UniversalIndex.DecayingFlow
+        Money.Systems.Superfluid.Agreements.UniversalIndex
+        Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex
         Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
     other-modules:

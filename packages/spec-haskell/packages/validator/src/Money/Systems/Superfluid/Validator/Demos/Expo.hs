@@ -6,7 +6,7 @@ import           Control.Monad.IO.Class
 import           Data.Time.Clock.POSIX                                     (getPOSIXTime)
 import           GHC.Stack
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement as CFA
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlowAgreement as CFA
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
 --

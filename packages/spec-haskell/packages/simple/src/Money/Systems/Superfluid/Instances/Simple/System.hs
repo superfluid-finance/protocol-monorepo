@@ -33,25 +33,24 @@ module Money.Systems.Superfluid.Instances.Simple.System
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
-import           Data.Binary                                                    (Binary)
-import           Data.Char                                                      (isAlpha)
+import           Data.Binary                                                          (Binary)
+import           Data.Char                                                            (isAlpha)
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                                       as M
+import qualified Data.Map                                                             as M
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Internal
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement      as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement   as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement            as MINTA
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow    as CFMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow    as DFMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter          as MMUD
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex    as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                   as UIDX
 --
-import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndex                as UIDX
---
-import qualified Money.Systems.Superfluid.Token                                 as SF
+import qualified Money.Systems.Superfluid.Token                                       as SF
 --
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
@@ -93,17 +92,17 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
 
     universalIndex = $(field 'universal_index)
     mintaMonetaryUnitData = lens
-        (MINTA.MkMonetaryUnitData . universal_index)
-        (\acc (MINTA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+        (MMUD.MkMonetaryUnitData . universal_index)
+        (\acc (MMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
     itaMonetaryUnitData = lens
-        (ITA.MkMonetaryUnitData . universal_index)
-        (\acc (ITA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+        (ITMUD.MkMonetaryUnitData . universal_index)
+        (\acc (ITMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
     cfaMonetaryUnitData = lens
-        (CFA.MkMonetaryUnitData . universal_index)
-        (\acc (CFA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+        (CFMUD.MkMonetaryUnitData . universal_index)
+        (\acc (CFMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
     dfaMonetaryUnitData = lens
-        (DFA.MkMonetaryUnitData . universal_index)
-        (\acc (DFA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+        (DFMUD.MkMonetaryUnitData . universal_index)
+        (\acc (DFMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
 
     proportionalDistributionIndexes       = $(field 'pd_indexes)
     proportionalDistributionSubscriptions = $(field 'pd_subscriptions)
@@ -135,13 +134,13 @@ newtype SimpleSystemData = SimpleSystemData
     }
 
 -- | Agreement contract data key using addresses.
-type ACD_KEY acd = AgreementContractPartiesF acd SimpleAddress
+type ACD_KEY ao = AgreementOperationPartiesF ao SimpleAddress
 
 -- | Simple token data type.
 data SimpleTokenData = SimpleTokenData
     { accounts           :: M.Map SimpleAddress SimpleAccount
-    , cfaContractData    :: M.Map (ACD_KEY SimpleCFAContractData) SimpleCFAContractData
-    , dfaContractData    :: M.Map (ACD_KEY SimpleDFAContractData) SimpleDFAContractData
+    , cfaContractData    :: M.Map (ACD_KEY SimpleCFAOperation) SimpleCFAContractData
+    , dfaContractData    :: M.Map (ACD_KEY SimpleDFAOperation) SimpleDFAContractData
     , tokenLastUpdatedAt :: SimpleTimestamp
     }
 
@@ -188,21 +187,21 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
         { accounts = M.insert addr (acc { account_last_updated_at = t }) (accounts vs)
         }
 
-    -- * MINTA
+    -- * MMUD
     --
 
     getMinterAddress = return minter_address
 
-    viewMINTAContract _     = return $ Just def
-    setMINTAContract  _ _ _ = return ()
+    viewMinterContract _     = return $ Just def
+    setMinterContract  _ _ _ = return ()
 
-    -- * ITA
+    -- * ITMUD
     --
 
     viewITAContract _     = return $ Just def
     setITAContract  _ _ _ = return ()
 
-    -- * CFA
+    -- * CFMUD
     --
     calcFlowBuffer = return  . (* Wad 3600)
 
@@ -212,7 +211,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
         , tokenLastUpdatedAt = t
         }
 
-    -- * DFA
+    -- * DFMUD
     --
     viewDecayingFlow acdAddr       = getSimpleTokenData <&> dfaContractData <&> M.lookup acdAddr
     setDecayingFlow  acdAddr acd t = modify $ \vs -> vs
@@ -245,8 +244,8 @@ addAccount accountAddr account = modify (\vs -> vs {
 listAccounts :: Monad m => SimpleTokenStateT m [(SimpleAddress, SimpleAccount)]
 listAccounts = getSimpleTokenData <&> M.toList . accounts
 
-listCFAContracts :: Monad m => SimpleTokenStateT m [(ACD_KEY SimpleCFAContractData, SimpleCFAContractData)]
+listCFAContracts :: Monad m => SimpleTokenStateT m [(ACD_KEY SimpleCFAOperation, SimpleCFAContractData)]
 listCFAContracts = getSimpleTokenData <&> M.toList . cfaContractData
 
-listDFAContracts :: Monad m => SimpleTokenStateT m [(ACD_KEY SimpleDFAContractData, SimpleDFAContractData)]
+listDFAContracts :: Monad m => SimpleTokenStateT m [(ACD_KEY SimpleDFAOperation, SimpleDFAContractData)]
 listDFAContracts = getSimpleTokenData <&> M.toList . dfaContractData

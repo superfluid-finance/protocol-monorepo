@@ -17,9 +17,9 @@ import           Data.Coerce                                     (coerce)
 import           Data.Proxy
 
 
--- import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
--- import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
--- import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
+-- import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlowAgreement        as CFA
+-- import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlowAgreement        as DFA
+-- import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransferAgreement as ITA
 -- import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 --
 import           Money.Systems.Superfluid.Instances.Simple.Types

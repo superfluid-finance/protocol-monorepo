@@ -8,14 +8,14 @@ module Money.Systems.Superfluid.MonetaryUnit
     , sumBalancesAt
     ) where
 
-import           Data.Kind                                                      (Type)
+import           Data.Kind                                                         (Type)
 
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndex                as UIDX
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                as UIDX
 
 -- | Monetary unit type class.
 --
@@ -47,7 +47,7 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     universalIndex :: SimpleGetter mu (UIDX.UniversalIndex sft)
 
     -- | Lens for MINTA data in the mu.
-    mintaMonetaryUnitData :: Lens' mu (UIDX.MINTAMonetaryUnitData sft)
+    mintaMonetaryUnitData :: Lens' mu (UIDX.MinterMonetaryUnitData sft)
 
     -- | Lens for ITA data in the mu.
     itaMonetaryUnitData :: Lens' mu (UIDX.ITAMonetaryUnitData sft)
@@ -62,7 +62,7 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     --
 
     -- | Getter of the lenses of mu in the proportional distribution indexes.
-    proportionalDistributionIndexes       :: SimpleGetter mu [PDIDX.ProportionalDistributionIndex sft]
+    proportionalDistributionIndexes :: SimpleGetter mu [PDIDX.ProportionalDistributionIndex sft]
 
     -- | Getter of the lenses of mu in the proportional distribution subscriptions.
     proportionalDistributionSubscriptions :: SimpleGetter mu [PDIDX.ProportionalDistributionSubscription sft]

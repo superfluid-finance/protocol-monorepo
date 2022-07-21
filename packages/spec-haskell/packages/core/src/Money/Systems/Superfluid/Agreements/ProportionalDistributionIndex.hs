@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 
-module Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex where
+module Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex where
 
 import           Data.Default
 import           GHC.Generics
@@ -10,8 +10,7 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
-
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer as ITMUD
 
 data ProportionalDistributionIndex sft = ProportionalDistributionIndex
     { total_unit              :: SFT_FLOAT sft
@@ -28,7 +27,7 @@ deriving instance SuperfluidTypes sft => Default (ProportionalDistributionSubscr
 -- * IDA is IDA over the Proportional Distribution Index
 --
 
-instance SuperfluidTypes sft => ITA.MonetaryUnitLenses (ProportionalDistributionIndex sft) sft where
+instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (ProportionalDistributionIndex sft) sft where
     untappedValue = lens
         -- lens getter: published value + subscribed value
         (\ProportionalDistributionIndex { total_distributed_value = tdv } -> UntappedValue $ tdv)
@@ -37,15 +36,15 @@ instance SuperfluidTypes sft => ITA.MonetaryUnitLenses (ProportionalDistribution
              let tdv = total_distributed_value index
              in  index { total_distributed_value = tdv + amount })
 
-instance SuperfluidTypes sft => ITA.MonetaryUnitLenses (ProportionalDistributionSubscription sft) sft where
+instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (ProportionalDistributionSubscription sft) sft where
     untappedValue = readOnlyLens
         -- lens getter: subscribed value
         (\ProportionalDistributionSubscription { index, owned_unit = u } -> UntappedValue $ floor $
             let total_value = fromIntegral (total_distributed_value index)
             in  total_value * u / (total_unit index))
 
-type IDAPublisherMonetaryUnitData sft  = ITA.MonetaryUnitData (ProportionalDistributionIndex sft) sft
-type IDASubscriberMonetaryUnitData sft = ITA.MonetaryUnitData (ProportionalDistributionSubscription sft) sft
+type IDAPublisherMonetaryUnitData sft  = ITMUD.MonetaryUnitData (ProportionalDistributionIndex sft) sft
+type IDASubscriberMonetaryUnitData sft = ITMUD.MonetaryUnitData (ProportionalDistributionSubscription sft) sft
 
-type IDAPublisherContractData sft = ITA.ContractData (ProportionalDistributionIndex sft) sft
-type IDASubscriberContractData sft = ITA.ContractData (ProportionalDistributionSubscription sft) sft
+data IDAPublisherContractData sft = IDAPublisherContractData
+data IDASubscriberContractData sft = IDASubscriberContractData

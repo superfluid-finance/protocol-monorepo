@@ -11,7 +11,7 @@ import           GHC.Stack
 import           Lens.Micro
 import           Text.Printf
 
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement as DFA
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlowAgreement as DFA
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
 --

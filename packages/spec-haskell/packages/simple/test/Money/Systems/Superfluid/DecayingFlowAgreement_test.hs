@@ -32,7 +32,7 @@ assertFuzzilyEqualWith a msg b = assertEqual msg (FuzzyEqDouble a) (FuzzyEqDoubl
 expectΕValTo :: HasCallStack => SF.SimpleAddress -> (Double -> Assertion) -> TokenTester ()
 expectΕValTo addr expr = do
     acc <- runToken $ SF.getAccount addr
-    let εVal = acc^.SF.dfaMonetaryUnitLenses^.DFA.εVal
+    let εVal = acc^.SF.universalIndex^.DFA.εVal
     liftIO $ expr εVal
 
 expectDistributionLimitTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()

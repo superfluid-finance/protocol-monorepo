@@ -9,22 +9,22 @@ module Money.Systems.Superfluid.Token
     ) where
 
 import           Data.Default
-import           Data.Foldable                                                    (toList)
-import           Data.Kind                                                        (Type)
-import           Data.Maybe                                                       (fromMaybe)
+import           Data.Foldable                                                  (toList)
+import           Data.Kind                                                      (Type)
+import           Data.Maybe                                                     (fromMaybe)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement        as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement        as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement     as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement              as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement      as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement   as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement            as MINTA
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndexes as PDIDX
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes                as UIDX
+import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndex                as UIDX
 --
 import           Money.Systems.Superfluid.MonetaryUnit
 
@@ -60,20 +60,17 @@ class ( Monad tk
       , SuperfluidTypes sft
       , Account acc sft
       ) => Token tk acc sft | tk -> acc, tk -> sft where
-
-    --
-    -- System Functions
+    -- * System Functions
     --
 
     getCurrentTime :: tk (SFT_TS sft)
 
-    --
-    -- Account Data Functions
+    -- * Account Functions
     --
 
     getAccount :: ACC_ADDR acc -> tk acc
 
-    putAccount :: ACC_ADDR acc -> acc -> tk ()
+    putAccount :: ACC_ADDR acc -> acc -> SFT_TS sft -> tk ()
 
     balanceOfAccount :: ACC_ADDR acc -> tk (SFT_RTB sft)
     balanceOfAccount addr = do
@@ -81,11 +78,10 @@ class ( Monad tk
         account <- getAccount addr
         return $ balanceOfAt account t
 
-    --
-    -- Polymorphic Agreement Functions
+    -- * Agreements operations over the universal index
     --
 
-    changeAgreement
+    updateUniversalIndex
         :: AgreementContractData acd amud sft
         => (AgreementContractPartiesF acd) (ACC_ADDR acc)                                 -- acpAddrs
         -> AgreementOperation acd                                                         -- ao
@@ -93,7 +89,7 @@ class ( Monad tk
         -> ((AgreementContractPartiesF acd) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ()) -- acdSetter
         -> Lens' acc amud                                                                 -- amudL
         -> tk ()
-    changeAgreement acpAddrs ao acdGetter acdSetter amuData = do
+    updateUniversalIndex acpAddrs ao acdGetter acdSetter amuData = do
         -- load acd and accounts data
         t <- getCurrentTime
         acd <- fromMaybe def <$> acdGetter acpAddrs
@@ -105,12 +101,12 @@ class ( Monad tk
         -- set new acd
         acdSetter acpAddrs acd' t
         -- set new amuds
-        mapM_ (uncurry putAccount)
+        mapM_ (\(addr, amud) -> putAccount addr amud t)
             (zip (toList acpAddrs)
                 (fmap (\(amud', account) -> set amuData amud' account)
                     (zip (toList acpAMUDs') (toList acpAccounts))))
 
-    -- * MINTA Functions
+    -- ** MINTA Functions
     --
 
     getMinterAddress :: tk (ACC_ADDR acc)
@@ -121,11 +117,11 @@ class ( Monad tk
     mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
     mintValue toAddr amount = do
         minterAddress <- getMinterAddress
-        changeAgreement
+        updateUniversalIndex
             (MINTA.ContractPartiesF minterAddress toAddr) (MINTA.Mint amount)
             viewMINTAContract setMINTAContract mintaMonetaryUnitData
 
-    -- * ITA Functions
+    -- ** ITA Functions
     --
 
     viewITAContract :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> tk (Maybe (UIDX.ITAContractData sft))
@@ -133,11 +129,11 @@ class ( Monad tk
 
     transfer :: CONTRACT_ACC_ADDR acc (UIDX.ITAContractData sft) -> SFT_MVAL sft -> tk ()
     transfer acpAddrs amount = do
-        changeAgreement
+        updateUniversalIndex
             acpAddrs (ITA.Transfer amount)
             viewITAContract setITAContract itaMonetaryUnitData
 
-    -- * CFA Functions
+    -- ** CFA Functions
     --
 
     calcFlowBuffer :: SFT_MVAL sft -> tk (SFT_MVAL sft)
@@ -148,11 +144,11 @@ class ( Monad tk
     updateFlow :: CONTRACT_ACC_ADDR acc (UIDX.CFAContractData sft) -> CFA.FlowRate sft -> tk ()
     updateFlow acpAddrs newFlowRate = do
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
-        changeAgreement
+        updateUniversalIndex
             acpAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
             viewFlow setFlow cfaMonetaryUnitData
 
-    -- * DFA Functions
+    -- ** DFA Functions
     --
 
     viewDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAContractData sft) -> tk (Maybe (UIDX.DFAContractData sft))
@@ -160,14 +156,29 @@ class ( Monad tk
 
     updateDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAContractData sft) -> DFA.DistributionLimit sft -> tk ()
     updateDecayingFlow acpAddrs newDistributionLimit = do
-        changeAgreement
+        updateUniversalIndex
             acpAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
             viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
 
-    -- * IDA Functions
+
+    -- * Agreements operations over proportional distribution indexes
     --
 
-    -- distribute :: CONTRACT_ACC_ADDR acc (PDIDX.ITAContractData sft) -> SFT_MVAL sft -> tk ()
+    -- ** IDA Functions
+    --
+
+    createProportionalDistributionIndex
+        :: ACC_ADDR acc                    -- publisher
+        -> ProportionalDistributionIndexID -- indexId
+        -> tk ()
+
+    subscribeProportionalDistributionIndex
+        :: ACC_ADDR acc                    -- subscriber
+        -> ACC_ADDR acc                    -- publisher
+        -> ProportionalDistributionIndexID -- indexId
+        -> tk()
+
+    distributeProportionally :: ACC_ADDR acc -> SFT_MVAL sft -> tk ()
 
 -- ============================================================================
 -- Internal

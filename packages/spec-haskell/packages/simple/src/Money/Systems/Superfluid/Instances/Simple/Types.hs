@@ -34,28 +34,29 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , AnySimpleAgreementMonetaryUnitData (..)
     ) where
 
-import           Control.Applicative                                          (Applicative (..))
+import           Control.Applicative                                            (Applicative (..))
 import           Data.Binary
 import           Data.Default
-import           Data.Foldable                                                (toList)
-import           Data.List                                                    (intercalate)
+import           Data.Foldable                                                  (toList)
+import           Data.List                                                      (intercalate)
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
-import           GHC.Generics                                                 (Generic)
+import           GHC.Generics                                                   (Generic)
 import           Lens.Internal
-import           Text.Printf                                                  (printf)
+import           Text.Printf                                                    (printf)
 
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement      as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement   as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement            as MINTA
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency      as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        as BBS
 --
-import qualified Money.Systems.Superfluid.Indexes.UniversalIndexes            as UIDX
+import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndex                as UIDX
 
 
 -- =====================================================================================================================
@@ -222,6 +223,28 @@ instance TaggedTypeable SimpleITAMonetaryUnitData where
     tagFromProxy _ = "ITA"
 
 instance Show SimpleITAMonetaryUnitData where
+    show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s }"
+        (show $ x^.ITA.untappedValue)
+
+-- * IDA types.
+
+instance TaggedTypeable (PDIDX.IDAPublisherContractData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "IDA(P)#"
+
+instance TaggedTypeable (PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "IDA(P)"
+
+instance Show (PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
+    show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s }"
+        (show $ x^.ITA.untappedValue)
+
+instance TaggedTypeable (PDIDX.IDASubscriberContractData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "IDA(S)#"
+
+instance TaggedTypeable (PDIDX.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
+    tagFromProxy _ = "IDA(S)"
+
+instance Show (PDIDX.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITA.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITA.untappedValue)
 

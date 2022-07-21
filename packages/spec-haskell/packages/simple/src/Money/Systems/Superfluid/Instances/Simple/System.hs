@@ -33,17 +33,25 @@ module Money.Systems.Superfluid.Instances.Simple.System
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
-import           Data.Binary                                     (Binary)
-import           Data.Char                                       (isAlpha)
+import           Data.Binary                                                    (Binary)
+import           Data.Char                                                      (isAlpha)
 import           Data.Default
 import           Data.Functor
-import qualified Data.Map                                        as M
+import qualified Data.Map                                                       as M
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Internal
 
-import qualified Money.Systems.Superfluid.Token                  as SF
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement      as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement      as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement   as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement            as MINTA
+--
+import qualified Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Indexes.UniversalIndex                as UIDX
+--
+import qualified Money.Systems.Superfluid.Token                                 as SF
 --
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
@@ -65,11 +73,10 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 
 -- | Simple account type.
 data SimpleAccount = SimpleAccount
-    { mintaMonetaryUnitData :: SimpleMINTAMonetaryUnitData
-    , itaMonetaryUnitData   :: SimpleITAMonetaryUnitData
-    , cfaMonetaryUnitData   :: SimpleCFAMonetaryUnitData
-    , dfaMonetaryUnitData   :: SimpleDFAMonetaryUnitData
-    , accountLastUpdatedAt  :: SimpleTimestamp
+    { universal_index         :: UIDX.UniversalIndex SimpleSuperfluidTypes
+    , pd_indexes              :: [PDIDX.ProportionalDistributionIndex SimpleSuperfluidTypes]
+    , pd_subscriptions        :: [PDIDX.ProportionalDistributionSubscription SimpleSuperfluidTypes]
+    , account_last_updated_at :: SimpleTimestamp
     }
 
 instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
@@ -80,13 +87,29 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
-                       -- , ... list all subscribed PDIDX ITA/CFA AMUD
                        ]
+                       ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitDataList)
+                       ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
 
-    mintaMonetaryUnitData = $(field 'mintaMonetaryUnitData)
-    itaMonetaryUnitData   = $(field 'itaMonetaryUnitData)
-    cfaMonetaryUnitData   = $(field 'cfaMonetaryUnitData)
-    dfaMonetaryUnitData   = $(field 'dfaMonetaryUnitData)
+    universalIndex = $(field 'universal_index)
+    mintaMonetaryUnitData = lens
+        (MINTA.MkMonetaryUnitData . universal_index)
+        (\acc (MINTA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+    itaMonetaryUnitData = lens
+        (ITA.MkMonetaryUnitData . universal_index)
+        (\acc (ITA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+    cfaMonetaryUnitData = lens
+        (CFA.MkMonetaryUnitData . universal_index)
+        (\acc (CFA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+    dfaMonetaryUnitData = lens
+        (DFA.MkMonetaryUnitData . universal_index)
+        (\acc (DFA.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+
+    proportionalDistributionIndexes       = $(field 'pd_indexes)
+    proportionalDistributionSubscriptions = $(field 'pd_subscriptions)
+
+    idaPublisherMonetaryUnitDataList  = lens (const []) const
+    idaSubscriberMonetaryUnitDataList = lens (const []) const
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -95,16 +118,15 @@ showAccountAt :: SimpleAccount -> SimpleTimestamp -> String
 showAccountAt acc t =
     "Balance: " ++ show(SF.balanceOfAt acc t) ++
     concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOf acc) ++
-    "\nLast Update: " ++ show(accountLastUpdatedAt acc)
+    "\nLast Update: " ++ show(account_last_updated_at acc)
     where agreementTypeTag (MkSimpleAgreementMonetaryUnitData g) = tagFromValue g
 
 create_simple_account :: SimpleTimestamp -> SimpleAccount
 create_simple_account t = SimpleAccount
-    { mintaMonetaryUnitData = mempty
-    , itaMonetaryUnitData   = mempty
-    , cfaMonetaryUnitData   = mempty
-    , dfaMonetaryUnitData   = mempty
-    , accountLastUpdatedAt  = t
+    { universal_index = def
+    , pd_indexes = []
+    , pd_subscriptions = []
+    , account_last_updated_at = t
     }
 
 -- | Simple system data type.
@@ -162,7 +184,9 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     getCurrentTime = getSystemData <&> currentTime
 
     getAccount addr     = getSimpleTokenData <&> accounts <&> M.lookup addr <&> fromMaybe (create_simple_account 0)
-    putAccount addr acc = modify $ \vs -> vs { accounts = M.insert addr acc (accounts vs) }
+    putAccount addr acc t = modify $ \vs -> vs
+        { accounts = M.insert addr (acc { account_last_updated_at = t }) (accounts vs)
+        }
 
     -- * MINTA
     --

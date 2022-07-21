@@ -27,8 +27,8 @@ library
         Money.Systems.Superfluid.Agreements.InstantTransferAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Systems.Superfluid.Indexes.UniversalIndexes
-        Money.Systems.Superfluid.Indexes.ProportionalDistributionIndexes
+        Money.Systems.Superfluid.Indexes.UniversalIndex
+        Money.Systems.Superfluid.Indexes.ProportionalDistributionIndex
         Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
     other-modules:

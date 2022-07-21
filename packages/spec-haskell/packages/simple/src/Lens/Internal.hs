@@ -8,7 +8,6 @@ module Lens.Internal
 import           Language.Haskell.TH
 import           Lens.Micro
 
-
 -- | Make a lens from a field name.
 --
 -- Example: @over $(field 'foo) (*2)@

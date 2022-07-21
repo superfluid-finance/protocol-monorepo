@@ -5,8 +5,7 @@
 module Money.Systems.Superfluid.Agreements.InstantTransferAgreement
     ( MonetaryUnitLenses (..)
     , MonetaryUnitData (..)
-    , ContractLens
-    , ContractData (..)
+    , ContractData
     , AgreementContractPartiesF (..)
     , AgreementOperation (..)
     , ContractPartiesF
@@ -41,22 +40,21 @@ instance MonetaryUnitLenses amudL sft => AgreementMonetaryUnitData (MonetaryUnit
 -- * ITA.ContractData
 --
 
-class (Default cdL, SuperfluidTypes sft) => ContractLens cdL sft | cdL -> sft
+-- No ongoing contract
+type ContractData :: Type -> Type -> Type
+data ContractData amudL sft = ContractData
+instance Default (ContractData amudL sft) where def = ContractData
 
-type ContractData :: Type -> Type -> Type -> Type
-newtype ContractData cdL amudL sft = MkContractData { getContractLenses :: cdL } deriving (Default)
-
-instance ( ContractLens cdL sft
-         , MonetaryUnitLenses amudL sft
+instance ( MonetaryUnitLenses amudL sft
          , AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft
-         ) => AgreementContractData (ContractData cdL amudL sft) (MonetaryUnitData amudL sft) sft where
+         ) => AgreementContractData (ContractData amudL sft) (MonetaryUnitData amudL sft) sft where
 
-    data AgreementContractPartiesF (ContractData cdL amudL sft) a = ContractPartiesF
+    data AgreementContractPartiesF (ContractData amudL sft) a = ContractPartiesF
         { transferFrom :: a
         , transferTo   :: a
         } deriving stock (Functor, Foldable, Traversable)
 
-    data AgreementOperation (ContractData cdL amudL sft) =
+    data AgreementOperation (ContractData amudL sft) =
         Transfer (SFT_MVAL sft)
 
     applyAgreementOperation acd (Transfer amount) _ = let
@@ -66,9 +64,9 @@ instance ( ContractLens cdL sft
                     (def & set untappedValue (coerce    amount)))
         in (acd', acpsΔ)
 
-type ContractPartiesF   sft cdL amudL = AgreementContractPartiesF (ContractData cdL amudL sft)
-type ContractPartiesMUD sft cdL amudL = ContractPartiesF sft cdL (MonetaryUnitData amudL sft)
+type ContractPartiesF   sft amudL = AgreementContractPartiesF (ContractData amudL sft)
+type ContractPartiesMUD sft amudL = ContractPartiesF sft (MonetaryUnitData amudL sft)
 
-instance Applicative (ContractPartiesF sft cdL amudL) where
+instance Applicative (ContractPartiesF sft amudL) where
     pure a = ContractPartiesF a a
     liftA2 f (ContractPartiesF s r) (ContractPartiesF s' r') = ContractPartiesF (f s s') (f r r')

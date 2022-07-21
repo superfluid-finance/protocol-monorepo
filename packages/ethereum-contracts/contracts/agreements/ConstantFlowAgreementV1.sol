@@ -981,7 +981,7 @@ contract ConstantFlowAgreementV1 is
                 );
 
             cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
-            cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
+            // cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of credit
 

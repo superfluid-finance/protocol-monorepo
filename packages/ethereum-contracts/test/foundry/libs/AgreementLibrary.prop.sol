@@ -8,15 +8,13 @@ import "forge-std/Test.sol";
 contract AgreementLibraryProperties is Test {
     function testAdjustNewAppCreditUsed(
         uint256 appCreditGranted,
-        uint256 appCreditWanted,
-        int256 appCreditUsed
+        uint256 appCreditWanted
     ) public {
         vm.assume(appCreditGranted <= uint256(type(int256).max));
         vm.assume(appCreditWanted <= uint256(type(int256).max));
         int256 adjustedAppCreditUsed = AgreementLibrary._adjustNewAppCreditUsed(
             appCreditGranted,
-            appCreditWanted,
-            appCreditUsed
+            appCreditWanted
         );
 
         assertFalse(adjustedAppCreditUsed < 0);

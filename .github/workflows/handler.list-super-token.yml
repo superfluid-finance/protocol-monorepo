@@ -1,0 +1,74 @@
+name: List Super Token
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Protocol release version (test/master/v1/etc.)'
+        required: true
+        default: 'v1'
+      admin_type:
+        description: 'Choose the admin type: MULTISIG, or OWNABLE'
+        required: true
+        default: 'MULTISIG'
+      network:
+        description: 'Network for the script to run on'
+        required: true
+      token_address:
+        description: 'Address of the Super Token to be listed'
+        required: true
+      environments:
+        description: 'Additional env vars, separated by semicolons'
+        required: false
+
+jobs:
+
+  list-super-token-script:
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-for-contracts-dev
+
+      - name: Execute truffle script
+        run: |
+          cd packages/ethereum-contracts
+          echo "Admin type: ${{ github.event.inputs.admin_type }}"
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
+          npx truffle exec \
+            --network ${{ github.event.inputs.network }} \
+            scripts/resolver-list-super-token.js \
+            : ${{ github.event.inputs.token_address }}
+
+        env:
+          DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          # network web3 providers
+          ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+          ETH_RINKEBY_PROVIDER_URL: ${{ secrets.ETH_RINKEBY_PROVIDER_URL }}
+          ETH_ROPSTEN_PROVIDER_URL: ${{ secrets.ETH_ROPSTEN_PROVIDER_URL }}
+          ETH_KOVAN_PROVIDER_URL: ${{ secrets.ETH_KOVAN_PROVIDER_URL }}
+          POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
+          XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
+          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+          OPTIMISM_KOVAN_PROVIDER_URL: ${{ secrets.OPTIMISM_KOVAN_PROVIDER_URL }}
+          ARBITRUM_RINKEBY_PROVIDER_URL: ${{ secrets.ARBITRUM_RINKEBY_PROVIDER_URL }}
+          AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+          OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
+          ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
+          AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
+          BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}

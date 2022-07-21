@@ -53,9 +53,8 @@ jobs:
           cd packages/ethereum-contracts
           echo "Admin type: ${{ github.event.inputs.admin_type }}"
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle \
+          npx truffle exec \
             --network ${{ github.event.inputs.network }} \
-            exec \
             ${{ github.event.inputs.script_name }} \
             ${{ github.event.inputs.script_args }}
         env:

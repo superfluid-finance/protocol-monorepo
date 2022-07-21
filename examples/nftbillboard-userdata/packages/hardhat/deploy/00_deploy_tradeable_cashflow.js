@@ -38,17 +38,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       from: deployer,
     });
 
+    console.log("deploying...")
+
     sf = await Framework.create({
-      networkName: "custom",
+      chainId: 1337,
       provider: web3,
-      dataMode: "WEB3_ONLY",
       resolverAddress: process.env.RESOLVER_ADDRESS, //this is how you get the resolver address
       protocolReleaseVersion: "test",
     });
 
+    console.log(sf)
+
     const fDAIx = await sf.loadSuperToken("fDAIx");
     
-    console.log(deployer)
+    console.log("fake dai", fDAIx.address)
     await deploy("TradeableCashflow", {
       from: deployer,
       args: [deployer, 'nifty_billboard', 'NFTBoard', sf.settings.config.hostAddress, fDAIx.address],

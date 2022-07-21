@@ -20,6 +20,7 @@ query getStreams($where: Stream_filter! = {}, $skip: Int! = 0, $first: Int! = 10
             name
             symbol
             isListed
+            # isNativeAssetSuperToken
             underlyingAddress
         }
         sender {

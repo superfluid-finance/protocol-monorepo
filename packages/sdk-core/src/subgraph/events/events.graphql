@@ -498,6 +498,26 @@ query roleRevokedEvents(
     }
 }
 
+query setEvents(
+    $first: Int
+    $skip: Int
+    $where: SetEvent_filter
+    $orderBy: SetEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    setEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...setEvent
+    }
+}
+
 query cfaV1LiquidationPeriodChangedEvents(
     $first: Int
     $skip: Int
@@ -813,6 +833,9 @@ query events(
         ... on RoleRevokedEvent {
             ...roleRevokedEvent
         }
+        ... on SetEvent {
+            ...setEvent
+        }
         ... on CFAv1LiquidationPeriodChangedEvent {
             ...cfaV1LiquidationPeriodChangedEvent
         }
@@ -1104,6 +1127,15 @@ fragment roleRevokedEvent on RoleRevokedEvent {
     sender
     role
     account
+}
+
+fragment setEvent on SetEvent {
+    ...eventFields
+    hashedName
+    target
+    resolverEntry {
+        id
+    }
 }
 
 fragment cfaV1LiquidationPeriodChangedEvent on CFAv1LiquidationPeriodChangedEvent {

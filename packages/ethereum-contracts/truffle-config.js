@@ -101,19 +101,25 @@ function getEnvValue(networkName, key) {
 
 /**
  * Create default network configurations
+ *
+ * NOTE: set providerWrapper to createProviderWithOEWorkaround in case this is still needed,
+ *       by default it's an identity function.
  */
-function createNetworkDefaultConfiguration(networkName, chainId) {
+function createNetworkDefaultConfiguration(
+    networkName,
+    providerWrapper = (a) => a
+) {
     return {
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: createProviderWithOEWorkaround(
-                    getEnvValue(networkName, "PROVIDER_URL")
+                url: providerWrapper(
+                    process.env.OVERRIDE_PROVIDER_URL ||
+                        getEnvValue(networkName, "PROVIDER_URL")
                 ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,
-                chainId, // optional
             }),
         gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
     };
@@ -178,7 +184,10 @@ const E = (module.exports = {
         },
 
         "eth-kovan": {
-            ...createNetworkDefaultConfiguration("eth-kovan"),
+            ...createNetworkDefaultConfiguration(
+                "eth-kovan",
+                createProviderWithOEWorkaround
+            ),
             network_id: 42,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )

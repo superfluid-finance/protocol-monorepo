@@ -44,8 +44,8 @@ export default class Operation {
         } catch (err) {
             throw new SFError({
                 type: "EXECUTE_TRANSACTION",
-                customMessage: "There was an error executing the transaction",
-                errorObject: err,
+                message: "There was an error executing the transaction",
+                cause: err,
             });
         }
     };
@@ -65,8 +65,8 @@ export default class Operation {
             /* istanbul ignore next */
             throw new SFError({
                 type: "POPULATE_TRANSACTION",
-                customMessage: "There was an error populating the transaction",
-                errorObject: err,
+                message: "There was an error populating the transaction",
+                cause: err,
             });
         }
     };
@@ -86,8 +86,8 @@ export default class Operation {
         } catch (err) {
             throw new SFError({
                 type: "SIGN_TRANSACTION",
-                customMessage: "There was an error signing the transaction",
-                errorObject: err,
+                message: "There was an error signing the transaction",
+                cause: err,
             });
         }
     };

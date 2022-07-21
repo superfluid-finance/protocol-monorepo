@@ -22,7 +22,6 @@ import {
     getAmountStreamedSinceLastUpdatedAt,
     getFlowOperatorID,
     getIndexID,
-    getIsListedToken,
     getOrder,
     getStreamID,
     getStreamRevisionID,
@@ -31,10 +30,15 @@ import {
     streamRevisionExists,
     updateTotalSupplyForNativeSuperToken,
     ZERO_ADDRESS,
+    handleTokenRPCCalls,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { getHostAddress, getResolverAddress } from "./addresses";
+import {
+    getHostAddress,
+    getNativeAssetSuperTokenAddress,
+    getResolverAddress,
+} from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 /**************************************************************************
@@ -97,9 +101,14 @@ export function getOrInitSuperToken(
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
-        token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
-        let underlyingAddress = token.underlyingAddress;
+
+        const nativeAssetSuperTokenAddress = getNativeAssetSuperTokenAddress();
+        token.isNativeAssetSuperToken = tokenAddress.equals(
+            nativeAssetSuperTokenAddress
+        );
+
+        token = handleTokenRPCCalls(token, resolverAddress);
+        const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
 
         token.save();
@@ -126,18 +135,12 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
-    // // we must handle the case when the native token hasn't been initialized
-    // // there is no name/symbol, but this may occur later
-    if (token.name.length == 0 || token.symbol.length == 0) {
-        token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token.save();
-    }
-
     // @note - this is currently being called every single time to handle list/unlist of tokens
     // because we don't have the Resolver Set event on some networks
     // We can remove this once we have migrated data to a new resolver which emits this event on
     // all networks.
-    token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
+    token = handleTokenRPCCalls(token, resolverAddress);
+
     token.save();
 
     return token as Token;
@@ -162,7 +165,7 @@ export function getOrInitToken(
     token.createdAtBlockNumber = block.number;
     token.isSuperToken = false;
     token.isListed = false;
-    token = getTokenInfoAndReturn(token as Token, tokenAddress);
+    token = getTokenInfoAndReturn(token as Token);
     token.save();
 }
 

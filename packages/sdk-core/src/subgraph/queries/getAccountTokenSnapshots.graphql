@@ -29,6 +29,7 @@ query getAccountTokenSnapshots($where: AccountTokenSnapshot_filter! = {}, $skip:
             name
             symbol
             isListed
+            # isNativeAssetSuperToken
             underlyingAddress
         }
     }

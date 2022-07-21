@@ -58,6 +58,39 @@ describe("Operation Tests", () => {
         expect(opTxnHash).to.equal(receipt.transactionHash);
     });
 
+    it("Should be able to create an operation from framework.", async () => {
+        const callData = cfaInterface.encodeFunctionData("createFlow", [
+            superToken.address,
+            alpha.address,
+            getPerSecondFlowRateByMonth("100"),
+            "0x",
+        ]);
+        const txn = framework.host.contract.populateTransaction.callAgreement(
+            cfaV1.address,
+            callData,
+            "0x"
+        );
+        const operation = framework.operation(txn, "SUPERFLUID_CALL_AGREEMENT");
+        await operation.exec(deployer);
+    });
+
+    it("Should be able to create an operation from framework and add to batch call.", async () => {
+        const callData = cfaInterface.encodeFunctionData("createFlow", [
+            superToken.address,
+            alpha.address,
+            getPerSecondFlowRateByMonth("100"),
+            "0x",
+        ]);
+        const txn = framework.host.contract.populateTransaction.callAgreement(
+            cfaV1.address,
+            callData,
+            "0x"
+        );
+        const operation = framework.operation(txn, "SUPERFLUID_CALL_AGREEMENT");
+        await framework.batchCall([operation]).exec(deployer);
+    });
+
+
     it("Should throw an error when trying to execute a transaction with faulty callData", async () => {
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             superToken.address,

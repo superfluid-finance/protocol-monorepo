@@ -4,7 +4,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Money.Systems.Superfluid.Agreements.UniversalIndex.ConstantFlow where
+-- | Constant flow agreement.
+--
+-- This module is typically imported using qualified name CFA.
+module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement where
 
 import           Data.Coerce
 import           Data.Default
@@ -16,8 +19,7 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
 --
-import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
-
+import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 
 -- * Monetary unit lenses.
 --
@@ -30,41 +32,41 @@ instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (UniversalData sft) sft
     netFlowRate          = $(field 'cfa_net_flow_rate)
 
 -- | Type alias for the constant flow monetary unit data.
-type CFAMonetaryUnitData sft = CFMUD.MonetaryUnitData (UniversalData sft) sft
+type MonetaryUnitData sft = CFMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --
 
--- | CFA contract data.
-data CFAContractData sft = CFAContractData
-    { cfa_flow_last_updated_at :: SFT_TS sft
-    , cfa_flow_rate            :: SFT_MVAL sft
-    , cfa_flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
+-- |  contract data.
+data ContractData sft = ContractData
+    { flow_last_updated_at :: SFT_TS sft
+    , flow_rate            :: SFT_MVAL sft
+    , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (CFAContractData sft)
+deriving instance SuperfluidTypes sft => Default (ContractData sft)
 
 -- * Operation
 --
 
 type FlowRate sft = SFT_MVAL sft
 
-data CFAOperation sft =
+data Operation sft =
     --         flowRate       newFlowBuffer
     UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (CFAOperation sft)
-    (CFAContractData sft) (CFAMonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (CFAOperation sft) a = CFAContractPartiesF
+instance SuperfluidTypes sft => AgreementOperation (Operation sft)
+    (ContractData sft) (MonetaryUnitData sft) sft where
+    data AgreementOperationPartiesF (Operation sft) a = OperationPartiesF
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
 
     applyAgreementOperation (UpdateFlow newFlowRate newFlowBuffer) acd t' = let
-        acd'  = CFAContractData { cfa_flow_last_updated_at = t'
-                                , cfa_flow_rate   = newFlowRate
-                                , cfa_flow_buffer = newFlowBuffer
-                                }
-        aopssΔ = fmap CFMUD.MkMonetaryUnitData (CFAContractPartiesF
+        acd'  = ContractData { flow_last_updated_at = t'
+                             , flow_rate   = newFlowRate
+                             , flow_buffer = newFlowBuffer
+                             }
+        aopsΔ = fmap CFMUD.MkMonetaryUnitData (OperationPartiesF
                     (def & set CFMUD.settledAt t'
                          & set CFMUD.netFlowRate (- flowRateDelta)
                          & set CFMUD.settledUntappedValue (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
@@ -73,9 +75,9 @@ instance SuperfluidTypes sft => AgreementOperation (CFAOperation sft)
                          & set CFMUD.netFlowRate flowRateDelta
                          & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
                          & set CFMUD.settledBufferValue def))
-        in (acd', aopssΔ)
-        where t               = cfa_flow_last_updated_at acd
-              fr              = cfa_flow_rate acd
+        in (acd', aopsΔ)
+        where t               = flow_last_updated_at acd
+              fr              = flow_rate acd
               flowPeriodDelta = fr * fromIntegral (t' - t)
               flowRateDelta   = newFlowRate - fr
-              flowBufferDelta = newFlowBuffer - cfa_flow_buffer acd
+              flowBufferDelta = newFlowBuffer - flow_buffer acd

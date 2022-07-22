@@ -3,8 +3,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
--- | IDA is IDA over the Proportional Distribution Index
+-- | Instant distribution agreement.
 --
+-- It is instant transferring over an proportional distribution index
+--
+-- This module is typically imported using qualified name IDA.
 module Money.Systems.Superfluid.Agreements.InstantDistributionAgreement where
 
 import           Data.Coerce
@@ -14,9 +17,8 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer      as ITMUD
-
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer      as ITMUD
 
 -- | * Monetary unit data
 

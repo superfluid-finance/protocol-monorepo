@@ -11,8 +11,8 @@ import           Math.Extras.Double                                             
 import           Test.Hspec                                                        (HasCallStack)
 import           Test.HUnit
 
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement         as DFA
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                as UIDX
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
 --
@@ -38,8 +38,8 @@ expectΕValTo addr expr = do
 
 expectDistributionLimitTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectDistributionLimitTo (sender, receiver) expr = do
-    flow <- runToken $ fromMaybe def <$> SF.viewDecayingFlow (UIDX.DFAContractPartiesF sender receiver)
-    liftIO $ expr $ UIDX.dfa_distribution_limit flow
+    flow <- runToken $ fromMaybe def <$> SF.viewDecayingFlow (DFA.OperationPartiesF sender receiver)
+    liftIO $ expr $ DFA.distribution_limit flow
 
 -- 1x test unit for distribution limit
 u1x = SF.toWad (42 :: Double)
@@ -62,7 +62,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
 
     -- T1: test initial condition
     -- creating flow: alice -> bob @ 0.0001/s
-    runToken $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF alice bob) u1x
+    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) u1x
     expectΕValTo alice $ assertEqualWith (-u1xd) "alice should have -1x net distribution limit"
     expectΕValTo bob   $ assertEqualWith   u1xd  "bob should have 1x net distribution limit"
     expectΕValTo carol $ assertEqualWith      0  "carol should have zero net distribution limit"
@@ -84,8 +84,8 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF alice bob)   u1x
-    runToken $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF alice carol) (u1x * 2)
+    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
+    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice carol) (u1x * 2)
     expectΕValTo alice $ assertFuzzilyEqualWith (-3*u1xd) "alice should have -3x net distribution limit"
     expectΕValTo bob   $ assertFuzzilyEqualWith     u1xd  "bob should have 1x net distribution limit"
     expectΕValTo carol $ assertFuzzilyEqualWith  (2*u1xd) "carol should have 1x net distribution limit"
@@ -107,9 +107,9 @@ simpleLoopScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF alice bob)   u1x
-    runToken $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF bob   carol) u1x
-    runToken $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF carol alice) u1x
+    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
+    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF bob   carol) u1x
+    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF carol alice) u1x
     expectΕValTo alice $ assertEqualWith 0 "alice should have zero net distribution limit"
     expectΕValTo bob   $ assertEqualWith 0 "bob should have zero net distribution limit"
     expectΕValTo carol $ assertEqualWith 0 "carol should have zero net distribution limit"

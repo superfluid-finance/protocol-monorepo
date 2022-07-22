@@ -31,6 +31,12 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , SimpleDFAContractData
     , SimpleDFAOperation
     , AnySimpleAgreementMonetaryUnitData (..)
+    -- Indexes
+    , SimpleUniversalData
+    , SimplePublisherData
+    , SimpleSubscriberData
+    , SimpleDistributionContract
+    , SimpleSubscriptionContract
     , ProportionalDistributionIndexID
     ) where
 
@@ -48,13 +54,19 @@ import           Text.Printf                                                    
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer      as ITMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter               as MMUD
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                        as UIDX
+--
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                       as MINTA
+--
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 
@@ -190,10 +202,10 @@ instance SuperfluidTypes SimpleSuperfluidTypes where
 -- Agreements
 --
 
--- * Minter types.
+-- * MINTA
 --
 
-type SimpleMinterMonetaryUnitData = UIDX.MinterMonetaryUnitData SimpleSuperfluidTypes
+type SimpleMinterMonetaryUnitData = MINTA.MonetaryUnitData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleMinterMonetaryUnitData where
     tagFromProxy _ = "Minter"
@@ -203,15 +215,15 @@ instance Show SimpleMinterMonetaryUnitData where
         (show $ x^.MMUD.untappedValue)
         (show $ x^.MMUD.mintedValue)
 
--- * ITA types
+-- * ITA
 --
 
-type SimpleITAContractData = UIDX.ITAContractData SimpleSuperfluidTypes
+type SimpleITAContractData = ITA.ContractData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleITAContractData where
     tagFromProxy _ = "ITA#"
 
-type SimpleITAMonetaryUnitData = UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes
+type SimpleITAMonetaryUnitData = ITA.MonetaryUnitData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleITAMonetaryUnitData where
     tagFromProxy _ = "ITA"
@@ -220,7 +232,7 @@ instance Show SimpleITAMonetaryUnitData where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITMUD.untappedValue)
 
--- * IDA types.
+-- * IDA
 
 instance TaggedTypeable (PDIDX.DistributionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "PD#"
@@ -242,10 +254,10 @@ instance Show (IDA.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITMUD.untappedValue)
 
--- * CFA types.
+-- * CFA
 --
 
-type SimpleCFAMonetaryUnitData = UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes
+type SimpleCFAMonetaryUnitData = CFA.MonetaryUnitData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleCFAMonetaryUnitData where
     tagFromProxy _ = "CFA"
@@ -262,17 +274,17 @@ instance TaggedTypeable SimpleCFAContractData where
 
 instance Show SimpleCFAContractData where
     show acd = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
-        (show $ UIDX.cfa_flow_last_updated_at acd)
-        (show $ UIDX.cfa_flow_rate acd)
-        (show $ UIDX.cfa_flow_buffer acd)
+        (show $ CFA.flow_last_updated_at acd)
+        (show $ CFA.flow_rate acd)
+        (show $ CFA.flow_buffer acd)
 
-type SimpleCFAContractData = UIDX.CFAContractData SimpleSuperfluidTypes
-type SimpleCFAOperation = UIDX.CFAOperation SimpleSuperfluidTypes
+type SimpleCFAContractData = CFA.ContractData SimpleSuperfluidTypes
+type SimpleCFAOperation = CFA.Operation SimpleSuperfluidTypes
 
--- * DFA types.
+-- * DFA
 --
 
-type SimpleDFAMonetaryUnitData = UIDX.DFAMonetaryUnitData SimpleSuperfluidTypes
+type SimpleDFAMonetaryUnitData = DFA.MonetaryUnitData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleDFAMonetaryUnitData where
     tagFromProxy _ = "DFA"
@@ -288,20 +300,29 @@ instance Show SimpleDFAMonetaryUnitData where
 instance TaggedTypeable SimpleDFAContractData where
     tagFromProxy _ = "DFA#"
 
-type SimpleDFAContractData = UIDX.DFAContractData SimpleSuperfluidTypes
-type SimpleDFAOperation = UIDX.DFAOperation SimpleSuperfluidTypes
+type SimpleDFAContractData = DFA.ContractData SimpleSuperfluidTypes
+type SimpleDFAOperation = DFA.Operation SimpleSuperfluidTypes
 
 instance Show SimpleDFAContractData where
     show acd = printf "{ t_u = %s, δ = %s }"
-        (show $ UIDX.dfa_flow_last_updated_at acd)
-        (show $ UIDX.dfa_distribution_limit acd)
+        (show $ DFA.flow_last_updated_at acd)
+        (show $ DFA.distribution_limit acd)
 
--- * PD
+-- * UIDX
 
+type SimpleUniversalData = UIDX.UniversalData SimpleSuperfluidTypes
+
+-- * PDIDX
+
+type ProportionalDistributionIndexID = Int
+type SimplePublisherData = PDIDX.PublisherData SimpleSuperfluidTypes
+type SimpleSubscriberData = PDIDX.SubscriberData SimpleSuperfluidTypes
+type SimpleDistributionContract = PDIDX.DistributionContract SimpleSuperfluidTypes
+type SimpleSubscriptionContract = PDIDX.SubscriptionContract SimpleSuperfluidTypes
 deriving instance Show (PDIDX.DistributionContract SimpleSuperfluidTypes)
 deriving instance Show (PDIDX.SubscriptionContract SimpleSuperfluidTypes)
 
--- * AnyX types.
+-- * AnyX.
 --
 
 -- | AnyAgreementMonetaryUnitData type.
@@ -331,5 +352,3 @@ instance ( Foldable (AgreementOperationPartiesF ao)
          , Show elem
          ) => Show (AgreementOperationPartiesF ao elem) where
     show elems = "(" ++ (elems & toList & map show & intercalate ", ") ++ ")"
-
-type ProportionalDistributionIndexID = Int

@@ -8,14 +8,20 @@ module Money.Systems.Superfluid.MonetaryUnit
     , sumBalancesAt
     ) where
 
-import           Data.Kind                                                        (Type)
+import           Data.Kind                                                                 (Type)
 
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement as IDA
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex               as UIDX
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                       as MINTA
+--
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
 
 -- | Monetary unit type class.
 --
@@ -34,7 +40,7 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
 
     -- * Nomenclature:
     --
-    -- Minter = Minter Agreement over the Universal Index
+    -- MINTA = Minter Agreement over the Universal Index
     -- ITA   = Instant Transfer Agreement over the Universal Index
     -- CFA   = Constant Flow Agreement over the Universal Index
     -- DFA   = Decaying Flow Agreement over the Universal Index
@@ -49,19 +55,22 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     universalIndex :: SimpleGetter mu (UIDX.UniversalData sft)
 
     -- | Lens for Minter data in the mu.
-    minterMonetaryUnitData :: Lens' mu (UIDX.MinterMonetaryUnitData sft)
+    minterMonetaryUnitData :: Lens' mu (MINTA.MonetaryUnitData sft)
 
     -- | Lens for ITA data in the mu.
-    itaMonetaryUnitData :: Lens' mu (UIDX.ITAMonetaryUnitData sft)
+    itaMonetaryUnitData :: Lens' mu (ITA.MonetaryUnitData sft)
 
     -- | Lens for CFA data in the mu.
-    cfaMonetaryUnitData :: Lens' mu (UIDX.CFAMonetaryUnitData sft)
+    cfaMonetaryUnitData :: Lens' mu (CFA.MonetaryUnitData sft)
 
     -- | Lens for DFA data in the mu.
-    dfaMonetaryUnitData :: Lens' mu (UIDX.DFAMonetaryUnitData sft)
+    dfaMonetaryUnitData :: Lens' mu (DFA.MonetaryUnitData sft)
 
     -- * Proportional Distribution Index Agreement Operations
     --
+
+    -- | Getter of the lenses of monetary unit data in the universal index.
+    proprotionalDistributionPublisher :: SimpleGetter mu (PDIDX.PublisherData sft)
 
     -- | Lens of the lenses of mu in the proportional distribution indexes.
     idaPublisherMonetaryUnitData :: Lens' mu (IDA.IDAPublisherMonetaryUnitData sft)

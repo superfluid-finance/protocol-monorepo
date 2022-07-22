@@ -4,7 +4,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Money.Systems.Superfluid.Agreements.UniversalIndex.DecayingFlow where
+-- | Decaying flow agreement.
+--
+-- This module is typically imported using qualified name .
+module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
 
 import           Data.Default
 import           Data.Proxy
@@ -13,11 +16,9 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
+import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow as DFMUD
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
-
---
-import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 
 -- * Monetary data lenses
 --
@@ -27,29 +28,29 @@ instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (UniversalData sft) sft
     αVal           = $(field 'dfa_αVal)
     εVal           = $(field 'dfa_εVal)
     settledBuffer  = $(field 'dfa_settledBuffer)
-type DFAMonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalData sft) sft
+type MonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --
 
-data DFAContractData sft = DFAContractData
-    { dfa_flow_last_updated_at :: SFT_TS sft
-    , dfa_distribution_limit   :: SFT_MVAL sft
-    , dfa_flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
+data ContractData sft = ContractData
+    { flow_last_updated_at :: SFT_TS sft
+    , distribution_limit   :: SFT_MVAL sft
+    , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (DFAContractData sft)
+deriving instance SuperfluidTypes sft => Default (ContractData sft)
 
 -- * Operation
 
 type DistributionLimit sft = SFT_MVAL sft
 
-data DFAOperation sft =
+data Operation sft =
     --                 θ/distributionLimit     newFlowBuffer
     UpdateDecayingFlow (DistributionLimit sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (DFAOperation sft)
-    (DFAContractData sft) (DFAMonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (DFAOperation sft) elem = DFAContractPartiesF
+instance SuperfluidTypes sft => AgreementOperation (Operation sft)
+    (ContractData sft) (MonetaryUnitData sft) sft where
+    data AgreementOperationPartiesF (Operation sft) elem = OperationPartiesF
         { decayingFlowSender   :: elem
         , decayingFlowReceiver :: elem
         } deriving stock (Functor, Foldable, Traversable)
@@ -57,13 +58,13 @@ instance SuperfluidTypes sft => AgreementOperation (DFAOperation sft)
     -- | Create data of agreement parties from the changes of the contract.
     --
     -- Formula:
-    --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = DFAAAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
+    --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
     applyAgreementOperation (UpdateDecayingFlow θ newFlowBuffer) acd t' = let
-        acd'  = DFAContractData { dfa_distribution_limit   = θ
-                                , dfa_flow_buffer          = newFlowBuffer
-                                , dfa_flow_last_updated_at = t'
-                                }
-        aopssΔ = fmap DFMUD.MkMonetaryUnitData (DFAContractPartiesF
+        acd'  = ContractData { distribution_limit   = θ
+                             , flow_buffer          = newFlowBuffer
+                             , flow_last_updated_at = t'
+                             }
+        aopssΔ = fmap DFMUD.MkMonetaryUnitData (OperationPartiesF
                     (def & set DFMUD.settledAt     t'
                          & set DFMUD.αVal          θ_Δ
                          & set DFMUD.εVal          (-θ_Δ)
@@ -73,5 +74,5 @@ instance SuperfluidTypes sft => AgreementOperation (DFAOperation sft)
                          & set DFMUD.εVal          θ_Δ))
         in (acd', aopssΔ)
         where
-            θ_Δ             = fromIntegral (θ - (dfa_distribution_limit acd))
-            flowBufferDelta = newFlowBuffer - (dfa_flow_buffer acd)
+            θ_Δ             = fromIntegral (θ - (distribution_limit acd))
+            flowBufferDelta = newFlowBuffer - (flow_buffer acd)

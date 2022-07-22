@@ -10,8 +10,8 @@ import           Lens.Micro
 import           Test.Hspec                                                        (HasCallStack)
 import           Test.HUnit
 
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement         as CFA
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                as UIDX
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
 --
@@ -28,8 +28,8 @@ expectNetFlowRateTo addr expr = do
 
 expectFlowRateTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectFlowRateTo (sender, receiver) expr = do
-    flow <- runToken $ fromMaybe def <$> SF.viewFlow (UIDX.CFAContractPartiesF sender receiver)
-    liftIO $ expr $ UIDX.cfa_flow_rate flow
+    flow <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.OperationPartiesF sender receiver)
+    liftIO $ expr $ CFA.flow_rate flow
 
 -- 1x test unit for flow rate
 u1x = SF.toWad(0.0001 :: Double)
@@ -51,7 +51,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
 
     -- T1: test initial condition
     -- creating flow: alice -> bob @ 0.0001/s
-    runToken $ SF.updateFlow (UIDX.CFAContractPartiesF alice bob) u1x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) u1x
     expectNetFlowRateTo alice $ assertEqualWith (-u1x) "alice should have -1x net flowrate"
     expectNetFlowRateTo bob   $ assertEqualWith   u1x  "bob should have 1x net flowrate"
     expectNetFlowRateTo carol $ assertEqualWith     0  "carol should have zero net flowrate"
@@ -73,8 +73,8 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateFlow (UIDX.CFAContractPartiesF alice bob)   u1x
-    runToken $ SF.updateFlow (UIDX.CFAContractPartiesF alice carol) (2*u1x)
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob)   u1x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice carol) (2*u1x)
     expectNetFlowRateTo alice $ assertEqualWith (-3*u1x) "alice should have -3x net flowrate"
     expectNetFlowRateTo bob   $ assertEqualWith     u1x  "bob should have 1x net flowrate"
     expectNetFlowRateTo carol $ assertEqualWith  (2*u1x) "carol should have 2x net flowrate"

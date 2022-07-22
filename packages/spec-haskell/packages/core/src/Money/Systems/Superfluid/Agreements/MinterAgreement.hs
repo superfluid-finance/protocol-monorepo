@@ -3,7 +3,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Money.Systems.Superfluid.Agreements.UniversalIndex.Minter where
+-- | Instant transferring agreement.
+--
+-- This module is typically imported using qualified name MINTA.
+module Money.Systems.Superfluid.Agreements.MinterAgreement where
 
 import           Data.Coerce                                                 (coerce)
 import           Data.Default
@@ -11,8 +14,8 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
+import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter as MMUD
-import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 
 -- * Monetary unit lenses
 --
@@ -20,7 +23,7 @@ import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 instance SuperfluidTypes sft => MMUD.MonetaryUnitLenses (UniversalData sft) sft where
     untappedValue = $(field 'minter_untapped_value)
     mintedValue   = $(field 'minter_minted_value)
-type MinterMonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
+type MonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --
@@ -35,7 +38,7 @@ data MinterOperation sft = Mint (SFT_MVAL sft) |
                            Burn (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (MinterOperation sft)
-         (MinterContractData sft) (MinterMonetaryUnitData sft) sft where
+         (MinterContractData sft) (MonetaryUnitData sft) sft where
     data AgreementOperationPartiesF (MinterOperation sft) elem = MinterOperationPartiesF
         { mintFrom :: elem
         , mintTo   :: elem

@@ -6,14 +6,14 @@ module Money.Systems.Superfluid.Validator.Demos.DFA (demo) where
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Coerce
-import           Data.Time.Clock.POSIX                              (getPOSIXTime)
+import           Data.Time.Clock.POSIX                                     (getPOSIXTime)
 import           GHC.Stack
 import           Lens.Micro
 import           Text.Printf
 
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex as UIDX
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement as DFA
 --
-import qualified Money.Systems.Superfluid.Instances.Simple.System   as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System          as SF
 --
 import           Money.Systems.Superfluid.Validator.Simulation
 
@@ -54,11 +54,11 @@ demo = do
     t0 <- liftIO now
     timeTravel t0
     createToken token [alice, bob, carol, dan] initBalance
-    runToken token $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF alice bob) (distributionLimitN 1)
+    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) (distributionLimitN 1)
     travelDaysAndPrintBalances t0 7
 
-    runToken token $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF alice carol) (distributionLimitN 1)
+    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF alice carol) (distributionLimitN 1)
     travelDaysAndPrintBalances t0 7
 
-    runToken token $ SF.updateDecayingFlow (UIDX.DFAContractPartiesF dan alice) (distributionLimitN 2)
+    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF dan alice) (distributionLimitN 2)
     travelDaysAndPrintBalances t0 60

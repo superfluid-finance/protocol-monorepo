@@ -27,12 +27,11 @@ library
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow
-        Money.Systems.Superfluid.Agreements.UniversalIndex.Data
-        Money.Systems.Superfluid.Agreements.UniversalIndex.Minter
-        Money.Systems.Superfluid.Agreements.UniversalIndex.InstantTransfer
-        Money.Systems.Superfluid.Agreements.UniversalIndex.ConstantFlow
-        Money.Systems.Superfluid.Agreements.UniversalIndex.DecayingFlow
-        Money.Systems.Superfluid.Agreements.UniversalIndex
+        Money.Systems.Superfluid.Agreements.MinterAgreement
+        Money.Systems.Superfluid.Agreements.InstantTransferAgreement
+        Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
+        Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
+        Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
         Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
         Money.Systems.Superfluid.Agreements.InstantDistributionAgreement
         Money.Systems.Superfluid.MonetaryUnit

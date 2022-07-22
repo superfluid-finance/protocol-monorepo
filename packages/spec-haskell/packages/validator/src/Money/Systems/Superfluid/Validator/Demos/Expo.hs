@@ -4,12 +4,13 @@
 module Money.Systems.Superfluid.Validator.Demos.Expo (demo) where
 
 import           Control.Monad.IO.Class
-import           Data.Time.Clock.POSIX                              (getPOSIXTime)
-import           GHC.Stack                                          (HasCallStack)
+import           Data.Time.Clock.POSIX                                        (getPOSIXTime)
+import           GHC.Stack                                                    (HasCallStack)
 
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex as UIDX
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
-import qualified Money.Systems.Superfluid.Instances.Simple.System   as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System             as SF
 --
 import           Money.Systems.Superfluid.Validator.Simulation
 
@@ -43,8 +44,8 @@ demo = do
 
     let t1 = t0
     liftIO $ putStrLn $ "# DAY 1: create flows"
-    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice bob)      f1x
-    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice carol) (2*f1x)
+    runToken token $ SF.updateFlow (CFA.OperationPartiesF alice bob)      f1x
+    runToken token $ SF.updateFlow (CFA.OperationPartiesF alice carol) (2*f1x)
     runSimTokenOp token printTokenState
 
     timeTravel day
@@ -55,7 +56,7 @@ demo = do
     timeTravel day
     t3 <- getCurrentTime
     liftIO $ putStrLn $ "# DAY 3: bob transfer 1x to alice" ++ show (t3 - t2)
-    runToken token $ SF.transfer (UIDX.ITAOperationPartiesF bob alice) u1x
+    runToken token $ SF.transfer (ITA.OperationPartiesF bob alice) u1x
     runSimTokenOp token printTokenState
 
     timeTravel day

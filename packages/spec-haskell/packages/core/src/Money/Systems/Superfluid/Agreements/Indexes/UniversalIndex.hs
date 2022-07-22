@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
-module Money.Systems.Superfluid.Agreements.UniversalIndex.Data where
+module Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex where
 
 import           Data.Default
 import           GHC.Generics

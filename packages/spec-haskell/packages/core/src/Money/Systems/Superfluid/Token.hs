@@ -18,9 +18,13 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                        as UIDX
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                       as MINTA
+--
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 --
 import           Money.Systems.Superfluid.MonetaryUnit
 
@@ -107,26 +111,26 @@ class ( Monad tk
 
     getMinterAddress :: tk (ACC_ADDR acc)
 
-    viewMinterContract :: CONTRACT_ACC_ADDR acc (UIDX.MinterOperation sft) -> tk (Maybe (UIDX.MinterContractData sft))
-    setMinterContract  :: CONTRACT_ACC_ADDR acc (UIDX.MinterOperation sft) -> UIDX.MinterContractData sft -> SFT_TS sft -> tk ()
+    viewMinterContract :: CONTRACT_ACC_ADDR acc (MINTA.MinterOperation sft) -> tk (Maybe (MINTA.MinterContractData sft))
+    setMinterContract  :: CONTRACT_ACC_ADDR acc (MINTA.MinterOperation sft) -> MINTA.MinterContractData sft -> SFT_TS sft -> tk ()
 
     mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
     mintValue toAddr amount = do
         minterAddress <- getMinterAddress
         updateUniversalIndex
-            (UIDX.MinterOperationPartiesF minterAddress toAddr) (UIDX.Mint amount)
+            (MINTA.MinterOperationPartiesF minterAddress toAddr) (MINTA.Mint amount)
             viewMinterContract setMinterContract minterMonetaryUnitData
 
     -- ** ITA Functions
     --
 
-    viewITAContract :: CONTRACT_ACC_ADDR acc (UIDX.ITAOperation sft) -> tk (Maybe (UIDX.ITAContractData sft))
-    setITAContract  :: CONTRACT_ACC_ADDR acc (UIDX.ITAOperation sft) -> UIDX.ITAContractData sft -> SFT_TS sft -> tk ()
+    viewITAContract :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> tk (Maybe (ITA.ContractData sft))
+    setITAContract  :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> ITA.ContractData sft -> SFT_TS sft -> tk ()
 
-    transfer :: CONTRACT_ACC_ADDR acc (UIDX.ITAOperation sft) -> SFT_MVAL sft -> tk ()
+    transfer :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> SFT_MVAL sft -> tk ()
     transfer aopsAddrs amount = do
         updateUniversalIndex
-            aopsAddrs (UIDX.Transfer amount)
+            aopsAddrs (ITA.Transfer amount)
             viewITAContract setITAContract itaMonetaryUnitData
 
     -- ** CFA Functions
@@ -134,28 +138,27 @@ class ( Monad tk
 
     calcFlowBuffer :: SFT_MVAL sft -> tk (SFT_MVAL sft)
 
-    viewFlow :: CONTRACT_ACC_ADDR acc (UIDX.CFAOperation sft) -> tk (Maybe (UIDX.CFAContractData sft))
-    setFlow  :: CONTRACT_ACC_ADDR acc (UIDX.CFAOperation sft) -> UIDX.CFAContractData sft -> SFT_TS sft -> tk ()
+    viewFlow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> tk (Maybe (CFA.ContractData sft))
+    setFlow  :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.ContractData sft -> SFT_TS sft -> tk ()
 
-    updateFlow :: CONTRACT_ACC_ADDR acc (UIDX.CFAOperation sft) -> UIDX.FlowRate sft -> tk ()
+    updateFlow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.FlowRate sft -> tk ()
     updateFlow aopsAddrs newFlowRate = do
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         updateUniversalIndex
-            aopsAddrs (UIDX.UpdateFlow newFlowRate newFlowBuffer)
+            aopsAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
             viewFlow setFlow cfaMonetaryUnitData
 
     -- ** DFA Functions
     --
 
-    viewDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> tk (Maybe (UIDX.DFAContractData sft))
-    setDecayingFlow  :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> UIDX.DFAContractData sft -> SFT_TS sft -> tk ()
+    viewDecayingFlow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> tk (Maybe (DFA.ContractData sft))
+    setDecayingFlow  :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.ContractData sft -> SFT_TS sft -> tk ()
 
-    updateDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> UIDX.DistributionLimit sft -> tk ()
+    updateDecayingFlow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.DistributionLimit sft -> tk ()
     updateDecayingFlow aopsAddrs newDistributionLimit = do
         updateUniversalIndex
-            aopsAddrs (UIDX.UpdateDecayingFlow newDistributionLimit def)
+            aopsAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
             viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
-
 
     -- * Agreements operations over proportional distribution indexes
     --

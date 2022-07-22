@@ -20,7 +20,6 @@ library
     other-modules:
         Lens.Internal
         Data.Type.TaggedTypeable
-        Money.Systems.Superfluid.Instances.Simple.Integrations.Serialization
 
     hs-source-dirs:   src
     default-language: GHC2021

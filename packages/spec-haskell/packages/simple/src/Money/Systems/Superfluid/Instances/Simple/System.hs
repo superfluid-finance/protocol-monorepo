@@ -28,6 +28,8 @@ module Money.Systems.Superfluid.Instances.Simple.System
     , listAccounts
     , listCFAContracts
     , listDFAContracts
+    , listPublisherContracts
+    , listIDASubscriptionContracts
     ) where
 
 import           Control.Monad.Trans.Class
@@ -70,16 +72,42 @@ createSimpleAddress :: String -> Maybe SimpleAddress
 createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Nothing
     where isValidAddress = all (\x -> any ($ x) [isAlpha, (== '_')])
 
--- | Simple account type.
-data SimpleAccount = SimpleAccount
+-- | Simple account data.
+data SimpleAccountData = SimpleAccountData
     { universal_index         :: UIDX.UniversalData SimpleSuperfluidTypes
-    , pd_publisher            :: PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes
-    , pd_subscriptions        :: [PDIDX.SubscriptionContract SimpleSuperfluidTypes]
+    , pd_publisher            :: PDIDX.PublisherData SimpleSuperfluidTypes
     , account_last_updated_at :: SimpleTimestamp
     }
 
+-- | Simple account information.
+--
+-- PD subscriptions are loaded on demand.
+data SimpleAccount = SimpleAccount
+    { account_data      :: SimpleAccountData
+    , ida_subscriptions :: [PDIDX.SubscriberData SimpleSuperfluidTypes]
+    }
+
+mk_uidx_mud_lens
+    :: (UIDX.UniversalData SimpleSuperfluidTypes -> amud)
+    -> (amud -> UIDX.UniversalData SimpleSuperfluidTypes)
+    -> Lens' SimpleAccount amud
+mk_uidx_mud_lens mkMud getMudL = lens
+    (mkMud . universal_index . account_data)
+    (\acc@(SimpleAccount{ account_data = accData }) amud ->
+         acc { account_data = accData { universal_index = getMudL amud } })
+
+mk_pdidx_mud_lens
+    :: (PDIDX.PublisherData SimpleSuperfluidTypes -> amud)
+    -> (amud -> PDIDX.PublisherData SimpleSuperfluidTypes)
+    -> Lens' SimpleAccount amud
+mk_pdidx_mud_lens mkMud getMudL = lens
+    (mkMud . pd_publisher . account_data)
+    (\acc@(SimpleAccount{ account_data = accData }) amud ->
+         acc { account_data = accData { pd_publisher = getMudL amud } })
+
 instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
+
     providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
 
     agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.minterMonetaryUnitData)
@@ -87,27 +115,17 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
-                       ++ [MkSimpleAgreementMonetaryUnitData (acc^.SF.proportionalDistributionPublisherData)]
+                       ++ [MkSimpleAgreementMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitData)]
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
 
-    universalIndex = $(field 'universal_index)
-    minterMonetaryUnitData = lens
-        (MMUD.MkMonetaryUnitData . universal_index)
-        (\acc (MMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
-    itaMonetaryUnitData = lens
-        (ITMUD.MkMonetaryUnitData . universal_index)
-        (\acc (ITMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
-    cfaMonetaryUnitData = lens
-        (CFMUD.MkMonetaryUnitData . universal_index)
-        (\acc (CFMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
-    dfaMonetaryUnitData = lens
-        (DFMUD.MkMonetaryUnitData . universal_index)
-        (\acc (DFMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
+    universalIndex = to (universal_index . account_data)
+    minterMonetaryUnitData = mk_uidx_mud_lens MMUD.MkMonetaryUnitData MMUD.getMonetaryUnitLenses
+    itaMonetaryUnitData    = mk_uidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
+    cfaMonetaryUnitData    = mk_uidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
+    dfaMonetaryUnitData    = mk_uidx_mud_lens DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
 
-    proportionalDistributionPublisherData = $(field 'pd_publisher)
-    proportionalDistributionSubscriptions = $(field 'pd_subscriptions)
-
-    idaSubscriberMonetaryUnitDataList = lens (const []) const
+    idaPublisherMonetaryUnitData = mk_pdidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
+    idaSubscriberMonetaryUnitDataList = to ((fmap ITMUD.MkMonetaryUnitData) . ida_subscriptions)
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -116,14 +134,13 @@ showAccountAt :: SimpleAccount -> SimpleTimestamp -> String
 showAccountAt acc t =
     "Balance: " ++ show(SF.balanceOfAt acc t) ++
     concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOf acc) ++
-    "\nLast Update: " ++ show(account_last_updated_at acc)
+    "\nLast Update: " ++ show(account_last_updated_at . account_data $ acc)
     where agreementTypeTag (MkSimpleAgreementMonetaryUnitData g) = tagFromValue g
 
-create_simple_account :: SimpleTimestamp -> SimpleAccount
-create_simple_account t = SimpleAccount
+create_simple_account_data :: SimpleTimestamp -> SimpleAccountData
+create_simple_account_data t = SimpleAccountData
     { universal_index = def
     , pd_publisher = def
-    , pd_subscriptions = []
     , account_last_updated_at = t
     }
 
@@ -132,22 +149,35 @@ newtype SimpleSystemData = SimpleSystemData
     { currentTime   :: SimpleTimestamp
     }
 
--- | Agreement contract data key using addresses.
-type ACD_KEY ao = AgreementOperationPartiesF ao SimpleAddress
+type CFA_KEY = AgreementOperationPartiesF SimpleCFAOperation SimpleAddress
+
+type DFA_KEY = AgreementOperationPartiesF SimpleDFAOperation SimpleAddress
+
+data PDPUB_KEY = PDPUB_KEY SimpleAddress SF.ProportionalDistributionIndexID deriving (Show)
+instance Eq  PDPUB_KEY where PDPUB_KEY a b == PDPUB_KEY a' b' = a == a' && b == b'
+instance Ord PDPUB_KEY where PDPUB_KEY a b <= PDPUB_KEY a' b' = a <= a' && b <= b'
+
+data PDSUB_KEY = PDSUB_KEY SimpleAddress PDPUB_KEY deriving (Show)
+instance Eq  PDSUB_KEY where PDSUB_KEY a b == PDSUB_KEY a' b' = a == a' && b == b'
+instance Ord PDSUB_KEY where PDSUB_KEY a b <= PDSUB_KEY a' b' = a <= a' && b <= b'
 
 -- | Simple token data type.
 data SimpleTokenData = SimpleTokenData
-    { accounts           :: M.Map SimpleAddress SimpleAccount
-    , cfaContractData    :: M.Map (ACD_KEY SimpleCFAOperation) SimpleCFAContractData
-    , dfaContractData    :: M.Map (ACD_KEY SimpleDFAOperation) SimpleDFAContractData
-    , tokenLastUpdatedAt :: SimpleTimestamp
+    { accounts                 :: M.Map SimpleAddress SimpleAccountData
+    , cfaContractData          :: M.Map CFA_KEY   SimpleCFAContractData
+    , dfaContractData          :: M.Map DFA_KEY   SimpleDFAContractData
+    , publisher_contracts      :: M.Map PDPUB_KEY (PDIDX.DistributionContract SimpleSuperfluidTypes)
+    , ida_subscriber_contracts :: M.Map PDSUB_KEY (PDIDX.SubscriptionContract SimpleSuperfluidTypes)
+    , tokenLastUpdatedAt       :: SimpleTimestamp
     }
 
 instance Default SimpleTokenData where
     def = SimpleTokenData
-        { accounts = M.fromList [(minter_address, create_simple_account t)]
+        { accounts = M.fromList [(minter_address, create_simple_account_data t)]
         , cfaContractData = def
         , dfaContractData = def
+        , publisher_contracts = def
+        , ida_subscriber_contracts = def
         , tokenLastUpdatedAt = t }
         where t = def :: SimpleTimestamp
 
@@ -181,12 +211,26 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
 
     getCurrentTime = getSystemData <&> currentTime
 
-    getAccount addr     = getSimpleTokenData <&> accounts <&> M.lookup addr <&> fromMaybe (create_simple_account 0)
-    putAccount addr acc t = modify $ \vs -> vs
-        { accounts = M.insert addr (acc { account_last_updated_at = t }) (accounts vs)
-        }
+    getAccount addr = do
+        token <- getSimpleTokenData
+        let accData = token
+                & accounts
+                & M.lookup addr
+                & fromMaybe (create_simple_account_data 0)
+        let pubs = token & publisher_contracts
+        let ida_subs = token
+                & ida_subscriber_contracts
+                & M.filterWithKey (\(PDSUB_KEY s _) _ -> s == addr)
+                & M.toList
+                & fmap (\((PDSUB_KEY _ k), sub) -> PDIDX.SubscriberData
+                           (fromJust $ M.lookup k pubs)
+                           sub)
+        return $ SimpleAccount { account_data = accData, ida_subscriptions = ida_subs }
 
-    -- * MMUD
+    putAccount addr (SimpleAccount { account_data = accData }) t = modify $ \vs -> vs
+        { accounts = M.insert addr (accData { account_last_updated_at = t }) (accounts vs) }
+
+    -- * MTA
     --
 
     getMinterAddress = return minter_address
@@ -194,27 +238,53 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     viewMinterContract _     = return $ Just def
     setMinterContract  _ _ _ = return ()
 
-    -- * ITMUD
+    -- * ITA
     --
 
     viewITAContract _     = return $ Just def
     setITAContract  _ _ _ = return ()
 
-    -- * CFMUD
+    -- * CFA
     --
     calcFlowBuffer = return  . (* Wad 3600)
 
-    viewFlow acdAddr       = getSimpleTokenData <&> cfaContractData <&> M.lookup acdAddr
+    viewFlow acdAddr       = getSimpleTokenData
+        <&> cfaContractData
+        <&> M.lookup acdAddr
     setFlow  acdAddr acd t = modify $ \vs -> vs
         { cfaContractData = M.insert acdAddr acd (cfaContractData vs)
         , tokenLastUpdatedAt = t
         }
 
-    -- * DFMUD
+    -- * DFA
     --
-    viewDecayingFlow acdAddr       = getSimpleTokenData <&> dfaContractData <&> M.lookup acdAddr
+    viewDecayingFlow acdAddr       = getSimpleTokenData
+        <&> dfaContractData
+        <&> M.lookup acdAddr
     setDecayingFlow  acdAddr acd t = modify $ \vs -> vs
         { dfaContractData = M.insert acdAddr acd (dfaContractData vs)
+        , tokenLastUpdatedAt = t
+        }
+
+    -- * IDA
+    --
+
+    viewProportionalDistributionContract publisher indexId = getSimpleTokenData
+        <&> publisher_contracts
+        <&> M.lookup (PDPUB_KEY publisher indexId)
+
+    setProportionalDistributionContract publisher indexId index t = modify $ \vs -> vs
+        { publisher_contracts = M.insert (PDPUB_KEY publisher indexId) index (publisher_contracts vs)
+        , tokenLastUpdatedAt = t
+        }
+
+    viewProportionalDistributionSubscription subscriber publisher indexId = getSimpleTokenData
+        <&> ida_subscriber_contracts
+        <&> M.lookup (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
+
+    setProportionalDistributionSubscription subscriber publisher indexId sub t = modify $ \vs -> vs
+        { ida_subscriber_contracts = M.insert (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
+                                     sub (ida_subscriber_contracts vs)
         , tokenLastUpdatedAt = t
         }
 
@@ -224,27 +294,31 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
 initSimpleToken :: Monad m => [SimpleAddress] -> Wad -> SimpleTokenStateT m ()
 initSimpleToken alist initBalance = do
     t <- SF.getCurrentTime
-    put SimpleTokenData
-        { accounts = M.fromList $ map (\a -> (a, create_simple_account t)) alist
-        , cfaContractData = M.empty
-        , dfaContractData = M.empty
+    put def
+        { accounts = M.fromList $ map (\a -> (a, create_simple_account_data t)) alist
         , tokenLastUpdatedAt = t
         }
     mapM_ (`SF.mintValue` initBalance) alist
 
 addAccount :: Monad m => SimpleAddress -> SimpleAccount -> SimpleTokenStateT m ()
-addAccount accountAddr account = modify (\vs -> vs {
-    accounts = M.insert
-        accountAddr
-        account
-        (accounts vs)
-    })
+addAccount accAddr (SimpleAccount { account_data = accData }) = modify (\vs -> vs {
+    accounts = M.insert accAddr accData (accounts vs)})
 
 listAccounts :: Monad m => SimpleTokenStateT m [(SimpleAddress, SimpleAccount)]
-listAccounts = getSimpleTokenData <&> M.toList . accounts
+listAccounts = getSimpleTokenData
+    <&> M.keys . accounts
+    -- I mean, just read the type signature, if it compiles, it must does what it says here, you can guess.
+    >>= mapM (\addr -> return . (addr,) =<< SF.getAccount addr)
 
-listCFAContracts :: Monad m => SimpleTokenStateT m [(ACD_KEY SimpleCFAOperation, SimpleCFAContractData)]
+listCFAContracts :: Monad m => SimpleTokenStateT m [(CFA_KEY, SimpleCFAContractData)]
 listCFAContracts = getSimpleTokenData <&> M.toList . cfaContractData
 
-listDFAContracts :: Monad m => SimpleTokenStateT m [(ACD_KEY SimpleDFAOperation, SimpleDFAContractData)]
+listDFAContracts :: Monad m => SimpleTokenStateT m [(DFA_KEY, SimpleDFAContractData)]
 listDFAContracts = getSimpleTokenData <&> M.toList . dfaContractData
+
+
+listPublisherContracts :: Monad m => SimpleTokenStateT m [(PDPUB_KEY, PDIDX.DistributionContract SimpleSuperfluidTypes)]
+listPublisherContracts = getSimpleTokenData <&> M.toList . publisher_contracts
+
+listIDASubscriptionContracts :: Monad m => SimpleTokenStateT m [(PDSUB_KEY, PDIDX.SubscriptionContract SimpleSuperfluidTypes)]
+listIDASubscriptionContracts = getSimpleTokenData <&> M.toList . ida_subscriber_contracts

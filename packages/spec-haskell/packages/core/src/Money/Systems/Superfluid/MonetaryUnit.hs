@@ -20,6 +20,8 @@ import qualified Money.Systems.Superfluid.Agreements.UniversalIndex             
 -- | Monetary unit type class.
 --
 -- It represents the Superfluid take on the monetary unit in the theory of money distribution.
+--
+-- TODO: This is should also be a monad.
 class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Polymorphic agreement account data functions
     --
@@ -61,14 +63,11 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Proportional Distribution Index Agreement Operations
     --
 
-    -- | Getter of the lenses of mu in the proportional distribution subscriptions.
-    proportionalDistributionSubscriptions :: SimpleGetter mu [PDIDX.SubscriptionContract sft]
+    -- | Lens of the lenses of mu in the proportional distribution indexes.
+    idaPublisherMonetaryUnitData :: Lens' mu (PDIDX.IDAPublisherMonetaryUnitData sft)
 
-    -- | Getter of the lenses of mu in the proportional distribution indexes.
-    proportionalDistributionPublisherData :: Lens' mu (PDIDX.IDAPublisherMonetaryUnitData sft)
-
-    -- | Lens for the list of IDA subscriber data in the mu.
-    idaSubscriberMonetaryUnitDataList :: Lens' mu [PDIDX.IDASubscriberMonetaryUnitData sft]
+    -- | Getter for the list of IDA subscriber data in the mu.
+    idaSubscriberMonetaryUnitDataList :: SimpleGetter mu [PDIDX.IDASubscriberMonetaryUnitData sft]
 
 type ProportionalDistributionIndexID = Int
 

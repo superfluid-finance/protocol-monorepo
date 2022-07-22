@@ -45,7 +45,7 @@ test-suite tests
         Money.Systems.Superfluid.TokenTester
         Money.Systems.Superfluid.ConstantFlowAgreement_test
         Money.Systems.Superfluid.DecayingFlowAgreement_test
-
+        Money.Systems.Superfluid.InstantDistributionAgreement_test
     default-language: GHC2021
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
     build-depends:

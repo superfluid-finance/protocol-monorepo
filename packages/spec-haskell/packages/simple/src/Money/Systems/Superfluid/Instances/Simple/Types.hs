@@ -30,8 +30,8 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , SimpleDFAMonetaryUnitData
     , SimpleDFAContractData
     , SimpleDFAOperation
-    , AnySimpleAgreementContractData (..)
     , AnySimpleAgreementMonetaryUnitData (..)
+    , ProportionalDistributionIndexID
     ) where
 
 import           Control.Applicative                                                  (Applicative (..))
@@ -204,18 +204,18 @@ instance Show SimpleMinterMonetaryUnitData where
         (show $ x^.MMUD.untappedValue)
         (show $ x^.MMUD.mintedValue)
 
--- * ITMUD types
+-- * ITA types
 --
 
 type SimpleITAContractData = UIDX.ITAContractData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleITAContractData where
-    tagFromProxy _ = "ITMUD#"
+    tagFromProxy _ = "ITA#"
 
 type SimpleITAMonetaryUnitData = UIDX.ITAMonetaryUnitData SimpleSuperfluidTypes
 
 instance TaggedTypeable SimpleITAMonetaryUnitData where
-    tagFromProxy _ = "ITMUD"
+    tagFromProxy _ = "ITA"
 
 instance Show SimpleITAMonetaryUnitData where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
@@ -243,7 +243,7 @@ instance Show (PDIDX.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITMUD.untappedValue)
 
--- * CFMUD types.
+-- * CFA types.
 --
 
 type SimpleCFAMonetaryUnitData = UIDX.CFAMonetaryUnitData SimpleSuperfluidTypes
@@ -297,18 +297,13 @@ instance Show SimpleDFAContractData where
         (show $ UIDX.dfa_flow_last_updated_at acd)
         (show $ UIDX.dfa_distribution_limit acd)
 
+-- * PD
+
+deriving instance Show (PDIDX.DistributionContract SimpleSuperfluidTypes)
+deriving instance Show (PDIDX.SubscriptionContract SimpleSuperfluidTypes)
+
 -- * AnyX types.
 --
-
--- | AnyAgreementContractData type.
-data AnySimpleAgreementContractData = forall acd.
-    ( AgreementContractData acd SimpleSuperfluidTypes
-    , TaggedTypeable acd
-    , Show acd
-    ) => MkSimpleAgreementContractData acd
-
-instance Show AnySimpleAgreementContractData where
-   show (MkSimpleAgreementContractData g) = show g
 
 -- | AnyAgreementMonetaryUnitData type.
 data AnySimpleAgreementMonetaryUnitData = forall amud.
@@ -337,3 +332,5 @@ instance ( Foldable (AgreementOperationPartiesF ao)
          , Show elem
          ) => Show (AgreementOperationPartiesF ao elem) where
     show elems = "(" ++ (elems & toList & map show & intercalate ", ") ++ ")"
+
+type ProportionalDistributionIndexID = Int

@@ -94,6 +94,8 @@ printTokenState s = do
       accounts <- SF.listAccounts
       cfaContracts <- SF.listCFAContracts
       dfaContracts <- SF.listDFAContracts
+      publisherContracts <- SF.listPublisherContracts
+      idaSubscriptionContracts <- SF.listIDASubscriptionContracts
       totalLiquidtySum <- sumTotalValue s
       liftIO $ do
           let banner = 60 `replicate` '-'
@@ -103,8 +105,16 @@ printTokenState s = do
           mapM_ print_contract cfaContracts
           putStrLn ""
 
-          mapM_ print_contract dfaContracts
           putStrLn "## DFA Contracts\n"
+          mapM_ print_contract dfaContracts
+          putStrLn ""
+
+          putStrLn "## PD Publisher Contracts\n"
+          mapM_ print_contract publisherContracts
+          putStrLn ""
+
+          putStrLn "## IDA Subscription Contracts\n"
+          mapM_ print_contract idaSubscriptionContracts
           putStrLn ""
 
           putStrLn "## Accounts\n"

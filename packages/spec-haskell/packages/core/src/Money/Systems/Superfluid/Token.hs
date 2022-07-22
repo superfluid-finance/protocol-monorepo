@@ -147,7 +147,7 @@ class ( Monad tk
     --
 
     viewDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> tk (Maybe (UIDX.DFAContractData sft))
-    setDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> UIDX.DFAContractData sft -> SFT_TS sft -> tk ()
+    setDecayingFlow  :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> UIDX.DFAContractData sft -> SFT_TS sft -> tk ()
 
     updateDecayingFlow :: CONTRACT_ACC_ADDR acc (UIDX.DFAOperation sft) -> UIDX.DistributionLimit sft -> tk ()
     updateDecayingFlow aopsAddrs newDistributionLimit = do
@@ -162,18 +162,62 @@ class ( Monad tk
     -- ** IDA Functions
     --
 
-    createProportionalDistributionIndex
-        :: ACC_ADDR acc                    -- publisher
-        -> ProportionalDistributionIndexID -- indexId
+    viewProportionalDistributionContract
+        :: ACC_ADDR acc                                -- publisher
+        -> ProportionalDistributionIndexID             -- indexId
+        -> tk (Maybe (PDIDX.DistributionContract sft))
+
+    setProportionalDistributionContract
+        :: ACC_ADDR acc                                -- publisher
+        -> ProportionalDistributionIndexID             -- indexId
+        -> PDIDX.DistributionContract sft              -- index
+        -> SFT_TS sft                                  -- t
         -> tk ()
 
-    subscribeProportionalDistributionIndex
+    viewProportionalDistributionSubscription
+        :: ACC_ADDR acc                                -- subscriber
+        -> ACC_ADDR acc                                -- publisher
+        -> ProportionalDistributionIndexID             -- indexId
+        -> tk (Maybe (PDIDX.SubscriptionContract sft))
+
+    setProportionalDistributionSubscription
+        :: ACC_ADDR acc                                -- subscriber
+        -> ACC_ADDR acc                                -- publisher
+        -> ProportionalDistributionIndexID             -- indexId
+        -> PDIDX.SubscriptionContract sft              -- sub
+        -> SFT_TS sft                                  -- t
+        -> tk ()
+
+    updateProportionalDistributionSubscription
         :: ACC_ADDR acc                    -- subscriber
         -> ACC_ADDR acc                    -- publisher
         -> ProportionalDistributionIndexID -- indexId
+        -> SFT_FLOAT sft                   -- unit
         -> tk ()
+    updateProportionalDistributionSubscription subscriber publisher indexId unit = do
+        -- load acd and accounts data
+        t <- getCurrentTime
+        index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
+        sub  <- fromMaybe def <$> viewProportionalDistributionSubscription subscriber publisher indexId
+        let aod = PDIDX.SubscriberData index sub
+        let (PDIDX.SubscriberData index' sub', _) = applyAgreementOperation (PDIDX.Subscribe unit) aod t
+        setProportionalDistributionContract publisher indexId index' t
+        setProportionalDistributionSubscription subscriber publisher indexId sub' t
 
-    distributeProportionally :: ACC_ADDR acc -> SFT_MVAL sft -> tk ()
+    distributeProportionally
+        :: ACC_ADDR acc                    -- publisher
+        -> ProportionalDistributionIndexID -- indexId
+        -> SFT_MVAL sft                    -- amount
+        -> tk ()
+    distributeProportionally publisher indexId amount = do
+        -- load acd and accounts data
+        t <- getCurrentTime
+        acc <- getAccount publisher
+        index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
+        let (index', PDIDX.IDAOPublisherOperationPartiesF amud') =
+                applyAgreementOperation (PDIDX.Distribute amount) index t
+        setProportionalDistributionContract publisher indexId index' t
+        putAccount publisher (set idaPublisherMonetaryUnitData amud' acc) t
 
 -- ============================================================================
 -- Internal

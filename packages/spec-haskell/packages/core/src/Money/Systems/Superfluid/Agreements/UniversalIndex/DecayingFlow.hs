@@ -38,7 +38,6 @@ data DFAContractData sft = DFAContractData
     , dfa_flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (DFAContractData sft)
-instance SuperfluidTypes sft => AgreementContractData (DFAContractData sft) sft
 
 -- * Operation
 

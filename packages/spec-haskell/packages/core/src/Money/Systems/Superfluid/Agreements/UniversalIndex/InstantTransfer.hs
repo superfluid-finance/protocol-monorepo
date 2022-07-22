@@ -26,7 +26,6 @@ type ITAMonetaryUnitData sft = ITMUD.MonetaryUnitData (UniversalData sft) sft
 
 data ITAContractData sft = ContractData
 instance Default (ITAContractData sft) where def = ContractData
-instance SuperfluidTypes sft => AgreementContractData (ITAContractData sft) sft
 
 -- * Operation
 --

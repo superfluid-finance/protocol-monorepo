@@ -27,7 +27,6 @@ type MinterMonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
 
 data MinterContractData sft = MinterContractData
 instance Default (MinterContractData sft) where def = MinterContractData
-instance SuperfluidTypes sft => AgreementContractData (MinterContractData sft) sft
 
 -- * Operation
 --

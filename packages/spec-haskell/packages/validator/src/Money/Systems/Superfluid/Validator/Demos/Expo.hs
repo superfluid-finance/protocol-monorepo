@@ -1,10 +1,11 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Money.Systems.Superfluid.Validator.Demos.Expo (demo) where
 
 import           Control.Monad.IO.Class
 import           Data.Time.Clock.POSIX                              (getPOSIXTime)
-import           GHC.Stack
+import           GHC.Stack                                          (HasCallStack)
 
 import qualified Money.Systems.Superfluid.Agreements.UniversalIndex as UIDX
 --
@@ -20,6 +21,8 @@ now =  do
 
 initBalance :: SF.Wad
 initBalance = SF.toWad (100.0 :: Double)
+
+u1x = SF.toWad (4.2 :: Double)
 
 demo :: HasCallStack => SimMonad ()
 demo = do
@@ -43,4 +46,14 @@ demo = do
     timeTravel $ 3600 * 24
     t2 <- getCurrentTime
     liftIO $ putStrLn $ "# T2: advanced one full day " ++ show (t2 - t0)
+    runSimTokenOp token printTokenState
+
+    timeTravel $ 3600 * 24
+    runSimTokenOp token printTokenState
+    runToken token $ SF.transfer (UIDX.ITAOperationPartiesF bob alice) u1x
+
+    timeTravel $ 3600 * 24
+    runSimTokenOp token printTokenState
+    runToken token $ SF.updateProportionalDistributionSubscription bob alice 0 100
+    runToken token $ SF.distributeProportionally alice 0 u1x
     runSimTokenOp token printTokenState

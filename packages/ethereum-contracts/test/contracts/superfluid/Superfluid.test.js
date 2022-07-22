@@ -688,12 +688,11 @@ describe("Superfluid Host Contract", function () {
                             "0x",
                             ZERO_ADDRESS,
                             0,
-                            0,
                             ZERO_ADDRESS
                         )
                     );
                     await expectReverted(superfluid.appCallbackPop("0x", 0));
-                    await expectReverted(superfluid.ctxUseCredit("0x", 0, 0));
+                    await expectReverted(superfluid.ctxUseCredit("0x", 0));
                 });
 
                 it("#6.2 use agreement framework as an unregistered agreement", async () => {

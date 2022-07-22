@@ -103,7 +103,9 @@ instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft)
         aopsΔ = fmap ITMUD.MkMonetaryUnitData (IDASubscriberOperationPartiesF def)
         in (aod', aopsΔ)
         where (SubscriberData
-                dc@(DistributionContract { total_unit = tu, value_per_unit = vpu })
+                dc@(DistributionContract
+                    { total_unit = tu
+                    , value_per_unit = vpu })
                 sc@(SubscriptionContract
                     { owned_unit = u
                     , settled_value_per_unit = svpu

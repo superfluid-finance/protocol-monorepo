@@ -214,10 +214,10 @@ class ( Monad tk
         t <- getCurrentTime
         acc <- getAccount publisher
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
-        let (index', PDIDX.IDAOPublisherOperationPartiesF amud') =
+        let (index', PDIDX.IDAOPublisherOperationPartiesF amudΔ) =
                 applyAgreementOperation (PDIDX.Distribute amount) index t
         setProportionalDistributionContract publisher indexId index' t
-        putAccount publisher (set idaPublisherMonetaryUnitData amud' acc) t
+        putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) acc) t
 
 -- ============================================================================
 -- Internal

@@ -22,38 +22,53 @@ now =  do
 initBalance :: SF.Wad
 initBalance = SF.toWad (100.0 :: Double)
 
-u1x = SF.toWad (4.2 :: Double)
+alice = "alice"
+bob = "bob"
+carol = "carol"
+f1x = SF.toWad (0.0001::Double)
+u1x = SF.toWad (5 :: Double)
+day = 3600 * 24
 
 demo :: HasCallStack => SimMonad ()
 demo = do
     liftIO $ putStrLn "==== Superfluid Specification Expo ====\n"
     let token = "DAI"
+
     t0 <- liftIO now
     timeTravel t0
-    liftIO $ putStrLn "# T0: create test accounts"
-    let alice = "alice"
-    let bob = "bob"
-    let carol = "carol"
+
+    liftIO $ putStrLn "# DAY 0: create test accounts"
     createToken token [alice, bob, carol] initBalance
     runSimTokenOp token printTokenState
 
     let t1 = t0
-    liftIO $ putStrLn $ "# T1: create flows" ++ show (t1 - t0)
-    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice bob) (SF.toWad (0.0001::Double))
-    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice carol) (SF.toWad (0.0002::Double))
+    liftIO $ putStrLn $ "# DAY 1: create flows"
+    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice bob)      f1x
+    runToken token $ SF.updateFlow (UIDX.CFAContractPartiesF alice carol) (2*f1x)
     runSimTokenOp token printTokenState
 
-    timeTravel $ 3600 * 24
+    timeTravel day
     t2 <- getCurrentTime
-    liftIO $ putStrLn $ "# T2: advanced one full day " ++ show (t2 - t0)
+    liftIO $ putStrLn $ "# DAY 2: nothing " ++ show (t2 - t1)
     runSimTokenOp token printTokenState
 
-    timeTravel $ 3600 * 24
-    runSimTokenOp token printTokenState
+    timeTravel day
+    t3 <- getCurrentTime
+    liftIO $ putStrLn $ "# DAY 3: bob transfer 1x to alice" ++ show (t3 - t2)
     runToken token $ SF.transfer (UIDX.ITAOperationPartiesF bob alice) u1x
-
-    timeTravel $ 3600 * 24
     runSimTokenOp token printTokenState
+
+    timeTravel day
+    t4 <- getCurrentTime
+    liftIO $ putStrLn $ "# DAY 4: bob subscribes 100 units from alice, and alice distribute 1x" ++ show (t4 - t3)
     runToken token $ SF.updateProportionalDistributionSubscription bob alice 0 100
     runToken token $ SF.distributeProportionally alice 0 u1x
+    runSimTokenOp token printTokenState
+
+    timeTravel day
+    t5 <- getCurrentTime
+    liftIO $ putStrLn $ "# DAY 4: bob subscribes 400 units from alice, and alice distribute 5x" ++ show (t5 - t4)
+    runSimTokenOp token printTokenState
+    runToken token $ SF.updateProportionalDistributionSubscription carol alice 0 400
+    runToken token $ SF.distributeProportionally alice 0 (5*u1x)
     runSimTokenOp token printTokenState

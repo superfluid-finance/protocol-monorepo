@@ -33,7 +33,8 @@ library
         Money.Systems.Superfluid.Agreements.UniversalIndex.ConstantFlow
         Money.Systems.Superfluid.Agreements.UniversalIndex.DecayingFlow
         Money.Systems.Superfluid.Agreements.UniversalIndex
-        Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex
+        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
+        Money.Systems.Superfluid.Agreements.InstantDistributionAgreement
         Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
     other-modules:

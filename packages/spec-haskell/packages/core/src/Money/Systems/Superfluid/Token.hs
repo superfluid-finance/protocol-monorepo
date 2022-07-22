@@ -9,17 +9,18 @@ module Money.Systems.Superfluid.Token
     ) where
 
 import           Data.Default
-import           Data.Foldable                                                     (toList)
-import           Data.Kind                                                         (Type)
-import           Data.Maybe                                                        (fromMaybe)
+import           Data.Foldable                                                             (toList)
+import           Data.Kind                                                                 (Type)
+import           Data.Maybe                                                                (fromMaybe)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 --
-import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                as UIDX
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                        as UIDX
 --
 import           Money.Systems.Superfluid.MonetaryUnit
 
@@ -200,7 +201,7 @@ class ( Monad tk
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
         sub  <- fromMaybe def <$> viewProportionalDistributionSubscription subscriber publisher indexId
         let aod = PDIDX.SubscriberData index sub
-        let (PDIDX.SubscriberData index' sub', _) = applyAgreementOperation (PDIDX.Subscribe unit) aod t
+        let (PDIDX.SubscriberData index' sub', _) = applyAgreementOperation (IDA.Subscribe unit) aod t
         setProportionalDistributionContract publisher indexId index' t
         setProportionalDistributionSubscription subscriber publisher indexId sub' t
 
@@ -214,8 +215,8 @@ class ( Monad tk
         t <- getCurrentTime
         acc <- getAccount publisher
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
-        let (index', PDIDX.IDAOPublisherOperationPartiesF amudΔ) =
-                applyAgreementOperation (PDIDX.Distribute amount) index t
+        let (index', IDA.IDAOPublisherOperationPartiesF amudΔ) =
+                applyAgreementOperation (IDA.Distribute amount) index t
         setProportionalDistributionContract publisher indexId index' t
         putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) acc) t
 

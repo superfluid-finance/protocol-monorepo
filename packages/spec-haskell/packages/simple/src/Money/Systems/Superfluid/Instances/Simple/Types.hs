@@ -34,30 +34,29 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , ProportionalDistributionIndexID
     ) where
 
-import           Control.Applicative                                                  (Applicative (..))
+import           Control.Applicative                                                       (Applicative (..))
 import           Data.Binary
 import           Data.Default
-import           Data.Foldable                                                        (toList)
-import           Data.List                                                            (intercalate)
+import           Data.Foldable                                                             (toList)
+import           Data.List                                                                 (intercalate)
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
-import           GHC.Generics                                                         (Generic)
+import           GHC.Generics                                                              (Generic)
 import           Lens.Internal
-import           Text.Printf                                                          (printf)
+import           Text.Printf                                                               (printf)
 
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow    as CFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow    as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer as ITMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter          as MMUD
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer      as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter               as MMUD
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                        as UIDX
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency              as BBS
---
-import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex    as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                   as UIDX
-
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 
 -- =====================================================================================================================
 -- Value Type:
@@ -226,20 +225,20 @@ instance Show SimpleITAMonetaryUnitData where
 instance TaggedTypeable (PDIDX.DistributionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "PD#"
 
-instance TaggedTypeable (PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
+instance TaggedTypeable (IDA.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(P)"
 
-instance Show (PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
+instance Show (IDA.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITMUD.untappedValue)
 
 instance TaggedTypeable (PDIDX.SubscriptionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(S)#"
 
-instance TaggedTypeable (PDIDX.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
+instance TaggedTypeable (IDA.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(S)"
 
-instance Show (PDIDX.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
+instance Show (IDA.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITMUD.untappedValue)
 

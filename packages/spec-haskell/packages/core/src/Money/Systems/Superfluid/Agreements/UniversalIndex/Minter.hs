@@ -17,10 +17,10 @@ import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 -- * Monetary unit lenses
 --
 
-instance SuperfluidTypes sft => MMUD.MonetaryUnitLenses (UniversalIndex sft) sft where
-    untappedValue = $(field 'minta_untapped_value)
-    mintedValue   = $(field 'minta_minted_value)
-type MinterMonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalIndex sft) sft
+instance SuperfluidTypes sft => MMUD.MonetaryUnitLenses (UniversalData sft) sft where
+    untappedValue = $(field 'minter_untapped_value)
+    mintedValue   = $(field 'minter_minted_value)
+type MinterMonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --

@@ -17,9 +17,9 @@ import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 -- * Monetary data lenses
 --
 
-instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (UniversalIndex sft) sft where
+instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (UniversalData sft) sft where
     untappedValue = $(field 'ita_untapped_value)
-type ITAMonetaryUnitData sft = ITMUD.MonetaryUnitData (UniversalIndex sft) sft
+type ITAMonetaryUnitData sft = ITMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --
@@ -35,14 +35,14 @@ data ITAOperation sft = Transfer (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (ITAOperation sft)
     (ITAContractData sft) (ITAMonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (ITAOperation sft) elem = ITAOPerationPartiesF
+    data AgreementOperationPartiesF (ITAOperation sft) elem = ITAOperationPartiesF
         { transferFrom :: elem
         , transferTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
 
     applyAgreementOperation (Transfer amount) acd _ = let
         acd'  = acd
-        aopsΔ = fmap ITMUD.MkMonetaryUnitData (ITAOPerationPartiesF
+        aopsΔ = fmap ITMUD.MkMonetaryUnitData (ITAOperationPartiesF
                     (def & set ITMUD.untappedValue (coerce (- amount)))
                     (def & set ITMUD.untappedValue (coerce    amount)))
         in (acd', aopsΔ)

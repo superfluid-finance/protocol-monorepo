@@ -32,7 +32,7 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
 
     -- * Nomenclature:
     --
-    -- MINTA = Minter Agreement over the Universal Index
+    -- Minter = Minter Agreement over the Universal Index
     -- ITA   = Instant Transfer Agreement over the Universal Index
     -- CFA   = Constant Flow Agreement over the Universal Index
     -- DFA   = Decaying Flow Agreement over the Universal Index
@@ -44,10 +44,10 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     --
 
     -- | Getter of the lenses of monetary unit data in the universal index.
-    universalIndex :: SimpleGetter mu (UIDX.UniversalIndex sft)
+    universalIndex :: SimpleGetter mu (UIDX.UniversalData sft)
 
-    -- | Lens for MINTA data in the mu.
-    mintaMonetaryUnitData :: Lens' mu (UIDX.MinterMonetaryUnitData sft)
+    -- | Lens for Minter data in the mu.
+    minterMonetaryUnitData :: Lens' mu (UIDX.MinterMonetaryUnitData sft)
 
     -- | Lens for ITA data in the mu.
     itaMonetaryUnitData :: Lens' mu (UIDX.ITAMonetaryUnitData sft)
@@ -61,14 +61,11 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Proportional Distribution Index Agreement Operations
     --
 
-    -- | Getter of the lenses of mu in the proportional distribution indexes.
-    proportionalDistributionIndexes :: SimpleGetter mu [PDIDX.ProportionalDistributionIndex sft]
-
     -- | Getter of the lenses of mu in the proportional distribution subscriptions.
-    proportionalDistributionSubscriptions :: SimpleGetter mu [PDIDX.ProportionalDistributionSubscription sft]
+    proportionalDistributionSubscriptions :: SimpleGetter mu [PDIDX.SubscriptionContract sft]
 
-    -- | Lens for the list of IDA publisher data in the mu.
-    idaPublisherMonetaryUnitDataList  :: Lens' mu [PDIDX.IDAPublisherMonetaryUnitData sft]
+    -- | Getter of the lenses of mu in the proportional distribution indexes.
+    proportionalDistributionPublisherData :: Lens' mu (PDIDX.IDAPublisherMonetaryUnitData sft)
 
     -- | Lens for the list of IDA subscriber data in the mu.
     idaSubscriberMonetaryUnitDataList :: Lens' mu [PDIDX.IDASubscriberMonetaryUnitData sft]

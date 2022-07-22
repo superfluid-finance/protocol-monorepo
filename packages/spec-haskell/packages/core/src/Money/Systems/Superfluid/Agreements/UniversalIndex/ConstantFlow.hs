@@ -23,14 +23,14 @@ import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 --
 
 -- | Monetary unit lenses for the universal index.
-instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (UniversalIndex sft) sft where
+instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (UniversalData sft) sft where
     settledAt            = $(field 'cfa_settled_at)
     settledUntappedValue = $(field 'cfa_settled_untapped_value)
     settledBufferValue   = $(field 'cfa_settled_buffer_value)
     netFlowRate          = $(field 'cfa_net_flow_rate)
 
 -- | Type alias for the constant flow monetary unit data.
-type CFAMonetaryUnitData sft = CFMUD.MonetaryUnitData (UniversalIndex sft) sft
+type CFAMonetaryUnitData sft = CFMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --
@@ -75,9 +75,8 @@ instance SuperfluidTypes sft => AgreementOperation (CFAOperation sft)
                          & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
                          & set CFMUD.settledBufferValue def))
         in (acd', aopssΔ)
-        where
-            t               = cfa_flow_last_updated_at acd
-            fr              = cfa_flow_rate acd
-            flowPeriodDelta = fr * fromIntegral (t' - t)
-            flowRateDelta   = newFlowRate - fr
-            flowBufferDelta = newFlowBuffer - cfa_flow_buffer acd
+        where t               = cfa_flow_last_updated_at acd
+              fr              = cfa_flow_rate acd
+              flowPeriodDelta = fr * fromIntegral (t' - t)
+              flowRateDelta   = newFlowRate - fr
+              flowBufferDelta = newFlowBuffer - cfa_flow_buffer acd

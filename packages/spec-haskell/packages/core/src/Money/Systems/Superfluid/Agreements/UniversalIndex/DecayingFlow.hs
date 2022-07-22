@@ -21,13 +21,13 @@ import           Money.Systems.Superfluid.Agreements.UniversalIndex.Data
 
 -- * Monetary data lenses
 --
-instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (UniversalIndex sft) sft where
+instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (UniversalData sft) sft where
     decayingFactor = readOnlyLens (\_ -> dfa_default_lambda (Proxy @sft))
     settledAt      = $(field 'dfa_settledAt)
     αVal           = $(field 'dfa_αVal)
     εVal           = $(field 'dfa_εVal)
     settledBuffer  = $(field 'dfa_settledBuffer)
-type DFAMonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalIndex sft) sft
+type DFAMonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --

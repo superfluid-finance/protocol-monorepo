@@ -223,8 +223,8 @@ instance Show SimpleITAMonetaryUnitData where
 
 -- * IDA types.
 
-instance TaggedTypeable (PDIDX.IDAPublisherContractData SimpleSuperfluidTypes) where
-    tagFromProxy _ = "IDA(P)#"
+instance TaggedTypeable (PDIDX.DistributionContract SimpleSuperfluidTypes) where
+    tagFromProxy _ = "PD#"
 
 instance TaggedTypeable (PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(P)"
@@ -233,7 +233,7 @@ instance Show (PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
     show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
         (show $ x^.ITMUD.untappedValue)
 
-instance TaggedTypeable (PDIDX.IDASubscriberContractData SimpleSuperfluidTypes) where
+instance TaggedTypeable (PDIDX.SubscriptionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(S)#"
 
 instance TaggedTypeable (PDIDX.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where

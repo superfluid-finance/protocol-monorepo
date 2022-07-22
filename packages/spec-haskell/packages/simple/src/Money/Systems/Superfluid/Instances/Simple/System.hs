@@ -72,9 +72,9 @@ createSimpleAddress a = if isValidAddress a then Just $ SimpleAddress a else Not
 
 -- | Simple account type.
 data SimpleAccount = SimpleAccount
-    { universal_index         :: UIDX.UniversalIndex SimpleSuperfluidTypes
-    , pd_indexes              :: [PDIDX.ProportionalDistributionIndex SimpleSuperfluidTypes]
-    , pd_subscriptions        :: [PDIDX.ProportionalDistributionSubscription SimpleSuperfluidTypes]
+    { universal_index         :: UIDX.UniversalData SimpleSuperfluidTypes
+    , pd_publisher            :: PDIDX.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes
+    , pd_subscriptions        :: [PDIDX.SubscriptionContract SimpleSuperfluidTypes]
     , account_last_updated_at :: SimpleTimestamp
     }
 
@@ -82,16 +82,16 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
     providedBalanceByAnyAgreement _ (MkSimpleAgreementMonetaryUnitData g) = balanceProvidedByAgreement g
 
-    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.mintaMonetaryUnitData)
+    agreementsOf acc = [ MkSimpleAgreementMonetaryUnitData (acc^.SF.minterMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
-                       ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitDataList)
+                       ++ [MkSimpleAgreementMonetaryUnitData (acc^.SF.proportionalDistributionPublisherData)]
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
 
     universalIndex = $(field 'universal_index)
-    mintaMonetaryUnitData = lens
+    minterMonetaryUnitData = lens
         (MMUD.MkMonetaryUnitData . universal_index)
         (\acc (MMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
     itaMonetaryUnitData = lens
@@ -104,10 +104,9 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
         (DFMUD.MkMonetaryUnitData . universal_index)
         (\acc (DFMUD.MkMonetaryUnitData amud) -> acc { universal_index = amud })
 
-    proportionalDistributionIndexes       = $(field 'pd_indexes)
+    proportionalDistributionPublisherData = $(field 'pd_publisher)
     proportionalDistributionSubscriptions = $(field 'pd_subscriptions)
 
-    idaPublisherMonetaryUnitDataList  = lens (const []) const
     idaSubscriberMonetaryUnitDataList = lens (const []) const
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
@@ -123,7 +122,7 @@ showAccountAt acc t =
 create_simple_account :: SimpleTimestamp -> SimpleAccount
 create_simple_account t = SimpleAccount
     { universal_index = def
-    , pd_indexes = []
+    , pd_publisher = def
     , pd_subscriptions = []
     , account_last_updated_at = t
     }

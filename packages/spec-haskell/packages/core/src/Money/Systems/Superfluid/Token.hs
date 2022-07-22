@@ -114,7 +114,7 @@ class ( Monad tk
         minterAddress <- getMinterAddress
         updateUniversalIndex
             (UIDX.MinterOperationPartiesF minterAddress toAddr) (UIDX.Mint amount)
-            viewMinterContract setMinterContract mintaMonetaryUnitData
+            viewMinterContract setMinterContract minterMonetaryUnitData
 
     -- ** ITA Functions
     --

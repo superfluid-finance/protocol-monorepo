@@ -1,4 +1,4 @@
-# Stream-In ➡ Distribute Out (SIDO) Example
+# Stream-In ➡ Distribute-Out (SIDO) Example
 
 Howdy dev 🤠! 
 

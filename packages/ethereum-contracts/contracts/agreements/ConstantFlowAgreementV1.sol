@@ -904,8 +904,7 @@ contract ConstantFlowAgreementV1 is
         if (currentContext.appCreditToken == token) {
             newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                 ctx,
-                newFlowData.deposit, // creditWantedMore
-                depositDelta // creditUsedDelta
+                newFlowData.deposit // creditWantedMore
             );
         } else {
             newCtx = ctx;
@@ -981,9 +980,8 @@ contract ConstantFlowAgreementV1 is
                 );
 
             cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
-            // cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
-            // - each app level get a same amount of credit
+            // - each app level gets the same amount of credit
 
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
@@ -1050,8 +1048,7 @@ contract ConstantFlowAgreementV1 is
             {
                 newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                     newCtx,
-                    vars.newFlowData.deposit, // creditWantedMore
-                    appCreditDelta // creditUsedDelta
+                    vars.newFlowData.deposit // creditWantedMore
                 );
             }
 

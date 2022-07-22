@@ -54,7 +54,6 @@ library AgreementLibrary {
         bytes32 agreementId;
         bytes agreementData;
         uint256 appCreditGranted;
-        int256 appCreditUsed;
         uint256 noopBit;
     }
 
@@ -198,7 +197,6 @@ library AgreementLibrary {
             ctx,
             ISuperApp(inputs.account),
             inputs.appCreditGranted,
-            inputs.appCreditUsed,
             inputs.token);
     }
 

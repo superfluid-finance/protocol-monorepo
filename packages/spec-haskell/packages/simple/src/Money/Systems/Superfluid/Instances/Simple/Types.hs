@@ -335,20 +335,20 @@ data AnySimpleAgreementMonetaryUnitData = forall amud.
 instance Show AnySimpleAgreementMonetaryUnitData where
     show (MkSimpleAgreementMonetaryUnitData a) = show a
 
--- * Some useful AgreementOperationPartiesF instances
+-- * Some useful AgreementOperationResultF instances
 --
 
-instance ( Foldable (AgreementOperationPartiesF ao)
+instance ( Foldable (AgreementOperationResultF ao)
          , Eq elem
-         ) => Eq (AgreementOperationPartiesF ao elem) where
+         ) => Eq (AgreementOperationResultF ao elem) where
     a == b = foldr (&&) True $ zipWith (==) (toList a) (toList b)
 
-instance ( Foldable (AgreementOperationPartiesF ao)
+instance ( Foldable (AgreementOperationResultF ao)
          , Ord elem
-         ) => Ord (AgreementOperationPartiesF ao elem) where
+         ) => Ord (AgreementOperationResultF ao elem) where
     a <= b = foldr (&&) True $ zipWith (<=) (toList a) (toList b)
 
-instance ( Foldable (AgreementOperationPartiesF ao)
+instance ( Foldable (AgreementOperationResultF ao)
          , Show elem
-         ) => Show (AgreementOperationPartiesF ao elem) where
+         ) => Show (AgreementOperationResultF ao elem) where
     show elems = "(" ++ (elems & toList & map show & intercalate ", ") ++ ")"

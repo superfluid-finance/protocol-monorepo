@@ -118,13 +118,13 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        ++ [MkSimpleAgreementMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitData)]
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
 
-    universalIndex = to (universal_index . account_data)
+    universalData = to (universal_index . account_data)
     minterMonetaryUnitData = mk_uidx_mud_lens MMUD.MkMonetaryUnitData MMUD.getMonetaryUnitLenses
     itaMonetaryUnitData    = mk_uidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
     cfaMonetaryUnitData    = mk_uidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
     dfaMonetaryUnitData    = mk_uidx_mud_lens DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
 
-    proprotionalDistributionPublisher = to (pd_publisher . account_data)
+    pdPublisherData = to (pd_publisher . account_data)
     idaPublisherMonetaryUnitData = mk_pdidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
     idaSubscriberMonetaryUnitDataList = to ((fmap ITMUD.MkMonetaryUnitData) . ida_subscriptions)
 
@@ -150,9 +150,9 @@ newtype SimpleSystemData = SimpleSystemData
     { currentTime   :: SimpleTimestamp
     }
 
-type CFA_KEY = AgreementOperationPartiesF SimpleCFAOperation SimpleAddress
+type CFA_KEY = AgreementOperationResultF SimpleCFAOperation SimpleAddress
 
-type DFA_KEY = AgreementOperationPartiesF SimpleDFAOperation SimpleAddress
+type DFA_KEY = AgreementOperationResultF SimpleDFAOperation SimpleAddress
 
 data PDPUB_KEY = PDPUB_KEY SimpleAddress SF.ProportionalDistributionIndexID deriving (Show)
 instance Eq  PDPUB_KEY where PDPUB_KEY a b == PDPUB_KEY a' b' = a == a' && b == b'

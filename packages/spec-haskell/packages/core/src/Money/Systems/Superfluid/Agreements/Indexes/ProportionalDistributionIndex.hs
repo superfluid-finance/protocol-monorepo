@@ -27,12 +27,18 @@ deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)
 
 -- * Monetary data
 
+-- | Proportional distribution publisher data.
+--
+-- Note: this is very similar to the universal data.
 data PublisherData sft = PublisherData
     { distributed_value :: UntappedValue (SFT_MVAL sft)
     , total_flow_rate   :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (PublisherData sft)
 
+-- | Proportional distribution subcriber data.
+--
+-- Note: The contracts are the subscriber data. It is not storage-scalable.
 data SubscriberData sft = SubscriberData
     { distribution_contract :: DistributionContract sft
     , subscription_contract :: SubscriptionContract sft

@@ -5,6 +5,7 @@ module Money.Systems.Superfluid.Token
     ( module Money.Systems.Superfluid.MonetaryUnit
     , Address
     , Account (..)
+    , ProportionalDistributionIndexID
     , Token (..)
     ) where
 
@@ -42,6 +43,9 @@ class Eq addr => Address addr
 --   * Term name: *MonetaryUnit
 class (SuperfluidTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sft where
     type ACC_ADDR acc :: Type
+
+-- | ID for the proportional distribution index. Maybe an indexed type instead?
+type ProportionalDistributionIndexID = Int
 
 -- | Token Type Class
 --
@@ -82,29 +86,32 @@ class ( Monad tk
     --
 
     updateUniversalIndex
-        :: AgreementOperation ao acd amud sft
-        => (AgreementOperationPartiesF ao) (ACC_ADDR acc)                                 -- aopsAddrs
+        :: ( AgreementOperation ao acd amud sft -- NOTE: here `acd` is the `aod` for `ao`
+           , Default acd
+           , Traversable (AgreementOperationResultF ao)
+           )
+        => (AgreementOperationResultF ao) (ACC_ADDR acc)                                 -- aorAddrs
         -> ao                                                                             -- ao
-        -> ((AgreementOperationPartiesF ao) (ACC_ADDR acc) -> tk (Maybe acd))             -- acdGetter
-        -> ((AgreementOperationPartiesF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ()) -- acdSetter
+        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> tk (Maybe acd))             -- acdGetter
+        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ()) -- acdSetter
         -> Lens' acc amud                                                                 -- amudL
         -> tk ()
-    updateUniversalIndex aopsAddrs ao acdGetter acdSetter amuData = do
+    updateUniversalIndex aorAddrs ao acdGetter acdSetter amuData = do
         -- load acd and accounts data
         t <- getCurrentTime
-        acd <- fromMaybe def <$> acdGetter aopsAddrs
-        aopsAccounts <- mapM getAccount aopsAddrs
+        aod <- fromMaybe def <$> acdGetter aorAddrs
+        aorAccounts <- mapM getAccount aorAddrs
         -- apply agreement operation
-        let (acd', aopsΔamuds) = applyAgreementOperation ao acd t
+        let (acd', aorΔamuds) = applyAgreementOperation ao aod t
         -- append delta to existing amuds
-        let amuds' = zipWith (<>) (fmap (^. amuData) (toList aopsAccounts)) (toList aopsΔamuds)
+        let amuds' = zipWith (<>) (fmap (^. amuData) (toList aorAccounts)) (toList aorΔamuds)
         -- set new acd
-        acdSetter aopsAddrs acd' t
+        acdSetter aorAddrs acd' t
         -- set new amuds
         mapM_ (\(addr, amud) -> putAccount addr amud t)
-            (zip (toList aopsAddrs)
+            (zip (toList aorAddrs)
                 (fmap (\(amud', account) -> set amuData amud' account)
-                    (zip amuds' (toList aopsAccounts))))
+                    (zip amuds' (toList aorAccounts))))
 
     -- ** Minter Functions
     --
@@ -128,9 +135,9 @@ class ( Monad tk
     setITAContract  :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> ITA.ContractData sft -> SFT_TS sft -> tk ()
 
     transfer :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> SFT_MVAL sft -> tk ()
-    transfer aopsAddrs amount = do
+    transfer aorAddrs amount = do
         updateUniversalIndex
-            aopsAddrs (ITA.Transfer amount)
+            aorAddrs (ITA.Transfer amount)
             viewITAContract setITAContract itaMonetaryUnitData
 
     -- ** CFA Functions
@@ -142,10 +149,10 @@ class ( Monad tk
     setFlow  :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.ContractData sft -> SFT_TS sft -> tk ()
 
     updateFlow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.FlowRate sft -> tk ()
-    updateFlow aopsAddrs newFlowRate = do
+    updateFlow aorAddrs newFlowRate = do
         newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         updateUniversalIndex
-            aopsAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
+            aorAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
             viewFlow setFlow cfaMonetaryUnitData
 
     -- ** DFA Functions
@@ -155,9 +162,9 @@ class ( Monad tk
     setDecayingFlow  :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.ContractData sft -> SFT_TS sft -> tk ()
 
     updateDecayingFlow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.DistributionLimit sft -> tk ()
-    updateDecayingFlow aopsAddrs newDistributionLimit = do
+    updateDecayingFlow aorAddrs newDistributionLimit = do
         updateUniversalIndex
-            aopsAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
+            aorAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
             viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
 
     -- * Agreements operations over proportional distribution indexes
@@ -226,4 +233,4 @@ class ( Monad tk
 -- ============================================================================
 -- Internal
 --
-type CONTRACT_ACC_ADDR acc ao = AgreementOperationPartiesF ao (ACC_ADDR acc)
+type CONTRACT_ACC_ADDR acc ao = AgreementOperationResultF ao (ACC_ADDR acc)

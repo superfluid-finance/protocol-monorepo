@@ -3,7 +3,6 @@
 
 module Money.Systems.Superfluid.MonetaryUnit
     ( MonetaryUnit (..)
-    , ProportionalDistributionIndexID
     , balanceOfAt
     , sumBalancesAt
     ) where
@@ -26,8 +25,6 @@ import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex     
 -- | Monetary unit type class.
 --
 -- It represents the Superfluid take on the monetary unit in the theory of money distribution.
---
--- TODO: This is should also be a monad.
 class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Polymorphic agreement account data functions
     --
@@ -51,34 +48,32 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Universal Index Agreement Operations
     --
 
-    -- | Getter of the lenses of monetary unit data in the universal index.
-    universalIndex :: SimpleGetter mu (UIDX.UniversalData sft)
+    -- | Getter for the lenses of monetary unit data in the universal index.
+    universalData :: SimpleGetter mu (UIDX.UniversalData sft)
 
-    -- | Lens for Minter data in the mu.
+    -- | Lens for Minter data.
     minterMonetaryUnitData :: Lens' mu (MINTA.MonetaryUnitData sft)
 
-    -- | Lens for ITA data in the mu.
+    -- | Lens for ITA data.
     itaMonetaryUnitData :: Lens' mu (ITA.MonetaryUnitData sft)
 
-    -- | Lens for CFA data in the mu.
+    -- | Lens for CFA data.
     cfaMonetaryUnitData :: Lens' mu (CFA.MonetaryUnitData sft)
 
-    -- | Lens for DFA data in the mu.
+    -- | Lens for DFA data.
     dfaMonetaryUnitData :: Lens' mu (DFA.MonetaryUnitData sft)
 
     -- * Proportional Distribution Index Agreement Operations
     --
 
-    -- | Getter of the lenses of monetary unit data in the universal index.
-    proprotionalDistributionPublisher :: SimpleGetter mu (PDIDX.PublisherData sft)
+    -- | Getter for the publisher lenses of monetary unit data in the proportional distribution (PD) index.
+    pdPublisherData :: SimpleGetter mu (PDIDX.PublisherData sft)
 
-    -- | Lens of the lenses of mu in the proportional distribution indexes.
-    idaPublisherMonetaryUnitData :: Lens' mu (IDA.IDAPublisherMonetaryUnitData sft)
-
-    -- | Getter for the list of IDA subscriber data in the mu.
+    -- | Getter for the list of subscriber IDA data.
     idaSubscriberMonetaryUnitDataList :: SimpleGetter mu [IDA.IDASubscriberMonetaryUnitData sft]
 
-type ProportionalDistributionIndexID = Int
+    -- | Lens for the publisher IDA data.
+    idaPublisherMonetaryUnitData :: Lens' mu (IDA.IDAPublisherMonetaryUnitData sft)
 
 -- | Calculate the real time balance of an monetary unit at a given time.
 balanceOfAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => mu -> SFT_TS sft -> SFT_RTB sft

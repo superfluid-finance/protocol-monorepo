@@ -20,7 +20,7 @@ import           Money.Systems.Superfluid.Concepts
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer      as ITMUD
 
--- | * Monetary unit data
+-- * Monetary unit data
 
 type IDAPublisherMonetaryUnitData sft = ITMUD.MonetaryUnitData (PublisherData sft) sft
 
@@ -29,7 +29,6 @@ type IDASubscriberMonetaryUnitData sft = ITMUD.MonetaryUnitData (SubscriberData 
 instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (PublisherData sft) sft where
     untappedValue = $(field 'distributed_value)
 
--- | The contract is the data. It is not scalable.
 instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     untappedValue = readOnlyLens
         -- lens getter: subscribed value
@@ -43,30 +42,31 @@ instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (SubscriberData sft) sf
           ) -> (+) sv $ UntappedValue $ floor $
             u * fromIntegral (vpu - svpu))
 
--- | * Operations
+-- * Publisher Operations
 
 data IDAPublisherOperation sft = Distribute (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft)
     (DistributionContract sft) (IDAPublisherMonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (IDAPublisherOperation sft) elem = IDAOPublisherOperationPartiesF elem
+    data AgreementOperationResultF (IDAPublisherOperation sft) elem = IDAOPublisherOperationPartiesF elem
         deriving stock (Functor, Foldable, Traversable)
 
     applyAgreementOperation (Distribute amount) aod _ = let
         aod'  = aod { value_per_unit = floor (fromIntegral p + delta) }
-        aopsΔ = fmap ITMUD.MkMonetaryUnitData (IDAOPublisherOperationPartiesF
+        aorΔ = fmap ITMUD.MkMonetaryUnitData (IDAOPublisherOperationPartiesF
                     (def & set ITMUD.untappedValue (coerce (- amount))))
-        in (aod', aopsΔ)
+        in (aod', aorΔ)
         where DistributionContract { total_unit = tu, value_per_unit = p } = aod
               delta = fromIntegral amount / tu
+
+-- * Subscriber Operations
 
 data IDASubscriberOperation sft = Subscribe   (SFT_FLOAT sft) |
                                   Unsubscribe
 
 instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft)
     (SubscriberData sft) (IDASubscriberMonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (IDASubscriberOperation sft) elem = IDASubscriberOperationPartiesF elem
-        deriving stock (Functor, Foldable, Traversable)
+    data AgreementOperationResultF (IDASubscriberOperation sft) elem = IDASubscriberOperationPartiesF
 
     applyAgreementOperation (Subscribe unit) aod _ = let
         aod'  = SubscriberData
@@ -75,8 +75,8 @@ instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft)
                       , settled_value_per_unit = vpu
                       , settled_value = UntappedValue sv'
                       })
-        aopsΔ = fmap ITMUD.MkMonetaryUnitData (IDASubscriberOperationPartiesF def)
-        in (aod', aopsΔ)
+        aorΔ = IDASubscriberOperationPartiesF
+        in (aod', aorΔ)
         where (SubscriberData
                 dc@(DistributionContract
                     { total_unit = tu
@@ -88,5 +88,6 @@ instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft)
                     })) = aod
               sv' = floor (fromIntegral sv + fromIntegral (vpu - svpu) * u)
     applyAgreementOperation Unsubscribe aod _ = let
-        in (aod, aopsΔ)
-        where aopsΔ = fmap ITMUD.MkMonetaryUnitData (IDASubscriberOperationPartiesF def)
+        -- FIXME operation missing
+        in (aod, aorΔ)
+        where aorΔ = IDASubscriberOperationPartiesF

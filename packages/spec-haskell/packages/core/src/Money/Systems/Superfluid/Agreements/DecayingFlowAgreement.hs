@@ -50,7 +50,7 @@ data Operation sft =
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft)
     (ContractData sft) (MonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (Operation sft) elem = OperationPartiesF
+    data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
         { decayingFlowSender   :: elem
         , decayingFlowReceiver :: elem
         } deriving stock (Functor, Foldable, Traversable)
@@ -64,7 +64,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft)
                              , flow_buffer          = newFlowBuffer
                              , flow_last_updated_at = t'
                              }
-        aopssΔ = fmap DFMUD.MkMonetaryUnitData (OperationPartiesF
+        aorsΔ = fmap DFMUD.MkMonetaryUnitData (OperationPartiesF
                     (def & set DFMUD.settledAt     t'
                          & set DFMUD.αVal          θ_Δ
                          & set DFMUD.εVal          (-θ_Δ)
@@ -72,7 +72,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft)
                     (def & set DFMUD.settledAt     t'
                          & set DFMUD.αVal          (-θ_Δ)
                          & set DFMUD.εVal          θ_Δ))
-        in (acd', aopssΔ)
+        in (acd', aorsΔ)
         where
             θ_Δ             = fromIntegral (θ - (distribution_limit acd))
             flowBufferDelta = newFlowBuffer - (flow_buffer acd)

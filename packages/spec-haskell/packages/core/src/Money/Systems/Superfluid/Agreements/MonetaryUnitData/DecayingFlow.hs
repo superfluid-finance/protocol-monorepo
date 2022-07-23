@@ -19,17 +19,17 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
-class (Default amudL, SuperfluidTypes sft) => MonetaryUnitLenses amudL sft | amudL -> sft where
-    decayingFactor  :: Lens' amudL (SFT_FLOAT sft)
-    settledAt       :: Lens' amudL (SFT_TS sft)
-    αVal            :: Lens' amudL (SFT_FLOAT sft)
-    εVal            :: Lens' amudL (SFT_FLOAT sft)
-    settledBuffer   :: Lens' amudL (BBS.BufferValue (SFT_MVAL sft))
+class (Default amuL, SuperfluidTypes sft) => MonetaryUnitLenses amuL sft | amuL -> sft where
+    decayingFactor  :: Lens' amuL (SFT_FLOAT sft)
+    settledAt       :: Lens' amuL (SFT_TS sft)
+    αVal            :: Lens' amuL (SFT_FLOAT sft)
+    εVal            :: Lens' amuL (SFT_FLOAT sft)
+    settledBuffer   :: Lens' amuL (BBS.BufferValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type
-newtype MonetaryUnitData amudL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amudL } deriving (Default)
+newtype MonetaryUnitData amuL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuL } deriving (Default)
 
-instance MonetaryUnitLenses amudL sft => Semigroup (MonetaryUnitData amudL sft) where
+instance MonetaryUnitLenses amuL sft => Semigroup (MonetaryUnitData amuL sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'
@@ -47,9 +47,9 @@ instance MonetaryUnitLenses amudL sft => Semigroup (MonetaryUnitData amudL sft) 
         where ε'  = b^.εVal
               λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
-instance MonetaryUnitLenses amudL sft => Monoid (MonetaryUnitData amudL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLenses amuL sft => Monoid (MonetaryUnitData amuL sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses amudL sft => AgreementMonetaryUnitData (MonetaryUnitData amudL sft) sft where
+instance MonetaryUnitLenses amuL sft => AgreementMonetaryUnitData (MonetaryUnitData amuL sft) sft where
     -- | Provided balance by DFA
     --
     -- Formula:

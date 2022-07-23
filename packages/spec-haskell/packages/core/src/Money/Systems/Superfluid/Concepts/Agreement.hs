@@ -6,7 +6,6 @@ module Money.Systems.Superfluid.Concepts.Agreement
     , AgreementOperation (..)
     ) where
 
-import           Data.Default
 import           Data.Kind                                         (Type)
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
@@ -27,12 +26,10 @@ class ( SuperfluidTypes sft
 -- NOTE: Be aware of the functional dependency ~aod <-> ao~, this is important so that there is one ~aod~
 --       for one ~ao~. We may as we index it using type family though (FIXME).
 class ( SuperfluidTypes sft
-      , Default aod
-      , Traversable (AgreementOperationPartiesF ao)
       , AgreementMonetaryUnitData amud sft
       ) => AgreementOperation ao aod amud sft | ao -> sft, ao -> amud, ao -> aod, aod -> ao where
     -- | Agreement contract parties traversable applicative functor type.
-    data AgreementOperationPartiesF ao elem :: Type
+    data AgreementOperationResultF ao elem :: Type
 
     -- | ω function - applying agreement operation (hear: ω) to a agreement contract data to get agreement account data
     --   delta of the agreement contract parties.
@@ -40,4 +37,4 @@ class ( SuperfluidTypes sft
         :: ao                                        -- ao
         -> aod                                       -- aod
         -> SFT_TS sft                                -- t
-        -> (aod, AgreementOperationPartiesF ao amud) -- (aod', aopsΔ)
+        -> (aod, AgreementOperationResultF ao amud) -- (aod', aorΔ)

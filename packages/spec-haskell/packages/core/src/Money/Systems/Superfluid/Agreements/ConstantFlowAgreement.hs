@@ -56,7 +56,7 @@ data Operation sft =
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft)
     (ContractData sft) (MonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (Operation sft) a = OperationPartiesF
+    data AgreementOperationResultF (Operation sft) a = OperationPartiesF
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
@@ -66,7 +66,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft)
                              , flow_rate   = newFlowRate
                              , flow_buffer = newFlowBuffer
                              }
-        aopsΔ = fmap CFMUD.MkMonetaryUnitData (OperationPartiesF
+        aorΔ = fmap CFMUD.MkMonetaryUnitData (OperationPartiesF
                     (def & set CFMUD.settledAt t'
                          & set CFMUD.netFlowRate (- flowRateDelta)
                          & set CFMUD.settledUntappedValue (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
@@ -75,7 +75,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft)
                          & set CFMUD.netFlowRate flowRateDelta
                          & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
                          & set CFMUD.settledBufferValue def))
-        in (acd', aopsΔ)
+        in (acd', aorΔ)
         where t               = flow_last_updated_at acd
               fr              = flow_rate acd
               flowPeriodDelta = fr * fromIntegral (t' - t)

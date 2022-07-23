@@ -39,20 +39,20 @@ data MinterOperation sft = Mint (SFT_MVAL sft) |
 
 instance SuperfluidTypes sft => AgreementOperation (MinterOperation sft)
          (MinterContractData sft) (MonetaryUnitData sft) sft where
-    data AgreementOperationPartiesF (MinterOperation sft) elem = MinterOperationPartiesF
+    data AgreementOperationResultF (MinterOperation sft) elem = MinterOperationPartiesF
         { mintFrom :: elem
         , mintTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
 
     applyAgreementOperation (Mint amount) acd _ = let
         acd'  = acd
-        aopsΔ = fmap MMUD.MkMonetaryUnitData (MinterOperationPartiesF
+        aorΔ = fmap MMUD.MkMonetaryUnitData (MinterOperationPartiesF
                 (def & set MMUD.mintedValue   (coerce (- amount)))
                 (def & set MMUD.untappedValue (coerce    amount)))
-        in (acd', aopsΔ)
+        in (acd', aorΔ)
     applyAgreementOperation (Burn amount) acd _ = let
         acd'  = acd
-        aopsΔ = fmap MMUD.MkMonetaryUnitData (MinterOperationPartiesF
+        aorΔ = fmap MMUD.MkMonetaryUnitData (MinterOperationPartiesF
                 (def & set MMUD.mintedValue   (coerce    amount))
                 (def & set MMUD.untappedValue (coerce (- amount))))
-        in (acd', aopsΔ)
+        in (acd', aorΔ)

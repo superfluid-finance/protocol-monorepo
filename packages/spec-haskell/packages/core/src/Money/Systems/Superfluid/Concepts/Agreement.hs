@@ -33,23 +33,26 @@ class ( SuperfluidTypes sft
 
 -- | Agreement operation type class.
 --
--- Note: a. The constraint on ~amud~ may seem too strong, since a semigroup should also be sufficient. But why would you
---          define an operation that has nothing to do with any ~amud~?
+-- Note: a. The constraint on ~amud~ may seems too strong, since a semigroup should also be sufficient. But why would you
+--          define an operation that has nothing to do with any ~amud~, apart from the case of
+--          ~NullAgreementMonetaryUnitData~?
 --
---       b. It is conceivable that some ~amud~ is "read only" and hence a "fake monoid", and their π is implicitly a
+--       b. It is conceivable that some ~amud~ is "read only" hence a "fake monoid", and their π is implicitly a
 --          function of ~aod~. This class of ~amud~ is also known as "non-scalable", since ~amud~ is a product of ~aod~,
---          and a monetary unit would need as many ~amud~ as the included ~aod~.
+--          and a monetary unit would need as many ~amud~ as the needed ~aod~.
 --
---       c. You may want to attempt to make ~amud~ an associated type family alias ~AgreementOperationResultElem~. But
---          don't waste your time, since ~sft~ is not injective. And making it an associated data family seems rather
---          cumbersome. I guess functional dependencies still has its syntactic usefulness sometimes...
+--       c. You may feel attempting to make ~amud~ an associated type family alias
+--          e.g. ~AgreementOperationResultElem~. But don't waste your time, since ~sft~ is not injective. And making it
+--          an associated data family seems rather cumbersome. I guess functional dependencies still has its syntactic
+--          usefulness sometimes...
 class ( SuperfluidTypes sft
-      , AgreementMonetaryUnitData amud sft  -- change to ~Semigroup amud~ can work too, see note (a).
+      -- change to ~Semigroup amud~ can work too, see note (a).
+      , AgreementMonetaryUnitData amud sft
       ) => AgreementOperation ao amud sft | ao -> sft, ao -> amud where
     -- | Areement operation data type.
     data AgreementOperationData ao :: Type
 
-    -- | Agreement operation result traversable applicative functor type.
+    -- | Agreement operation result container type.
     data AgreementOperationResultF ao elem :: Type
 
     -- | ω function - applying agreement operation ~ao~ (hear: ω) onto the agreement operation data ~aod~ to a result in
@@ -62,8 +65,8 @@ class ( SuperfluidTypes sft
 
 -- | A special null agreement monetary unit data.
 --
---   It is handy for agreement operation that does not modify any ~amud~, so that their AgreementOperationResultF is
---   actually an empty set.
+-- Note: It is handy for agreement operation that does not modify any ~amud~, where their ~AgreementOperationResultF~ is
+--       actually an empty container.
 type NullAgreementMonetaryUnitData sft = ()
 instance SuperfluidTypes sft => AgreementMonetaryUnitData (NullAgreementMonetaryUnitData sft) sft where
     balanceProvidedByAgreement _ _ = mempty

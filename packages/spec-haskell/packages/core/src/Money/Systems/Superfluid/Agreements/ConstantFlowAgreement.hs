@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -11,7 +10,7 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement where
 
 import           Data.Coerce
 import           Data.Default
-import           GHC.Generics
+import           Data.Kind                                                         (Type)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -37,14 +36,6 @@ type MonetaryUnitData sft = CFMUD.MonetaryUnitData (UniversalData sft) sft
 -- * Contract
 --
 
--- |  contract data.
-data ContractData sft = ContractData
-    { flow_last_updated_at :: SFT_TS sft
-    , flow_rate            :: SFT_MVAL sft
-    , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
-    } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (ContractData sft)
-
 -- * Operation
 --
 
@@ -54,7 +45,13 @@ data Operation sft =
     --         flowRate       newFlowBuffer
     UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) (ContractData sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+    data AgreementOperationData (Operation sft) = ContractData
+        { flow_last_updated_at :: SFT_TS sft
+        , flow_rate            :: SFT_MVAL sft
+        , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
+        }
+
     data AgreementOperationResultF (Operation sft) a = OperationPartiesF
         { flowSender   :: a
         , flowReceiver :: a
@@ -80,3 +77,10 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) (ContractData
               flowPeriodDelta = fr * fromIntegral (t' - t)
               flowRateDelta   = newFlowRate - fr
               flowBufferDelta = newFlowBuffer - flow_buffer acd
+
+type ContractData :: Type -> Type
+type ContractData sft = AgreementOperationData (Operation sft)
+
+-- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
+instance SuperfluidTypes sft => Default (ContractData sft) where
+    def = ContractData { flow_last_updated_at = def, flow_rate = def, flow_buffer = def }

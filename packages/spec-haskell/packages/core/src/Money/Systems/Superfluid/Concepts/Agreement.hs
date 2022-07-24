@@ -23,12 +23,12 @@ class ( SuperfluidTypes sft
 
 -- | Agreement operation type class.
 --
--- NOTE: * Be aware of the functional dependency ~aod <-> ~ao~, this is important so that there is one and only one ~aod~
---       for one ~ao~.
---       * Using type family type alias for ~aod~ seems not possible because it would be a non-injective type :/.
 class ( SuperfluidTypes sft
       , AgreementMonetaryUnitData amud sft
-      ) => AgreementOperation ao aod amud sft | ao -> sft, ao -> amud, ao -> aod, aod -> ao where
+      ) => AgreementOperation ao amud sft | ao -> sft, ao -> amud where
+    -- | Areement operation data type.
+    data AgreementOperationData ao :: Type
+
     -- | Agreement operation result traversable applicative functor type.
     data AgreementOperationResultF ao elem :: Type
 
@@ -36,6 +36,7 @@ class ( SuperfluidTypes sft
     --   functorful delta of agreement monetary unit data ~aorΔ~.
     applyAgreementOperation
         :: ao                                        -- ao
-        -> aod                                       -- aod
+        -> AgreementOperationData ao                 -- aod
         -> SFT_TS sft                                -- t
-        -> (aod, AgreementOperationResultF ao amud)  -- (aod', aorΔ)
+        -> (AgreementOperationData ao
+           , AgreementOperationResultF ao amud)      -- (aod', aorΔ)

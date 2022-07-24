@@ -10,6 +10,7 @@ module Money.Systems.Superfluid.Agreements.InstantTransferAgreement where
 
 import           Data.Coerce
 import           Data.Default
+import           Data.Kind
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -27,16 +28,14 @@ type MonetaryUnitData sft = ITMUD.MonetaryUnitData (UniversalData sft) sft
 -- * Contract
 --
 
-data ContractData sft = ContractData
-instance Default (ContractData sft) where def = ContractData
-
 -- * Operation
 --
 
 data Operation sft = Transfer (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft)
-    (ContractData sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+    data AgreementOperationData (Operation sft) = ContractData
+
     data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
         { transferFrom :: elem
         , transferTo   :: elem
@@ -48,3 +47,8 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft)
                     (def & set ITMUD.untappedValue (coerce (- amount)))
                     (def & set ITMUD.untappedValue (coerce    amount)))
         in (acd', aorΔ)
+
+type ContractData :: Type -> Type
+type ContractData sft = AgreementOperationData (Operation sft)
+
+instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData

@@ -12,6 +12,7 @@ module Money.Systems.Superfluid.Agreements.InstantDistributionAgreement where
 
 import           Data.Coerce
 import           Data.Default
+import           Data.Kind                                                                 (Type)
 
 import           Lens.Internal
 
@@ -46,37 +47,39 @@ instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (SubscriberData sft) sf
 
 data IDAPublisherOperation sft = Distribute (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft)
-    (DistributionContract sft) (IDAPublisherMonetaryUnitData sft) sft where
-    data AgreementOperationResultF (IDAPublisherOperation sft) elem = IDAOPublisherOperationPartiesF elem
+instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft) (IDAPublisherMonetaryUnitData sft) sft where
+    data AgreementOperationData (IDAPublisherOperation sft) = PublisherOperationData (DistributionContract sft)
+    data AgreementOperationResultF (IDAPublisherOperation sft) elem = IDAPublisherOperationResultF elem
         deriving stock (Functor, Foldable, Traversable)
 
-    applyAgreementOperation (Distribute amount) aod _ = let
-        aod'  = aod { value_per_unit = floor (fromIntegral p + delta) }
-        aorΔ = fmap ITMUD.MkMonetaryUnitData (IDAOPublisherOperationPartiesF
+    applyAgreementOperation (Distribute amount) (PublisherOperationData pub) _ = let
+        pub'  = pub { value_per_unit = floor (fromIntegral p + delta) }
+        aorΔ = fmap ITMUD.MkMonetaryUnitData (IDAPublisherOperationResultF
                     (def & set ITMUD.untappedValue (coerce (- amount))))
-        in (aod', aorΔ)
-        where DistributionContract { total_unit = tu, value_per_unit = p } = aod
+        in (PublisherOperationData pub', aorΔ)
+        where DistributionContract { total_unit = tu, value_per_unit = p } = pub
               delta = fromIntegral amount / tu
+
+type PublisherOperationData :: Type -> Type
+type PublisherOperationData sft = AgreementOperationData (IDAPublisherOperation sft)
 
 -- * Subscriber Operations
 
 data IDASubscriberOperation sft = Subscribe   (SFT_FLOAT sft) |
                                   Unsubscribe
 
-instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft)
-    (SubscriberData sft) (IDASubscriberMonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft) (IDASubscriberMonetaryUnitData sft) sft where
+    data AgreementOperationData (IDASubscriberOperation sft) = SubscriberOperationData (SubscriberData sft)
     data AgreementOperationResultF (IDASubscriberOperation sft) elem = IDASubscriberOperationPartiesF
 
-    applyAgreementOperation (Subscribe unit) aod _ = let
-        aod'  = SubscriberData
+    applyAgreementOperation (Subscribe unit) (SubscriberOperationData sub) _ = let
+        sub'  = SubscriberData
                   (dc { total_unit = tu + unit })
                   (sc { owned_unit = u + unit
                       , settled_value_per_unit = vpu
                       , settled_value = UntappedValue sv'
                       })
-        aorΔ = IDASubscriberOperationPartiesF
-        in (aod', aorΔ)
+        in (SubscriberOperationData sub', IDASubscriberOperationPartiesF)
         where (SubscriberData
                 dc@(DistributionContract
                     { total_unit = tu
@@ -85,9 +88,12 @@ instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft)
                     { owned_unit = u
                     , settled_value_per_unit = svpu
                     , settled_value = UntappedValue sv
-                    })) = aod
+                    })) = sub
               sv' = floor (fromIntegral sv + fromIntegral (vpu - svpu) * u)
-    applyAgreementOperation Unsubscribe aod _ = let
+    applyAgreementOperation Unsubscribe (SubscriberOperationData sub) _ = let
         -- FIXME operation missing
-        in (aod, aorΔ)
-        where aorΔ = IDASubscriberOperationPartiesF
+        sub' = sub
+        in (SubscriberOperationData sub', IDASubscriberOperationPartiesF)
+
+type SubscriberOperationData :: Type -> Type
+type SubscriberOperationData sft = AgreementOperationData (IDASubscriberOperation sft)

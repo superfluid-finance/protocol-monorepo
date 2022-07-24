@@ -10,6 +10,7 @@ module Money.Systems.Superfluid.Agreements.MinterAgreement where
 
 import           Data.Coerce                                                 (coerce)
 import           Data.Default
+import           Data.Kind
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -25,34 +26,32 @@ instance SuperfluidTypes sft => MMUD.MonetaryUnitLenses (UniversalData sft) sft 
     mintedValue   = $(field 'minter_minted_value)
 type MonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
 
--- * Contract
---
-
-data MinterContractData sft = MinterContractData
-instance Default (MinterContractData sft) where def = MinterContractData
-
 -- * Operation
 --
 
-data MinterOperation sft = Mint (SFT_MVAL sft) |
+data Operation sft = Mint (SFT_MVAL sft) |
                            Burn (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (MinterOperation sft)
-         (MinterContractData sft) (MonetaryUnitData sft) sft where
-    data AgreementOperationResultF (MinterOperation sft) elem = MinterOperationPartiesF
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+    data AgreementOperationData (Operation sft) = ContractData
+    data AgreementOperationResultF (Operation sft) elem = OperationResultF
         { mintFrom :: elem
         , mintTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
 
     applyAgreementOperation (Mint amount) acd _ = let
         acd'  = acd
-        aorΔ = fmap MMUD.MkMonetaryUnitData (MinterOperationPartiesF
+        aorΔ = fmap MMUD.MkMonetaryUnitData (OperationResultF
                 (def & set MMUD.mintedValue   (coerce (- amount)))
                 (def & set MMUD.untappedValue (coerce    amount)))
         in (acd', aorΔ)
     applyAgreementOperation (Burn amount) acd _ = let
         acd'  = acd
-        aorΔ = fmap MMUD.MkMonetaryUnitData (MinterOperationPartiesF
+        aorΔ = fmap MMUD.MkMonetaryUnitData (OperationResultF
                 (def & set MMUD.mintedValue   (coerce    amount))
                 (def & set MMUD.untappedValue (coerce (- amount))))
         in (acd', aorΔ)
+
+type ContractData :: Type -> Type
+type ContractData sft = AgreementOperationData (Operation sft)
+instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData

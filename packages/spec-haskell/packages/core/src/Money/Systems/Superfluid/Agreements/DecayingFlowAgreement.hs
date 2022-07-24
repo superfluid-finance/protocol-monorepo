@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -10,8 +9,8 @@
 module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
 
 import           Data.Default
+import           Data.Kind                                                         (Type)
 import           Data.Proxy
-import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
@@ -30,16 +29,6 @@ instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (UniversalData sft) sft
     settledBuffer  = $(field 'dfa_settledBuffer)
 type MonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalData sft) sft
 
--- * Contract
---
-
-data ContractData sft = ContractData
-    { flow_last_updated_at :: SFT_TS sft
-    , distribution_limit   :: SFT_MVAL sft
-    , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
-    } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (ContractData sft)
-
 -- * Operation
 
 type DistributionLimit sft = SFT_MVAL sft
@@ -48,8 +37,12 @@ data Operation sft =
     --                 θ/distributionLimit     newFlowBuffer
     UpdateDecayingFlow (DistributionLimit sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft)
-    (ContractData sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+    data AgreementOperationData (Operation sft) = ContractData
+        { flow_last_updated_at :: SFT_TS sft
+        , distribution_limit   :: SFT_MVAL sft
+        , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
+        }
     data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
         { decayingFlowSender   :: elem
         , decayingFlowReceiver :: elem
@@ -76,3 +69,10 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft)
         where
             θ_Δ             = fromIntegral (θ - (distribution_limit acd))
             flowBufferDelta = newFlowBuffer - (flow_buffer acd)
+
+type ContractData :: Type -> Type
+type ContractData sft = AgreementOperationData (Operation sft)
+
+-- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
+instance SuperfluidTypes sft => Default (ContractData sft) where
+    def = ContractData { flow_last_updated_at = def, distribution_limit = def, flow_buffer = def }

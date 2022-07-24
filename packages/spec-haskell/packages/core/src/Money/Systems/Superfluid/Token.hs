@@ -86,14 +86,15 @@ class ( Monad tk
     --
 
     updateUniversalIndex
-        :: ( AgreementOperation ao acd amud sft -- NOTE: here `acd` is the `aod` for `ao`
-           , Default acd
+        :: ( AgreementOperation ao amud sft
+           , acd ~ AgreementOperationData ao     -- this is a useful property of universal-indexed agreement operations
+           , Default (AgreementOperationData ao)
            , Traversable (AgreementOperationResultF ao)
            )
-        => (AgreementOperationResultF ao) (ACC_ADDR acc)                                 -- aorAddrs
+        => (AgreementOperationResultF ao) (ACC_ADDR acc)                                  -- aorAddrs
         -> ao                                                                             -- ao
-        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> tk (Maybe acd))             -- acdGetter
-        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ()) -- acdSetter
+        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> tk (Maybe acd))              -- acdGetter
+        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ())  -- acdSetter
         -> Lens' acc amud                                                                 -- amudL
         -> tk ()
     updateUniversalIndex aorAddrs ao acdGetter acdSetter amuData = do
@@ -118,14 +119,14 @@ class ( Monad tk
 
     getMinterAddress :: tk (ACC_ADDR acc)
 
-    viewMinterContract :: CONTRACT_ACC_ADDR acc (MINTA.MinterOperation sft) -> tk (Maybe (MINTA.MinterContractData sft))
-    setMinterContract  :: CONTRACT_ACC_ADDR acc (MINTA.MinterOperation sft) -> MINTA.MinterContractData sft -> SFT_TS sft -> tk ()
+    viewMinterContract :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> tk (Maybe (MINTA.ContractData sft))
+    setMinterContract  :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> MINTA.ContractData sft -> SFT_TS sft -> tk ()
 
     mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
     mintValue toAddr amount = do
         minterAddress <- getMinterAddress
         updateUniversalIndex
-            (MINTA.MinterOperationPartiesF minterAddress toAddr) (MINTA.Mint amount)
+            (MINTA.OperationResultF minterAddress toAddr) (MINTA.Mint amount)
             viewMinterContract setMinterContract minterMonetaryUnitData
 
     -- ** ITA Functions
@@ -211,7 +212,8 @@ class ( Monad tk
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
         sub  <- fromMaybe def <$> viewProportionalDistributionSubscription subscriber publisher indexId
         let aod = PDIDX.SubscriberData index sub
-        let (PDIDX.SubscriberData index' sub', _) = applyAgreementOperation (IDA.Subscribe unit) aod t
+        let (IDA.SubscriberOperationData (PDIDX.SubscriberData index' sub'), _) =
+                applyAgreementOperation (IDA.Subscribe unit) (IDA.SubscriberOperationData aod) t
         setProportionalDistributionContract publisher indexId index' t
         setProportionalDistributionSubscription subscriber publisher indexId sub' t
 
@@ -225,8 +227,8 @@ class ( Monad tk
         t <- getCurrentTime
         acc <- getAccount publisher
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
-        let (index', IDA.IDAOPublisherOperationPartiesF amudΔ) =
-                applyAgreementOperation (IDA.Distribute amount) index t
+        let (IDA.PublisherOperationData index', IDA.IDAPublisherOperationResultF amudΔ) =
+                applyAgreementOperation (IDA.Distribute amount) (IDA.PublisherOperationData index) t
         setProportionalDistributionContract publisher indexId index' t
         putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) acc) t
 

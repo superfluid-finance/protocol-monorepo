@@ -54,8 +54,7 @@ data Operation sft =
     --         flowRate       newFlowBuffer
     UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft)
-    (ContractData sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) (ContractData sft) (MonetaryUnitData sft) sft where
     data AgreementOperationResultF (Operation sft) a = OperationPartiesF
         { flowSender   :: a
         , flowReceiver :: a

@@ -126,7 +126,6 @@ data SimpleRealTimeBalanceF a = SimpleRealTimeBalanceF
     , depositValue  :: a
     }
     deriving stock (Generic, Functor, Foldable, Traversable)
-    deriving anyclass (Binary, Default)
 
 type SimpleRealTimeBalance = SimpleRealTimeBalanceF Wad
 
@@ -136,8 +135,6 @@ mintedValueL   :: Lens' SimpleRealTimeBalance Wad
 mintedValueL    = lensOfRTB MMUD.mintedValueTag
 depositValueL  :: Lens' SimpleRealTimeBalance Wad
 depositValueL   = lensOfRTB BBS.bufferValueTag
-
---  deriving (Num, Show) via RTBDerivingHelper (SimpleRealTimeBalanceF Wad) Wad
 
 instance Applicative SimpleRealTimeBalanceF where
     pure a = SimpleRealTimeBalanceF a a a
@@ -160,7 +157,7 @@ instance Semigroup (SimpleRealTimeBalanceF Wad) where
     (<>) = liftA2 (+)
 
 instance Monoid (SimpleRealTimeBalanceF Wad) where
-    mempty   = pure 0
+    mempty = pure 0
 
 instance RealTimeBalance SimpleRealTimeBalanceF Wad where
     valueToRTB uval = SimpleRealTimeBalanceF uval def def

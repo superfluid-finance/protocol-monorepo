@@ -49,14 +49,14 @@ data IDAPublisherOperation sft = Distribute (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft) (IDAPublisherMonetaryUnitData sft) sft where
     data AgreementOperationData (IDAPublisherOperation sft) = PublisherOperationData (DistributionContract sft)
-    data AgreementOperationResultF (IDAPublisherOperation sft) elem = IDAPublisherOperationResultF elem
+    data AgreementOperationResultF (IDAPublisherOperation sft) elem = IDAPublisherOperationResultF elem -- publisher amud
         deriving stock (Functor, Foldable, Traversable)
 
     applyAgreementOperation (Distribute amount) (PublisherOperationData pub) _ = let
         pub'  = pub { value_per_unit = floor (fromIntegral p + delta) }
-        aorΔ = fmap ITMUD.MkMonetaryUnitData (IDAPublisherOperationResultF
-                    (def & set ITMUD.untappedValue (coerce (- amount))))
-        in (PublisherOperationData pub', aorΔ)
+        aorΔ  = IDAPublisherOperationResultF
+                  (def & set ITMUD.untappedValue (coerce (- amount)))
+        in (PublisherOperationData pub', fmap ITMUD.MkMonetaryUnitData aorΔ)
         where DistributionContract { total_unit = tu, value_per_unit = p } = pub
               delta = fromIntegral amount / tu
 
@@ -67,8 +67,7 @@ type PublisherOperationData sft = AgreementOperationData (IDAPublisherOperation 
 
 data IDASubscriberOperation sft = Subscribe   (SFT_FLOAT sft) |
                                   Unsubscribe
-
-instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft) (IDASubscriberMonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft) (NullAgreementMonetaryUnitData sft) sft where
     data AgreementOperationData (IDASubscriberOperation sft) = SubscriberOperationData (SubscriberData sft)
     data AgreementOperationResultF (IDASubscriberOperation sft) elem = IDASubscriberOperationPartiesF
 

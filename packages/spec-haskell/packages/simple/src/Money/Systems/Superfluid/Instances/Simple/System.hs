@@ -1,6 +1,5 @@
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Money.Systems.Superfluid.Instances.Simple.System
@@ -126,7 +125,7 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
 
     pdPublisherData = to (pd_publisher . account_data)
     idaPublisherMonetaryUnitData = mk_pdidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
-    idaSubscriberMonetaryUnitDataList = to ((fmap ITMUD.MkMonetaryUnitData) . ida_subscriptions)
+    idaSubscriberMonetaryUnitDataList = to (fmap ITMUD.MkMonetaryUnitData . ida_subscriptions)
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -223,7 +222,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
                 & ida_subscriber_contracts
                 & M.filterWithKey (\(PDSUB_KEY s _) _ -> s == addr)
                 & M.toList
-                & fmap (\((PDSUB_KEY _ k), sub) -> PDIDX.SubscriberData
+                & fmap (\(PDSUB_KEY _ k, sub) -> PDIDX.SubscriberData
                            (fromJust $ M.lookup k pubs)
                            sub)
         return $ SimpleAccount { account_data = accData, ida_subscriptions = ida_subs }
@@ -296,7 +295,7 @@ initSimpleToken :: Monad m => [SimpleAddress] -> Wad -> SimpleTokenStateT m ()
 initSimpleToken alist initBalance = do
     t <- SF.getCurrentTime
     put def
-        { accounts = M.fromList $ map (\a -> (a, create_simple_account_data t)) alist
+        { accounts = M.fromList $ map (, create_simple_account_data t) alist
         , tokenLastUpdatedAt = t
         }
     mapM_ (`SF.mintValue` initBalance) alist
@@ -306,17 +305,16 @@ addAccount accAddr (SimpleAccount { account_data = accData }) = modify (\vs -> v
     accounts = M.insert accAddr accData (accounts vs)})
 
 listAccounts :: Monad m => SimpleTokenStateT m [(SimpleAddress, SimpleAccount)]
-listAccounts = getSimpleTokenData
-    <&> M.keys . accounts
-    -- I mean, just read the type signature, if it compiles, it must does what it says here, you can guess.
-    >>= mapM (\addr -> return . (addr,) =<< SF.getAccount addr)
+listAccounts = let allAddrs = getSimpleTokenData <&> accounts <&> M.keys
+               -- I mean, just read the type signature.
+               -- Since it compiles, it must does what it says here, you can guess.
+               in mapM (\addr -> (addr,) <$> SF.getAccount addr) =<< allAddrs
 
 listCFAContracts :: Monad m => SimpleTokenStateT m [(CFA_KEY, SimpleCFAContractData)]
 listCFAContracts = getSimpleTokenData <&> M.toList . cfaContractData
 
 listDFAContracts :: Monad m => SimpleTokenStateT m [(DFA_KEY, SimpleDFAContractData)]
 listDFAContracts = getSimpleTokenData <&> M.toList . dfaContractData
-
 
 listPublisherContracts :: Monad m => SimpleTokenStateT m [(PDPUB_KEY, SimpleDistributionContract)]
 listPublisherContracts = getSimpleTokenData <&> M.toList . publisher_contracts

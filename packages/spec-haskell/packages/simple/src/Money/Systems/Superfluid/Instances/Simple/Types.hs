@@ -95,7 +95,7 @@ instance Show Wad where
     show = wad4human
 
 -- =====================================================================================================================
--- Type Values:
+-- * Type Values:
 
 instance Show (UntappedValue Wad) where
     show (UntappedValue val) = show val ++ "@_"
@@ -107,7 +107,7 @@ instance Show (AnyTappedValue Wad) where
     show (AnyTappedValue (MkTappedValueTag vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
 
 -- =====================================================================================================================
--- Timestamp type
+-- * Timestamp type
 
 -- | Simple timestamp Type.
 newtype SimpleTimestamp = SimpleTimestamp Int
@@ -117,7 +117,7 @@ instance Show SimpleTimestamp where
     show (SimpleTimestamp t) = show t ++ "s"
 
 -- =====================================================================================================================
--- RealTimeBalance Type
+-- * RealTimeBalance Type
 
 -- | Simple Real Time Balance Type.
 data SimpleRealTimeBalanceF a = SimpleRealTimeBalanceF
@@ -129,12 +129,18 @@ data SimpleRealTimeBalanceF a = SimpleRealTimeBalanceF
 
 type SimpleRealTimeBalance = SimpleRealTimeBalanceF Wad
 
+-- ** Lenses of RTB
+
 untappedValueL :: Lens' SimpleRealTimeBalance Wad
-untappedValueL  = lensOfRTB untappedValueTag
+untappedValueL  = $(field 'untappedValue)
+
 mintedValueL   :: Lens' SimpleRealTimeBalance Wad
-mintedValueL    = lensOfRTB MMUD.mintedValueTag
+mintedValueL    = $(field 'mintedValue)
+
 depositValueL  :: Lens' SimpleRealTimeBalance Wad
-depositValueL   = lensOfRTB BBS.bufferValueTag
+depositValueL   = $(field 'depositValue)
+
+-- ** Class instances of RTB
 
 instance Applicative SimpleRealTimeBalanceF where
     pure a = SimpleRealTimeBalanceF a a a
@@ -174,12 +180,6 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
                               [ mkAnyTappedValue $ MMUD.mkMintedValue $ mintedValue rtb
                               , mkAnyTappedValue $ BBS.mkBufferValue   $ depositValue rtb
                               ])
-
-    lensOfRTB p | t == typeRep untappedValueTag    = $(field 'untappedValue)
-                | t == typeRep MMUD.mintedValueTag = $(field 'mintedValue)
-                | t == typeRep BBS.bufferValueTag  = $(field 'depositValue)
-                | otherwise = error "Invalid monetary value tag"
-        where t = typeRep p
 
 -- =====================================================================================================================
 -- SuperfluidTypes Type

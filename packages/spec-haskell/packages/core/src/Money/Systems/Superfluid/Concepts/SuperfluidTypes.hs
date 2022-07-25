@@ -32,7 +32,7 @@ class ( SFTFloat (SFT_FLOAT sft)
       , Value (SFT_MVAL sft)
       , Timestamp (SFT_TS sft)
       , RealTimeBalance (SFT_RTB_F sft) (SFT_MVAL sft)
-      ) => SuperfluidTypes sft where
+      ) => SuperfluidTypes (sft :: Type) where
     type SFT_FLOAT sft :: Type
     type SFT_MVAL  sft :: Type
     type SFT_TS    sft :: Type

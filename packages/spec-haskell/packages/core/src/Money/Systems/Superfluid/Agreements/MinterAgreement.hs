@@ -32,12 +32,13 @@ type MonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
 data Operation sft = Mint (SFT_MVAL sft) |
                            Burn (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementOperationData (Operation sft) = ContractData
     data AgreementOperationResultF (Operation sft) elem = OperationResultF
         { mintFrom :: elem
         , mintTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
+    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     applyAgreementOperation (Mint amount) acd _ = let
         acd'  = acd

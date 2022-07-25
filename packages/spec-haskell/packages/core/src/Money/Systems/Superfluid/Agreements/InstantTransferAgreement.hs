@@ -31,15 +31,17 @@ type MonetaryUnitData sft = ITMUD.MonetaryUnitData (UniversalData sft) sft
 -- * Operation
 --
 
-data Operation sft = Transfer (SFT_MVAL sft)
+newtype Operation sft = Transfer (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementOperationData (Operation sft) = ContractData
 
     data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
         { transferFrom :: elem
         , transferTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
+
+    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     applyAgreementOperation (Transfer amount) acd _ = let
         acd'  = acd

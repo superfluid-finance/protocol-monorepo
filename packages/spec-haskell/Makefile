@@ -10,7 +10,7 @@ TEST_COVERAGE_BUILDDIR ?= dist-coverage
 DOCS_BUILDDIR ?= dist-docs
 
 CABAL_TEST = $(CABAL) --builddir=$(TEST_BUILDDIR)
-CABAL_COVERAGE = $(CABAL) --builddir=$(TEST_COVERAGE_BUILDDIR) --project-file=cabal.project.coverage
+CABAL_COVERAGE = $(CABAL) --builddir=$(TEST_COVERAGE_BUILDDIR) # --project-file=cabal.project.coverage
 CABAL_DOCS = $(CABAL) --builddir=$(DOCS_BUILDDIR)
 TEST_OPTIONS = \
 	--test-show-details=$(TEST_SHOW_DETAILS_MODE) \

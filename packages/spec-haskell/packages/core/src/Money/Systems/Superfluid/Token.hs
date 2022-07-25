@@ -86,8 +86,9 @@ class ( Monad tk
     --
 
     updateUniversalIndex
-        :: ( AgreementOperation ao amud sft
+        :: ( AgreementOperation ao sft
            , acd ~ AgreementOperationData ao     -- this is a useful property of universal-indexed agreement operations
+           , amud ~ AgreementMonetaryUnitDataInOperation ao
            , Default (AgreementOperationData ao)
            , Traversable (AgreementOperationResultF ao)
            )
@@ -111,7 +112,7 @@ class ( Monad tk
         -- set new amuds
         mapM_ (\(addr, amud) -> putAccount addr amud t)
             (zip (toList aorAddrs)
-                (fmap (\(amud', account) -> set amuData amud' account)
+                (fmap (uncurry (set amuData))
                     (zip amuds' (toList aorAccounts))))
 
     -- ** Minter Functions

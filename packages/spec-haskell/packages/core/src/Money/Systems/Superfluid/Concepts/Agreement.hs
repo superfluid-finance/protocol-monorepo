@@ -33,35 +33,39 @@ class ( SuperfluidTypes sft
 
 -- | Agreement operation type class.
 --
+-- It has three associated type/data families: ~aod~, ~aorF~ and ~amud~. See their documentations.
+--
 -- Note: a. The constraint on ~amud~ may seems too strong, since a semigroup should also be sufficient. But why would you
---          define an operation that has nothing to do with any ~amud~, apart from the case of
+--          define an operation that has nothing to do with any ~amud~, apart from the trivial case of
 --          ~NullAgreementMonetaryUnitData~?
 --
---       b. It is conceivable that some ~amud~ is "read only" hence a "fake monoid", and their π is implicitly a
+--       b. It is conceivable that some ~amud~ are "read only" hence "fake monoid", where their π is implicitly a
 --          function of ~aod~. This class of ~amud~ is also known as "non-scalable", since ~amud~ is a product of ~aod~,
 --          and a monetary unit would need as many ~amud~ as the needed ~aod~.
---
---       c. You may feel attempting to make ~amud~ an associated type family alias
---          e.g. ~AgreementOperationResultElem~. But don't waste your time, since ~sft~ is not injective. And making it
---          an associated data family seems rather cumbersome. I guess functional dependencies still has its syntactic
---          usefulness sometimes...
 class ( SuperfluidTypes sft
       -- change to ~Semigroup amud~ can work too, see note (a).
-      , AgreementMonetaryUnitData amud sft
-      ) => AgreementOperation ao amud sft | ao -> sft, ao -> amud where
-    -- | Areement operation data type.
+      , AgreementMonetaryUnitData (AgreementMonetaryUnitDataInOperation ao) sft
+      ) => AgreementOperation ao sft | ao -> sft where
+    -- | Areement operation data type ~aod~.
     data AgreementOperationData ao :: Type
 
-    -- | Agreement operation result container type.
+    -- | Agreement operation result container type ~aorF~.
     data AgreementOperationResultF ao elem :: Type
 
-    -- | ω function - applying agreement operation ~ao~ (hear: ω) onto the agreement operation data ~aod~ to a result in
-    --   functorful delta of agreement monetary unit data ~aorΔ~.
+    -- | Type of agreement monetary unit data ~amud~ created in operation result.
+    type AgreementMonetaryUnitDataInOperation ao :: Type
+
+    -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~aod~ to get a tuple of:
+    --
+    --   1. An updated ~aod'~.
+    --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~amud~.
+    --      This is what can make an agreement scalable.
     applyAgreementOperation
-        :: ao                                                             -- ao
-        -> AgreementOperationData ao                                      -- aod
-        -> SFT_TS sft                                                     -- t
-        -> (AgreementOperationData ao, AgreementOperationResultF ao amud) -- (aod', aorΔ)
+        :: ao                                                                        -- ao
+        -> AgreementOperationData ao                                                 -- aod
+        -> SFT_TS sft                                                                -- t
+        -> ( AgreementOperationData ao
+           , AgreementOperationResultF ao (AgreementMonetaryUnitDataInOperation ao)) -- (aod', aorΔ)
 
 -- | A special null agreement monetary unit data.
 --

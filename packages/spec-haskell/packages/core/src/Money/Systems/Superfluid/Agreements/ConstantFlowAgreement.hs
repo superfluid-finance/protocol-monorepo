@@ -45,7 +45,7 @@ data Operation sft =
     --         flowRate       newFlowBuffer
     UpdateFlow (FlowRate sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementOperationData (Operation sft) = ContractData
         { flow_last_updated_at :: SFT_TS sft
         , flow_rate            :: SFT_MVAL sft
@@ -57,21 +57,25 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnit
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
 
+    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
+
     applyAgreementOperation (UpdateFlow newFlowRate newFlowBuffer) acd t' = let
         acd'  = ContractData { flow_last_updated_at = t'
                              , flow_rate   = newFlowRate
                              , flow_buffer = newFlowBuffer
                              }
-        aorΔ = fmap CFMUD.MkMonetaryUnitData (OperationPartiesF
+        aorΔ = OperationPartiesF
                     (def & set CFMUD.settledAt t'
-                         & set CFMUD.netFlowRate (- flowRateDelta)
-                         & set CFMUD.settledUntappedValue (UntappedValue $ (- flowPeriodDelta) - coerce flowBufferDelta)
-                         & set CFMUD.settledBufferValue flowBufferDelta)
+                         & set CFMUD.netFlowRate          (-flowRateDelta)
+                         & set CFMUD.settledUntappedValue (UntappedValue $ -flowPeriodDelta - coerce flowBufferDelta)
+                         & set CFMUD.settledBufferValue    flowBufferDelta
+                    )
                     (def & set CFMUD.settledAt t'
-                         & set CFMUD.netFlowRate flowRateDelta
+                         & set CFMUD.netFlowRate           flowRateDelta
                          & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
-                         & set CFMUD.settledBufferValue def))
-        in (acd', aorΔ)
+                         & set CFMUD.settledBufferValue    def
+                    )
+        in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
         where t               = flow_last_updated_at acd
               fr              = flow_rate acd
               flowPeriodDelta = fr * fromIntegral (t' - t)

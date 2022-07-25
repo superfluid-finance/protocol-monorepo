@@ -37,7 +37,7 @@ data Operation sft =
     --                 θ/distributionLimit     newFlowBuffer
     UpdateDecayingFlow (DistributionLimit sft) (BBS.BufferValue (SFT_MVAL sft))
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnitData sft) sft where
+instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementOperationData (Operation sft) = ContractData
         { flow_last_updated_at :: SFT_TS sft
         , distribution_limit   :: SFT_MVAL sft
@@ -47,6 +47,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnit
         { decayingFlowSender   :: elem
         , decayingFlowReceiver :: elem
         } deriving stock (Functor, Foldable, Traversable)
+    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     -- | Create data of agreement parties from the changes of the contract.
     --
@@ -57,15 +58,17 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) (MonetaryUnit
                              , flow_buffer          = newFlowBuffer
                              , flow_last_updated_at = t'
                              }
-        aorsΔ = fmap DFMUD.MkMonetaryUnitData (OperationPartiesF
-                    (def & set DFMUD.settledAt     t'
-                         & set DFMUD.αVal          θ_Δ
+        aorsΔ = OperationPartiesF
+                    (def & set DFMUD.settledAt      t'
+                         & set DFMUD.αVal           θ_Δ
                          & set DFMUD.εVal          (-θ_Δ)
-                         & set DFMUD.settledBuffer flowBufferDelta)
-                    (def & set DFMUD.settledAt     t'
+                         & set DFMUD.settledBuffer flowBufferDelta
+                    )
+                    (def & set DFMUD.settledAt      t'
                          & set DFMUD.αVal          (-θ_Δ)
-                         & set DFMUD.εVal          θ_Δ))
-        in (acd', aorsΔ)
+                         & set DFMUD.εVal           θ_Δ
+                    )
+        in (acd', fmap DFMUD.MkMonetaryUnitData aorsΔ)
         where
             θ_Δ             = fromIntegral (θ - (distribution_limit acd))
             flowBufferDelta = newFlowBuffer - (flow_buffer acd)

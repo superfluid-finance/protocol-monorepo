@@ -3,8 +3,6 @@
 module Money.Systems.Superfluid.Concepts.RealTimeBalance where
 
 import           Data.Default
-import           Data.Proxy
-import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts.TypedValue
 
@@ -44,6 +42,3 @@ class ( Value v
 
     -- | Get typed values from a RTB value.
     typedValuesFromRTB :: rtbF v -> (UntappedValue v, [AnyTappedValue v])
-
-    -- | Get the lens of a typed value inside any RTB values.
-    lensOfRTB :: TypedValueTag vtag => Proxy vtag -> Lens' (rtbF v) v

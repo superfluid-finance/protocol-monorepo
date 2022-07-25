@@ -8,8 +8,9 @@ import           GHC.Generics
 
 import           Money.Systems.Superfluid.Concepts
 
--- * Contract
+-- * Contracts
 
+-- | Agreement contract for a distribution. Its sole party is also known as the "publisher".
 data DistributionContract sft = DistributionContract
     { total_unit         :: SFT_FLOAT sft
     , value_per_unit     :: SFT_MVAL sft
@@ -17,6 +18,7 @@ data DistributionContract sft = DistributionContract
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
 
+-- | Agreement contract for a subscription to a distribution. Its sole party is also known as the "subscriber".
 data SubscriptionContract sft = SubscriptionContract
     { owned_unit                 :: SFT_FLOAT sft
     , settled_value              :: UntappedValue (SFT_MVAL sft)
@@ -25,18 +27,19 @@ data SubscriptionContract sft = SubscriptionContract
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)
 
--- * Monetary data
+-- * Monetary unit data
 
--- | Proportional distribution publisher data.
+-- | Distribution publisher data.
 --
--- Note: this is very similar to the universal data.
+-- Note: This is going to be very similar to the universal data. The separation is perhaps mostly for data tracking
+--       reason. TODO: maybe really just use universal data for publisher side too?
 data PublisherData sft = PublisherData
     { distributed_value :: UntappedValue (SFT_MVAL sft)
     , total_flow_rate   :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (PublisherData sft)
 
--- | Proportional distribution subcriber data.
+-- | Distribution subcriber data.
 --
 -- Note: The contracts are the subscriber data. It is not storage-scalable.
 data SubscriberData sft = SubscriberData

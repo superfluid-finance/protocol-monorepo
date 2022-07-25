@@ -80,45 +80,43 @@ export default class BatchCall {
             });
         }
 
+        if (
+            operation.type !== "SUPERFLUID_CALL_AGREEMENT" &&
+            operation.type !== "CALL_APP_ACTION"
+        ) {
+            // Handles ERC20/SuperToken Operations
+            return {
+                operationType,
+                target: populatedTransaction.to,
+                data: removeSigHashFromCallData(populatedTransaction.data),
+            };
+        }
+
+        // Handles Superfluid.callAgreement OR Superfluid.callAppAction
         const encoder = ethers.utils.defaultAbiCoder;
+        const functionArgs = this.getCallDataFunctionArgs(
+            SuperfluidABI.abi,
+            populatedTransaction.data
+        );
 
-        // Handles Superfluid.callAgreement
-        if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
-            const functionArgs = this.getCallDataFunctionArgs(
-                SuperfluidABI.abi,
-                populatedTransaction.data
-            );
-            const data = encoder.encode(
-                ["bytes", "bytes"],
-                [functionArgs["callData"], functionArgs["userData"]]
-            );
+        const data =
+            operation.type === "SUPERFLUID_CALL_AGREEMENT"
+                ? encoder.encode(
+                      ["bytes", "bytes"],
+                      [functionArgs["callData"], functionArgs["userData"]]
+                  )
+                : // operation.type === "CALL_APP_ACTION"
+                  functionArgs["callData"];
+        const target =
+            operation.type === "SUPERFLUID_CALL_AGREEMENT"
+                ? functionArgs["agreementClass"]
+                : // operation.type === "CALL_APP_ACTION"
+                  functionArgs["app"];
 
-            return {
-                operationType,
-                target: functionArgs["agreementClass"],
-                data,
-            };
-        }
-
-        // Handles Superfluid.callAppAction
-        if (operation.type === "CALL_APP_ACTION") {
-            const functionArgs = this.getCallDataFunctionArgs(
-                SuperfluidABI.abi,
-                populatedTransaction.data
-            );
-
-            return {
-                operationType,
-                target: functionArgs["app"],
-                data: functionArgs["callData"],
-            };
-        }
-
-        // Handles remaining ERC20/SuperToken Operations
         return {
             operationType,
-            target: populatedTransaction.to,
-            data: removeSigHashFromCallData(populatedTransaction.data),
+            data,
+            target,
         };
     };
 

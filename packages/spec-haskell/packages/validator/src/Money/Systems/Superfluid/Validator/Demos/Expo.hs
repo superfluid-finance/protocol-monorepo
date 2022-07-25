@@ -43,7 +43,7 @@ demo = do
     runSimTokenOp token printTokenState
 
     let t1 = t0
-    liftIO $ putStrLn $ "# DAY 1: create flows"
+    liftIO $ putStrLn "# DAY 1: create flows"
     runToken token $ SF.updateFlow (CFA.OperationPartiesF alice bob)      f1x
     runToken token $ SF.updateFlow (CFA.OperationPartiesF alice carol) (2*f1x)
     runSimTokenOp token printTokenState

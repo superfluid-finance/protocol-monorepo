@@ -24,7 +24,7 @@ import           Money.Systems.Superfluid.TokenTester
 expectNetFlowRateTo :: HasCallStack => SF.SimpleAddress -> (SF.Wad -> Assertion) -> TokenTester ()
 expectNetFlowRateTo addr expr = do
     acc <- runToken $ SF.getAccount addr
-    liftIO $ expr $ acc^.SF.universalData^.CFMUD.netFlowRate
+    liftIO $ expr $ acc ^. (SF.universalData . CFMUD.netFlowRate)
 
 expectFlowRateTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectFlowRateTo (sender, receiver) expr = do

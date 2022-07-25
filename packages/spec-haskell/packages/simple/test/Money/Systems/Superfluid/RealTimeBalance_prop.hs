@@ -1,4 +1,7 @@
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-orphans #-}
+{- HLINT ignore "Monoid law, left identity"  -}
+{- HLINT ignore "Monoid law, right identity" -}
+
 module Money.Systems.Superfluid.RealTimeBalance_prop (tests) where
 
 import           Test.Hspec
@@ -6,11 +9,10 @@ import           Test.QuickCheck
 
 import           Money.Systems.Superfluid.Instances.Simple.Types
 
-
 -- * QuickCheck helpers
 
 instance Arbitrary Wad where
-    arbitrary = arbitrary >>= return . Wad
+    arbitrary = Wad <$> arbitrary
 
 instance Arbitrary SimpleRealTimeBalance where
     arbitrary = do
@@ -43,7 +45,7 @@ monoid_mappend_commutativity :: SimpleRealTimeBalance -> SimpleRealTimeBalance -
 monoid_mappend_commutativity a b = (a <> b) `sameAs` (b <> a)
 
 rtb_identity_from_and_to_typed_values :: SimpleRealTimeBalance -> Bool
-rtb_identity_from_and_to_typed_values x = ((uncurry typedValuesToRTB) . typedValuesFromRTB) x `sameAs` x
+rtb_identity_from_and_to_typed_values x = (uncurry typedValuesToRTB . typedValuesFromRTB) x `sameAs` x
 
 rtb_conservation_of_net_value :: Wad -> Bool
 rtb_conservation_of_net_value x = (netValueOfRTB . valueToRTB) x == x

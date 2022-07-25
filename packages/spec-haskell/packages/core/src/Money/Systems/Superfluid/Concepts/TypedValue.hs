@@ -44,9 +44,9 @@ module Money.Systems.Superfluid.Concepts.TypedValue
     , mkAnyTappedValue
     ) where
 
-import           Data.Coerce                 (Coercible, coerce)
-import           Data.Default                (Default (..))
-import           Data.Typeable               (Proxy (..), Typeable)
+import           Data.Coerce               (Coercible, coerce)
+import           Data.Default              (Default (..))
+import           Data.Typeable             (Proxy (..), Typeable)
 
 import           Money.Theory.Distribution (Value)
 
@@ -55,7 +55,7 @@ import           Money.Theory.Distribution (Value)
 --
 -- Notional conventions for TypedValue:
 --  * Type name: vtag
-class Typeable vtag => TypedValueTag vtag where tappedValueTag :: (Proxy vtag) -> String
+class Typeable vtag => TypedValueTag vtag where tappedValueTag :: Proxy vtag -> String
 
 -- | Typed value type class
 --

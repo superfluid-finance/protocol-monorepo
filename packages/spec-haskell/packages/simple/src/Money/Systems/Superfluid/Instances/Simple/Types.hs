@@ -56,8 +56,8 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue      as ITMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue               as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
@@ -156,7 +156,7 @@ instance Show (SimpleRealTimeBalanceF Wad) where
         showDetail (UntappedValue uval, tvec) = "( "
             ++ show uval
             -- skip zero/default values
-            ++ foldl ((++) . (++ ", ")) "" ((map show) . (filter ((/= def) . untypeValue )) $ tvec)
+            ++ foldl ((++) . (++ ", ")) "" (map show . filter ((/= def) . untypeValue ) $ tvec)
             ++ " )"
 
 instance Semigroup (SimpleRealTimeBalanceF Wad) where
@@ -169,9 +169,9 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
     valueToRTB uval = SimpleRealTimeBalanceF uval def def
 
     typedValuesToRTB (UntappedValue uval) tvec =
-        (SimpleRealTimeBalanceF uval def def) <> (flip foldMap tvec g)
+        SimpleRealTimeBalanceF uval def def <> foldMap g tvec
         -- extra correctly typed RTB monoid
-        where g = \(AnyTappedValue (MkTappedValueTag p, v)) -> case typeRep p of
+        where g (AnyTappedValue (MkTappedValueTag p, v)) = case typeRep p of
                   t | t == typeRep MMUD.mintedValueTag -> SimpleRealTimeBalanceF def   v def
                     | t == typeRep BBS.bufferValueTag  -> SimpleRealTimeBalanceF def def   v
                     | otherwise -> error "Invalid monetary value tag"
@@ -338,12 +338,12 @@ instance Show AnySimpleAgreementMonetaryUnitData where
 instance ( Foldable (AgreementOperationResultF ao)
          , Eq elem
          ) => Eq (AgreementOperationResultF ao elem) where
-    a == b = foldr (&&) True $ zipWith (==) (toList a) (toList b)
+    a == b = and $ zipWith (==) (toList a) (toList b)
 
 instance ( Foldable (AgreementOperationResultF ao)
          , Ord elem
          ) => Ord (AgreementOperationResultF ao elem) where
-    a <= b = foldr (&&) True $ zipWith (<=) (toList a) (toList b)
+    a <= b = and $ zipWith (<=) (toList a) (toList b)
 
 instance ( Foldable (AgreementOperationResultF ao)
          , Show elem

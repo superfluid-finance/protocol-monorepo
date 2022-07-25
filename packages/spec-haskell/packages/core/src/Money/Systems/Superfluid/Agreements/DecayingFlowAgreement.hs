@@ -70,8 +70,8 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
                     )
         in (acd', fmap DFMUD.MkMonetaryUnitData aorsΔ)
         where
-            θ_Δ             = fromIntegral (θ - (distribution_limit acd))
-            flowBufferDelta = newFlowBuffer - (flow_buffer acd)
+            θ_Δ             = fromIntegral (θ - distribution_limit acd)
+            flowBufferDelta = newFlowBuffer - flow_buffer acd
 
 type ContractData :: Type -> Type
 type ContractData sft = AgreementOperationData (Operation sft)

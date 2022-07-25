@@ -25,7 +25,7 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 class ( SuperfluidTypes sft
       , Monoid amud
       ) => AgreementMonetaryUnitData amud sft | amud -> sft where
-    -- | π function - balance provided (hear: π) by the agreement account data.
+    -- | π function - balance provided (hear: π) by the agreement monetary unit data.
     balanceProvidedByAgreement
         :: amud          -- amud
         -> SFT_TS sft    -- t

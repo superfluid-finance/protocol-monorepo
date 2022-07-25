@@ -94,7 +94,7 @@ export default class BatchCall {
             };
         }
 
-        // Handles other cases which are not call agreeement operation
+        // Handles other cases which are not call agreement operation
         return {
             operationType,
             target: populatedTransaction.to,

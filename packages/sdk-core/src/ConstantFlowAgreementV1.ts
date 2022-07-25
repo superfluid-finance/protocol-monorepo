@@ -482,7 +482,7 @@ export default class ConstantFlowAgreementV1 {
      * @param timestamp last updated timestamp of flow
      * @param flowRate the current flow rate
      * @param deposit the deposit amount
-     * @param owedDeposit any owed depsit
+     * @param owedDeposit any owed deposit
      * @returns {IWeb3FlowInfo} sanitized web3 flow info
      */
     _sanitizeFlowInfo = (params: IWeb3FlowInfoParams): IWeb3FlowInfo => {

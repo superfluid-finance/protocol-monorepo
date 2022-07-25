@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## Added
+- Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+
 ## [0.5.0] - 2022-07-14
 
 ## Added

@@ -104,7 +104,7 @@ instance TypedValueTag vtag => Show (TappedValue vtag Wad) where
     show (TappedValue val) = show val ++ "@" ++ tappedValueTag (Proxy @vtag)
 
 instance Show (AnyTappedValue Wad) where
-    show (AnyTappedValue (MkTappedValueTag vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
+    show (AnyTappedValue (vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
 
 -- =====================================================================================================================
 -- * Timestamp type
@@ -156,7 +156,7 @@ instance Show (SimpleRealTimeBalanceF Wad) where
         showDetail (UntappedValue uval, tvec) = "( "
             ++ show uval
             -- skip zero/default values
-            ++ foldl ((++) . (++ ", ")) "" (map show . filter ((/= def) . untypeValue ) $ tvec)
+            ++ foldl ((++) . (++ ", ")) "" (map show . filter ((/= def) . untypeAnyTappedValue ) $ tvec)
             ++ " )"
 
 instance Semigroup (SimpleRealTimeBalanceF Wad) where
@@ -171,7 +171,7 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
     typedValuesToRTB (UntappedValue uval) tvec =
         SimpleRealTimeBalanceF uval def def <> foldMap g tvec
         -- extra correctly typed RTB monoid
-        where g (AnyTappedValue (MkTappedValueTag p, v)) = case typeRep p of
+        where g (AnyTappedValue (p, v)) = case typeRep p of
                   t | t == typeRep MMUD.mintedValueTag -> SimpleRealTimeBalanceF def   v def
                     | t == typeRep BBS.bufferValueTag  -> SimpleRealTimeBalanceF def def   v
                     | otherwise -> error "Invalid monetary value tag"

@@ -19,7 +19,7 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue      as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as ITMUD
 
 -- * Monetary unit data
 
@@ -35,11 +35,10 @@ instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (SubscriberData sft) sf
         -- lens getter: subscribed value
         (\(SubscriberData
             (DistributionContract { value_per_unit = vpu })
-            (SubscriptionContract
-             { settled_value_per_unit = svpu
-             , settled_value = sv
-             , owned_unit = u
-             })
+            (SubscriptionContract { settled_value_per_unit = svpu
+                                  , settled_value = sv
+                                  , owned_unit = u
+                                  })
           ) -> (+) sv $ UntappedValue $ floor $
             u * fromIntegral (vpu - svpu))
 
@@ -82,15 +81,14 @@ instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft) 
                       })
         in (SubscriberOperationData sub', IDASubscriberOperationPartiesF)
         where (SubscriberData
-                dc@(DistributionContract
-                    { total_unit = tu
-                    , value_per_unit = vpu })
-                sc@(SubscriptionContract
-                    { owned_unit = u
-                    , settled_value_per_unit = svpu
-                    , settled_value = UntappedValue sv
-                    })) = sub
+                 dc@(DistributionContract { total_unit = tu
+                                          , value_per_unit = vpu })
+                 sc@(SubscriptionContract { owned_unit = u
+                                          , settled_value_per_unit = svpu
+                                          , settled_value = UntappedValue sv
+                                          })) = sub
               sv' = floor (fromIntegral sv + fromIntegral (vpu - svpu) * u)
+
     applyAgreementOperation Unsubscribe (SubscriberOperationData sub) _ = let
         -- FIXME operation missing
         sub' = sub

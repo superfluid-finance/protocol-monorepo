@@ -50,14 +50,7 @@ import           Data.Typeable             (Proxy (..), Typeable)
 
 import           Money.Theory.Distribution (Value)
 
-
--- | Tag for typed value type class
---
--- Notional conventions for TypedValue:
---  * Type name: vtag
-class Typeable vtag => TypedValueTag vtag where tappedValueTag :: Proxy vtag -> String
-
--- | Typed value type class
+-- | Typed value is an otherwise unaccounted value ~v~ with an associated ~vtag~.
 --
 -- Notional conventions:
 --  * Type name: tv
@@ -65,6 +58,12 @@ class (TypedValueTag vtag, Value v) => TypedValue tv vtag v | tv -> v, tv -> vta
     untypeValue :: tv -> v
     default untypeValue :: Coercible tv v => tv -> v
     untypeValue = coerce
+
+-- | Tag for typed value type class using ~Typeable~ runtime information.
+--
+-- Notional conventions for TypedValue:
+--  * Type name: vtag
+class Typeable vtag => TypedValueTag vtag where tappedValueTag :: Proxy vtag -> String
 
 -- | Create untapped value tag
 data UntappedValueTag

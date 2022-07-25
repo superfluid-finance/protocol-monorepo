@@ -48,7 +48,7 @@ import           Data.Coerce                 (Coercible, coerce)
 import           Data.Default                (Default (..))
 import           Data.Typeable               (Proxy (..), Typeable)
 
-import           Money.Concepts.Distribution (Value)
+import           Money.Theory.Distribution (Value)
 
 
 -- | Tag for typed value type class

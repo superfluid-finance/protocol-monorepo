@@ -15,7 +15,7 @@ build-type:    Simple
 
 library
     exposed-modules:
-        Money.Concepts.Distribution
+        Money.Theory.Distribution
         Money.Systems.Communism
         Money.Systems.Superfluid.Concepts.TypedValue
         Money.Systems.Superfluid.Concepts.RealTimeBalance

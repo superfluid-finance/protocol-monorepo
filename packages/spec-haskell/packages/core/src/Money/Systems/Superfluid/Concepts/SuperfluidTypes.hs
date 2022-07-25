@@ -11,7 +11,7 @@ import           Data.Default                                      (Default)
 import           Data.Kind                                         (Type)
 import           Data.Proxy
 
-import           Money.Concepts.Distribution                       (Value)
+import           Money.Theory.Distribution                       (Value)
 import           Money.Systems.Superfluid.Concepts.RealTimeBalance (RealTimeBalance)
 
 -- | Superfluid float type.

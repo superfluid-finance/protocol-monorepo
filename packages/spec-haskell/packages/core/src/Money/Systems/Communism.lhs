@@ -4,7 +4,7 @@ Communism comes in various forms, and all have its own money distribution "syste
 \begin{code}
 module Money.Systems.Communism where
 
-import Money.Concepts.Distribution
+import Money.Theory.Distribution
 \end{code}
 }
 

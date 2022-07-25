@@ -8,7 +8,7 @@ digital representations of money. Examples are bills, coins, bank accounts, Bitc
 \ignore{
 \begin{code}
 {-# LANGUAGE TypeFamilies #-}
-module Money.Concepts.Distribution where
+module Money.Theory.Distribution where
 
 import Data.Default (Default)
 -- import Data.Kind (Type)

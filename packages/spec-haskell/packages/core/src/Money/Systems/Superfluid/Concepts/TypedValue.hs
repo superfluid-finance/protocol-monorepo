@@ -78,7 +78,6 @@ untappedValueTag = Proxy @UntappedValueTag
 --  * Term name: uval
 newtype UntappedValue v = UntappedValue v
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
-    deriving stock (Functor)
 
 instance Value v => TypedValue (UntappedValue v) UntappedValueTag v
 
@@ -91,7 +90,6 @@ class TypedValueTag tvtag => TappedValueTag tvtag
 --  * Term name: tval
 newtype TappedValue vtag v = TappedValue v
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
-    deriving stock (Functor)
 
 instance (Value v, TypedValueTag vtag) => TypedValue (TappedValue vtag v) vtag v
 

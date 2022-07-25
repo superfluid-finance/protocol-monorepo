@@ -78,7 +78,7 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
 -- | Calculate the real time balance of an monetary unit at a given time.
 balanceOfAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => mu -> SFT_TS sft -> SFT_RTB sft
 balanceOfAt mu t = foldr
-    ((<>) . (\a -> providedBalanceByAnyAgreement mu a t))
+    ((<>) . (flip (providedBalanceByAnyAgreement mu) t))
     mempty
     (agreementsOf mu)
 

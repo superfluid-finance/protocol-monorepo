@@ -19,18 +19,18 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
 
 -- * Monetary unit data
 
-type IDAPublisherMonetaryUnitData sft = ITMUD.MonetaryUnitData (PublisherData sft) sft
+type IDAPublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
 
-type IDASubscriberMonetaryUnitData sft = ITMUD.MonetaryUnitData (SubscriberData sft) sft
+type IDASubscriberMonetaryUnitData sft = IVMUD.MonetaryUnitData (SubscriberData sft) sft
 
-instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (PublisherData sft) sft where
+instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (PublisherData sft) sft where
     untappedValue = $(field 'distributed_value)
 
-instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (SubscriberData sft) sft where
+instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     untappedValue = readOnlyLens
         -- lens getter: subscribed value
         (\(SubscriberData
@@ -55,8 +55,8 @@ instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft) s
     applyAgreementOperation (Distribute amount) (PublisherOperationData pub) _ = let
         pub'  = pub { value_per_unit = floor (fromIntegral p + delta) }
         aorΔ  = IDAPublisherOperationResultF
-                  (def & set ITMUD.untappedValue (coerce (- amount)))
-        in (PublisherOperationData pub', fmap ITMUD.MkMonetaryUnitData aorΔ)
+                  (def & set IVMUD.untappedValue (coerce (- amount)))
+        in (PublisherOperationData pub', fmap IVMUD.MkMonetaryUnitData aorΔ)
         where DistributionContract { total_unit = tu, value_per_unit = p } = pub
               delta = fromIntegral amount / tu
 

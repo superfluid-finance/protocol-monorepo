@@ -61,11 +61,12 @@ class ( SuperfluidTypes sft
     --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~amud~.
     --      This is what can make an agreement scalable.
     applyAgreementOperation
-        :: ao                                                                        -- ao
-        -> AgreementOperationData ao                                                 -- aod
-        -> SFT_TS sft                                                                -- t
+        :: amud ~ (AgreementMonetaryUnitDataInOperation ao)
+        => ao                                   -- ao
+        -> AgreementOperationData ao            -- aod
+        -> SFT_TS sft                           -- t
         -> ( AgreementOperationData ao
-           , AgreementOperationResultF ao (AgreementMonetaryUnitDataInOperation ao)) -- (aod', aorΔ)
+           , AgreementOperationResultF ao amud) -- (aod', aorΔ)
 
 -- | A special null agreement monetary unit data.
 --

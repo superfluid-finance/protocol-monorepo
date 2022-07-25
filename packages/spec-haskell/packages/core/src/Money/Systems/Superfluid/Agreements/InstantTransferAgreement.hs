@@ -16,14 +16,14 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue as IVMUD
 
 -- * Monetary data lenses
 --
 
-instance SuperfluidTypes sft => ITMUD.MonetaryUnitLenses (UniversalData sft) sft where
+instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (UniversalData sft) sft where
     untappedValue = $(field 'ita_untapped_value)
-type MonetaryUnitData sft = ITMUD.MonetaryUnitData (UniversalData sft) sft
+type MonetaryUnitData sft = IVMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Contract
 --
@@ -45,9 +45,9 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
 
     applyAgreementOperation (Transfer amount) acd _ = let
         acd'  = acd
-        aorΔ = fmap ITMUD.MkMonetaryUnitData (OperationPartiesF
-                    (def & set ITMUD.untappedValue (coerce (- amount)))
-                    (def & set ITMUD.untappedValue (coerce    amount)))
+        aorΔ = fmap IVMUD.MkMonetaryUnitData (OperationPartiesF
+                    (def & set IVMUD.untappedValue (coerce (- amount)))
+                    (def & set IVMUD.untappedValue (coerce    amount)))
         in (acd', aorΔ)
 
 type ContractData :: Type -> Type

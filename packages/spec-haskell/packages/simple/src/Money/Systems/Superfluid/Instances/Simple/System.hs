@@ -46,7 +46,7 @@ import           Lens.Internal
 
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
@@ -119,13 +119,13 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
 
     universalData = to (universal_index . account_data)
     minterMonetaryUnitData = mk_uidx_mud_lens MMUD.MkMonetaryUnitData MMUD.getMonetaryUnitLenses
-    itaMonetaryUnitData    = mk_uidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
+    itaMonetaryUnitData    = mk_uidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
     cfaMonetaryUnitData    = mk_uidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
     dfaMonetaryUnitData    = mk_uidx_mud_lens DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
 
     pdPublisherData = to (pd_publisher . account_data)
-    idaPublisherMonetaryUnitData = mk_pdidx_mud_lens ITMUD.MkMonetaryUnitData ITMUD.getMonetaryUnitLenses
-    idaSubscriberMonetaryUnitDataList = to (fmap ITMUD.MkMonetaryUnitData . ida_subscriptions)
+    idaPublisherMonetaryUnitData = mk_pdidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
+    idaSubscriberMonetaryUnitDataList = to (fmap IVMUD.MkMonetaryUnitData . ida_subscriptions)
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress

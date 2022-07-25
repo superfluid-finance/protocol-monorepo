@@ -56,7 +56,7 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
@@ -226,8 +226,8 @@ instance TaggedTypeable SimpleITAMonetaryUnitData where
     tagFromProxy _ = "ITA"
 
 instance Show SimpleITAMonetaryUnitData where
-    show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
-        (show $ x^.ITMUD.untappedValue)
+    show (IVMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
+        (show $ x^.IVMUD.untappedValue)
 
 -- * IDA
 
@@ -238,8 +238,8 @@ instance TaggedTypeable (IDA.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes)
     tagFromProxy _ = "IDA(P)"
 
 instance Show (IDA.IDAPublisherMonetaryUnitData SimpleSuperfluidTypes) where
-    show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
-        (show $ x^.ITMUD.untappedValue)
+    show (IVMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
+        (show $ x^.IVMUD.untappedValue)
 
 instance TaggedTypeable (PDIDX.SubscriptionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(S)#"
@@ -248,8 +248,8 @@ instance TaggedTypeable (IDA.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes
     tagFromProxy _ = "IDA(S)"
 
 instance Show (IDA.IDASubscriberMonetaryUnitData SimpleSuperfluidTypes) where
-    show (ITMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
-        (show $ x^.ITMUD.untappedValue)
+    show (IVMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
+        (show $ x^.IVMUD.untappedValue)
 
 -- * CFA
 --

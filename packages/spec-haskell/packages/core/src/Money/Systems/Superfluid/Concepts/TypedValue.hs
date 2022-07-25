@@ -6,11 +6,12 @@
 --
 -- == Terminologies
 --
--- In /Superfluid Money/, plain 'Value' is also called untyped value, while 'TypedValue' is 'Value' that
--- is tagged to be either 'UntappedValue' or 'TappedValue':
+-- In /Superfluid Money Concepts/, plain 'Value' is also called untyped value, while 'TypedValue' is 'Value' that is
+-- tagged to be either 'UntappedValue' or 'TappedValue':
 --
--- * Untapped value is the type of value that can be freely used by any sub-systems.
--- * Tapped value is the type of value that must only be used by a specific sub-system.
+-- * Untapped value is a type of value that can be freely used by any sub systems.
+--
+-- * Tapped value is a type of value that must only be used by its designated sub system.
 --
 -- Here is how their relations look like:
 --
@@ -22,8 +23,8 @@
 -- == Known Sub-systems
 --
 -- * Agreements (ITA, CFA, IDA, etc.)
--- * Atomic Composite Agreement (ACA)
 -- * Buffer Based Solvency (BBS)
+-- * Composition Credit System
 --
 module Money.Systems.Superfluid.Concepts.TypedValue
     -- Untyped Value
@@ -61,17 +62,20 @@ class (TypedValueTag vtag, Value v) => TypedValue tv vtag v | tv -> v, tv -> vta
 
 -- | Tag for typed value type class using ~Typeable~ runtime information.
 --
--- Notional conventions for TypedValue:
+-- Notional conventions:
 --  * Type name: vtag
 class Typeable vtag => TypedValueTag vtag where tappedValueTag :: Proxy vtag -> String
 
--- | Create untapped value tag
+-- | Untapped value tag.
 data UntappedValueTag
+
 instance TypedValueTag UntappedValueTag where tappedValueTag _ = "_"
+
+-- | Create untapped value tag.
 untappedValueTag :: Proxy UntappedValueTag
 untappedValueTag = Proxy @UntappedValueTag
 
--- | Untapped value type
+-- | Untapped value type. It does not have a designated sub system, and can be freely accessed by any sub systems.
 --
 -- Notional conventions:
 --  * Term name: uval
@@ -80,7 +84,7 @@ newtype UntappedValue v = UntappedValue v
 
 instance Value v => TypedValue (UntappedValue v) UntappedValueTag v
 
--- | Tapped value tag.
+-- | Tapped value tag. It must only be accessed by a designated sub system.
 class TypedValueTag tvtag => TappedValueTag tvtag
 
 -- | Tapped value type.

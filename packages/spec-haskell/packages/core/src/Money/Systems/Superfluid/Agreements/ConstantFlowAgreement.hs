@@ -60,21 +60,21 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     applyAgreementOperation (UpdateFlow newFlowRate newFlowBuffer) acd t' = let
-        acd'  = ContractData { flow_last_updated_at = t'
-                             , flow_rate   = newFlowRate
-                             , flow_buffer = newFlowBuffer
-                             }
+        acd' = ContractData { flow_last_updated_at = t'
+                            , flow_rate   = newFlowRate
+                            , flow_buffer = newFlowBuffer
+                            }
         aorΔ = OperationPartiesF
-                    (def & set CFMUD.settledAt t'
-                         & set CFMUD.netFlowRate          (-flowRateDelta)
-                         & set CFMUD.settledUntappedValue (UntappedValue $ -flowPeriodDelta - coerce flowBufferDelta)
-                         & set CFMUD.settledBufferValue    flowBufferDelta
-                    )
-                    (def & set CFMUD.settledAt t'
-                         & set CFMUD.netFlowRate           flowRateDelta
-                         & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
-                         & set CFMUD.settledBufferValue    def
-                    )
+                   (def & set CFMUD.settledAt t'
+                        & set CFMUD.netFlowRate          (-flowRateDelta)
+                        & set CFMUD.settledUntappedValue (UntappedValue $ -flowPeriodDelta - coerce flowBufferDelta)
+                        & set CFMUD.settledBufferValue    flowBufferDelta
+                   )
+                   (def & set CFMUD.settledAt t'
+                        & set CFMUD.netFlowRate           flowRateDelta
+                        & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
+                        & set CFMUD.settledBufferValue    def
+                   )
         in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
         where t               = flow_last_updated_at acd
               fr              = flow_rate acd

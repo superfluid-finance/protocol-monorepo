@@ -7,7 +7,7 @@ import           GHC.Generics
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MMUD
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency     as BBS
 

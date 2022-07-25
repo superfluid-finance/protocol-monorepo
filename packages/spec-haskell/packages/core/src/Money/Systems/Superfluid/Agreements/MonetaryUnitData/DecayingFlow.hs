@@ -1,6 +1,5 @@
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilies           #-}
 
 -- | Decaying Flow Agreement (DFA)
 --
@@ -19,17 +18,17 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency as BBS
 
-class (Default amuL, SuperfluidTypes sft) => MonetaryUnitLenses amuL sft | amuL -> sft where
-    decayingFactor  :: Lens' amuL (SFT_FLOAT sft)
-    settledAt       :: Lens' amuL (SFT_TS sft)
-    αVal            :: Lens' amuL (SFT_FLOAT sft)
-    εVal            :: Lens' amuL (SFT_FLOAT sft)
-    settledBuffer   :: Lens' amuL (BBS.BufferValue (SFT_MVAL sft))
+class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+    decayingFactor  :: Lens' amuLs (SFT_FLOAT sft)
+    settledAt       :: Lens' amuLs (SFT_TS sft)
+    αVal            :: Lens' amuLs (SFT_FLOAT sft)
+    εVal            :: Lens' amuLs (SFT_FLOAT sft)
+    settledBuffer   :: Lens' amuLs (BBS.BufferValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type
-newtype MonetaryUnitData amuL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuL } deriving (Default)
+newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs } deriving (Default)
 
-instance MonetaryUnitLenses amuL sft => Semigroup (MonetaryUnitData amuL sft) where
+instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
     -- Formula:
     --   aad_mappend(a, b) = DFA_AAD
     --     { t_s = t_s'
@@ -47,9 +46,9 @@ instance MonetaryUnitLenses amuL sft => Semigroup (MonetaryUnitData amuL sft) wh
         where ε'  = b^.εVal
               λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
-instance MonetaryUnitLenses amuL sft => Monoid (MonetaryUnitData amuL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLenses amuLs sft => Monoid (MonetaryUnitData amuLs sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses amuL sft => AgreementMonetaryUnitData (MonetaryUnitData amuL sft) sft where
+instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
     -- | Provided balance by DFA
     --
     -- Formula:

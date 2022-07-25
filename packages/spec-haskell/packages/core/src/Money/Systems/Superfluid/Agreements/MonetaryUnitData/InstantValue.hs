@@ -1,8 +1,7 @@
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilies           #-}
 
-module Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer
+module Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue
     ( MonetaryUnitLenses (..)
     , MonetaryUnitData (..)
     ) where
@@ -16,17 +15,17 @@ import           Money.Systems.Superfluid.Concepts
 -- * Monetary unit data
 --
 
-class (Default amuL, SuperfluidTypes sft) => MonetaryUnitLenses amuL sft | amuL -> sft where
-    untappedValue :: Lens' amuL (UntappedValue (SFT_MVAL sft))
+class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+    untappedValue :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type
-newtype MonetaryUnitData amuL sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuL } deriving (Default)
+newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs } deriving (Default)
 
-instance MonetaryUnitLenses amuL sft => Semigroup (MonetaryUnitData amuL sft) where
+instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let c = a & over untappedValue (+ b^.untappedValue)
         in MkMonetaryUnitData c
-instance MonetaryUnitLenses amuL sft => Monoid (MonetaryUnitData amuL sft) where mempty = MkMonetaryUnitData def
+instance MonetaryUnitLenses amuLs sft => Monoid (MonetaryUnitData amuLs sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses amuL sft => AgreementMonetaryUnitData (MonetaryUnitData amuL sft) sft where
+instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
     balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB (a^.untappedValue) []

@@ -96,7 +96,7 @@ class ( Monad tk
         -> ao                                                                             -- ao
         -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> tk (Maybe acd))              -- acdGetter
         -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ())  -- acdSetter
-        -> Lens' acc amud                                                                 -- amudL
+        -> Lens' acc amud                                                                 -- amuLs
         -> tk ()
     updateUniversalIndex aorAddrs ao acdGetter acdSetter amuData = do
         -- load acd and accounts data

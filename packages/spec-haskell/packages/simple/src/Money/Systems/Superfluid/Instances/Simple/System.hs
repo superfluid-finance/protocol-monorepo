@@ -46,8 +46,8 @@ import           Lens.Internal
 
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer      as ITMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter               as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue      as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue               as MMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 --

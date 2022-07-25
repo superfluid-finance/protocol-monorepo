@@ -16,7 +16,7 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MMUD
 
 -- * Monetary unit lenses
 --

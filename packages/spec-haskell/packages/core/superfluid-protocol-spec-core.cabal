@@ -23,8 +23,8 @@ library
         Money.Systems.Superfluid.Concepts.Agreement
         Money.Systems.Superfluid.Concepts
         Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
-        Money.Systems.Superfluid.Agreements.MonetaryUnitData.Minter
-        Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantTransfer
+        Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue
+        Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow
         Money.Systems.Superfluid.Agreements.MinterAgreement

@@ -108,7 +108,7 @@ contract AgreementForwarder {
             revert("invalid flowrate");
         }
 
-        forwardBatchCall(address(_cfa), cfaCallData);
+        _forwardBatchCall(address(_cfa), cfaCallData);
     }
 
     /**************************************************************************
@@ -135,7 +135,7 @@ contract AgreementForwarder {
             )
         );
 
-        forwardBatchCall(address(_ida), idaCallData);
+        _forwardBatchCall(address(_ida), idaCallData);
     }
 
     /**
@@ -181,7 +181,7 @@ contract AgreementForwarder {
             )
         );
 
-        forwardBatchCall(address(_ida), idaCallData);
+        _forwardBatchCall(address(_ida), idaCallData);
     }
 
     /**
@@ -213,7 +213,7 @@ contract AgreementForwarder {
             );
         }
 
-        forwardBatchCallMany(address(_ida), idaCallDataArr);
+        _forwardBatchCallMany(address(_ida), idaCallDataArr);
     }
 
     /**
@@ -238,7 +238,7 @@ contract AgreementForwarder {
             )
         );
 
-        forwardBatchCall(address(_ida), idaCallData);
+        _forwardBatchCall(address(_ida), idaCallData);
     }
 
 
@@ -268,7 +268,7 @@ contract AgreementForwarder {
             )
         );
 
-        forwardBatchCall(address(_ida), idaCallData);
+        _forwardBatchCall(address(_ida), idaCallData);
     }
 
     /**************************************************************************
@@ -276,14 +276,14 @@ contract AgreementForwarder {
      *************************************************************************/
 
     // compiles the calldata of a single operation for the host invocation and executes it
-    function forwardBatchCall(address target, bytes memory callData) internal {
+    function _forwardBatchCall(address target, bytes memory callData) internal {
         bytes[] memory callDataArr = new bytes[](1);
         callDataArr[0] = callData;
-        forwardBatchCallMany(target, callDataArr);
+        _forwardBatchCallMany(target, callDataArr);
     }
 
     // compiles the calldata of multiple operations for the host invocation and executes it
-    function forwardBatchCallMany(address target, bytes[] memory callDataArr) internal {
+    function _forwardBatchCallMany(address target, bytes[] memory callDataArr) internal {
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](callDataArr.length);
         for (uint i = 0; i < callDataArr.length; ++i) {
             ops[i] = ISuperfluid.Operation(

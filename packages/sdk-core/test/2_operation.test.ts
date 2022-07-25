@@ -12,7 +12,49 @@ import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 import Operation from "../src/Operation";
 import hre from "hardhat";
+import { SuperAppTester } from "../typechain-types";
+import { abi as SuperAppTesterABI } from "../artifacts/contracts/SuperAppTester.sol/SuperAppTester.json";
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
+
+/**
+ * Create a simple call app action (setVal) operation with the SuperAppTester contract.
+ * @param deployer
+ * @param framework
+ * @returns Operation
+ */
+export const createCallAppActionOperation = async (
+    deployer: SignerWithAddress,
+    framework: Framework,
+    val: number
+) => {
+    const SuperAppTesterFactory = await hre.ethers.getContractFactory(
+        "SuperAppTester",
+        deployer
+    );
+    let superAppTester = (await SuperAppTesterFactory.deploy(
+        framework.contracts.host.address
+    )) as SuperAppTester;
+
+    const superAppTesterInterface = new ethers.utils.Interface(
+        SuperAppTesterABI
+    );
+    superAppTester = (await superAppTester.deployed()).connect(deployer);
+
+    // initial val will be 0 when contract is initialized
+    expect(await superAppTester.val()).to.equal("0");
+
+    const callData = superAppTesterInterface.encodeFunctionData("setVal", [
+        val,
+        "0x",
+    ]);
+    return {
+        operation: framework.host.populateCallAppActionTxnAndReturnOperation(
+            superAppTester.address,
+            callData
+        ),
+        superAppTester,
+    };
+};
 
 describe("Operation Tests", () => {
     let evmSnapshotId: string;
@@ -74,7 +116,7 @@ describe("Operation Tests", () => {
         await operation.exec(deployer);
     });
 
-    it("Should be able to create an operation from framework and add to batch call.", async () => {
+    it("Should be able to create an operation from framework and execute from batch call.", async () => {
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             superToken.address,
             alpha.address,
@@ -90,6 +132,13 @@ describe("Operation Tests", () => {
         await framework.batchCall([operation]).exec(deployer);
     });
 
+    it("Should be able to create a call app action operation", async () => {
+        const NEW_VAL = 69;
+        const { superAppTester, operation } =
+            await createCallAppActionOperation(deployer, framework, NEW_VAL);
+        await operation.exec(deployer);
+        expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
+    });
 
     it("Should throw an error when trying to execute a transaction with faulty callData", async () => {
         const callData = cfaInterface.encodeFunctionData("createFlow", [
@@ -110,7 +159,7 @@ describe("Operation Tests", () => {
             expect(err.message).to.contain(
                 "Execute Transaction Error: There was an error executing the transaction"
             );
-            expect(err.cause).to.be.instanceOf(Error)
+            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 
@@ -126,7 +175,7 @@ describe("Operation Tests", () => {
             expect(err.message).to.contain(
                 "Sign Transaction Error: There was an error signing the transaction"
             );
-            expect(err.cause).to.be.instanceOf(Error)
+            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 

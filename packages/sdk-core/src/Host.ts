@@ -40,4 +40,24 @@ export default class Host {
         );
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };
+
+    /**
+     * Creates an Operation of the `callAppAction` function on the host contract.
+     * @param app the address of the Super App you are calling
+     * @param callData the encoded callData for the function
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} an `Operation` class
+     */
+    populateCallAppActionTxnAndReturnOperation = (
+        app: string,
+        callData: string,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Operation => {
+        const txn = this.contract.populateTransaction.callAppAction(
+            app,
+            callData,
+            overrides || {}
+        );
+        return new Operation(txn, "CALL_APP_ACTION");
+    };
 }

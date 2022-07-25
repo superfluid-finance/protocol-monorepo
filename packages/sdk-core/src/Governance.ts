@@ -81,7 +81,7 @@ export default class Governance {
         token = ethers.constants.AddressZero,
     }: IGetGovernanceParametersParams): Promise<IWeb3GovernanceParams> => {
         const pppPromise = this.getPPPConfig({ providerOrSigner, token });
-        const rewardPromose = this.getRewardAddress({
+        const rewardPromise = this.getRewardAddress({
             providerOrSigner,
             token,
         });
@@ -91,7 +91,7 @@ export default class Governance {
         });
         const data = await Promise.all([
             pppPromise,
-            rewardPromose,
+            rewardPromise,
             minimumDepositPromise,
         ]);
         return {

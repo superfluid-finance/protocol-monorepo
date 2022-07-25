@@ -1,3 +1,5 @@
+import { serializeError } from "serialize-error";
+
 export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
@@ -55,14 +57,14 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${JSON.stringify(cause, null, 2)}`
+Caused by: ${JSON.stringify(serializeError(cause), null, 2)}`
                 : ""
         }`;
         super(
             fullMessage,
             cause
                 ? {
-                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expectes "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
+                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expects "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
                   }
                 : {}
         );

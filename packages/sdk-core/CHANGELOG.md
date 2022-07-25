@@ -5,16 +5,22 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## Added
+- Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+
 ## [0.5.0] - 2022-07-14
 
 ## Added
 - Support for SetEvent and Subgraph v1.4.4
+- `Framework.operation` method for easily creating `Operation` instances
 
 ## Fixes
 - Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
 
 ### Changed
 - `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
+- Use `serialize-error` for serializing error object inside the message.
+- Export Operation & OperationType
 
 ### Breaking
 - `SFError.errorObject` renamed to `SFError.cause`

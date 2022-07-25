@@ -46,8 +46,8 @@ import           Lens.Internal
 
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue      as ITMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue               as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as ITMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 --
@@ -163,12 +163,12 @@ instance Ord PDSUB_KEY where PDSUB_KEY a b <= PDSUB_KEY a' b' = a <= a' && b <= 
 
 -- | Simple token data type.
 data SimpleTokenData = SimpleTokenData
-    { accounts                 :: M.Map SimpleAddress SimpleAccountData
-    , cfaContractData          :: M.Map CFA_KEY   SimpleCFAContractData
-    , dfaContractData          :: M.Map DFA_KEY   SimpleDFAContractData
-    , publisher_contracts      :: M.Map PDPUB_KEY SimpleDistributionContract
-    , ida_subscriber_contracts :: M.Map PDSUB_KEY SimpleSubscriptionContract
-    , tokenLastUpdatedAt       :: SimpleTimestamp
+    { accounts             :: M.Map SimpleAddress SimpleAccountData
+    , cfaContractData      :: M.Map CFA_KEY   SimpleCFAContractData
+    , dfaContractData      :: M.Map DFA_KEY   SimpleDFAContractData
+    , publisher_contracts  :: M.Map PDPUB_KEY SimpleDistributionContract
+    , subscriber_contracts :: M.Map PDSUB_KEY SimpleSubscriptionContract
+    , tokenLastUpdatedAt   :: SimpleTimestamp
     }
 
 instance Default SimpleTokenData where
@@ -177,7 +177,7 @@ instance Default SimpleTokenData where
         , cfaContractData = def
         , dfaContractData = def
         , publisher_contracts = def
-        , ida_subscriber_contracts = def
+        , subscriber_contracts = def
         , tokenLastUpdatedAt = t }
         where t = def :: SimpleTimestamp
 
@@ -219,7 +219,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
                 & fromMaybe (create_simple_account_data 0)
         let pubs = token & publisher_contracts
         let ida_subs = token
-                & ida_subscriber_contracts
+                & subscriber_contracts
                 & M.filterWithKey (\(PDSUB_KEY s _) _ -> s == addr)
                 & M.toList
                 & fmap (\(PDSUB_KEY _ k, sub) -> PDIDX.SubscriberData
@@ -279,12 +279,12 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
         }
 
     viewProportionalDistributionSubscription subscriber publisher indexId = getSimpleTokenData
-        <&> ida_subscriber_contracts
+        <&> subscriber_contracts
         <&> M.lookup (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
 
     setProportionalDistributionSubscription subscriber publisher indexId sub t = modify $ \vs -> vs
-        { ida_subscriber_contracts = M.insert (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
-                                     sub (ida_subscriber_contracts vs)
+        { subscriber_contracts = M.insert (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
+                                 sub (subscriber_contracts vs)
         , tokenLastUpdatedAt = t
         }
 
@@ -320,4 +320,4 @@ listPublisherContracts :: Monad m => SimpleTokenStateT m [(PDPUB_KEY, SimpleDist
 listPublisherContracts = getSimpleTokenData <&> M.toList . publisher_contracts
 
 listIDASubscriptionContracts :: Monad m => SimpleTokenStateT m [(PDSUB_KEY, SimpleSubscriptionContract)]
-listIDASubscriptionContracts = getSimpleTokenData <&> M.toList . ida_subscriber_contracts
+listIDASubscriptionContracts = getSimpleTokenData <&> M.toList . subscriber_contracts

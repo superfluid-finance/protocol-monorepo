@@ -13,7 +13,9 @@ import           Money.Systems.Superfluid.Concepts
 -- | Agreement contract for a distribution. Its sole party is also known as the "publisher".
 data DistributionContract sft = DistributionContract
     { total_unit         :: SFT_FLOAT sft
+    -- IDA
     , value_per_unit     :: SFT_MVAL sft
+    -- FDA
     , flow_rate_per_unit :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
@@ -22,7 +24,9 @@ deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
 data SubscriptionContract sft = SubscriptionContract
     { owned_unit                 :: SFT_FLOAT sft
     , settled_value              :: UntappedValue (SFT_MVAL sft)
+    -- IDA
     , settled_value_per_unit     :: SFT_MVAL sft
+    -- FDA
     , settled_flow_rate_per_unit :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)

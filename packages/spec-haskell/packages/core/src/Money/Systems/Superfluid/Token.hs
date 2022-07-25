@@ -85,6 +85,7 @@ class ( Monad tk
     -- * Agreements operations over the universal index
     --
 
+    -- TODO make this even more polymorphic to work with proportional distribution index
     updateUniversalIndex
         :: ( AgreementOperation ao sft
            , acd ~ AgreementOperationData ao     -- this is a useful property of universal-indexed agreement operations

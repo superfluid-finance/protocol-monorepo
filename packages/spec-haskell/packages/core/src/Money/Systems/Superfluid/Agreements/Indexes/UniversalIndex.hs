@@ -7,7 +7,7 @@ import           GHC.Generics
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MVMUD
 --
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency     as BBS
 
@@ -18,7 +18,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency     as 
 -- for the monetary unit to access the universal data.
 data UniversalData sft = UniversalData -- UniversalMonetaryUnitData
     { minter_untapped_value      :: UntappedValue (SFT_MVAL sft)
-    , minter_minted_value        :: MMUD.MintedValue (SFT_MVAL sft)
+    , minter_minted_value        :: MVMUD.MintedValue (SFT_MVAL sft)
     , ita_untapped_value         :: UntappedValue (SFT_MVAL sft)
     , cfa_settled_at             :: SFT_TS sft
     , cfa_settled_untapped_value :: UntappedValue (SFT_MVAL sft)

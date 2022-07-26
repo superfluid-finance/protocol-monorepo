@@ -47,7 +47,7 @@ import           Lens.Internal
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MVMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 --
@@ -118,7 +118,7 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
 
     universalData = to (universal_index . account_data)
-    minterMonetaryUnitData = mk_uidx_mud_lens MMUD.MkMonetaryUnitData MMUD.getMonetaryUnitLenses
+    minterMonetaryUnitData = mk_uidx_mud_lens MVMUD.MkMonetaryUnitData MMUD.getMonetaryUnitLenses
     itaMonetaryUnitData    = mk_uidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
     cfaMonetaryUnitData    = mk_uidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
     dfaMonetaryUnitData    = mk_uidx_mud_lens DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses

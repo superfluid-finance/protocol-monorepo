@@ -57,7 +57,7 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MVMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
@@ -172,12 +172,12 @@ instance RealTimeBalance SimpleRealTimeBalanceF Wad where
         SimpleRealTimeBalanceF uval def def <> foldMap g tvec
         -- extra correctly typed RTB monoid
         where g (AnyTappedValue (p, v)) = case typeRep p of
-                  t | t == typeRep MMUD.mintedValueTag -> SimpleRealTimeBalanceF def   v def
+                  t | t == typeRep MVMUD.mintedValueTag -> SimpleRealTimeBalanceF def   v def
                     | t == typeRep BBS.bufferValueTag  -> SimpleRealTimeBalanceF def def   v
                     | otherwise -> error "Invalid monetary value tag"
 
     typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
-                              [ mkAnyTappedValue $ MMUD.mkMintedValue $ mintedValue rtb
+                              [ mkAnyTappedValue $ MVMUD.mkMintedValue $ mintedValue rtb
                               , mkAnyTappedValue $ BBS.mkBufferValue   $ depositValue rtb
                               ])
 
@@ -208,9 +208,9 @@ instance TaggedTypeable SimpleMinterMonetaryUnitData where
     tagFromProxy _ = "Minter"
 
 instance Show SimpleMinterMonetaryUnitData where
-    show (MMUD.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
-        (show $ x^.MMUD.untappedValue)
-        (show $ x^.MMUD.mintedValue)
+    show (MVMUD.MkMonetaryUnitData x) = printf "{ uval = %s, mval = %s }"
+        (show $ x^.MVMUD.untappedValue)
+        (show $ x^.MVMUD.mintedValue)
 
 -- * ITA
 --

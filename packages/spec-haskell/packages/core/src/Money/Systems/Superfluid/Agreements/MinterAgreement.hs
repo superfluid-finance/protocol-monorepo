@@ -16,15 +16,15 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MVMUD
 
 -- * Monetary unit lenses
 --
 
-instance SuperfluidTypes sft => MMUD.MonetaryUnitLenses (UniversalData sft) sft where
+instance SuperfluidTypes sft => MVMUD.MonetaryUnitLenses (UniversalData sft) sft where
     untappedValue = $(field 'minter_untapped_value)
     mintedValue   = $(field 'minter_minted_value)
-type MonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
+type MonetaryUnitData sft = MVMUD.MonetaryUnitData (UniversalData sft) sft
 
 -- * Operation
 --
@@ -42,15 +42,15 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
 
     applyAgreementOperation (Mint amount) acd _ = let
         acd'  = acd
-        aorΔ = fmap MMUD.MkMonetaryUnitData (OperationResultF
-                (def & set MMUD.mintedValue   (coerce (- amount)))
-                (def & set MMUD.untappedValue (coerce    amount)))
+        aorΔ = fmap MVMUD.MkMonetaryUnitData (OperationResultF
+                (def & set MVMUD.mintedValue   (coerce (- amount)))
+                (def & set MVMUD.untappedValue (coerce    amount)))
         in (acd', aorΔ)
     applyAgreementOperation (Burn amount) acd _ = let
         acd'  = acd
-        aorΔ = fmap MMUD.MkMonetaryUnitData (OperationResultF
-                (def & set MMUD.mintedValue   (coerce    amount))
-                (def & set MMUD.untappedValue (coerce (- amount))))
+        aorΔ = fmap MVMUD.MkMonetaryUnitData (OperationResultF
+                (def & set MVMUD.mintedValue   (coerce    amount))
+                (def & set MVMUD.untappedValue (coerce (- amount))))
         in (acd', aorΔ)
 
 type ContractData :: Type -> Type

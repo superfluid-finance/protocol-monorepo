@@ -30,6 +30,7 @@ export const getToken = gql`
             decimals
             underlyingAddress
             isListed
+            isNativeAssetSuperToken
             underlyingToken {
                 id
             }

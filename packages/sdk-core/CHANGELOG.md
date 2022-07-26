@@ -17,6 +17,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixes
 - Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
 
+## [0.5.1] - 2022-07-26
+
+## Fixes
+- Patch fix serializeError strange serialization
+
 ## [0.5.0] - 2022-07-14
 
 ### Added

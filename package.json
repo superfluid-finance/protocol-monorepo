@@ -21,6 +21,7 @@
         "show-versions": "lerna ls --long",
         "postinstall": "husky install"
     },
+
     "devDependencies": {
         "@ethersproject/providers": "^5.6.8",
         "@nomiclabs/hardhat-ethers": "^2.0.6",

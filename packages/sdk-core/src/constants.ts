@@ -92,7 +92,7 @@ export const AUTHORIZE_FULL_CONTROL =
     AUTHORIZE_FLOW_OPERATOR_DELETE;
 
 const subgraphReleaseTag =
-    (process && process.env.SUBGRAPH_RELEASE_TAG) ||
+    (globalThis.process && globalThis.process.env.SUBGRAPH_RELEASE_TAG) ||
     DefaultSubgraphReleaseTag.value;
 
 const baseUrl = `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}`;

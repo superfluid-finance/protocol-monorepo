@@ -43,115 +43,115 @@ jobs:
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
-  test-ethereum-contracts:
-    name: Build and test ethereum-contracts (Feature Branch)
+  # test-ethereum-contracts:
+  #   name: Build and test ethereum-contracts (Feature Branch)
 
-    runs-on: ubuntu-latest
+  #   runs-on: ubuntu-latest
 
-    needs: [check]
-    if: needs.check.outputs.build_ethereum_contracts
+  #   needs: [check]
+  #   if: needs.check.outputs.build_ethereum_contracts
 
-    strategy:
-      matrix:
-        node-version: [16.x]
+  #   strategy:
+  #     matrix:
+  #       node-version: [16.x]
 
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         submodules: recursive
 
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
+  #     - name: Check changeset
+  #       run: tasks/check-changeset.sh ${{ github.sha }} dev
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
-          node-version: ${{ matrix.node-version }}
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'yarn'
+  #         cache-dependency-path: '**/yarn.lock'
+  #         node-version: ${{ matrix.node-version }}
 
-      - name: Install, lint and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
+  #     - name: Install, lint and build
+  #       run: |
+  #         yarn install --frozen-lockfile
+  #         yarn lint
+  #         yarn build
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+  #     - name: Install Foundry
+  #       uses: foundry-rs/foundry-toolchain@v1
+  #       with:
+  #         version: nightly
 
-      - name: Test ethereum-contracts
-        run: |
-          yarn workspace @superfluid-finance/ethereum-contracts test
+  #     - name: Test ethereum-contracts
+  #       run: |
+  #         yarn workspace @superfluid-finance/ethereum-contracts test
 
-  coverage-ethereum-contracts:
-    name: Build and test coverage of ethereum-contracts (Feature Branch)
+  # coverage-ethereum-contracts:
+  #   name: Build and test coverage of ethereum-contracts (Feature Branch)
 
-    runs-on: ubuntu-latest
+  #   runs-on: ubuntu-latest
 
-    needs: [check]
-    if: needs.check.outputs.build_ethereum_contracts
+  #   needs: [check]
+  #   if: needs.check.outputs.build_ethereum_contracts
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          cache: 'yarn'
-          node-version: 16.x
+  #     - name: Use Node.js 16.x
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'yarn'
+  #         node-version: 16.x
 
-      - name: Install and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
+  #     - name: Install and build
+  #       run: |
+  #         yarn install --frozen-lockfile
+  #         yarn build
 
-      - name: Run coverage test
-        run: |
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+  #     - name: Run coverage test
+  #       run: |
+  #         yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
-  test-js-sdk:
-    name: Build and test js-sdk (Feature Branch)
+  # test-js-sdk:
+  #   name: Build and test js-sdk (Feature Branch)
 
-    runs-on: ubuntu-latest
+  #   runs-on: ubuntu-latest
 
-    needs: [check]
-    if: needs.check.outputs.build_js_sdk
+  #   needs: [check]
+  #   if: needs.check.outputs.build_js_sdk
 
-    strategy:
-      matrix:
-        node-version: [16.x]
+  #   strategy:
+  #     matrix:
+  #       node-version: [16.x]
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
 
-      - name: Install, lint and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
+  #     - name: Install, lint and build
+  #       run: |
+  #         yarn install --frozen-lockfile
+  #         yarn lint
+  #         yarn build
 
-      - name: Test js-sdk
-        run: |
-          yarn workspace @superfluid-finance/js-sdk test
-        env:
-          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+  #     - name: Test js-sdk
+  #       run: |
+  #         yarn workspace @superfluid-finance/js-sdk test
+  #       env:
+  #         POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
-  # subgraph integration test
-  test-subgraph:
-    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
-    name: Build and Test Subgraph (Feature Branch)
-    needs: [check]
-    if: needs.check.outputs.build_subgraph
-    with:
-      subgraph-release: ''
-      run-sdk-core-tests: false
+  # # subgraph integration test
+  # test-subgraph:
+  #   uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
+  #   name: Build and Test Subgraph (Feature Branch)
+  #   needs: [check]
+  #   if: needs.check.outputs.build_subgraph
+  #   with:
+  #     subgraph-release: ''
+  #     run-sdk-core-tests: false
 
   # sdk-core integration test + feature subgraph w/ feature sdk-core
   test-sdk-core:
@@ -163,29 +163,29 @@ jobs:
       subgraph-release: feature
 
   # test latest and previous version of sdk-core with current subgraph
-  test-subgraph-on-previous-sdk-core-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs with Previous SDK-Core Versions
-    needs: [check]
-    if: needs.check.outputs.build_subgraph || needs.check.outputs.build_sdk_core
-    with:
-      subgraph-release: feature
-      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+  # test-subgraph-on-previous-sdk-core-versions:
+  #   uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+  #   name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs with Previous SDK-Core Versions
+  #   needs: [check]
+  #   if: needs.check.outputs.build_subgraph || needs.check.outputs.build_sdk_core
+  #   with:
+  #     subgraph-release: feature
+  #     subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
-  # test query and local/deployed subgraph schemas in sync and query works
-  test-query-schema-against-deployed-feature-subgraphs:
-    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs
-    needs: [check]
-    if: needs.check.outputs.build_sdk_core
-    with:
-      subgraph-release: feature
+  # # test query and local/deployed subgraph schemas in sync and query works
+  # test-query-schema-against-deployed-feature-subgraphs:
+  #   uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
+  #   name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs
+  #   needs: [check]
+  #   if: needs.check.outputs.build_sdk_core
+  #   with:
+  #     subgraph-release: feature
 
-  test-hardhat-deployer:
-    uses: ./.github/workflows/call.test-hardhat-deployer.yml
-    name: Build and Test Hardhat-Deployer (Feature Branch)
-    needs: [check]
-    if: needs.check.outputs.build_hardhat_deployer
+  # test-hardhat-deployer:
+  #   uses: ./.github/workflows/call.test-hardhat-deployer.yml
+  #   name: Build and Test Hardhat-Deployer (Feature Branch)
+  #   needs: [check]
+  #   if: needs.check.outputs.build_hardhat_deployer
 
   test-spec-haskell:
     name: Build and test spec-haskell (Feature Branch) - Linux - ${{ matrix.compiler }}

@@ -19,7 +19,8 @@
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
         "check-updates": "ncu --target minor --dep dev",
         "show-versions": "lerna ls --long",
-        "postinstall": "husky install"
+        "postinstall": "husky install",
+        "gm": "echo gm"
     },
     "devDependencies": {
         "@ethersproject/providers": "^5.6.8",

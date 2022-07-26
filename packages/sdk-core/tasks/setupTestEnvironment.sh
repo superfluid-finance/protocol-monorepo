@@ -17,3 +17,5 @@ cd ../sdk-core
 yarn generate:graphql-types
 yarn generate:abi-files
 yarn generate:web3-types
+# compile contracts before starting tests to generate typechain folder
+npx hardhat compile

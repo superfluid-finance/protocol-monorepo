@@ -5,9 +5,46 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+- `callAppAction` Operation creator added to `Host` class
+
+### Breaking
+- `BatchCall.getCallDataFunctionArgs` deprecates the old `BatchCall.getCallAgreementFunctionArgs`
+  - Migration:
+      - Replace `getCallAgreementFunctionArgs` with `getCallDataFunctionArgs` and pass in the fragment/ABI as the first argument, whilst keeping the same `callData` argument.
+- `Host.populateCallAgreementTxnAndReturnOperation` is replaced by `Host.callAgreement`
+  - Migration:
+      - Replace instances of `populateCallAgreementTxnAndReturnOperation` with `callAgreement`
+
+### Fixes
+- Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
+
+## [0.5.1] - 2022-07-26
+
+## Fixes
+- Patch fix serializeError strange serialization
+
+## [0.5.0] - 2022-07-14
+
+### Added
+- Support for SetEvent and Subgraph v1.4.4
+- `Framework.operation` method for easily creating `Operation` instances
+
+### Fixes
+- Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
+
+### Changed
+- `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
+- Use `serialize-error` for serializing error object inside the message.
+- Export Operation & OperationType
+
+### Breaking
+- `SFError.errorObject` renamed to `SFError.cause`
+
 ## [0.4.4] - 2022-06-30
 
-## Added
+### Added
 - Support for new event properties for Subgraph v1.4.1
 ### Breaking
 - Subgraph Query: `rewardAccount` renamed to `rewardAmountReceiver` on `AgreementLiquidatedV2Event` entity
@@ -151,7 +188,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.4...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.1...HEAD
+[0.5.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.0...sdk-core%40v0.5.1
+[0.5.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.4...sdk-core%40v0.5.0
 [0.4.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.3...sdk-core%40v0.4.4
 [0.4.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.2...sdk-core%40v0.4.3
 [0.4.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.1...sdk-core%40v0.4.2

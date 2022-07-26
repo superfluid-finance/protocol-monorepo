@@ -64,8 +64,10 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
+          cache: yarn
+          cache-dependency-path: '**/yarn.lock'
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint and build
@@ -95,8 +97,9 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
+          cache: yarn
           node-version: 16.x
 
       - name: Install and build
@@ -124,7 +127,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 

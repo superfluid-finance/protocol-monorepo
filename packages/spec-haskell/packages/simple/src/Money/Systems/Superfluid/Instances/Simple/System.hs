@@ -118,7 +118,7 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
 
     universalData = to (universal_index . account_data)
-    minterMonetaryUnitData = mk_uidx_mud_lens MVMUD.MkMonetaryUnitData MMUD.getMonetaryUnitLenses
+    minterMonetaryUnitData = mk_uidx_mud_lens MVMUD.MkMonetaryUnitData MVMUD.getMonetaryUnitLenses
     itaMonetaryUnitData    = mk_uidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
     cfaMonetaryUnitData    = mk_uidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
     dfaMonetaryUnitData    = mk_uidx_mud_lens DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses

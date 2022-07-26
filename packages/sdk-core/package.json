@@ -51,7 +51,8 @@
         "generate-graphql-schema:dev": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli > src/subgraph/schema.graphql",
         "generate-graphql-schema:feature": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh",
-        "gm": "echo gm"
+        "gm": "echo gm",
+        "henlo": "echo henlo"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

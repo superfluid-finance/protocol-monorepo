@@ -15,8 +15,6 @@ jobs:
   essential-build-and-test:
     name: Build and test essential packages of dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -60,7 +58,6 @@ jobs:
   test-subgraph:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
     with:
       subgraph-release: ''
       run-sdk-core-tests: false
@@ -76,18 +73,16 @@ jobs:
   test-query-schema-against-deployed-dev-subgraphs:
     uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
     name: "Test Query Schema and Queries Against Local and Deployed Dev Subgraphs"
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
     with:
       subgraph-release: dev
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Canary Branch)
-    if: needs.check.outputs.build_spec_haskell
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 
@@ -115,8 +110,6 @@ jobs:
   js-sdk-coverage:
     name: Run coverage test of js-sdk on dev branch
 
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
-
     runs-on: ubuntu-latest
 
     steps:
@@ -142,8 +135,6 @@ jobs:
 
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 
@@ -173,8 +164,6 @@ jobs:
 
   hardhat-deployer-coverage:
     name: Run coverage test of hardhat-deployer on dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 

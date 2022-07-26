@@ -13,6 +13,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `BatchCall.getCallDataFunctionArgs` deprecates the old `BatchCall.getCallAgreementFunctionArgs`
   - Migration:
       - Replace `getCallAgreementFunctionArgs` with `getCallDataFunctionArgs` and pass in the fragment/ABI as the first argument, whilst keeping the same `callData` argument.
+- `Host.populateCallAgreementTxnAndReturnOperation` is replaced by `Host.callAgreement`
+  - Migration:
+      - Replace instances of `populateCallAgreementTxnAndReturnOperation` with `callAgreement`
 
 ### Fixes
 - Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
@@ -29,11 +32,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.5.0] - 2022-07-14
 
-## Added
+### Added
 - Support for SetEvent and Subgraph v1.4.4
 - `Framework.operation` method for easily creating `Operation` instances
 
-## Fixes
+### Fixes
 - Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
 
 ### Changed
@@ -46,7 +49,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.4.4] - 2022-06-30
 
-## Added
+### Added
 - Support for new event properties for Subgraph v1.4.1
 
 ### Breaking

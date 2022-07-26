@@ -26,8 +26,8 @@ jobs:
           cache-dependency-path: "**/yarn.lock"
           node-version: 16.x
 
-      - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+      # - name: "Install dependencies"
+      #   run: yarn install --frozen-lockfile
 
       - name: "Build contracts"
         run: yarn build:contracts

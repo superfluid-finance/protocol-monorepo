@@ -48,7 +48,7 @@ export const createCallAppActionOperation = async (
         "0x",
     ]);
     return {
-        operation: framework.host.populateCallAppActionTxnAndReturnOperation(
+        operation: framework.host.callAppAction(
             superAppTester.address,
             callData
         ),

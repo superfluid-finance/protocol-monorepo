@@ -26,7 +26,7 @@ export default class Host {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} an `Operation` class
      */
-    populateCallAgreementTxnAndReturnOperation = (
+    callAgreement = (
         agreementAddress: string,
         callData: string,
         userData: string | undefined,
@@ -48,7 +48,7 @@ export default class Host {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} an `Operation` class
      */
-    populateCallAppActionTxnAndReturnOperation = (
+    callAppAction = (
         app: string,
         callData: string,
         overrides?: Overrides & { from?: string | Promise<string> }

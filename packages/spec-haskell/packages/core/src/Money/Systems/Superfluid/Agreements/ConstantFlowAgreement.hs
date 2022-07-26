@@ -66,21 +66,21 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
                             }
         aorΔ = OperationPartiesF
                    (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate          (-flowRateDelta)
-                        & set CFMUD.settledUntappedValue (UntappedValue $ -flowPeriodDelta - coerce flowBufferDelta)
-                        & set CFMUD.settledBufferValue    flowBufferDelta
+                        & set CFMUD.netFlowRate          (-flowRateΔ)
+                        & set CFMUD.settledUntappedValue (UntappedValue $ -settledΔ - coerce flowBufferΔ)
+                        & set CFMUD.settledBufferValue    flowBufferΔ
                    )
                    (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate           flowRateDelta
-                        & set CFMUD.settledUntappedValue (UntappedValue flowPeriodDelta)
+                        & set CFMUD.netFlowRate           flowRateΔ
+                        & set CFMUD.settledUntappedValue (UntappedValue settledΔ)
                         & set CFMUD.settledBufferValue    def
                    )
         in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
-        where t               = flow_last_updated_at acd
-              fr              = flow_rate acd
-              flowPeriodDelta = fr * fromIntegral (t' - t)
-              flowRateDelta   = newFlowRate - fr
-              flowBufferDelta = newFlowBuffer - flow_buffer acd
+        where t           = flow_last_updated_at acd
+              fr          = flow_rate acd
+              settledΔ    = fr * fromIntegral (t' - t)
+              flowRateΔ   = newFlowRate - fr
+              flowBufferΔ = newFlowBuffer - flow_buffer acd
 
 type ContractData :: Type -> Type
 type ContractData sft = AgreementOperationData (Operation sft)

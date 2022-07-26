@@ -5,8 +5,27 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## Added
+### Added
 - Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+- `callAppAction` Operation creator added to `Host` class
+
+### Breaking
+- `BatchCall.getCallDataFunctionArgs` deprecates the old `BatchCall.getCallAgreementFunctionArgs`
+  - Migration:
+      - Replace `getCallAgreementFunctionArgs` with `getCallDataFunctionArgs` and pass in the fragment/ABI as the first argument, whilst keeping the same `callData` argument.
+
+### Fixes
+- Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
+
+## [0.5.2] - 2022-07-26
+
+### Fixes
+- Undefined `process` in `constants.ts` in React and client-side apps using SDK-Core directly
+
+## [0.5.1] - 2022-07-26
+
+### Fixes
+- Patch fix serializeError strange serialization
 
 ## [0.5.0] - 2022-07-14
 
@@ -172,7 +191,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.0...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.2...HEAD
+[0.5.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.1...sdk-core%40v0.5.2
+[0.5.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.0...sdk-core%40v0.5.1
 [0.5.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.4...sdk-core%40v0.5.0
 [0.4.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.3...sdk-core%40v0.4.4
 [0.4.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.2...sdk-core%40v0.4.3

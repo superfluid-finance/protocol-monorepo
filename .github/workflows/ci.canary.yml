@@ -73,7 +73,6 @@ jobs:
   test-query-schema-against-deployed-dev-subgraphs:
     uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
     name: "Test Query Schema and Queries Against Local and Deployed Dev Subgraphs"
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
     with:
       subgraph-release: dev
 

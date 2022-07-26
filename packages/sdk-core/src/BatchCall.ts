@@ -1,3 +1,4 @@
+import { JsonFragment } from "@ethersproject/abi";
 import { ethers } from "ethers";
 
 import Host from "./Host";
@@ -40,12 +41,17 @@ export default class BatchCall {
     }
 
     /**
-     * Gets the call agreement function arguments.
-     * @param callData callData of the function
+     * Gets function arguments given an ABI and callData.
+     * @param abi the abi fragments of a contract/function
+     * @param callData call data of the function
      * @returns {ethers.utils.Result} call agreement function arguments
      */
-    getCallAgreementFunctionArgs = (callData: string): ethers.utils.Result =>
-        getTransactionDescription(SuperfluidABI.abi, callData).args;
+    getCallDataFunctionArgs = (
+        abi:
+            | string
+            | readonly (string | ethers.utils.Fragment | JsonFragment)[],
+        callData: string
+    ): ethers.utils.Result => getTransactionDescription(abi, callData).args;
 
     /**
      * Given an `Operation` object, gets the `OperationStruct` object.
@@ -74,12 +80,12 @@ export default class BatchCall {
             });
         }
 
-        // Handles the Superfluid Call Agreement
-        // The only operation which has a target that is not the
-        // same as the to property of the transaction.
+        const encoder = ethers.utils.defaultAbiCoder;
+
+        // Handles Superfluid.callAgreement
         if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
-            const encoder = ethers.utils.defaultAbiCoder;
-            const functionArgs = this.getCallAgreementFunctionArgs(
+            const functionArgs = this.getCallDataFunctionArgs(
+                SuperfluidABI.abi,
                 populatedTransaction.data
             );
             const data = encoder.encode(
@@ -94,7 +100,21 @@ export default class BatchCall {
             };
         }
 
-        // Handles other cases which are not call agreeement operation
+        // Handles Superfluid.callAppAction
+        if (operation.type === "CALL_APP_ACTION") {
+            const functionArgs = this.getCallDataFunctionArgs(
+                SuperfluidABI.abi,
+                populatedTransaction.data
+            );
+
+            return {
+                operationType,
+                target: functionArgs["app"],
+                data: functionArgs["callData"],
+            };
+        }
+
+        // Handles remaining ERC20/SuperToken Operations
         return {
             operationType,
             target: populatedTransaction.to,

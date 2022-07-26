@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixes
+## [0.5.2] - 2022-07-26
+
 ### Added
 - Support for `isNativeAssetSuperToken` property on SuperToken entity queries
 - `callAppAction` Operation creator added to `Host` class
@@ -19,10 +22,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixes
 - Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
-
-## [0.5.2] - 2022-07-26
-
-### Fixes
 - Undefined `process` in `constants.ts` in React and client-side apps using SDK-Core directly
 
 ## [0.5.1] - 2022-07-26

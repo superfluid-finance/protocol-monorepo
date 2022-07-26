@@ -82,7 +82,6 @@ jobs:
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Canary Branch)
-    needs: [check]
     if: needs.check.outputs.build_spec_haskell
 
   ethereum-contracts-coverage:

@@ -79,6 +79,12 @@ jobs:
     with:
       subgraph-release: dev
 
+  test-spec-haskell:
+    uses: ./.github/workflows/call.test-spec-haskell.yml
+    name: Build and Test Spec Haskell (Canary Branch)
+    needs: [check]
+    if: needs.check.outputs.build_spec_haskell
+
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
 
@@ -260,7 +266,7 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, test-subgraph, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, hardhat-deployer-coverage]
+    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, hardhat-deployer-coverage]
 
     runs-on: ubuntu-latest
 

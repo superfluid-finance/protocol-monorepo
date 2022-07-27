@@ -47,6 +47,16 @@ interface ErrorProps {
     cause?: Error | unknown;
 }
 
+// NOTE: this is a temporary solution to fix serializeError
+// which throws a weird JSON error
+const stringifyCause = (cause?: Error | unknown) => {
+    try {
+        return JSON.stringify(serializeError(cause), null, 2);
+    } catch (err) {
+        return JSON.stringify(cause, null, 2);
+    }
+};
+
 export class SFError extends Error {
     readonly type: ErrorType;
     override readonly cause?: Error;
@@ -57,7 +67,7 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${JSON.stringify(serializeError(cause), null, 2)}`
+Caused by: ${stringifyCause(cause)}`
                 : ""
         }`;
         super(

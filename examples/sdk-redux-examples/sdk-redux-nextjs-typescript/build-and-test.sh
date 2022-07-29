@@ -4,6 +4,6 @@
 set -xe
 
 # build and test
-yarn install --frozen-lockfile
+pnpm install --frozen-lockfile
 yarn build
 #yarn test

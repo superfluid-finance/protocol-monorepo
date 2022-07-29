@@ -41,6 +41,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
+
       # if only_network is set, skip all steps until the value matches one of the entries in matrix.network
       - name: Check only_network
         if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
@@ -55,7 +59,7 @@ jobs:
       - name: Build
         if: env.DO_SKIP != 1
         run: |
-          yarn install --frozen-lockfile
+          pnpm install --frozen-lockfile
           yarn build-for-contracts-dev
 
       - name: Build and deploy to ${{ matrix.network }}

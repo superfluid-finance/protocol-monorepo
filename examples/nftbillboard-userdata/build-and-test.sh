@@ -4,7 +4,7 @@
 set -xe
 
 # build contracts & UI
-yarn install --frozen-lockfile
+pnpm install --frozen-lockfile
 export RELEASE_VERSION=test
 export GANACHE_PORT=8545
 # export GANACHE_PORT=$(( 5000 + $RANDOM % 1000 ))

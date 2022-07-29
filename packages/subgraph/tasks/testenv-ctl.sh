@@ -12,7 +12,7 @@ if [ "$CMD" == "start" ];then
     if [ "$BUILT" == "" ];then
         cd ../ethereum-contracts
         # Install contract dependencies and build contracts
-        yarn install --frozen-lockfile
+        pnpm install --frozen-lockfile
         yarn run build:contracts
         # Get ABIs and generate typechain in subgraph folder based on ABIs
         cd ../subgraph
@@ -29,7 +29,7 @@ if [ "$CMD" == "start" ];then
     cd ../subgraph
     # Install subgraph dependencies
     if [ "$BUILT" == "" ];then
-        yarn install --frozen-lockfile
+        pnpm install --frozen-lockfile
     fi
     # Deploy contracts and token locally
     yarn deploy-contracts-local

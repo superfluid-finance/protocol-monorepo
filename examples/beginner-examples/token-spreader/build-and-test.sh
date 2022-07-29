@@ -5,7 +5,7 @@
 set -xe
 
 # build contracts
-yarn install --frozen-lockfile
+pnpm install --frozen-lockfile
 yarn build
 
 # test contracts

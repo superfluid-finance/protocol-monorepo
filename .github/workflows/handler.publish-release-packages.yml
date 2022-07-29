@@ -44,7 +44,7 @@ jobs:
 
       - name: Build package
         run: |
-          yarn install --frozen-lockfile
+          pnpm install --frozen-lockfile
           yarn --cwd packages/sdk-core generate-graphql-schema:v1
           yarn build
 

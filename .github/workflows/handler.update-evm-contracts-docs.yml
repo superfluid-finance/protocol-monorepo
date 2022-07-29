@@ -7,9 +7,13 @@ on:
 jobs:
   update-evm-contracts-docs:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
 
       - name: Show contexts
         run: |
@@ -27,7 +31,7 @@ jobs:
 
       - name: Install
         run: |
-          yarn install --frozen-lockfile
+          pnpm install --frozen-lockfile
 
       - uses: actions/checkout@v3
         with:
@@ -54,7 +58,7 @@ jobs:
       #     aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
       #     s3_uri: ${{ format('{0}ethereum-contracts@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.CONTRACTS_VERSION) }}
       #     cloudfront_distribution_id: E3SV855CTC9UJO
-    
+
       - name: Update the docs repo
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:

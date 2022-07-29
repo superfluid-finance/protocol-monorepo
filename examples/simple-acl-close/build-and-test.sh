@@ -4,7 +4,7 @@
 set -xe
 
 # build contracts
-yarn install --frozen-lockfile
+pnpm install --frozen-lockfile
 
 # set up hardhat node
 yarn hardhat-node &

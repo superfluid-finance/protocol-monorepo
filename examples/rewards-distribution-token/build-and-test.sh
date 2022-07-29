@@ -6,7 +6,7 @@ set -xe
 # build and test contracts
 (
     cd contracts
-    yarn install --frozen-lockfile
+    pnpm install --frozen-lockfile
     yarn build
 
     # test contracts
@@ -30,7 +30,7 @@ set -xe
 # build ui
 (
     cd ui
-    yarn install --frozen-lockfile
+    pnpm install --frozen-lockfile
     yarn build
     CI=true yarn test
 )

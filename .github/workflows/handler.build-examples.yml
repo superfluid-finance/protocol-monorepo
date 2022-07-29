@@ -40,6 +40,10 @@ jobs:
         with:
           path: monorepo
 
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
+
       - name: Check changeset
         if: github.event_name == 'push'
         run: tasks/check-changeset.sh ${{ github.sha }} dev

@@ -8,22 +8,21 @@ set -xe
 
 # build contracts
 EXAMPLES=(
-    budget-nft
     beginner-examples/money-router
     beginner-examples/token-spreader
-    nftbillboard-userdata
+    budget-nft
     employment-based-loan
-    simple-acl-close
-    stream-in-distribute-out
+    nftbillboard-userdata
     rewards-distribution-token
     sdk-redux-examples/sdk-redux-nextjs-typescript
     sdk-redux-examples/sdk-redux-react-typescript
+    simple-acl-close
+    stream-in-distribute-out
     tradeable-cashflow
 )
 
 for i in "${EXAMPLES[@]}";do
     cd $i
-    chmod +x ./build-and-test.sh
-    ./build-and-test.sh
-    cd ..
+    pnpm install
+    cd ~/Documents/dev/superfluid/protocol-monorepo/examples/
 done

@@ -269,7 +269,7 @@ importers:
     specifiers:
       '@graphprotocol/graph-cli': 0.29.0
       '@graphprotocol/graph-ts': 0.27.0
-      '@superfluid-finance/sdk-core': 0.5.2
+      '@superfluid-finance/sdk-core': workspace:@superfluid-finance/sdk-core@*
       coingecko-api: ^1.0.10
       ethers: ^5.6.9
       graphql: ^16.5.0
@@ -9625,6 +9625,7 @@ packages:
 
   /ethereumjs-wallet/0.6.5:
     resolution: {integrity: sha512-MDwjwB9VQVnpp/Dc1XzA6J1a3wgHQ4hSvA1uWNatdpOrtCbPVuQSKSyRnjLvS0a+KKMw2pvQ9Ybqpb3+eW8oNA==}
+    requiresBuild: true
     dependencies:
       aes-js: 3.1.2
       bs58check: 2.1.2

@@ -34,9 +34,9 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sf
     untappedValue = readOnlyLens
         -- lens getter: subscribed value
         (\(SubscriberData
-            (DistributionContract { value_per_unit = vpu })
-            (SubscriptionContract { settled_value_per_unit = svpu
-                                  , settled_value = sv
+            (DistributionContract { ida_value_per_unit = vpu })
+            (SubscriptionContract { ida_sub_settled_value_per_unit = svpu
+                                  , ida_sub_settled_value = sv
                                   , owned_unit = u
                                   })
           ) -> (+) sv $ UntappedValue $ floor $
@@ -53,11 +53,11 @@ instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft) s
     type AgreementMonetaryUnitDataInOperation (IDAPublisherOperation sft) = IDAPublisherMonetaryUnitData sft
 
     applyAgreementOperation (Distribute amount) (PublisherOperationData pub) _ = let
-        pub'  = pub { value_per_unit = floor (fromIntegral p + delta) }
+        pub'  = pub { ida_value_per_unit = floor (fromIntegral p + delta) }
         aorΔ  = IDAPublisherOperationResultF
                   (def & set IVMUD.untappedValue (coerce (- amount)))
         in (PublisherOperationData pub', fmap IVMUD.MkMonetaryUnitData aorΔ)
-        where DistributionContract { total_unit = tu, value_per_unit = p } = pub
+        where DistributionContract { total_unit = tu, ida_value_per_unit = p } = pub
               delta = fromIntegral amount / tu
 
 type PublisherOperationData :: Type -> Type
@@ -76,16 +76,16 @@ instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft) 
         sub'  = SubscriberData
                   (dc { total_unit = tu + unit })
                   (sc { owned_unit = u + unit
-                      , settled_value_per_unit = vpu
-                      , settled_value = UntappedValue sv'
+                      , ida_sub_settled_value_per_unit = vpu
+                      , ida_sub_settled_value = UntappedValue sv'
                       })
         in (SubscriberOperationData sub', IDASubscriberOperationPartiesF)
         where (SubscriberData
                  dc@(DistributionContract { total_unit = tu
-                                          , value_per_unit = vpu })
+                                          , ida_value_per_unit = vpu })
                  sc@(SubscriptionContract { owned_unit = u
-                                          , settled_value_per_unit = svpu
-                                          , settled_value = UntappedValue sv
+                                          , ida_sub_settled_value_per_unit = svpu
+                                          , ida_sub_settled_value = UntappedValue sv
                                           })) = sub
               sv' = floor (fromIntegral sv + fromIntegral (vpu - svpu) * u)
 

@@ -12,23 +12,27 @@ import           Money.Systems.Superfluid.Concepts
 
 -- | Agreement contract for a distribution. Its sole party is also known as the "publisher".
 data DistributionContract sft = DistributionContract
-    { total_unit         :: SFT_FLOAT sft
+    { total_unit              :: SFT_FLOAT sft
     -- IDA
-    , value_per_unit     :: SFT_MVAL sft
-    -- FDA
-    , flow_rate_per_unit :: SFT_MVAL sft
+    , ida_value_per_unit      :: SFT_MVAL sft
+    -- CFDA
+    , cfda_settled_at         :: SFT_TS sft
+    , cfda_flow_rate_per_unit :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
 
 -- | Agreement contract for a subscription to a distribution. Its sole party is also known as the "subscriber".
 data SubscriptionContract sft = SubscriptionContract
-    { owned_unit                 :: SFT_FLOAT sft
-    , settled_value              :: UntappedValue (SFT_MVAL sft)
+    { owned_unit                          :: SFT_FLOAT sft
     -- IDA
-    , settled_value_per_unit     :: SFT_MVAL sft
-    -- FDA
-    , settled_flow_rate_per_unit :: SFT_MVAL sft
+    , ida_sub_settled_value               :: UntappedValue (SFT_MVAL sft)
+    , ida_sub_settled_value_per_unit      :: SFT_MVAL sft
+    -- CFDA
+    , cfda_sub_settled_at                 :: SFT_TS sft
+    , cfda_sub_settled_value              :: UntappedValue (SFT_MVAL sft)
+    , cfda_sub_settled_flow_rate_per_unit :: SFT_MVAL sft
     } deriving (Generic)
+
 deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)
 
 -- * Monetary unit data
@@ -38,8 +42,12 @@ deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)
 -- Note: This is going to be very similar to the universal data. The separation is perhaps mostly for data tracking
 --       reason. TODO: maybe really just use universal data for publisher side too?
 data PublisherData sft = PublisherData
-    { distributed_value :: UntappedValue (SFT_MVAL sft)
-    , total_flow_rate   :: SFT_MVAL sft
+    -- IDA
+    { distributed_value               :: UntappedValue (SFT_MVAL sft)
+    -- CFDA
+    , cfda_pub_settled_at             :: SFT_TS sft
+    , cfda_pub_settled_untapped_value :: UntappedValue (SFT_MVAL sft)
+    , cfda_total_flow_rate            :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (PublisherData sft)
 

@@ -184,7 +184,7 @@ contract AgreementMock is AgreementBase {
     function tryAppCallbackPush(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)
         external returns (bytes memory newCtx)
     {
-        return host.appCallbackPush(hackCtx ? new bytes(0) : ctx, appMock, 0, ISuperfluidToken(address(0)));
+        return host.appCallbackPush(hackCtx ? new bytes(0) : ctx, appMock, 0, 0, ISuperfluidToken(address(0)));
     }
 
     function tryAppCallbackPop(ISuperfluid host, bytes calldata ctx)

@@ -317,12 +317,14 @@ interface ISuperfluid {
      * @param  ctx                     The current ctx, it will be validated.
      * @param  app                     The super app.
      * @param  appCreditGranted        App credit granted so far.
+     * @param  appCreditUsed           App credit used so far.
      * @return newCtx                  The current context of the transaction.
      */
     function appCallbackPush(
         bytes calldata ctx,
         ISuperApp app,
         uint256 appCreditGranted,
+        int256 appCreditUsed,
         ISuperfluidToken appCreditToken
     )
         external
@@ -351,12 +353,12 @@ interface ISuperfluid {
     /**
      * @dev (For agreements) Use app credit.
      * @param  ctx                      The current ctx, it will be validated.
-     * @param  appCreditWantedMore      See app credit for more details.
+     * @param  appCreditUsedMore        See app credit for more details.
      * @return newCtx                   The current context of the transaction.
      */
     function ctxUseCredit(
         bytes calldata ctx,
-        uint256 appCreditWantedMore
+        int256 appCreditUsedMore
     )
         external
         // onlyAgreement

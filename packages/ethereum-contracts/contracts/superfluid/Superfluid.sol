@@ -505,6 +505,7 @@ contract Superfluid is
         bytes calldata ctx,
         ISuperApp app,
         uint256 appCreditGranted,
+        int256 appCreditUsed,
         ISuperfluidToken appCreditToken
     )
         external override
@@ -520,8 +521,7 @@ contract Superfluid is
         context.appLevel++;
         context.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
         context.appCreditGranted = appCreditGranted;
-        context.appCreditWanted = 0;
-        context.appCreditUsed = 0;
+        context.appCreditUsed = appCreditUsed;
         context.appAddress = address(app);
         context.appCreditToken = appCreditToken;
         appCtx = _updateContext(context);
@@ -542,7 +542,7 @@ contract Superfluid is
 
     function ctxUseCredit(
         bytes calldata ctx,
-        uint256 appCreditWantedMore
+        int256 appCreditUsedMore
     )
         external override
         onlyAgreement
@@ -550,8 +550,7 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-
-        context.appCreditWanted += appCreditWantedMore;
+        context.appCreditUsed += appCreditUsedMore;
 
         newCtx = _updateContext(context);
     }

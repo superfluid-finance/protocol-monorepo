@@ -904,7 +904,7 @@ contract ConstantFlowAgreementV1 is
         if (currentContext.appCreditToken == token) {
             newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                 ctx,
-                newFlowData.deposit // creditWantedMore
+                depositDelta
             );
         } else {
             newCtx = ctx;
@@ -980,6 +980,7 @@ contract ConstantFlowAgreementV1 is
                 );
 
             cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
+            cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level gets the same amount of credit
 
@@ -1007,13 +1008,6 @@ contract ConstantFlowAgreementV1 is
         // NOTE: vars.appContext.appCreditUsed will be adjusted by callAppAfterCallback
         // and its range will be [0, currentContext.appCreditGranted]
         {
-            // clipping the credit used amount before storing
-            if (vars.appContext.appCreditUsed > 0) {
-                // give more to the app
-                vars.appContext.appCreditUsed =
-                    _clipDepositNumberRoundingUp(vars.appContext.appCreditUsed.toUint256()).toInt256();
-            }
-
             int256 appCreditDelta = vars.appContext.appCreditUsed
                 - oldFlowData.owedDeposit.toInt256();
 
@@ -1048,7 +1042,7 @@ contract ConstantFlowAgreementV1 is
             {
                 newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                     newCtx,
-                    vars.newFlowData.deposit // creditWantedMore
+                    appCreditDelta
                 );
             }
 
@@ -1070,7 +1064,7 @@ contract ConstantFlowAgreementV1 is
                             // user will take the damage if the app is broke,
                             -availableBalance,
                             // but user's damage is limited to the amount of app credit it gives to the app
-                            AgreementLibrary.max(0, -appCreditDelta));
+                            -appCreditDelta);
                         token.settleBalance(
                             flowParams.sender,
                             -userDamageAmount

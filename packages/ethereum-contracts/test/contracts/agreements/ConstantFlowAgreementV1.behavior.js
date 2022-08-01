@@ -146,15 +146,23 @@ async function _shouldChangeFlow({
             mfa && toBN(flowRate).gt(toBN(0))
                 ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
                 : mainFlowAppCreditGranted;
-        const newAppCreditUsed = Object.values(cfaDataModel.expectedFlowInfo)
-            .map((i) => i.deposit)
-            .reduce((acc, cur) => {
-                return acc.add(cur);
-            }, toBN(0));
+        // const appCreditWanted = Object.values(cfaDataModel.expectedFlowInfo)
+        //         .map((i) => i.deposit)
+        //         .reduce((acc, cur) => {
+        //             return acc.add(cur);
+        //         }, toBN(0));
+        const appCreditUsed = Object.entries(cfaDataModel.expectedFlowInfo)
+            .map((x) => {
+                const depositBefore =
+                    cfaDataModel.flows[x[0]].flowInfoBefore.deposit;
+                return x[1].deposit.sub(toBN(depositBefore));
+            })
+            .reduce((acc, cur) => acc.add(cur), toBN(0))
+            .add(toBN(cfaDataModel.flows.main.flowInfoBefore.owedDeposit));
+
         const mainFlowCreditUsed = CFADataModel.adjustNewAppCreditUsed(
             mainFlowAppCreditGranted,
-            mainFlowDeposit, // appCreditWanted
-            newAppCreditUsed
+            appCreditUsed
         );
 
         cfaDataModel.expectedFlowInfo.main = {

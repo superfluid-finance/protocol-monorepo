@@ -69,7 +69,7 @@ interface ISuperfluid {
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic Initial agreement class code
      *
-     * @custom:modifiers 
+     * @custom:modifiers
      * - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -85,7 +85,7 @@ interface ISuperfluid {
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -338,7 +338,7 @@ interface ISuperfluid {
      * @param  appAllowanceUsedDelta   App allowance used by the app.
      * @return newCtx                  The current context of the transaction.
      *
-     * @custom:security 
+     * @custom:security
      * - Here we cannot do assertValidCtx(ctx), since we do not really save the stack in memory.
      * - Hence there is still implicit trust that the agreement handles the callback push/pop pair correctly.
      */

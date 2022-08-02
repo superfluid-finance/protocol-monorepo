@@ -5544,5 +5544,31 @@ describe("Using ConstantFlowAgreement v1", function () {
                 "invalid ctx"
             );
         });
+
+        it("#4.29 SuperApp with ACL permissions should be able to stream to itself", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let app = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                bob
+            );
+
+            const aclBaseData = {
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                ctx: "0x",
+                flowOperator: app.address,
+                from: alice,
+            };
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aclBaseData,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            await app.startStreamToSelf(alice, FLOW_RATE1);
+        });
     });
 });

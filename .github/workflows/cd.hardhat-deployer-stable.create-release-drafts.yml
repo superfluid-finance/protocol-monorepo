@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: hardht-deployer@v${{ steps.check_versions.outputs.NEW_HARDHAT_DEPLOYER_VERSION }}
+          tag_name: hardhat-deployer@v${{ steps.check_versions.outputs.NEW_HARDHAT_DEPLOYER_VERSION }}
           release_name: hardhat-deployer@v${{ steps.check_versions.outputs.NEW_HARDHAT_DEPLOYER_VERSION }}
           body: |
             Changes in this hardhat-deployer stable release

@@ -514,7 +514,7 @@ contract Superfluid is
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);
-        if (isApp(ISuperApp(context.msgSender)) && context.appLevel > 0) {
+        if (isApp(ISuperApp(context.msgSender)) && context.appLevel >= MAX_APP_LEVEL) {
             require(_compositeApps[ISuperApp(context.msgSender)][app],
                 "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED");
         }

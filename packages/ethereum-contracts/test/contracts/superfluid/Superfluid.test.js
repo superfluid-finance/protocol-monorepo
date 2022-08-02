@@ -688,6 +688,7 @@ describe("Superfluid Host Contract", function () {
                             "0x",
                             ZERO_ADDRESS,
                             0,
+                            0,
                             ZERO_ADDRESS
                         )
                     );

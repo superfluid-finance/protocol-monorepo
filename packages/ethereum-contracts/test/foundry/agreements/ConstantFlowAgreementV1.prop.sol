@@ -81,24 +81,26 @@ contract ConstantFlowAgreementV1Properties is Test {
     function testMinimumDeposit(
         uint64 minimumDeposit,
         uint32 liquidationPeriod,
-        int96 flowRate)
+        int256 flowRate)
         public
     {
-        minimumDeposit = uint32(bound(uint256(minimumDeposit), cfa.DEFAULT_MINIMUM_DEPOSIT(), type(uint64).max));
         vm.assume(liquidationPeriod > 0);
         vm.assume(flowRate > 0);
-        vm.assume(uint256(liquidationPeriod) * uint256(uint96(flowRate)) <= cfa.MAXIMUM_FLOW_RATE());
+        vm.assume(flowRate < type(int96).max);
+        minimumDeposit = uint32(bound(uint256(minimumDeposit), cfa.DEFAULT_MINIMUM_DEPOSIT(), type(uint64).max));
+        vm.assume(uint256(liquidationPeriod) * uint256(flowRate) <= cfa.MAXIMUM_FLOW_RATE());
 
-        uint256 deposit = cfa.getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
+        uint256 deposit = cfa.getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, int96(flowRate));
         assert(deposit >= minimumDeposit);
     }
 
-    function testFlowDataEncoding(uint32 timestamp, int96 flowRate, uint64 depositClipped, uint64 owedDepositClipped)
-        public view
+    function testFlowDataEncoding(uint32 timestamp, int256 flowRate, uint64 depositClipped, uint64 owedDepositClipped)
+        public
     {
+        vm.assume(flowRate >= type(int96).min && flowRate <= type(int96).max);
         ConstantFlowAgreementV1.FlowData memory a = ConstantFlowAgreementV1.FlowData({
             timestamp: uint256(timestamp),
-                    flowRate: flowRate,
+                    flowRate: int96(flowRate),
                     deposit: uint256(uint64(depositClipped << 32)),
                     owedDeposit: uint256(uint64(owedDepositClipped << 32))});
         uint256 wordA = cfa.encodeFlowData(a);
@@ -111,11 +113,11 @@ contract ConstantFlowAgreementV1Properties is Test {
         assert(a.owedDeposit == b.owedDeposit);
     }
 
-    function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
-        vm.assume(flowRateAllowance >= 0);
+    function testFlowOperatorDataEncoding(uint8 permissions, int256 flowRateAllowance) public {
+        vm.assume(flowRateAllowance >= 0 && flowRateAllowance <= type(int96).max);
         ConstantFlowAgreementV1.FlowOperatorData memory a = ConstantFlowAgreementV1.FlowOperatorData({
             permissions: permissions,
-            flowRateAllowance: flowRateAllowance
+            flowRateAllowance: int96(flowRateAllowance)
         });
         uint256 wordA = cfa.encodeFlowOperatorData(a);
         bool exist;

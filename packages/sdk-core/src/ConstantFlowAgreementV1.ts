@@ -215,7 +215,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -243,7 +243,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -272,7 +272,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -322,7 +322,7 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -348,7 +348,7 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -372,7 +372,7 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -406,7 +406,7 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -440,7 +440,7 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -467,7 +467,7 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -482,7 +482,7 @@ export default class ConstantFlowAgreementV1 {
      * @param timestamp last updated timestamp of flow
      * @param flowRate the current flow rate
      * @param deposit the deposit amount
-     * @param owedDeposit any owed depsit
+     * @param owedDeposit any owed deposit
      * @returns {IWeb3FlowInfo} sanitized web3 flow info
      */
     _sanitizeFlowInfo = (params: IWeb3FlowInfoParams): IWeb3FlowInfo => {

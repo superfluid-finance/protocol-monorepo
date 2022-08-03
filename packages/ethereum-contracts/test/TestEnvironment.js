@@ -85,6 +85,8 @@ module.exports = class TestEnvironment {
                 require("@openzeppelin/test-helpers").constants
             ),
             MAXIMUM_FLOW_RATE: toBN(2).pow(toBN(95)).sub(toBN(1)),
+            APP_LEVEL_FINAL: 1 << 0,
+            APP_LEVEL_SECOND: 1 << 1,
         };
 
         this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;

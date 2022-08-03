@@ -222,10 +222,10 @@ interface ISuperfluid {
     function isApp(ISuperApp app) external view returns(bool);
 
     /**
-     * @dev Query app level
+     * @dev Query app callbacklevel
      * @param app Super app address
      */
-    function getAppLevel(ISuperApp app) external view returns(uint8 appLevel);
+    function getAppCallbackLevel(ISuperApp app) external view returns(uint8 appCallbackLevel);
 
     /**
      * @dev Get the manifest of the super app
@@ -460,8 +460,8 @@ interface ISuperfluid {
         //
         // Call context
         //
-        // callback level
-        uint8 appLevel;
+        // app callback level
+        uint8 appCallbackLevel;
         // type of call
         uint8 callType;
         // the system timestamp

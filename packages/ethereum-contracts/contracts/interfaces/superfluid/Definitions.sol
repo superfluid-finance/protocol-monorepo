@@ -25,7 +25,7 @@ library SuperAppDefinitions {
     // The app is at the second level, it may interact with other final level apps if whitelisted
     uint256 constant internal APP_LEVEL_SECOND = 1 << 1;
 
-    function getAppLevel(uint256 configWord) internal pure returns (uint8) {
+    function getAppCallbackLevel(uint256 configWord) internal pure returns (uint8) {
         return uint8(configWord & APP_LEVEL_MASK);
     }
 
@@ -89,17 +89,17 @@ library ContextDefinitions {
 
     function decodeCallInfo(uint256 callInfo)
         internal pure
-        returns (uint8 appLevel, uint8 callType)
+        returns (uint8 appCallbackLevel, uint8 callType)
     {
-        appLevel = uint8(callInfo & CALL_INFO_APP_LEVEL_MASK);
+        appCallbackLevel = uint8(callInfo & CALL_INFO_APP_LEVEL_MASK);
         callType = uint8((callInfo & CALL_INFO_CALL_TYPE_MASK) >> CALL_INFO_CALL_TYPE_SHIFT);
     }
 
-    function encodeCallInfo(uint8 appLevel, uint8 callType)
+    function encodeCallInfo(uint8 appCallbackLevel, uint8 callType)
         internal pure
         returns (uint256 callInfo)
     {
-        return uint256(appLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
+        return uint256(appCallbackLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
     }
 
 }
@@ -200,7 +200,7 @@ library SuperfluidGovernanceConfigs {
         keccak256("org.superfluid-finance.superfluid.rewardAddress");
     bytes32 constant internal CFAV1_PPP_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
-    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY = 
+    bytes32 constant internal SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
     function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {

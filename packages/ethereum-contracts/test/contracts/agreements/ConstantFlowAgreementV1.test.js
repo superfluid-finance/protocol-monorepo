@@ -17,6 +17,9 @@ const {
     shouldUpdateFlowByOperator,
     shouldDeleteFlowByOperator,
     expectNetFlow,
+    expectDepositAndOwedDeposit,
+    expectFlow,
+    getDeposit,
 } = require("./ConstantFlowAgreementV1.behavior.js");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 
@@ -5550,7 +5553,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             let app = await StreamRedirector.new(
                 superfluid.address,
                 superToken.address,
-                bob
+                bob, // Stream back to Bob in the callback
+                t.constants.APP_LEVEL_FINAL
             );
 
             const aclBaseData = {
@@ -5562,13 +5566,249 @@ describe("Using ConstantFlowAgreement v1", function () {
                 from: alice,
             };
 
+            t.addAlias("redirector", app.address);
+
+            // Grant ACL permissions
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
                 ...aclBaseData,
                 permissions: ALLOW_CREATE.toString(),
                 flowRateAllowance: FLOW_RATE1,
             });
 
+            // Start stream to self (app) from Alice
             await app.startStreamToSelf(alice, FLOW_RATE1);
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirector",
+                value: toBN(0),
+            });
+
+            // Validate flow data (deposit and owed deposit especially)
+            const baseDeposit = getDeposit({testenv: t, flowRate: FLOW_RATE1});
+            const appCreditAdditionalDeposit = baseDeposit.mul(toBN(2));
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "redirector",
+                flowRate: FLOW_RATE1,
+                deposit: appCreditAdditionalDeposit,
+                owedDeposit: baseDeposit,
+            });
+            await expectDepositAndOwedDeposit({
+                testenv: t,
+                superToken,
+                account: "alice",
+                deposit: baseDeposit.mul(toBN(2)),
+                owedDeposit: toBN(0),
+            });
+            await expectDepositAndOwedDeposit({
+                testenv: t,
+                superToken,
+                account: "redirector",
+                deposit: baseDeposit,
+                owedDeposit: baseDeposit,
+            });
+
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "redirector",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+                deposit: baseDeposit,
+                owedDeposit: toBN(0),
+            });
+            await expectDepositAndOwedDeposit({
+                testenv: t,
+                superToken,
+                account: "bob",
+                deposit: toBN(0),
+                owedDeposit: toBN(0),
+            });
+        });
+
+        it("#4.30 SuperApp with permissions should be able to stream to itself (blue elephant)", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let app = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                alice, // Note that in this case, we stream back to Alice in the callback
+                t.constants.APP_LEVEL_FINAL
+            );
+
+            const aclBaseData = {
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                ctx: "0x",
+                flowOperator: app.address,
+                from: alice,
+            };
+
+            t.addAlias("redirector", app.address);
+
+            // Grant ACL permissions
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aclBaseData,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            // Start stream to self (app) from Alice
+            await app.startStreamToSelf(alice, FLOW_RATE1);
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0),
+            });
+
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirector",
+                value: toBN(0),
+            });
+
+            // Validate flow data (deposit and owed deposit especially)
+            const baseDeposit = getDeposit({testenv: t, flowRate: FLOW_RATE1});
+            const appCreditAdditionalDeposit = baseDeposit.mul(toBN(2));
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "redirector",
+                flowRate: FLOW_RATE1,
+                deposit: appCreditAdditionalDeposit,
+                owedDeposit: baseDeposit,
+            });
+            await expectDepositAndOwedDeposit({
+                testenv: t,
+                superToken,
+                account: "alice",
+                deposit: baseDeposit.mul(toBN(2)),
+                owedDeposit: toBN(0),
+            });
+            await expectDepositAndOwedDeposit({
+                testenv: t,
+                superToken,
+                account: "redirector",
+                deposit: baseDeposit,
+                owedDeposit: baseDeposit,
+            });
+
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "redirector",
+                receiver: "alice",
+                flowRate: FLOW_RATE1,
+                deposit: baseDeposit,
+                owedDeposit: toBN(0),
+            });
+        });
+
+        it("#4.31 SuperApp to SuperApp is not allowed (non-ACL)", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let redirectorA = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                alice,
+                t.constants.APP_LEVEL_FINAL
+            );
+            let redirectorB = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                redirectorA.address,
+                t.constants.APP_LEVEL_SECOND
+            );
+
+            t.addAlias("redirectorA", redirectorA.address);
+            t.addAlias("redirectorB", redirectorB.address);
+
+            // Attempting to do SuperApp callback to SuperApp should fail
+            await expectRevertedWith(
+                t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.getAddress("alice"),
+                    receiver: t.getAddress("redirectorB"),
+                    flowRate: FLOW_RATE1.toString(),
+                }),
+                "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+            );
+
+            // Should still fail after allow composite app due to max app level rule
+            await redirectorB.allowCompositeApp(redirectorA.address);
+            await expectRevertedWith(
+                t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.getAddress("alice"),
+                    receiver: t.getAddress("redirectorB"),
+                    flowRate: FLOW_RATE1.toString(),
+                }),
+                "SF: APP_RULE_MAX_APP_LEVEL_REACHED"
+            );
+        });
+
+        it("#4.32 SuperApp to SuperApp is not allowed (ACL)", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let redirectorA = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                alice,
+                t.constants.APP_LEVEL_FINAL
+            );
+            let redirectorB = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                redirectorA.address,
+                t.constants.APP_LEVEL_SECOND
+            );
+
+            const aclBaseData = {
+                testenv: t,
+                token: superToken.address,
+                sender: alice,
+                ctx: "0x",
+                flowOperator: redirectorB.address,
+                from: alice,
+            };
+
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aclBaseData,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: FLOW_RATE1,
+            });
+
+            t.addAlias("redirectorA", redirectorA.address);
+            t.addAlias("redirectorB", redirectorB.address);
+
+            // Attempting to do SuperApp callback to SuperApp should fail via ACL
+            // originating from SuperApp
+            await expectRevertedWith(
+                redirectorB.startStreamToSelf(alice, FLOW_RATE1),
+                "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+            );
+
+            // Should still fail after allow composite app due to max app level rule
+            await redirectorB.allowCompositeApp(redirectorA.address);
+            await expectRevertedWith(
+                redirectorB.startStreamToSelf(alice, FLOW_RATE1),
+                "SF: APP_RULE_MAX_APP_LEVEL_REACHED"
+            );
         });
     });
 });

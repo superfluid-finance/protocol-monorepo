@@ -14,6 +14,7 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
@@ -69,11 +70,17 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- | Getter for the publisher lenses of monetary unit data in the proportional distribution (PD) index.
     pdPublisherData :: SimpleGetter mu (PDIDX.PublisherData sft)
 
-    -- | Getter for the list of subscriber IDA data.
-    idaSubscriberMonetaryUnitDataList :: SimpleGetter mu [IDA.IDASubscriberMonetaryUnitData sft]
-
     -- | Lens for the publisher IDA data.
-    idaPublisherMonetaryUnitData :: Lens' mu (IDA.IDAPublisherMonetaryUnitData sft)
+    idaPublisherMonetaryUnitData :: Lens' mu (IDA.PublisherMonetaryUnitData sft)
+
+    -- | Getter for the list of subscriber IDA data.
+    idaSubscriberMonetaryUnitDataList :: SimpleGetter mu [IDA.SubscriberMonetaryUnitData sft]
+
+    -- | Lens for the publisher CFDA data.
+    cfdaPublisherMonetaryUnitData :: Lens' mu (CFDA.PublisherMonetaryUnitData sft)
+
+    -- | Getter for the list of subscriber CFDA data.
+    cfdaSubscriberMonetaryUnitDataList :: SimpleGetter mu [CFDA.SubscriberMonetaryUnitData sft]
 
 -- | Calculate the real time balance of an monetary unit at a given time.
 balanceOfAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => mu -> SFT_TS sft -> SFT_RTB sft

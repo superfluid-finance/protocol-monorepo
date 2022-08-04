@@ -7,7 +7,7 @@
 --
 -- It is instant transferring over an proportional distribution index
 --
--- This module is typically imported using qualified name IDA.
+-- This module is typically imported using qualified name .
 module Money.Systems.Superfluid.Agreements.InstantDistributionAgreement where
 
 import           Data.Coerce
@@ -23,9 +23,9 @@ import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantVal
 
 -- * Monetary unit data
 
-type IDAPublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
+type PublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
 
-type IDASubscriberMonetaryUnitData sft = IVMUD.MonetaryUnitData (SubscriberData sft) sft
+type SubscriberMonetaryUnitData sft = IVMUD.MonetaryUnitData (SubscriberData sft) sft
 
 instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (PublisherData sft) sft where
     untappedValue = $(field 'distributed_value)
@@ -35,64 +35,56 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sf
         -- lens getter: subscribed value
         (\(SubscriberData
             (DistributionContract { ida_value_per_unit = vpu })
-            (SubscriptionContract { ida_sub_settled_value_per_unit = svpu
-                                  , ida_sub_settled_value = sv
-                                  , owned_unit = u
+            (SubscriptionContract { ida_sub_settled_value = UntappedValue sv
+                                  , ida_sub_settled_value_per_unit = svpu
+                                  , sub_owned_unit = u
                                   })
-          ) -> (+) sv $ UntappedValue $ floor $
-            u * fromIntegral (vpu - svpu))
+          ) -> UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu)))
 
 -- * Publisher Operations
 
-newtype IDAPublisherOperation sft = Distribute (SFT_MVAL sft)
+newtype PublisherOperation sft = Distribute (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (IDAPublisherOperation sft) sft where
-    data AgreementOperationData (IDAPublisherOperation sft) = PublisherOperationData (DistributionContract sft)
-    data AgreementOperationResultF (IDAPublisherOperation sft) elem = IDAPublisherOperationResultF elem -- publisher amud
+instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft where
+    data AgreementOperationData (PublisherOperation sft) = PublisherOperationData (DistributionContract sft)
+    data AgreementOperationResultF (PublisherOperation sft) elem = PublisherOperationResultF elem -- publisher amud
         deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (IDAPublisherOperation sft) = IDAPublisherMonetaryUnitData sft
+    type AgreementMonetaryUnitDataInOperation (PublisherOperation sft) = PublisherMonetaryUnitData sft
 
     applyAgreementOperation (Distribute amount) (PublisherOperationData pub) _ = let
-        pub'  = pub { ida_value_per_unit = floor (fromIntegral p + delta) }
-        aorΔ  = IDAPublisherOperationResultF
+        pub'  = pub { ida_value_per_unit = floor (fromIntegral vpu + vpuΔ) }
+        aorΔ  = PublisherOperationResultF
                   (def & set IVMUD.untappedValue (coerce (- amount)))
         in (PublisherOperationData pub', fmap IVMUD.MkMonetaryUnitData aorΔ)
-        where DistributionContract { total_unit = tu, ida_value_per_unit = p } = pub
-              delta = fromIntegral amount / tu
+        where DistributionContract { total_unit = tu, ida_value_per_unit = vpu } = pub
+              vpuΔ = fromIntegral amount / tu
 
 type PublisherOperationData :: Type -> Type
-type PublisherOperationData sft = AgreementOperationData (IDAPublisherOperation sft)
+type PublisherOperationData sft = AgreementOperationData (PublisherOperation sft)
 
 -- * Subscriber Operations
 
-data IDASubscriberOperation sft = Subscribe   (SFT_FLOAT sft) |
-                                  Unsubscribe
-instance SuperfluidTypes sft => AgreementOperation (IDASubscriberOperation sft) sft where
-    data AgreementOperationData (IDASubscriberOperation sft) = SubscriberOperationData (SubscriberData sft)
-    data AgreementOperationResultF (IDASubscriberOperation sft) elem = IDASubscriberOperationPartiesF
-    type AgreementMonetaryUnitDataInOperation (IDASubscriberOperation sft) = NullAgreementMonetaryUnitData sft
+data SubscriberOperation sft = SettleSubscription
 
-    applyAgreementOperation (Subscribe unit) (SubscriberOperationData sub) _ = let
+instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft where
+    data AgreementOperationData (SubscriberOperation sft) = SubscriberOperationData (SubscriberData sft)
+    data AgreementOperationResultF (SubscriberOperation sft) elem = SubscriberOperationPartiesF
+    type AgreementMonetaryUnitDataInOperation (SubscriberOperation sft) = NullAgreementMonetaryUnitData sft
+
+    applyAgreementOperation SettleSubscription (SubscriberOperationData sub) _ = let
         sub'  = SubscriberData
-                  (dc { total_unit = tu + unit })
-                  (sc { owned_unit = u + unit
+                  dc
+                  (sc { ida_sub_settled_value = UntappedValue $ sv + svΔ
                       , ida_sub_settled_value_per_unit = vpu
-                      , ida_sub_settled_value = UntappedValue sv'
                       })
-        in (SubscriberOperationData sub', IDASubscriberOperationPartiesF)
+        in (SubscriberOperationData sub', SubscriberOperationPartiesF)
         where (SubscriberData
-                 dc@(DistributionContract { total_unit = tu
-                                          , ida_value_per_unit = vpu })
-                 sc@(SubscriptionContract { owned_unit = u
-                                          , ida_sub_settled_value_per_unit = svpu
+                 dc@(DistributionContract { ida_value_per_unit = vpu })
+                 sc@(SubscriptionContract { sub_owned_unit = u
                                           , ida_sub_settled_value = UntappedValue sv
+                                          , ida_sub_settled_value_per_unit = svpu
                                           })) = sub
-              sv' = floor (fromIntegral sv + fromIntegral (vpu - svpu) * u)
-
-    applyAgreementOperation Unsubscribe (SubscriberOperationData sub) _ = let
-        -- FIXME operation missing
-        sub' = sub
-        in (SubscriberOperationData sub', IDASubscriberOperationPartiesF)
+              svΔ = floor $ fromIntegral (vpu - svpu) * u
 
 type SubscriberOperationData :: Type -> Type
-type SubscriberOperationData sft = AgreementOperationData (IDASubscriberOperation sft)
+type SubscriberOperationData sft = AgreementOperationData (SubscriberOperation sft)

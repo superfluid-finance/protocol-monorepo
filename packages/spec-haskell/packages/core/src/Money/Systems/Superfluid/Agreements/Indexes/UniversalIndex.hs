@@ -9,7 +9,7 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MVMUD
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency     as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
 
 
 -- | This is data that is universally available to the monetary unit.

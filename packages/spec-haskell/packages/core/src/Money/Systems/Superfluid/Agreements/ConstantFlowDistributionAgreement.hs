@@ -22,62 +22,108 @@ import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFl
 
 -- * Monetary unit data
 
-type CFDAPublisherMonetaryUnitData sft = CFMUD.MonetaryUnitData (PublisherData sft) sft
+type PublisherMonetaryUnitData sft = CFMUD.MonetaryUnitData (PublisherData sft) sft
 
-type CFDASubscriberMonetaryUnitData sft = CFMUD.MonetaryUnitData (SubscriberData sft) sft
+type SubscriberMonetaryUnitData sft = CFMUD.MonetaryUnitData (SubscriberData sft) sft
 
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (PublisherData sft) sft where
     settledAt = $(field 'cfda_pub_settled_at)
     settledUntappedValue = $(field 'cfda_pub_settled_untapped_value)
-    netFlowRate = $(field 'cfda_total_flow_rate)
-    settledBufferValue = lens (const 0) const -- TODO remove it
+    netFlowRate = $(field 'cfda_pub_total_flow_rate)
+    settledBufferValue = lens (const 0) const
 
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     settledAt     = readOnlyLens
-        -- lens getter: subscribed value
-        (\(SubscriberData
-            _
-            (SubscriptionContract { cfda_sub_settled_at = t
-                                  })
-          ) -> t)
+        (\(SubscriberData _ (SubscriptionContract { sub_settled_at = t })) -> t)
     netFlowRate   = readOnlyLens
-        -- lens getter: subscribed value
         (\(SubscriberData
-            (DistributionContract { cfda_flow_rate_per_unit = frpu })
-            (SubscriptionContract { owned_unit = u })
-          ) -> floor $ fromIntegral frpu * u)
+            (DistributionContract { total_unit     = tu
+                                  , cfda_flow_rate = dcfr })
+            (SubscriptionContract { sub_owned_unit = u })
+          ) -> floor $ fromIntegral dcfr * u / tu )
     settledUntappedValue = readOnlyLens
-        -- lens getter: subscribed value
         (\(SubscriberData
-            _
-            (SubscriptionContract { cfda_sub_settled_value = sv
-                                  })
-          ) -> sv)
+           (DistributionContract { total_unit                      = tu
+                                 , cfda_value_per_unit             = vpu
+                                 , cfda_flow_rate                  = dcfr
+                                 , cfda_settled_at                 = t_dc
+                                 })
+           (SubscriptionContract { sub_owned_unit                  = u
+                                 , sub_settled_at                  = t_s
+                                 , cfda_sub_settled_value          = UntappedValue sv
+                                 , cfda_sub_settled_value_per_unit = svpu })
+          ) -> let vpuΔ = floor $ fromIntegral dcfr * fromIntegral (t_dc - t_s) / tu
+               in  UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu - vpuΔ)))
     settledBufferValue = readOnlyLens (const 0)
 
 -- * Publisher Operations
 
-newtype CFDAPublisherOperation sft = UpdateDistributionFlowRate (SFT_MVAL sft)
+newtype PublisherOperation sft = UpdateDistributionFlowRate (SFT_MVAL sft)
 
-instance SuperfluidTypes sft => AgreementOperation (CFDAPublisherOperation sft) sft where
-    data AgreementOperationData (CFDAPublisherOperation sft) = PublisherOperationData (DistributionContract sft)
-    data AgreementOperationResultF (CFDAPublisherOperation sft) elem = CFDAPublisherOperationResultF elem -- publisher amud
+instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft where
+    data AgreementOperationData (PublisherOperation sft) = PublisherOperationData (DistributionContract sft)
+    data AgreementOperationResultF (PublisherOperation sft) elem = PublisherOperationResultF elem -- publisher amud
         deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (CFDAPublisherOperation sft) = CFDAPublisherMonetaryUnitData sft
+    type AgreementMonetaryUnitDataInOperation (PublisherOperation sft) = PublisherMonetaryUnitData sft
 
-    applyAgreementOperation (UpdateDistributionFlowRate fr) (PublisherOperationData pub) t' = let
-        pub'  = pub { cfda_settled_at = t', cfda_flow_rate_per_unit = frpu' }
-        aorΔ  = CFDAPublisherOperationResultF
+    applyAgreementOperation (UpdateDistributionFlowRate dcfr') (PublisherOperationData dc) t' = let
+        pub'  = dc { cfda_settled_at = t'
+                   , cfda_value_per_unit = vpu + vpuΔ
+                   , cfda_flow_rate = dcfr'
+                   }
+        aorΔ  = PublisherOperationResultF
                   (def & set CFMUD.settledAt t'
-                       & set CFMUD.netFlowRate frΔ
-                       & set CFMUD.settledUntappedValue (UntappedValue settledΔ))
+                       & set CFMUD.netFlowRate (dcfr - dcfr') -- reverse sign for outgoing flow
+                       & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
         in (PublisherOperationData pub', fmap CFMUD.MkMonetaryUnitData aorΔ)
-        where DistributionContract { cfda_settled_at = t
-                                   , total_unit = tu
-                                   , cfda_flow_rate_per_unit = frpu } = pub
-              frΔ   = floor $ fromIntegral fr - fromIntegral frpu * tu
-              frpu' = floor $ fromIntegral fr / tu
-              settledΔ = frpu * fromIntegral (t' - t)
+        where DistributionContract { total_unit          = tu
+                                   , cfda_settled_at     = t_p
+                                   , cfda_value_per_unit = vpu
+                                   , cfda_flow_rate      = dcfr
+                                   } = dc
+              settledΔ = dcfr * fromIntegral (t' - t_p)
+              vpuΔ = floor $ fromIntegral settledΔ / tu
 
 type PublisherOperationData :: Type -> Type
-type PublisherOperationData sft = AgreementOperationData (CFDAPublisherOperation sft)
+type PublisherOperationData sft = AgreementOperationData (PublisherOperation sft)
+
+-- * Subscriber Operations
+
+data SubscriberOperation sft = SettleSubscription
+
+instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft where
+    data AgreementOperationData (SubscriberOperation sft) = SubscriberOperationData (SubscriberData sft)
+    data AgreementOperationResultF (SubscriberOperation sft) elem = SubscriberOperationPartiesF elem
+        deriving stock (Functor, Foldable, Traversable)
+    type AgreementMonetaryUnitDataInOperation (SubscriberOperation sft) = PublisherMonetaryUnitData sft
+
+    applyAgreementOperation SettleSubscription (SubscriberOperationData sub) t' = let
+        sub'  = SubscriberData
+                  (dc { cfda_settled_at = t'
+                      , cfda_value_per_unit = vpu
+                      })
+                  (sc { cfda_sub_settled_value = UntappedValue $ sv + svΔ
+                      , cfda_sub_settled_value_per_unit = vpu
+                      })
+        aorΔ  = SubscriberOperationPartiesF
+                  (def & set CFMUD.settledAt t'
+                       & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
+        in (SubscriberOperationData sub', fmap CFMUD.MkMonetaryUnitData aorΔ)
+        where (SubscriberData
+                 dc@(DistributionContract { total_unit                      = tu
+                                          , cfda_settled_at                 = t_p
+                                          , cfda_value_per_unit             = vpu_i
+                                          , cfda_flow_rate                  = dcfr
+                                          })
+                 sc@(SubscriptionContract { sub_owned_unit                  = u
+                                          , sub_settled_at                  = t_s
+                                          , cfda_sub_settled_value          = UntappedValue sv
+                                          , cfda_sub_settled_value_per_unit = svpu
+                                          })) = sub
+              settledΔ = dcfr * fromIntegral (t' - t_p)
+              vpuΔ' = if tu /= 0 then floor $ fromIntegral dcfr * fromIntegral (t' - t_s) / tu else 0
+              vpu = vpu_i + vpuΔ'
+              svΔ = floor $ fromIntegral (vpu - svpu) * u
+
+type SubscriberOperationData :: Type -> Type
+type SubscriberOperationData sft = AgreementOperationData (SubscriberOperation sft)

@@ -82,8 +82,8 @@ data SimpleAccountData = SimpleAccountData
 --
 -- PD subscriptions are loaded on demand.
 data SimpleAccount = SimpleAccount
-    { account_data      :: SimpleAccountData
-    , ida_subscriptions :: [SimpleSubscriberData]
+    { account_data  :: SimpleAccountData
+    , subscriptions :: [SimpleSubscriberData]
     }
 
 mk_uidx_mud_lens
@@ -114,8 +114,12 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
                        , MkSimpleAgreementMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
                        ]
+                       -- IDA
                        ++ [MkSimpleAgreementMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitData)]
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
+                       -- CFDA
+                       ++ [MkSimpleAgreementMonetaryUnitData (acc^.SF.cfdaPublisherMonetaryUnitData)]
+                       ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.cfdaSubscriberMonetaryUnitDataList)
 
     universalData = to (universal_index . account_data)
     minterMonetaryUnitData = mk_uidx_mud_lens MVMUD.MkMonetaryUnitData MVMUD.getMonetaryUnitLenses
@@ -125,7 +129,9 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
 
     pdPublisherData = to (pd_publisher . account_data)
     idaPublisherMonetaryUnitData = mk_pdidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
-    idaSubscriberMonetaryUnitDataList = to (fmap IVMUD.MkMonetaryUnitData . ida_subscriptions)
+    idaSubscriberMonetaryUnitDataList = to (fmap IVMUD.MkMonetaryUnitData . subscriptions)
+    cfdaPublisherMonetaryUnitData = mk_pdidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
+    cfdaSubscriberMonetaryUnitDataList = to (fmap CFMUD.MkMonetaryUnitData . subscriptions)
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -218,14 +224,14 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
                 & M.lookup addr
                 & fromMaybe (create_simple_account_data 0)
         let pubs = token & publisher_contracts
-        let ida_subs = token
+        let subs = token
                 & subscriber_contracts
                 & M.filterWithKey (\(PDSUB_KEY s _) _ -> s == addr)
                 & M.toList
                 & fmap (\(PDSUB_KEY _ k, sub) -> PDIDX.SubscriberData
                            (fromJust $ M.lookup k pubs)
                            sub)
-        return $ SimpleAccount { account_data = accData, ida_subscriptions = ida_subs }
+        return $ SimpleAccount { account_data = accData, subscriptions = subs }
 
     putAccount addr (SimpleAccount { account_data = accData }) t = modify $ \vs -> vs
         { accounts = M.insert addr (accData { account_last_updated_at = t }) (accounts vs) }

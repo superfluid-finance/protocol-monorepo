@@ -20,6 +20,7 @@ import           Money.Systems.Superfluid.Concepts
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
@@ -211,13 +212,23 @@ class ( Monad tk
     updateProportionalDistributionSubscription subscriber publisher indexId unit = do
         -- load acd and accounts data
         t <- getCurrentTime
+        pub <- getAccount publisher
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
         sub  <- fromMaybe def <$> viewProportionalDistributionSubscription subscriber publisher indexId
-        let aod = PDIDX.SubscriberData index sub
-        let (IDA.SubscriberOperationData (PDIDX.SubscriberData index' sub'), _) =
-                applyAgreementOperation (IDA.Subscribe unit) (IDA.SubscriberOperationData aod) t
+        let aod0 = PDIDX.SubscriberData index sub
+        -- settle all distribution agreements first before subscribe to unit
+        let (IDA.SubscriberOperationData aod1, _) =
+                applyAgreementOperation IDA.SettleSubscription (IDA.SubscriberOperationData aod0) t
+        let (CFDA.SubscriberOperationData aod2, CFDA.SubscriberOperationPartiesF cfdaMUDΔ) =
+                applyAgreementOperation CFDA.SettleSubscription (CFDA.SubscriberOperationData aod1) t
+        -- subscribe unit
+        let (PDIDX.CommonSubscriberOperationData aod3, _) =
+                applyAgreementOperation (PDIDX.Subscribe unit) (PDIDX.CommonSubscriberOperationData aod2) t
+        -- update data
+        let PDIDX.SubscriberData index' sub' = aod3
         setProportionalDistributionContract publisher indexId index' t
         setProportionalDistributionSubscription subscriber publisher indexId sub' t
+        putAccount publisher (over cfdaPublisherMonetaryUnitData (<> cfdaMUDΔ) pub) t
 
     distributeProportionally
         :: ACC_ADDR acc                    -- publisher
@@ -227,12 +238,27 @@ class ( Monad tk
     distributeProportionally publisher indexId amount = do
         -- load acd and accounts data
         t <- getCurrentTime
-        acc <- getAccount publisher
+        pub <- getAccount publisher
         index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
-        let (IDA.PublisherOperationData index', IDA.IDAPublisherOperationResultF amudΔ) =
+        let (IDA.PublisherOperationData index', IDA.PublisherOperationResultF amudΔ) =
                 applyAgreementOperation (IDA.Distribute amount) (IDA.PublisherOperationData index) t
         setProportionalDistributionContract publisher indexId index' t
-        putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) acc) t
+        putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) pub) t
+
+    distributeFlow
+        :: ACC_ADDR acc                    -- publisher
+        -> ProportionalDistributionIndexID -- indexId
+        -> SFT_MVAL sft                    -- flowRate
+        -> tk ()
+    distributeFlow publisher indexId flowRate = do
+        -- load acd and accounts data
+        t <- getCurrentTime
+        pub <- getAccount publisher
+        index <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
+        let (CFDA.PublisherOperationData index', CFDA.PublisherOperationResultF amudΔ) =
+                applyAgreementOperation (CFDA.UpdateDistributionFlowRate flowRate) (CFDA.PublisherOperationData index) t
+        setProportionalDistributionContract publisher indexId index' t
+        putAccount publisher (over cfdaPublisherMonetaryUnitData (<> amudΔ) pub) t
 
 -- ============================================================================
 -- Internal

@@ -122,8 +122,8 @@ contract StreamRedirector is SuperAppBase {
         ISuperToken _superToken,
         address _agreementClass,
         bytes32, // _agreementId,
-        bytes, // calldata _agreementData,
-        bytes, // calldata _cbdata,
+        bytes calldata, // calldata _agreementData,
+        bytes calldata, // calldata _cbdata,
         bytes calldata _ctx
     )
         external

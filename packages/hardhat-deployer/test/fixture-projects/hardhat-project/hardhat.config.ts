@@ -9,6 +9,7 @@ const config: HardhatUserConfig = {
     },
     networks: {
         hardhat: {
+            chainId: 31337,
             blockGasLimit: 100000000,
         },
     },

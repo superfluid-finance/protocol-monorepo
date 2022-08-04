@@ -68,7 +68,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Install, lint and build
         run: |
@@ -101,7 +100,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Install and build
         run: |
@@ -132,7 +130,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
 
       - name: Install, lint and build

@@ -39,7 +39,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -95,7 +94,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Run coverage test
         run: |
@@ -123,7 +121,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Run coverage test
         run: |
@@ -151,7 +148,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Run coverage test
         run: |
@@ -182,7 +178,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Run coverage test
         run: |
@@ -276,9 +271,10 @@ jobs:
           path: build-scripts
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
@@ -362,7 +358,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Build
         run: |

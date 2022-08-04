@@ -39,7 +39,6 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: "**/yarn.lock"
 
       - name: Build
         if: env.DO_SKIP != 1

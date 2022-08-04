@@ -1,0 +1,50 @@
+name: Reusable Workflow | Check SDK-Core Schema Against Deployed Subgraphs
+
+on:
+  workflow_call:
+    inputs:
+      subgraph-release:
+        required: true
+        type: string
+
+jobs:
+  check-subgraph-indexing-statuses-on-deployed-networks:
+    name: Check SDK-Core Schema Against Deployed Subgraphs (${{ inputs.subgraph-release }})
+
+    runs-on: ubuntu-latest
+
+    env:
+      sdk-core-working-directory: ./packages/sdk-core
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
+      - name: "Build contracts"
+        run: yarn build:contracts
+        working-directory: ./packages/ethereum-contracts
+
+      - name: "Start hardhat node"
+        run: |
+          ./tasks/startHardhatNode.sh start
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: Run schema check
+        run: |
+          ./tasks/setupTestEnvironment.sh
+          ./tasks/testSchemasAndQueries.sh
+        working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
+
+      - name: "Stop Hardhat node"
+        run: ./tasks/startHardhatNode.sh stop
+        working-directory: ${{ env.sdk-core-working-directory }}

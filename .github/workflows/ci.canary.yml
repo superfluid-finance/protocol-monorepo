@@ -37,9 +37,10 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: "yarn"
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -83,9 +84,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Run coverage test
         run: |
@@ -111,9 +113,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Run coverage test
         run: |
@@ -139,9 +142,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Run coverage test
         run: |
@@ -158,6 +162,33 @@ jobs:
           name: sdk-core-coverage
           path: |
             packages/sdk-core/coverage/
+
+  hardhat-deployer-coverage:
+    name: Run coverage test of hardhat-deployer on dev branch
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - name: Run coverage test
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn workspace @superfluid-finance/hardhat-deployer test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hardhat-deployer-coverage
+          path: |
+            packages/hardhat-deployer/coverage/
 
   publish-coverage-reports:
     name: Publish coverage reports
@@ -225,9 +256,10 @@ jobs:
           path: build-scripts
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
@@ -307,9 +339,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Build
         run: |

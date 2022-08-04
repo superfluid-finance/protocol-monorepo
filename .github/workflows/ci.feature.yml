@@ -77,7 +77,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: 0.2.0
+          version: 1.0.0
 
       - name: Test ethereum-contracts
         run: |

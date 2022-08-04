@@ -39,7 +39,6 @@
     "devDependencies": {
         "@nomiclabs/hardhat-ethers": "^2.0.6",
         "@superfluid-finance/ethereum-contracts": "^1.2.2",
-        "@superfluid-finance/sdk-core": "^0.5.2",
         "@types/chai": "^4.1.7",
         "@types/fs-extra": "^5.0.4",
         "@types/mocha": "^5.2.6",

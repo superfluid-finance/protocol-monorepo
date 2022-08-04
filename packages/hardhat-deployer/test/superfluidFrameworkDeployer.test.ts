@@ -3,7 +3,6 @@ import { assert } from "chai";
 import * as ethers from "ethers";
 import Resolver from "@superfluid-finance/ethereum-contracts/build/contracts/Resolver.json";
 import Superfluid from "@superfluid-finance/ethereum-contracts/build/contracts/Superfluid.json";
-import { Framework } from "@superfluid-finance/sdk-core";
 
 import { SuperfluidFrameworkDeployer } from "../src/SuperfluidFrameworkDeployer";
 import { ERC1820_ADDRESS } from "../src/ERC1820Constants";
@@ -18,31 +17,13 @@ const httpUrl = "http://localhost:8545";
 const cfaAgreementType = "0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3";
 const idaAgreementType = "0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674";
 
-describe("Integration Tests", async function () {
+describe("Integration Tests", function () {
     describe("Hardhat Superfluid Runtime Extension", function () {
         useEnvironment("hardhat-project");
 
         it("Should inject SuperfluidFrameworkDeployer into HRE", function () {
             assert.instanceOf(this.hre.superfluidFrameworkDeployer, SuperfluidFrameworkDeployer);
         });
-
-        it("Should create SDK-Core Framework", async function () {
-            const { superfluidFrameworkDeployer } = this.hre
-
-            this.deployer = new ethers.Wallet(
-                privKey,
-                new ethers.providers.JsonRpcProvider(httpUrl)
-            );
-
-            const resolverAddress = await superfluidFrameworkDeployer.deploy(this.deployer);
-
-            await Framework.create({
-                provider: this.deployer.provider,
-                resolverAddress,
-                protocolReleaseVersion: "test",
-                chainId: 31337
-            });
-        })
     });
 });
 

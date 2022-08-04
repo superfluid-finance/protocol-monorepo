@@ -5593,6 +5593,13 @@ describe("Using ConstantFlowAgreement v1", function () {
                 value: toBN(0),
             });
 
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: FLOW_RATE1,
+            });
+
             // Validate flow data (deposit and owed deposit especially)
             const baseDeposit = getDeposit({testenv: t, flowRate: FLOW_RATE1});
             const appCreditAdditionalDeposit = baseDeposit.mul(toBN(2));
@@ -5636,6 +5643,48 @@ describe("Using ConstantFlowAgreement v1", function () {
                 deposit: toBN(0),
                 owedDeposit: toBN(0),
             });
+
+            // State: Alice -> Redirector -> Bob
+
+            await t.sf.cfa.deleteFlow({
+                superToken: superToken.address,
+                sender: t.getAddress("alice"),
+                receiver: t.getAddress("redirector"),
+            });
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0),
+            });
+
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirector",
+                value: toBN(0),
+            });
+
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: toBN(0),
+            });
+
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "redirector",
+                flowRate: toBN(0),
+                deposit: toBN(0),
+                owedDeposit: toBN(0),
+            });
+
+            // State: No flows
         });
 
         it("#4.30 SuperApp with permissions should be able to stream to itself (blue elephant)", async () => {
@@ -5719,6 +5768,47 @@ describe("Using ConstantFlowAgreement v1", function () {
                 deposit: baseDeposit,
                 owedDeposit: toBN(0),
             });
+
+            // State: Alice -> Redirector -> Alice
+
+            await t.sf.cfa.deleteFlow({
+                superToken: superToken.address,
+                sender: t.getAddress("alice"),
+                receiver: t.getAddress("redirector"),
+            });
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0),
+            });
+
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirector",
+                value: toBN(0),
+            });
+
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "bob",
+                value: toBN(0),
+            });
+
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "alice",
+                receiver: "redirector",
+                flowRate: toBN(0),
+                deposit: toBN(0),
+                owedDeposit: toBN(0),
+            });
+            // State: No flows
         });
 
         it("#4.31 SuperApp to SuperApp is not allowed (non-ACL)", async () => {
@@ -5740,6 +5830,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             t.addAlias("redirectorB", redirectorB.address);
 
             // Attempting to do SuperApp callback to SuperApp should fail
+            // Alice -> redirectorB cb-> redirectorA cb-> Alice is not allowed
             await expectRevertedWith(
                 t.sf.cfa.createFlow({
                     superToken: superToken.address,
@@ -5798,6 +5889,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             // Attempting to do SuperApp callback to SuperApp should fail via ACL
             // originating from SuperApp
+            // (SuperApp ACL) Alice -> redirectorB cb-> redirectorA cb-> Alice is not allowed
             await expectRevertedWith(
                 redirectorB.startStreamToSelf(alice, FLOW_RATE1),
                 "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
@@ -5809,6 +5901,209 @@ describe("Using ConstantFlowAgreement v1", function () {
                 redirectorB.startStreamToSelf(alice, FLOW_RATE1),
                 "SF: APP_RULE_MAX_APP_LEVEL_REACHED"
             );
+        });
+
+        it("#4.33 SuperApp to SuperApp (agreement creation originates from SuperApp)-Alice deletes", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let redirectorA = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                alice,
+                t.constants.APP_LEVEL_FINAL
+            );
+            let redirectorB = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                redirectorA.address,
+                t.constants.APP_LEVEL_SECOND
+            );
+
+            t.addAlias("redirectorA", redirectorA.address);
+            t.addAlias("redirectorB", redirectorB.address);
+            const baseDeposit = getDeposit({testenv: t, flowRate: FLOW_RATE1});
+            const appCreditAdditionalDeposit = baseDeposit.mul(toBN(2));
+            await t.transferBalance(
+                "alice",
+                "redirectorB",
+                appCreditAdditionalDeposit
+            );
+            await redirectorB.startStreamToSuperApp(
+                redirectorA.address,
+                FLOW_RATE1
+            );
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: FLOW_RATE1,
+            });
+
+            // State: RedirectorB -> RedirectorA -> Alice
+            await t.sf.cfa.deleteFlow({
+                superToken: superToken.address,
+                sender: t.getAddress("redirectorA"),
+                receiver: t.getAddress("alice"),
+                by: t.getAddress("alice"),
+            });
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0),
+            });
+
+            // OD not returned as the lender (redirectorB) did not terminate the flow
+            await expectFlow({
+                testenv: t,
+                superToken,
+                sender: "redirectorB",
+                receiver: "redirectorA",
+                flowRate: FLOW_RATE1,
+                deposit: baseDeposit.mul(toBN(2)),
+                owedDeposit: baseDeposit,
+            });
+            // State: RedirectorB -> RedirectorA
+        });
+
+        it("#4.34 SuperApp to SuperApp (agreement creation originates from SuperApp)-RDB deletes", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let redirectorA = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                alice,
+                t.constants.APP_LEVEL_FINAL
+            );
+            let redirectorB = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                redirectorA.address,
+                t.constants.APP_LEVEL_SECOND
+            );
+
+            t.addAlias("redirectorA", redirectorA.address);
+            t.addAlias("redirectorB", redirectorB.address);
+            const baseDeposit = getDeposit({testenv: t, flowRate: FLOW_RATE1});
+            const appCreditAdditionalDeposit = baseDeposit.mul(toBN(2));
+            await t.transferBalance(
+                "alice",
+                "redirectorB",
+                appCreditAdditionalDeposit
+            );
+            await redirectorB.startStreamToSuperApp(
+                redirectorA.address,
+                FLOW_RATE1
+            );
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: FLOW_RATE1,
+            });
+
+            // State: RedirectorB -> RedirectorA -> Alice
+            await redirectorB.stopStreamToSuperApp(
+                t.getAddress("redirectorB"),
+                t.getAddress("redirectorA")
+            );
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirectorB",
+                value: toBN(0),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirectorA",
+                value: toBN(0),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: toBN(0),
+            });
+            // State: No flows
+        });
+
+        it("#4.35 SuperApp to SuperApp (agreement creation originates from SuperApp)-RDA deletes", async () => {
+            const StreamRedirector = artifacts.require("StreamRedirector");
+            let redirectorA = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                alice,
+                t.constants.APP_LEVEL_FINAL
+            );
+            let redirectorB = await StreamRedirector.new(
+                superfluid.address,
+                superToken.address,
+                redirectorA.address,
+                t.constants.APP_LEVEL_SECOND
+            );
+
+            t.addAlias("redirectorA", redirectorA.address);
+            t.addAlias("redirectorB", redirectorB.address);
+            const baseDeposit = getDeposit({testenv: t, flowRate: FLOW_RATE1});
+            const appCreditAdditionalDeposit = baseDeposit.mul(toBN(2));
+            await t.transferBalance(
+                "alice",
+                "redirectorB",
+                appCreditAdditionalDeposit
+            );
+            await redirectorB.startStreamToSuperApp(
+                redirectorA.address,
+                FLOW_RATE1
+            );
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: FLOW_RATE1,
+            });
+
+            // State: RedirectorB -> RedirectorA -> Alice
+            await redirectorA.stopStreamToSuperApp(
+                t.getAddress("redirectorB"),
+                t.getAddress("redirectorA")
+            );
+
+            console.log("redirectorA.address", redirectorA.address);
+            console.log("redirectorB.address", redirectorB.address);
+
+            // Validate net flows
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirectorB",
+                value: toBN(0),
+            });
+
+            // because redirectorB is the target super app, we are calling
+            // the callback on redirectorB, so the flow from RedirectorA -> Alice
+            // is untouched
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "redirectorA",
+                value: toBN(0).sub(FLOW_RATE1),
+            });
+            await expectNetFlow({
+                testenv: t,
+                superToken,
+                account: "alice",
+                value: FLOW_RATE1,
+            });
+            // State: RedirectorA -> Alice
         });
     });
 });

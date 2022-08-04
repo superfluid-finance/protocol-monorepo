@@ -66,24 +66,87 @@ contract StreamRedirector is SuperAppBase {
     }
 
     /**
+     * Terminates a stream from an _originAccount who has granted this SuperApp ACL permissions
+     * @param _originAccount ACL permissions granter
+     */
+    function stopStreamToSelf(address _originAccount) public {
+        cfaV1.deleteFlowByOperator(_originAccount, address(this), token);
+    }
+
+    /**
+     * Creates a stream from this Super App to another SuperApp.
+     * @param _superApp the targetted super app
+     * @param _flowRate desired flow rate
+     */
+    function startStreamToSuperApp(address _superApp, int96 _flowRate) public {
+        cfaV1.createFlow(_superApp, token, _flowRate);
+    }
+
+    /**
+     * Delete a stream from sender to receiver.
+     * @param _sender the sender super app
+     * @param _receiver the receiver super app
+     */
+    function stopStreamToSuperApp(address _sender, address _receiver) public {
+        cfaV1.deleteFlow(_sender, _receiver, token);
+    }
+
+    /**
      * A callback which occurs after CF agreement creation which redirects a stream.
      */
     function afterAgreementCreated(
-        ISuperToken superToken,
-        address agreementClass,
+        ISuperToken _superToken,
+        address _agreementClass,
         bytes32, // agreementId,
         bytes calldata, // agreementData,
         bytes calldata, // cbdata,
-        bytes calldata ctx
-    ) external override onlyCFA(agreementClass) returns (bytes memory newCtx) {
-        newCtx = ctx;
-        int96 netFlowRate = cfaV1.cfa.getNetFlow(superToken, address(this));
+        bytes calldata _ctx
+    )
+        external
+        override
+        onlyHost
+        onlyCFA(_agreementClass)
+        returns (bytes memory newCtx)
+    {
+        newCtx = _ctx;
+        int96 netFlowRate = cfaV1.cfa.getNetFlow(_superToken, address(this));
         newCtx = cfaV1.createFlowWithCtx(
             newCtx,
             receiver,
-            superToken,
+            _superToken,
             netFlowRate
         );
+    }
+
+    function afterAgreementTerminated(
+        ISuperToken _superToken,
+        address _agreementClass,
+        bytes32, // _agreementId,
+        bytes, // calldata _agreementData,
+        bytes, // calldata _cbdata,
+        bytes calldata _ctx
+    )
+        external
+        override
+        onlyHost
+        onlyCFA(_agreementClass)
+        returns (bytes memory newCtx)
+    {
+        newCtx = _ctx;
+        (, int96 currentFlowRate, , ) = cfaV1.cfa.getFlow(
+            _superToken,
+            address(this),
+            receiver
+        );
+
+        if (currentFlowRate > 0) {
+            newCtx = cfaV1.deleteFlowWithCtx(
+                newCtx,
+                address(this),
+                receiver,
+                _superToken
+            );
+        }
     }
 
     /**

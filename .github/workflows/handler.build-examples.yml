@@ -50,6 +50,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: "yarn"
 
       - name: Install, build and test
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

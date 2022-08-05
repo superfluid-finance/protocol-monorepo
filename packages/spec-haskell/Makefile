@@ -63,14 +63,10 @@ demo-expo: build
 	$(CABAL_TEST) v2-exec superfluid-validator -- --demo expo
 
 demo-dfa: build
-	$(CABAL_TEST) v2-exec superfluid-validator -- --demo dfa > dfa.ignore.dat
-	gnuplot -p -e " \
-		plot 'dfa.ignore.dat' using 1:2 with lines title 'alice', \
-			 '' using 1:3 with lines title 'bob', \
-			 '' using 1:4 with lines title 'carol', \
-			 '' using 1:5 with lines title 'dan' \
-		"
-	rm -f dfa.ignore.dat
+	$(CABAL_TEST) v2-exec superfluid-validator -- --demo dfa | ./utils/self-gnuplot.sh
+
+demo-cfda: build
+	$(CABAL_TEST) v2-exec superfluid-validator -- --demo cfda | ./utils/self-gnuplot.sh
 
 #
 # Docs
@@ -83,9 +79,9 @@ YELLOWPAPER_ROOT = $(DOCS_BUILDDIR)/yellowpaper
 $(YELLOWPAPER_ROOT)/tex:
 	mkdir -p "$@"
 $(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Distribution/Concepts.lhs
-	./tasks/lhs2tex.sh "$<" > "$@"
+	./utils/lhs2tex.sh "$<" > "$@"
 $(YELLOWPAPER_ROOT)/tex/Communism.tex: packages/core/src/Money/Distribution/Communism.lhs
-	./tasks/lhs2tex.sh "$<" > "$@"
+	./utils/lhs2tex.sh "$<" > "$@"
 $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 	echo '%include lhs2TeX.fmt' | lhs2TeX > "$@"
 

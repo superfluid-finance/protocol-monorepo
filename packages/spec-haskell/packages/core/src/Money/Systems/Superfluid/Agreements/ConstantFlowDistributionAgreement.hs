@@ -49,10 +49,10 @@ instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sf
                                  , cfda_settled_at                 = t_dc
                                  })
            (SubscriptionContract { sub_owned_unit                  = u
-                                 , sub_settled_at                  = t_s
+                                 , sub_settled_at                  = t_sc
                                  , cfda_sub_settled_value          = UntappedValue sv
                                  , cfda_sub_settled_value_per_unit = svpu })
-          ) -> let vpuΔ = floor $ fromIntegral dcfr * fromIntegral (t_dc - t_s) / tu
+          ) -> let vpuΔ = floor $ fromIntegral dcfr * fromIntegral (t_dc - t_sc) / tu
                in  UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu - vpuΔ)))
     settledBufferValue = readOnlyLens (const 0)
 
@@ -77,12 +77,13 @@ instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft 
                        & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
         in (PublisherOperationData pub', fmap CFMUD.MkMonetaryUnitData aorΔ)
         where DistributionContract { total_unit          = tu
-                                   , cfda_settled_at     = t_p
+                                   , cfda_settled_at     = t_dc
                                    , cfda_value_per_unit = vpu
                                    , cfda_flow_rate      = dcfr
                                    } = dc
-              settledΔ = dcfr * fromIntegral (t' - t_p)
-              vpuΔ = floor $ fromIntegral settledΔ / tu
+              -- FIXME can be a black hole due to tu == 0 or precision
+              settledΔ = dcfr * fromIntegral (t' - t_dc)
+              vpuΔ = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0
 
 type PublisherOperationData :: Type -> Type
 type PublisherOperationData sft = AgreementOperationData (PublisherOperation sft)
@@ -100,10 +101,10 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
     applyAgreementOperation SettleSubscription (SubscriberOperationData sub) t' = let
         sub'  = SubscriberData
                   (dc { cfda_settled_at = t'
-                      , cfda_value_per_unit = vpu
+                      , cfda_value_per_unit = vpu'
                       })
                   (sc { cfda_sub_settled_value = UntappedValue $ sv + svΔ
-                      , cfda_sub_settled_value_per_unit = vpu
+                      , cfda_sub_settled_value_per_unit = vpu'
                       })
         aorΔ  = SubscriberOperationPartiesF
                   (def & set CFMUD.settledAt t'
@@ -111,19 +112,18 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
         in (SubscriberOperationData sub', fmap CFMUD.MkMonetaryUnitData aorΔ)
         where (SubscriberData
                  dc@(DistributionContract { total_unit                      = tu
-                                          , cfda_settled_at                 = t_p
+                                          , cfda_settled_at                 = t_dc
                                           , cfda_value_per_unit             = vpu_i
                                           , cfda_flow_rate                  = dcfr
                                           })
                  sc@(SubscriptionContract { sub_owned_unit                  = u
-                                          , sub_settled_at                  = t_s
                                           , cfda_sub_settled_value          = UntappedValue sv
                                           , cfda_sub_settled_value_per_unit = svpu
                                           })) = sub
-              settledΔ = dcfr * fromIntegral (t' - t_p)
-              vpuΔ' = if tu /= 0 then floor $ fromIntegral dcfr * fromIntegral (t' - t_s) / tu else 0
-              vpu = vpu_i + vpuΔ'
-              svΔ = floor $ fromIntegral (vpu - svpu) * u
+              settledΔ = dcfr * fromIntegral (t' - t_dc)
+              vpuΔ' = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0
+              vpu' = vpu_i + vpuΔ'
+              svΔ = floor $ fromIntegral (vpu' - svpu) * u
 
 type SubscriberOperationData :: Type -> Type
 type SubscriberOperationData sft = AgreementOperationData (SubscriberOperation sft)

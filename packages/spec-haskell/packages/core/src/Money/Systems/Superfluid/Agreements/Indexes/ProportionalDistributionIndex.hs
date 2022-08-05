@@ -74,7 +74,7 @@ instance SuperfluidTypes sft => AgreementOperation (CommonSubscriberOperation sf
 
     applyAgreementOperation (Subscribe unit) (CommonSubscriberOperationData sub) t' = let
         sub'  = SubscriberData
-                  (dc { total_unit = tu + unit})
+                  (dc { total_unit = tu + unit })
                   (sc { sub_owned_unit = u + unit
                       , sub_settled_at = t'
                       })

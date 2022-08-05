@@ -1,13 +1,23 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Money.Systems.Superfluid.Validator.Demos.Expo (demo) where
+module Money.Systems.Superfluid.Validator.Demos
+    ( expo
+    , dfa
+    , cfda
+    ) where
 
+import           Control.Monad
 import           Control.Monad.IO.Class
+import           Data.Coerce
+import           Data.List
 import           Data.Time.Clock.POSIX                                        (getPOSIXTime)
 import           GHC.Stack                                                    (HasCallStack)
+import           Lens.Micro
+import           Text.Printf
 
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
 import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System             as SF
@@ -23,18 +33,36 @@ now =  do
 initBalance :: SF.Wad
 initBalance = SF.toWad (10000.0 :: Double)
 
+token = "MAGIC"
 alice = "alice"
 bob = "bob"
 carol = "carol"
+dan = "dan"
 
 day = 3600 * 24 :: SF.SimpleTimestamp
 fr1x = SF.toWad ((100 :: Double) / fromIntegral day)
 u1x = fromIntegral day * fr1x
 
-demo :: HasCallStack => SimMonad ()
-demo = do
+travelDaysAndPrintBalances t0 accounts days = do
+    t <- getCurrentTime
+    let t_offset = t - t0
+    forM_ [(1::Int) .. 24 * days] $ \i -> do
+        timeTravel 3600
+        balances <- mapM (\acc -> runToken token $ SF.balanceOfAccount acc) accounts
+        liftIO $ putStrLn $
+            (printf "%f "
+             ((fromIntegral (coerce t_offset + i * 3600) :: Double) / (3600.0 * 24))) <>
+            (intercalate " " (map (\acc -> show $ acc^.SF.untappedValueL) balances))
+
+printSelfGnuplotHeader accounts = putStrLn $
+    "plot '__GNUPLOT_FILE__' every ::1 " <>
+    (intercalate ",'' " (
+        zipWith (\idx acc -> printf "using 1:%d with lines title '%s'" (idx + 1) (show acc))
+        ([1..length accounts]) accounts))
+
+expo :: HasCallStack => SimMonad ()
+expo = do
     liftIO $ putStrLn "==== Superfluid Specification Expo ====\n"
-    let token = "DAI"
 
     t0 <- liftIO now
     timeTravel t0
@@ -85,3 +113,38 @@ demo = do
     t7 <- getCurrentTime
     liftIO $ putStrLn $ "# DAY 7: print token state @" ++ show t7
     runSimTokenOp token printTokenState
+
+dfa :: HasCallStack => SimMonad ()
+dfa = do
+    let accounts = [alice, bob, carol, dan]
+    liftIO $ printSelfGnuplotHeader accounts
+    t0 <- liftIO now
+    timeTravel t0
+    createToken token accounts initBalance
+
+    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) u1x
+    travelDaysAndPrintBalances t0 accounts 7
+
+    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF alice carol) u1x
+    travelDaysAndPrintBalances t0 accounts 7
+
+    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF dan alice) (u1x * 2)
+    travelDaysAndPrintBalances t0 accounts 60
+
+cfda :: HasCallStack => SimMonad ()
+cfda = do
+    let accounts = [alice, bob, carol]
+    liftIO $ printSelfGnuplotHeader accounts
+    t0 <- liftIO now
+    timeTravel t0
+    createToken token accounts initBalance
+
+    runToken token $ SF.updateProportionalDistributionSubscription bob alice 0 1000
+    runToken token $ SF.distributeFlow alice 0 fr1x
+    travelDaysAndPrintBalances t0 accounts 7
+
+    runToken token $ SF.updateProportionalDistributionSubscription carol alice 0 4000
+    travelDaysAndPrintBalances t0 accounts 7
+
+    runToken token $ SF.distributeFlow alice 0 (5*fr1x)
+    travelDaysAndPrintBalances t0 accounts 7

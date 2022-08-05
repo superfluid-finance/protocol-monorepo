@@ -49,7 +49,8 @@ createTokenTestCase (TokenTestCase spec runner) = it (testCaseLabel spec) $ do
         mapM_ (`createTestAccount` testAccountInitBalance spec) addresses
         runner TokenTestContext { testSpec = spec, testAddresses = addresses }
         ) TokenTesterData
-        { sfSys = SF.SimpleSystemData { SF.currentTime = 0 }
+        { sfSys = SF.SimpleSystemData { SF.currentTime = 51084000 -- nixon shock, 15th August 1971
+                                      }
         , token = def
         }
 

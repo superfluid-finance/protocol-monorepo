@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Multi Flow SuperApp Tester</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.0/dist/ethers.umd.min.js"
+        integrity="sha256-I/T7C/qM1p/EIawMnVp+b68aGIgHpiaW5uJm8Xd/WYg=" crossorigin="anonymous"></script>
+    <script src="./index.umd.js"></script>
+    <script type="importmap">
+            {
+                "imports": {
+                    "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+                }
+            }
+        </script>
+</head>
+
+<body>
+    <script type="module">
+        import { computed, createApp, reactive, ref, onMounted, watch } from 'vue';
+
+        const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+        const EMPTY_RECEIVER = { address: ZERO_ADDRESS, proportion: "0" };
+
+        createApp({
+            setup() {
+                let framework;
+                let token;
+                let passedSigner;
+                const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545/");
+                const abiCoder = new ethers.utils.AbiCoder();
+                const mfaData = reactive({ ratioPct: "", flowRate: "", signerAddress: "" });
+                const receivers = reactive([]); // Array<{ address: string, proportion: string }>
+                const accounts = reactive([]); // Array<string>
+                const tokenData = reactive({
+                    address: "",
+                    balance: 0,
+                    name: "",
+                    underlyingAddress: "",
+                    underlyingBalance: 0,
+                    underlyingName: "",
+                });
+                const receiverAddresses = computed(() => receivers.map(x => x.address));
+                const filteredReceivers = computed(() => receivers.filter(x => x.proportion > 0));
+                const signerAddress = computed(() => signer && signer.value ? signer.value._address : "pepe");
+                const providerNetwork = computed(() => provider && provider ? provider._network : "pepe");
+
+                const selected = ref("");
+                const currentToken = ref("");
+                const currentReceiverAddress = ref("");
+                const currentReceiverProportion = ref("");
+                const impersonatedSignerAddress = ref("");
+                const signer = ref(null);
+
+                watch(selected, (receiverAddress) => {
+                    const receiver = receivers.find(x => x.address === receiverAddress);
+                    if (receiver) {
+                        currentReceiverProportion.value = receiver.proportion;
+                        currentReceiverAddress.value = receiverAddress;
+                    }
+                });
+                watch(signer, (signer) => {
+                    if (token) {
+                        // const balance = await
+                    }
+                });
+                watch(accounts, async (accounts) => {
+                    if (accounts.length > 0) {
+                        await initialize();
+                        await initializeFramework();
+                        await loadToken();
+                    }
+                });
+
+                // VALIDATORS
+                const hasValidUpdateReceiverInput = () => {
+                    return isAddress(currentReceiverAddress.value)
+                        && (currentReceiverProportion.value === 0
+                            || currentReceiverProportion.value === 1);
+                }
+                const hasValidMFAInput = () => {
+                    return mfaData.ratioPct !== ""
+                        && mfaData.flowRate !== ""
+                        && isAddress(mfaData.signerAddress)
+                        && filteredReceivers.value.length > 0;
+                }
+                const isAddress = (address) => {
+                    return ethers.utils.isAddress(address);
+                }
+
+                // CRUD
+                const addReceiver = () => {
+                    let newAddress;
+                    if (currentReceiverAddress.value !== "" || currentReceiverProportion.value !== "") {
+                        if (!hasValidUpdateReceiverInput() || receiverAddresses.value.includes(currentReceiverAddress.value)) {
+                            window.alert("what are ya doing");
+                            return;
+                        }
+
+                        const currentData = {
+                            address: currentReceiverAddress.value,
+                            proportion: currentReceiverProportion.value
+                        };
+                        receivers.push(currentData);
+                        newAddress = currentReceiverAddress.value;
+                    } else {
+                        if (receiverAddresses.value.includes(EMPTY_RECEIVER.address)) {
+                            window.alert("what are ya doing");
+                            return;
+                        }
+                        receivers.push(EMPTY_RECEIVER);
+                        newAddress = EMPTY_RECEIVER.address;
+                    }
+                    selected.value = newAddress;
+                };
+                const updateReceiver = () => {
+                    if (!hasValidUpdateReceiverInput()) {
+                        window.alert("what are ya doing");
+                        return;
+                    }
+                    const i = receivers.map(x => x.address).indexOf(selected.value);
+                    receivers[i].address = selected.value = currentReceiverAddress.value;
+                    receivers[i].proportion = currentReceiverProportion.value;
+                    selected.value = currentReceiverAddress.value = currentReceiverProportion.value = "";
+                };
+                const removeReceiver = (receiver) => {
+                    const i = receivers.map(x => x.address).indexOf(selected.value);
+                    receivers.splice(i, 1);
+                    selected.value = currentReceiverAddress.value = currentReceiverProportion.value = ""
+                };
+
+                // DATA MOLDING
+                const getPerSecondFlowRateByDay = (amountPerDay) => {
+                    return Math.round(
+                        (Number(amountPerDay) / 86400) * 10 ** 18
+                    ).toString();
+                };
+                const createUserData = () => {
+                    return abiCoder.encode(["address", "uint256", "address[]", "uint256[]"], [
+                        mfaData.sender,
+                        mfaData.ratioPct,
+                        filteredReceivers.value.map(x => x.address),
+                        filteredReceivers.value.map(x => x.proportion)
+                    ]);
+                }
+
+                // FORMATTING
+                const formatBalance = (balance) => ethers.utils.formatEther(balance);
+
+                // TXNs
+                const initializeFramework = async () => {
+                    const sf = await sdkCore.Framework.create({
+                        chainId: 31337,
+                        provider: provider,
+                        resolverAddress: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+                        protocolReleaseVersion: "test",
+                    });
+                    framework = sf;
+                }
+                const loadToken = async () => {
+                    const token = await framework.loadNativeAssetSuperToken("ETHx");
+                    tokenData.address = token.address;
+                    if (signer.value) {
+                        const balanceData = await token.realtimeBalanceOf({
+                            providerOrSigner: provider, account: signer.value._address
+                        });
+                        tokenData.balance = balanceData.availableBalance;
+                        tokenData.underlyingBalance = await provider.getBalance(signer.value._address);
+                    }
+                    tokenData.name = await token.symbol({
+                        providerOrSigner: provider
+                    });
+                    tokenData.underlyingName = "ETH";
+                }
+                const getSigners = async () => {
+                    const ethAccounts = await provider.listAccounts();
+                    accounts.push(...ethAccounts);
+                }
+                const impersonateAccount = async () => {
+                    await provider.send(
+                        "hardhat_impersonateAccount",
+                        [mfaData.signerAddress]
+                    );
+                    const ethersSigner = await provider.getSigner(mfaData.signerAddress);
+                    signer.value = ethersSigner;
+                    passedSigner = ethersSigner;
+                }
+                const startStream = async () => {
+                    if (signer == null) {
+                        await impersonateAccount();
+                    }
+                }
+                const initialize = async () => {
+                    mfaData.signerAddress = accounts[0];
+                    await impersonateAccount();
+                }
+
+                // INITIALIZATIONS
+                getSigners();
+
+                return {
+                    addReceiver,
+                    formatBalance,
+                    hasValidMFAInput,
+                    impersonateAccount,
+                    isAddress,
+                    loadToken,
+                    removeReceiver,
+                    startStream,
+                    updateReceiver,
+
+                    accounts,
+                    currentReceiverAddress,
+                    currentReceiverProportion,
+                    currentToken,
+                    filteredReceivers,
+                    impersonatedSignerAddress,
+                    mfaData,
+                    providerNetwork,
+                    receiverAddresses,
+                    receivers,
+                    selected,
+                    signer,
+                    signerAddress,
+                    token,
+                    tokenData,
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+<div id="app">
+    <div class="p-3">
+        <h2 class="d-flex justify-content-center">Multi Flow SuperApp Tester</h2>
+        <div class="d-flex justify-content-center">
+            <div>
+                <div>
+                    <h4>General Information</h4>
+                    <p>Selected Impersonated Signer: {{ signerAddress }} </p>
+                    <p>Selected Token: {{ tokenData.name }} | {{ tokenData.address }} </p>
+                    <p>Token Balance: {{ formatBalance(tokenData.balance) }} {{ tokenData.name }}</p>
+                    <p>Underlying Balance: {{ formatBalance(tokenData.underlyingBalance) }} {{ tokenData.underlyingName }} </p>
+                </div>
+                <div class="input-container d-flex">
+                    <label for="signerAddress">Signer</label>
+                    <input class="ml-2" type="text" v-model="mfaData.signerAddress" name="signerAddress">
+                    <button @click="impersonateAccount"
+                        :disabled="!isAddress(mfaData.signerAddress)">Impersonate</button>
+                </div>
+                <div class="input-container d-flex">
+                    <label for="signerAddress">Token</label>
+                    <input class="ml-2" type="text" v-model="currentToken" name="currentToken">
+                    <button @click="loadToken">Load Token</button>
+                </div>
+                <div class="input-container">
+                    <label for="ratioPct">Ratio Percent</label>
+                    <input class="ml-2" type="number" v-model="mfaData.ratioPct" name="ratioPct">
+                </div>
+                <div class="input-container">
+                    <label for="flowRate">Flow Rate (/day)</label>
+                    <input class="ml-2" type="number" v-model="mfaData.flowRate" name="flowRate">
+                </div>
+                <div class="mt-5">
+                    <h4>Receivers</h4>
+                    <select style="width: 420px" size="5" v-model="selected">
+                        <option v-for="receiverAddress in receiverAddresses">{{receiverAddress}}</option>
+                    </select>
+                    <div class="input-container">
+                        <label for="currentReceiverAddress">Receiver Address</label>
+                        <input class="ml-2" type="text" size="50" v-model="currentReceiverAddress"
+                            name="currentReceiverAddress">
+                    </div>
+                    <div class="input-container">
+                        <label for="currentReceiverProportion">Receiver Proportion</label>
+                        <input class="ml-2" style="width: 69px" type="number" min="0" max="1"
+                            v-model="currentReceiverProportion" name="currentReceiverProportion">
+                    </div>
+                    <button @click="addReceiver">Add receiver</button>
+                    <button @click="updateReceiver" :disabled='selected === ""'>Update receiver</button>
+                    <button @click="removeReceiver" :disabled='selected === ""'>Remove receiver</button>
+                </div>
+                <button @click="startStream" :disabled="hasValidMFAInput() === false">Start Stream</button>
+            </div>
+            <div>
+                <h4>Accounts</h4>
+                <ul>
+                    <li v-for="account in accounts">{{ account }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

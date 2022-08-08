@@ -39,22 +39,23 @@ jobs:
             echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
           fi
 
-      - name: Build package
-        run: |
-          yarn install --frozen-lockfile
-          yarn --cwd packages/sdk-core generate-graphql-schema:v1
-          yarn build
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Publish ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
-        run: tasks/npm-publish.sh packages/ethereum-contracts/ latest
+        run: |
+          yarn --cwd packages/ethereum-contracts build
+          tasks/npm-publish.sh packages/ethereum-contracts/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish js-sdk@latest package
         if: env.PUBLISH_JS_SDK == 1
-        run: tasks/npm-publish.sh packages/js-sdk/ latest
+        run: |
+          yarn --cwd packages/js-sdk build
+          tasks/npm-publish.sh packages/js-sdk/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
@@ -63,6 +64,8 @@ jobs:
         id: publish-sdk-core
         if: env.PUBLISH_SDK_CORE == 1
         run: |
+          yarn --cwd packages/sdk-core generate-graphql-schema:v1
+          yarn build
           tasks/npm-publish.sh packages/sdk-core/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`
@@ -103,6 +106,7 @@ jobs:
         id: publish-sdk-redux
         if: env.PUBLISH_SDK_REDUX == 1
         run: |
+          yarn --cwd packages/sdk-redux build
           tasks/npm-publish.sh packages/sdk-redux/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`

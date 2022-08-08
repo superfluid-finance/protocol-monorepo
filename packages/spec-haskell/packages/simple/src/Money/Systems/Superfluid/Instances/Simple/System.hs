@@ -50,6 +50,7 @@ import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantVal
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MVMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
 --
 import qualified Money.Systems.Superfluid.Token                                            as SF
 --
@@ -86,14 +87,16 @@ data SimpleAccount = SimpleAccount
     , subscriptions :: [SimpleSubscriberData]
     }
 
-mk_uidx_mud_lens
-    :: (SimpleUniversalData -> amud)
-    -> (amud -> SimpleUniversalData)
+mk_uidx_amudLs
+    :: Lens' SimpleUniversalData mudL
+    -> (mudL -> amud)
+    -> (amud -> mudL)
     -> Lens' SimpleAccount amud
-mk_uidx_mud_lens mkMud getMudL = lens
-    (mkMud . universal_index . account_data)
-    (\acc@(SimpleAccount{ account_data = accData }) amud ->
-         acc { account_data = accData { universal_index = getMudL amud } })
+mk_uidx_amudLs mudR mkMud getMudL = lens
+    (mkMud . (view mudR) . universal_index . account_data)
+    (\acc@(SimpleAccount{ account_data = accData@(SimpleAccountData{ universal_index = uidx }) }) amud ->
+         let uidx' = set mudR (getMudL amud) uidx
+         in  acc { account_data = accData { universal_index = uidx' } })
 
 mk_pdidx_mud_lens
     :: (SimplePublisherData -> amud)
@@ -122,10 +125,10 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
                        ++ fmap MkSimpleAgreementMonetaryUnitData (acc^.SF.cfdaSubscriberMonetaryUnitDataList)
 
     universalData = to (universal_index . account_data)
-    minterMonetaryUnitData = mk_uidx_mud_lens MVMUD.MkMonetaryUnitData MVMUD.getMonetaryUnitLenses
-    itaMonetaryUnitData    = mk_uidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
-    cfaMonetaryUnitData    = mk_uidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
-    dfaMonetaryUnitData    = mk_uidx_mud_lens DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
+    minterMonetaryUnitData = mk_uidx_amudLs UIDX.minta_lenses MVMUD.MkMonetaryUnitData MVMUD.getMonetaryUnitLenses
+    itaMonetaryUnitData    = mk_uidx_amudLs UIDX.ita_lenses IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
+    cfaMonetaryUnitData    = mk_uidx_amudLs UIDX.cfa_lenses CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
+    dfaMonetaryUnitData    = mk_uidx_amudLs UIDX.dfa_lenses DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
 
     pdPublisherData = to (pd_publisher . account_data)
     idaPublisherMonetaryUnitData = mk_pdidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses

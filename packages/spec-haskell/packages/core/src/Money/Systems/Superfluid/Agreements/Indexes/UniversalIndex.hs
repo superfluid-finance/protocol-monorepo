@@ -1,15 +1,18 @@
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex where
 
 import           Data.Default
 import           GHC.Generics
+import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MVMUD
---
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency          as BBS
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement          as MINTA
 
 
 -- | This is data that is universally available to the monetary unit.
@@ -17,16 +20,18 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 -- NOTE: It is called universal index because of this reason: it is a trivial index
 -- for the monetary unit to access the universal data.
 data UniversalData sft = UniversalData -- UniversalMonetaryUnitData
-    { minter_untapped_value      :: UntappedValue (SFT_MVAL sft)
-    , minter_minted_value        :: MVMUD.MintedValue (SFT_MVAL sft)
-    , ita_untapped_value         :: UntappedValue (SFT_MVAL sft)
-    , cfa_settled_at             :: SFT_TS sft
-    , cfa_settled_untapped_value :: UntappedValue (SFT_MVAL sft)
-    , cfa_settled_buffer_value   :: BBS.BufferValue (SFT_MVAL sft)
-    , cfa_net_flow_rate          :: SFT_MVAL sft
-    , dfa_settledAt              :: SFT_TS sft -- FIXME
-    , dfa_αVal                   :: SFT_FLOAT sft
-    , dfa_εVal                   :: SFT_FLOAT sft
-    , dfa_settledBuffer          :: BBS.BufferValue (SFT_MVAL sft)
+    { _minta_lenses :: MINTA.MonetaryUnitLenses sft
+    , _ita_lenses   :: ITA.MonetaryUnitLenses sft
+    , _cfa_lenses   :: CFA.MonetaryUnitLenses sft
+    , _dfa_lenses   :: DFA.MonetaryUnitLenses sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (UniversalData sft)
+
+minta_lenses :: Lens' (UniversalData sft) (MINTA.MonetaryUnitLenses sft)
+minta_lenses  = $(field '_minta_lenses)
+ita_lenses   :: Lens' (UniversalData sft) (ITA.MonetaryUnitLenses sft)
+ita_lenses    = $(field '_ita_lenses)
+cfa_lenses   :: Lens' (UniversalData sft) (CFA.MonetaryUnitLenses sft)
+cfa_lenses    = $(field '_cfa_lenses)
+dfa_lenses   :: Lens' (UniversalData sft) (DFA.MonetaryUnitLenses sft)
+dfa_lenses    = $(field '_dfa_lenses)

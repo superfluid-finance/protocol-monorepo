@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -11,27 +11,34 @@ module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement where
 import           Data.Coerce
 import           Data.Default
 import           Data.Kind                                                         (Type)
+import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
---
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 
 -- * Monetary unit lenses.
 --
 
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { settled_at             :: SFT_TS sft
+    , settled_untapped_value :: UntappedValue (SFT_MVAL sft)
+    , settled_buffer_value   :: BBS.BufferValue (SFT_MVAL sft)
+    , net_flow_rate          :: SFT_MVAL sft
+    } deriving (Generic)
+deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+
 -- | Monetary unit lenses for the universal index.
-instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (UniversalData sft) sft where
-    settledAt            = $(field 'cfa_settled_at)
-    settledUntappedValue = $(field 'cfa_settled_untapped_value)
-    settledBufferValue   = $(field 'cfa_settled_buffer_value)
-    netFlowRate          = $(field 'cfa_net_flow_rate)
+instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    settledAt            = $(field 'settled_at)
+    settledUntappedValue = $(field 'settled_untapped_value)
+    settledBufferValue   = $(field 'settled_buffer_value)
+    netFlowRate          = $(field 'net_flow_rate)
 
 -- | Type alias for the constant flow monetary unit data.
-type MonetaryUnitData sft = CFMUD.MonetaryUnitData (UniversalData sft) sft
+type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
 -- * Contract
 --

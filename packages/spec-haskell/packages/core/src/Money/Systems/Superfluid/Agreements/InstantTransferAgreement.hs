@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -11,19 +11,24 @@ module Money.Systems.Superfluid.Agreements.InstantTransferAgreement where
 import           Data.Coerce
 import           Data.Default
 import           Data.Kind
+import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue as IVMUD
 
 -- * Monetary data lenses
 --
 
-instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (UniversalData sft) sft where
-    untappedValue = $(field 'ita_untapped_value)
-type MonetaryUnitData sft = IVMUD.MonetaryUnitData (UniversalData sft) sft
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { untapped_value         :: UntappedValue (SFT_MVAL sft)
+    } deriving (Generic)
+deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+
+instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    untappedValue = $(field 'untapped_value)
+type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
 -- * Contract
 --

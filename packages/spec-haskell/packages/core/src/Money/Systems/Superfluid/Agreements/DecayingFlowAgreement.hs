@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -11,23 +11,32 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
 import           Data.Default
 import           Data.Kind                                                         (Type)
 import           Data.Proxy
+import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow as DFMUD
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
 
 -- * Monetary data lenses
 --
-instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (UniversalData sft) sft where
+
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { settled_at     :: SFT_TS sft
+    , α_val          :: SFT_FLOAT sft
+    , ε_val          :: SFT_FLOAT sft
+    , settled_buffer :: BBS.BufferValue (SFT_MVAL sft)
+    } deriving (Generic)
+deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+
+instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     decayingFactor = readOnlyLens (\_ -> dfa_default_lambda (Proxy @sft))
-    settledAt      = $(field 'dfa_settledAt)
-    αVal           = $(field 'dfa_αVal)
-    εVal           = $(field 'dfa_εVal)
-    settledBuffer  = $(field 'dfa_settledBuffer)
-type MonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalData sft) sft
+    settledAt      = $(field 'settled_at)
+    αVal           = $(field 'α_val)
+    εVal           = $(field 'ε_val)
+    settledBuffer  = $(field 'settled_buffer)
+type MonetaryUnitData sft = DFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
 -- * Operation
 

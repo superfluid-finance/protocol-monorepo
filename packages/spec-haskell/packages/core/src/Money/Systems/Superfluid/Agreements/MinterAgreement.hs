@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -8,23 +8,30 @@
 -- This module is typically imported using qualified name MINTA.
 module Money.Systems.Superfluid.Agreements.MinterAgreement where
 
-import           Data.Coerce                                                 (coerce)
+import           Data.Coerce                                                      (coerce)
 import           Data.Default
 import           Data.Kind
+import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MVMUD
 
 -- * Monetary unit lenses
 --
 
-instance SuperfluidTypes sft => MVMUD.MonetaryUnitLenses (UniversalData sft) sft where
-    untappedValue = $(field 'minter_untapped_value)
-    mintedValue   = $(field 'minter_minted_value)
-type MonetaryUnitData sft = MVMUD.MonetaryUnitData (UniversalData sft) sft
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { untapped_value :: UntappedValue (SFT_MVAL sft)
+    , minted_value   :: MVMUD.MintedValue (SFT_MVAL sft)
+    } deriving (Generic)
+deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+
+type MonetaryUnitData sft = MVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+
+instance SuperfluidTypes sft => MVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    untappedValue = $(field 'untapped_value)
+    mintedValue   = $(field 'minted_value)
 
 -- * Operation
 --

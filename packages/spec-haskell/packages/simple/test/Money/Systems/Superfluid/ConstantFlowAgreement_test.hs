@@ -11,6 +11,7 @@ import           Test.Hspec                                                     
 import           Test.HUnit
 
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement         as CFA
+import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex        as UIDX
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
@@ -24,7 +25,7 @@ import           Money.Systems.Superfluid.TokenTester
 expectNetFlowRateTo :: HasCallStack => SF.SimpleAddress -> (SF.Wad -> Assertion) -> TokenTester ()
 expectNetFlowRateTo addr expr = do
     acc <- runToken $ SF.getAccount addr
-    liftIO $ expr $ acc ^. (SF.universalData . CFMUD.netFlowRate)
+    liftIO $ expr $ acc ^. (SF.universalData . UIDX.cfa_lenses . CFMUD.netFlowRate)
 
 expectFlowRateTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectFlowRateTo (sender, receiver) expr = do

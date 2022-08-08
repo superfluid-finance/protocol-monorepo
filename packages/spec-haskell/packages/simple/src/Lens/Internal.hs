@@ -2,11 +2,13 @@
 
 module Lens.Internal
     ( module Lens.Micro
+    , module Lens.Micro.Extras
     , field
     ) where
 
 import           Language.Haskell.TH
 import           Lens.Micro
+import           Lens.Micro.Extras
 
 -- | Make a lens from a field name.
 --

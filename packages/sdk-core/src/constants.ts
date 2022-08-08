@@ -16,10 +16,7 @@ export const YEAR_IN_SECONDS = MONTH_IN_SECONDS * MONTHS_PER_YEAR; // NOTE: Is 3
 export const BASE_18 = 1e18;
 
 /******* NETWORK NAMES *******/
-export const ETH_ROPSTEN = "eth-ropsten";
-export const ETH_RINKEBY = "eth-rinkeby";
 export const ETH_GOERLI = "eth-goerli";
-export const ETH_KOVAN = "eth-kovan";
 
 export const POLYGON_MAINNET = "polygon-mainnet";
 export const POLYGON_MUMBAI = "polygon-mumbai";
@@ -27,10 +24,10 @@ export const POLYGON_MUMBAI = "polygon-mumbai";
 export const XDAI_MAINNET = "xdai-mainnet";
 
 export const OPTIMISM_MAINNET = "optimism-mainnet";
-export const OPTIMISM_KOVAN = "optimism-kovan";
+export const OPTIMISM_GOERLI = "optimism-goerli";
 
 export const ARBITRUM_ONE = "arbitrum-one";
-export const ARBITRUM_RINKEBY = "arbitrum-rinkeby";
+export const ARBITRUM_GOERLI = "arbitrum-goerli";
 
 export const AVALANCHE_C = "avalanche-c";
 export const AVALANCHE_FUJI = "avalanche-fuji";
@@ -38,10 +35,7 @@ export const AVALANCHE_FUJI = "avalanche-fuji";
 export const BSC_MAINNET = "bsc-mainnet";
 
 /******* CHAIN IDS *******/
-export const ETH_ROPSTEN_CHAIN_ID = 3;
-export const ETH_RINKEBY_CHAIN_ID = 4;
 export const ETH_GOERLI_CHAIN_ID = 5;
-export const ETH_KOVAN_CHAIN_ID = 42;
 
 export const GNOSIS_CHAIN_ID = 100;
 
@@ -49,10 +43,10 @@ export const MATIC_CHAIN_ID = 137;
 export const MUMBAI_CHAIN_ID = 80001;
 
 export const OPTIMISM_MAINNET_CHAIN_ID = 10;
-export const OPTIMISM_KOVAN_CHAIN_ID = 69;
+export const OPTIMISM_GOERLI_CHAIN_ID = 69;
 
 export const ARBITRUM_ONE_CHAIN_ID = 42161;
-export const ARBITRUM_RINKEBY_CHAIN_ID = 421611;
+export const ARBITRUM_GOERLI_CHAIN_ID = 421611;
 
 export const AVALANCHE_FUJI_CHAIN_ID = 43113;
 export const AVALANCHE_C_CHAIN_ID = 43114;
@@ -60,10 +54,7 @@ export const AVALANCHE_C_CHAIN_ID = 43114;
 export const BSC_MAINNET_CHAIN_ID = 56;
 
 export const chainIds = [
-    ETH_ROPSTEN_CHAIN_ID, // ROPSTEN
-    ETH_RINKEBY_CHAIN_ID, // RINKEBY
     ETH_GOERLI_CHAIN_ID, // GOERLI
-    ETH_KOVAN_CHAIN_ID, // KOVAN
 
     MATIC_CHAIN_ID, // MATIC
     MUMBAI_CHAIN_ID, // MUMBAI
@@ -71,10 +62,10 @@ export const chainIds = [
     GNOSIS_CHAIN_ID, // GNOSIS
 
     OPTIMISM_MAINNET_CHAIN_ID, // OPTIMISM MAINNET
-    OPTIMISM_KOVAN_CHAIN_ID, // OPTIMISM KOVAN
+    OPTIMISM_GOERLI_CHAIN_ID, // OPTIMISM KOVAN
 
     ARBITRUM_ONE_CHAIN_ID, // ARBITRUM ONE
-    ARBITRUM_RINKEBY_CHAIN_ID, // ARBITRUM RINKEBY
+    ARBITRUM_GOERLI_CHAIN_ID, // ARBITRUM RINKEBY
 
     AVALANCHE_FUJI_CHAIN_ID, // AVALANCHE FUJI
     AVALANCHE_C_CHAIN_ID, // AVALANCHE C-CHAIN
@@ -99,24 +90,6 @@ const baseUrl = `https://api.thegraph.com/subgraphs/name/superfluid-finance/prot
 
 export const chainIdToResolverDataMap = new Map<number, IResolverData>([
     [
-        ETH_ROPSTEN_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-ropsten`,
-            networkName: ETH_ROPSTEN,
-            resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
-        ETH_RINKEBY_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-rinkeby`,
-            networkName: ETH_RINKEBY,
-            resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
         ETH_GOERLI_CHAIN_ID,
         {
             subgraphAPIEndpoint: `${baseUrl}-goerli`,
@@ -135,19 +108,10 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        ETH_KOVAN_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-kovan`,
-            networkName: ETH_KOVAN,
-            resolverAddress: "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
-        OPTIMISM_KOVAN_CHAIN_ID,
+        OPTIMISM_GOERLI_CHAIN_ID,
         {
             subgraphAPIEndpoint: `${baseUrl}-optimism-kovan`,
-            networkName: OPTIMISM_KOVAN,
+            networkName: OPTIMISM_GOERLI,
             resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
             nativeTokenSymbol: "ETH",
         },
@@ -216,10 +180,10 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
         },
     ],
     [
-        ARBITRUM_RINKEBY_CHAIN_ID,
+        ARBITRUM_GOERLI_CHAIN_ID,
         {
             subgraphAPIEndpoint: `${baseUrl}-arbitrum-rinkeby`,
-            networkName: ARBITRUM_RINKEBY,
+            networkName: ARBITRUM_GOERLI,
             resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
             nativeTokenSymbol: "ETH",
         },
@@ -227,21 +191,18 @@ export const chainIdToResolverDataMap = new Map<number, IResolverData>([
 ]);
 
 export const networkNameToChainIdMap = new Map<string, number>([
-    [ETH_ROPSTEN, ETH_ROPSTEN_CHAIN_ID],
-    [ETH_RINKEBY, ETH_RINKEBY_CHAIN_ID],
     [ETH_GOERLI, ETH_GOERLI_CHAIN_ID],
-    [ETH_KOVAN, ETH_KOVAN_CHAIN_ID],
 
     [XDAI_MAINNET, GNOSIS_CHAIN_ID],
 
     [POLYGON_MAINNET, MATIC_CHAIN_ID],
     [POLYGON_MUMBAI, MUMBAI_CHAIN_ID],
 
-    [OPTIMISM_KOVAN, OPTIMISM_KOVAN_CHAIN_ID],
+    [OPTIMISM_GOERLI, OPTIMISM_GOERLI_CHAIN_ID],
     [OPTIMISM_MAINNET, OPTIMISM_MAINNET_CHAIN_ID],
 
     [ARBITRUM_ONE, ARBITRUM_ONE_CHAIN_ID],
-    [ARBITRUM_RINKEBY, ARBITRUM_RINKEBY_CHAIN_ID],
+    [ARBITRUM_GOERLI, ARBITRUM_GOERLI_CHAIN_ID],
 
     [AVALANCHE_C, AVALANCHE_C_CHAIN_ID],
     [AVALANCHE_FUJI, AVALANCHE_FUJI_CHAIN_ID],

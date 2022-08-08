@@ -215,29 +215,10 @@ class ( Monad tk
         pub <- getAccount publisher
         dc <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
         sc  <- fromMaybe def <$> viewProportionalDistributionSubscription subscriber publisher indexId
-        let (dc1, sc1) = settle_ida t (dc, sc)
-        let (dc2, sc2, cfdaMUDΔ) = settle_cfda t (dc1, sc1)
-        let (dc', sc') = subscribe_unit t (dc2, sc2)
+        let ((dc', sc'), cfdaMUDΔ) = PDIDX.updateSubscription (dc, sc) unit t
         setProportionalDistributionContract publisher indexId dc' t
         setProportionalDistributionSubscription subscriber publisher indexId sc' t
         putAccount publisher (over cfdaPublisherMonetaryUnitData (<> cfdaMUDΔ) pub) t
-        where
-            settle_ida t (dc, sc) = let
-                aod = (PDIDX.dc_base dc, PDIDX.dc_ida dc, PDIDX.sc_base sc, PDIDX.sc_ida sc)
-                aod' = applyAgreementOperation IDA.SettleSubscription (IDA.SubscriberOperationData aod) t
-                (IDA.SubscriberOperationData (_, dc_ida', _, sc_ida'), _) = aod'
-                in (dc { PDIDX.dc_ida = dc_ida' }, sc { PDIDX.sc_ida = sc_ida' })
-            settle_cfda t (dc, sc) = let
-                aod = (PDIDX.dc_base dc, PDIDX.dc_cfda dc, PDIDX.sc_base sc, PDIDX.sc_cfda sc)
-                aod' = applyAgreementOperation CFDA.SettleSubscription (CFDA.SubscriberOperationData aod) t
-                ( CFDA.SubscriberOperationData (_, dc_cfda', _, sc_cfda')
-                    , CFDA.SubscriberOperationPartiesF cfdaMUDΔ ) = aod'
-                in (dc { PDIDX.dc_cfda = dc_cfda' }, sc { PDIDX.sc_cfda = sc_cfda' }, cfdaMUDΔ)
-            subscribe_unit t (dc, sc) = let
-                aod = (dc, sc)
-                aod' = applyAgreementOperation (PDIDX.Subscribe unit) (PDIDX.SubscriberOperationData aod) t
-                (PDIDX.SubscriberOperationData (dc', sc'), _) = aod'
-                in (dc', sc')
 
     distributeProportionally
         :: ACC_ADDR acc                    -- publisher

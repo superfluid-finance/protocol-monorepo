@@ -103,7 +103,8 @@ instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft 
                        & set CFMUD.netFlowRate (dcfr - dcfr') -- reverse sign for outgoing flow
                        & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
         in (PublisherOperationData dcBase dc', fmap CFMUD.MkMonetaryUnitData aorΔ)
-        where DistributionContractBase { total_unit = tu } = dcBase
+        where DistributionContractBase { total_unit    = tu
+                                       } = dcBase
               DistributionContract { dc_settled_at     = t_dc
                                    , dc_value_per_unit = vpu
                                    , dc_flow_rate      = dcfr
@@ -137,12 +138,14 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
                 (def & set CFMUD.settledAt t'
                      & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
         in (SubscriberOperationData (dcBase, dc', scBase, sc'), fmap CFMUD.MkMonetaryUnitData aorΔ)
-        where DistributionContractBase { total_unit = tu } = dcBase
-              DistributionContract { dc_settled_at                 = t_dc
-                                   , dc_value_per_unit             = vpu_i
-                                   , dc_flow_rate                  = dcfr
+        where DistributionContractBase { total_unit            = tu
+                                       } = dcBase
+              DistributionContract { dc_settled_at             = t_dc
+                                   , dc_value_per_unit         = vpu_i
+                                   , dc_flow_rate              = dcfr
                                    } = dc
-              SubscriptionContractBase { sub_owned_unit = u } = scBase
+              SubscriptionContractBase { sub_owned_unit        = u
+                                   } = scBase
               SubscriptionContract { sc_settled_value          = UntappedValue sv
                                    , sc_settled_value_per_unit = svpu
                                    } = sc

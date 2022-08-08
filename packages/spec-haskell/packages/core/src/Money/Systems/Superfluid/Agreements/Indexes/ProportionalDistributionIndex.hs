@@ -90,3 +90,33 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriptionOperation sft) s
 
 type SubscriberOperationData :: Type -> Type
 type SubscriberOperationData sft = AgreementOperationData (SubscriptionOperation sft)
+
+-- TODO compiling to categories
+updateSubscription :: SuperfluidTypes sft
+    => SubscriberData sft
+    -> SFT_FLOAT sft
+    -> SFT_TS sft
+    -> ( SubscriberData sft
+       , CFDA.PublisherMonetaryUnitData sft)
+updateSubscription (dc0, sc0) unit t = let
+    (dc1, sc1) = settle_ida (dc0, sc0)
+    (dc2, sc2, cfdaMUDΔ) = settle_cfda (dc1, sc1)
+    (dc', sc') = subscribe_unit (dc2, sc2)
+    in ((dc', sc'), cfdaMUDΔ)
+    where
+        settle_ida (dc, sc) = let
+            aod = (dc_base dc, dc_ida dc, sc_base sc, sc_ida sc)
+            aod' = applyAgreementOperation IDA.SettleSubscription (IDA.SubscriberOperationData aod) t
+            (IDA.SubscriberOperationData (_, dc_ida', _, sc_ida'), _) = aod'
+            in (dc { dc_ida = dc_ida' }, sc { sc_ida = sc_ida' })
+        settle_cfda (dc, sc) = let
+            aod = (dc_base dc, dc_cfda dc, sc_base sc, sc_cfda sc)
+            aod' = applyAgreementOperation CFDA.SettleSubscription (CFDA.SubscriberOperationData aod) t
+            ( CFDA.SubscriberOperationData (_, dc_cfda', _, sc_cfda')
+                , CFDA.SubscriberOperationPartiesF cfdaMUDΔ ) = aod'
+            in (dc { dc_cfda = dc_cfda' }, sc { sc_cfda = sc_cfda' }, cfdaMUDΔ)
+        subscribe_unit (dc, sc) = let
+            aod = (dc, sc)
+            aod' = applyAgreementOperation (Subscribe unit) (SubscriberOperationData aod) t
+            (SubscriberOperationData (dc', sc'), _) = aod'
+            in (dc', sc')

@@ -54,9 +54,11 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sf
     untappedValue = readOnlyLens
         -- lens getter: subscribed value
         (\( _
-          , DistributionContract { dc_value_per_unit = vpu }
-          , SubscriptionContractBase { sub_owned_unit = u }
-          , SubscriptionContract { sc_settled_value = UntappedValue sv
+          , DistributionContract { dc_value_per_unit         = vpu
+                                 }
+          , SubscriptionContractBase { sub_owned_unit        = u
+                                     }
+          , SubscriptionContract { sc_settled_value          = UntappedValue sv
                                  , sc_settled_value_per_unit = svpu
                                  }
           ) -> UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu)))
@@ -98,9 +100,11 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
                   , sc_settled_value_per_unit = vpu
                   }
         in (SubscriberOperationData (dcBase, dc, scBase, sc'), SubscriberOperationPartiesF)
-        where DistributionContract { dc_value_per_unit = vpu } = dc
-              SubscriptionContractBase { sub_owned_unit = u } = scBase
-              SubscriptionContract { sc_settled_value = UntappedValue sv
+        where DistributionContract { dc_value_per_unit         = vpu
+                                   } = dc
+              SubscriptionContractBase { sub_owned_unit        = u
+                                       } = scBase
+              SubscriptionContract { sc_settled_value          = UntappedValue sv
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
               svΔ = floor $ fromIntegral (vpu - svpu) * u

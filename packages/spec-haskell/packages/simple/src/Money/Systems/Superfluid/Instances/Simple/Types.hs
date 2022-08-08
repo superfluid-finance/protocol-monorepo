@@ -59,6 +59,9 @@ import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFl
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
 import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MVMUD
 --
+
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionCommon        as PDCOMMON
+
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
@@ -290,30 +293,33 @@ instance TaggedTypeable (IDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) wh
     tagFromProxy _ = "IDA(P)"
 
 instance Show (IDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) where
-    show (IVMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
+    show (IVMUD.MkMonetaryUnitData x) = printf "pub { uval = %s }"
         (show $ x^.IVMUD.untappedValue)
 
 instance TaggedTypeable (IDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "IDA(S)"
 
 instance Show (IDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
-    show (IVMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
+    show (IVMUD.MkMonetaryUnitData x) = printf "sub { uval = %s }"
         (show $ x^.IVMUD.untappedValue)
 
--- * CFIDA
+-- * CFDA
 
 instance TaggedTypeable (CFDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "CFDA(P)"
 
 instance Show (CFDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) where
-    show (CFMUD.MkMonetaryUnitData x) = printf "{ uval = %s }"
-        (show $ x^.IVMUD.untappedValue)
+    show (CFMUD.MkMonetaryUnitData x) = printf "pub { t = %s, uval = %s, buf = %s, fr = %s }"
+        (show $ x^.CFMUD.settledAt)
+        (show $ x^.CFMUD.settledUntappedValue)
+        (show $ x^.CFMUD.settledBufferValue)
+        (show $ x^.CFMUD.netFlowRate)
 
 instance TaggedTypeable (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "CFDA(S)"
 
 instance Show (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
-    show (CFMUD.MkMonetaryUnitData x) = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "sub { t = %s, uval = %s, buf = %s, fr = %s }"
         (show $ x^.CFMUD.settledAt)
         (show $ x^.CFMUD.settledUntappedValue)
         (show $ x^.CFMUD.settledBufferValue)
@@ -326,16 +332,26 @@ type SimpleUniversalData = UIDX.UniversalData SimpleSuperfluidTypes
 -- * PDIDX
 
 type ProportionalDistributionIndexID = Int
-type SimplePublisherData = PDIDX.PublisherData SimpleSuperfluidTypes
-type SimpleSubscriberData = PDIDX.SubscriberData SimpleSuperfluidTypes
 type SimpleDistributionContract = PDIDX.DistributionContract SimpleSuperfluidTypes
 type SimpleSubscriptionContract = PDIDX.SubscriptionContract SimpleSuperfluidTypes
+
 instance TaggedTypeable (PDIDX.SubscriptionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "PD(S)#"
 instance TaggedTypeable (PDIDX.DistributionContract SimpleSuperfluidTypes) where
     tagFromProxy _ = "PD(P)#"
+
+deriving instance Show (PDCOMMON.DistributionContractBase SimpleSuperfluidTypes)
+deriving instance Show (PDCOMMON.SubscriptionContractBase SimpleSuperfluidTypes)
+deriving instance Show (IDA.DistributionContract SimpleSuperfluidTypes)
+deriving instance Show (IDA.SubscriptionContract SimpleSuperfluidTypes)
+deriving instance Show (CFDA.DistributionContract SimpleSuperfluidTypes)
+deriving instance Show (CFDA.SubscriptionContract SimpleSuperfluidTypes)
 deriving instance Show (PDIDX.DistributionContract SimpleSuperfluidTypes)
 deriving instance Show (PDIDX.SubscriptionContract SimpleSuperfluidTypes)
+
+type SimplePublisherData = PDIDX.PublisherData SimpleSuperfluidTypes
+type SimpleSubscriberData = PDIDX.SubscriberData SimpleSuperfluidTypes
+
 
 -- * AnyX.
 --

@@ -27,8 +27,8 @@ module Money.Systems.Superfluid.Instances.Simple.System
     , listAccounts
     , listCFAContracts
     , listDFAContracts
-    , listPublisherContracts
-    , listIDASubscriptionContracts
+    , listDistributionContracts
+    , listSubscriptionContracts
     ) where
 
 import           Control.Monad.Trans.Class
@@ -88,24 +88,25 @@ data SimpleAccount = SimpleAccount
     }
 
 mk_uidx_amudLs
-    :: Lens' SimpleUniversalData mudL
-    -> (mudL -> amud)
-    -> (amud -> mudL)
+    :: Lens' SimpleUniversalData mudLs
+    -> (mudLs -> amud)
+    -> (amud -> mudLs)
     -> Lens' SimpleAccount amud
-mk_uidx_amudLs mudR mkMud getMudL = lens
-    (mkMud . (view mudR) . universal_index . account_data)
+mk_uidx_amudLs mudLs mkMud getMudLs = lens
+    (mkMud . (view mudLs) . universal_index . account_data)
     (\acc@(SimpleAccount{ account_data = accData@(SimpleAccountData{ universal_index = uidx }) }) amud ->
-         let uidx' = set mudR (getMudL amud) uidx
-         in  acc { account_data = accData { universal_index = uidx' } })
+         let uidx' = set mudLs (getMudLs amud) uidx
+         in  acc { account_data = accData { universal_index = uidx' }})
 
-mk_pdidx_mud_lens
-    :: (SimplePublisherData -> amud)
-    -> (amud -> SimplePublisherData)
+mk_pdidx_pubLs
+    :: Lens' SimplePublisherData mudLs
+    -> (mudLs -> amud) -> (amud -> mudLs)
     -> Lens' SimpleAccount amud
-mk_pdidx_mud_lens mkMud getMudL = lens
-    (mkMud . pd_publisher . account_data)
-    (\acc@(SimpleAccount{ account_data = accData }) amud ->
-         acc { account_data = accData { pd_publisher = getMudL amud } })
+mk_pdidx_pubLs mudLs mkMud getMudLs = lens
+    (mkMud . (view mudLs) . pd_publisher . account_data)
+    (\acc@(SimpleAccount{ account_data = accData@(SimpleAccountData{ pd_publisher = uidx }) }) amud ->
+         let pub' = set mudLs (getMudLs amud) uidx
+         in  acc { account_data = accData { pd_publisher = pub' }})
 
 instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     type AnyAgreementMonetaryUnitData SimpleAccount = AnySimpleAgreementMonetaryUnitData
@@ -126,15 +127,19 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
 
     universalData = to (universal_index . account_data)
     minterMonetaryUnitData = mk_uidx_amudLs UIDX.minta_lenses MVMUD.MkMonetaryUnitData MVMUD.getMonetaryUnitLenses
-    itaMonetaryUnitData    = mk_uidx_amudLs UIDX.ita_lenses IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
-    cfaMonetaryUnitData    = mk_uidx_amudLs UIDX.cfa_lenses CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
-    dfaMonetaryUnitData    = mk_uidx_amudLs UIDX.dfa_lenses DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
+    itaMonetaryUnitData = mk_uidx_amudLs UIDX.ita_lenses IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
+    cfaMonetaryUnitData = mk_uidx_amudLs UIDX.cfa_lenses CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
+    dfaMonetaryUnitData = mk_uidx_amudLs UIDX.dfa_lenses DFMUD.MkMonetaryUnitData DFMUD.getMonetaryUnitLenses
 
     pdPublisherData = to (pd_publisher . account_data)
-    idaPublisherMonetaryUnitData = mk_pdidx_mud_lens IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
-    idaSubscriberMonetaryUnitDataList = to (fmap IVMUD.MkMonetaryUnitData . subscriptions)
-    cfdaPublisherMonetaryUnitData = mk_pdidx_mud_lens CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
-    cfdaSubscriberMonetaryUnitDataList = to (fmap CFMUD.MkMonetaryUnitData . subscriptions)
+    idaPublisherMonetaryUnitData = mk_pdidx_pubLs
+        PDIDX.pub_ida_lenses IVMUD.MkMonetaryUnitData IVMUD.getMonetaryUnitLenses
+    idaSubscriberMonetaryUnitDataList = to $
+        fmap (IVMUD.MkMonetaryUnitData . PDIDX.ida_sub_data) . subscriptions
+    cfdaPublisherMonetaryUnitData = mk_pdidx_pubLs
+        PDIDX.pub_cfda_lenses CFMUD.MkMonetaryUnitData CFMUD.getMonetaryUnitLenses
+    cfdaSubscriberMonetaryUnitDataList = to $
+        fmap (CFMUD.MkMonetaryUnitData . PDIDX.cfda_sub_data) . subscriptions
 
 instance SF.Account SimpleAccount SimpleSuperfluidTypes where
     type ACC_ADDR SimpleAccount = SimpleAddress
@@ -172,12 +177,12 @@ instance Ord PDSUB_KEY where PDSUB_KEY a b <= PDSUB_KEY a' b' = a <= a' && b <= 
 
 -- | Simple token data type.
 data SimpleTokenData = SimpleTokenData
-    { accounts             :: M.Map SimpleAddress SimpleAccountData
-    , cfaContractData      :: M.Map CFA_KEY   SimpleCFAContractData
-    , dfaContractData      :: M.Map DFA_KEY   SimpleDFAContractData
-    , publisher_contracts  :: M.Map PDPUB_KEY SimpleDistributionContract
-    , subscriber_contracts :: M.Map PDSUB_KEY SimpleSubscriptionContract
-    , tokenLastUpdatedAt   :: SimpleTimestamp
+    { accounts               :: M.Map SimpleAddress SimpleAccountData
+    , cfaContractData        :: M.Map CFA_KEY   SimpleCFAContractData
+    , dfaContractData        :: M.Map DFA_KEY   SimpleDFAContractData
+    , distribution_contracts :: M.Map PDPUB_KEY SimpleDistributionContract
+    , subscriber_contracts   :: M.Map PDSUB_KEY SimpleSubscriptionContract
+    , tokenLastUpdatedAt     :: SimpleTimestamp
     }
 
 instance Default SimpleTokenData where
@@ -185,7 +190,7 @@ instance Default SimpleTokenData where
         { accounts = M.fromList [(minter_address, create_simple_account_data t)]
         , cfaContractData = def
         , dfaContractData = def
-        , publisher_contracts = def
+        , distribution_contracts = def
         , subscriber_contracts = def
         , tokenLastUpdatedAt = t }
         where t = def :: SimpleTimestamp
@@ -226,14 +231,13 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
                 & accounts
                 & M.lookup addr
                 & fromMaybe (create_simple_account_data 0)
-        let pubs = token & publisher_contracts
+        let pubs = token & distribution_contracts
         let subs = token
                 & subscriber_contracts
                 & M.filterWithKey (\(PDSUB_KEY s _) _ -> s == addr)
                 & M.toList
-                & fmap (\(PDSUB_KEY _ k, sub) -> PDIDX.SubscriberData
-                           (fromJust $ M.lookup k pubs)
-                           sub)
+                & fmap (\(PDSUB_KEY _ k, sub) -> (fromJust $ M.lookup k pubs
+                                                 , sub))
         return $ SimpleAccount { account_data = accData, subscriptions = subs }
 
     putAccount addr (SimpleAccount { account_data = accData }) t = modify $ \vs -> vs
@@ -279,11 +283,11 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     --
 
     viewProportionalDistributionContract publisher indexId = getSimpleTokenData
-        <&> publisher_contracts
+        <&> distribution_contracts
         <&> M.lookup (PDPUB_KEY publisher indexId)
 
     setProportionalDistributionContract publisher indexId index t = modify $ \vs -> vs
-        { publisher_contracts = M.insert (PDPUB_KEY publisher indexId) index (publisher_contracts vs)
+        { distribution_contracts = M.insert (PDPUB_KEY publisher indexId) index (distribution_contracts vs)
         , tokenLastUpdatedAt = t
         }
 
@@ -325,8 +329,8 @@ listCFAContracts = getSimpleTokenData <&> M.toList . cfaContractData
 listDFAContracts :: Monad m => SimpleTokenStateT m [(DFA_KEY, SimpleDFAContractData)]
 listDFAContracts = getSimpleTokenData <&> M.toList . dfaContractData
 
-listPublisherContracts :: Monad m => SimpleTokenStateT m [(PDPUB_KEY, SimpleDistributionContract)]
-listPublisherContracts = getSimpleTokenData <&> M.toList . publisher_contracts
+listDistributionContracts :: Monad m => SimpleTokenStateT m [(PDPUB_KEY, SimpleDistributionContract)]
+listDistributionContracts = getSimpleTokenData <&> M.toList . distribution_contracts
 
-listIDASubscriptionContracts :: Monad m => SimpleTokenStateT m [(PDSUB_KEY, SimpleSubscriptionContract)]
-listIDASubscriptionContracts = getSimpleTokenData <&> M.toList . subscriber_contracts
+listSubscriptionContracts :: Monad m => SimpleTokenStateT m [(PDSUB_KEY, SimpleSubscriptionContract)]
+listSubscriptionContracts = getSimpleTokenData <&> M.toList . subscriber_contracts

@@ -27,14 +27,15 @@ library
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow
         Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow
-        Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
         Money.Systems.Superfluid.Agreements.MinterAgreement
         Money.Systems.Superfluid.Agreements.InstantTransferAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
+        Money.Systems.Superfluid.Agreements.ProportionalDistributionCommon
         Money.Systems.Superfluid.Agreements.InstantDistributionAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement
+        Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
+        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
         Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
     other-modules:

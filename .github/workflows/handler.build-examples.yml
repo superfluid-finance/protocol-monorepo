@@ -51,6 +51,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
+          cache-dependency-path: "**/yarn.lock"
 
       - name: Install, build and test
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

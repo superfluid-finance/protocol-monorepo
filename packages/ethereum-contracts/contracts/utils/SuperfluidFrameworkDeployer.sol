@@ -16,6 +16,8 @@ import {
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
 import {SuperToken} from "../superfluid/SuperToken.sol";
+import {Resolver} from "./Resolver.sol";
+import {SuperfluidLoader} from "./SuperfluidLoader.sol";
 import "../apps/CFAv1Library.sol";
 import "../apps/IDAv1Library.sol";
 
@@ -32,6 +34,8 @@ contract SuperfluidFrameworkDeployer {
         InstantDistributionAgreementV1 ida;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
+        Resolver resolver;
+        SuperfluidLoader superfluidLoader;
     }
 
     TestGovernance internal governance;
@@ -39,6 +43,8 @@ contract SuperfluidFrameworkDeployer {
     ConstantFlowAgreementV1 internal cfa;
     InstantDistributionAgreementV1 internal ida;
     SuperTokenFactory internal superTokenFactory;
+    Resolver internal resolver;
+    SuperfluidLoader internal superfluidLoader;
 
     /// @notice Deploys everything... probably
     constructor() {
@@ -99,6 +105,21 @@ contract SuperfluidFrameworkDeployer {
             new address[](0),
             address(superTokenFactory)
         );
+
+        // Deploy Resolver
+        resolver = new Resolver();
+
+        // Deploy SuperfluidLoader
+        superfluidLoader = new SuperfluidLoader(resolver);
+
+        // Register Governance with Resolver
+        resolver.set("TestGovernance.test", address(governance));
+
+        // Register Superfluid with Resolver
+        resolver.set("Superfluid.test", address(host));
+
+        // Register SuperfluidLoader with Resolver
+        resolver.set("SuperfluidLoader-v1", address(superfluidLoader));
     }
 
     /// @notice Fetches the framework contracts
@@ -113,7 +134,9 @@ contract SuperfluidFrameworkDeployer {
             cfaLib: CFAv1Library.InitData(host, cfa),
             ida: ida,
             idaLib: IDAv1Library.InitData(host, ida),
-            superTokenFactory: superTokenFactory
+            superTokenFactory: superTokenFactory,
+            resolver: resolver,
+            superfluidLoader: superfluidLoader
         });
         return sf;
     }

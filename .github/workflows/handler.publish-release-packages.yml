@@ -58,6 +58,7 @@ jobs:
       - name: Publish js-sdk@latest package
         if: env.PUBLISH_JS_SDK == 1
         run: |
+          yarn --cwd packages/ethereum-contracts build
           yarn --cwd packages/js-sdk build
           tasks/npm-publish.sh packages/js-sdk/ latest
         env:
@@ -69,7 +70,8 @@ jobs:
         if: env.PUBLISH_SDK_CORE == 1
         run: |
           yarn --cwd packages/sdk-core generate-graphql-schema:v1
-          yarn build
+          yarn --cwd packages/ethereum-contracts build
+          yarn --cwd packages/sdk-core build
           tasks/npm-publish.sh packages/sdk-core/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`

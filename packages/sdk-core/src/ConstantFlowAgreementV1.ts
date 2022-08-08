@@ -72,8 +72,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting the flow",
-                errorObject: err,
+                message: "There was an error getting the flow",
+                cause: err,
             });
         }
     };
@@ -98,9 +98,9 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage:
+                message:
                     "There was an error getting the account flow information",
-                errorObject: err,
+                cause: err,
             });
         }
     };
@@ -124,8 +124,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting net flow",
-                errorObject: err,
+                message: "There was an error getting net flow",
+                cause: err,
             });
         }
     };
@@ -156,8 +156,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting flow operator data",
-                errorObject: err,
+                message: "There was an error getting flow operator data",
+                cause: err,
             });
         }
     };
@@ -187,8 +187,8 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             throw new SFError({
                 type: "CFAV1_READ",
-                customMessage: "There was an error getting flow operator data",
-                errorObject: err,
+                message: "There was an error getting flow operator data",
+                cause: err,
             });
         }
     };
@@ -215,7 +215,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -243,7 +243,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -272,7 +272,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -300,14 +300,14 @@ export default class ConstantFlowAgreementV1 {
         if (!isPermissionsClean(params.permissions)) {
             throw new SFError({
                 type: "UNCLEAN_PERMISSIONS",
-                customMessage: "The desired permissions are unclean",
+                message: "The desired permissions are unclean",
             });
         }
 
         if (Number(params.flowRateAllowance) < 0) {
             throw new SFError({
                 type: "NEGATIVE_FLOW_ALLOWANCE",
-                customMessage: "No negative flow allowance allowed",
+                message: "No negative flow allowance allowed",
             });
         }
 
@@ -322,7 +322,7 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -348,7 +348,7 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -372,7 +372,7 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -406,7 +406,7 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -440,7 +440,7 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -467,7 +467,7 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
         );
 
-        return this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.callAgreement(
             this.options.config.cfaV1Address,
             callData,
             params.userData,
@@ -482,7 +482,7 @@ export default class ConstantFlowAgreementV1 {
      * @param timestamp last updated timestamp of flow
      * @param flowRate the current flow rate
      * @param deposit the deposit amount
-     * @param owedDeposit any owed depsit
+     * @param owedDeposit any owed deposit
      * @returns {IWeb3FlowInfo} sanitized web3 flow info
      */
     _sanitizeFlowInfo = (params: IWeb3FlowInfoParams): IWeb3FlowInfo => {

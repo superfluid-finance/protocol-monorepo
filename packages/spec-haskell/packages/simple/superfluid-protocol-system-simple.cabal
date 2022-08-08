@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
-tested-with:   ghc ==9.2.2 ghc ==8.10.7
+tested-with:   ghc ==9.2.2
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol simple system instances.
 description:
@@ -15,20 +15,24 @@ build-type:    Simple
 
 library
     exposed-modules:
-        Money.Superfluid.Instances.Simple.Serialization
-        Money.Superfluid.Instances.Simple.SuperfluidTypes
-        Money.Superfluid.Instances.Simple.System
+        Money.Systems.Superfluid.Instances.Simple.Types
+        Money.Systems.Superfluid.Instances.Simple.System
+    other-modules:
+        Lens.Internal
+        Data.Type.TaggedTypeable
 
     hs-source-dirs:   src
-    default-language: Haskell2010
+    default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
-        base >=4.12 && <5,
+        base >=4.15 && <5,
+        template-haskell,
         data-default,
         containers,
-        transformers,
-        bytestring,
+        transformers >=0.2,
+        microlens >0.4.11,
         binary,
+        bytestring,
         superfluid-protocol-spec-core ==0.0.1.0
 
 test-suite tests
@@ -36,21 +40,22 @@ test-suite tests
     main-is:          Tests.hs
     hs-source-dirs:   test
     other-modules:
-        Money.Superfluid.RealtimeBalance_prop
-        Money.Superfluid.TokenTester
-        Money.Superfluid.System_unit
-
-    default-language: Haskell2010
+        Money.Systems.Superfluid.RealTimeBalance_prop
+        Money.Systems.Superfluid.TokenTester
+        Money.Systems.Superfluid.ConstantFlowAgreement_test
+        Money.Systems.Superfluid.DecayingFlowAgreement_test
+        Money.Systems.Superfluid.InstantDistributionAgreement_test
+    default-language: GHC2021
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
     build-depends:
-        base >=4.12 && <5,
-        test-framework >=0.8,
-        HUnit >=1.6.0.0,
-        test-framework-hunit >=0.3.0,
-        test-framework-quickcheck2 >=0.3.0,
-        QuickCheck >=2.13,
-        time,
+        base >=4.15 && <5,
         data-default,
         transformers,
-        superfluid-protocol-spec-core ==0.0.1.0,
+        microlens >0.4.11,
+        QuickCheck >=2.13,
+        hspec >=2.0,
+        HUnit >=1.6.0.0,
+        math-extras,
+        time,
+        superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

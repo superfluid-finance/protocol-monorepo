@@ -1,0 +1,19 @@
+# Raison d'être: new handlers can't be tested before being merged to dev.
+# This placeholder handler can be used for testing and reverted before merging.
+name: Placeholder for testing
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      some_field:
+        description: 'Lorem ipsum'
+        required: false
+
+jobs:
+  placeholder-for-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: echo test

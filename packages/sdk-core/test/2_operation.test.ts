@@ -5,15 +5,59 @@ import {
     IConstantFlowAgreementV1,
     SuperToken as SuperTokenType,
 } from "../src/typechain";
-import { getPerSecondFlowRateByMonth } from "../src/utils";
+import { getPerSecondFlowRateByMonth } from "../src";
 import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 import Operation from "../src/Operation";
+import hre from "hardhat";
+import { SuperAppTester } from "../typechain-types";
+import { abi as SuperAppTesterABI } from "../artifacts/contracts/SuperAppTester.sol/SuperAppTester.json";
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
+/**
+ * Create a simple call app action (setVal) operation with the SuperAppTester contract.
+ * @param deployer
+ * @param framework
+ * @returns Operation
+ */
+export const createCallAppActionOperation = async (
+    deployer: SignerWithAddress,
+    framework: Framework,
+    val: number
+) => {
+    const SuperAppTesterFactory = await hre.ethers.getContractFactory(
+        "SuperAppTester",
+        deployer
+    );
+    let superAppTester = (await SuperAppTesterFactory.deploy(
+        framework.contracts.host.address
+    )) as SuperAppTester;
+
+    const superAppTesterInterface = new ethers.utils.Interface(
+        SuperAppTesterABI
+    );
+    superAppTester = (await superAppTester.deployed()).connect(deployer);
+
+    // initial val will be 0 when contract is initialized
+    expect(await superAppTester.val()).to.equal("0");
+
+    const callData = superAppTesterInterface.encodeFunctionData("setVal", [
+        val,
+        "0x",
+    ]);
+    return {
+        operation: framework.host.callAppAction(
+            superAppTester.address,
+            callData
+        ),
+        superAppTester,
+    };
+};
+
 describe("Operation Tests", () => {
+    let evmSnapshotId: string;
     let framework: Framework;
     let cfaV1: IConstantFlowAgreementV1;
     let deployer: SignerWithAddress;
@@ -32,13 +76,20 @@ describe("Operation Tests", () => {
         bravo = Bravo;
         superToken = SuperToken;
         cfaV1 = CFAV1;
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
+    });
+
+    beforeEach(async () => {
+        await hre.network.provider.send("evm_revert", [evmSnapshotId]);
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
     });
 
     it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
-        const revokeControlOp = framework.cfaV1.revokeFlowOperatorWithFullControl({
-            superToken: superToken.address,
-            flowOperator: alpha.address,
-        });
+        const revokeControlOp =
+            framework.cfaV1.revokeFlowOperatorWithFullControl({
+                superToken: superToken.address,
+                flowOperator: alpha.address,
+            });
         const signer = framework.createSigner({
             privateKey: HARDHAT_PRIVATE_KEY,
             provider: deployer.provider,
@@ -49,6 +100,46 @@ describe("Operation Tests", () => {
         expect(opTxnHash).to.equal(receipt.transactionHash);
     });
 
+    it("Should be able to create an operation from framework.", async () => {
+        const callData = cfaInterface.encodeFunctionData("createFlow", [
+            superToken.address,
+            alpha.address,
+            getPerSecondFlowRateByMonth("100"),
+            "0x",
+        ]);
+        const txn = framework.host.contract.populateTransaction.callAgreement(
+            cfaV1.address,
+            callData,
+            "0x"
+        );
+        const operation = framework.operation(txn, "SUPERFLUID_CALL_AGREEMENT");
+        await operation.exec(deployer);
+    });
+
+    it("Should be able to create an operation from framework and execute from batch call.", async () => {
+        const callData = cfaInterface.encodeFunctionData("createFlow", [
+            superToken.address,
+            alpha.address,
+            getPerSecondFlowRateByMonth("100"),
+            "0x",
+        ]);
+        const txn = framework.host.contract.populateTransaction.callAgreement(
+            cfaV1.address,
+            callData,
+            "0x"
+        );
+        const operation = framework.operation(txn, "SUPERFLUID_CALL_AGREEMENT");
+        await framework.batchCall([operation]).exec(deployer);
+    });
+
+    it("Should be able to create a call app action operation", async () => {
+        const NEW_VAL = 69;
+        const { superAppTester, operation } =
+            await createCallAppActionOperation(deployer, framework, NEW_VAL);
+        await operation.exec(deployer);
+        expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
+    });
+
     it("Should throw an error when trying to execute a transaction with faulty callData", async () => {
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             superToken.address,
@@ -56,19 +147,19 @@ describe("Operation Tests", () => {
             getPerSecondFlowRateByMonth("-100"),
             "0x",
         ]);
-        const txn =
-            framework.host.contract.populateTransaction.callAgreement(
-                cfaV1.address,
-                callData,
-                "0x"
-            );
+        const txn = framework.host.contract.populateTransaction.callAgreement(
+            cfaV1.address,
+            callData,
+            "0x"
+        );
         const operation = new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
         try {
             await operation.exec(deployer);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Execute Transaction Error - There was an error executing the transaction"
+                "Execute Transaction Error: There was an error executing the transaction"
             );
+            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 
@@ -82,8 +173,9 @@ describe("Operation Tests", () => {
             await operation.getSignedTransaction(alpha);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Sign Transaction Error - There was an error signing the transaction"
+                "Sign Transaction Error: There was an error signing the transaction"
             );
+            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 

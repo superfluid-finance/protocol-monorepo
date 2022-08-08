@@ -10,6 +10,7 @@ import {
     monthlyToSecondRate,
     subgraphRequest,
     toBN,
+    waitUntilBlockIndexed,
 } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
@@ -240,6 +241,7 @@ describe("Subgraph Tests", () => {
                 "Super fDAI Fake Token",
                 "fDAIx",
                 true,
+                false,
                 dai.address,
                 18
             );
@@ -251,7 +253,68 @@ describe("Subgraph Tests", () => {
                 "fDAI Fake Token",
                 "fDAI",
                 false,
+                false,
                 "",
+                18
+            );
+        });
+
+        it("Should be able to unlist and relist tokens", async () => {
+            const [deployer] = await ethers.getSigners();
+
+            // MUST WAIT until block indexed each time to catch up
+            // Unlist fDAIx
+            let txn = await framework.contracts.resolver
+                .connect(deployer)
+                .set("supertokens.test.fDAIx", ethers.constants.AddressZero);
+
+            let receipt = await txn.wait();
+            await waitUntilBlockIndexed(receipt.blockNumber);
+            await fetchTokenAndValidate(
+                daix.address.toLowerCase(),
+                "Super fDAI Fake Token",
+                "fDAIx",
+                false,
+                false,
+                dai.address,
+                18
+            );
+
+            // List fDAIx
+            txn = await framework.contracts.resolver
+                .connect(deployer)
+                .set("supertokens.test.fDAIx", daix.address);
+            receipt = await txn.wait();
+            await waitUntilBlockIndexed(receipt.blockNumber);
+            await fetchTokenAndValidate(
+                daix.address.toLowerCase(),
+                "Super fDAI Fake Token",
+                "fDAIx",
+                true,
+                false,
+                dai.address,
+                18
+            );
+        });
+
+        it("Should properly set native asset as listed SuperToken", async () => {
+            const [deployer, alice] = await ethers.getSigners();
+            const ETHx = await framework.loadNativeAssetSuperToken("ETHx");
+
+            // NOTE: we execute a transaction here with ETHx to get the name/symbol indexed on the subgraph
+            let txn = await ETHx.upgrade({
+                amount: ethers.utils.parseEther("100").toString(),
+            }).exec(deployer);
+            let receipt = await txn.wait();
+            await waitUntilBlockIndexed(receipt.blockNumber);
+
+            await fetchTokenAndValidate(
+                ETHx.address.toLowerCase(),
+                "Super ETH",
+                "ETHx",
+                true,
+                true,
+                ethers.constants.AddressZero,
                 18
             );
         });

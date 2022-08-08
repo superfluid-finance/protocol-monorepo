@@ -13,7 +13,7 @@ dotenvConfig();
  */
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.7.6",
+        version: "0.8.15",
         settings: {
             optimizer: {
                 enabled: true,
@@ -31,6 +31,11 @@ const config: HardhatUserConfig = {
             url: process.env.MATIC_PROVIDER_URL || "",
             chainId: 137,
         },
+        bsc: {
+            url: process.env.BSC_PROVIDER_URL || "",
+            accounts: process.env.TEST_PRIVATE_KEY ? [process.env.TEST_PRIVATE_KEY || ""] : [],
+            chainId: 56
+        }
     },
     mocha: {
         timeout: 250000,

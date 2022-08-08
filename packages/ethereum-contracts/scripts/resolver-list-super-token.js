@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/resolver-list-super-token : {SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec scripts/resolver-list-super-token.js : {SUPER_TOKEN_ADDRESS}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -66,7 +66,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
         !resetToken
     ) {
-        throw new Error("Super token already listed");
+        console.error("Super token already listed!");
+        console.error("A Transfer event may be needed for indexers to notice.");
     }
     await setResolver(sf, superTokenKey, superTokenAddress);
 });

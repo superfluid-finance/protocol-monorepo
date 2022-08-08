@@ -37,7 +37,7 @@
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
         "test:contracts:hardhat": "yarn run-hardhat test testsuites/all-contracts.js --parallel",
-        "test:contracts:foundry": "yarn run-forge test",
+        "test:contracts:foundry": "yarn run-forge test --hardhat",
         "test:contracts:solc-0.8.0-compatibility": "test/test-solc-0.8.0-compatibility.sh",
         "test:deployment:scripts-js-hardhat": "yarn run-hardhat test test/scripts/deployment.test.js",
         "test:deployment:scripts-js-truffle": "yarn run-truffle test test/scripts/deployment.test.js",
@@ -56,25 +56,25 @@
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
-        "@openzeppelin/contracts": "4.5.0",
-        "@superfluid-finance/js-sdk": "0.6.1",
-        "@truffle/contract": "4.5.5",
+        "@openzeppelin/contracts": "4.7.0",
+        "@superfluid-finance/js-sdk": "0.6.2",
+        "@truffle/contract": "4.5.15",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.1.4",
-        "hardhat": "^2.9.3",
+        "ethereumjs-util": "7.1.5",
+        "hardhat": "^2.9.9",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
-        "@nomiclabs/hardhat-truffle5": "^2.0.5",
-        "async": "^3.2.3",
+        "@nomiclabs/hardhat-truffle5": "^2.0.6",
+        "async": "^3.2.4",
         "csv-writer": "^1.6.0",
         "ganache-time-traveler": "1.0.16",
         "mochawesome": "^7.1.3",
         "readline": "1.3.0",
         "solhint": "3.3.7",
-        "solidity-coverage": "0.7.20",
-        "solidity-docgen": "^0.6.0-beta.10",
+        "solidity-coverage": "0.7.21",
+        "solidity-docgen": "^0.6.0-beta.17",
         "truffle-flattener": "^1.6.0",
-        "truffle-plugin-verify": "^0.5.25"
+        "truffle-plugin-verify": "d10r/truffle-plugin-verify#verifyProxyFixed"
     }
 }

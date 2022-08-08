@@ -35,6 +35,7 @@ All subgraphs are available via The Graph's hosted service:
 | Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
 | Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
 | Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-c |
+| BNB Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-bsc-mainnet |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
@@ -52,6 +53,7 @@ All subgraphs are available via The Graph's hosted service:
 | Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
 | Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
 | Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-c |
+| BNB Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-bsc-mainnet |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |
@@ -61,12 +63,18 @@ All subgraphs are available via The Graph's hosted service:
 | Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-rinkeby |
 | Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-fuji |
 
+**Feature Endpoints**
+| Network | URL |
+| --- | --- |
+| Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-feature-matic |
+| Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-feature-goerli |
+
 *Note: Development endpoints will include features that are still in progress. Documentation will not reflect new features yet to be released in V1
 
 
 # 🤓 Local development
 
-🛑 **STOP - Do not pass Go** 🛑 You probably don't need this repo. If you need data for Superfluid on xDAI, Polygon (Matic), or testnet, we already deployed them for you! Head over to the **Docs** to get started.
+🛑 **STOP - Do not pass Go** 🛑 You probably don't need this repo. If you need data for Superfluid on Optimism, Arbitrum-One, Avalanche-C, Gnosis, Polygon (Matic), or testnet, we already deployed them for you! Head over to the **Docs** to get started.
 
 In this section we will cover the following:
 
@@ -119,9 +127,8 @@ sudo apt install jq
 > Note: If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
 
 If you are on a mac, create a `setup_graph.sh` file in `graph-node/docker` and paste the following in it:
-```
-#!/bin/bash
 
+```bash
 docker-compose down -v;
 
 if [ -d "data" ]
@@ -133,8 +140,6 @@ fi
 
 docker-compose up;
 ```
-
-Also change line 20 in the `docker-compose.yml` to `ethereum: 'mainnet:http://host.docker.internal:8545'`.
 
 Then run `chmod +x setup_graph.sh`, this makes the shell script executable.
 Open another terminal window and run `./setup_graph.sh` and your local graph will start booting up.
@@ -199,9 +204,9 @@ Once the contracts and token have been deployed, you can run the following one l
 
 ```bash
 # To build and deploy the Subgraph in a single line:
-yarn prepare-local && yarn set-network-local && yarn getAbi && yarn generate-sf-meta-local && yarn codegen && yarn create-local && yarn deploy-local
+yarn build-and-deploy-local
 
-# Step by step
+# Step by step breakdown
 # Generate `subgraph.yaml` using the test-subgraph.template.yaml
 yarn prepare-local
 
@@ -256,10 +261,10 @@ npx hardhat test --network localhost
 
 This goes over an integration tests which test that the data we are mapping to the subgraph is expected given the inputs for creating a flow, index, subscription, etc. If you're interested in learning about how the test code is structured, you can click [here](#test-structure) to learn more.
 
-You can also run a data integrity test which checks the data mapped to the subgraph with data from the contracts:
+You can also run data integrity tests which checks that the data mapped to the subgraph is in line with the data from the contracts:
 
 ```bash
-npx hardhat run scripts/dataIntegrityTest.ts --network <NETWORK>
+yarn integrity <NETWORK>
 ```
 
 > Note: you must specify the network in the `hardhat.config.ts` file, you can look at how it is being done for matic and do so for any network you are interested in running this on. You can use a URL from Infura, Alchemy or from your own node.
@@ -336,7 +341,8 @@ You should get a response like this
                 "balance": "90.001030003030003391",
                 "hat": null,
                 "id": "0xbf44e907c4b6583d2cd3d0a0c403403bb44c4a3c"
-            }
+            },
+            ...
         ]
     }
 }
@@ -369,7 +375,9 @@ The helper functions contain the following:
 - hol/aggregate validator functions: these functions validate the hol or aggregate entities
 - returns the updated data from the updater functions
 
-Then we are back in `subgraph.test.ts` and the global state is updated with this new data.
+Then we are back in `subgraph.test.ts` and the global state is updated with this new data and the tests continue.
+
+Caveats/Downsides: Unfortunately, given this pattern, the tests are dependent on the previous test passing and this means that if even one tests fail, all of the downstream tests will as well. This also means that moving the tests around require extra thinking.
 
 # Production
 

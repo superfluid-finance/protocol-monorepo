@@ -17,10 +17,14 @@ export interface TrackedTransaction {
      */
     timestampMs: number;
     status: TransactionStatus;
-    transactionResponse: string;
+    transactionResponse?: string;
     transactionReceipt?: string;
     ethersErrorCode?: ethers.errors;
     ethersErrorMessage?: string;
     title: TransactionTitle;
     extraData: Record<string, unknown>;
+    /**
+     * `true` when Subgraph polling was successful, i.e. Subgraph has indexed the transaction. Will be `undefined` if the polling was unsuccessful or we don't know whether it's in sync or not.
+     */
+    isSubgraphInSync?: true;
 }

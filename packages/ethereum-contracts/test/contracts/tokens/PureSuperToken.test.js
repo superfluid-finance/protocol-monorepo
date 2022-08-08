@@ -29,7 +29,7 @@ describe("PureSuperToken Contract", function () {
         await t.beforeEachTestCase();
     });
 
-    it("#1 create token", async () => {
+    it("#1 initialization", async () => {
         const tokenProxy = await PureSuperToken.new();
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,

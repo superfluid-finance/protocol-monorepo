@@ -1,3 +1,5 @@
+import { serializeError } from "serialize-error";
+
 export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
@@ -16,8 +18,7 @@ export type ErrorType =
     | "UNSUPPORTED_OPERATION"
     | "MISSING_TRANSACTION_PROPERTIES"
     | "BATCH_CALL_ERROR"
-    | "NETWORK_MISMATCH"
-    | "UNSUPPORTED_WEB_3_ONLY";
+    | "NETWORK_MISMATCH";
 
 const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["FRAMEWORK_INITIALIZATION", "Framework Initialization"],
@@ -36,32 +37,52 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
     ["NETWORK_MISMATCH", "Network Mismatch"],
-    ["UNSUPPORTED_WEB_3_ONLY", "Unsupported Web 3 Only"],
     ["UNCLEAN_PERMISSIONS", "Unclean Permissions"],
     ["NEGATIVE_FLOW_ALLOWANCE", "Negative Flow Rate Allowance"],
 ]);
 
-interface ISFErrorProps {
+interface ErrorProps {
     type: ErrorType;
-    customMessage: string;
-    errorObject?: unknown;
+    message: string;
+    cause?: Error | unknown;
 }
 
-export class SFError {
+// NOTE: this is a temporary solution to fix serializeError
+// which throws a weird JSON error
+const stringifyCause = (cause?: Error | unknown) => {
+    try {
+        return JSON.stringify(serializeError(cause), null, 2);
+    } catch (err) {
+        return JSON.stringify(cause, null, 2);
+    }
+};
+
+export class SFError extends Error {
     readonly type: ErrorType;
-    readonly message: string;
-    readonly errorObject?: unknown;
+    override readonly cause?: Error;
 
-    constructor(props: ISFErrorProps) {
-        const { type, errorObject, customMessage } = props;
-
-        const title = errorTypeToTitleMap.get(type);
-        const formattedErrorObject = errorObject
-            ? ": " + JSON.stringify(errorObject, null, 2) // Pretty-print the error: https://stackoverflow.com/a/7220510
-            : "";
+    constructor({ type, message, cause }: ErrorProps) {
+        const fullMessage = `${errorTypeToTitleMap.get(
+            type
+        )} Error: ${message}${
+            cause
+                ? `
+Caused by: ${stringifyCause(cause)}`
+                : ""
+        }`;
+        super(
+            fullMessage,
+            cause
+                ? {
+                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expects "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
+                  }
+                : {}
+        );
+        // Fallback back environments where `Error.cause` is now yet natively supported
+        if (cause && !this.cause) {
+            this.cause = cause as Error;
+        }
         this.type = type;
-        this.errorObject = errorObject;
-        this.message =
-            title + " Error - " + customMessage + formattedErrorObject;
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }
 }

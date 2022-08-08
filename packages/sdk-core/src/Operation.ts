@@ -31,7 +31,7 @@ export default class Operation {
     /**
      * Executes the operation via the provided signer.
      * @description Populates all fields of the transaction, signs it and sends it to the network.
-     * @param signer The signer of the transacation
+     * @param signer The signer of the transaction
      * @returns {ethers.providers.TransactionResponse} A TransactionResponse object which can be awaited
      */
     exec = async (
@@ -44,8 +44,8 @@ export default class Operation {
         } catch (err) {
             throw new SFError({
                 type: "EXECUTE_TRANSACTION",
-                customMessage: "There was an error executing the transaction",
-                errorObject: err,
+                message: "There was an error executing the transaction",
+                cause: err,
             });
         }
     };
@@ -65,14 +65,14 @@ export default class Operation {
             /* istanbul ignore next */
             throw new SFError({
                 type: "POPULATE_TRANSACTION",
-                customMessage: "There was an error populating the transaction",
-                errorObject: err,
+                message: "There was an error populating the transaction",
+                cause: err,
             });
         }
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).
-     * @param signer The signer of the transacation
+     * @param signer The signer of the transaction
      * @returns {Promise<string>} Fully serialized, signed transaction
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
@@ -86,8 +86,8 @@ export default class Operation {
         } catch (err) {
             throw new SFError({
                 type: "SIGN_TRANSACTION",
-                customMessage: "There was an error signing the transaction",
-                errorObject: err,
+                message: "There was an error signing the transaction",
+                cause: err,
             });
         }
     };
@@ -95,7 +95,7 @@ export default class Operation {
     /**
      * Gets the transaction hash of the transaction.
      * @description Calculates this by getting the keccak256 hash of the signedTxn.
-     * @param signer The signer of the transacation
+     * @param signer The signer of the transaction
      * @returns {Promise<string>} The transaction hash of the transaction
      */
     getTransactionHash = async (signer: ethers.Signer): Promise<string> => {

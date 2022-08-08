@@ -4,12 +4,13 @@ import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Button, FormGroup, Switch, TextField } from "@mui/material";
 import { Error } from "../Error";
 import { sfApi } from "../redux/store";
+import { IndexUpdateSubscriptionUnitsMutation } from "@superfluid-finance/sdk-redux";
 
 export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
     const [update, { isLoading, error }] =
         sfApi.useIndexUpdateSubscriptionUnitsMutation();
 
-    const [chainId, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress, signer] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");
     const [subscriberAddress, setSubscriberAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
@@ -27,7 +28,8 @@ export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
             userDataBytes,
             unitsNumber,
             subscriberAddress,
-        });
+            signer
+        } as IndexUpdateSubscriptionUnitsMutation);
     };
 
     return (

@@ -7,6 +7,7 @@ import Framework from "./Framework";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import Operation, { OperationType } from "./Operation";
 import Query from "./Query";
 import SuperToken, {
     NativeAssetSuperToken,
@@ -22,6 +23,7 @@ export * from "./ordering";
 export * from "./events";
 export * from "./types";
 
+export { Operation, OperationType };
 export { BatchCall };
 export { ConstantFlowAgreementV1 };
 export { ERC20Token };
@@ -37,12 +39,14 @@ export { WrapperSuperToken };
 
 export * from "./subgraph/entities/account/account";
 export * from "./subgraph/entities/accountTokenSnapshot/accountTokenSnapshot";
+export * from "./subgraph/entities/accountTokenSnapshotLog/accountTokenSnapshotLog";
 export * from "./subgraph/entities/index/index";
 export * from "./subgraph/entities/indexSubscription/indexSubscription";
 export * from "./subgraph/entities/stream/stream";
 export * from "./subgraph/entities/streamPeriod/streamPeriod";
 export * from "./subgraph/entities/token/token";
 export * from "./subgraph/entities/tokenStatistic/tokenStatistic";
+export * from "./subgraph/entities/tokenStatisticLog/tokenStatisticLog";
 
 export * from "./subgraph/events/events";
 export * from "./subgraph/events/flowUpdatedEvent";

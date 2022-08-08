@@ -1,12 +1,14 @@
-import {TransactionResponse} from "@ethersproject/providers";
-import {expect} from "chai";
-import {fetchEventAndEnsureExistence} from "../helpers/helpers";
-import {IEvent} from "../interfaces";
+import { TransactionResponse } from "@ethersproject/providers";
+import { expect } from "chai";
+import { fetchEventAndEnsureExistence } from "../helpers/helpers";
+import { IEvent } from "../interfaces";
 
 // Event Entity Validator Functions
 
-export const fetchEventAndValidate = async <EventType extends IEvent,
-    ExpectedDataType>(
+export const fetchEventAndValidate = async <
+    EventType extends IEvent,
+    ExpectedDataType
+>(
     txnResponse: TransactionResponse,
     expectedData: ExpectedDataType,
     query: string,
@@ -44,10 +46,9 @@ export const validateBaseEventData = (
     txnResponse: TransactionResponse,
     queryName: string
 ) => {
-    expect(txnResponse.hash.toLowerCase()).to.eq(
-        queriedEvent.transactionHash
-    );
+    expect(txnResponse.hash.toLowerCase()).to.eq(queriedEvent.transactionHash);
     expect(txnResponse.blockNumber!.toString()).to.eq(queriedEvent.blockNumber);
+    expect(txnResponse.gasPrice!.toString()).to.eq(queriedEvent.gasPrice);
     expect(queriedEvent.name).to.eq(queryName);
 };
 

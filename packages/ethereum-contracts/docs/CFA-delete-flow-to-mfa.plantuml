@@ -1,0 +1,76 @@
+@startuml
+
+title <b>ConstantFlowAgreement: delete a flow to an MFA SuperApp</b>
+
+actor Dapp
+participant Host
+participant MFA
+participant CFA
+participant Token
+
+Dapp -> Host ++: callAgreement
+Host -> Host: _updateContext
+Host -> Host ++: _callExternal
+
+Host -> CFA ++: deleteFlow
+CFA ->> CFA: decodeCtx
+
+CFA -> CFA ++ #aaffff: _changeFlowToApp
+CFA -> CFA: AgreementLibrary.callAppBeforeCallback
+
+CFA ->> Host ++: callAppBeforeCallback
+Host -> Host ++: _callCallback
+Host ->> MFA ++: beforeAgreementTerminated
+return abi.encode(oldFlowRate)
+Host -> Host: TODO: jail if misbehaved
+return (success, returnedData)
+return cbdata
+
+CFA -> CFA ++: _changeFlow
+CFA -> Token: updateAgreementData
+
+CFA -> CFA ++: _updateAccountFlowState(sender)
+CFA -> Token: settleBalance
+CFA -> Token: updateAgreementStateSlot
+return newNetFlowRate
+
+CFA -> CFA ++: _updateAccountFlowState(receiver)
+CFA -> Token: settleBalance
+CFA -> Token: updateAgreementStateSlot
+return newNetFlowRate
+
+return (depositDelta, appAllowance, newFlowData) /'_changeFlow'/
+CFA -> CFA: calc appAllowance*
+CFA -> CFA: AgreementLibrary.callAppAfterCallback
+
+CFA -> Host ++: callAppAfterCallback
+Host -> Host ++: _callCallback
+Host -> MFA ++: afterAgreementTerminated
+loop for all receivers
+  MFA -> Host: callAgreementWithContext(deleteFlow)...
+end
+return newCtx
+Host -> Host: TODO: jail if misbehaved
+return (success, returnedData)
+return cbdata
+
+CFA -> Token: updateAgreementData
+
+CFA -> CFA ++: _updateAccountFlowState(sender)
+CFA -> Token: settleBalance
+CFA -> Token: updateAgreementStateSlot
+return newNetFlowRate
+
+CFA -> CFA ++: _updateAccountFlowState(receiver)
+CFA -> Token: settleBalance
+CFA -> Token: updateAgreementStateSlot
+return newNetFlowRate
+
+return (ctx,allowanceWantedMore, allowanceUsedDelta) /'_changeFlowToApp'/
+
+return (ctx,allowanceWantedMore, allowanceUsedDelta) /'deleteFlow'/
+
+return (success, returnedData) /'_callExternal'/
+
+return returnedData /'callAgreement'/
+@enduml

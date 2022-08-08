@@ -17,9 +17,7 @@ async function main() {
 
   const sf = await Framework.create({
     chainId: network.chainId,
-    provider: customHttpProvider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
+    provider: customHttpProvider
   });
 
   const funder = sf.createSigner({

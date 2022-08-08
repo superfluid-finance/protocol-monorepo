@@ -22,7 +22,7 @@ on:
         description: 'Script arguments'
         required: false
       environments:
-        description: 'Additional environments, separated by semicolons'
+        description: 'Additional env vars, separated by semicolons'
         required: false
 
 jobs:
@@ -39,9 +39,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Build
         run: |
@@ -53,9 +54,8 @@ jobs:
           cd packages/ethereum-contracts
           echo "Admin type: ${{ github.event.inputs.admin_type }}"
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle \
+          npx truffle exec \
             --network ${{ github.event.inputs.network }} \
-            exec \
             ${{ github.event.inputs.script_name }} \
             ${{ github.event.inputs.script_args }}
         env:
@@ -76,3 +76,4 @@ jobs:
           OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
           ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
           AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
+          BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}

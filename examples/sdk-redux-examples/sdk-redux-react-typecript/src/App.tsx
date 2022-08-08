@@ -1,11 +1,10 @@
-import React, { FC, ReactElement, useState } from "react";
+import { FC, ReactElement, useState } from "react";
 import { Box, Container, Paper, Typography } from "@mui/material";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import { Framework } from "@superfluid-finance/sdk-core";
 import { Loader } from "./Loader";
 import { SignerContext } from "./SignerContext";
 import { TransactionTable } from "./features/TransactionTable";
-import { Web3Provider } from "@ethersproject/providers";
 import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -36,23 +35,25 @@ import { StreamPeriods } from "./features/generic-entity-queries/StreamPeriods";
 import { Tokens } from "./features/generic-entity-queries/Tokens";
 import { IndexSubscriptions } from "./features/generic-entity-queries/IndexSubscriptions";
 import { TokenStatistics } from "./features/generic-entity-queries/TokenStatistics";
+import { ethers, Signer } from "ethers";
+import { chains } from "./wagmiAndRainbowKit";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
+    const [signer, setSigner] = useState<Signer>();
     const [chainId, setChainId] = useState<number | undefined>();
 
     const onSuperfluidSdkInitialized = async (
         superfluidSdk: Framework,
-        provider: Web3Provider
+        provider: ethers.providers.Provider,
+        signer: Signer
     ) => {
         setSuperfluidSdk(superfluidSdk);
+        setSigner(signer);
 
-        provider
-            .getSigner()
-            .getAddress()
-            .then((address) => setSignerAddress(address));
-
+        signer.getAddress().then((address) => setSignerAddress(address));
         provider.getNetwork().then((network) => setChainId(network.chainId));
     };
 
@@ -99,25 +100,25 @@ function App() {
                     </ul>
                     <p>Available chains (name, chainId):</p>
                     <ul>
-                        <li>Ropsten: 3</li>
-                        <li>Rinkeby: 4</li>
-                        <li>Goerli: 5</li>
-                        <li>Kovan: 42</li>
-                        <li>xDai: 100</li>
-                        <li>Matic: 137</li>
-                        <li>Mumbai: 80001</li>
+                        {chains.map((chain) => (
+                            <li>
+                                {chain.name}: {chain.id}
+                            </li>
+                        ))}
                     </ul>
                 </Typography>
-                {!superfluidSdk ? (
-                    <InitializeSuperfluidSdk
-                        onSuperfluidSdkInitialized={(x, provider) =>
-                            onSuperfluidSdkInitialized(x, provider)
-                        }
-                    />
-                ) : !chainId || !signerAddress ? (
+                <InitializeSuperfluidSdk
+                    onSuperfluidSdkInitialized={(sdk, provider, signer) =>
+                        onSuperfluidSdkInitialized(sdk, provider, signer)
+                    }
+                />
+                {!!superfluidSdk && (!chainId || !signerAddress || !signer) && (
                     <Loader />
-                ) : (
-                    <SignerContext.Provider value={[chainId, signerAddress]}>
+                )}
+                {!!chainId && !!signerAddress && !!signer && (
+                    <SignerContext.Provider
+                        value={[chainId, signerAddress, signer]}
+                    >
                         <Box maxWidth="sm">
                             <Typography sx={{ mb: 4 }}>
                                 You are connected. You are on network [{chainId}

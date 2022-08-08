@@ -1,0 +1,9 @@
+{
+    "network": "optimism-goerli",
+    "hostStartBlock": 0,
+    "hostAddress": "",
+    "cfaAddress": "",
+    "idaAddress": "",
+    "superTokenFactoryAddress": "",
+    "resolverV1Address": ""
+}

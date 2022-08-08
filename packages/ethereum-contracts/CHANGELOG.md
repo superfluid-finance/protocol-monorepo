@@ -14,7 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Queue up FAILED_VERIFICATIONS (#900)
 - Addresses several shortcomings in current worflows (mainly mainnet related) (#911)
-- Prod deploytment script fix #971
+- Prod deployment script fix #971
 - Adds a missing closing parenthesis to example test (#967)
 
 ## [v1.3.1] - 2022-08-05

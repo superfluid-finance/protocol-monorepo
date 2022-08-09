@@ -233,7 +233,7 @@
                 }
 
                 // text formatting
-                const formatBalance = (balance) => Number(ethers.utils.formatEther(balance || "0")).toFixed(8);
+                const formatBalance = (balance) => Number(ethers.utils.formatEther(balance || "0")).toFixed(18);
 
                 // async
                 const getBalanceData = async (signerAddress) => {

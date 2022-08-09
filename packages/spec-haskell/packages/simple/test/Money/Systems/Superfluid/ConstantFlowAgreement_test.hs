@@ -65,7 +65,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T2: move time forward and test balance moves
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
     expectAccountBalanceTo carol $ assertEqualWith  constInitBalance
@@ -81,7 +81,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T3: move time forward and test balance moves
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 3*u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 3*u1x)
     expectAccountBalanceTo carol $ assertEqualWith  constInitBalance
@@ -108,7 +108,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T2: move time forward and test balance moves
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
     expectAccountBalanceTo carol $ assertEqualWith  constInitBalance
@@ -125,7 +125,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T3: move time forward and test balance moves
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 5 * u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 2 * u1x)
     expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 3 * u1x)
@@ -142,7 +142,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T4: move time forward and test balance moves
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 10 * u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance +  4 * u1x)
     expectAccountBalanceTo carol $ assertEqualWith (constInitBalance +  6 * u1x)

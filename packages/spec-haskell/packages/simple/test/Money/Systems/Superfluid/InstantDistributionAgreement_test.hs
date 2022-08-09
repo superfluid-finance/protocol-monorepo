@@ -31,7 +31,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     -- T0: setup subscription from bob to alice, alice distribute 1x
     runToken $ SF.updateProportionalDistributionSubscription bob alice 0 1000
     runToken $ SF.distributeProportionally alice 0 u1x
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
     expectAccountBalanceTo carol $ assertEqualWith        constInitBalance
@@ -40,7 +40,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     -- T2: setup subscription from carol to alice, alice distribute 3x
     runToken $ SF.updateProportionalDistributionSubscription carol alice 0 2000
     runToken $ SF.distributeProportionally alice 0 (3*u1x)
-    timeTravel $ tstep
+    timeTravel tstep
     expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 4 * u1x)
     expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 2 * u1x)
     expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 2 * u1x)

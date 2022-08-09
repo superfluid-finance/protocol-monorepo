@@ -48,17 +48,20 @@ travelDaysAndPrintBalances t0 accounts days = do
     let t_offset = t - t0
     forM_ [(1::Int) .. 24 * days] $ \i -> do
         timeTravel 3600
-        balances <- mapM (\acc -> runToken token $ SF.balanceOfAccount acc) accounts
+        balances <- mapM (runToken token . SF.balanceOfAccount) accounts
         liftIO $ putStrLn $
-            (printf "%f "
-             ((fromIntegral (coerce t_offset + i * 3600) :: Double) / (3600.0 * 24))) <>
-            (intercalate " " (map (\acc -> show $ acc^.SF.untappedValueL) balances))
+            printf "%f " ((fromIntegral (coerce t_offset + i * 3600) :: Double) / (3600.0 * 24))
+            <>
+            unwords (map (\acc -> show $ acc^.SF.untappedValueL) balances)
 
 printSelfGnuplotHeader accounts = putStrLn $
     "plot '__GNUPLOT_FILE__' every ::1 " <>
-    (intercalate ",'' " (
-        zipWith (\idx acc -> printf "using 1:%d with lines title '%s'" (idx + 1) (show acc))
-        ([1..length accounts]) accounts))
+    intercalate ",'' " (
+    zipWith
+        (\idx acc -> printf "using 1:%d with lines title '%s'" (idx + 1) (show acc))
+        [1..length accounts]
+        accounts
+    )
 
 expo :: HasCallStack => SimMonad ()
 expo = do

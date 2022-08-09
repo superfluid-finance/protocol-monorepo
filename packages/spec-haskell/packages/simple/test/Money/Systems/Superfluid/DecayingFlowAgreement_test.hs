@@ -64,17 +64,17 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     -- T1: test initial condition
     -- creating flow: alice -> bob @ 0.0001/s
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) u1x
-    expectΕValTo alice $ assertEqualWith (-u1xd)
-    expectΕValTo bob   $ assertEqualWith   u1xd
-    expectΕValTo carol $ assertEqualWith      0
-    expectDistributionLimitTo (alice, bob)   $ assertEqualWith u1x
-    expectDistributionLimitTo (alice, carol) $ assertEqualWith   0
+    expectΕValTo alice $ assertEqual' (-u1xd)
+    expectΕValTo bob   $ assertEqual'   u1xd
+    expectΕValTo carol $ assertEqual'      0
+    expectDistributionLimitTo (alice, bob)   $ assertEqual' u1x
+    expectDistributionLimitTo (alice, carol) $ assertEqual'   0
 
     -- T2: move time forward and test balance moves
     timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance)
-    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance)
-    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance)
+    expectAccountBalanceTo alice $ assertBoolWith' (< constInitBalance)
+    expectAccountBalanceTo bob   $ assertBoolWith' (> constInitBalance)
+    expectAccountBalanceTo carol $ assertBoolWith' (== constInitBalance)
     expectZeroTotalValueFuzzily 0 -- 0 tolerance
       )
 
@@ -90,14 +90,14 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectΕValTo alice $ assertFuzzilyEqualWith (-3*u1xd)
     expectΕValTo bob   $ assertFuzzilyEqualWith     u1xd
     expectΕValTo carol $ assertFuzzilyEqualWith  (2*u1xd)
-    expectDistributionLimitTo (alice, bob)   $ assertEqualWith    u1x
-    expectDistributionLimitTo (alice, carol) $ assertEqualWith (2*u1x)
+    expectDistributionLimitTo (alice, bob)   $ assertEqual'    u1x
+    expectDistributionLimitTo (alice, carol) $ assertEqual' (2*u1x)
 
     -- T1: move time forward and test balance moves
     timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance)
-    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance)
-    expectAccountBalanceTo carol $ assertBoolWith (> constInitBalance)
+    expectAccountBalanceTo alice $ assertBoolWith' (< constInitBalance)
+    expectAccountBalanceTo bob   $ assertBoolWith' (> constInitBalance)
+    expectAccountBalanceTo carol $ assertBoolWith' (> constInitBalance)
     expectZeroTotalValueFuzzily tolerance
     )
 
@@ -111,18 +111,18 @@ simpleLoopScenarioTest = TokenTestCase TokenTestSpec
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF bob   carol) u1x
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF carol alice) u1x
-    expectΕValTo alice $ assertEqualWith 0
-    expectΕValTo bob   $ assertEqualWith 0
-    expectΕValTo carol $ assertEqualWith 0
-    expectDistributionLimitTo (alice, bob)   $ assertEqualWith u1x
-    expectDistributionLimitTo (bob,   carol) $ assertEqualWith u1x
-    expectDistributionLimitTo (carol, alice) $ assertEqualWith u1x
+    expectΕValTo alice $ assertEqual' 0
+    expectΕValTo bob   $ assertEqual' 0
+    expectΕValTo carol $ assertEqual' 0
+    expectDistributionLimitTo (alice, bob)   $ assertEqual' u1x
+    expectDistributionLimitTo (bob,   carol) $ assertEqual' u1x
+    expectDistributionLimitTo (carol, alice) $ assertEqual' u1x
 
     -- T1: move time forward and test balance moves
     timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (== constInitBalance)
-    expectAccountBalanceTo bob   $ assertBoolWith (== constInitBalance)
-    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance)
+    expectAccountBalanceTo alice $ assertBoolWith' (== constInitBalance)
+    expectAccountBalanceTo bob   $ assertBoolWith' (== constInitBalance)
+    expectAccountBalanceTo carol $ assertBoolWith' (== constInitBalance)
     expectZeroTotalValueFuzzily 0 -- 0 tolerance
     )
 

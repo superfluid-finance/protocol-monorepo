@@ -98,14 +98,11 @@ expectZeroTotalValue = expectZeroTotalValueFuzzily 0
 
 -- Convenient utilities just for formatting prettiness (message in the end)
 
-assertBoolWith :: HasCallStack => (a -> Bool) -> a -> Assertion
-assertBoolWith f x = assertBool "?" (f x)
+assertBoolWith :: HasCallStack => String -> (a -> Bool) -> a -> Assertion
+assertBoolWith msg f x = assertBool msg (f x)
 
-assertBoolWith' :: HasCallStack => (a -> Bool) -> String -> a -> Assertion
-assertBoolWith' f msg x = assertBool msg (f x)
+assertBoolWith' :: HasCallStack => (a -> Bool) -> a -> Assertion
+assertBoolWith' f x = assertBool "?" (f x)
 
-assertEqualWith :: HasCallStack => (Show a, Eq a) => a -> a -> Assertion
-assertEqualWith a = assertEqual "==" a
-
-assertEqualWith' :: HasCallStack => (Show a, Eq a) => a -> String -> a -> Assertion
-assertEqualWith' a msg = assertEqual msg a
+assertEqual' :: HasCallStack => (Show a, Eq a) => a -> a -> Assertion
+assertEqual' = assertEqual "=="

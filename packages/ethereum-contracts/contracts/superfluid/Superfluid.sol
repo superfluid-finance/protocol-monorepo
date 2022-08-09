@@ -517,7 +517,9 @@ contract Superfluid is
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);
-        if (isApp(ISuperApp(context.msgSender)) && context.appCallbackLevel >= MAX_APP_CALLBACK_LEVEL) {
+        // NOTE: we use 1 as a magic number here as we want to do this check once we are in a callback
+        // we use 1 instead of MAX_APP_CALLBACK_LEVEL because 1 captures what we are trying to enforce
+        if (isApp(ISuperApp(context.msgSender)) && context.appCallbackLevel >= 1) {
             require(_compositeApps[ISuperApp(context.msgSender)][app],
                 "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED");
         }
@@ -591,7 +593,7 @@ contract Superfluid is
         isAgreement(agreementClass)
         returns(bytes memory returnedData)
     {
-        // beaware of the endiness
+        // beware of the endianness
         bytes4 agreementSelector = CallUtils.parseSelector(callData);
 
         //Build context data
@@ -639,7 +641,7 @@ contract Superfluid is
         isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
-        //Build context data
+        // Build context data
         bytes memory ctx = _updateContext(Context({
             appCallbackLevel: 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,

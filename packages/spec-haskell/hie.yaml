@@ -22,6 +22,8 @@ cradle:
           cabal:
             - path: "./packages/core/src"
               component: "lib:superfluid-protocol-spec-core"
+            - path: "./packages/core/test"
+              component: "superfluid-protocol-spec-core:test:tests"
             - path: "packages/simple/src"
               component: "lib:superfluid-protocol-system-simple"
             - path: "packages/simple/test"

@@ -93,7 +93,7 @@ mk_uidx_amudLs
     -> (amud -> mudLs)
     -> Lens' SimpleAccount amud
 mk_uidx_amudLs mudLs mkMud getMudLs = lens
-    (mkMud . (view mudLs) . universal_index . account_data)
+    (mkMud . view mudLs . universal_index . account_data)
     (\acc@(SimpleAccount{ account_data = accData@(SimpleAccountData{ universal_index = uidx }) }) amud ->
          let uidx' = set mudLs (getMudLs amud) uidx
          in  acc { account_data = accData { universal_index = uidx' }})
@@ -103,7 +103,7 @@ mk_pdidx_pubLs
     -> (mudLs -> amud) -> (amud -> mudLs)
     -> Lens' SimpleAccount amud
 mk_pdidx_pubLs mudLs mkMud getMudLs = lens
-    (mkMud . (view mudLs) . pd_publisher . account_data)
+    (mkMud . view mudLs . pd_publisher . account_data)
     (\acc@(SimpleAccount{ account_data = accData@(SimpleAccountData{ pd_publisher = uidx }) }) amud ->
          let pub' = set mudLs (getMudLs amud) uidx
          in  acc { account_data = accData { pd_publisher = pub' }})

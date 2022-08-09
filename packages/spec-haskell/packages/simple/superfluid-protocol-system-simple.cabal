@@ -15,12 +15,11 @@ build-type:    Simple
 
 library
     exposed-modules:
+        Data.Type.TaggedTypeable
         Money.Systems.Superfluid.Instances.Simple.Types
         Money.Systems.Superfluid.Instances.Simple.System
     other-modules:
         Lens.Internal
-        Data.Type.TaggedTypeable
-
     hs-source-dirs:   src
     default-language: GHC2021
     ghc-options:      -Wall
@@ -40,7 +39,6 @@ test-suite tests
     main-is:          Tests.hs
     hs-source-dirs:   test
     other-modules:
-        Money.Systems.Superfluid.RealTimeBalance_prop
         Money.Systems.Superfluid.TokenTester
         Money.Systems.Superfluid.ConstantFlowAgreement_test
         Money.Systems.Superfluid.DecayingFlowAgreement_test

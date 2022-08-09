@@ -9,9 +9,10 @@ TEST_BUILDDIR ?= dist-test
 TEST_COVERAGE_BUILDDIR ?= dist-coverage
 DOCS_BUILDDIR ?= dist-docs
 
-CABAL_TEST = $(CABAL) --builddir=$(TEST_BUILDDIR)
-CABAL_COVERAGE = $(CABAL) --builddir=$(TEST_COVERAGE_BUILDDIR) # --project-file=cabal.project.coverage
-CABAL_DOCS = $(CABAL) --builddir=$(DOCS_BUILDDIR)
+CABAL_TEST     = $(CABAL) --builddir=$(TEST_BUILDDIR)
+CABAL_COVERAGE = $(CABAL) --builddir=$(TEST_COVERAGE_BUILDDIR)
+CABAL_DOCS     = $(CABAL) --builddir=$(DOCS_BUILDDIR)
+
 TEST_OPTIONS = \
 	--test-show-details=$(TEST_SHOW_DETAILS_MODE) \
 	--test-options="--maximum-generated-tests=$(TEST_PROP_NUM_RUNS)"
@@ -46,15 +47,16 @@ clean: clean-docs clean-test clean-coverage
 #
 test:
 	$(CABAL_TEST) \
-		v2-test --enable-tests \
-		$(TEST_OPTIONS) \
-		all
+		v2-test all --enable-tests \
+		$(TEST_OPTIONS)
 
 test-coverage:
 	$(CABAL_COVERAGE) \
-		v2-test --enable-tests --enable-coverage \
-		$(TEST_OPTIONS) \
-		all
+		v2-test \
+		superfluid-protocol-spec-core \
+		superfluid-protocol-system-simple \
+		--enable-tests --enable-coverage \
+		$(TEST_OPTIONS)
 
 #
 # Demos
@@ -117,6 +119,9 @@ docs: docs-haddock docs-yellowpaper
 #
 dev:
 	nodemon -e lhs,hs,cabal -i "$(TEST_BUILDDIR)" -x "make $(DEV_TARGETS) || exit 1"
+
+hlint:
+	hlint packages
 
 repl-simple:
 	$(CABAL_TEST) repl superfluid-protocol-system-simple

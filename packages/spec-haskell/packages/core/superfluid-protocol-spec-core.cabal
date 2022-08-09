@@ -49,3 +49,22 @@ library
         data-default,
         transformers >=0.2,
         microlens >0.4.11
+
+test-suite tests
+    type:             exitcode-stdio-1.0
+    main-is:          Tests.hs
+    hs-source-dirs:   test
+    other-modules:
+        Money.Systems.Superfluid.TestTypes
+        Money.Systems.Superfluid.RealTimeBalance_prop
+    default-language: GHC2021
+    ghc-options:      -Wall
+    build-depends:
+        base >=4.15 && <5,
+        data-default,
+        transformers,
+        microlens >0.4.11,
+        QuickCheck >=2.13,
+        hspec >=2.0,
+        HUnit >=1.6.0.0,
+        superfluid-protocol-spec-core     ==0.0.1.0

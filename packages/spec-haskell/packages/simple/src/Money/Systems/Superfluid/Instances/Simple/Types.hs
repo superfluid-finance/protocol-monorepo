@@ -242,20 +242,18 @@ instance TaggedTypeable SimpleCFAMonetaryUnitData where
     tagFromProxy _ = "CFA"
 
 instance Show SimpleCFAMonetaryUnitData where
-    show (CFMUD.MkMonetaryUnitData x) = printf "{ t = %s, sval = %s, fr = %s, buf = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "{ t = %s, sval = %s, fr = %s }"
         (show $ x^.CFMUD.settledAt)
         (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
-        (show $ x^.CFMUD.settledBufferValue)
 
 instance TaggedTypeable SimpleCFAContractData where
     tagFromProxy _ = "CFA#"
 
 instance Show SimpleCFAContractData where
-    show acd = printf "{ t_u = %s, fr = %s, buf = %s }"
+    show acd = printf "{ t_u = %s, fr = %s }"
         (show $ CFA.flow_updated_at acd)
         (show $ CFA.flow_rate acd)
-        (show $ CFA.flow_buffer acd)
 
 type SimpleCFAContractData = CFA.ContractData SimpleSuperfluidTypes
 type SimpleCFAOperation = CFA.Operation SimpleSuperfluidTypes
@@ -309,21 +307,19 @@ instance TaggedTypeable (CFDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) w
     tagFromProxy _ = "CFDA(P)"
 
 instance Show (CFDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) where
-    show (CFMUD.MkMonetaryUnitData x) = printf "pub { t = %s, sval = %s, fr = %s, buf = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "pub { t = %s, sval = %s, fr = %s }"
         (show $ x^.CFMUD.settledAt)
         (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
-        (show $ x^.CFMUD.settledBufferValue)
 
 instance TaggedTypeable (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "CFDA(S)"
 
 instance Show (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
-    show (CFMUD.MkMonetaryUnitData x) = printf "sub { t = %s, sval = %s, fr = %s, buf = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "sub { t = %s, sval = %s, fr = %s }"
         (show $ x^.CFMUD.settledAt)
         (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
-        (show $ x^.CFMUD.settledBufferValue)
 
 -- * UIDX
 

@@ -55,7 +55,6 @@ instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (PublisherData sft) sft
     settledAt          = $(field 'pub_settled_at)
     settledValue       = $(field 'pub_settled_value)
     netFlowRate        = $(field 'pub_total_flow_rate)
-    settledBufferValue = lens (const 0) const
 
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     settledAt     = readOnlyLens
@@ -85,8 +84,6 @@ instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sf
                                  }
           ) -> let vpuΔ = floor $ fromIntegral dcfr * fromIntegral (t_dc - t_sc) / tu
                in  UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu - vpuΔ)))
-
-    settledBufferValue = readOnlyLens (const 0)
 
 -- * Publisher Operations
 

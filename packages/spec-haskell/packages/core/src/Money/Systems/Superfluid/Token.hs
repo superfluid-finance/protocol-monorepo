@@ -17,7 +17,7 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
+-- import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
@@ -154,9 +154,9 @@ class ( Monad tk
 
     updateFlow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.FlowRate sft -> tk ()
     updateFlow aorAddrs newFlowRate = do
-        newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
+        -- newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
         updateUniversalIndex
-            aorAddrs (CFA.UpdateFlow newFlowRate newFlowBuffer)
+            aorAddrs (CFA.UpdateFlow newFlowRate)
             viewFlow setFlow cfaMonetaryUnitData
 
     -- ** DFA Functions

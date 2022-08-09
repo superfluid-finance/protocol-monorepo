@@ -46,16 +46,12 @@ clean: clean-docs clean-test clean-coverage
 # Testing
 #
 test:
-	$(CABAL_TEST) \
-		v2-test all --enable-tests \
+	$(CABAL_TEST) v2-test all --enable-tests \
 		$(TEST_OPTIONS)
 
 test-coverage:
-	$(CABAL_COVERAGE) \
-		v2-test \
-		superfluid-protocol-spec-core \
-		superfluid-protocol-system-simple \
-		--enable-tests --enable-coverage \
+	$(CABAL_COVERAGE) v2-build all --enable-tests --enable-coverage
+	$(CABAL_COVERAGE) v2-test all --enable-tests --enable-coverage \
 		$(TEST_OPTIONS)
 
 #

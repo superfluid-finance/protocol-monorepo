@@ -107,7 +107,6 @@ instance Arbitrary TestCFAMonetaryUnitData where
             { CFA.settled_at    = TestTimestamp t_s
             , CFA.settled_value = coerce $ TestMVal sv
             , CFA.net_flow_rate = TestMVal nfr
-            , CFA.settled_buffer_value = def
             }
 deriving instance Show (CFA.MonetaryUnitLenses TestSuperfluidTypes)
 deriving instance Show TestCFAMonetaryUnitData

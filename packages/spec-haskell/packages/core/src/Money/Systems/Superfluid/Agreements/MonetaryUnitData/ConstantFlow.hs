@@ -33,9 +33,10 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
                   & over settledValue       (+ (b^.settledValue + settledΔ))
                   & over settledBufferValue (+ b^.settledBufferValue)
         in MkMonetaryUnitData c
-instance MonetaryUnitLenses amuLs sft => Monoid (MonetaryUnitData amuLs sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
+    agreementSettledAt (MkMonetaryUnitData a) = a^.settledAt
+
     balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ uval_s + fr * fromIntegral (t - t_s) )
             [ mkAnyTappedValue buf_s ]

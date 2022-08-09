@@ -3,6 +3,8 @@
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementMonetaryUnitData (..)
+    , amud_prop_tau_is_settled
+    , amud_prop_semigroup_settles_pi
     , NullAgreementMonetaryUnitData
     , AgreementOperation (..)
     ) where
@@ -10,7 +12,6 @@ module Money.Systems.Superfluid.Concepts.Agreement
 import           Data.Kind                                         (Type)
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
-
 
 -- | Agreement monetary unit data type class.
 --
@@ -23,13 +24,31 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 --          onto the previous state to a new single state. It is still worth mentioning that it is only a sufficient
 --          condition, since a monoid could still "cheat" by linearly grow its data size on each binary operation.
 class ( SuperfluidTypes sft
-      , Monoid amud
+      , Semigroup amud
       ) => AgreementMonetaryUnitData amud sft | amud -> sft where
+    -- | τ function - last settled time (hear: τ) of the agreement monoid unit dat.
+    agreementSettledAt :: amud -> SFT_TS sft
+
     -- | π function - balance provided (hear: π) by the agreement monetary unit data.
     balanceProvidedByAgreement
         :: amud          -- amud
         -> SFT_TS sft    -- t
         -> SFT_RTB sft   -- rtb
+
+amud_prop_tau_is_settled :: ( SuperfluidTypes sft
+                            , AgreementMonetaryUnitData amud sft
+                            )
+                         => amud -> amud -> Bool
+amud_prop_tau_is_settled m m' = τ m' == τ (m <> m')
+    where τ = agreementSettledAt
+
+amud_prop_semigroup_settles_pi :: ( SuperfluidTypes sft
+                                  , AgreementMonetaryUnitData amud sft
+                                  )
+                               => amud -> amud -> Bool
+amud_prop_semigroup_settles_pi m m' = π m (τ m') <> π m' (τ m') == π (m <> m') (τ m')
+    where τ = agreementSettledAt
+          π = balanceProvidedByAgreement
 
 -- | Agreement operation type class.
 --

@@ -46,7 +46,6 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
         where ε'  = b^.εVal
               λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
-instance MonetaryUnitLenses amuLs sft => Monoid (MonetaryUnitData amuLs sft) where mempty = MkMonetaryUnitData def
 
 instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
     -- | Provided balance by DFA

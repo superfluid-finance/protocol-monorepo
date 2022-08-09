@@ -25,8 +25,8 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 data MonetaryUnitLenses sft = MonetaryUnitLenses
     { settled_at           :: SFT_TS sft
     , settled_value        :: UntappedValue (SFT_MVAL sft)
-    , settled_buffer_value :: BBS.BufferValue (SFT_MVAL sft)
     , net_flow_rate        :: SFT_MVAL sft
+    , settled_buffer_value :: BBS.BufferValue (SFT_MVAL sft)
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
 

@@ -28,6 +28,7 @@ import           Money.Systems.Superfluid.Concepts.TypedValue
 class ( Value v
       , Foldable rtbF
       , Monoid (rtbF v)
+      , Eq (rtbF v)
       ) => RealTimeBalance rtbF v | v -> rtbF where
 
     -- | Convert a single monetary value to a RTB value.

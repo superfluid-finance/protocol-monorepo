@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 {- HLINT ignore "Monoid law, left identity"  -}
 {- HLINT ignore "Monoid law, right identity" -}
 

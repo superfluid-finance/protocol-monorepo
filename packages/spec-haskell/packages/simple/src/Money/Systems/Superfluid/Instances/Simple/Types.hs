@@ -129,7 +129,7 @@ data SimpleRealTimeBalanceF a = SimpleRealTimeBalanceF
     , mintedValue   :: a
     , depositValue  :: a
     }
-    deriving stock (Generic, Functor, Foldable, Traversable)
+    deriving stock (Generic, Functor, Foldable, Traversable, Eq)
 
 type SimpleRealTimeBalance = SimpleRealTimeBalanceF Wad
 

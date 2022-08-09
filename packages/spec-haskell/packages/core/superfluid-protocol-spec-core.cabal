@@ -40,7 +40,9 @@ library
         Money.Systems.Superfluid.Token
     other-modules:
         Lens.Internal
-    hs-source-dirs:   src
+    hs-source-dirs:
+        src-internal
+        src
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
@@ -53,14 +55,19 @@ library
 test-suite tests
     type:             exitcode-stdio-1.0
     main-is:          Tests.hs
-    hs-source-dirs:   test
+    hs-source-dirs:
+        src-internal
+        test
     other-modules:
+        Lens.Internal
         Money.Systems.Superfluid.TestTypes
         Money.Systems.Superfluid.RealTimeBalance_prop
+        Money.Systems.Superfluid.ConstantFlowAgreement_prop
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
         base >=4.15 && <5,
+        template-haskell,
         data-default,
         transformers,
         microlens >0.4.11,

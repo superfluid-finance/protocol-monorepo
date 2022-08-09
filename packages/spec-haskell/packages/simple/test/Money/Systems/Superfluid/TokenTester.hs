@@ -93,13 +93,19 @@ expectZeroTotalValueFuzzily tolerance = do
     let (SF.Wad totalBalance) = SF.netValueOfRTB $ SF.sumBalancesAt (map snd accounts) t
     liftIO $ assertBool "Zero Value Invariance" $ fuzzyEq tolerance (fromInteger totalBalance) (0 :: Double)
 
-expectZeroTotalValue :: TokenTester ()
+expectZeroTotalValue :: HasCallStack => TokenTester ()
 expectZeroTotalValue = expectZeroTotalValueFuzzily 0
 
 -- Convenient utilities just for formatting prettiness (message in the end)
 
-assertBoolWith :: (a -> Bool) -> String -> a -> Assertion
-assertBoolWith f msg x = assertBool msg (f x)
+assertBoolWith :: HasCallStack => (a -> Bool) -> a -> Assertion
+assertBoolWith f x = assertBool "?" (f x)
 
-assertEqualWith :: (Show a, Eq a) => a -> String -> a -> Assertion
-assertEqualWith a msg = assertEqual msg a
+assertBoolWith' :: HasCallStack => (a -> Bool) -> String -> a -> Assertion
+assertBoolWith' f msg x = assertBool msg (f x)
+
+assertEqualWith :: HasCallStack => (Show a, Eq a) => a -> a -> Assertion
+assertEqualWith a = assertEqual "==" a
+
+assertEqualWith' :: HasCallStack => (Show a, Eq a) => a -> String -> a -> Assertion
+assertEqualWith' a msg = assertEqual msg a

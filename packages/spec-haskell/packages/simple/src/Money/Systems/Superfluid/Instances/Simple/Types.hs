@@ -242,18 +242,18 @@ instance TaggedTypeable SimpleCFAMonetaryUnitData where
     tagFromProxy _ = "CFA"
 
 instance Show SimpleCFAMonetaryUnitData where
-    show (CFMUD.MkMonetaryUnitData x) = printf "{ t = %s, uval = %s, buf = %s, fr = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "{ t = %s, sval = %s, fr = %s, buf = %s }"
         (show $ x^.CFMUD.settledAt)
-        (show $ x^.CFMUD.settledUntappedValue)
-        (show $ x^.CFMUD.settledBufferValue)
+        (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
+        (show $ x^.CFMUD.settledBufferValue)
 
 instance TaggedTypeable SimpleCFAContractData where
     tagFromProxy _ = "CFA#"
 
 instance Show SimpleCFAContractData where
-    show acd = printf "{ flowLastUpdatedAt = %s, flowRate = %s, flowBuffer = %s }"
-        (show $ CFA.flow_last_updated_at acd)
+    show acd = printf "{ t_u = %s, fr = %s, buf = %s }"
+        (show $ CFA.flow_updated_at acd)
         (show $ CFA.flow_rate acd)
         (show $ CFA.flow_buffer acd)
 
@@ -269,7 +269,7 @@ instance TaggedTypeable SimpleDFAMonetaryUnitData where
     tagFromProxy _ = "DFA"
 
 instance Show SimpleDFAMonetaryUnitData where
-    show (DFMUD.MkMonetaryUnitData x) = printf "{ λ = %s, t_s = %s, α = %s, ε = %s, buf = %s }"
+    show (DFMUD.MkMonetaryUnitData x) = printf "{ λ = %s, t = %s, α = %s, ε = %s, buf = %s }"
         (show $ x^.DFMUD.decayingFactor)
         (show $ x^.DFMUD.settledAt)
         (show $ x^.DFMUD.αVal)
@@ -309,21 +309,21 @@ instance TaggedTypeable (CFDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) w
     tagFromProxy _ = "CFDA(P)"
 
 instance Show (CFDA.PublisherMonetaryUnitData SimpleSuperfluidTypes) where
-    show (CFMUD.MkMonetaryUnitData x) = printf "pub { t = %s, uval = %s, buf = %s, fr = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "pub { t = %s, sval = %s, fr = %s, buf = %s }"
         (show $ x^.CFMUD.settledAt)
-        (show $ x^.CFMUD.settledUntappedValue)
-        (show $ x^.CFMUD.settledBufferValue)
+        (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
+        (show $ x^.CFMUD.settledBufferValue)
 
 instance TaggedTypeable (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
     tagFromProxy _ = "CFDA(S)"
 
 instance Show (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidTypes) where
-    show (CFMUD.MkMonetaryUnitData x) = printf "sub { t = %s, uval = %s, buf = %s, fr = %s }"
+    show (CFMUD.MkMonetaryUnitData x) = printf "sub { t = %s, sval = %s, fr = %s, buf = %s }"
         (show $ x^.CFMUD.settledAt)
-        (show $ x^.CFMUD.settledUntappedValue)
-        (show $ x^.CFMUD.settledBufferValue)
+        (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
+        (show $ x^.CFMUD.settledBufferValue)
 
 -- * UIDX
 

@@ -32,8 +32,13 @@ expectFlowRateTo (sender, receiver) expr = do
     flow <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.OperationPartiesF sender receiver)
     liftIO $ expr $ CFA.flow_rate flow
 
+tstep = 1000 :: SF.SimpleTimestamp
+
 -- 1x test unit for flow rate
-u1x = SF.toWad(0.0001 :: Double)
+fr1x = SF.toWad(0.001 :: Double)
+
+u1x = fromIntegral tstep * fr1x
+
 
 -- =====================================================================================================================
 -- * Test Scenarios
@@ -50,20 +55,36 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     accounts' <- runToken SF.listAccounts
     liftIO $ assertEqual "expected number of accounts" 4 (length accounts')
 
-    -- T1: test initial condition
-    -- creating flow: alice -> bob @ 0.0001/s
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) u1x
-    expectNetFlowRateTo alice $ assertEqualWith (-u1x) "alice should have -1x net flowrate"
-    expectNetFlowRateTo bob   $ assertEqualWith   u1x  "bob should have 1x net flowrate"
-    expectNetFlowRateTo carol $ assertEqualWith     0  "carol should have zero net flowrate"
-    expectFlowRateTo  (alice,   bob) $ assertEqualWith u1x "alice -> bob should have 1x flowrate"
-    expectFlowRateTo  (alice, carol) $ assertEqualWith   0 "alice -> carol should have zero flowrate"
+    -- T1: creating flow: alice -> bob 1x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) fr1x
+    expectFlowRateTo  (alice,   bob) $ assertEqualWith fr1x
+    expectFlowRateTo  (alice, carol) $ assertEqualWith    0
+    expectNetFlowRateTo alice $ assertEqualWith (-fr1x)
+    expectNetFlowRateTo bob   $ assertEqualWith   fr1x
+    expectNetFlowRateTo carol $ assertEqualWith      0
+    expectZeroTotalValue
 
     -- T2: move time forward and test balance moves
-    timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance)  "alice should send money"
-    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance)  "bob should receive money"
-    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance) "carol should be the same"
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
+    expectAccountBalanceTo carol $ assertEqualWith  constInitBalance
+    expectZeroTotalValue
+
+    -- T2a: updating flow: alice -> bob 2x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) (2*fr1x)
+    expectFlowRateTo  (alice,   bob) $ assertEqualWith (2*fr1x)
+    expectFlowRateTo  (alice, carol) $ assertEqualWith       0
+    expectNetFlowRateTo alice $ assertEqualWith (- 2*fr1x)
+    expectNetFlowRateTo bob   $ assertEqualWith (  2*fr1x)
+    expectNetFlowRateTo carol $ assertEqualWith      0
+    expectZeroTotalValue
+
+    -- T3: move time forward and test balance moves
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 3*u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 3*u1x)
+    expectAccountBalanceTo carol $ assertEqualWith  constInitBalance
     expectZeroTotalValue
     )
 
@@ -74,22 +95,59 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob)   u1x
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice carol) (2*u1x)
-    expectNetFlowRateTo alice $ assertEqualWith (-3*u1x) "alice should have -3x net flowrate"
-    expectNetFlowRateTo bob   $ assertEqualWith     u1x  "bob should have 1x net flowrate"
-    expectNetFlowRateTo carol $ assertEqualWith  (2*u1x) "carol should have 2x net flowrate"
-    expectFlowRateTo (alice, bob)   $ assertEqualWith    u1x  "alice -> bob should have 1x flowrate"
-    expectFlowRateTo (alice, carol) $ assertEqualWith (2*u1x) "alice -> carol should have 2x flowrate"
-    expectFlowRateTo (bob, carol)   $ assertEqualWith      0  "bob -> carol should have zero flowrate"
-
-    -- T1: move time forward and test balance moves
-    timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance) "alice should send money"
-    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance) "bob should receive money"
-    expectAccountBalanceTo carol $ assertBoolWith (> constInitBalance) "carol should also receive money"
     expectZeroTotalValue
-    )
+
+    -- T1: creating flow: alice -> bob 1x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) fr1x
+    expectFlowRateTo (alice, bob)   $ assertEqualWith fr1x
+    expectFlowRateTo (alice, carol) $ assertEqualWith    0
+    expectFlowRateTo (bob, carol)   $ assertEqualWith    0
+    expectNetFlowRateTo alice $ assertEqualWith (-fr1x)
+    expectNetFlowRateTo bob   $ assertEqualWith   fr1x
+    expectNetFlowRateTo carol $ assertEqualWith      0
+    expectZeroTotalValue
+
+    -- T2: move time forward and test balance moves
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
+    expectAccountBalanceTo carol $ assertEqualWith  constInitBalance
+    expectZeroTotalValue
+
+    -- T2a: creating flow: alice -> carol 2x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice carol) (3*fr1x)
+    expectFlowRateTo (alice, bob)   $ assertEqualWith    fr1x
+    expectFlowRateTo (alice, carol) $ assertEqualWith (3*fr1x)
+    expectFlowRateTo (bob, carol)   $ assertEqualWith       0
+    expectNetFlowRateTo alice $ assertEqualWith  (-4*fr1x)
+    expectNetFlowRateTo bob   $ assertEqualWith      fr1x
+    expectNetFlowRateTo carol $ assertEqualWith  ( 3*fr1x)
+    expectZeroTotalValue
+
+    -- T3: move time forward and test balance moves
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 5 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 2 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 3 * u1x)
+    expectZeroTotalValue
+
+    -- T3a: updating flow: alice -> bob 2x
+    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) (2*fr1x)
+    expectFlowRateTo (alice, bob)   $ assertEqualWith (2*fr1x)
+    expectFlowRateTo (alice, carol) $ assertEqualWith (3*fr1x)
+    expectFlowRateTo (bob, carol)   $ assertEqualWith       0
+    expectNetFlowRateTo alice $ assertEqualWith  (-5*fr1x)
+    expectNetFlowRateTo bob   $ assertEqualWith  ( 2*fr1x)
+    expectNetFlowRateTo carol $ assertEqualWith  ( 3*fr1x)
+    expectZeroTotalValue
+
+    -- T4: move time forward and test balance moves
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 10 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance +  4 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance +  6 * u1x)
+    expectZeroTotalValue
+      )
 
 tests = createTokenTestSuite "ConstantFlowAgreement System Testsuite"
     [ simple1to1ScenarioTest

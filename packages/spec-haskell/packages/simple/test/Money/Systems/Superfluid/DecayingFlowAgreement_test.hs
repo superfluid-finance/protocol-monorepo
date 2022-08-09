@@ -29,7 +29,7 @@ newtype FuzzyEqDouble = FuzzyEqDouble Double deriving (Show)
 instance Eq FuzzyEqDouble where
     (FuzzyEqDouble a) == (FuzzyEqDouble b) = fuzzyEq tolerance a b
 
-assertFuzzilyEqualWith a msg b = assertEqual msg (FuzzyEqDouble a) (FuzzyEqDouble b)
+assertFuzzilyEqualWith a b = assertEqual "~=" (FuzzyEqDouble a) (FuzzyEqDouble b)
 
 expectΕValTo :: HasCallStack => SF.SimpleAddress -> (Double -> Assertion) -> TokenTester ()
 expectΕValTo addr expr = do
@@ -64,17 +64,17 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     -- T1: test initial condition
     -- creating flow: alice -> bob @ 0.0001/s
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) u1x
-    expectΕValTo alice $ assertEqualWith (-u1xd) "alice should have -1x net distribution limit"
-    expectΕValTo bob   $ assertEqualWith   u1xd  "bob should have 1x net distribution limit"
-    expectΕValTo carol $ assertEqualWith      0  "carol should have zero net distribution limit"
-    expectDistributionLimitTo (alice, bob)   $ assertEqualWith u1x  "alice -> bob should have 1x distribution limit"
-    expectDistributionLimitTo (alice, carol) $ assertEqualWith   0  "alice -> carol should have zero distribution limit"
+    expectΕValTo alice $ assertEqualWith (-u1xd)
+    expectΕValTo bob   $ assertEqualWith   u1xd
+    expectΕValTo carol $ assertEqualWith      0
+    expectDistributionLimitTo (alice, bob)   $ assertEqualWith u1x
+    expectDistributionLimitTo (alice, carol) $ assertEqualWith   0
 
     -- T2: move time forward and test balance moves
     timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance)  "alice should send money"
-    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance)  "bob should receive money"
-    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance) "carol should be the same"
+    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance)
+    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance)
+    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance)
     expectZeroTotalValueFuzzily 0 -- 0 tolerance
       )
 
@@ -87,17 +87,17 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     let [alice, bob, carol] = testAddresses ctx
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice carol) (u1x * 2)
-    expectΕValTo alice $ assertFuzzilyEqualWith (-3*u1xd) "alice should have -3x net distribution limit"
-    expectΕValTo bob   $ assertFuzzilyEqualWith     u1xd  "bob should have 1x net distribution limit"
-    expectΕValTo carol $ assertFuzzilyEqualWith  (2*u1xd) "carol should have 1x net distribution limit"
-    expectDistributionLimitTo (alice, bob)   $ assertEqualWith    u1x  "alice -> bob should have 1x distribution limit"
-    expectDistributionLimitTo (alice, carol) $ assertEqualWith (2*u1x) "alice -> carol should have zero distribution limit"
+    expectΕValTo alice $ assertFuzzilyEqualWith (-3*u1xd)
+    expectΕValTo bob   $ assertFuzzilyEqualWith     u1xd
+    expectΕValTo carol $ assertFuzzilyEqualWith  (2*u1xd)
+    expectDistributionLimitTo (alice, bob)   $ assertEqualWith    u1x
+    expectDistributionLimitTo (alice, carol) $ assertEqualWith (2*u1x)
 
     -- T1: move time forward and test balance moves
     timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance) "alice should send money"
-    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance) "bob should receive money"
-    expectAccountBalanceTo carol $ assertBoolWith (> constInitBalance) "carol should also receive money"
+    expectAccountBalanceTo alice $ assertBoolWith (< constInitBalance)
+    expectAccountBalanceTo bob   $ assertBoolWith (> constInitBalance)
+    expectAccountBalanceTo carol $ assertBoolWith (> constInitBalance)
     expectZeroTotalValueFuzzily tolerance
     )
 
@@ -111,18 +111,18 @@ simpleLoopScenarioTest = TokenTestCase TokenTestSpec
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF bob   carol) u1x
     runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF carol alice) u1x
-    expectΕValTo alice $ assertEqualWith 0 "alice should have zero net distribution limit"
-    expectΕValTo bob   $ assertEqualWith 0 "bob should have zero net distribution limit"
-    expectΕValTo carol $ assertEqualWith 0 "carol should have zero net distribution limit"
-    expectDistributionLimitTo (alice, bob)   $ assertEqualWith u1x "alice -> bob should have 1x distribution limit"
-    expectDistributionLimitTo (bob,   carol) $ assertEqualWith u1x "bob -> alice should 1x distribution limit"
-    expectDistributionLimitTo (carol, alice) $ assertEqualWith u1x "carol -> alice should have 1x distribution limit"
+    expectΕValTo alice $ assertEqualWith 0
+    expectΕValTo bob   $ assertEqualWith 0
+    expectΕValTo carol $ assertEqualWith 0
+    expectDistributionLimitTo (alice, bob)   $ assertEqualWith u1x
+    expectDistributionLimitTo (bob,   carol) $ assertEqualWith u1x
+    expectDistributionLimitTo (carol, alice) $ assertEqualWith u1x
 
     -- T1: move time forward and test balance moves
     timeTravel $ 3600 * 24
-    expectAccountBalanceTo alice $ assertBoolWith (== constInitBalance) "alice should send money"
-    expectAccountBalanceTo bob   $ assertBoolWith (== constInitBalance) "bob should receive money"
-    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance) "carol should also receive money"
+    expectAccountBalanceTo alice $ assertBoolWith (== constInitBalance)
+    expectAccountBalanceTo bob   $ assertBoolWith (== constInitBalance)
+    expectAccountBalanceTo carol $ assertBoolWith (== constInitBalance)
     expectZeroTotalValueFuzzily 0 -- 0 tolerance
     )
 

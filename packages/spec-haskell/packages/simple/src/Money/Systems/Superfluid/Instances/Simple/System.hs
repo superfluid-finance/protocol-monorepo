@@ -236,8 +236,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
                 & subscriber_contracts
                 & M.filterWithKey (\(PDSUB_KEY s _) _ -> s == addr)
                 & M.toList
-                & fmap (\(PDSUB_KEY _ k, sub) -> (fromJust $ M.lookup k pubs
-                                                 , sub))
+                & fmap (\(PDSUB_KEY _ k, sub) -> (fromJust $ M.lookup k pubs, sub))
         return $ SimpleAccount { account_data = accData, subscriptions = subs }
 
     putAccount addr (SimpleAccount { account_data = accData }) t = modify $ \vs -> vs
@@ -279,7 +278,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
         , tokenLastUpdatedAt = t
         }
 
-    -- * IDA
+    -- * PDIDX
     --
 
     viewProportionalDistributionContract publisher indexId = getSimpleTokenData

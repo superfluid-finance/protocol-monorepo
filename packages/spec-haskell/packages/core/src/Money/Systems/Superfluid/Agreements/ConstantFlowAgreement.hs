@@ -23,19 +23,19 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 --
 
 data MonetaryUnitLenses sft = MonetaryUnitLenses
-    { settled_at             :: SFT_TS sft
-    , settled_untapped_value :: UntappedValue (SFT_MVAL sft)
-    , settled_buffer_value   :: BBS.BufferValue (SFT_MVAL sft)
-    , net_flow_rate          :: SFT_MVAL sft
+    { settled_at           :: SFT_TS sft
+    , settled_value        :: UntappedValue (SFT_MVAL sft)
+    , settled_buffer_value :: BBS.BufferValue (SFT_MVAL sft)
+    , net_flow_rate        :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
 
 -- | Monetary unit lenses for the universal index.
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
-    settledAt            = $(field 'settled_at)
-    settledUntappedValue = $(field 'settled_untapped_value)
-    settledBufferValue   = $(field 'settled_buffer_value)
-    netFlowRate          = $(field 'net_flow_rate)
+    settledAt          = $(field 'settled_at)
+    settledValue       = $(field 'settled_value)
+    settledBufferValue = $(field 'settled_buffer_value)
+    netFlowRate        = $(field 'net_flow_rate)
 
 -- | Type alias for the constant flow monetary unit data.
 type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
@@ -54,9 +54,9 @@ data Operation sft =
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementOperationData (Operation sft) = ContractData
-        { flow_last_updated_at :: SFT_TS sft
-        , flow_rate            :: SFT_MVAL sft
-        , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
+        { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
+        , flow_rate       :: SFT_MVAL sft
+        , flow_buffer     :: BBS.BufferValue (SFT_MVAL sft)
         }
 
     data AgreementOperationResultF (Operation sft) a = OperationPartiesF
@@ -67,25 +67,23 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     applyAgreementOperation (UpdateFlow newFlowRate newFlowBuffer) acd t' = let
-        acd' = ContractData { flow_last_updated_at = t'
-                            , flow_rate   = newFlowRate
-                            , flow_buffer = newFlowBuffer
+        acd' = ContractData { flow_updated_at = t'
+                            , flow_rate       = newFlowRate
+                            , flow_buffer     = newFlowBuffer
                             }
         aorΔ = OperationPartiesF
                    (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate          (-flowRateΔ)
-                        & set CFMUD.settledUntappedValue (UntappedValue $ -settledΔ - coerce flowBufferΔ)
-                        & set CFMUD.settledBufferValue    flowBufferΔ
+                        & set CFMUD.netFlowRate        (-flowRateΔ)
+                        & set CFMUD.settledValue       (UntappedValue $ - coerce flowBufferΔ)
+                        & set CFMUD.settledBufferValue flowBufferΔ
                    )
                    (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate           flowRateΔ
-                        & set CFMUD.settledUntappedValue (UntappedValue settledΔ)
-                        & set CFMUD.settledBufferValue    def
+                        & set CFMUD.netFlowRate        flowRateΔ
+                        & set CFMUD.settledValue       def
+                        & set CFMUD.settledBufferValue def
                    )
         in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
-        where t           = flow_last_updated_at acd
-              fr          = flow_rate acd
-              settledΔ    = fr * fromIntegral (t' - t)
+        where fr          = flow_rate acd
               flowRateΔ   = newFlowRate - fr
               flowBufferΔ = newFlowBuffer - flow_buffer acd
 
@@ -94,4 +92,4 @@ type ContractData sft = AgreementOperationData (Operation sft)
 
 -- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
 instance SuperfluidTypes sft => Default (ContractData sft) where
-    def = ContractData { flow_last_updated_at = def, flow_rate = def, flow_buffer = def }
+    def = ContractData { flow_updated_at = def, flow_rate = def, flow_buffer = def }

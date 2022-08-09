@@ -68,7 +68,7 @@ expo = do
     timeTravel t0
 
     liftIO $ putStrLn "# DAY 0: create test accounts"
-    createToken token [alice, bob, carol] initBalance
+    createToken token [alice, bob, carol, dan] initBalance
     runSimTokenOp token printTokenState
 
     let t1 = t0
@@ -90,14 +90,14 @@ expo = do
 
     timeTravel day
     t4 <- getCurrentTime
-    liftIO $ putStrLn $ "# DAY 4: bob subscribes 100 units from alice, and alice distribute 1x @" ++ show t4
+    liftIO $ putStrLn $ "# DAY 4: bob subscribes 100 units from alice, and alice distribute 1x to it@" ++ show t4
     runToken token $ SF.updateProportionalDistributionSubscription bob alice 0 1000
     runToken token $ SF.distributeProportionally alice 0 u1x
     runSimTokenOp token printTokenState
 
     timeTravel day
     t5 <- getCurrentTime
-    liftIO $ putStrLn $ "# DAY 5: carol subscribes 400 units from alice, and alice distribute 5x @" ++ show t5
+    liftIO $ putStrLn $ "# DAY 5: carol subscribes 400 units from alice, and alice distribute 5x to it@" ++ show t5
     runSimTokenOp token printTokenState
     runToken token $ SF.updateProportionalDistributionSubscription carol alice 0 4000
     runToken token $ SF.distributeProportionally alice 0 (5*u1x)
@@ -113,6 +113,19 @@ expo = do
     t7 <- getCurrentTime
     liftIO $ putStrLn $ "# DAY 7: print token state @" ++ show t7
     runSimTokenOp token printTokenState
+
+    timeTravel day
+    t8 <- getCurrentTime
+    liftIO $ putStrLn $ "# DAY 8: dan subscribes 1000 units from alice, annd alice distribute 2x to it" ++ show t8
+    runToken token $ SF.updateProportionalDistributionSubscription dan alice 1 1000
+    runToken token $ SF.distributeFlow alice 1 (2*fr1x)
+    runSimTokenOp token printTokenState
+
+    timeTravel day
+    t9 <- getCurrentTime
+    liftIO $ putStrLn $ "# DAY 9: print token state @" ++ show t9
+    runSimTokenOp token printTokenState
+
 
 dfa :: HasCallStack => SimMonad ()
 dfa = do
@@ -147,4 +160,7 @@ cfda = do
     travelDaysAndPrintBalances t0 accounts 7
 
     runToken token $ SF.distributeFlow alice 0 (5*fr1x)
+    travelDaysAndPrintBalances t0 accounts 7
+
+    runToken token $ SF.distributeFlow alice 0 (2*fr1x)
     travelDaysAndPrintBalances t0 accounts 7

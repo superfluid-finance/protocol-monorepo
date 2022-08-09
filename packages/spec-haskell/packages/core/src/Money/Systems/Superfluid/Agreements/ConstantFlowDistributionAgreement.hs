@@ -25,7 +25,7 @@ import           Money.Systems.Superfluid.Agreements.ProportionalDistributionCom
 -- * Contracts
 
 data DistributionContract sft = DistributionContract
-    { dc_settled_at     :: SFT_TS sft
+    { dc_updated_at     :: SFT_TS sft
     , dc_value_per_unit :: SFT_MVAL sft
     , dc_flow_rate      :: SFT_MVAL sft
     } deriving (Generic)
@@ -52,9 +52,9 @@ type SubscriberData sft = ( DistributionContractBase sft, DistributionContract s
 type SubscriberMonetaryUnitData sft = CFMUD.MonetaryUnitData (SubscriberData sft) sft
 
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (PublisherData sft) sft where
-    settledAt = $(field 'pub_settled_at)
-    settledUntappedValue = $(field 'pub_settled_value)
-    netFlowRate = $(field 'pub_total_flow_rate)
+    settledAt          = $(field 'pub_settled_at)
+    settledValue       = $(field 'pub_settled_value)
+    netFlowRate        = $(field 'pub_total_flow_rate)
     settledBufferValue = lens (const 0) const
 
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sft where
@@ -71,11 +71,11 @@ instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sf
           , _
           ) -> floor $ fromIntegral dcfr * u / tu )
 
-    settledUntappedValue = readOnlyLens
+    settledValue = readOnlyLens
         (\( DistributionContractBase { total_unit            = tu}
           , DistributionContract { dc_value_per_unit         = vpu
                                  , dc_flow_rate              = dcfr
-                                 , dc_settled_at             = t_dc
+                                 , dc_updated_at             = t_dc
                                  }
           , SubscriptionContractBase { sub_owned_unit        = u
                                      , sub_settled_at        = t_sc
@@ -94,22 +94,24 @@ newtype PublisherOperation sft = UpdateDistributionFlowRate (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft where
     applyAgreementOperation (UpdateDistributionFlowRate dcfr') (PublisherOperationData dcBase dc) t' = let
-        dc'  = dc { dc_settled_at = t'
-                   , dc_value_per_unit = vpu + vpuΔ
-                   , dc_flow_rate = dcfr'
-                   }
+        dc'  = dc { dc_updated_at = t'
+                  , dc_value_per_unit = vpu + vpuΔ
+                  , dc_flow_rate = dcfr'
+                  }
         aorΔ  = PublisherOperationResultF
-                  (def & set CFMUD.settledAt t'
-                       & set CFMUD.netFlowRate (dcfr - dcfr') -- reverse sign for outgoing flow
-                       & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
+                (def & set CFMUD.settledAt t'
+                     & set CFMUD.netFlowRate (dcfr - dcfr') -- reverse sign for outgoing flow
+                     & set CFMUD.settledValue def
+                )
         in (PublisherOperationData dcBase dc', fmap CFMUD.MkMonetaryUnitData aorΔ)
         where DistributionContractBase { total_unit    = tu
                                        } = dcBase
-              DistributionContract { dc_settled_at     = t_dc
+              DistributionContract { dc_updated_at     = t_dc
                                    , dc_value_per_unit = vpu
                                    , dc_flow_rate      = dcfr
                                    } = dc
-              -- FIXME can be a black hole due to tu == 0 or precision
+              -- FIXME can be a black hole due to tu == 0 or precision error
+              --       need to communicate the actual distribution flow rate instead
               settledΔ = dcfr * fromIntegral (t' - t_dc)
               vpuΔ = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0
 
@@ -128,7 +130,7 @@ data SubscriberOperation sft = SettleSubscription
 
 instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft where
     applyAgreementOperation SettleSubscription (SubscriberOperationData (dcBase, dc, scBase, sc)) t' = let
-        dc' = dc { dc_settled_at = t'
+        dc' = dc { dc_updated_at = t'
                  , dc_value_per_unit = vpu'
                  }
         sc'= sc { sc_settled_value = UntappedValue $ sv + svΔ
@@ -136,11 +138,12 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
                 }
         aorΔ  = SubscriberOperationPartiesF
                 (def & set CFMUD.settledAt t'
-                     & set CFMUD.settledUntappedValue (UntappedValue (-settledΔ)))
+                     & set CFMUD.settledValue def
+                )
         in (SubscriberOperationData (dcBase, dc', scBase, sc'), fmap CFMUD.MkMonetaryUnitData aorΔ)
         where DistributionContractBase { total_unit            = tu
                                        } = dcBase
-              DistributionContract { dc_settled_at             = t_dc
+              DistributionContract { dc_updated_at             = t_dc
                                    , dc_value_per_unit         = vpu_i
                                    , dc_flow_rate              = dcfr
                                    } = dc

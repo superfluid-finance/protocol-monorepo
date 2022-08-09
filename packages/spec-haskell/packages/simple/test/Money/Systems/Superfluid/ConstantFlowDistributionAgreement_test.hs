@@ -44,12 +44,12 @@ simple1to2ScenarioTest1 = TokenTestCase TokenTestSpec
     runToken $ SF.updateProportionalDistributionSubscription bob alice 0 1000
     runToken $ SF.updateProportionalDistributionSubscription carol alice 0 4000
 
-    -- T1: alice distribute 1x
+    -- T1: alice distribute 5x
     runToken $ SF.distributeFlow alice 0 (5*fr1x)
     timeTravel $ tstep
-    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 5 * u1x) "alice should've send 5x money"
-    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 1 * u1x) "bob should've receive 2x money"
-    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 4 * u1x) "carol should've received 2x money yet"
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 5 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 1 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 4 * u1x)
 
     expectZeroTotalValue
       )
@@ -65,33 +65,71 @@ simple1to2ScenarioTest2 = TokenTestCase TokenTestSpec
     -- T0: setup subscription from bob to alice, alice distribute 1x flow
     runToken $ SF.updateProportionalDistributionSubscription bob alice 0 1000
     runToken $ SF.distributeFlow alice 0 fr1x
-    expectAccountBalanceTo alice $ assertEqualWith constInitBalance "T0 alice should not send money yet"
-    expectAccountBalanceTo bob   $ assertEqualWith constInitBalance "T0 bob should not receive money yet"
-    expectAccountBalanceTo carol $ assertEqualWith constInitBalance "T0 carol should not receive money yet"
+    expectAccountBalanceTo alice $ assertEqualWith constInitBalance
+    expectAccountBalanceTo bob   $ assertEqualWith constInitBalance
+    expectAccountBalanceTo carol $ assertEqualWith constInitBalance
 
     -- T1: alice distribute 1x flow
     timeTravel $ tstep
-    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x) "T1 alice should've sent 1x money"
-    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x) "T1 bob should've received 1x money"
-    expectAccountBalanceTo carol $ assertEqualWith        constInitBalance  "T1 carol should've received money"
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
+    expectAccountBalanceTo carol $ assertEqualWith        constInitBalance
 
-    -- T1a: setup subscription from carol to alice, alice distribute 5x flow
+    -- T1a: setup subscription from carol to alice
     runToken $ SF.updateProportionalDistributionSubscription carol alice 0 4000
-    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x) "T1a alice should not send more money yet"
-    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x) "T1a bob should not receive more money yet"
-    expectAccountBalanceTo carol $ assertEqualWith        constInitBalance  "T1a carol should not receive more money yet"
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
+    expectAccountBalanceTo carol $ assertEqualWith        constInitBalance
 
-    -- T1b: setup subscription from carol to alice, alice distribute 5x flow
+    -- T1b: alice distribute 5x flow
     runToken $ SF.distributeFlow alice 0 (5*fr1x)
-    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x) "T1b alice should not send more money yet"
-    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x) "T1b bob should not receive more money yet"
-    expectAccountBalanceTo carol $ assertEqualWith        constInitBalance  "T1b carol should not receive more money yet"
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + u1x)
+    expectAccountBalanceTo carol $ assertEqualWith        constInitBalance
 
-    -- T2: alice distribute 1x
+    -- T2: time travel
     timeTravel $ tstep
-    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 6 * u1x) "T2 alice should've send 5x money"
-    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 2 * u1x) "T2 bob should've receive 1x money"
-    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 4 * u1x) "T2 carol should've received 4x money"
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 6 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 2 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 4 * u1x)
+
+    -- T3: alice distribute 10x flow, and time travel
+    runToken $ SF.distributeFlow alice 0 (10*fr1x)
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 16 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance +  4 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 12 * u1x)
+
+    expectZeroTotalValue)
+
+multi1to2and1to1ScenarioTest = TokenTestCase TokenTestSpec
+    { testCaseLabel = "Multi 1to1 1to2 Scenario Test"
+    , testAddressesToInit = ["alice", "bob", "carol", "dan"]
+    , testAccountInitBalance = constInitBalance
+    } (\ctx -> do
+    let [alice, bob, carol, dan] = testAddresses ctx
+    expectZeroTotalValue
+
+    -- T0: setup subscription from bob to alice, and carol to alice
+    runToken $ SF.updateProportionalDistributionSubscription bob alice 0 1000
+    runToken $ SF.updateProportionalDistributionSubscription carol alice 0 4000
+
+    -- T1: alice distribute 5x
+    runToken $ SF.distributeFlow alice 0 (5*fr1x)
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 5 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance + 1 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance + 4 * u1x)
+    expectAccountBalanceTo dan   $ assertEqualWith constInitBalance
+
+    -- T2: setup subscription from dan to alice
+    runToken $ SF.updateProportionalDistributionSubscription dan alice 1 1000
+    runToken $ SF.distributeFlow alice 1 (1*fr1x)
+    timeTravel $ tstep
+    expectAccountBalanceTo alice $ assertEqualWith (constInitBalance - 11 * u1x)
+    expectAccountBalanceTo bob   $ assertEqualWith (constInitBalance +  2 * u1x)
+    expectAccountBalanceTo carol $ assertEqualWith (constInitBalance +  8 * u1x)
+    expectAccountBalanceTo dan   $ assertEqualWith (constInitBalance +  1 * u1x)
 
     expectZeroTotalValue
       )
@@ -99,4 +137,5 @@ simple1to2ScenarioTest2 = TokenTestCase TokenTestSpec
 tests = createTokenTestSuite "ConstantFlowDistributionAgreement System Testsuite"
     [ simple1to2ScenarioTest1
     , simple1to2ScenarioTest2
+    , multi1to2and1to1ScenarioTest
     ]

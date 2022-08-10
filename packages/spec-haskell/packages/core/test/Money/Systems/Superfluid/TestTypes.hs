@@ -23,14 +23,11 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 -- * Timestamp
 
 newtype TestTimestamp = TestTimestamp Int
-    deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show)
+    deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show, Arbitrary)
 
 -- * Value
 newtype TestMVal = TestMVal Integer
-    deriving (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show)
-
-instance Arbitrary TestMVal where
-    arbitrary = TestMVal <$> arbitrary
+    deriving (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
 
 deriving instance Show (UntappedValue TestMVal)
 

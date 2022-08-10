@@ -31,8 +31,6 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
         in MkMonetaryUnitData c
 
 instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
-    agreementSettledAt (MkMonetaryUnitData a) = a^.settledAt
-
     balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ uval_s + fr * fromIntegral (t - t_s) )
             [ ]

@@ -3,7 +3,6 @@
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementMonetaryUnitData (..)
-    , amud_prop_tau_is_settled
     , amud_prop_semigroup_settles_pi
     , NullAgreementMonetaryUnitData
     , AgreementOperation (..)
@@ -26,29 +25,18 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 class ( SuperfluidTypes sft
       , Semigroup amud
       ) => AgreementMonetaryUnitData amud sft | amud -> sft where
-    -- | τ function - last settled time (hear: τ) of the agreement monoid unit dat.
-    agreementSettledAt :: amud -> SFT_TS sft
-
     -- | π function - balance provided (hear: π) by the agreement monetary unit data.
     balanceProvidedByAgreement
         :: amud          -- amud
         -> SFT_TS sft    -- t
         -> SFT_RTB sft   -- rtb
 
-amud_prop_tau_is_settled :: ( SuperfluidTypes sft
-                            , AgreementMonetaryUnitData amud sft
-                            )
-                         => amud -> amud -> Bool
-amud_prop_tau_is_settled m m' = τ m' == τ (m <> m')
-    where τ = agreementSettledAt
-
 amud_prop_semigroup_settles_pi :: ( SuperfluidTypes sft
                                   , AgreementMonetaryUnitData amud sft
                                   )
-                               => amud -> amud -> Bool
-amud_prop_semigroup_settles_pi m m' = π m (τ m') <> π m' (τ m') == π (m <> m') (τ m')
-    where τ = agreementSettledAt
-          π = balanceProvidedByAgreement
+                               => amud -> amud -> SFT_TS sft -> Bool
+amud_prop_semigroup_settles_pi m m' t = π m t <> π m' t == π (m <> m') t
+    where π = balanceProvidedByAgreement
 
 -- | Agreement operation type class.
 --

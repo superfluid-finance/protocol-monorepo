@@ -26,8 +26,8 @@ import           Money.Systems.Superfluid.Agreements.ProportionalDistributionCom
 
 data DistributionContract sft = DistributionContract
     { dc_updated_at     :: SFT_TS sft
-    , dc_value_per_unit :: SFT_MVAL sft
     , dc_flow_rate      :: SFT_MVAL sft
+    , dc_value_per_unit :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
 
@@ -127,17 +127,24 @@ data SubscriberOperation sft = SettleSubscription
 
 instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft where
     applyAgreementOperation SettleSubscription (SubscriberOperationData (dcBase, dc, scBase, sc)) t' = let
-        dc' = dc { dc_updated_at = t'
-                 , dc_value_per_unit = vpu'
+        settledΔ = dcfr * fromIntegral (t' - t_dc)
+        vpuΔ'    = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0
+
+        vpu' = vpu_i + vpuΔ'
+        dc'  = dc { dc_updated_at = t'
+                  , dc_value_per_unit = vpu'
+                  }
+
+        svΔ = floor $ fromIntegral (vpu' - svpu) * u
+        sc' = sc { sc_settled_value = UntappedValue $ sv + svΔ
+                 , sc_settled_value_per_unit = vpu'
                  }
-        sc'= sc { sc_settled_value = UntappedValue $ sv + svΔ
-                , sc_settled_value_per_unit = vpu'
-                }
-        aorΔ  = SubscriberOperationPartiesF
-                (def & set CFMUD.settledAt t'
-                     & set CFMUD.settledValue def
-                )
-        in (SubscriberOperationData (dcBase, dc', scBase, sc'), fmap CFMUD.MkMonetaryUnitData aorΔ)
+
+        aorΔ = def & set CFMUD.settledAt t'
+
+        in ( SubscriberOperationData (dcBase, dc', scBase, sc')
+           , fmap CFMUD.MkMonetaryUnitData $ SubscriberOperationPartiesF aorΔ)
+
         where DistributionContractBase { total_unit            = tu
                                        } = dcBase
               DistributionContract { dc_updated_at             = t_dc
@@ -149,10 +156,7 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
               SubscriptionContract { sc_settled_value          = UntappedValue sv
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
-              settledΔ = dcfr * fromIntegral (t' - t_dc)
-              vpuΔ' = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0
-              vpu' = vpu_i + vpuΔ'
-              svΔ = floor $ fromIntegral (vpu' - svpu) * u
+              -- π' a t = netValueOfRTB $ balanceProvidedByAgreement a t
 
     data AgreementOperationData (SubscriberOperation sft) = SubscriberOperationData (SubscriberData sft)
     data AgreementOperationResultF (SubscriberOperation sft) elem = SubscriberOperationPartiesF elem

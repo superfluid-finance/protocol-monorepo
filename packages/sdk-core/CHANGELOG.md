@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+- Map `indexId` to `IndexSubscription` when querying from Subgraph
+
 ## [0.5.2] - 2022-07-26
 
 ### Added

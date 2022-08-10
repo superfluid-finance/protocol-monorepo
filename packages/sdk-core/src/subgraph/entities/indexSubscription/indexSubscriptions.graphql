@@ -13,6 +13,7 @@ query indexSubscriptions($first: Int = 10, $orderBy: IndexSubscription_orderBy =
         id
         index {
             id
+            indexId,
             indexValue
             totalUnits
             token {

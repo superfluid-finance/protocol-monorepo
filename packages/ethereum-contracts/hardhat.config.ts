@@ -28,18 +28,15 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 
 const chainIds = {
     "eth-mainnet": 1,
-    "eth-ropsten": 3,
-    "eth-rinkeby": 4,
-    "eth-kovan": 42,
     "eth-goerli": 5,
 
     "xdai-mainnet": 100,
 
     "optimism-mainnet": 10,
-    "optimism-kovan": 69,
+    // TODO: add optimism-goerli
 
     "arbitrum-one": 42161,
-    "arbitrum-rinkeby": 421611,
+    // TODO: add arbitrum-goerli
 
     "polygon-mainnet": 137,
     "polygon-mumbai": 80001,
@@ -80,14 +77,6 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("localhost"),
             url: "http://0.0.0.0:8545/",
         },
-        "eth-ropsten": {
-            ...createNetworkConfig("eth-ropsten"),
-            url: process.env.ROPSTEN_PROVIDER_URL || "",
-        },
-        "eth-rinkeby": {
-            ...createNetworkConfig("eth-rinkeby"),
-            url: process.env.RINKEBY_PROVIDER_URL || "",
-        },
         "bsc-mainnet": {
             ...createNetworkConfig("bsc-mainnet"),
             url: process.env.BSC_PROVIDER_URL || "",
@@ -104,18 +93,12 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("optimism-mainnet"),
             url: process.env.OPKOVAN_PROVIDER_URL || "",
         },
-        "optimism-kovan": {
-            ...createNetworkConfig("optimism-kovan"),
-            url: process.env.OPKOVAN_PROVIDER_URL || "",
-        },
+        // TODO: add optimism-goerli
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
             url: process.env.ARBRINKEBY_PROVIDER_URL || "",
         },
-        "arbitrum-rinkeby": {
-            ...createNetworkConfig("arbitrum-rinkeby"),
-            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
-        },
+        // TODO: add arbitrum-goerli
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),
             url: process.env.MATIC_PROVIDER_URL || "",

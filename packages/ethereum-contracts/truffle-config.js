@@ -35,29 +35,26 @@ try {
 // - https://github.com/trufflesuite/truffle/issues/3182
 // - https://github.com/openethereum/parity-ethereum/issues/11824
 // - https://github.com/MetaMask/web3-provider-engine/issues/311
-function createProviderWithOEWorkaround(url) {
-    let provider;
-    const Web3WsProvider = require("web3-providers-ws");
-    if (url.startsWith("ws:") || url.startsWith("wss:")) {
-        provider = new Web3WsProvider(url);
-        // apply the skipCache hack
-        const origSend = provider.__proto__.send;
-        provider.__proto__.send = function (payload, callback) {
-            delete payload.skipCache;
-            origSend.call(provider, payload, callback);
-        };
-    } else {
-        // let hdwallet provider handle the url directly
-        provider = url;
-    }
-    return provider;
-}
+// function createProviderWithOEWorkaround(url) {
+//     let provider;
+//     const Web3WsProvider = require("web3-providers-ws");
+//     if (url.startsWith("ws:") || url.startsWith("wss:")) {
+//         provider = new Web3WsProvider(url);
+//         // apply the skipCache hack
+//         const origSend = provider.__proto__.send;
+//         provider.__proto__.send = function (payload, callback) {
+//             delete payload.skipCache;
+//             origSend.call(provider, payload, callback);
+//         };
+//     } else {
+//         // let hdwallet provider handle the url directly
+//         provider = url;
+//     }
+//     return provider;
+// }
 
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
-    "eth-ropsten": ["ropsten"],
-    "eth-rinkeby": ["rinkeby"],
-    "eth-kovan": ["kovan"],
     "eth-goerli": ["goerli"],
 
     "xdai-mainnet": ["xdai"],
@@ -66,7 +63,7 @@ const ALIASES = {
     "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
-    "optimism-kovan": ["opkovan"],
+    // TODO: add optimism-goerli
 
     "arbitrum-one": ["arbone"],
     "arbitrum-rinkeby": ["arbrinkeby"],
@@ -159,36 +156,9 @@ const E = (module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
-        "eth-rinkeby": {
-            ...createNetworkDefaultConfiguration("eth-rinkeby"),
-            network_id: 4,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
-
-        "eth-ropsten": {
-            ...createNetworkDefaultConfiguration("eth-ropsten"),
-            network_id: 3,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
-
         "eth-goerli": {
             ...createNetworkDefaultConfiguration("eth-goerli"),
             network_id: 5,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
-
-        "eth-kovan": {
-            ...createNetworkDefaultConfiguration(
-                "eth-kovan",
-                createProviderWithOEWorkaround
-            ),
-            network_id: 42,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -234,14 +204,7 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
-
-        "optimism-kovan": {
-            ...createNetworkDefaultConfiguration("optimism-kovan"),
-            network_id: 69,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
+        // TODO: add optimism-goerli
 
         //
         // Arbitrum: https://developer.offchainlabs.com
@@ -254,15 +217,7 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
-
-        "arbitrum-rinkeby": {
-            ...createNetworkDefaultConfiguration("arbitrum-rinkeby"),
-            network_id: 421611,
-            gas: 250e6, // arbgas is different and estimation fails for expensive txs
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
+        // TODO: add arbitrum-goerli
 
         //
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain

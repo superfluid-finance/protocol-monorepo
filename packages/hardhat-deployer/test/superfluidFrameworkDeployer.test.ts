@@ -99,6 +99,10 @@ describe("Unit Tests", async function () {
             );
             assert.notEqual(await host.getSuperTokenFactory(), ethers.constants.AddressZero);
             assert.notEqual(await host.getGovernance(), ethers.constants.AddressZero);
+            assert.notEqual(
+                await resolver.get("SuperfluidLoader-v1"),
+                ethers.constants.AddressZero
+            );
         });
 
         it("Should deploy a mock wrapper super token", async function () {

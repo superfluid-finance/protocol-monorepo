@@ -94,35 +94,3 @@ describe("Super App Unit Tests", async function () {
     });
 });
 ```
-
-## Internals
-
-### Deploy
-
-The `deploy` function does the following, in order.
-
-1. Deploy the `ERC1820Registry` to its appropriate address (if not deployed)
-2. Deploy `Resolver`
-3. Deploy `TestGovernance`
-4. Register `TestGovernance` with `Resolver`
-5. Deploy `Superfluid`
-6. Initialize `Superfluid` with `TestGovernance`
-7. Register `Superfluid` with `Resolver`
-8. Initialize `TestGovernance`
-9. Deploy `ConstantFlowAgreementV1`
-10. Register `ConstantFlowAgreementV1` with `TestGovernance`
-11. Deploy `SlotsBitmapLibrary`
-12. Deploy `InstantDistributionAgreementV1` with link to `SlotsBitmapLibrary`
-13. Register `InstantDistributionAgreementV1` with `TestGovernance`
-14. Deploy `SuperTokenFactoryHelper`
-15. Deploy `SuperTokenFactory`
-16. "Update Code" with `TestGovernance`, registering the `SuperTokenFactory` with `Superfluid`
-17. Return the `Resolver` address
-
-### DeployMockSuperToken
-
-The `deployMockSuperToken` function does the following, in order.
-
-1. Deploy `ERC20PresetMinterPauser` with mint and pause permission to the `deployer`
-2. Calls `createERC20Wrapper` on the `SuperTokenFactory` with the `ERC20PresetMinterPauser`
-3. Returns both in a Javascript Object

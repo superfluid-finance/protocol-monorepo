@@ -4,8 +4,6 @@
 module Money.Systems.Superfluid.DecayingFlowAgreement_test (tests) where
 
 import           Control.Monad.IO.Class
-import           Data.Default
-import           Data.Maybe                                                        (fromMaybe)
 import           Lens.Micro
 import           Math.Extras.Double                                                (fuzzyEq)
 import           Test.Hspec                                                        (HasCallStack)
@@ -39,7 +37,7 @@ expectΕValTo addr expr = do
 
 expectDistributionLimitTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectDistributionLimitTo (sender, receiver) expr = do
-    flow <- runToken $ fromMaybe def <$> SF.viewDecayingFlow (DFA.OperationPartiesF sender receiver)
+    flow <- runToken $ SF.viewDecayingFlow (DFA.OperationPartiesF sender receiver)
     liftIO $ expr $ DFA.distribution_limit flow
 
 -- 1x test unit for distribution limit

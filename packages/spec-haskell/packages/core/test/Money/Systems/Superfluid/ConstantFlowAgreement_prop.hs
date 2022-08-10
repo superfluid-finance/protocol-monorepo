@@ -15,7 +15,7 @@ import           Money.Systems.Superfluid.TestTypes
 sameAs :: TestCFAMonetaryUnitData -> TestCFAMonetaryUnitData -> Bool
 (CFMUD.MkMonetaryUnitData a) `sameAs` (CFMUD.MkMonetaryUnitData b) =
     a^.CFMUD.settledValue == b^.CFMUD.settledValue &&
-    a^.CFMUD.netFlowRate == b^.CFMUD.netFlowRate
+    a^.CFMUD.netFlowRate  == b^.CFMUD.netFlowRate
 
 -- * Semigroup Laws
 
@@ -28,5 +28,5 @@ amud_semigroup_settles_pi :: TestCFAMonetaryUnitData -> TestCFAMonetaryUnitData 
 amud_semigroup_settles_pi = amud_prop_semigroup_settles_pi
 
 tests = describe "ConstantFlowAgreement properties" $ do
-    it "semigroup associativity"                           $ property semigroup_associativity
-    it "agreement monetary unit data semigroup settles pi" $ property amud_semigroup_settles_pi
+    it "semigroup associativity" $ property semigroup_associativity
+    it "semigroup settles pi"    $ property amud_semigroup_settles_pi

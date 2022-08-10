@@ -67,7 +67,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementContract (Operation sft) = ContractData
         { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
         , flow_rate       :: SFT_MVAL sft
-        }
+        } deriving Generic
     data AgreementOperationResultF (Operation sft) a = OperationPartiesF
         { flowSender   :: a
         , flowReceiver :: a
@@ -77,6 +77,4 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
 type ContractData :: Type -> Type
 type ContractData sft = AgreementContract (Operation sft)
 
--- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
-instance SuperfluidTypes sft => Default (ContractData sft) where
-    def = ContractData { flow_updated_at = def, flow_rate = def }
+deriving instance SuperfluidTypes sft => Default (ContractData sft)

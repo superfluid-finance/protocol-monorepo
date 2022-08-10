@@ -45,7 +45,7 @@ clean: clean-docs clean-test clean-coverage
 #
 # Testing
 #
-test:
+test: build
 	$(CABAL_TEST) v2-test all --enable-tests \
 		$(TEST_OPTIONS)
 
@@ -53,6 +53,8 @@ test-coverage:
 	$(CABAL_COVERAGE) v2-build all --enable-tests --enable-coverage
 	$(CABAL_COVERAGE) v2-test all --enable-tests --enable-coverage \
 		$(TEST_OPTIONS)
+
+.PHONY: test test-*
 
 #
 # Demos
@@ -65,6 +67,8 @@ demo-dfa: build
 
 demo-cfda: build
 	$(CABAL_TEST) v2-exec superfluid-validator -- --demo cfda | ./utils/self-gnuplot.sh
+
+.PHONY: demo-*
 
 #
 # Docs
@@ -139,4 +143,4 @@ cloc:
 	cloc packages/*/test
 	@echo
 
-.PHONY: demo-* test test-* dev repl-* cloc
+.PHONY: dev hlint repl-* cloc

@@ -37,7 +37,6 @@ import           Control.Monad.Trans.State
 import           Data.Binary                                                               (Binary)
 import           Data.Char                                                                 (isAlpha)
 import           Data.Default
-import           Data.Functor
 import qualified Data.Map                                                                  as M
 import           Data.Maybe
 import           Data.String
@@ -247,13 +246,13 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
 
     getMinterAddress = return minter_address
 
-    viewMinterContract _     = return $ Just def
+    viewMinterContract _     = return def
     setMinterContract  _ _ _ = return ()
 
     -- * ITA
     --
 
-    viewITAContract _     = return $ Just def
+    viewITAContract _     = return def
     setITAContract  _ _ _ = return ()
 
     -- * CFA
@@ -263,6 +262,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     viewFlow acdAddr       = getSimpleTokenData
         <&> cfaContractData
         <&> M.lookup acdAddr
+        <&> fromMaybe def
     setFlow  acdAddr acd t = modify $ \vs -> vs
         { cfaContractData = M.insert acdAddr acd (cfaContractData vs)
         , tokenLastUpdatedAt = t
@@ -273,6 +273,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     viewDecayingFlow acdAddr       = getSimpleTokenData
         <&> dfaContractData
         <&> M.lookup acdAddr
+        <&> fromMaybe def
     setDecayingFlow  acdAddr acd t = modify $ \vs -> vs
         { dfaContractData = M.insert acdAddr acd (dfaContractData vs)
         , tokenLastUpdatedAt = t
@@ -284,7 +285,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     viewProportionalDistributionContract publisher indexId = getSimpleTokenData
         <&> distribution_contracts
         <&> M.lookup (PDPUB_KEY publisher indexId)
-
+        <&> fromMaybe def
     setProportionalDistributionContract publisher indexId index t = modify $ \vs -> vs
         { distribution_contracts = M.insert (PDPUB_KEY publisher indexId) index (distribution_contracts vs)
         , tokenLastUpdatedAt = t
@@ -293,7 +294,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     viewProportionalDistributionSubscription subscriber publisher indexId = getSimpleTokenData
         <&> subscriber_contracts
         <&> M.lookup (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
-
+        <&> fromMaybe def
     setProportionalDistributionSubscription subscriber publisher indexId sub t = modify $ \vs -> vs
         { subscriber_contracts = M.insert (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
                                  sub (subscriber_contracts vs)

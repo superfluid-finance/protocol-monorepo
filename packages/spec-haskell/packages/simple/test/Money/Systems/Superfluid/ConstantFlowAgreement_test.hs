@@ -4,8 +4,6 @@
 module Money.Systems.Superfluid.ConstantFlowAgreement_test (tests) where
 
 import           Control.Monad.IO.Class
-import           Data.Default
-import           Data.Maybe                                                        (fromMaybe)
 import           Lens.Micro
 import           Test.Hspec                                                        (HasCallStack)
 import           Test.HUnit
@@ -29,7 +27,7 @@ expectNetFlowRateTo addr expr = do
 
 expectFlowRateTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectFlowRateTo (sender, receiver) expr = do
-    flow <- runToken $ fromMaybe def <$> SF.viewFlow (CFA.OperationPartiesF sender receiver)
+    flow <- runToken $ SF.viewFlow (CFA.OperationPartiesF sender receiver)
     liftIO $ expr $ CFA.flow_rate flow
 
 tstep = 1000 :: SF.SimpleTimestamp

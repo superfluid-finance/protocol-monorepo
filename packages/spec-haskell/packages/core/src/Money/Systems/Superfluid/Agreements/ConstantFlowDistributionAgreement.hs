@@ -114,12 +114,15 @@ instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft 
 
     data AgreementContract (PublisherOperation sft) = PublisherContract
         (DistributionContractBase sft) (DistributionContract sft)
+        deriving (Generic)
     data AgreementOperationResultF (PublisherOperation sft) elem = PublisherOperationResultF elem -- publisher amud
         deriving stock (Functor, Foldable, Traversable)
     type AgreementMonetaryUnitDataInOperation (PublisherOperation sft) = PublisherMonetaryUnitData sft
 
 type PublisherContract :: Type -> Type
 type PublisherContract sft = AgreementContract (PublisherOperation sft)
+
+deriving instance SuperfluidTypes sft => Default (PublisherContract sft)
 
 -- * Subscriber Operations
 
@@ -143,7 +146,7 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
         aorΔ = def & set CFMUD.settledAt t'
 
         in ( SubscriberContract (dcBase, dc', scBase, sc')
-           , fmap CFMUD.MkMonetaryUnitData $ SubscriberOperationPartiesF aorΔ)
+           , CFMUD.MkMonetaryUnitData <$> SubscriberOperationPartiesF aorΔ)
 
         where DistributionContractBase { total_unit            = tu
                                        } = dcBase
@@ -156,12 +159,14 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
               SubscriptionContract { sc_settled_value          = UntappedValue sv
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
-              -- π' a t = netValueOfRTB $ balanceProvidedByAgreement a t
 
     data AgreementContract (SubscriberOperation sft) = SubscriberContract (SubscriberData sft)
+        deriving (Generic)
     data AgreementOperationResultF (SubscriberOperation sft) elem = SubscriberOperationPartiesF elem
         deriving stock (Functor, Foldable, Traversable)
     type AgreementMonetaryUnitDataInOperation (SubscriberOperation sft) = PublisherMonetaryUnitData sft
 
 type SubscriberContract :: Type -> Type
 type SubscriberContract sft = AgreementContract (SubscriberOperation sft)
+
+deriving instance SuperfluidTypes sft => Default (SubscriberContract sft)

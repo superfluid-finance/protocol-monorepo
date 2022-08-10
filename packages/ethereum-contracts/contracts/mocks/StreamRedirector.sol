@@ -27,10 +27,8 @@ contract StreamRedirector is SuperAppBase {
 
         host = _host;
 
-        //initialize InitData struct, and set equal to cfaV1
         cfaV1 = CFAv1Library.InitData(
             host,
-            //here, we are deriving the address of the CFA using the host contract
             IConstantFlowAgreementV1(address(host.getAgreementClass(CFA_ID)))
         );
 

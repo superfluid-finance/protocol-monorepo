@@ -113,6 +113,11 @@
                 const impersonatedSignerAddress = ref("");
                 const signer = ref(null);
                 const loading = ref(true);
+                const flowData = reactive({
+                    flowRate: "",
+                    sender: "",
+                    receiver: ""
+                })
 
                 // watchers
                 watch(selected, (receiverAddress) => {
@@ -365,7 +370,7 @@
                     const ethBalance = await provider.getBalance(signer._address);
                     await token.upgrade({ amount: ethBalance.div(toBN(2)) }).exec(signer);
                 }
-                const modifyStream = async (action) => {
+                const _modifyStream = async (action, sender, receiver, flowRate, isMfa) => {
                     loading.value = true;
                     try {
                         console.log("modifying stream:", action);
@@ -375,20 +380,20 @@
                         const s = await provider.getSigner(signer.value._address);
                         const txn = action === "create" ?
                             await token.createFlow({
-                                receiver: mfaData.mfaAddress || MFA_ADDRESS,
-                                flowRate: getPerSecondFlowRateByDay(mfaData.flowRate),
-                                userData: getMFAUserData()
+                                receiver,
+                                flowRate: getPerSecondFlowRateByDay(flowRate),
+                                userData: isMfa ? getMFAUserData() : "0x"
                             }).exec(s)
                             : action === "update"
                                 ? await token.updateFlow({
-                                    receiver: mfaData.mfaAddress || MFA_ADDRESS,
-                                    flowRate: getPerSecondFlowRateByDay(mfaData.flowRate),
+                                    receiver,
+                                    flowRate: getPerSecondFlowRateByDay(flowRate),
                                     userData: getMFAUserData()
                                 }).exec(s)
                                 : await token.deleteFlow({
-                                    sender: signer.value._address,
-                                    receiver: mfaData.mfaAddress || MFA_ADDRESS,
-                                    userData: getMFAUserData()
+                                    sender,
+                                    receiver,
+                                    userData:  isMfa ? getMFAUserData() : "0x"
                                 }).exec(s);
                         const receipt = await txn.wait();
 
@@ -399,6 +404,12 @@
                     } finally {
                         loading.value = false;
                     }
+                }
+                const senderToMfaModifyStream = async (action) => {
+                    _modifyStream(action, signer.value._address, mfaData.mfaAddress || MFA_ADDRESS, mfaData.flowRate, true);
+                }
+                const modifyStream = async (action) => {
+                    _modifyStream(action, flowData.sender, flowData.receiver, flowData.flowRate, false);
                 }
 
                 // initialization
@@ -411,9 +422,10 @@
                     impersonateAccount,
                     isAddress,
                     loadToken,
+                    modifyStream,
                     removeReceiver,
                     resetState,
-                    modifyStream,
+                    senderToMfaModifyStream,
                     updateReceiver,
 
                     accounts,
@@ -423,6 +435,7 @@
                     currentReceiverProportion,
                     currentToken,
                     filteredReceivers,
+                    flowData,
                     impersonatedSignerAddress,
                     loading,
                     mfaData,
@@ -520,15 +533,15 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-around mb-3">
-                    <button type="button" class="btn btn-dark" @click='modifyStream("create")'
+                    <button type="button" class="btn btn-dark" @click='senderToMfaModifyStream("create")'
                         :disabled="hasValidMFAInput() === false">
                         Start Stream
                     </button>
-                    <button type="button" class="btn btn-dark" @click='modifyStream("update")'
+                    <button type="button" class="btn btn-dark" @click='senderToMfaModifyStream("update")'
                         :disabled="hasValidMFAInput() === false">
                         Update Stream
                     </button>
-                    <button type="button" class="btn btn-dark" @click='modifyStream("delete")'>
+                    <button type="button" class="btn btn-dark" @click='senderToMfaModifyStream("delete")'>
                         Delete Stream
                     </button>
                 </div>
@@ -586,6 +599,31 @@
                     <p>net flow rate: {{ formatBalance(receiver.flowRate) }}</p>
                 </div>
             </div>
+        </div>
+
+        <div>
+            <h4>Arbitrary Stream Modifications</h4>
+            <div class="input-container">
+                <label for="sender">Sender</label>
+                <input class="ml-2" type="string" v-model="flowData.sender" name="sender" />
+            </div>
+            <div class="input-container">
+                <label for="receiver">Receiver</label>
+                <input class="ml-2" type="string" v-model="flowData.receiver" name="receiver" />
+            </div>
+            <div class="input-container">
+                <label for="flowData.flowRate">Flow Rate</label>
+                <input class="ml-2" type="string" v-model="flowData.flowRate" name="flowData.flowRate" />
+            </div>
+            <button type="button" class="btn btn-dark" @click='modifyStream("create")'>
+                Create Stream
+            </button>
+            <button type="button" class="btn btn-dark" @click='modifyStream("update")'>
+                Update Stream
+            </button>
+            <button type="button" class="btn btn-dark" @click='modifyStream("delete")'>
+                Delete Stream
+            </button>
         </div>
     </div>
 </div>

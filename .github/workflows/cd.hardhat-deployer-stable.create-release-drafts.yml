@@ -31,9 +31,7 @@ jobs:
         id: check_versions
         run: |
           # hardhat-deployer
-          # temporarily changing for initial publish
-          # PUBLISHED_HARDHAT_DEPLOYER_VERSION=`npm show @superfluid-finance/hardhat-deployer@latest version`
-          PUBLISHED_HARDHAT_DEPLOYER_VERSION=`npm show @superfluid-finance/hardhat-deployer@latest version 2>/dev/null | cat`
+          PUBLISHED_HARDHAT_DEPLOYER_VERSION=`npm show @superfluid-finance/hardhat-deployer@latest version`
           NEW_HARDHAT_DEPLOYER_VERSION=`jq -r .version packages/hardhat-deployer/package.json`
           if [ "$PUBLISHED_HARDHAT_DEPLOYER_VERSION" != "$NEW_HARDHAT_DEPLOYER_VERSION" ];then
             echo "PUBLISHED_HARDHAT_DEPLOYER_VERSION=1" >> $GITHUB_ENV

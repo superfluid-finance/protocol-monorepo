@@ -27,7 +27,7 @@ expectNetFlowRateTo addr expr = do
 
 expectFlowRateTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectFlowRateTo (sender, receiver) expr = do
-    flow <- runToken $ SF.viewFlow (CFA.OperationPartiesF sender receiver)
+    flow <- runToken $ SF.getFlow sender receiver
     liftIO $ expr $ CFA.flow_rate flow
 
 tstep = 1000 :: SF.SimpleTimestamp
@@ -54,7 +54,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     liftIO $ assertEqual "expected number of accounts" 4 (length accounts')
 
     -- T1: creating flow: alice -> bob 1x
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) fr1x
+    runToken $ SF.updateFlow alice bob fr1x
     expectFlowRateTo  (alice,   bob) $ assertEqual' fr1x
     expectFlowRateTo  (alice, carol) $ assertEqual'    0
     expectNetFlowRateTo alice $ assertEqual' (-fr1x)
@@ -70,7 +70,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T2a: updating flow: alice -> bob 2x
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) (2*fr1x)
+    runToken $ SF.updateFlow alice bob (2*fr1x)
     expectFlowRateTo  (alice,   bob) $ assertEqual' (2*fr1x)
     expectFlowRateTo  (alice, carol) $ assertEqual'       0
     expectNetFlowRateTo alice $ assertEqual' (- 2*fr1x)
@@ -96,7 +96,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T1: creating flow: alice -> bob 1x
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) fr1x
+    runToken $ SF.updateFlow alice bob fr1x
     expectFlowRateTo (alice, bob)   $ assertEqual' fr1x
     expectFlowRateTo (alice, carol) $ assertEqual'    0
     expectFlowRateTo (bob, carol)   $ assertEqual'    0
@@ -113,7 +113,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T2a: creating flow: alice -> carol 2x
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice carol) (3*fr1x)
+    runToken $ SF.updateFlow alice carol (3*fr1x)
     expectFlowRateTo (alice, bob)   $ assertEqual'    fr1x
     expectFlowRateTo (alice, carol) $ assertEqual' (3*fr1x)
     expectFlowRateTo (bob, carol)   $ assertEqual'       0
@@ -130,7 +130,7 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     expectZeroTotalValue
 
     -- T3a: updating flow: alice -> bob 2x
-    runToken $ SF.updateFlow (CFA.OperationPartiesF alice bob) (2*fr1x)
+    runToken $ SF.updateFlow alice bob (2*fr1x)
     expectFlowRateTo (alice, bob)   $ assertEqual' (2*fr1x)
     expectFlowRateTo (alice, carol) $ assertEqual' (3*fr1x)
     expectFlowRateTo (bob, carol)   $ assertEqual'       0

@@ -41,7 +41,7 @@ newtype Operation sft = Transfer (SFT_MVAL sft)
 instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
     data AgreementContract (Operation sft) = ContractData
 
-    data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
+    data AgreementOperationResultF (Operation sft) elem = OperationResultF
         { transferFrom :: elem
         , transferTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
@@ -50,7 +50,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
 
     applyAgreementOperation (Transfer amount) acd _ = let
         acd'  = acd
-        aorΔ = fmap IVMUD.MkMonetaryUnitData (OperationPartiesF
+        aorΔ = fmap IVMUD.MkMonetaryUnitData (OperationResultF
                     (def & set IVMUD.untappedValue (coerce (- amount)))
                     (def & set IVMUD.untappedValue (coerce    amount)))
         in (acd', aorΔ)

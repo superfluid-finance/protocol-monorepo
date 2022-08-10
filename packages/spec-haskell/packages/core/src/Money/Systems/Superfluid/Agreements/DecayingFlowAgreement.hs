@@ -52,7 +52,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         , distribution_limit   :: SFT_MVAL sft
         , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
         }
-    data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
+    data AgreementOperationResultF (Operation sft) elem = OperationResultF
         { decayingFlowSender   :: elem
         , decayingFlowReceiver :: elem
         } deriving stock (Functor, Foldable, Traversable)
@@ -67,7 +67,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
                              , flow_buffer          = newFlowBuffer
                              , flow_last_updated_at = t'
                              }
-        aorsΔ = OperationPartiesF
+        aorsΔ = OperationResultF
                     (def & set DFMUD.settledAt      t'
                          & set DFMUD.αVal           θ_Δ
                          & set DFMUD.εVal          (-θ_Δ)

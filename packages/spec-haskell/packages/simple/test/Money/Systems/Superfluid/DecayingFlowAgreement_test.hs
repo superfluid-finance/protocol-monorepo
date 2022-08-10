@@ -37,7 +37,7 @@ expectΕValTo addr expr = do
 
 expectDistributionLimitTo :: HasCallStack => (SF.SimpleAddress, SF.SimpleAddress) -> (SF.Wad -> Assertion) -> TokenTester ()
 expectDistributionLimitTo (sender, receiver) expr = do
-    flow <- runToken $ SF.viewDecayingFlow (DFA.OperationPartiesF sender receiver)
+    flow <- runToken $ SF.getDecayingFlow sender receiver
     liftIO $ expr $ DFA.distribution_limit flow
 
 -- 1x test unit for distribution limit
@@ -61,7 +61,7 @@ simple1to1ScenarioTest = TokenTestCase TokenTestSpec
 
     -- T1: test initial condition
     -- creating flow: alice -> bob @ 0.0001/s
-    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) u1x
+    runToken $ SF.updateDecayingFlow alice bob u1x
     expectΕValTo alice $ assertEqual' (-u1xd)
     expectΕValTo bob   $ assertEqual'   u1xd
     expectΕValTo carol $ assertEqual'      0
@@ -83,8 +83,8 @@ simple1to2ScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
-    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice carol) (u1x * 2)
+    runToken $ SF.updateDecayingFlow alice bob        u1x
+    runToken $ SF.updateDecayingFlow alice carol (u1x * 2)
     expectΕValTo alice $ assertFuzzilyEqualWith (-3*u1xd)
     expectΕValTo bob   $ assertFuzzilyEqualWith     u1xd
     expectΕValTo carol $ assertFuzzilyEqualWith  (2*u1xd)
@@ -106,9 +106,9 @@ simpleLoopScenarioTest = TokenTestCase TokenTestSpec
     } (\ctx -> do
     -- T0: test initial condition
     let [alice, bob, carol] = testAddresses ctx
-    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob)   u1x
-    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF bob   carol) u1x
-    runToken $ SF.updateDecayingFlow (DFA.OperationPartiesF carol alice) u1x
+    runToken $ SF.updateDecayingFlow alice bob   u1x
+    runToken $ SF.updateDecayingFlow bob   carol u1x
+    runToken $ SF.updateDecayingFlow carol alice u1x
     expectΕValTo alice $ assertEqual' 0
     expectΕValTo bob   $ assertEqual' 0
     expectΕValTo carol $ assertEqual' 0

@@ -11,16 +11,12 @@ import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Coerce
 import           Data.List
-import           Data.Time.Clock.POSIX                                        (getPOSIXTime)
-import           GHC.Stack                                                    (HasCallStack)
+import           Data.Time.Clock.POSIX                            (getPOSIXTime)
+import           GHC.Stack                                        (HasCallStack)
 import           Lens.Micro
-import           Text.Printf
+import           Text.Printf                                      (printf)
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement as ITA
---
-import qualified Money.Systems.Superfluid.Instances.Simple.System             as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System as SF
 --
 import           Money.Systems.Superfluid.Validator.Simulation
 
@@ -76,8 +72,8 @@ expo = do
 
     let t1 = t0
     liftIO $ putStrLn $ "# DAY 1: create flows @" ++ show t1
-    runToken token $ SF.updateFlow (CFA.OperationPartiesF alice bob)      fr1x
-    runToken token $ SF.updateFlow (CFA.OperationPartiesF alice carol) (2*fr1x)
+    runToken token $ SF.updateFlow alice bob      fr1x
+    runToken token $ SF.updateFlow alice carol (2*fr1x)
     runSimTokenOp token printTokenState
 
     timeTravel day
@@ -88,7 +84,7 @@ expo = do
     timeTravel day
     t3 <- getCurrentTime
     liftIO $ putStrLn $ "# DAY 3: bob transfer 1x to alice @" ++ show t3
-    runToken token $ SF.transfer (ITA.OperationPartiesF bob alice) u1x
+    runToken token $ SF.transfer bob alice u1x
     runSimTokenOp token printTokenState
 
     timeTravel day
@@ -138,13 +134,13 @@ dfa = do
     timeTravel t0
     createToken token accounts initBalance
 
-    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF alice bob) u1x
+    runToken token $ SF.updateDecayingFlow alice bob u1x
     travelDaysAndPrintBalances t0 accounts 7
 
-    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF alice carol) u1x
+    runToken token $ SF.updateDecayingFlow alice carol u1x
     travelDaysAndPrintBalances t0 accounts 7
 
-    runToken token $ SF.updateDecayingFlow (DFA.OperationPartiesF dan alice) (u1x * 2)
+    runToken token $ SF.updateDecayingFlow dan alice (u1x * 2)
     travelDaysAndPrintBalances t0 accounts 60
 
 cfda :: HasCallStack => SimMonad ()

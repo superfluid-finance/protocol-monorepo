@@ -121,79 +121,87 @@ class ( Monad tk
 
     getMinterAddress :: tk (ACC_ADDR acc)
 
-    viewMinterContract :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> tk (MINTA.ContractData sft)
-    setMinterContract  :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> MINTA.ContractData sft -> SFT_TS sft -> tk ()
+    view_minter_contract :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> tk (MINTA.ContractData sft)
+    set_minter_contract  :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> MINTA.ContractData sft -> SFT_TS sft -> tk ()
+
     mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
-    mintValue toAddr amount = do
-        minterAddress <- getMinterAddress
-        effAgreementOperation
-            (MINTA.OperationResultF minterAddress toAddr) (MINTA.Mint amount)
-            viewMinterContract setMinterContract
-            minterMonetaryUnitData
+    mintValue toAddr amount = getMinterAddress >>= \minterAddress -> effAgreementOperation
+        (MINTA.OperationResultF minterAddress toAddr)
+        (MINTA.Mint amount)
+        view_minter_contract set_minter_contract
+        minterMonetaryUnitData
 
     -- ** ITA Functions
     --
 
-    viewITAContract :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> tk (ITA.ContractData sft)
-    setITAContract  :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> ITA.ContractData sft -> SFT_TS sft -> tk ()
-    transfer :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> SFT_MVAL sft -> tk ()
-    transfer aorAddrs amount = do
-        effAgreementOperation
-            aorAddrs (ITA.Transfer amount)
-            viewITAContract setITAContract
-            itaMonetaryUnitData
+    view_ita_contract :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> tk (ITA.ContractData sft)
+    set_ita_contract  :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> ITA.ContractData sft -> SFT_TS sft -> tk ()
+
+    transfer :: ACC_ADDR acc -> ACC_ADDR acc -> SFT_MVAL sft -> tk ()
+    transfer fromAddr toAddr amount = effAgreementOperation
+        (ITA.OperationResultF fromAddr toAddr)
+        (ITA.Transfer amount)
+        view_ita_contract set_ita_contract
+        itaMonetaryUnitData
 
     -- ** CFA Functions
     --
 
     calcFlowBuffer :: SFT_MVAL sft -> tk (SFT_MVAL sft)
 
-    viewFlow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> tk (CFA.ContractData sft)
-    setFlow  :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.ContractData sft -> SFT_TS sft -> tk ()
-    updateFlow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.FlowRate sft -> tk ()
-    updateFlow aorAddrs newFlowRate = do
-        -- newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
-        effAgreementOperation
-            aorAddrs (CFA.UpdateFlow newFlowRate)
-            viewFlow setFlow
-            cfaMonetaryUnitData
+    view_flow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> tk (CFA.ContractData sft)
+    set_flow  :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.ContractData sft -> SFT_TS sft -> tk ()
+
+    getFlow :: ACC_ADDR acc -> ACC_ADDR acc ->  tk (CFA.ContractData sft)
+    getFlow sender receiver = view_flow (CFA.OperationResultF sender receiver)
+    updateFlow :: ACC_ADDR acc -> ACC_ADDR acc -> CFA.FlowRate sft -> tk ()
+    updateFlow sender receiver newFlowRate = effAgreementOperation
+        (CFA.OperationResultF sender receiver)
+        (CFA.UpdateFlow newFlowRate)
+        view_flow set_flow
+        cfaMonetaryUnitData
+        -- TODO newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
 
     -- ** DFA Functions
     --
 
-    viewDecayingFlow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> tk (DFA.ContractData sft)
-    setDecayingFlow  :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.ContractData sft -> SFT_TS sft -> tk ()
-    updateDecayingFlow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.DistributionLimit sft -> tk ()
-    updateDecayingFlow aorAddrs newDistributionLimit = do
-        effAgreementOperation
-            aorAddrs (DFA.UpdateDecayingFlow newDistributionLimit def)
-            viewDecayingFlow setDecayingFlow dfaMonetaryUnitData
+    view_decaying_flow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> tk (DFA.ContractData sft)
+    set_decaying_flow  :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.ContractData sft -> SFT_TS sft -> tk ()
+
+    getDecayingFlow :: ACC_ADDR acc -> ACC_ADDR acc ->  tk (DFA.ContractData sft)
+    getDecayingFlow sender receiver = view_decaying_flow (DFA.OperationResultF sender receiver)
+    updateDecayingFlow :: ACC_ADDR acc -> ACC_ADDR acc -> DFA.DistributionLimit sft -> tk ()
+    updateDecayingFlow sender receiver newDistributionLimit = effAgreementOperation
+        (DFA.OperationResultF sender receiver)
+        (DFA.UpdateDecayingFlow newDistributionLimit def)
+        view_decaying_flow set_decaying_flow
+        dfaMonetaryUnitData
 
     -- ** IDA Functions
     --
 
     viewProportionalDistributionContract
-        :: ACC_ADDR acc                                -- publisher
-        -> ProportionalDistributionIndexID             -- indexId
+        :: ACC_ADDR acc                                                       -- publisher
+        -> ProportionalDistributionIndexID                                    -- indexId
         -> tk (PDIDX.DistributionContract sft)
-    setProportionalDistributionContract
-        :: ACC_ADDR acc                                -- publisher
-        -> ProportionalDistributionIndexID             -- indexId
-        -> PDIDX.DistributionContract sft              -- index
-        -> SFT_TS sft                                  -- t
+    overProportionalDistributionContract
+        :: ACC_ADDR acc                                                       -- publisher
+        -> ProportionalDistributionIndexID                                    -- indexId
+        -> (PDIDX.DistributionContract sft -> PDIDX.DistributionContract sft) -- updater
+        -> SFT_TS sft                                                         -- t
         -> tk ()
 
     viewProportionalDistributionSubscription
-        :: ACC_ADDR acc                                -- subscriber
-        -> ACC_ADDR acc                                -- publisher
-        -> ProportionalDistributionIndexID             -- indexId
+        :: ACC_ADDR acc                                                       -- subscriber
+        -> ACC_ADDR acc                                                       -- publisher
+        -> ProportionalDistributionIndexID                                    -- indexId
         -> tk (PDIDX.SubscriptionContract sft)
-    setProportionalDistributionSubscription
-        :: ACC_ADDR acc                                -- subscriber
-        -> ACC_ADDR acc                                -- publisher
-        -> ProportionalDistributionIndexID             -- indexId
-        -> PDIDX.SubscriptionContract sft              -- sub
-        -> SFT_TS sft                                  -- t
+    overProportionalDistributionSubscription
+        :: ACC_ADDR acc                                                       -- subscriber
+        -> ACC_ADDR acc                                                       -- publisher
+        -> ProportionalDistributionIndexID                                    -- indexId
+        -> (PDIDX.SubscriptionContract sft -> PDIDX.SubscriptionContract sft) -- updater
+        -> SFT_TS sft                                                         -- t
         -> tk ()
 
     updateProportionalDistributionSubscription
@@ -209,8 +217,8 @@ class ( Monad tk
         dc <- viewProportionalDistributionContract publisher indexId
         sc  <- viewProportionalDistributionSubscription subscriber publisher indexId
         let ((dc', sc'), cfdaMUDΔ) = PDIDX.updateSubscription (dc, sc) unit t
-        setProportionalDistributionContract publisher indexId dc' t
-        setProportionalDistributionSubscription subscriber publisher indexId sc' t
+        overProportionalDistributionContract publisher indexId (const dc') t
+        overProportionalDistributionSubscription subscriber publisher indexId (const sc') t
         putAccount publisher (over cfdaPublisherMonetaryUnitData (<> cfdaMUDΔ) pub) t
 
     distributeProportionally
@@ -218,45 +226,32 @@ class ( Monad tk
         -> ProportionalDistributionIndexID -- indexId
         -> SFT_MVAL sft                    -- amount
         -> tk ()
-    distributeProportionally publisher indexId amount = do
-        -- load acd and accounts data
-        t <- getCurrentTime
-        pub <- getAccount publisher
-        dc <- viewProportionalDistributionContract publisher indexId
-        let (IDA.PublisherContract _ dc_ida', IDA.PublisherOperationResultF amudΔ) =
-                applyAgreementOperation
-                (IDA.Distribute amount)
-                (IDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_ida dc))
-                t
-        setProportionalDistributionContract publisher indexId (dc { PDIDX.dc_ida = dc_ida' }) t
-        putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) pub) t
+    distributeProportionally publisher indexId amount = effAgreementOperation
+        (IDA.PublisherOperationResultF publisher)
+        (IDA.Distribute amount)
+        viewContract setContract
+        idaPublisherMonetaryUnitData
+        where viewContract (IDA.PublisherOperationResultF addr) =
+                  viewProportionalDistributionContract addr indexId >>= \dc ->
+                  return (IDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_ida dc))
+              setContract (IDA.PublisherOperationResultF addr) (IDA.PublisherContract _ dc_ida') t =
+                  overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_ida = dc_ida' }) t
 
     distributeFlow
         :: ACC_ADDR acc                    -- publisher
         -> ProportionalDistributionIndexID -- indexId
         -> SFT_MVAL sft                    -- flowRate
         -> tk ()
-    distributeFlow publisher indexId flowRate = do
-        t <- getCurrentTime
-        pub <- getAccount publisher
-        dc <- viewProportionalDistributionContract publisher indexId
-        let (CFDA.PublisherContract _ dc_cfda', CFDA.PublisherOperationResultF amudΔ) =
-                applyAgreementOperation
-                (CFDA.UpdateDistributionFlowRate flowRate)
-                (CFDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_cfda dc))
-                t
-        setProportionalDistributionContract publisher indexId (dc { PDIDX.dc_cfda = dc_cfda' }) t
-        putAccount publisher (over cfdaPublisherMonetaryUnitData (<> amudΔ) pub) t
-        -- effAgreementOperation
-        --     aorAddrs (CFDA.UpdateDistributionFlowRate flowRate)
-        --     viewContract setContract
-        --     cfdaPublisherMonetaryUnitData
-        --     where aorAddrs = (CFDA.PublisherOperationResultF) publisher
-        --           viewContract (CFDA.PublisherOperationResultF addr) =
-        --               viewProportionalDistributionContract addr indexId >>= \dc ->
-        --               return (CFDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_cfda dc))
-        --           setContract (CFDA.PublisherOperationResultF addr) (CFDA.PublisherContract dc_base' dc_cfda') _ =
-        --               setProportionalDistributionContract addr indexId dc'
+    distributeFlow publisher indexId flowRate = effAgreementOperation
+        (CFDA.PublisherOperationResultF publisher)
+        (CFDA.UpdateDistributionFlowRate flowRate)
+        viewContract setContract
+        cfdaPublisherMonetaryUnitData
+        where viewContract (CFDA.PublisherOperationResultF addr) =
+                  viewProportionalDistributionContract addr indexId >>= \dc ->
+                  return (CFDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_cfda dc))
+              setContract (CFDA.PublisherOperationResultF addr) (CFDA.PublisherContract _ dc_cfda') t =
+                  overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_cfda = dc_cfda' }) t
 
 -- ============================================================================
 -- Internal

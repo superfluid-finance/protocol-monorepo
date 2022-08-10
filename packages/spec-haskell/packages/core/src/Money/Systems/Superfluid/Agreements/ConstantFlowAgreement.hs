@@ -55,12 +55,12 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
                             , flow_rate       = newFlowRate
                             }
 
-        aorΔ = OperationPartiesF
+        aorΔ = OperationResultF
                    (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate        (-flowRateΔ)
+                        & set CFMUD.netFlowRate  (-flowRateΔ)
                    )
                    (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate        flowRateΔ
+                        & set CFMUD.netFlowRate  flowRateΔ
                    )
         in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
 
@@ -68,7 +68,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
         , flow_rate       :: SFT_MVAL sft
         } deriving Generic
-    data AgreementOperationResultF (Operation sft) a = OperationPartiesF
+    data AgreementOperationResultF (Operation sft) a = OperationResultF
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)

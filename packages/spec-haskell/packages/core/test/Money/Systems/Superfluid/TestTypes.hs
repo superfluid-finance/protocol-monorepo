@@ -14,49 +14,50 @@ import           Test.QuickCheck
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement         as CFA
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue  as MVMUD
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement             as CFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow     as CFMUD
+import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue      as MVMUD
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency               as BBS
 
 
 -- * Timestamp
 
-newtype TestTimestamp = TestTimestamp Int
+newtype TTTimestamp = TTTimestamp Int
     deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show, Arbitrary)
 
 -- * Value
-newtype TestMVal = TestMVal Integer
+newtype TTMVal = TTMVal Integer
     deriving (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
 
-deriving instance Show (UntappedValue TestMVal)
+deriving instance Show (UntappedValue TTMVal)
 
 -- * RealTimeBalance
-data TestRealTimeBalanceF a = TestRealTimeBalanceF
+data TTRealTimeBalanceF a = TTRealTimeBalanceF
     { untappedValue :: a
     , mintedValue   :: a
     , depositValue  :: a
     }
     deriving stock (Generic, Functor, Foldable, Traversable, Show, Eq)
-type TestRealTimeBalance = TestRealTimeBalanceF TestMVal
+type TTRealTimeBalance = TTRealTimeBalanceF TTMVal
 
-instance Applicative TestRealTimeBalanceF where
-    pure a = TestRealTimeBalanceF a a a
-    liftA2 f (TestRealTimeBalanceF a b c) (TestRealTimeBalanceF a' b' c') =
-        TestRealTimeBalanceF (f a a') (f b b') (f c c')
-instance Semigroup (TestRealTimeBalanceF TestMVal) where (<>) = liftA2 (+)
-instance Monoid (TestRealTimeBalanceF TestMVal) where mempty = pure 0
--- instance Eq (TestRealTimeBalanceF TestMVal) where (==) = (==)
+instance Applicative TTRealTimeBalanceF where
+    pure a = TTRealTimeBalanceF a a a
+    liftA2 f (TTRealTimeBalanceF a b c) (TTRealTimeBalanceF a' b' c') =
+        TTRealTimeBalanceF (f a a') (f b b') (f c c')
+instance Semigroup (TTRealTimeBalanceF TTMVal) where (<>) = liftA2 (+)
+instance Monoid (TTRealTimeBalanceF TTMVal) where mempty = pure 0
+-- instance Eq (TTRealTimeBalanceF TTMVal) where (==) = (==)
 
-instance RealTimeBalance TestRealTimeBalanceF TestMVal where
-    valueToRTB uval = TestRealTimeBalanceF uval def def
+instance RealTimeBalance TTRealTimeBalanceF TTMVal where
+    valueToRTB uval = TTRealTimeBalanceF uval def def
 
     typedValuesToRTB (UntappedValue uval) tvec =
-        TestRealTimeBalanceF uval def def <> foldMap g tvec
+        TTRealTimeBalanceF uval def def <> foldMap g tvec
         -- extra correctly typed RTB monoid
         where g (AnyTappedValue (p, v)) = case typeRep p of
-                  t | t == typeRep MVMUD.mintedValueTag -> TestRealTimeBalanceF def   v def
-                    | t == typeRep BBS.bufferValueTag  -> TestRealTimeBalanceF def def   v
+                  t | t == typeRep MVMUD.mintedValueTag -> TTRealTimeBalanceF def   v def
+                    | t == typeRep BBS.bufferValueTag  -> TTRealTimeBalanceF def def   v
                     | otherwise -> error "Invalid monetary value tag"
 
     typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
@@ -64,46 +65,63 @@ instance RealTimeBalance TestRealTimeBalanceF TestMVal where
                               , mkAnyTappedValue $ BBS.mkBufferValue   $ depositValue rtb
                               ])
 
-instance Arbitrary TestRealTimeBalance where
+instance Arbitrary TTRealTimeBalance where
     arbitrary = do
         u  <- arbitrary
         m  <- arbitrary
         d  <- arbitrary
-        return TestRealTimeBalanceF
-            { untappedValue = TestMVal u
-            , mintedValue   = TestMVal m
-            , depositValue  = TestMVal d
+        return TTRealTimeBalanceF
+            { untappedValue = TTMVal u
+            , mintedValue   = TTMVal m
+            , depositValue  = TTMVal d
             }
 
 -- * SuperfluidTypes Type
 
-data TestSuperfluidTypes
+data TTSuperfluidTypes
 
 instance SFTFloat Double
 
-instance SuperfluidTypes TestSuperfluidTypes where
-    type SFT_FLOAT TestSuperfluidTypes = Double
-    type SFT_MVAL  TestSuperfluidTypes = TestMVal
-    type SFT_TS    TestSuperfluidTypes = TestTimestamp
-    type SFT_RTB_F TestSuperfluidTypes = TestRealTimeBalanceF
+instance SuperfluidTypes TTSuperfluidTypes where
+    type SFT_FLOAT TTSuperfluidTypes = Double
+    type SFT_MVAL  TTSuperfluidTypes = TTMVal
+    type SFT_TS    TTSuperfluidTypes = TTTimestamp
+    type SFT_RTB_F TTSuperfluidTypes = TTRealTimeBalanceF
     dfa_default_lambda _ = log 2 / (3600 * 24 * 7)
 
 -- * BBS
-deriving instance Show (BBS.BufferValue TestMVal)
+deriving instance Show (BBS.BufferValue TTMVal)
 
 -- * CFA
 
-type TestCFAMonetaryUnitData = CFA.MonetaryUnitData TestSuperfluidTypes
+type TTCFAMUD = CFA.MonetaryUnitData TTSuperfluidTypes
 
-instance Arbitrary TestCFAMonetaryUnitData where
+instance Arbitrary TTCFAMUD where
     arbitrary = do
         t_s <- arbitrary
         sv  <- arbitrary
         nfr <- arbitrary
         return $ CFMUD.MkMonetaryUnitData CFA.MonetaryUnitLenses
-            { CFA.settled_at    = TestTimestamp t_s
-            , CFA.settled_value = coerce $ TestMVal sv
-            , CFA.net_flow_rate = TestMVal nfr
+            { CFA.settled_at    = TTTimestamp t_s
+            , CFA.settled_value = coerce $ TTMVal sv
+            , CFA.net_flow_rate = TTMVal nfr
             }
-deriving instance Show (CFA.MonetaryUnitLenses TestSuperfluidTypes)
-deriving instance Show TestCFAMonetaryUnitData
+deriving instance Show (CFA.MonetaryUnitLenses TTSuperfluidTypes)
+deriving instance Show TTCFAMUD
+
+-- * CFDA
+
+type TTCFDAPublisherMUD = CFDA.PublisherMonetaryUnitData TTSuperfluidTypes
+
+instance Arbitrary TTCFDAPublisherMUD where
+    arbitrary = do
+        t_s <- arbitrary
+        sv  <- arbitrary
+        tfr <- arbitrary
+        return $ CFMUD.MkMonetaryUnitData CFDA.PublisherData
+            { CFDA.pub_settled_at      = TTTimestamp t_s
+            , CFDA.pub_settled_value   = coerce $ TTMVal sv
+            , CFDA.pub_total_flow_rate = TTMVal tfr
+            }
+deriving instance Show (CFDA.PublisherData TTSuperfluidTypes)
+deriving instance Show TTCFDAPublisherMUD

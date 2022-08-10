@@ -211,7 +211,7 @@ class ( Monad tk
         -> SFT_FLOAT sft                   -- unit
         -> tk ()
     updateProportionalDistributionSubscription subscriber publisher indexId unit = do
-        -- load acd and accounts data
+        -- TODO refactor and use effAgreementOperation
         t <- getCurrentTime
         pub <- getAccount publisher
         dc <- viewProportionalDistributionContract publisher indexId

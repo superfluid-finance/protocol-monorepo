@@ -63,6 +63,7 @@ test-suite tests
         Money.Systems.Superfluid.TestTypes
         Money.Systems.Superfluid.RealTimeBalance_prop
         Money.Systems.Superfluid.ConstantFlowAgreement_prop
+        Money.Systems.Superfluid.ConstantFlowDistributionAgreement_prop
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:

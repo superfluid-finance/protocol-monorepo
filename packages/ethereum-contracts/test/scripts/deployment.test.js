@@ -7,6 +7,7 @@ const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");
 const deployTestEnvironment = require("../../scripts/deploy-test-environment");
 const Resolver = artifacts.require("Resolver");
+const TestToken = artifacts.require("TestToken");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
@@ -375,6 +376,8 @@ contract("Embeded deployment scripts", (accounts) => {
             );
             const address1 = await resolver.get("tokens.TEST7262");
             assert.notEqual(address1, ZERO_ADDRESS);
+            const testToken7262 = await TestToken.at(address1);
+            assert.equal(18, await testToken7262.decimals());
 
             // second deployment
             await deployTestToken(
@@ -397,6 +400,16 @@ contract("Embeded deployment scripts", (accounts) => {
             );
             const address3 = await resolver.get("tokens.TEST7262");
             assert.equal(address3, address2);
+
+            // deploy test token with 6 decimals
+            await deployTestToken(
+                errorHandler,
+                [":", 6, "TEST6420"],
+                deploymentOptions
+            );
+            const address4 = await resolver.get("tokens.TEST6420");
+            const testToken6420 = await TestToken.at(address4);
+            assert.equal(6, await testToken6420.decimals());
         });
 
         it("scripts/deploy-super-token.js", async () => {

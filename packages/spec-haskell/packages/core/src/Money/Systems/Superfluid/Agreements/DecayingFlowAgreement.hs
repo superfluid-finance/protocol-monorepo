@@ -47,7 +47,7 @@ data Operation sft =
     UpdateDecayingFlow (DistributionLimit sft) (BBS.BufferValue (SFT_MVAL sft))
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
+    data AgreementContract (Operation sft) = ContractData
         { flow_last_updated_at :: SFT_TS sft
         , distribution_limit   :: SFT_MVAL sft
         , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
@@ -83,7 +83,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
             flowBufferDelta = newFlowBuffer - flow_buffer acd
 
 type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
+type ContractData sft = AgreementContract (Operation sft)
 
 -- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
 instance SuperfluidTypes sft => Default (ContractData sft) where

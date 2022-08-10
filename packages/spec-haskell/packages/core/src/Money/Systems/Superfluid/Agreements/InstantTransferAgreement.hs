@@ -39,7 +39,7 @@ type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 newtype Operation sft = Transfer (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
+    data AgreementContract (Operation sft) = ContractData
 
     data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
         { transferFrom :: elem
@@ -56,6 +56,6 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         in (acd', aorΔ)
 
 type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
+type ContractData sft = AgreementContract (Operation sft)
 
 instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData

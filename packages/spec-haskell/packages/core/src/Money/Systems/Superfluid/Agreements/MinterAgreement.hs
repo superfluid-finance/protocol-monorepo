@@ -40,7 +40,7 @@ data Operation sft = Mint (SFT_MVAL sft) |
                            Burn (SFT_MVAL sft)
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
+    data AgreementContract (Operation sft) = ContractData
     data AgreementOperationResultF (Operation sft) elem = OperationResultF
         { mintFrom :: elem
         , mintTo   :: elem
@@ -61,5 +61,5 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         in (acd', aorΔ)
 
 type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
+type ContractData sft = AgreementContract (Operation sft)
 instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData

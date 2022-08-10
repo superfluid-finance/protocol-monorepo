@@ -73,10 +73,6 @@ cfda_sub_data a = ((dc_base.fst) a, (dc_cfda.fst) a, (sc_base.snd) a, (sc_cfda.s
 data SubscriptionOperation sft = Subscribe (SFT_FLOAT sft)
 
 instance SuperfluidTypes sft => AgreementOperation (SubscriptionOperation sft) sft where
-    data AgreementOperationData (SubscriptionOperation sft) = SubscriberOperationData (SubscriberData sft)
-    data AgreementOperationResultF (SubscriptionOperation sft) elem = SubscriptionOperationPartiesF
-    type AgreementMonetaryUnitDataInOperation (SubscriptionOperation sft) = NullAgreementMonetaryUnitData sft
-
     applyAgreementOperation (Subscribe unit) (SubscriberOperationData sub) t' = let
         sub'  = ( dc { dc_base = DistributionContractBase { total_unit = tu + unit }}
                 , sc { sc_base = SubscriptionContractBase
@@ -88,10 +84,14 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriptionOperation sft) s
                   , sc@(SubscriptionContract { sc_base = SubscriptionContractBase { sub_owned_unit = u }}))
                   = sub
 
-type SubscriberOperationData :: Type -> Type
-type SubscriberOperationData sft = AgreementOperationData (SubscriptionOperation sft)
+    data AgreementContract (SubscriptionOperation sft) = SubscriberOperationData (SubscriberData sft)
+    data AgreementOperationResultF (SubscriptionOperation sft) elem = SubscriptionOperationPartiesF
+    type AgreementMonetaryUnitDataInOperation (SubscriptionOperation sft) = NullAgreementMonetaryUnitData sft
 
--- TODO compiling to categories
+type SubscriberOperationData :: Type -> Type
+type SubscriberOperationData sft = AgreementContract (SubscriptionOperation sft)
+
+-- TODO merge to SubscriptionOperation
 updateSubscription :: SuperfluidTypes sft
     => SubscriberData sft
     -> SFT_FLOAT sft
@@ -105,18 +105,18 @@ updateSubscription (dc0, sc0) unit t = let
     in ((dc', sc'), cfdaMUDΔ)
     where
         settle_ida (dc, sc) = let
-            aod = (dc_base dc, dc_ida dc, sc_base sc, sc_ida sc)
-            aod' = applyAgreementOperation IDA.SettleSubscription (IDA.SubscriberOperationData aod) t
-            (IDA.SubscriberOperationData (_, dc_ida', _, sc_ida'), _) = aod'
+            acd = (dc_base dc, dc_ida dc, sc_base sc, sc_ida sc)
+            acd' = applyAgreementOperation IDA.SettleSubscription (IDA.SubscriberContract acd) t
+            (IDA.SubscriberContract (_, dc_ida', _, sc_ida'), _) = acd'
             in (dc { dc_ida = dc_ida' }, sc { sc_ida = sc_ida' })
         settle_cfda (dc, sc) = let
-            aod = (dc_base dc, dc_cfda dc, sc_base sc, sc_cfda sc)
-            aod' = applyAgreementOperation CFDA.SettleSubscription (CFDA.SubscriberOperationData aod) t
-            ( CFDA.SubscriberOperationData (_, dc_cfda', _, sc_cfda')
-                , CFDA.SubscriberOperationPartiesF cfdaMUDΔ ) = aod'
+            acd = (dc_base dc, dc_cfda dc, sc_base sc, sc_cfda sc)
+            acd' = applyAgreementOperation CFDA.SettleSubscription (CFDA.SubscriberContract acd) t
+            ( CFDA.SubscriberContract (_, dc_cfda', _, sc_cfda')
+                , CFDA.SubscriberOperationPartiesF cfdaMUDΔ ) = acd'
             in (dc { dc_cfda = dc_cfda' }, sc { sc_cfda = sc_cfda' }, cfdaMUDΔ)
         subscribe_unit (dc, sc) = let
-            aod = (dc, sc)
-            aod' = applyAgreementOperation (Subscribe unit) (SubscriberOperationData aod) t
-            (SubscriberOperationData (dc', sc'), _) = aod'
+            acd = (dc, sc)
+            acd' = applyAgreementOperation (Subscribe unit) (SubscriberOperationData acd) t
+            (SubscriberOperationData (dc', sc'), _) = acd'
             in (dc', sc')

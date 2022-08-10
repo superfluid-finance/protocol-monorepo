@@ -12,6 +12,7 @@ import           Data.Kind                                         (Type)
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 
+
 -- | Agreement monetary unit data type class.
 --
 -- Note: a. ~amud~ needs not to have a binary function, but when it does, it must conform to the monoid laws.
@@ -27,9 +28,11 @@ class ( SuperfluidTypes sft
       ) => AgreementMonetaryUnitData amud sft | amud -> sft where
     -- | π function - balance provided (hear: π) by the agreement monetary unit data.
     balanceProvidedByAgreement
-        :: amud          -- amud
-        -> SFT_TS sft    -- t
-        -> SFT_RTB sft   -- rtb
+        :: amud        -- amud
+        -> SFT_TS sft  -- t
+        -> SFT_RTB sft -- rtb
+
+-- * AMUD properties
 
 amud_prop_semigroup_settles_pi :: ( SuperfluidTypes sft
                                   , AgreementMonetaryUnitData amud sft
@@ -40,21 +43,16 @@ amud_prop_semigroup_settles_pi m m' t = π m t <> π m' t == π (m <> m') t
 
 -- | Agreement operation type class.
 --
--- It has three associated type/data families: ~aod~, ~aorF~ and ~amud~. See their documentations.
+-- It has three associated type/data families: ~acd~, ~aorF~ and ~amud~. See their documentations.
 --
--- Note: a. The constraint on ~amud~ may seems too strong, since a semigroup should also be sufficient. But why would you
---          define an operation that has nothing to do with any ~amud~, apart from the trivial case of
---          ~NullAgreementMonetaryUnitData~?
---
---       b. It is conceivable that some ~amud~ are "read only" hence "fake monoid", where their π is implicitly a
---          function of ~aod~. This class of ~amud~ is also known as "non-scalable", since ~amud~ is a product of ~aod~,
---          and a monetary unit would need as many ~amud~ as the needed ~aod~.
+-- Note: a. It is conceivable that some ~amud~ are "read only" hence "fake monoid", where their π is implicitly a
+--          function of ~acd~. This class of ~amud~ is also known as "non-scalable", since ~amud~ is a product of ~acd~,
+--          and a monetary unit would need as many ~amud~ as the needed ~acd~.
 class ( SuperfluidTypes sft
-      -- change to ~Semigroup amud~ can work too, see note (a).
       , AgreementMonetaryUnitData (AgreementMonetaryUnitDataInOperation ao) sft
       ) => AgreementOperation ao sft | ao -> sft where
-    -- | Areement operation data type ~aod~.
-    data AgreementOperationData ao :: Type
+    -- | Areement operation data type ~acd~.
+    data AgreementContract ao :: Type
 
     -- | Agreement operation result container type ~aorF~.
     data AgreementOperationResultF ao elem :: Type
@@ -62,18 +60,18 @@ class ( SuperfluidTypes sft
     -- | Type of agreement monetary unit data ~amud~ created in operation result.
     type AgreementMonetaryUnitDataInOperation ao :: Type
 
-    -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~aod~ to get a tuple of:
+    -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~acd~ to get a tuple of:
     --
-    --   1. An updated ~aod'~.
+    --   1. An updated ~acd'~.
     --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~amud~.
     --      This is what can make an agreement scalable.
     applyAgreementOperation
         :: amud ~ AgreementMonetaryUnitDataInOperation ao
         => ao                                   -- ao
-        -> AgreementOperationData ao            -- aod
+        -> AgreementContract ao                 -- acd
         -> SFT_TS sft                           -- t
-        -> ( AgreementOperationData ao
-           , AgreementOperationResultF ao amud) -- (aod', aorΔ)
+        -> ( AgreementContract ao
+           , AgreementOperationResultF ao amud) -- (acd', aorΔ)
 
 -- | A special null agreement monetary unit data.
 --

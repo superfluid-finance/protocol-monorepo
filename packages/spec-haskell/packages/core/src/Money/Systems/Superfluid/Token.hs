@@ -89,9 +89,9 @@ class ( Monad tk
     -- TODO make this even more polymorphic to work with proportional distribution index
     updateUniversalIndex
         :: ( AgreementOperation ao sft
-           , acd ~ AgreementOperationData ao     -- this is a useful property of universal-indexed agreement operations
+           , acd ~ AgreementContract ao     -- this is a useful property of universal-indexed agreement operations
            , amud ~ AgreementMonetaryUnitDataInOperation ao
-           , Default (AgreementOperationData ao)
+           , Default (AgreementContract ao)
            , Traversable (AgreementOperationResultF ao)
            )
         => (AgreementOperationResultF ao) (ACC_ADDR acc)                                  -- aorAddrs
@@ -103,10 +103,10 @@ class ( Monad tk
     updateUniversalIndex aorAddrs ao acdGetter acdSetter amuData = do
         -- load acd and accounts data
         t <- getCurrentTime
-        aod <- fromMaybe def <$> acdGetter aorAddrs
+        acd <- fromMaybe def <$> acdGetter aorAddrs
         aorAccounts <- mapM getAccount aorAddrs
         -- apply agreement operation
-        let (acd', aorΔamuds) = applyAgreementOperation ao aod t
+        let (acd', aorΔamuds) = applyAgreementOperation ao acd t
         -- append delta to existing amuds
         let amuds' = zipWith (<>) (fmap (^. amuData) (toList aorAccounts)) (toList aorΔamuds)
         -- set new acd
@@ -230,10 +230,10 @@ class ( Monad tk
         t <- getCurrentTime
         pub <- getAccount publisher
         dc <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
-        let (IDA.PublisherOperationData _ dc_ida', IDA.PublisherOperationResultF amudΔ) =
+        let (IDA.PublisherContract _ dc_ida', IDA.PublisherOperationResultF amudΔ) =
                 applyAgreementOperation
                 (IDA.Distribute amount)
-                (IDA.PublisherOperationData (PDIDX.dc_base dc) (PDIDX.dc_ida dc))
+                (IDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_ida dc))
                 t
         setProportionalDistributionContract publisher indexId (dc { PDIDX.dc_ida = dc_ida' }) t
         putAccount publisher (over idaPublisherMonetaryUnitData (<> amudΔ) pub) t
@@ -248,10 +248,10 @@ class ( Monad tk
         t <- getCurrentTime
         pub <- getAccount publisher
         dc <- fromMaybe def <$> viewProportionalDistributionContract publisher indexId
-        let (CFDA.PublisherOperationData _ dc_cfda', CFDA.PublisherOperationResultF amudΔ) =
+        let (CFDA.PublisherContract _ dc_cfda', CFDA.PublisherOperationResultF amudΔ) =
                 applyAgreementOperation
                 (CFDA.UpdateDistributionFlowRate flowRate)
-                (CFDA.PublisherOperationData (PDIDX.dc_base dc) (PDIDX.dc_cfda dc))
+                (CFDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_cfda dc))
                 t
         setProportionalDistributionContract publisher indexId (dc { PDIDX.dc_cfda = dc_cfda' }) t
         putAccount publisher (over cfdaPublisherMonetaryUnitData (<> amudΔ) pub) t

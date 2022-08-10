@@ -47,22 +47,14 @@ type FlowRate sft = SFT_MVAL sft
 data Operation sft = UpdateFlow (FlowRate sft)
 
 instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
-        { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
-        , flow_rate       :: SFT_MVAL sft
-        }
-
-    data AgreementOperationResultF (Operation sft) a = OperationPartiesF
-        { flowSender   :: a
-        , flowReceiver :: a
-        } deriving stock (Functor, Foldable, Traversable)
-
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
-
     applyAgreementOperation (UpdateFlow newFlowRate) acd t' = let
+        fr        = flow_rate acd
+        flowRateΔ = newFlowRate - fr
+
         acd' = ContractData { flow_updated_at = t'
                             , flow_rate       = newFlowRate
                             }
+
         aorΔ = OperationPartiesF
                    (def & set CFMUD.settledAt t'
                         & set CFMUD.netFlowRate        (-flowRateΔ)
@@ -71,11 +63,19 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
                         & set CFMUD.netFlowRate        flowRateΔ
                    )
         in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
-        where fr          = flow_rate acd
-              flowRateΔ   = newFlowRate - fr
+
+    data AgreementContract (Operation sft) = ContractData
+        { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
+        , flow_rate       :: SFT_MVAL sft
+        }
+    data AgreementOperationResultF (Operation sft) a = OperationPartiesF
+        { flowSender   :: a
+        , flowReceiver :: a
+        } deriving stock (Functor, Foldable, Traversable)
+    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
 type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
+type ContractData sft = AgreementContract (Operation sft)
 
 -- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
 instance SuperfluidTypes sft => Default (ContractData sft) where

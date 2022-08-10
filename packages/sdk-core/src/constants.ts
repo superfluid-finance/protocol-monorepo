@@ -1,3 +1,5 @@
+import metadata from "@superfluid-finance/metadata";
+
 import DefaultSubgraphReleaseTag from "./defaultSubgraphReleaseTag.json";
 import { IResolverData } from "./interfaces";
 
@@ -15,63 +17,7 @@ export const MONTH_IN_SECONDS = DAY_IN_SECONDS * DAYS_PER_MONTH;
 export const YEAR_IN_SECONDS = MONTH_IN_SECONDS * MONTHS_PER_YEAR; // NOTE: Is 360 days (misses 5-6 days)
 export const BASE_18 = 1e18;
 
-/******* NETWORK NAMES *******/
-export const ETH_GOERLI = "eth-goerli";
-
-export const POLYGON_MAINNET = "polygon-mainnet";
-export const POLYGON_MUMBAI = "polygon-mumbai";
-
-export const XDAI_MAINNET = "xdai-mainnet";
-
-export const OPTIMISM_MAINNET = "optimism-mainnet";
-export const OPTIMISM_GOERLI = "optimism-goerli";
-
-export const ARBITRUM_ONE = "arbitrum-one";
-export const ARBITRUM_GOERLI = "arbitrum-goerli";
-
-export const AVALANCHE_C = "avalanche-c";
-export const AVALANCHE_FUJI = "avalanche-fuji";
-
-export const BSC_MAINNET = "bsc-mainnet";
-
-/******* CHAIN IDS *******/
-export const ETH_GOERLI_CHAIN_ID = 5;
-
-export const GNOSIS_CHAIN_ID = 100;
-
-export const MATIC_CHAIN_ID = 137;
-export const MUMBAI_CHAIN_ID = 80001;
-
-export const OPTIMISM_MAINNET_CHAIN_ID = 10;
-export const OPTIMISM_GOERLI_CHAIN_ID = 69;
-
-export const ARBITRUM_ONE_CHAIN_ID = 42161;
-export const ARBITRUM_GOERLI_CHAIN_ID = 421611;
-
-export const AVALANCHE_FUJI_CHAIN_ID = 43113;
-export const AVALANCHE_C_CHAIN_ID = 43114;
-
-export const BSC_MAINNET_CHAIN_ID = 56;
-
-export const chainIds = [
-    ETH_GOERLI_CHAIN_ID, // GOERLI
-
-    MATIC_CHAIN_ID, // MATIC
-    MUMBAI_CHAIN_ID, // MUMBAI
-
-    GNOSIS_CHAIN_ID, // GNOSIS
-
-    OPTIMISM_MAINNET_CHAIN_ID, // OPTIMISM MAINNET
-    OPTIMISM_GOERLI_CHAIN_ID, // OPTIMISM KOVAN
-
-    ARBITRUM_ONE_CHAIN_ID, // ARBITRUM ONE
-    ARBITRUM_GOERLI_CHAIN_ID, // ARBITRUM RINKEBY
-
-    AVALANCHE_FUJI_CHAIN_ID, // AVALANCHE FUJI
-    AVALANCHE_C_CHAIN_ID, // AVALANCHE C-CHAIN
-
-    BSC_MAINNET_CHAIN_ID, // BNB MAINNET
-];
+export const chainIds = metadata.networks.map((x) => x.chainId);
 
 /******* ACL AUTHORIZATION BIT OPERATIONS *******/
 export const AUTHORIZE_FLOW_OPERATOR_CREATE = 1 << 0;
@@ -88,124 +34,27 @@ const subgraphReleaseTag =
 
 const baseUrl = `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}`;
 
-export const chainIdToResolverDataMap = new Map<number, IResolverData>([
-    [
-        ETH_GOERLI_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-goerli`,
-            networkName: ETH_GOERLI,
-            resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
-        OPTIMISM_MAINNET_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-optimism-mainnet`,
-            networkName: OPTIMISM_MAINNET,
-            resolverAddress: "0x743B5f46BC86caF41bE4956d9275721E0531B186",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
-        OPTIMISM_GOERLI_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-optimism-kovan`,
-            networkName: OPTIMISM_GOERLI,
-            resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
-        GNOSIS_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-xdai`,
-            networkName: XDAI_MAINNET,
-            resolverAddress: "0xD2009765189164b495c110D61e4D301729079911",
-            nativeTokenSymbol: "xDAI",
-        },
-    ],
-    [
-        MATIC_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-matic`,
-            networkName: POLYGON_MAINNET,
-            resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
-            nativeTokenSymbol: "MATIC",
-        },
-    ],
-    [
-        ARBITRUM_ONE_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-arbitrum-one`,
-            networkName: ARBITRUM_ONE,
-            resolverAddress: "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-    [
-        AVALANCHE_FUJI_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-avalanche-fuji`,
-            networkName: AVALANCHE_FUJI,
-            resolverAddress: "0x141920741bC45b962B59c833cd849bA617F7ef38",
-            nativeTokenSymbol: "AVAX",
-        },
-    ],
-    [
-        AVALANCHE_C_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-avalanche-c`,
-            networkName: AVALANCHE_C,
-            resolverAddress: "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
-            nativeTokenSymbol: "AVAX",
-        },
-    ],
-    [
-        BSC_MAINNET_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-bsc-mainnet`,
-            networkName: BSC_MAINNET,
-            resolverAddress: "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
-            nativeTokenSymbol: "BNB",
-        },
-    ],
-    [
-        MUMBAI_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-mumbai`,
-            networkName: POLYGON_MUMBAI,
-            resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
-            nativeTokenSymbol: "MATIC",
-        },
-    ],
-    [
-        ARBITRUM_GOERLI_CHAIN_ID,
-        {
-            subgraphAPIEndpoint: `${baseUrl}-arbitrum-rinkeby`,
-            networkName: ARBITRUM_GOERLI,
-            resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
-            nativeTokenSymbol: "ETH",
-        },
-    ],
-]);
+const getResolverData = (chainId: number): IResolverData => {
+    const networkData = metadata.networks.find((x) => x.chainId === chainId);
+    if (!networkData)
+        return {
+            subgraphAPIEndpoint: "",
+            networkName: "",
+            resolverAddress: "",
+            nativeTokenSymbol: "",
+        };
+    return {
+        subgraphAPIEndpoint: `${baseUrl}-${networkData?.shortName}`,
+        networkName: networkData.name,
+        resolverAddress: networkData.contractsV1.resolver,
+        nativeTokenSymbol: networkData.nativeTokenSymbol,
+    };
+};
 
-export const networkNameToChainIdMap = new Map<string, number>([
-    [ETH_GOERLI, ETH_GOERLI_CHAIN_ID],
+export const chainIdToResolverDataMap = new Map(
+    metadata.networks.map((x) => [x.chainId, getResolverData(x.chainId)])
+);
 
-    [XDAI_MAINNET, GNOSIS_CHAIN_ID],
-
-    [POLYGON_MAINNET, MATIC_CHAIN_ID],
-    [POLYGON_MUMBAI, MUMBAI_CHAIN_ID],
-
-    [OPTIMISM_GOERLI, OPTIMISM_GOERLI_CHAIN_ID],
-    [OPTIMISM_MAINNET, OPTIMISM_MAINNET_CHAIN_ID],
-
-    [ARBITRUM_ONE, ARBITRUM_ONE_CHAIN_ID],
-    [ARBITRUM_GOERLI, ARBITRUM_GOERLI_CHAIN_ID],
-
-    [AVALANCHE_C, AVALANCHE_C_CHAIN_ID],
-    [AVALANCHE_FUJI, AVALANCHE_FUJI_CHAIN_ID],
-
-    [BSC_MAINNET, BSC_MAINNET_CHAIN_ID],
-]);
+export const networkNameToChainIdMap = new Map(
+    metadata.networks.map((x) => [x.name, x.chainId])
+);

@@ -3126,9 +3126,9 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git#main-module-separation":
+"@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
   version "1.1.0"
-  resolved "git+https://github.com/superfluid-finance/metadata.git#59d8eeb368bad8ab3300132d4cca66116c284a34"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#6c07a57e304df9f0e4ca17b969d69b004054c5ee"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

@@ -24,17 +24,14 @@ jobs:
       # network web3 providers
       ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
       POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
-      XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
-      POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
-      # TODO: replace with _GOERLI
-      # OPTIMISM_KOVAN_PROVIDER_URL: ${{ secrets.OPTIMISM_KOVAN_PROVIDER_URL }}
-      # ARBITRUM_RINKEBY_PROVIDER_URL: ${{ secrets.ARBITRUM_RINKEBY_PROVIDER_URL }}
+      OPTIMISM_GOERLI_PROVIDER_URL: ${{ secrets.OPTIMISM_GOERLI_PROVIDER_URL }}
+      ARBITRUM_GOERLI_PROVIDER_URL: ${{ secrets.ARBITRUM_GOERLI_PROVIDER_URL }}
       AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
 
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, polygon-mumbai, avalanche-fuji]
+          network: [eth-goerli, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji]
 
     steps:
       - uses: actions/checkout@v3

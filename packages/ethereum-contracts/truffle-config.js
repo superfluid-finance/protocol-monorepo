@@ -63,17 +63,22 @@ const ALIASES = {
     "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
-    "optimism-kovan": ["opkovan"],
     "optimism-goerli": ["opgoerli"],
 
     "arbitrum-one": ["arbone"],
-    "arbitrum-rinkeby": ["arbrinkeby"],
     "arbitrum-goerli": ["arbgoerli"],
 
     "avalanche-c": ["avalanche"],
     "avalanche-fuji": ["avafuji"],
 
     "bsc-mainnet": ["bsc"],
+
+    // currently unsupported
+    //
+    "optimism-kovan": ["opkovan"],
+
+    "arbitrum-rinkeby": ["arbrinkeby"],
+
     "bsc-chapel": ["chapel"],
 
     "celo-mainnet": ["celo"],
@@ -260,6 +265,27 @@ const E = (module.exports = {
         "bsc-mainnet": {
             ...createNetworkDefaultConfiguration("bsc-mainnet"),
             network_id: 56,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        //
+        // Currently unsupported networks
+        //
+
+        "optimism-kovan": {
+            ...createNetworkDefaultConfiguration("optimism-kovan"),
+            network_id: 69,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        "arbitrum-rinkeby": {
+            ...createNetworkDefaultConfiguration("arbitrum-rinkeby"),
+            network_id: 42162,
+            gas: 250e6, // arbgas is different and estimation fails for expensive txs
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,

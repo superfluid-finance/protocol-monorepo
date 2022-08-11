@@ -73,15 +73,18 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         //
         // Optimistic Ethereum: https://community.optimism.io/docs/
         //
+        // optimism mainnet
         10: getConfigData(10),
-        // TODO: optimism goerli to be added
+        // optimism goerli
+        420: getConfigData(420),
 
         //
         // Arbitrum: https://developer.offchainlabs.com
         //
         // arbitrum one mainnet
         42161: getConfigData(42161),
-        // TODO: arbitrum goerli to be added
+        // arbitrum goerli testnet
+        42163: getConfigData(42163),
 
         //
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
@@ -95,6 +98,22 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         // Binance Smart Chain (BSC): https://docs.binance.org/
         //
         56: getConfigData(56),
+
+        //
+        // currently unsupported networks
+        //
+        69: {
+            // optimism kovan testnet
+            nativeTokenSymbol: "ETH",
+            resolverAddress: "0x218B65780615Ff134f9Ad810CB98839534D3C0D6",
+        },
+
+        42162: {
+            // arbitrum rinkeby testnet
+            nativeTokenSymbol: "ETH",
+            resolverAddress: "0xa2C0C70A1E922f5f060ec20EE3aF002C163b4567",
+        },
+
         97: {
             // BSC chapel testnet
             nativeTokenSymbol: "BNB",

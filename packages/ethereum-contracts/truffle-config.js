@@ -63,10 +63,12 @@ const ALIASES = {
     "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
-    // TODO: add optimism-goerli
+    "optimism-kovan": ["opkovan"],
+    "optimism-goerli": ["opgoerli"],
 
     "arbitrum-one": ["arbone"],
     "arbitrum-rinkeby": ["arbrinkeby"],
+    "arbitrum-goerli": ["arbgoerli"],
 
     "avalanche-c": ["avalanche"],
     "avalanche-fuji": ["avafuji"],
@@ -204,7 +206,14 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
-        // TODO: add optimism-goerli
+
+        "optimism-goerli": {
+            ...createNetworkDefaultConfiguration("optimism-goerli"),
+            network_id: 420,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
 
         //
         // Arbitrum: https://developer.offchainlabs.com
@@ -217,7 +226,14 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
-        // TODO: add arbitrum-goerli
+
+        "arbitrum-goerli": {
+            ...createNetworkDefaultConfiguration("arbitrum-goerli"),
+            network_id: 421613,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
 
         //
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain

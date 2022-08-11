@@ -130,6 +130,6 @@ print_account t (alias, acc) =
     putStr $ "Account @" ++ alias ++ "\n" ++ accountDetails
     where accountDetails = lines (SF.showAccountAt acc t) & map ("  " ++) & unlines
 
-print_contract (acdAddr, acd) =
-    putStr $ show acdAddr ++ "\n" ++ acdDetails
-    where acdDetails = lines (show acd) & map ("  " ++) & unlines
+print_contract (acAddr, ac) =
+    putStr $ show acAddr ++ "\n" ++ acDetails
+    where acDetails = lines (show ac) & map ("  " ++) & unlines

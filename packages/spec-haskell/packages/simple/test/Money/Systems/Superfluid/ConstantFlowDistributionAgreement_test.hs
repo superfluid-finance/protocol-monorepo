@@ -10,7 +10,7 @@ module Money.Systems.Superfluid.ConstantFlowDistributionAgreement_test (tests) w
 -- import           Test.Hspec                                                           (HasCallStack)
 -- import           Test.HUnit
 
--- import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue as IVMUD
+-- import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue as IVMUD
 -- import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex    as PDIDX
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System as SF

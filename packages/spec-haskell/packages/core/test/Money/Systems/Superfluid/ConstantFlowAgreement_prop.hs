@@ -6,7 +6,7 @@ import           Lens.Internal
 import           Test.Hspec
 import           Test.QuickCheck
 
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
 import           Money.Systems.Superfluid.Concepts
 import           Money.Systems.Superfluid.TestTypes
 

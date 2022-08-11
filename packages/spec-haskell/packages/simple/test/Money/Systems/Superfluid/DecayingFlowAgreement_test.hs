@@ -11,7 +11,7 @@ import           Test.HUnit
 
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement         as DFA
 import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex        as UIDX
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow as DFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow as DFMUD
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
 --

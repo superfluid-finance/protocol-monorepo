@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue
+module Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
     ( MonetaryUnitLenses (..)
     , MonetaryUnitData (..)
     ) where
@@ -12,19 +12,28 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 
--- * Monetary unit data
---
-
 class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
-    untappedValue :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
+    settledAt          :: Lens' amuLs (SFT_TS sft)
+    settledValue       :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
+    netFlowRate        :: Lens' amuLs (SFT_MVAL sft)
 
 type MonetaryUnitData :: Type -> Type -> Type
 newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs } deriving (Default)
 
 instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
-        let c = a & over untappedValue (+ b^.untappedValue)
+        let t  = a^.settledAt
+            t' = b^.settledAt
+            settledΔ = UntappedValue $ a^.netFlowRate * fromIntegral (t' - t)
+            c = a & set  settledAt t'
+                  & over netFlowRate        (+ b^.netFlowRate)
+                  & over settledValue       (+ (b^.settledValue + settledΔ))
         in MkMonetaryUnitData c
 
 instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
-    balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB (a^.untappedValue) []
+    balanceProvided (MkMonetaryUnitData a) t = typedValuesToRTB
+            ( UntappedValue $ uval_s + fr * fromIntegral (t - t_s) )
+            [ ]
+        where t_s                  = a^.settledAt
+              UntappedValue uval_s = a^.settledValue
+              fr                   = a^.netFlowRate

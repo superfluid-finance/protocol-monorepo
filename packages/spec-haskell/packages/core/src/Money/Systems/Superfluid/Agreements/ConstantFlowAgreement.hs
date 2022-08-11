@@ -9,13 +9,12 @@
 module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement where
 
 import           Data.Default
-import           Data.Kind                                                         (Type)
 import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
 
 -- * Monetary unit lenses.
 --
@@ -42,39 +41,41 @@ type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 -- * Operation
 --
 
+data ContractData sft = ContractData
+    { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
+    , flow_rate       :: SFT_MVAL sft
+    } deriving (Generic)
+deriving instance SuperfluidTypes sft => Default (ContractData sft)
+
 type FlowRate sft = SFT_MVAL sft
 
-data Operation sft = UpdateFlow (FlowRate sft)
-
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    applyAgreementOperation (UpdateFlow newFlowRate) acd t' = let
-        fr        = flow_rate acd
+instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
+    applyAgreementOperation ac (UpdateFlow newFlowRate) t' = let
+        fr        = flow_rate ac
         flowRateΔ = newFlowRate - fr
 
-        acd' = ContractData { flow_updated_at = t'
+        ac' = ContractData { flow_updated_at = t'
                             , flow_rate       = newFlowRate
                             }
 
-        aorΔ = OperationResultF
+        muds = OperationOutputF
                    (def & set CFMUD.settledAt t'
                         & set CFMUD.netFlowRate  (-flowRateΔ)
                    )
                    (def & set CFMUD.settledAt t'
                         & set CFMUD.netFlowRate  flowRateΔ
                    )
-        in (acd', fmap CFMUD.MkMonetaryUnitData aorΔ)
+        in (ac', fmap CFMUD.MkMonetaryUnitData muds)
 
-    data AgreementContract (Operation sft) = ContractData
-        { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
-        , flow_rate       :: SFT_MVAL sft
-        } deriving Generic
-    data AgreementOperationResultF (Operation sft) a = OperationResultF
-        { flowSender   :: a
-        , flowReceiver :: a
+    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+
+    data AgreementOperation (ContractData sft) = UpdateFlow (FlowRate sft)
+
+    type AgreementOperationOutput (ContractData sft) =
+        AgreementOperationOutputF (ContractData sft)
+        (MonetaryUnitData sft)
+
+    data AgreementOperationOutputF (ContractData sft) a = OperationOutputF
+        { flow_sender   :: a
+        , flow_receiver :: a
         } deriving stock (Functor, Foldable, Traversable)
-    type MonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
-
-type ContractData :: Type -> Type
-type ContractData sft = AgreementContract (Operation sft)
-
-deriving instance SuperfluidTypes sft => Default (ContractData sft)

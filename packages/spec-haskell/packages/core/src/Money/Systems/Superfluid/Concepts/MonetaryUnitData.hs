@@ -2,8 +2,8 @@
 
 module Money.Systems.Superfluid.Concepts.MonetaryUnitData
     ( MonetaryUnitDataClass (..)
+    , AnyMonetaryUnitDataClass (..)
     , mud_prop_semigroup_settles_pi
-    , NullMonetaryUnitData
     ) where
 
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
@@ -28,6 +28,9 @@ class ( SuperfluidTypes sft
         -> SFT_TS sft  -- t
         -> SFT_RTB sft -- rtb
 
+-- | Existential type wrapper of monetary unit data
+data AnyMonetaryUnitDataClass sft = forall mud. MonetaryUnitDataClass mud sft => MkMonetaryUnitDataClass mud
+
 -- * Properties
 
 -- | A semigroup binary operation should settle mud in a way that pi function output stay the same.
@@ -37,11 +40,3 @@ mud_prop_semigroup_settles_pi :: ( SuperfluidTypes sft
                               => mud -> mud -> SFT_TS sft -> Bool
 mud_prop_semigroup_settles_pi m m' t = π m t <> π m' t == π (m <> m') t
     where π = balanceProvided
-
--- | A special null monetary unit data.
---
--- Note: It is handy for agreement operation that does not modify any ~mud~, where their ~AgreementOperationResultF~ is
---       actually an empty container.
-type NullMonetaryUnitData sft = ()
-instance SuperfluidTypes sft => MonetaryUnitDataClass (NullMonetaryUnitData sft) sft where
-    balanceProvided _ _ = mempty

@@ -10,13 +10,12 @@ module Money.Systems.Superfluid.Agreements.InstantTransferAgreement where
 
 import           Data.Coerce
 import           Data.Default
-import           Data.Kind
 import           GHC.Generics
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue as IVMUD
 
 -- * Monetary data lenses
 --
@@ -30,32 +29,30 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft
     untappedValue = $(field 'untapped_value)
 type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
--- * Contract
+-- * Contract & Operation
 --
 
--- * Operation
---
-
-newtype Operation sft = Transfer (SFT_MVAL sft)
-
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementContract (Operation sft) = ContractData
-
-    data AgreementOperationResultF (Operation sft) elem = OperationResultF
-        { transferFrom :: elem
-        , transferTo   :: elem
-        } deriving stock (Functor, Foldable, Traversable)
-
-    type MonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
-
-    applyAgreementOperation (Transfer amount) acd _ = let
-        acd'  = acd
-        aorΔ = fmap IVMUD.MkMonetaryUnitData (OperationResultF
-                    (def & set IVMUD.untappedValue (coerce (- amount)))
-                    (def & set IVMUD.untappedValue (coerce    amount)))
-        in (acd', aorΔ)
-
-type ContractData :: Type -> Type
-type ContractData sft = AgreementContract (Operation sft)
+-- No ongoing relationships between parties
+data ContractData sft = ContractData
 
 instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData
+
+instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
+    applyAgreementOperation ac (Transfer amount) _ = let
+        ac'  = ac
+        muds = fmap IVMUD.MkMonetaryUnitData (OperationOutputF
+                    (def & set IVMUD.untappedValue (coerce (- amount)))
+                    (def & set IVMUD.untappedValue (coerce    amount)))
+        in (ac', muds)
+
+    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+
+    data AgreementOperation (ContractData sft) = Transfer (SFT_MVAL sft)
+
+    type AgreementOperationOutput (ContractData sft) =
+        AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+    data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
+        { transfer_from :: elem
+        , transfer_to   :: elem
+        } deriving stock (Functor, Foldable, Traversable)

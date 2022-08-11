@@ -10,7 +10,7 @@ import           Test.HUnit
 
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement         as CFA
 import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex        as UIDX
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
 --
 import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
 --

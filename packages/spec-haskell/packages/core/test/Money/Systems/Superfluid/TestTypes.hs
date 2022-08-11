@@ -16,8 +16,8 @@ import           Money.Systems.Superfluid.Concepts
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement             as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement as CFDA
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow     as CFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue      as MVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow     as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue      as MVMUD
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency               as BBS
 
 

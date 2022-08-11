@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue
+module Money.Systems.Superfluid.MonetaryUnitData.MintedValue
     ( MintedValueTag
     , mintedValueTag
     , MintedValue

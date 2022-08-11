@@ -1,44 +1,49 @@
+{-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilies           #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
-    ( AgreementOperation (..)
+    ( AgreementContract (..)
     ) where
 
+import           Data.Default
 import           Data.Kind                                          (Type)
 
 import           Money.Systems.Superfluid.Concepts.MonetaryUnitData
 import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 
 
--- | Agreement operation type class.
+-- | Agreement contract type class.
 --
--- It has three associated type/data families: ~acd~, ~aorF~ and ~mud~. See their documentations.
---
--- Note: a. It is conceivable that some ~mud~ are "read only" hence "fake monoid", where their π is implicitly a
---          function of ~acd~. This class of ~mud~ is also known as "non-scalable", since ~mud~ is a product of ~acd~,
---          and a monetary unit would need as many ~mud~ as the needed ~acd~.
-class ( SuperfluidTypes sft
-      , MonetaryUnitDataClass (MonetaryUnitDataInOperation ao) sft
-      ) => AgreementOperation ao sft | ao -> sft where
-    -- | Areement operation data type ~acd~.
-    data AgreementContract ao :: Type
+-- Note: TODO note about ~ac~ being a MUD.
+class ( Default ac
+      , Functor (AgreementOperationOutputF ac)
+      , Traversable (AgreementOperationOutputF ac)
+      ) => AgreementContract ac sft | ac -> sft where
 
-    -- | Agreement operation result container type ~aorF~.
-    data AgreementOperationResultF ao elem :: Type
-
-    -- | Type of agreement monetary unit data ~mud~ created in operation result.
-    type MonetaryUnitDataInOperation ao :: Type
-
-    -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~acd~ to get a tuple of:
+    -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~ac~ to get a tuple of:
     --
-    --   1. An updated ~acd'~.
+    --   1. An updated ~ac'~.
     --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~mud~.
     --      This is what can make an agreement scalable.
     applyAgreementOperation
-        :: mud ~ MonetaryUnitDataInOperation ao
-        => ao                                   -- ao
-        -> AgreementContract ao                 -- acd
+        :: ac                                   -- ac
+        -> AgreementOperation ac                -- ao
         -> SFT_TS sft                           -- t
-        -> ( AgreementContract ao
-           , AgreementOperationResultF ao mud) -- (acd', aorΔ)
+        -> (ac, AgreementOperationOutput ac)    -- (ac', mudsΔ) TODO rename to mudsΔ
+
+    -- | φ function - functorize the existential monetary unit data of agreement parties
+    functorizeAgreementOperationOutput
+        :: forall f
+         . f ~ AgreementOperationOutputF ac
+        => AgreementOperationOutput ac
+        -> f (AnyMonetaryUnitDataClass sft)
+
+    -- Note: ~ac~ is injected, but it seems natural to have associated operation as data type instead.
+    data AgreementOperation ac :: Type
+
+    -- Note: ~ac~ is injected, hence this can be associated type alias.
+    type AgreementOperationOutput ac :: Type
+
+    -- Note: ~ac~ is not injected, hence this must be associated data type.
+    data AgreementOperationOutputF ac :: Type -> Type

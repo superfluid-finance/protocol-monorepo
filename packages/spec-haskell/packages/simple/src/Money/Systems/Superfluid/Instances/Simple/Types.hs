@@ -24,12 +24,10 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     -- Agreements
     , SimpleMinterMonetaryUnitData
     , SimpleITAMonetaryUnitData
-    , SimpleCFAOperation
     , SimpleCFAContractData
     , SimpleCFAMonetaryUnitData
     , SimpleDFAMonetaryUnitData
     , SimpleDFAContractData
-    , SimpleDFAOperation
     , AnySimpleMonetaryUnitData (..)
     -- Indexes
     , SimpleUniversalData
@@ -40,39 +38,39 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , ProportionalDistributionIndexID
     ) where
 
-import           Control.Applicative                                                       (Applicative (..))
+import           Control.Applicative                                                        (Applicative (..))
 import           Data.Binary
 import           Data.Default
-import           Data.Foldable                                                             (toList)
-import           Data.List                                                                 (intercalate)
+import           Data.Foldable                                                              (toList)
+import           Data.List                                                                  (intercalate)
 import           Data.Proxy
 import           Data.Type.TaggedTypeable
-import           GHC.Generics                                                              (Generic)
+import           GHC.Generics                                                               (Generic)
 import           Lens.Internal
-import           Text.Printf                                                               (printf)
+import           Text.Printf                                                                (printf)
 
 
 import           Money.Systems.Superfluid.Concepts
 --
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow          as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow          as DFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue          as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue           as MVMUD
 --
 
-import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionCommon        as PDCOMMON
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon as PDCOMMON
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                       as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                  as CFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement      as CFDA
+import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                  as DFA
+import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement           as IDA
+import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement               as ITA
+import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                        as MINTA
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex  as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                 as UIDX
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                    as BBS
 
 -- =====================================================================================================================
 -- Value Type:
@@ -251,12 +249,11 @@ instance TaggedTypeable SimpleCFAContractData where
     tagFromProxy _ = "CFA#"
 
 instance Show SimpleCFAContractData where
-    show acd = printf "{ t_u = %s, fr = %s }"
-        (show $ CFA.flow_updated_at acd)
-        (show $ CFA.flow_rate acd)
+    show ac = printf "{ t_u = %s, fr = %s }"
+        (show $ CFA.flow_updated_at ac)
+        (show $ CFA.flow_rate ac)
 
 type SimpleCFAContractData = CFA.ContractData SimpleSuperfluidTypes
-type SimpleCFAOperation = CFA.Operation SimpleSuperfluidTypes
 
 -- * DFA
 --
@@ -272,18 +269,16 @@ instance Show SimpleDFAMonetaryUnitData where
         (show $ x^.DFMUD.settledAt)
         (show $ x^.DFMUD.αVal)
         (show $ x^.DFMUD.εVal)
-        (show $ x^.DFMUD.settledBuffer)
 
 instance TaggedTypeable SimpleDFAContractData where
     tagFromProxy _ = "DFA#"
 
 type SimpleDFAContractData = DFA.ContractData SimpleSuperfluidTypes
-type SimpleDFAOperation = DFA.Operation SimpleSuperfluidTypes
 
 instance Show SimpleDFAContractData where
-    show acd = printf "{ t_u = %s, δ = %s }"
-        (show $ DFA.flow_last_updated_at acd)
-        (show $ DFA.distribution_limit acd)
+    show ac = printf "{ t_u = %s, δ = %s }"
+        (show $ DFA.flow_last_updated_at ac)
+        (show $ DFA.distribution_limit ac)
 
 -- * IDA
 
@@ -362,20 +357,20 @@ data AnySimpleMonetaryUnitData = forall mud.
 instance Show AnySimpleMonetaryUnitData where
     show (MkSimpleMonetaryUnitData a) = show a
 
--- * Some useful AgreementOperationResultF instances
+-- * Some useful AgreementOperationOutputF instances
 --
 
-instance ( Foldable (AgreementOperationResultF ao)
+instance ( Foldable (AgreementOperationOutputF ao)
          , Eq elem
-         ) => Eq (AgreementOperationResultF ao elem) where
+         ) => Eq (AgreementOperationOutputF ao elem) where
     a == b = and $ zipWith (==) (toList a) (toList b)
 
-instance ( Foldable (AgreementOperationResultF ao)
+instance ( Foldable (AgreementOperationOutputF ao)
          , Ord elem
-         ) => Ord (AgreementOperationResultF ao elem) where
+         ) => Ord (AgreementOperationOutputF ao elem) where
     a <= b = and $ zipWith (<=) (toList a) (toList b)
 
-instance ( Foldable (AgreementOperationResultF ao)
+instance ( Foldable (AgreementOperationOutputF ao)
          , Show elem
-         ) => Show (AgreementOperationResultF ao elem) where
+         ) => Show (AgreementOperationOutputF ao elem) where
     show elems = "(" ++ (elems & toList & map show & intercalate ", ") ++ ")"

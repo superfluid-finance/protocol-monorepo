@@ -43,10 +43,10 @@ import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Internal
 
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow         as CFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue         as IVMUD
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue          as MVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow         as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow         as DFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue         as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue          as MVMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
@@ -162,9 +162,9 @@ newtype SimpleSystemData = SimpleSystemData
     { currentTime   :: SimpleTimestamp
     }
 
-type CFA_KEY = AgreementOperationResultF SimpleCFAOperation SimpleAddress
+type CFA_KEY = AgreementOperationOutputF SimpleCFAContractData SimpleAddress
 
-type DFA_KEY = AgreementOperationResultF SimpleDFAOperation SimpleAddress
+type DFA_KEY = AgreementOperationOutputF SimpleDFAContractData SimpleAddress
 
 data PDPUB_KEY = PDPUB_KEY SimpleAddress SF.ProportionalDistributionIndexID deriving (Show)
 instance Eq  PDPUB_KEY where PDPUB_KEY a b == PDPUB_KEY a' b' = a == a' && b == b'
@@ -259,23 +259,23 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
     --
     calcFlowBuffer = return  . (* Wad 3600)
 
-    view_flow acdAddr = getSimpleTokenData
+    view_flow acAddr = getSimpleTokenData
         <&> cfaContractData
-        <&> M.lookup acdAddr
+        <&> M.lookup acAddr
         <&> fromMaybe def
-    set_flow  acdAddr acd t = modify $ \vs -> vs
-        { cfaContractData = M.insert acdAddr acd (cfaContractData vs)
+    set_flow  acAddr ac t = modify $ \vs -> vs
+        { cfaContractData = M.insert acAddr ac (cfaContractData vs)
         , tokenLastUpdatedAt = t
         }
 
     -- * DFA
     --
-    view_decaying_flow acdAddr = getSimpleTokenData
+    view_decaying_flow acAddr = getSimpleTokenData
         <&> dfaContractData
-        <&> M.lookup acdAddr
+        <&> M.lookup acAddr
         <&> fromMaybe def
-    set_decaying_flow  acdAddr acd t = modify $ \vs -> vs
-        { dfaContractData = M.insert acdAddr acd (dfaContractData vs)
+    set_decaying_flow  acAddr ac t = modify $ \vs -> vs
+        { dfaContractData = M.insert acAddr ac (dfaContractData vs)
         , tokenLastUpdatedAt = t
         }
 

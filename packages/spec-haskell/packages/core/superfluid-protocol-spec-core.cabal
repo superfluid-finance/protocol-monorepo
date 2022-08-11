@@ -23,21 +23,21 @@ library
         Money.Systems.Superfluid.Concepts.MonetaryUnitData
         Money.Systems.Superfluid.Concepts.Agreement
         Money.Systems.Superfluid.Concepts
-        Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
-        Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue
-        Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue
-        Money.Systems.Superfluid.Agreements.MonetaryUnitData.ConstantFlow
-        Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow
+        Money.Systems.Superfluid.MonetaryUnitData.MintedValue
+        Money.Systems.Superfluid.MonetaryUnitData.InstantValue
+        Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
+        Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow
         Money.Systems.Superfluid.Agreements.MinterAgreement
         Money.Systems.Superfluid.Agreements.InstantTransferAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
         Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Systems.Superfluid.Agreements.ProportionalDistributionCommon
         Money.Systems.Superfluid.Agreements.InstantDistributionAgreement
         Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement
         Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
+        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
         Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
         Money.Systems.Superfluid.MonetaryUnit
+        Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
         Money.Systems.Superfluid.Token
     other-modules:
         Lens.Internal

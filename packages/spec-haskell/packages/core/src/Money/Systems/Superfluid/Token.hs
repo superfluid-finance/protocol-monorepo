@@ -9,14 +9,11 @@ module Money.Systems.Superfluid.Token
     , Token (..)
     ) where
 
-import           Data.Default
 import           Data.Foldable                                                             (toList)
 import           Data.Kind                                                                 (Type)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.Concepts
---
--- import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
@@ -85,63 +82,34 @@ class ( Monad tk
     -- * Agreements operations
     --
 
-    -- | Effectuate an agreement operation application
-    effAgreementOperation
-        :: ( AgreementOperation ao sft
-           , acd ~ AgreementContract ao     -- this is a useful property of universal-indexed agreement operations
-           , mud ~ MonetaryUnitDataInOperation ao
-           , Default acd
-           , Traversable (AgreementOperationResultF ao)
-           )
-        => (AgreementOperationResultF ao) (ACC_ADDR acc)                                  -- aorAddrs
-        -> ao                                                                             -- ao
-        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> tk acd)                      -- acdGetter
-        -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ())  -- acdSetter
-        -> Lens' acc mud                                                                 -- amuLs
-        -> tk ()
-    effAgreementOperation aorAddrs ao acdGetter acdSetter amuData = do
-        -- load acd and accounts data
-        t <- getCurrentTime
-        acd <- acdGetter aorAddrs
-        aorAccounts <- mapM getAccount aorAddrs
-        -- apply agreement operation
-        let (acd', aorΔmuds) = applyAgreementOperation ao acd t
-        -- append delta to existing muds
-        let muds' = zipWith (<>) (fmap (^. amuData) (toList aorAccounts)) (toList aorΔmuds)
-        -- set new acd
-        acdSetter aorAddrs acd' t
-        -- set new muds
-        mapM_ (\(addr, mud) -> putAccount addr mud t)
-            (zip (toList aorAddrs)
-                (fmap (uncurry (set amuData))
-                    (zip muds' (toList aorAccounts))))
-
     -- ** Minter Functions
     --
 
     getMinterAddress :: tk (ACC_ADDR acc)
 
-    view_minter_contract :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> tk (MINTA.ContractData sft)
-    set_minter_contract  :: CONTRACT_ACC_ADDR acc (MINTA.Operation sft) -> MINTA.ContractData sft -> SFT_TS sft -> tk ()
+    view_minter_contract :: UIDX_CONTRACT_ADDR acc (MINTA.ContractData sft) -> tk (MINTA.ContractData sft)
+    set_minter_contract  :: UIDX_CONTRACT_ADDR acc (MINTA.ContractData sft) -> MINTA.ContractData sft -> SFT_TS sft -> tk ()
 
     mintValue :: ACC_ADDR acc -> SFT_MVAL sft-> tk ()
-    mintValue toAddr amount = getMinterAddress >>= \minterAddress -> effAgreementOperation
-        (MINTA.OperationResultF minterAddress toAddr)
+    mintValue toAddr amount = getMinterAddress >>= \minterAddress -> eff_agreement_operation_uniform_mud
+        (MINTA.OperationOutputF minterAddress toAddr)
         (MINTA.Mint amount)
         view_minter_contract set_minter_contract
+        (\(MINTA.OperationOutputF a b) -> [a, b])
         minterMonetaryUnitData
 
     -- ** ITA Functions
     --
 
-    view_ita_contract :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> tk (ITA.ContractData sft)
-    set_ita_contract  :: CONTRACT_ACC_ADDR acc (ITA.Operation sft) -> ITA.ContractData sft -> SFT_TS sft -> tk ()
+    view_ita_contract :: UIDX_CONTRACT_ADDR acc (ITA.ContractData sft) -> tk (ITA.ContractData sft)
+    set_ita_contract  :: UIDX_CONTRACT_ADDR acc (ITA.ContractData sft) -> ITA.ContractData sft -> SFT_TS sft -> tk ()
 
     transfer :: ACC_ADDR acc -> ACC_ADDR acc -> SFT_MVAL sft -> tk ()
-    transfer fromAddr toAddr amount = effAgreementOperation
-        (ITA.OperationResultF fromAddr toAddr)
+    transfer fromAddr toAddr amount = eff_agreement_operation_uniform_mud
+        (ITA.OperationOutputF fromAddr toAddr)
         (ITA.Transfer amount)
         view_ita_contract set_ita_contract
+        (\(ITA.OperationOutputF a b) -> [a, b])
         itaMonetaryUnitData
 
     -- ** CFA Functions
@@ -149,32 +117,34 @@ class ( Monad tk
 
     calcFlowBuffer :: SFT_MVAL sft -> tk (SFT_MVAL sft)
 
-    view_flow :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> tk (CFA.ContractData sft)
-    set_flow  :: CONTRACT_ACC_ADDR acc (CFA.Operation sft) -> CFA.ContractData sft -> SFT_TS sft -> tk ()
+    view_flow :: UIDX_CONTRACT_ADDR acc (CFA.ContractData sft) -> tk (CFA.ContractData sft)
+    set_flow  :: UIDX_CONTRACT_ADDR acc (CFA.ContractData sft) -> CFA.ContractData sft -> SFT_TS sft -> tk ()
 
     getFlow :: ACC_ADDR acc -> ACC_ADDR acc ->  tk (CFA.ContractData sft)
-    getFlow sender receiver = view_flow (CFA.OperationResultF sender receiver)
+    getFlow sender receiver = view_flow (CFA.OperationOutputF sender receiver)
     updateFlow :: ACC_ADDR acc -> ACC_ADDR acc -> CFA.FlowRate sft -> tk ()
-    updateFlow sender receiver newFlowRate = effAgreementOperation
-        (CFA.OperationResultF sender receiver)
+    updateFlow sender receiver newFlowRate = eff_agreement_operation_uniform_mud
+        -- TODO newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
+        (CFA.OperationOutputF sender receiver)
         (CFA.UpdateFlow newFlowRate)
         view_flow set_flow
+        (\(CFA.OperationOutputF a b) -> [a, b])
         cfaMonetaryUnitData
-        -- TODO newFlowBuffer <- BBS.mkBufferValue <$> calcFlowBuffer newFlowRate
 
     -- ** DFA Functions
     --
 
-    view_decaying_flow :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> tk (DFA.ContractData sft)
-    set_decaying_flow  :: CONTRACT_ACC_ADDR acc (DFA.Operation sft) -> DFA.ContractData sft -> SFT_TS sft -> tk ()
+    view_decaying_flow :: UIDX_CONTRACT_ADDR acc (DFA.ContractData sft) -> tk (DFA.ContractData sft)
+    set_decaying_flow  :: UIDX_CONTRACT_ADDR acc (DFA.ContractData sft) -> DFA.ContractData sft -> SFT_TS sft -> tk ()
 
     getDecayingFlow :: ACC_ADDR acc -> ACC_ADDR acc ->  tk (DFA.ContractData sft)
-    getDecayingFlow sender receiver = view_decaying_flow (DFA.OperationResultF sender receiver)
+    getDecayingFlow sender receiver = view_decaying_flow (DFA.OperationOutputF sender receiver)
     updateDecayingFlow :: ACC_ADDR acc -> ACC_ADDR acc -> DFA.DistributionLimit sft -> tk ()
-    updateDecayingFlow sender receiver newDistributionLimit = effAgreementOperation
-        (DFA.OperationResultF sender receiver)
-        (DFA.UpdateDecayingFlow newDistributionLimit def)
+    updateDecayingFlow sender receiver newDistributionLimit = eff_agreement_operation_uniform_mud
+        (DFA.OperationOutputF sender receiver)
+        (DFA.UpdateDecayingFlow newDistributionLimit)
         view_decaying_flow set_decaying_flow
+        (\(DFA.OperationOutputF a b) -> [a, b])
         dfaMonetaryUnitData
 
     -- ** IDA Functions
@@ -212,13 +182,27 @@ class ( Monad tk
         -> tk ()
     updateProportionalDistributionSubscription subscriber publisher indexId unit = do
         -- TODO refactor and use effAgreementOperation
-        t <- getCurrentTime
-        pub <- getAccount publisher
-        dc <- viewProportionalDistributionContract publisher indexId
-        sc  <- viewProportionalDistributionSubscription subscriber publisher indexId
-        let ((dc', sc'), cfdaMUDΔ) = PDIDX.updateSubscription (dc, sc) unit t
-        overProportionalDistributionContract publisher indexId (const dc') t
-        overProportionalDistributionSubscription subscriber publisher indexId (const sc') t
+        -- t <- getCurrentTime
+        -- pub <- getAccount publisher
+        -- dc <- viewProportionalDistributionContract publisher indexId
+        -- sc  <- viewProportionalDistributionSubscription subscriber publisher indexId
+        -- let ((dc', sc'), cfdaMUDΔ) = PDIDX.updateSubscription (dc, sc) unit t
+        -- overProportionalDistributionContract publisher indexId (const dc') t
+        -- overProportionalDistributionSubscription subscriber publisher indexId (const sc') t
+        -- putAccount publisher (over cfdaPublisherMonetaryUnitData (<> cfdaMUDΔ) pub) t
+        let viewContract (PDIDX.SubscriberOperationOutputF addr) = do
+                dc <- viewProportionalDistributionContract addr indexId
+                sc <- viewProportionalDistributionSubscription subscriber addr indexId
+                return (dc, sc)
+            setContract (PDIDX.SubscriberOperationOutputF addr) (dc', sc') t = do
+                overProportionalDistributionContract addr indexId (\_ -> dc') t
+                overProportionalDistributionSubscription subscriber addr indexId (const sc') t
+        (t, aoAccounts, cfdaMUDΔ)  <- eff_agreement_operation_base
+            (PDIDX.SubscriberOperationOutputF publisher)
+            (PDIDX.Subscribe unit)
+            viewContract
+            setContract
+        let (PDIDX.SubscriberOperationOutputF pub) = aoAccounts
         putAccount publisher (over cfdaPublisherMonetaryUnitData (<> cfdaMUDΔ) pub) t
 
     distributeProportionally
@@ -226,15 +210,16 @@ class ( Monad tk
         -> ProportionalDistributionIndexID -- indexId
         -> SFT_MVAL sft                    -- amount
         -> tk ()
-    distributeProportionally publisher indexId amount = effAgreementOperation
-        (IDA.PublisherOperationResultF publisher)
+    distributeProportionally publisher indexId amount = eff_agreement_operation_uniform_mud
+        (IDA.PublisherOperationOutputF publisher)
         (IDA.Distribute amount)
         viewContract setContract
+        (\(IDA.PublisherOperationOutputF a) -> [a])
         idaPublisherMonetaryUnitData
-        where viewContract (IDA.PublisherOperationResultF addr) =
+        where viewContract (IDA.PublisherOperationOutputF addr) =
                   viewProportionalDistributionContract addr indexId >>= \dc ->
-                  return (IDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_ida dc))
-              setContract (IDA.PublisherOperationResultF addr) (IDA.PublisherContract _ dc_ida') t =
+                  return (PDIDX.dc_base dc, PDIDX.dc_ida dc)
+              setContract (IDA.PublisherOperationOutputF addr) (_, dc_ida') t =
                   overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_ida = dc_ida' }) t
 
     distributeFlow
@@ -242,18 +227,71 @@ class ( Monad tk
         -> ProportionalDistributionIndexID -- indexId
         -> SFT_MVAL sft                    -- flowRate
         -> tk ()
-    distributeFlow publisher indexId flowRate = effAgreementOperation
-        (CFDA.PublisherOperationResultF publisher)
+    distributeFlow publisher indexId flowRate = eff_agreement_operation_uniform_mud
+        (CFDA.PublisherOperationOutputF publisher)
         (CFDA.UpdateDistributionFlowRate flowRate)
         viewContract setContract
+        (\(CFDA.PublisherOperationOutputF a) -> [a])
         cfdaPublisherMonetaryUnitData
-        where viewContract (CFDA.PublisherOperationResultF addr) =
+        where viewContract (CFDA.PublisherOperationOutputF addr) =
                   viewProportionalDistributionContract addr indexId >>= \dc ->
-                  return (CFDA.PublisherContract (PDIDX.dc_base dc) (PDIDX.dc_cfda dc))
-              setContract (CFDA.PublisherOperationResultF addr) (CFDA.PublisherContract _ dc_cfda') t =
+                  return (PDIDX.dc_base dc, PDIDX.dc_cfda dc)
+              setContract (CFDA.PublisherOperationOutputF addr) (_, dc_cfda') t =
                   overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_cfda = dc_cfda' }) t
 
 -- ============================================================================
 -- Internal
 --
-type CONTRACT_ACC_ADDR acc ao = AgreementOperationResultF ao (ACC_ADDR acc)
+
+-- | Common addressing scheme for agreement contract from the universal index
+type UIDX_CONTRACT_ADDR acc ac = AgreementOperationOutputF ac (ACC_ADDR acc)
+
+
+-- | Effectuate an agreement operation application
+eff_agreement_operation_base
+    :: ( SuperfluidTypes sft
+       , Token tk acc sft
+       , AgreementContract ac sft
+       , f ~ AgreementOperationOutputF ac
+       )
+    => f (ACC_ADDR acc)                                -- aoAddrs
+    -> AgreementOperation ac                           -- ao
+    -> (f (ACC_ADDR acc) -> tk ac)                     -- acGetter
+    -> (f (ACC_ADDR acc) -> ac -> SFT_TS sft -> tk ()) -- acSetter
+    -> tk (SFT_TS sft, f acc, AgreementOperationOutput ac)
+eff_agreement_operation_base aoAddrs ao acGetter acSetter = do
+    -- load ac and accounts data
+    t <- getCurrentTime
+    aoAccounts <- mapM getAccount aoAddrs
+    ac <- acGetter aoAddrs
+    -- apply agreement operation
+    let (ac', mudsΔ) = applyAgreementOperation ac ao t
+    -- set new ac
+    acSetter aoAddrs ac' t
+    -- return mudsΔ
+    return (t, aoAccounts, mudsΔ)
+
+eff_agreement_operation_uniform_mud
+    :: ( SuperfluidTypes sft
+       , Token tk acc sft
+       , AgreementContract ac sft
+       , MonetaryUnitDataClass mud sft
+       , f ~ AgreementOperationOutputF ac
+       )
+    => f (ACC_ADDR acc)                                -- aoAddrs
+    -> AgreementOperation ac                           -- ao
+    -> (f (ACC_ADDR acc) -> tk ac)                     -- acGetter
+    -> (f (ACC_ADDR acc) -> ac -> SFT_TS sft -> tk ()) -- acSetter
+    -> (AgreementOperationOutput ac -> [mud])          -- mudsToList
+    -> Lens' acc mud                                   -- amudLens
+    -> tk ()
+eff_agreement_operation_uniform_mud aoAddrs ao acGetter acSetter mudsToList amudLens = do
+    (t, aoAccounts, mudsΔ) <- eff_agreement_operation_base aoAddrs ao acGetter acSetter
+    -- let muds' = zipMuds aoAccounts mudsΔ
+    let muds' = zipWith (<>)
+                (fmap (^. amudLens) (toList aoAccounts))
+                (mudsToList mudsΔ)
+    mapM_ (\(addr, mud) -> putAccount addr mud t)
+        (zip (toList aoAddrs)
+            (uncurry (set amudLens) <$>
+             zip muds' (toList aoAccounts)))

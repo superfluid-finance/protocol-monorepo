@@ -3128,7 +3128,7 @@
 
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git#main-module-separation":
   version "1.1.0"
-  resolved "git+https://github.com/superfluid-finance/metadata.git#e444a08f4c290a82415c163e1b783e51bf3aa6a3"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#293f45249a215390af3d1a4ff0443ac5f5f8842d"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

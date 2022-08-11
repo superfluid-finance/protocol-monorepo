@@ -963,7 +963,7 @@ contract ConstantFlowAgreementV1 is
                     currentContext.timestamp,
                     currentContext.appAllowanceToken,
                     token, flowParams, oldFlowData);
-            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted * uint256(currentContext.appLevel + 1);
+            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted * uint256(currentContext.appCallbackLevel + 1);
             cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of allowance

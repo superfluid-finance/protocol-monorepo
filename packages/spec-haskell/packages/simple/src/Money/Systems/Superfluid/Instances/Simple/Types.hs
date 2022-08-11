@@ -353,11 +353,11 @@ type SimpleSubscriberData = PDIDX.SubscriberData SimpleSuperfluidTypes
 --
 
 -- | AnyMonetaryUnitData type.
-data AnySimpleMonetaryUnitData = forall amud.
-    ( MonetaryUnitDataClass amud SimpleSuperfluidTypes
-    , TaggedTypeable amud
-    , Show amud
-    ) => MkSimpleMonetaryUnitData amud
+data AnySimpleMonetaryUnitData = forall mud.
+    ( MonetaryUnitDataClass mud SimpleSuperfluidTypes
+    , TaggedTypeable mud
+    , Show mud
+    ) => MkSimpleMonetaryUnitData mud
 
 instance Show AnySimpleMonetaryUnitData where
     show (MkSimpleMonetaryUnitData a) = show a

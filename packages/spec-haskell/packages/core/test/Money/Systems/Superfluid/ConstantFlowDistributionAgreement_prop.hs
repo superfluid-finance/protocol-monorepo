@@ -24,9 +24,9 @@ semigroup_associativity a b c = ((a <> b) <> c) `sameAs` (a <> (b <> c))
 
 -- * AMUD Laws
 
-amud_semigroup_settles_pi :: TTCFDAPublisherMUD -> TTCFDAPublisherMUD -> TTTimestamp -> Bool
-amud_semigroup_settles_pi = amud_prop_semigroup_settles_pi
+mud_semigroup_settles_pi :: TTCFDAPublisherMUD -> TTCFDAPublisherMUD -> TTTimestamp -> Bool
+mud_semigroup_settles_pi = mud_prop_semigroup_settles_pi
 
 tests = describe "ConstantFlowDistributionAgreement properties" $ do
     it "semigroup associativity" $ property semigroup_associativity
-    it "semigroup settles pi"    $ property amud_semigroup_settles_pi
+    it "semigroup settles pi"    $ property mud_semigroup_settles_pi

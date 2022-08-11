@@ -89,7 +89,7 @@ class ( Monad tk
     effAgreementOperation
         :: ( AgreementOperation ao sft
            , acd ~ AgreementContract ao     -- this is a useful property of universal-indexed agreement operations
-           , amud ~ MonetaryUnitDataInOperation ao
+           , mud ~ MonetaryUnitDataInOperation ao
            , Default acd
            , Traversable (AgreementOperationResultF ao)
            )
@@ -97,7 +97,7 @@ class ( Monad tk
         -> ao                                                                             -- ao
         -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> tk acd)                      -- acdGetter
         -> ((AgreementOperationResultF ao) (ACC_ADDR acc) -> acd -> SFT_TS sft -> tk ())  -- acdSetter
-        -> Lens' acc amud                                                                 -- amuLs
+        -> Lens' acc mud                                                                 -- amuLs
         -> tk ()
     effAgreementOperation aorAddrs ao acdGetter acdSetter amuData = do
         -- load acd and accounts data
@@ -105,16 +105,16 @@ class ( Monad tk
         acd <- acdGetter aorAddrs
         aorAccounts <- mapM getAccount aorAddrs
         -- apply agreement operation
-        let (acd', aorΔamuds) = applyAgreementOperation ao acd t
-        -- append delta to existing amuds
-        let amuds' = zipWith (<>) (fmap (^. amuData) (toList aorAccounts)) (toList aorΔamuds)
+        let (acd', aorΔmuds) = applyAgreementOperation ao acd t
+        -- append delta to existing muds
+        let muds' = zipWith (<>) (fmap (^. amuData) (toList aorAccounts)) (toList aorΔmuds)
         -- set new acd
         acdSetter aorAddrs acd' t
-        -- set new amuds
-        mapM_ (\(addr, amud) -> putAccount addr amud t)
+        -- set new muds
+        mapM_ (\(addr, mud) -> putAccount addr mud t)
             (zip (toList aorAddrs)
                 (fmap (uncurry (set amuData))
-                    (zip amuds' (toList aorAccounts))))
+                    (zip muds' (toList aorAccounts))))
 
     -- ** Minter Functions
     --

@@ -13,11 +13,11 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 
 -- | Agreement operation type class.
 --
--- It has three associated type/data families: ~acd~, ~aorF~ and ~amud~. See their documentations.
+-- It has three associated type/data families: ~acd~, ~aorF~ and ~mud~. See their documentations.
 --
--- Note: a. It is conceivable that some ~amud~ are "read only" hence "fake monoid", where their π is implicitly a
---          function of ~acd~. This class of ~amud~ is also known as "non-scalable", since ~amud~ is a product of ~acd~,
---          and a monetary unit would need as many ~amud~ as the needed ~acd~.
+-- Note: a. It is conceivable that some ~mud~ are "read only" hence "fake monoid", where their π is implicitly a
+--          function of ~acd~. This class of ~mud~ is also known as "non-scalable", since ~mud~ is a product of ~acd~,
+--          and a monetary unit would need as many ~mud~ as the needed ~acd~.
 class ( SuperfluidTypes sft
       , MonetaryUnitDataClass (MonetaryUnitDataInOperation ao) sft
       ) => AgreementOperation ao sft | ao -> sft where
@@ -27,18 +27,18 @@ class ( SuperfluidTypes sft
     -- | Agreement operation result container type ~aorF~.
     data AgreementOperationResultF ao elem :: Type
 
-    -- | Type of agreement monetary unit data ~amud~ created in operation result.
+    -- | Type of agreement monetary unit data ~mud~ created in operation result.
     type MonetaryUnitDataInOperation ao :: Type
 
     -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~acd~ to get a tuple of:
     --
     --   1. An updated ~acd'~.
-    --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~amud~.
+    --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~mud~.
     --      This is what can make an agreement scalable.
     applyAgreementOperation
-        :: amud ~ MonetaryUnitDataInOperation ao
+        :: mud ~ MonetaryUnitDataInOperation ao
         => ao                                   -- ao
         -> AgreementContract ao                 -- acd
         -> SFT_TS sft                           -- t
         -> ( AgreementContract ao
-           , AgreementOperationResultF ao amud) -- (acd', aorΔ)
+           , AgreementOperationResultF ao mud) -- (acd', aorΔ)

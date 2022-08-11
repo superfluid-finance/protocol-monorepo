@@ -36,6 +36,7 @@ type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 data ContractData sft = ContractData
 
 instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData
+instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
 
 instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
     applyAgreementOperation ac (Transfer amount) _ = let

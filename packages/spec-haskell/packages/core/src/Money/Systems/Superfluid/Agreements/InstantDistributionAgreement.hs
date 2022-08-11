@@ -47,8 +47,9 @@ type SubscriberContract sft = (DistributionContractFull sft , SubscriptionContra
 data PublisherData sft = PublisherData
     { pub_settled_value :: UntappedValue (SFT_MVAL sft)
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (PublisherData sft)
 type PublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
+
+deriving instance SuperfluidTypes sft => Default (PublisherData sft)
 
 type SubscriberData sft = SubscriberContract sft
 type SubscriberMonetaryUnitData sft = IVMUD.MonetaryUnitData (SubscriberData sft) sft
@@ -67,6 +68,8 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sf
           ) -> UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu)))
 
 -- * Publisher Operations
+
+instance SuperfluidTypes sft => MonetaryUnitDataClass (PublisherContract sft) sft where
 
 instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft where
     applyAgreementOperation (dcBase, dc) (Distribute amount) _ = let
@@ -96,6 +99,9 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
         deriving stock (Functor, Foldable, Traversable)
 
 -- * Subscriber Operations
+
+instance SuperfluidTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
+    balanceProvided = balanceProvided . IVMUD.MkMonetaryUnitData
 
 instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft where
 

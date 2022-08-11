@@ -8,7 +8,7 @@
 -- This module is typically imported using qualified name MINTA.
 module Money.Systems.Superfluid.Agreements.MinterAgreement where
 
-import           Data.Coerce                                                      (coerce)
+import           Data.Coerce                                           (coerce)
 import           Data.Default
 import           GHC.Generics
 import           Lens.Internal
@@ -37,6 +37,7 @@ instance SuperfluidTypes sft => MVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft
 
 -- No ongoing relationships between parties
 data ContractData sft = ContractData
+instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
 
 instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData
 

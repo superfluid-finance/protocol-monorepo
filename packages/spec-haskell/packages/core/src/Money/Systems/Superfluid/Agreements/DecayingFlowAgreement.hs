@@ -44,6 +44,8 @@ data ContractData sft = ContractData
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (ContractData sft)
 
+instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
+
 instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
     -- | Create data of agreement parties from the changes of the contract.
     --

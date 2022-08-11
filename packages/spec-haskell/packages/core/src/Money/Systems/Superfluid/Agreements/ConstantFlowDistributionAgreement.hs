@@ -90,6 +90,8 @@ instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sf
 
 -- * Publisher Operations
 
+instance SuperfluidTypes sft => MonetaryUnitDataClass (PublisherContract sft) sft where
+
 instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft where
     applyAgreementOperation (dcBase, dc) (UpdateDistributionFlowRate dcfr') t' = let
         -- FIXME can be a black hole due to tu == 0 or precision error
@@ -129,6 +131,9 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
         deriving stock (Functor, Foldable, Traversable)
 
 -- * Subscriber Operations
+
+instance SuperfluidTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
+    balanceProvided = balanceProvided . CFMUD.MkMonetaryUnitData
 
 instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft where
     applyAgreementOperation ((dcBase, dc), (scBase, sc)) SettleSubscription t' = let

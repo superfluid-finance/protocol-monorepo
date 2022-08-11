@@ -14,11 +14,10 @@ import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
 
 
 -- | Agreement contract type class.
---
--- Note: TODO note about ~ac~ being a MUD.
 class ( Default ac
       , Functor (AgreementOperationOutputF ac)
       , Traversable (AgreementOperationOutputF ac)
+      , MonetaryUnitDataClass ac sft
       ) => AgreementContract ac sft | ac -> sft where
 
     -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~ac~ to get a tuple of:

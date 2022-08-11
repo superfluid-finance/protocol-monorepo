@@ -4,6 +4,7 @@ module Money.Systems.Superfluid.Concepts.MonetaryUnitData
     ( MonetaryUnitDataClass (..)
     , SemigroupMonetaryUnitData
     , AnySemigroupMonetaryUnitDataClass (..)
+    -- properties
     , mud_prop_semigroup_settles_pi
     ) where
 
@@ -18,6 +19,7 @@ class ( SuperfluidTypes sft
         :: mud         -- mud
         -> SFT_TS sft  -- t
         -> SFT_RTB sft -- rtb
+    balanceProvided _ _ = mempty
 
 -- | A semigroup constrained monetary unit data type class.
 --

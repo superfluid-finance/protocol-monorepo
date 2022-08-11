@@ -41,13 +41,15 @@ type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 -- * Operation
 --
 
+type FlowRate sft = SFT_MVAL sft
+
 data ContractData sft = ContractData
     { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
-    , flow_rate       :: SFT_MVAL sft
+    , flow_rate       :: FlowRate sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (ContractData sft)
 
-type FlowRate sft = SFT_MVAL sft
+instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
 
 instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
     applyAgreementOperation ac (UpdateFlow newFlowRate) t' = let

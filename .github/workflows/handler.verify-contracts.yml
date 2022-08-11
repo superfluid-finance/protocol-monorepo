@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, eth-rinkeby, eth-ropsten, eth-kovan, polygon-mumbai, optimism-kovan, arbitrum-rinkeby, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet]
+          network: [eth-goerli, polygon-mumbai, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet]
 
     steps:
       - uses: actions/checkout@v3

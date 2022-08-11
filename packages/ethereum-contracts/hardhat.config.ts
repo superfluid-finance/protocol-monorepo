@@ -96,7 +96,7 @@ const config: HardhatUserConfig = {
         // TODO: add optimism-goerli
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
-            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
+            url: process.env.ARBONE_PROVIDER_URL || "",
         },
         // TODO: add arbitrum-goerli
         "polygon-mainnet": {

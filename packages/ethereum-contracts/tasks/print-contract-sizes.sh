@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")"/..
 
-find contracts/{superfluid,agreements,gov} -name '*.sol'  | while read i;do
+find contracts/{superfluid,agreements,gov} -name '*.sol' | while read i;do
     i=$(basename $i)
     size=$(jq .bytecode build/contracts/${i/.sol/.json} | wc -c)
     size=$(( $size / 2 ))

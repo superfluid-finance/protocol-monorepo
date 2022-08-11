@@ -75,6 +75,9 @@ const config: HardhatUserConfig = {
             },
         },
     },
+    paths: {
+        artifacts: "build"
+    },
     networks: {
         localhost: {
             ...createNetworkConfig("localhost"),

@@ -47,13 +47,13 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
               λ   = b^.decayingFactor
               t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
 
-instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
+instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
     -- | Provided balance by DFA
     --
     -- Formula:
     --   rtb(aad, t) = α * e ^ (-λ * (t - t_s)) + ε
     --       where { t_s = t_s, αVal = α, εVal = ε } = aad
-    balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
+    balanceProvided (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ ceiling $ α * exp (-λ * t_Δ) + ε )
             [ mkAnyTappedValue buf_s ]
         where t_s   = a^.settledAt

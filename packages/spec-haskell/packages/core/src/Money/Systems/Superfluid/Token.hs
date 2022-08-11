@@ -89,7 +89,7 @@ class ( Monad tk
     effAgreementOperation
         :: ( AgreementOperation ao sft
            , acd ~ AgreementContract ao     -- this is a useful property of universal-indexed agreement operations
-           , amud ~ AgreementMonetaryUnitDataInOperation ao
+           , amud ~ MonetaryUnitDataInOperation ao
            , Default acd
            , Traversable (AgreementOperationResultF ao)
            )

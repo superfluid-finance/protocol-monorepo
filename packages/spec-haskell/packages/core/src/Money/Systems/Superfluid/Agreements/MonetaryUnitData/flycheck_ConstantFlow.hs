@@ -32,8 +32,8 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
         in MkMonetaryUnitData c
 instance MonetaryUnitLenses amuLs sft => Monoid (MonetaryUnitData amuLs sft) where mempty = MkMonetaryUnitData def
 
-instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
-    balanceProvidedByAgreement (MkMonetaryUnitData a) t = typedValuesToRTB
+instance MonetaryUnitLenses amuLs sft => MonetaryUnitData (MonetaryUnitData amuLs sft) sft where
+    balanceProvided (MkMonetaryUnitData a) t = typedValuesToRTB
             ( UntappedValue $ uval_s + fr * fromIntegral (t - t_s) )
             [ mkAnyTappedValue buf_s ]
         where t_s                  = a^.settledAt

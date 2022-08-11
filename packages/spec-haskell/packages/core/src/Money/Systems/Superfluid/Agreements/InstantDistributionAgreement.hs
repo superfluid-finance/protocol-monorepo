@@ -86,7 +86,7 @@ instance SuperfluidTypes sft => AgreementOperation (PublisherOperation sft) sft 
         deriving (Generic)
     data AgreementOperationResultF (PublisherOperation sft) elem = PublisherOperationResultF elem -- publisher amud
         deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (PublisherOperation sft) = PublisherMonetaryUnitData sft
+    type MonetaryUnitDataInOperation (PublisherOperation sft) = PublisherMonetaryUnitData sft
 
 type PublisherContract :: Type -> Type
 type PublisherContract sft = AgreementContract (PublisherOperation sft)
@@ -118,7 +118,7 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriberOperation sft) sft
     data AgreementContract (SubscriberOperation sft) = SubscriberContract (SubscriberData sft)
         deriving (Generic)
     data AgreementOperationResultF (SubscriberOperation sft) elem = SubscriberOperationPartiesF
-    type AgreementMonetaryUnitDataInOperation (SubscriberOperation sft) = NullAgreementMonetaryUnitData sft
+    type MonetaryUnitDataInOperation (SubscriberOperation sft) = NullMonetaryUnitData sft
 
 type SubscriberContract :: Type -> Type
 type SubscriberContract sft = AgreementContract (SubscriberOperation sft)

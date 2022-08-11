@@ -45,7 +45,7 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
                   & over mintedValue   (+ b^.mintedValue)
         in MkMonetaryUnitData c
 
-instance MonetaryUnitLenses amuLs sft => AgreementMonetaryUnitData (MonetaryUnitData amuLs sft) sft where
-    balanceProvidedByAgreement (MkMonetaryUnitData a) _ = typedValuesToRTB
+instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
+    balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB
         ( a^.untappedValue )
         [ mkAnyTappedValue $ a^.mintedValue ]

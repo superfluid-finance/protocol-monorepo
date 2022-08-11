@@ -46,7 +46,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         , transferTo   :: elem
         } deriving stock (Functor, Foldable, Traversable)
 
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
+    type MonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     applyAgreementOperation (Transfer amount) acd _ = let
         acd'  = acd

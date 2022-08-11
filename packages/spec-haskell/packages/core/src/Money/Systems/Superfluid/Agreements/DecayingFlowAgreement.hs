@@ -56,7 +56,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         { decayingFlowSender   :: elem
         , decayingFlowReceiver :: elem
         } deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
+    type MonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
     -- | Create data of agreement parties from the changes of the contract.
     --

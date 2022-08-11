@@ -86,7 +86,7 @@ instance SuperfluidTypes sft => AgreementOperation (SubscriptionOperation sft) s
 
     data AgreementContract (SubscriptionOperation sft) = SubscriberOperationData (SubscriberData sft)
     data AgreementOperationResultF (SubscriptionOperation sft) elem = SubscriptionOperationPartiesF
-    type AgreementMonetaryUnitDataInOperation (SubscriptionOperation sft) = NullAgreementMonetaryUnitData sft
+    type MonetaryUnitDataInOperation (SubscriptionOperation sft) = NullMonetaryUnitData sft
 
 type SubscriberOperationData :: Type -> Type
 type SubscriberOperationData sft = AgreementContract (SubscriptionOperation sft)

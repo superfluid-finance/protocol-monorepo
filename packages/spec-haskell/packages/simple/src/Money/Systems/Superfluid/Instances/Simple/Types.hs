@@ -30,7 +30,7 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , SimpleDFAMonetaryUnitData
     , SimpleDFAContractData
     , SimpleDFAOperation
-    , AnySimpleAgreementMonetaryUnitData (..)
+    , AnySimpleMonetaryUnitData (..)
     -- Indexes
     , SimpleUniversalData
     , SimplePublisherData
@@ -352,15 +352,15 @@ type SimpleSubscriberData = PDIDX.SubscriberData SimpleSuperfluidTypes
 -- * AnyX.
 --
 
--- | AnyAgreementMonetaryUnitData type.
-data AnySimpleAgreementMonetaryUnitData = forall amud.
-    ( AgreementMonetaryUnitData amud SimpleSuperfluidTypes
+-- | AnyMonetaryUnitData type.
+data AnySimpleMonetaryUnitData = forall amud.
+    ( MonetaryUnitDataClass amud SimpleSuperfluidTypes
     , TaggedTypeable amud
     , Show amud
-    ) => MkSimpleAgreementMonetaryUnitData amud
+    ) => MkSimpleMonetaryUnitData amud
 
-instance Show AnySimpleAgreementMonetaryUnitData where
-    show (MkSimpleAgreementMonetaryUnitData a) = show a
+instance Show AnySimpleMonetaryUnitData where
+    show (MkSimpleMonetaryUnitData a) = show a
 
 -- * Some useful AgreementOperationResultF instances
 --

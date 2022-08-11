@@ -30,11 +30,11 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Polymorphic agreement account data functions
     --
 
-    type AnyAgreementMonetaryUnitData mu :: Type
+    type AnyMonetaryUnitData mu :: Type
 
-    providedBalanceByAnyAgreement        :: mu -> AnyAgreementMonetaryUnitData mu -> SFT_TS sft -> SFT_RTB sft
+    providedBalanceByAnyAgreement        :: mu -> AnyMonetaryUnitData mu -> SFT_TS sft -> SFT_RTB sft
 
-    agreementsOf                         :: mu -> [AnyAgreementMonetaryUnitData mu]
+    agreementsOf                         :: mu -> [AnyMonetaryUnitData mu]
 
     -- * Nomenclature:
     --

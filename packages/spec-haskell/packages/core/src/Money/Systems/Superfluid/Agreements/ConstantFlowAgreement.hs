@@ -72,7 +72,7 @@ instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
         { flowSender   :: a
         , flowReceiver :: a
         } deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
+    type MonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
 
 type ContractData :: Type -> Type
 type ContractData sft = AgreementContract (Operation sft)

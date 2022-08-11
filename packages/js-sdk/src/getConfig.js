@@ -5,7 +5,7 @@ const sfMetadata = require("@superfluid-finance/metadata");
 if (typeof module === "undefined") module = {};
 
 const getConfigData = (chainId) => {
-    const networkData = sfMetadata.default.getNetworkByChainId(chainId);
+    const networkData = sfMetadata.getNetworkByChainId(chainId);
     if (!networkData) {
         return {
             nativeTokenSymbol: "",

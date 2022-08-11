@@ -7,6 +7,7 @@ if (typeof module === "undefined") module = {};
 const getConfigData = (chainId) => {
     const networkData = sfMetadata.getNetworkByChainId(chainId);
     if (!networkData) {
+        console.log(`no metadata found for network with chainId ${chainId}`);
         return {
             nativeTokenSymbol: "",
             resolverAddress: "",
@@ -84,7 +85,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         // arbitrum one mainnet
         42161: getConfigData(42161),
         // arbitrum goerli testnet
-        42163: getConfigData(42163),
+        421613: getConfigData(421613),
 
         //
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain

@@ -55,17 +55,15 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
         ac' = ContractData { distribution_limit   = θ
                             , flow_last_updated_at = t'
                             }
-        muds = OperationOutputF
-                    (def & set DFMUD.settledAt    t'
-                         & set DFMUD.αVal        θ_Δ
-                         & set DFMUD.εVal      (-θ_Δ)
-                    )
-                    (def & set DFMUD.settledAt    t'
-                         & set DFMUD.αVal      (-θ_Δ)
-                         & set DFMUD.εVal        θ_Δ
-                    )
+        mudsΔ = OperationOutputF
+                (def & set DFMUD.settledAt    t'
+                     & set DFMUD.αVal        θ_Δ
+                     & set DFMUD.εVal      (-θ_Δ))
+                (def & set DFMUD.settledAt    t'
+                     & set DFMUD.αVal      (-θ_Δ)
+                     & set DFMUD.εVal        θ_Δ)
 
-        in (ac', fmap DFMUD.MkMonetaryUnitData muds)
+        in (ac', fmap DFMUD.MkMonetaryUnitData mudsΔ)
 
     functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
 

@@ -37,7 +37,8 @@ class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amu
     mintedValue   :: Lens' amuLs (MintedValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type -- make GHC happy
-newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs } deriving (Default)
+newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs }
+    deriving (Default)
 
 instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
@@ -49,3 +50,5 @@ instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData
     balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB
         ( a^.untappedValue )
         [ mkAnyTappedValue $ a^.mintedValue ]
+
+instance MonetaryUnitLenses amuLs sft => SemigroupMonetaryUnitData (MonetaryUnitData amuLs sft) sft

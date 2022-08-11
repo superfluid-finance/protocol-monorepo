@@ -39,11 +39,11 @@ instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractD
 
 instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
     applyAgreementOperation ac (Transfer amount) _ = let
-        ac'  = ac
-        muds = fmap IVMUD.MkMonetaryUnitData (OperationOutputF
+        ac' = ac
+        mudsΔ = fmap IVMUD.MkMonetaryUnitData (OperationOutputF
                     (def & set IVMUD.untappedValue (coerce (- amount)))
                     (def & set IVMUD.untappedValue (coerce    amount)))
-        in (ac', muds)
+        in (ac', mudsΔ)
 
     functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
 

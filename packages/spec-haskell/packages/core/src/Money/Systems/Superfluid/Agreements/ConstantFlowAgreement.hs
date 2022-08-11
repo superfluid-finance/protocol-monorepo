@@ -58,14 +58,12 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
                             , flow_rate       = newFlowRate
                             }
 
-        muds = OperationOutputF
-                   (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate  (-flowRateΔ)
-                   )
-                   (def & set CFMUD.settledAt t'
-                        & set CFMUD.netFlowRate  flowRateΔ
-                   )
-        in (ac', fmap CFMUD.MkMonetaryUnitData muds)
+        mudsΔ = OperationOutputF
+                (def & set CFMUD.settledAt t'
+                     & set CFMUD.netFlowRate  (-flowRateΔ))
+                (def & set CFMUD.settledAt t'
+                     & set CFMUD.netFlowRate  flowRateΔ)
+        in (ac', fmap CFMUD.MkMonetaryUnitData mudsΔ)
 
     functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
 

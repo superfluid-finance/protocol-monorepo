@@ -18,7 +18,7 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue          as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                     as IVMUD
 
 
 -- * Contracts
@@ -74,11 +74,11 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
 
         dc'  = dc { dc_value_per_unit = floor (fromIntegral vpu + vpuΔ) }
 
-        muds = PublisherOperationOutputF
+        mudsΔ = PublisherOperationOutputF
             (def & set IVMUD.untappedValue (coerce (- amount)))
 
         in ( (dcBase, dc')
-           , fmap IVMUD.MkMonetaryUnitData muds)
+           , fmap IVMUD.MkMonetaryUnitData mudsΔ)
 
         where DistributionContractBase { total_unit = tu} = dcBase
               DistributionContract { dc_value_per_unit = vpu } = dc

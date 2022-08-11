@@ -275,7 +275,7 @@ eff_agreement_operation_uniform_mud
     :: ( SuperfluidTypes sft
        , Token tk acc sft
        , AgreementContract ac sft
-       , MonetaryUnitDataClass mud sft
+       , SemigroupMonetaryUnitData mud sft
        , f ~ AgreementOperationOutputF ac
        )
     => f (ACC_ADDR acc)                                -- aoAddrs

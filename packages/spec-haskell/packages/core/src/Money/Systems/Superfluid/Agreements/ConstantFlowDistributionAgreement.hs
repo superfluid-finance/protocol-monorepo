@@ -18,7 +18,7 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.Concepts
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow          as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                     as CFMUD
 
 
 -- * Contracts
@@ -102,12 +102,12 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
                  , dc_flow_rate = dcfr'
                  }
 
-        muds = PublisherOperationOutputF
-               (def & set CFMUD.settledAt t'
-                    & set CFMUD.netFlowRate (dcfr - dcfr') -- reverse sign for outgoing flow
-                    & set CFMUD.settledValue def)
+        mudsΔ = PublisherOperationOutputF
+                (def & set CFMUD.settledAt t'
+                     & set CFMUD.netFlowRate (dcfr - dcfr') -- reverse sign for outgoing flow
+                     & set CFMUD.settledValue def)
 
-        in ((dcBase, dc'), fmap CFMUD.MkMonetaryUnitData muds)
+        in ((dcBase, dc'), fmap CFMUD.MkMonetaryUnitData mudsΔ)
 
         where DistributionContractBase { total_unit    = tu
                                        } = dcBase

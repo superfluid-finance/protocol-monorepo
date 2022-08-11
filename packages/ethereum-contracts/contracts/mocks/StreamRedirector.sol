@@ -13,7 +13,7 @@ contract StreamRedirector is SuperAppBase {
     bytes32 public constant CFA_ID =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     address public receiver; // flow is redirected to hardcoded receiver address
-    ISuperToken public token;
+    ISuperToken public token; // accepted super token
 
     constructor(
         ISuperfluid _host,
@@ -47,6 +47,7 @@ contract StreamRedirector is SuperAppBase {
      */
     error OnlyHost();
     error OnlyCFA();
+    error UnsupportedToken();
 
     /**
      * Creates a stream from an _originAccount who has granted this SuperApp ACL permissions
@@ -73,7 +74,7 @@ contract StreamRedirector is SuperAppBase {
 
     /**
      * Creates a stream from this Super App to another SuperApp.
-     * @param _superApp the targetted super app
+     * @param _superApp the targeted super app
      * @param _flowRate desired flow rate
      */
     function startStreamToSuperApp(address _superApp, int96 _flowRate) public {
@@ -103,6 +104,7 @@ contract StreamRedirector is SuperAppBase {
         external
         override
         onlyHost
+        onlySupportedSuperToken(_superToken)
         onlyCFA(_agreementClass)
         returns (bytes memory newCtx)
     {
@@ -123,13 +125,11 @@ contract StreamRedirector is SuperAppBase {
         bytes calldata, // calldata _agreementData,
         bytes calldata, // calldata _cbdata,
         bytes calldata _ctx
-    )
-        external
-        override
-        onlyHost
-        onlyCFA(_agreementClass)
-        returns (bytes memory newCtx)
-    {
+    ) external override onlyHost returns (bytes memory newCtx) {
+        if (!_isCFAv1(_agreementClass) || address(_superToken) != address(token)) {
+            return _ctx;
+        }
+
         newCtx = _ctx;
         (, int96 currentFlowRate, , ) = cfaV1.cfa.getFlow(
             _superToken,
@@ -165,6 +165,10 @@ contract StreamRedirector is SuperAppBase {
      */
     modifier onlyHost() {
         if (msg.sender != address(host)) revert OnlyHost();
+        _;
+    }
+    modifier onlySupportedSuperToken(ISuperToken _superToken) {
+        if (address(_superToken) != address(token)) revert UnsupportedToken();
         _;
     }
 

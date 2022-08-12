@@ -33,10 +33,10 @@ const chainIds = {
     "xdai-mainnet": 100,
 
     "optimism-mainnet": 10,
-    // TODO: add optimism-goerli
+    "optimism-goerli": 420,
 
     "arbitrum-one": 42161,
-    // TODO: add arbitrum-goerli
+    "arbitrum-goerli": 421613,
 
     "polygon-mainnet": 137,
     "polygon-mumbai": 80001,
@@ -91,14 +91,20 @@ const config: HardhatUserConfig = {
         },
         "optimism-mainnet": {
             ...createNetworkConfig("optimism-mainnet"),
-            url: process.env.OPKOVAN_PROVIDER_URL || "",
+            url: process.env.OPMAINNET_PROVIDER_URL || "",
         },
-        // TODO: add optimism-goerli
+        "optimism-goerli": {
+            ...createNetworkConfig("optimism-goerli"),
+            url: process.env.OPGOERLI_PROVIDER_URL || "",
+        },
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
             url: process.env.ARBONE_PROVIDER_URL || "",
         },
-        // TODO: add arbitrum-goerli
+        "arbitrum-goerli": {
+            ...createNetworkConfig("arbitrum-goerli"),
+            url: process.env.ARBGOERLI_PROVIDER_URL || "",
+        },
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),
             url: process.env.MATIC_PROVIDER_URL || "",

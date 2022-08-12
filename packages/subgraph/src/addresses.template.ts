@@ -13,8 +13,8 @@ export function getHostAddress(): Address {
     addresses.set("mumbai", "0xEB796bdb90fFA0f28255275e16936D25d3418603");
     addresses.set("xdai", "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7");
     addresses.set("fuji", "0xf04F2C525819691ed9ABD3D2B7109E1633795e68");
-    addresses.set("arbitrum-goerli", "");
-    addresses.set("optimism-goerli", "");
+    addresses.set("arbitrum-goerli", "0xE40983C2476032A0915600b9472B3141aA5B5Ba9");
+    addresses.set("optimism-goerli", "0xE40983C2476032A0915600b9472B3141aA5B5Ba9");
     addresses.set("avalanche", "0x60377C7016E4cdB03C87EF474896C11cB560752C");
     addresses.set("arbitrum-one", "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192");
     addresses.set("optimism", "0x567c4B141ED61923967cA25Ef4906C8781069a10");
@@ -31,8 +31,8 @@ export function getResolverAddress(): Address {
     addresses.set("mumbai", "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3");
     addresses.set("xdai", "0xD2009765189164b495c110D61e4D301729079911");
     addresses.set("fuji", "0x141920741bC45b962B59c833cd849bA617F7ef38");
-    addresses.set("arbitrum-goerli", "");
-    addresses.set("optimism-goerli", "");
+    addresses.set("arbitrum-goerli", "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136");
+    addresses.set("optimism-goerli", "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136");
     addresses.set("avalanche", "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1");
     addresses.set("arbitrum-one", "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F");
     addresses.set("optimism", "0x743B5f46BC86caF41bE4956d9275721E0531B186");

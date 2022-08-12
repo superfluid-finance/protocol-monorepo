@@ -17,12 +17,10 @@ sameAs :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
     a^.CFMUD.settledValue == b^.CFMUD.settledValue &&
     a^.CFMUD.netFlowRate  == b^.CFMUD.netFlowRate
 
--- * Semigroup Laws
+-- * Semigroup Monetary Unit Data Laws
 
 semigroup_associativity :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
 semigroup_associativity a b c = ((a <> b) <> c) `sameAs` (a <> (b <> c))
-
--- * Semigroup Monetary Unit Data Laws
 
 mud_semigroup_settles_pi :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_Timestamp -> Bool
 mud_semigroup_settles_pi = mud_prop_semigroup_settles_pi

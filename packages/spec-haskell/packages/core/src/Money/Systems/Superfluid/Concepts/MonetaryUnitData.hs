@@ -49,7 +49,7 @@ data AnySemigroupMonetaryUnitData sft = forall mud. SemigroupMonetaryUnitData mu
 instance SuperfluidTypes sft => MonetaryUnitDataClass (AnySemigroupMonetaryUnitData sft) sft where
     balanceProvided (MkAnySemigroupMonetaryUnitData m) t = balanceProvided m t
 
--- * Properties
+-- * Semigroup Monetary Unit Data Laws
 
 -- | A semigroup binary operation should settle mud in a way that pi function output stay the same.
 mud_prop_semigroup_settles_pi :: ( SuperfluidTypes sft

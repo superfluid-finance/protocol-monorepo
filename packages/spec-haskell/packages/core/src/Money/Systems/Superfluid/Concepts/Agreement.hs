@@ -60,7 +60,7 @@ class ( Default ac
     -- Note: since ~ac~ is injected, hence this can be associated type alias.
     type AgreementOperationOutput ac :: Type
 
--- * Properties
+-- * Agreement Laws
 
 ao_go_zero_sum_balance_single_op :: forall ac sft.
                                  ( SuperfluidTypes sft
@@ -74,14 +74,13 @@ ao_go_zero_sum_balance_single_op :: forall ac sft.
 ao_go_zero_sum_balance_single_op ac muds ao t' =
     let (ac', mudsΔ) = ω ac ao t'
         muds'        = κ muds mudsΔ
-        -- becareful that π' and π'' use different instances of ~balanceProvided~
-        π'    = flip balanceProvided t'
-        π''   = flip balanceProvided t' . MkAnyMonetaryUnitData
-    in  ( foldr (<>) (π'' ac') (fmap π' (φ muds')) == mempty
+    in  ( foldr (<>) (π₂ t' ac') (fmap (π₁ t') (φ muds')) == mempty
         , ac', muds')
-    where ω = applyAgreementOperation
-          κ = concatAgreementOperationOutput (Proxy @ac)
-          φ = functorizeAgreementOperationOutput (Proxy @ac)
+    where ω  = applyAgreementOperation
+          κ  = concatAgreementOperationOutput (Proxy @ac)
+          φ  = functorizeAgreementOperationOutput (Proxy @ac)
+          π₁ = flip balanceProvided  -- π function for semigroup mud
+          π₂ = flip (balanceProvided . MkAnyMonetaryUnitData) -- π function for contract mud
 
 -- | Series of agreement operations should result a funcorful of monetary unit data whose balance sum is always zero.
 ao_prop_zero_sum_balance_series_ops :: forall ac sft.

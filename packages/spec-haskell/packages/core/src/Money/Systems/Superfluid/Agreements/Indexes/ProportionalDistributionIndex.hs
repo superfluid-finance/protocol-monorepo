@@ -104,8 +104,10 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
         where DistributionContract { dc_base = DistributionContractBase { total_unit = tu }} = dc0
               SubscriptionContract { sc_base = SubscriptionContractBase { sub_owned_unit = u }} = sc0
 
-    functorizeAgreementOperationOutput cfda = SubscriberOperationOutputF
-        (MkMonetaryUnitDataClass cfda)
+    concatAgreementOperationOutput _ (cfda) (cfda') = (cfda <> cfda')
+
+    functorizeAgreementOperationOutput _ cfda = SubscriberOperationOutputF
+        (MkAnySemigroupMonetaryUnitData cfda)
 
     data AgreementOperation (SubscriberContract sft) = Subscribe (SFT_FLOAT sft)
 

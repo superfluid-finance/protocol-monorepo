@@ -46,14 +46,20 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
                     (def & set IVMUD.untappedValue (coerce    amount)))
         in (ac', mudsΔ)
 
-    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+    concatAgreementOperationOutput _ (OperationOutputF a b) (OperationOutputF a' b') =
+        OperationOutputF (a <> a') (b <> b')
+
+    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (ContractData sft) = Transfer (SFT_MVAL sft)
 
-    type AgreementOperationOutput (ContractData sft) =
-        AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
 
     data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
         { transfer_from :: elem
         , transfer_to   :: elem
-        } deriving stock (Functor, Foldable, Traversable)
+        } deriving stock (Functor, Foldable, Traversable, Generic)
+
+type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+instance SuperfluidTypes sft => Default (OperationOutputF sft)

@@ -47,9 +47,10 @@ type SubscriberContract sft = (DistributionContractFull sft , SubscriptionContra
 data PublisherData sft = PublisherData
     { pub_settled_value :: UntappedValue (SFT_MVAL sft)
     } deriving (Generic)
-type PublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
 
 deriving instance SuperfluidTypes sft => Default (PublisherData sft)
+
+type PublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
 
 type SubscriberData sft = SubscriberContract sft
 type SubscriberMonetaryUnitData sft = IVMUD.MonetaryUnitData (SubscriberData sft) sft
@@ -86,17 +87,23 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
         where DistributionContractBase { total_unit = tu} = dcBase
               DistributionContract { dc_value_per_unit = vpu } = dc
 
-    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+    concatAgreementOperationOutput _ (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
+        PublisherOperationOutputF (a <> a')
+
+    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (PublisherContract sft) = Distribute (SFT_MVAL sft)
 
-    type AgreementOperationOutput (PublisherContract sft) =
-        AgreementOperationOutputF (PublisherContract sft)
-        (PublisherMonetaryUnitData sft)
+    type AgreementOperationOutput (PublisherContract sft) = PublisherOperationOutputF sft
 
     data AgreementOperationOutputF (PublisherContract sft) elem = PublisherOperationOutputF
         elem -- publisher
-        deriving stock (Functor, Foldable, Traversable)
+        deriving stock (Functor, Foldable, Traversable, Generic)
+
+type PublisherOperationOutputF sft = AgreementOperationOutputF (PublisherContract sft)
+    (PublisherMonetaryUnitData sft)
+
+instance SuperfluidTypes sft => Default (PublisherOperationOutputF sft)
 
 -- * Subscriber Operations
 
@@ -122,12 +129,17 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 
-    functorizeAgreementOperationOutput _ = SubscriberOperationOutputF
+    concatAgreementOperationOutput _ _ a = a
+
+    functorizeAgreementOperationOutput _ _ = SubscriberOperationOutputF
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 
-    type AgreementOperationOutput (SubscriberContract sft) =
-        AgreementOperationOutputF (SubscriberContract sft) ()
+    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutputF sft
 
     data AgreementOperationOutputF (SubscriberContract sft) _ = SubscriberOperationOutputF
-        deriving stock (Functor, Foldable, Traversable)
+        deriving stock (Functor, Foldable, Traversable, Generic)
+
+type SubscriberOperationOutputF sft = AgreementOperationOutputF (SubscriberContract sft) ()
+
+instance SuperfluidTypes sft => Default (SubscriberOperationOutputF sft)

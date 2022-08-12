@@ -118,17 +118,23 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
                                    , dc_flow_rate      = dcfr
                                    } = dc
 
-    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+    concatAgreementOperationOutput _ (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
+        PublisherOperationOutputF (a <> a')
+
+    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (PublisherContract sft) = UpdateDistributionFlowRate (SFT_MVAL sft)
 
-    type AgreementOperationOutput (PublisherContract sft) =
-        AgreementOperationOutputF (PublisherContract sft)
-        (PublisherMonetaryUnitData sft)
+    type AgreementOperationOutput (PublisherContract sft) = PublisherOperationOutputF sft
 
     data AgreementOperationOutputF (PublisherContract sft) elem = PublisherOperationOutputF
         elem -- publisher mud
-        deriving stock (Functor, Foldable, Traversable)
+        deriving stock (Functor, Foldable, Traversable, Generic)
+
+type PublisherOperationOutputF sft = AgreementOperationOutputF (PublisherContract sft)
+    (PublisherMonetaryUnitData sft)
+
+instance SuperfluidTypes sft => Default (PublisherOperationOutputF sft)
 
 -- * Subscriber Operations
 
@@ -167,14 +173,20 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 
-    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+    concatAgreementOperationOutput _ (SubscriberOperationOutputF a) (SubscriberOperationOutputF a') =
+        SubscriberOperationOutputF (a <> a')
+
+    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 
-    type AgreementOperationOutput (SubscriberContract sft) =
-        AgreementOperationOutputF (SubscriberContract sft)
-        (PublisherMonetaryUnitData sft)
+    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutputF sft
 
     data AgreementOperationOutputF (SubscriberContract sft) elem = SubscriberOperationOutputF
         elem -- publisher mud
-        deriving stock (Functor, Foldable, Traversable)
+        deriving stock (Functor, Foldable, Traversable, Generic)
+
+type SubscriberOperationOutputF sft = AgreementOperationOutputF (SubscriberContract sft)
+    (PublisherMonetaryUnitData sft)
+
+instance SuperfluidTypes sft => Default (SubscriberOperationOutputF sft)

@@ -57,8 +57,8 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
         flowRateΔ = newFlowRate - fr
 
         ac' = ContractData { flow_updated_at = t'
-                            , flow_rate       = newFlowRate
-                            }
+                           , flow_rate       = newFlowRate
+                           }
 
         mudsΔ = OperationOutputF
                 (def & set CFMUD.settledAt t'
@@ -67,15 +67,20 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
                      & set CFMUD.netFlowRate  flowRateΔ)
         in (ac', fmap CFMUD.MkMonetaryUnitData mudsΔ)
 
-    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+    concatAgreementOperationOutput _ (OperationOutputF a b) (OperationOutputF a' b') =
+        OperationOutputF (a <> a') (b <> b')
+
+    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (ContractData sft) = UpdateFlow (FlowRate sft)
 
-    type AgreementOperationOutput (ContractData sft) =
-        AgreementOperationOutputF (ContractData sft)
-        (MonetaryUnitData sft)
+    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
 
     data AgreementOperationOutputF (ContractData sft) a = OperationOutputF
         { flow_sender   :: a
         , flow_receiver :: a
-        } deriving stock (Functor, Foldable, Traversable)
+        } deriving stock (Functor, Foldable, Traversable, Generic)
+
+type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+instance SuperfluidTypes sft => Default (OperationOutputF sft)

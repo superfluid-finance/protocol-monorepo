@@ -11,31 +11,26 @@ import           Money.Systems.Superfluid.Concepts
 import           Money.Systems.Superfluid.TestTypes
 
 
--- * Helpers
-
-sameAs :: TTRealTimeBalance -> TTRealTimeBalance -> Bool
-sameAs a b = and $ (==) <$> a <*> b
-
 -- * Monoid Laws
 
-monoid_right_identity :: TTRealTimeBalance -> Bool
-monoid_right_identity x = (x <> mempty) `sameAs` x
+monoid_right_identity :: T_RealTimeBalance -> Bool
+monoid_right_identity x = (x <> mempty) == x
 
-monoid_left_identity :: TTRealTimeBalance -> Bool
-monoid_left_identity x = (mempty <> x) `sameAs` x
+monoid_left_identity :: T_RealTimeBalance -> Bool
+monoid_left_identity x = (mempty <> x) == x
 
-monoid_associativity :: TTRealTimeBalance -> TTRealTimeBalance -> TTRealTimeBalance -> Bool
-monoid_associativity a b c = ((a <> b) <> c) `sameAs` (a <> (b <> c))
+monoid_associativity :: T_RealTimeBalance -> T_RealTimeBalance -> T_RealTimeBalance -> Bool
+monoid_associativity a b c = ((a <> b) <> c) == (a <> (b <> c))
 
 -- * Additional RTB Laws
 
-monoid_mappend_commutativity :: TTRealTimeBalance -> TTRealTimeBalance -> Bool
-monoid_mappend_commutativity a b = (a <> b) `sameAs` (b <> a)
+monoid_mappend_commutativity :: T_RealTimeBalance -> T_RealTimeBalance -> Bool
+monoid_mappend_commutativity a b = (a <> b) == (b <> a)
 
-rtb_identity_from_and_to_typed_values :: TTRealTimeBalance -> Bool
-rtb_identity_from_and_to_typed_values x = (uncurry typedValuesToRTB . typedValuesFromRTB) x `sameAs` x
+rtb_identity_from_and_to_typed_values :: T_RealTimeBalance -> Bool
+rtb_identity_from_and_to_typed_values x = (uncurry typedValuesToRTB . typedValuesFromRTB) x == x
 
-rtb_conservation_of_net_value :: TTMVal -> Bool
+rtb_conservation_of_net_value :: T_MVal -> Bool
 rtb_conservation_of_net_value x = (netValueOfRTB . valueToRTB) x == x
 
 tests = describe "RealTimeBalance properties" $ do

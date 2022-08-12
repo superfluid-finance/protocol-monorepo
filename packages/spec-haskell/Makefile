@@ -46,7 +46,6 @@ clean: clean-docs clean-test clean-coverage
 # Testing
 #
 test:
-	$(CABAL_TEST) v2-build all
 	$(CABAL_TEST) v2-test all --enable-tests \
 		$(TEST_OPTIONS)
 

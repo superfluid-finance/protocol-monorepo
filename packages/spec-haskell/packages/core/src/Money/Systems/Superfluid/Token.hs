@@ -181,15 +181,6 @@ class ( Monad tk
         -> SFT_FLOAT sft                   -- unit
         -> tk ()
     updateProportionalDistributionSubscription subscriber publisher indexId unit = do
-        -- TODO refactor and use effAgreementOperation
-        -- t <- getCurrentTime
-        -- pub <- getAccount publisher
-        -- dc <- viewProportionalDistributionContract publisher indexId
-        -- sc  <- viewProportionalDistributionSubscription subscriber publisher indexId
-        -- let ((dc', sc'), cfdaMUDΔ) = PDIDX.updateSubscription (dc, sc) unit t
-        -- overProportionalDistributionContract publisher indexId (const dc') t
-        -- overProportionalDistributionSubscription subscriber publisher indexId (const sc') t
-        -- putAccount publisher (over cfdaPublisherMonetaryUnitData (<> cfdaMUDΔ) pub) t
         let viewContract (PDIDX.SubscriberOperationOutputF addr) = do
                 dc <- viewProportionalDistributionContract addr indexId
                 sc <- viewProportionalDistributionSubscription subscriber addr indexId

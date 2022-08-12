@@ -3,7 +3,8 @@
 module Money.Systems.Superfluid.Concepts.MonetaryUnitData
     ( MonetaryUnitDataClass (..)
     , SemigroupMonetaryUnitData
-    , AnySemigroupMonetaryUnitDataClass (..)
+    , AnyMonetaryUnitData' (..)
+    , AnySemigroupMonetaryUnitData (..)
     -- properties
     , mud_prop_semigroup_settles_pi
     ) where
@@ -19,6 +20,7 @@ class ( SuperfluidTypes sft
         :: mud         -- mud
         -> SFT_TS sft  -- t
         -> SFT_RTB sft -- rtb
+    -- A default implementation that always returns zero rtb
     balanceProvided _ _ = mempty
 
 -- | A semigroup constrained monetary unit data type class.
@@ -33,8 +35,19 @@ class ( MonetaryUnitDataClass mud sft
       , Semigroup mud
       ) => SemigroupMonetaryUnitData mud sft
 
+-- | Existential type wrapper of monetary unit data
+data AnyMonetaryUnitData' sft = forall mud. MonetaryUnitDataClass mud sft
+    => MkAnyMonetaryUnitData mud
+
+instance SuperfluidTypes sft => MonetaryUnitDataClass (AnyMonetaryUnitData' sft) sft where
+    balanceProvided (MkAnyMonetaryUnitData m) t = balanceProvided m t
+
 -- | Existential type wrapper of semigroup monetary unit data
-data AnySemigroupMonetaryUnitDataClass sft = forall mud. SemigroupMonetaryUnitData mud sft => MkMonetaryUnitDataClass mud
+data AnySemigroupMonetaryUnitData sft = forall mud. SemigroupMonetaryUnitData mud sft
+    => MkAnySemigroupMonetaryUnitData mud
+
+instance SuperfluidTypes sft => MonetaryUnitDataClass (AnySemigroupMonetaryUnitData sft) sft where
+    balanceProvided (MkAnySemigroupMonetaryUnitData m) t = balanceProvided m t
 
 -- * Properties
 

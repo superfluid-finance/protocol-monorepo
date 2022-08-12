@@ -67,16 +67,21 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
 
         in (ac', fmap DFMUD.MkMonetaryUnitData mudsΔ)
 
-    functorizeAgreementOperationOutput muds = fmap MkMonetaryUnitDataClass muds
+    concatAgreementOperationOutput _ (OperationOutputF a b) (OperationOutputF a' b') =
+        OperationOutputF (a <> a') (b <> b')
+
+    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (ContractData sft) =
         UpdateDecayingFlow (DistributionLimit sft)
 
-    type AgreementOperationOutput (ContractData sft) =
-        AgreementOperationOutputF (ContractData sft)
-        (MonetaryUnitData sft)
+    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
 
     data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
         { flow_sender   :: elem
         , flow_receiver :: elem
-        } deriving stock (Functor, Foldable, Traversable)
+        } deriving stock (Functor, Foldable, Traversable, Generic)
+
+type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+instance SuperfluidTypes sft => Default (OperationOutputF sft)

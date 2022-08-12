@@ -6,27 +6,33 @@ import           Lens.Internal
 import           Test.Hspec
 import           Test.QuickCheck
 
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
 import           Money.Systems.Superfluid.Concepts
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
 import           Money.Systems.Superfluid.TestTypes
 
 -- * Helpers
 
-sameAs :: TTCFAMUD -> TTCFAMUD -> Bool
+sameAs :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
 (CFMUD.MkMonetaryUnitData a) `sameAs` (CFMUD.MkMonetaryUnitData b) =
     a^.CFMUD.settledValue == b^.CFMUD.settledValue &&
     a^.CFMUD.netFlowRate  == b^.CFMUD.netFlowRate
 
 -- * Semigroup Laws
 
-semigroup_associativity :: TTCFAMUD -> TTCFAMUD -> TTCFAMUD -> Bool
+semigroup_associativity :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
 semigroup_associativity a b c = ((a <> b) <> c) `sameAs` (a <> (b <> c))
 
--- * AMUD Laws
+-- * Semigroup Monetary Unit Data Laws
 
-mud_semigroup_settles_pi :: TTCFAMUD -> TTCFAMUD -> TTTimestamp -> Bool
+mud_semigroup_settles_pi :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_Timestamp -> Bool
 mud_semigroup_settles_pi = mud_prop_semigroup_settles_pi
 
+-- * Agreement Laws
+
+ao_zero_sum_balance :: T_Timestamp -> NonEmptyList (T_CFAOperation, T_Timestamp) -> Bool
+ao_zero_sum_balance tΔ aos = ao_prop_zero_sum_balance_series_ops tΔ (getNonEmpty aos)
+
 tests = describe "ConstantFlowAgreement properties" $ do
-    it "semigroup associativity" $ property semigroup_associativity
-    it "semigroup settles pi"    $ property mud_semigroup_settles_pi
+    it "semigroup monetary unit data associativity"    $ property semigroup_associativity
+    it "semigroup monetary unit data settles pi"       $ property mud_semigroup_settles_pi
+    it "agreement operation produces zero balance sum" $ property ao_zero_sum_balance

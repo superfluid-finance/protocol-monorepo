@@ -862,7 +862,7 @@ contract Superfluid is
         private
         returns (bytes memory ctx)
     {
-        require(context.appCallbackLevel <= MAX_APP_LEVEL, "SF: APP_RULE_MAX_APP_LEVEL_REACHED");
+        require(context.appCallbackLevel <= MAX_APP_CALLBACK_LEVEL, "SF: APP_RULE_MAX_APP_LEVEL_REACHED");
         uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appCallbackLevel, context.callType);
         uint256 creditIO =
             context.appCreditGranted.toUint128() |

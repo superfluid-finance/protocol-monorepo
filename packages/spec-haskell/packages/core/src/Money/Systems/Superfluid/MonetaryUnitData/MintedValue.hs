@@ -50,5 +50,3 @@ instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData
     balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB
         ( a^.untappedValue )
         [ mkAnyTappedValue $ a^.mintedValue ]
-
-instance MonetaryUnitLenses amuLs sft => SemigroupMonetaryUnitData (MonetaryUnitData amuLs sft) sft

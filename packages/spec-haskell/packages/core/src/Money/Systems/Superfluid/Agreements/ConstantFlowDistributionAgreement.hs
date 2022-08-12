@@ -44,7 +44,7 @@ type PublisherContract sft = DistributionContractFull sft
 
 type SubscriberContract sft = (DistributionContractFull sft , SubscriptionContractFull sft)
 
--- * Monetary unit data
+-- * Publisher Monetary unit data
 
 data PublisherData sft = PublisherData
     { pub_settled_at      :: SFT_TS sft
@@ -52,7 +52,11 @@ data PublisherData sft = PublisherData
     , pub_total_flow_rate :: SFT_MVAL sft
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (PublisherData sft)
+
 type PublisherMonetaryUnitData sft = CFMUD.MonetaryUnitData (PublisherData sft) sft
+instance SuperfluidTypes sft => SemigroupMonetaryUnitData (PublisherMonetaryUnitData sft) sft
+
+-- * Subscriber Monetary unit data
 
 type SubscriberData sft = SubscriberContract sft
 type SubscriberMonetaryUnitData sft = CFMUD.MonetaryUnitData (SubscriberData sft) sft

@@ -19,18 +19,18 @@ sameAs :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
 
 -- * Semigroup Monetary Unit Data Laws
 
-semigroup_associativity :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
-semigroup_associativity a b c = ((a <> b) <> c) `sameAs` (a <> (b <> c))
+semigroup_mud_associativity :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> Bool
+semigroup_mud_associativity a b c = ((a <> b) <> c) `sameAs` (a <> (b <> c))
 
-mud_semigroup_settles_pi :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_Timestamp -> Bool
-mud_semigroup_settles_pi = mud_prop_semigroup_settles_pi
+semigroup_mud_settles_pi :: T_CFAMonetaryUnitData -> T_CFAMonetaryUnitData -> T_Timestamp -> Bool
+semigroup_mud_settles_pi = mud_prop_semigroup_settles_pi
 
 -- * Agreement Laws
 
 ao_zero_sum_balance :: T_Timestamp -> NonEmptyList (T_CFAOperation, T_Timestamp) -> Bool
-ao_zero_sum_balance tΔ aos = ao_prop_zero_sum_balance_series_ops tΔ (getNonEmpty aos)
+ao_zero_sum_balance t aos = ao_prop_zero_sum_balance_series_ops t (getNonEmpty aos)
 
 tests = describe "ConstantFlowAgreement properties" $ do
-    it "semigroup monetary unit data associativity"    $ property semigroup_associativity
-    it "semigroup monetary unit data settles pi"       $ property mud_semigroup_settles_pi
-    it "agreement operation produces zero balance sum" $ property ao_zero_sum_balance
+    it "CFA semigroup MUD associativity"          $ property semigroup_mud_associativity
+    it "CFA semigroup MUD settles pi"             $ property semigroup_mud_settles_pi
+    it "CFA operations produces zero balance sum" $ property ao_zero_sum_balance

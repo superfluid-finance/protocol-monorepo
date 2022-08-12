@@ -27,12 +27,14 @@ data MonetaryUnitLenses sft = MonetaryUnitLenses
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
 
+type MonetaryUnitData sft = DFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+
 instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     decayingFactor = readOnlyLens (\_ -> dfa_default_lambda (Proxy @sft))
     settledAt      = $(field 'settled_at)
     αVal           = $(field 'α_val)
     εVal           = $(field 'ε_val)
-type MonetaryUnitData sft = DFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
 -- * Operation
 

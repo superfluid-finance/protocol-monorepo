@@ -27,6 +27,7 @@ data MonetaryUnitLenses sft = MonetaryUnitLenses
 deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
 
 type MonetaryUnitData sft = MVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
 
 instance SuperfluidTypes sft => MVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     untappedValue = $(field 'untapped_value)

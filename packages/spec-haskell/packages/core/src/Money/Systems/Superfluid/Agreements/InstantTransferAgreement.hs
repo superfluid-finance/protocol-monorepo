@@ -25,9 +25,11 @@ data MonetaryUnitLenses sft = MonetaryUnitLenses
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
 
+type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+
 instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     untappedValue = $(field 'untapped_value)
-type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
 -- * Contract & Operation
 --

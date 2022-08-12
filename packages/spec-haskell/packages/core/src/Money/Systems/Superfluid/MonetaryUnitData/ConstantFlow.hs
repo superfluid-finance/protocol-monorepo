@@ -37,5 +37,3 @@ instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData
         where t_s                  = a^.settledAt
               UntappedValue uval_s = a^.settledValue
               fr                   = a^.netFlowRate
-
-instance MonetaryUnitLenses amuLs sft => SemigroupMonetaryUnitData (MonetaryUnitData amuLs sft) sft

@@ -26,14 +26,15 @@ data MonetaryUnitLenses sft = MonetaryUnitLenses
     } deriving (Generic)
 deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
 
+-- | Type alias for the constant flow monetary unit data.
+type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+
 -- | Monetary unit lenses for the universal index.
 instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     settledAt          = $(field 'settled_at)
     settledValue       = $(field 'settled_value)
     netFlowRate        = $(field 'net_flow_rate)
-
--- | Type alias for the constant flow monetary unit data.
-type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
 
 -- * Contract
 --

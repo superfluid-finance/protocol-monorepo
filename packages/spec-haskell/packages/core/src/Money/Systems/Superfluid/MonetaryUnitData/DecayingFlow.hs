@@ -56,5 +56,3 @@ instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData
               ε     = a^.εVal
               λ     = a^.decayingFactor
               t_Δ   = fromIntegral (t - t_s)
-
-instance MonetaryUnitLenses amuLs sft => SemigroupMonetaryUnitData (MonetaryUnitData amuLs sft) sft

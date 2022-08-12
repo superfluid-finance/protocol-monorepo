@@ -28,5 +28,3 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
 
 instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
     balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB (a^.untappedValue) []
-
-instance MonetaryUnitLenses amuLs sft => SemigroupMonetaryUnitData (MonetaryUnitData amuLs sft) sft

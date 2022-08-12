@@ -52,11 +52,11 @@ contract SuperfluidUpgradabilityTester is Superfluid {
     function validateContextStructLayout()
         external pure
     {
-        // context.appLevel
+        // context.appCallbackLevel
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 0)), 42) }
-            require(context.appLevel == 42, "appLevel changed location");
+            require(context.appCallbackLevel == 42, "appLevel changed location");
         }
         // context.callType
         {

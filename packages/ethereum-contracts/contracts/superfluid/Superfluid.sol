@@ -62,7 +62,7 @@ contract Superfluid is
      *   will not be able to call other app.
      */
     // solhint-disable-next-line var-name-mixedcase
-    uint immutable public MAX_APP_LEVEL = 1;
+    uint immutable public MAX_APP_CALLBACK_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
     uint64 immutable public CALLBACK_GAS_LIMIT = 3000000;
@@ -370,7 +370,7 @@ contract Superfluid is
         }
         require(
             SuperAppDefinitions.isConfigWordClean(configWord) &&
-            SuperAppDefinitions.getAppLevel(configWord) > 0 &&
+            SuperAppDefinitions.getAppCallbackLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
             "SF: invalid config word");
         require(_appManifests[ISuperApp(app)].configWord == 0 , "SF: app already registered");
@@ -382,8 +382,8 @@ contract Superfluid is
         return _appManifests[app].configWord > 0;
     }
 
-    function getAppLevel(ISuperApp appAddr) public override view returns(uint8) {
-        return SuperAppDefinitions.getAppLevel(_appManifests[appAddr].configWord);
+    function getAppCallbackLevel(ISuperApp appAddr) public override view returns(uint8) {
+        return SuperAppDefinitions.getAppCallbackLevel(_appManifests[appAddr].configWord);
     }
 
     function getAppManifest(
@@ -421,7 +421,10 @@ contract Superfluid is
         ISuperApp sourceApp = ISuperApp(msg.sender);
         require(isApp(sourceApp), "SF: sender is not an app");
         require(isApp(targetApp), "SF: target is not an app");
-        require(getAppLevel(sourceApp) > getAppLevel(targetApp), "SF: source app should have higher app level");
+        require(
+            getAppCallbackLevel(sourceApp) > getAppCallbackLevel(targetApp),
+            "SF: source app should have higher app level"
+        );
         _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }
 
@@ -514,11 +517,13 @@ contract Superfluid is
         returns (bytes memory appCtx)
     {
         Context memory context = decodeCtx(ctx);
-        if (isApp(ISuperApp(context.msgSender))) {
+        // NOTE: we use 1 as a magic number here as we want to do this check once we are in a callback
+        // we use 1 instead of MAX_APP_CALLBACK_LEVEL because 1 captures what we are trying to enforce
+        if (isApp(ISuperApp(context.msgSender)) && context.appCallbackLevel >= 1) {
             require(_compositeApps[ISuperApp(context.msgSender)][app],
                 "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED");
         }
-        context.appLevel++;
+        context.appCallbackLevel++;
         context.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
         context.appCreditGranted = appCreditGranted;
         context.appCreditUsed = appCreditUsed;
@@ -584,12 +589,12 @@ contract Superfluid is
         isAgreement(agreementClass)
         returns(bytes memory returnedData)
     {
-        // beaware of the endiness
+        // beware of the endianness
         bytes4 agreementSelector = CallUtils.parseSelector(callData);
 
         //Build context data
-        bytes memory  ctx = _updateContext(Context({
-            appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
+        bytes memory ctx = _updateContext(Context({
+            appCallbackLevel: 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
             timestamp: getNow(),
             msgSender: msgSender,
@@ -632,9 +637,9 @@ contract Superfluid is
         isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
-        //Build context data
+        // Build context data
         bytes memory ctx = _updateContext(Context({
-            appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
+            appCallbackLevel: 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
             timestamp: getNow(),
             msgSender: msgSender,
@@ -857,8 +862,8 @@ contract Superfluid is
         private
         returns (bytes memory ctx)
     {
-        require(context.appLevel <= MAX_APP_LEVEL, "SF: APP_RULE_MAX_APP_LEVEL_REACHED");
-        uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appLevel, context.callType);
+        require(context.appCallbackLevel <= MAX_APP_LEVEL, "SF: APP_RULE_MAX_APP_LEVEL_REACHED");
+        uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appCallbackLevel, context.callType);
         uint256 creditIO =
             context.appCreditGranted.toUint128() |
             (uint256(context.appCreditWanted.toUint128()) << 128);
@@ -902,7 +907,7 @@ contract Superfluid is
                 address,
                 bytes4,
                 bytes));
-            (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
+            (context.appCallbackLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
         }
         {
             uint256 creditIO;

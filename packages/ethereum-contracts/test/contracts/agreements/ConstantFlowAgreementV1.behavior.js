@@ -945,6 +945,85 @@ async function expectNetFlow({testenv, account, superToken, value}) {
     );
 }
 
+async function expectFlow({
+    testenv,
+    sender,
+    receiver,
+    superToken,
+    flowRate,
+    deposit,
+    owedDeposit,
+}) {
+    const flowData = await testenv.contracts.cfa.getFlow(
+        superToken.address,
+        testenv.getAddress(sender),
+        testenv.getAddress(receiver)
+    );
+    console.log(
+        `expected flow rate for ${sender}->${receiver} flow: ${flowRate.toString()}`
+    );
+    assert.equal(
+        flowData.flowRate.toString(),
+        flowRate.toString(),
+        "Unexpected flowRate"
+    );
+    console.log(
+        `expected deposit for ${sender}->${receiver} flow: ${deposit.toString()}`
+    );
+    assert.equal(
+        flowData.deposit.toString(),
+        deposit.toString(),
+        "Unexpected deposit"
+    );
+    console.log(
+        `expected owedDeposit for ${sender}->${receiver} flow: ${owedDeposit.toString()}`
+    );
+    assert.equal(
+        flowData.owedDeposit.toString(),
+        owedDeposit.toString(),
+        "Unexpected owedDeposit"
+    );
+}
+
+async function expectDepositAndOwedDeposit({
+    testenv,
+    account,
+    superToken,
+    deposit,
+    owedDeposit,
+}) {
+    const flowData = await testenv.contracts.cfa.getAccountFlowInfo(
+        superToken.address,
+        testenv.getAddress(account)
+    );
+
+    console.log(`expected deposit for ${account}: ${deposit.toString()}`);
+    assert.equal(
+        flowData.deposit.toString(),
+        deposit.toString(),
+        "Unexpected deposit"
+    );
+
+    console.log(
+        `expected owedDeposit for ${account}: ${owedDeposit.toString()}`
+    );
+    assert.equal(
+        flowData.owedDeposit.toString(),
+        owedDeposit.toString(),
+        "Unexpected owedDeposit"
+    );
+}
+
+/**
+ * Gets the clipped deposit given a flowRate and test environment
+ * @returns
+ */
+function getDeposit({testenv, flowRate}) {
+    return CFADataModel.clipDepositNumber(
+        flowRate.mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
+    );
+}
+
 module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
@@ -956,4 +1035,7 @@ module.exports = {
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertChangeFlowByOperator,
     expectNetFlow,
+    expectFlow,
+    expectDepositAndOwedDeposit,
+    getDeposit,
 };

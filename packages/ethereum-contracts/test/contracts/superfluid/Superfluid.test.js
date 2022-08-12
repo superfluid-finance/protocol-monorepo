@@ -451,7 +451,10 @@ describe("Superfluid Host Contract", function () {
                 assert.isFalse(await superfluid.isApp(governance.address));
                 assert.isTrue(await superfluid.isApp(app.address));
                 assert.isFalse(await superfluid.isAppJailed(app.address));
-                assert.equal(await superfluid.getAppLevel(app.address), 1);
+                assert.equal(
+                    await superfluid.getAppCallbackLevel(app.address),
+                    1
+                );
                 const manifest = await superfluid.getAppManifest(app.address);
                 assert.equal(manifest.isSuperApp, true);
                 assert.equal(manifest.isJailed, false);

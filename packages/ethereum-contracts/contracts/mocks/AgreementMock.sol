@@ -261,7 +261,7 @@ contract AgreementMock is AgreementBase {
         cbStates.noopBit = noopBit;
         bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
         emit AppBeforeCallbackResult(
-            context.appLevel,
+            context.appCallbackLevel,
             context.callType,
             context.agreementSelector,
             cbdata);
@@ -298,7 +298,7 @@ contract AgreementMock is AgreementBase {
             require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after callback");
         }
         emit AppAfterCallbackResult(
-            context.appLevel,
+            context.appCallbackLevel,
             context.callType,
             context.agreementSelector);
     }

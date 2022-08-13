@@ -46,7 +46,7 @@ instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractD
 instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
     applyAgreementOperation ac (Mint amount) _ = let
         ac' = ac
-        mudsΔ = fmap MVMUD.MkMonetaryUnitData $ OperationOutputF
+        mudsΔ = MVMUD.MkMonetaryUnitData <$> OperationOutputF
                 (def & set MVMUD.mintedValue   (coerce (- amount)))
                 (def & set MVMUD.untappedValue (coerce    amount))
         in (ac', mudsΔ)

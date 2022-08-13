@@ -85,8 +85,8 @@ settle_cfda (dc, sc) t = let
     in ((dc { dc_cfda = dc_cfda' }, sc { sc_cfda = sc_cfda' }), cfdaMUDΔ)
 
 instance SuperfluidTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
-    balanceProvided ac t = (balanceProvided (ida_sub_data ac) t) <>
-                           (balanceProvided (cfda_sub_data ac) t)
+    balanceProvided ac t = balanceProvided (ida_sub_data ac) t <>
+                           balanceProvided (cfda_sub_data ac) t
 
 instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft where
     applyAgreementOperation (dc0, sc0) (Subscribe unit) t' = let
@@ -104,7 +104,7 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
         where DistributionContract { dc_base = DistributionContractBase { total_unit = tu }} = dc0
               SubscriptionContract { sc_base = SubscriptionContractBase { sub_owned_unit = u }} = sc0
 
-    concatAgreementOperationOutput _ (cfda) (cfda') = (cfda <> cfda')
+    concatAgreementOperationOutput _ cfda cfda' = cfda <> cfda'
 
     functorizeAgreementOperationOutput _ cfda = SubscriberOperationOutputF
         (MkAnySemigroupMonetaryUnitData cfda)

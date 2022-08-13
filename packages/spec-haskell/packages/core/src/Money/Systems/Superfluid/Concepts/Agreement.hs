@@ -74,13 +74,14 @@ ao_go_zero_sum_balance_single_op :: forall ac sft.
 ao_go_zero_sum_balance_single_op ac muds ao t' =
     let (ac', mudsΔ) = ω ac ao t'
         muds'        = κ muds mudsΔ
-    in  ( foldr (<>) (π₂ t' ac') (fmap (π₁ t') (φ muds')) == mempty
+    in  ( foldr (<>) (π₂ t' ac ) (fmap (π₁ t') (φ muds )) == mempty &&
+          foldr (<>) (π₂ t' ac') (fmap (π₁ t') (φ muds')) == mempty
         , ac', muds')
     where ω  = applyAgreementOperation
           κ  = concatAgreementOperationOutput (Proxy @ac)
           φ  = functorizeAgreementOperationOutput (Proxy @ac)
-          π₁ = flip balanceProvided  -- π function for semigroup mud
-          π₂ = flip (balanceProvided . MkAnyMonetaryUnitData) -- π function for contract mud
+          π₁ = flip balanceProvided                           -- π function (flipped) for semigroup mud
+          π₂ = flip (balanceProvided . MkAnyMonetaryUnitData) -- π function (flipped) for contract mud
 
 -- | Series of agreement operations should result a funcorful of monetary unit data whose balance sum is always zero.
 ao_prop_zero_sum_balance_series_ops :: forall ac sft.

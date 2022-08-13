@@ -43,10 +43,10 @@ import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Internal
 
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow         as CFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow         as DFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue         as IVMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue          as MVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow                    as DFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                    as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                     as MVMUD
 --
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
@@ -288,7 +288,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
         <&> fromMaybe def
     overProportionalDistributionContract publisher indexId updater t = modify $ \vs -> vs
         { distribution_contracts = M.alter
-                                   (Just . updater . (fromMaybe def))
+                                   (Just . updater . fromMaybe def)
                                    (PDPUB_KEY publisher indexId)
                                    (distribution_contracts vs)
         , tokenLastUpdatedAt = t
@@ -300,7 +300,7 @@ instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperflui
         <&> fromMaybe def
     overProportionalDistributionSubscription subscriber publisher indexId updater t = modify $ \vs -> vs
         { subscriber_contracts = M.alter
-                                 (Just . updater . (fromMaybe def))
+                                 (Just . updater . fromMaybe def)
                                  (PDSUB_KEY subscriber (PDPUB_KEY publisher indexId))
                                  (subscriber_contracts vs)
         , tokenLastUpdatedAt = t

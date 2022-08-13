@@ -110,12 +110,10 @@ instance Arbitrary T_CFAMonetaryUnitData where
 deriving instance Show (CFA.MonetaryUnitLenses T_SuperfluidTypes)
 
 type T_CFAContractData = CFA.ContractData T_SuperfluidTypes
-type T_CFAOperation = AgreementOperation (T_CFAContractData)
+type T_CFAOperation = AgreementOperation T_CFAContractData
 
 instance Arbitrary T_CFAOperation where
-    arbitrary = do
-        fr <- arbitrary
-        return $ CFA.UpdateFlow fr
+    arbitrary = CFA.UpdateFlow <$> arbitrary
 deriving instance Show T_CFAMonetaryUnitData
 deriving instance Show T_CFAOperation
 
@@ -136,23 +134,8 @@ instance Arbitrary T_CFDAPublisherMUD where
 deriving instance Show (CFDA.PublisherData T_SuperfluidTypes)
 deriving instance Show T_CFDAPublisherMUD
 
-type T_CFDASubscriberMUD = CFDA.SubscriberMonetaryUnitData T_SuperfluidTypes
-
--- instance Arbitrary T_CFDASubscriberMUD where
---     arbitrary = do
---         t_s <- arbitrary
---         sv  <- arbitrary
---         tfr <- arbitrary
---         return $ CFMUD.MkMonetaryUnitData CFDA.SubscriberData
---             { CFDA.pub_settled_at      = T_Timestamp t_s
---             , CFDA.pub_settled_value   = coerce $ T_MVal sv
---             , CFDA.pub_total_flow_rate = T_MVal tfr
---             }
--- deriving instance Show (CFDA.SubscriberData T_SuperfluidTypes)
--- deriving instance Show T_CFDASubscriberMUD
-
 type T_CFDAPublisherContract = CFDA.PublisherContract T_SuperfluidTypes
-type T_CFDAPublisherOperation = AgreementOperation (T_CFDAPublisherContract)
+type T_CFDAPublisherOperation = AgreementOperation T_CFDAPublisherContract
 
 type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidTypes
-type T_CFDASubscriberOperation = AgreementOperation (T_CFDASubscriberContract)
+type T_CFDASubscriberOperation = AgreementOperation T_CFDASubscriberContract

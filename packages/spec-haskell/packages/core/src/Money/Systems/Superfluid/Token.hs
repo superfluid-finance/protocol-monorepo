@@ -186,7 +186,7 @@ class ( Monad tk
                 sc <- viewProportionalDistributionSubscription subscriber addr indexId
                 return (dc, sc)
             setContract (PDIDX.SubscriberOperationOutputF addr) (dc', sc') t = do
-                overProportionalDistributionContract addr indexId (\_ -> dc') t
+                overProportionalDistributionContract addr indexId (const dc') t
                 overProportionalDistributionSubscription subscriber addr indexId (const sc') t
         (t, aoAccounts, cfdaMUDΔ)  <- eff_agreement_operation_base
             (PDIDX.SubscriberOperationOutputF publisher)
@@ -210,8 +210,8 @@ class ( Monad tk
         where viewContract (IDA.PublisherOperationOutputF addr) =
                   viewProportionalDistributionContract addr indexId >>= \dc ->
                   return (PDIDX.dc_base dc, PDIDX.dc_ida dc)
-              setContract (IDA.PublisherOperationOutputF addr) (_, dc_ida') t =
-                  overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_ida = dc_ida' }) t
+              setContract (IDA.PublisherOperationOutputF addr) (_, dc_ida') =
+                  overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_ida = dc_ida' })
 
     distributeFlow
         :: ACC_ADDR acc                    -- publisher
@@ -227,8 +227,8 @@ class ( Monad tk
         where viewContract (CFDA.PublisherOperationOutputF addr) =
                   viewProportionalDistributionContract addr indexId >>= \dc ->
                   return (PDIDX.dc_base dc, PDIDX.dc_cfda dc)
-              setContract (CFDA.PublisherOperationOutputF addr) (_, dc_cfda') t =
-                  overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_cfda = dc_cfda' }) t
+              setContract (CFDA.PublisherOperationOutputF addr) (_, dc_cfda') =
+                  overProportionalDistributionContract addr indexId (\dc -> dc { PDIDX.dc_cfda = dc_cfda' })
 
 -- ============================================================================
 -- Internal

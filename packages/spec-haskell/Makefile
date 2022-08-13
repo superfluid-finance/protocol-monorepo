@@ -22,25 +22,16 @@ default: build
 #
 # Build
 #
-prepare:
-	$(CABAL_TEST) v2-update
-
 build:
-	$(CABAL_TEST) v2-build all
+	$(CABAL) v2-build all
 
-clean-docs:
+clean:
 	rm -rf $(DOCS_BUILDDIR)
-
-clean-test:
 	rm -rf $(TEST_BUILDDIR)
-
-clean-coverage:
 	rm -rf $(TEST_COVERAGE_BUILDDIR)
+	rm -rf dist-*
 
-clean: clean-docs clean-test clean-coverage
-	rm -rf dist-newstyle
-
-.PHONY: default prepare build clean clean-*
+.PHONY: default build clean
 
 #
 # Testing
@@ -120,15 +111,19 @@ docs: docs-haddock docs-yellowpaper
 dev:
 	nodemon -e lhs,hs,cabal -i "$(TEST_BUILDDIR)" -x "make $(DEV_TARGETS) || exit 1"
 
+freeze:
+	rm -f cabal.project.freeze
+	$(CABAL) v2-freeze
+
 hlint:
 	hlint packages
 
 repl-simple:
-	$(CABAL_TEST) repl superfluid-protocol-system-simple
+	$(CABAL) repl superfluid-protocol-system-simple
 
 cloc:
 	@echo '**** Core Source Files ****'
-	cloc packages/core/src
+	cloc packages/core/src*
 	@echo
 
 	@echo '**** Simple System Source Files ****'
@@ -143,4 +138,4 @@ cloc:
 	cloc packages/*/test
 	@echo
 
-.PHONY: dev hlint repl-* cloc
+.PHONY: dev freeze hlint repl-* cloc

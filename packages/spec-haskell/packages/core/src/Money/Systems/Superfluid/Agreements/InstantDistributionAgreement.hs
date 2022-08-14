@@ -15,7 +15,7 @@ import           Data.Default
 import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
 import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                     as IVMUD
@@ -26,13 +26,13 @@ import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue         
 data DistributionContract sft = DistributionContract
     { dc_value_per_unit :: SFT_MVAL sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
+deriving instance SuperfluidSystemTypes sft => Default (DistributionContract sft)
 
 data SubscriptionContract sft = SubscriptionContract
     { sc_settled_value          :: UntappedValue (SFT_MVAL sft)
     , sc_settled_value_per_unit :: SFT_MVAL sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)
+deriving instance SuperfluidSystemTypes sft => Default (SubscriptionContract sft)
 
 type DistributionContractFull sft = (DistributionContractBase sft, DistributionContract sft)
 
@@ -48,20 +48,20 @@ data PublisherData sft = PublisherData
     { pub_settled_value :: UntappedValue (SFT_MVAL sft)
     } deriving (Generic)
 
-deriving instance SuperfluidTypes sft => Default (PublisherData sft)
+deriving instance SuperfluidSystemTypes sft => Default (PublisherData sft)
 
 type PublisherMonetaryUnitData sft = IVMUD.MonetaryUnitData (PublisherData sft) sft
-instance SuperfluidTypes sft => SemigroupMonetaryUnitData (PublisherMonetaryUnitData sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (PublisherMonetaryUnitData sft) sft
 
 -- * Subscriber Monetary unit data
 
 type SubscriberData sft = SubscriberContract sft
 type SubscriberMonetaryUnitData sft = IVMUD.MonetaryUnitData (SubscriberData sft) sft
 
-instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (PublisherData sft) sft where
+instance SuperfluidSystemTypes sft => IVMUD.MonetaryUnitLenses (PublisherData sft) sft where
     untappedValue = $(field 'pub_settled_value)
 
-instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sft where
+instance SuperfluidSystemTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     untappedValue = readOnlyLens
         -- lens getter: subscribed value
         (\(( _
@@ -73,9 +73,9 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData sft) sf
 
 -- * Publisher Operations
 
-instance SuperfluidTypes sft => MonetaryUnitDataClass (PublisherContract sft) sft where
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (PublisherContract sft) sft where
 
-instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft where
+instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) sft where
     applyAgreementOperation (dcBase, dc) (Distribute amount) _ = let
         vpuΔ = fromIntegral amount / tu
 
@@ -90,10 +90,10 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
         where DistributionContractBase { total_unit = tu} = dcBase
               DistributionContract { dc_value_per_unit = vpu } = dc
 
-    concatAgreementOperationOutput _ (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
+    concatAgreementOperationOutput (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
         PublisherOperationOutputF (a <> a')
 
-    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (PublisherContract sft) = Distribute (SFT_MVAL sft)
 
@@ -106,14 +106,14 @@ instance SuperfluidTypes sft => AgreementContract (PublisherContract sft) sft wh
 type PublisherOperationOutputF sft = AgreementOperationOutputF (PublisherContract sft)
     (PublisherMonetaryUnitData sft)
 
-instance SuperfluidTypes sft => Default (PublisherOperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (PublisherOperationOutputF sft)
 
 -- * Subscriber Operations
 
-instance SuperfluidTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
     balanceProvided = balanceProvided . IVMUD.MkMonetaryUnitData
 
-instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft where
+instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft) sft where
 
     applyAgreementOperation ((dcBase, dc), (scBase, sc)) SettleSubscription _ = let
         svΔ = floor $ fromIntegral (vpu - svpu) * u
@@ -132,9 +132,9 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 
-    concatAgreementOperationOutput _ _ a = a
+    concatAgreementOperationOutput _ a = a
 
-    functorizeAgreementOperationOutput _ _ = SubscriberOperationOutputF
+    functorizeAgreementOperationOutput _ = SubscriberOperationOutputF
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 
@@ -145,4 +145,4 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
 
 type SubscriberOperationOutputF sft = AgreementOperationOutputF (SubscriberContract sft) ()
 
-instance SuperfluidTypes sft => Default (SubscriberOperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutputF sft)

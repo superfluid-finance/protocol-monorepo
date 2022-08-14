@@ -7,7 +7,8 @@ module Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
 
 import           Data.Proxy
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.CoreTypes
+
 
 -- TODO use TH: $(defineTappedValue BufferValueTag "b" BufferValue)
 data BufferValueTag

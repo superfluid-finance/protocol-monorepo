@@ -1,17 +1,11 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilies           #-}
 
-module Money.Systems.Superfluid.MonetaryUnit
-    ( MonetaryUnit (..)
-    , balanceOfAt
-    , sumBalancesAt
-    ) where
-
-import           Data.Kind                                                                 (Type)
+module Money.Systems.Superfluid.MonetaryUnit where
 
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
@@ -23,18 +17,15 @@ import qualified Money.Systems.Superfluid.Agreements.MinterAgreement            
 import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
 import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
 
+
 -- | Monetary unit type class.
 --
 -- It represents the Superfluid take on the monetary unit in the theory of money distribution.
-class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
+class SuperfluidSystemTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- * Polymorphic agreement account data functions
     --
 
-    type AnyMonetaryUnitData mu :: Type
-
-    providedBalanceByAnyAgreement        :: mu -> AnyMonetaryUnitData mu -> SFT_TS sft -> SFT_RTB sft
-
-    agreementsOf                         :: mu -> [AnyMonetaryUnitData mu]
+    monetaryUnitDataList :: mu -> [SFT_ANY_MUD sft]
 
     -- * Nomenclature:
     --
@@ -82,13 +73,13 @@ class SuperfluidTypes sft => MonetaryUnit mu sft | mu -> sft where
     -- | Getter for the list of subscriber CFDA data.
     cfdaSubscriberMonetaryUnitDataList :: SimpleGetter mu [CFDA.SubscriberMonetaryUnitData sft]
 
--- | Calculate the real time balance of an monetary unit at a given time.
-balanceOfAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => mu -> SFT_TS sft -> SFT_RTB sft
-balanceOfAt mu t = foldr
-    ((<>) . flip (providedBalanceByAnyAgreement mu) t)
-    mempty
-    (agreementsOf mu)
+    -- | Calculate the real time balance of an monetary unit at a given time.
+    balanceOfAt :: mu -> SFT_TS sft -> SFT_RTB sft
+    balanceOfAt mu t = foldr
+        ((<>) . flip balanceProvided t)
+        mempty
+        (monetaryUnitDataList mu)
 
--- | Sum the real time balances of a list of accounts at a given time.
-sumBalancesAt :: (SuperfluidTypes sft, MonetaryUnit mu sft) => [mu] -> SFT_TS sft -> SFT_RTB sft
-sumBalancesAt alist t = foldr ((<>) . (`balanceOfAt` t)) mempty alist
+    -- | Sum the real time balances of a list of accounts at a given time.
+    sumBalancesAt :: [mu] -> SFT_TS sft -> SFT_RTB sft
+    sumBalancesAt alist t = foldr ((<>) . (`balanceOfAt` t)) mempty alist

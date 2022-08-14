@@ -3,17 +3,15 @@
 module Money.Systems.Superfluid.Concepts.MonetaryUnitData
     ( MonetaryUnitDataClass (..)
     , SemigroupMonetaryUnitData
-    , AnyMonetaryUnitData' (..)
-    , AnySemigroupMonetaryUnitData (..)
     -- properties
     , mud_prop_semigroup_settles_pi
     ) where
 
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.CoreTypes
 
 
 -- | Monetary unit data type class.
-class ( SuperfluidTypes sft
+class ( SuperfluidCoreTypes sft
       ) => MonetaryUnitDataClass mud sft | mud -> sft where
     -- | π function - balance provided (hear: π) by the monetary unit data.
     balanceProvided
@@ -31,28 +29,14 @@ class ( SuperfluidTypes sft
 --          merged onto the previous state to a new single state. It is still worth mentioning that it is only a
 --          sufficient condition, since a monoid could still "cheat" by linearly grow its data size on each binary
 --          operation.
-class ( MonetaryUnitDataClass mud sft
-      , Semigroup mud
-      ) => SemigroupMonetaryUnitData mud sft
-
--- | Existential type wrapper of monetary unit data
-data AnyMonetaryUnitData' sft = forall mud. MonetaryUnitDataClass mud sft
-    => MkAnyMonetaryUnitData mud
-
-instance SuperfluidTypes sft => MonetaryUnitDataClass (AnyMonetaryUnitData' sft) sft where
-    balanceProvided (MkAnyMonetaryUnitData m) = balanceProvided m
-
--- | Existential type wrapper of semigroup monetary unit data
-data AnySemigroupMonetaryUnitData sft = forall mud. SemigroupMonetaryUnitData mud sft
-    => MkAnySemigroupMonetaryUnitData mud
-
-instance SuperfluidTypes sft => MonetaryUnitDataClass (AnySemigroupMonetaryUnitData sft) sft where
-    balanceProvided (MkAnySemigroupMonetaryUnitData m) = balanceProvided m
+class ( MonetaryUnitDataClass smud sft
+      , Semigroup smud
+      ) => SemigroupMonetaryUnitData smud sft
 
 -- * Semigroup Monetary Unit Data Laws
 
 -- | A semigroup binary operation should settle mud in a way that pi function output stay the same.
-mud_prop_semigroup_settles_pi :: ( SuperfluidTypes sft
+mud_prop_semigroup_settles_pi :: ( SuperfluidCoreTypes sft
                                  , SemigroupMonetaryUnitData mud sft
                                  )
                               => mud -> mud -> SFT_TS sft -> Bool

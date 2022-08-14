@@ -9,8 +9,6 @@ module Money.Systems.Superfluid.Instances.Simple.System
     , createSimpleAddress
     , SF.MonetaryUnit (..)
     , SF.Account (..)
-    , SF.balanceOfAt
-    , SF.sumBalancesAt
     , SimpleAccount
     , showAccountAt
     -- Token
@@ -107,22 +105,20 @@ mk_pdidx_pubLs mudLs mkMud getMudLs = lens
          let pub' = set mudLs (getMudLs mud) uidx
          in  acc { account_data = accData { pd_publisher = pub' }})
 
-instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
-    type AnyMonetaryUnitData SimpleAccount = AnySimpleMonetaryUnitData
+instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidSystem where
 
-    providedBalanceByAnyAgreement _ (MkSimpleMonetaryUnitData g) = balanceProvided g
-
-    agreementsOf acc = [ MkSimpleMonetaryUnitData (acc^.SF.minterMonetaryUnitData)
-                       , MkSimpleMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
-                       , MkSimpleMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
-                       , MkSimpleMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
-                       ]
-                       -- IDA
-                       ++ [MkSimpleMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitData)]
-                       ++ fmap MkSimpleMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
-                       -- CFDA
-                       ++ [MkSimpleMonetaryUnitData (acc^.SF.cfdaPublisherMonetaryUnitData)]
-                       ++ fmap MkSimpleMonetaryUnitData (acc^.SF.cfdaSubscriberMonetaryUnitDataList)
+    monetaryUnitDataList acc =
+        [ MkAnySimpleMonetaryUnitData (acc^.SF.minterMonetaryUnitData)
+        , MkAnySimpleMonetaryUnitData (acc^.SF.itaMonetaryUnitData)
+        , MkAnySimpleMonetaryUnitData (acc^.SF.cfaMonetaryUnitData)
+        , MkAnySimpleMonetaryUnitData (acc^.SF.dfaMonetaryUnitData)
+        ]
+        -- IDA
+        <> [MkAnySimpleMonetaryUnitData (acc^.SF.idaPublisherMonetaryUnitData)]
+        <> fmap MkAnySimpleMonetaryUnitData (acc^.SF.idaSubscriberMonetaryUnitDataList)
+        -- CFDA
+        <> [MkAnySimpleMonetaryUnitData (acc^.SF.cfdaPublisherMonetaryUnitData)]
+        <> fmap MkAnySimpleMonetaryUnitData (acc^.SF.cfdaSubscriberMonetaryUnitDataList)
 
     universalData = to (universal_index . account_data)
     minterMonetaryUnitData = mk_uidx_mudLs UIDX.minta_lenses MVMUD.MkMonetaryUnitData MVMUD.getMonetaryUnitLenses
@@ -140,15 +136,15 @@ instance SF.MonetaryUnit SimpleAccount SimpleSuperfluidTypes where
     cfdaSubscriberMonetaryUnitDataList = to $
         fmap (CFMUD.MkMonetaryUnitData . PDIDX.cfda_sub_data) . subscriptions
 
-instance SF.Account SimpleAccount SimpleSuperfluidTypes where
+instance SF.Account SimpleAccount SimpleSuperfluidSystem where
     type ACC_ADDR SimpleAccount = SimpleAddress
 
 showAccountAt :: SimpleAccount -> SimpleTimestamp -> String
 showAccountAt acc t =
     "Balance: " ++ show(SF.balanceOfAt acc t) ++
-    concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.agreementsOf acc) ++
+    concatMap (\a -> "\n  " ++ agreementTypeTag a ++ ": " ++ show a) (SF.monetaryUnitDataList acc) ++
     "\nLast Update: " ++ show(account_last_updated_at . account_data $ acc)
-    where agreementTypeTag (MkSimpleMonetaryUnitData g) = tagFromValue g
+    where agreementTypeTag (MkAnySimpleMonetaryUnitData g) = tagFromValue g
 
 create_simple_account_data :: SimpleTimestamp -> SimpleAccountData
 create_simple_account_data t = SimpleAccountData
@@ -220,7 +216,7 @@ execSimpleTokenStateT :: Monad m => SimpleTokenStateT m a -> SimpleSystemData ->
 execSimpleTokenStateT m sys token = runSimpleTokenStateT m sys token <&> snd
 
 -- | SimpleTokenStateT m is a @SF.Token@ instance.
-instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperfluidTypes where
+instance Monad m => SF.Token (SimpleTokenStateT m) SimpleAccount SimpleSuperfluidSystem where
 
     getCurrentTime = getSystemData <&> currentTime
 

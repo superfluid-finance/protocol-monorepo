@@ -12,7 +12,7 @@ import           GHC.Generics
 
 import           Test.QuickCheck
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement             as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement as CFDA
@@ -76,17 +76,30 @@ instance Arbitrary T_RealTimeBalance where
             , depositValue  = T_MVal d
             }
 
--- * SuperfluidTypes Type
+-- * Superfluid System
 
-data T_SuperfluidTypes
+data T_SuperfluidSystem
 
 instance SFTFloat Double
 
-instance SuperfluidTypes T_SuperfluidTypes where
-    type SFT_FLOAT T_SuperfluidTypes = Double
-    type SFT_MVAL  T_SuperfluidTypes = T_MVal
-    type SFT_TS    T_SuperfluidTypes = T_Timestamp
-    type SFT_RTB_F T_SuperfluidTypes = T_RealTimeBalanceF
+instance SuperfluidCoreTypes T_SuperfluidSystem where
+    type SFT_FLOAT T_SuperfluidSystem = Double
+    type SFT_MVAL  T_SuperfluidSystem = T_MVal
+    type SFT_TS    T_SuperfluidSystem = T_Timestamp
+    type SFT_RTB_F T_SuperfluidSystem = T_RealTimeBalanceF
+
+-- | Existential type wrapper of monetary unit data
+data AnyMonetaryUnitData sft = forall mud. MonetaryUnitDataClass mud sft => MkAnyMonetaryUnitData mud
+instance SuperfluidCoreTypes sft => MonetaryUnitDataClass (AnyMonetaryUnitData sft) sft where
+    balanceProvided (MkAnyMonetaryUnitData a) = balanceProvided a
+
+-- instance SuperfluidCoreTypes sft => AnyMonetaryUnitData sft `IsAnyTypeOf` MonetaryUnitDataClass where
+--    mkAny :: (SuperfluidCoreTypes sft, MonetaryUnitDataClass sft e) =>
+--        e -> AnyMonetaryUnitData sft
+--    mkAny = MkAnyMonetaryUnitData
+
+instance SuperfluidSystemTypes T_SuperfluidSystem where
+    type SFT_ANY_MUD T_SuperfluidSystem = AnyMonetaryUnitData T_SuperfluidSystem
     dfa_default_lambda _ = log 2 / (3600 * 24 * 7)
 
 -- * BBS
@@ -94,7 +107,7 @@ deriving instance Show (BBS.BufferValue T_MVal)
 
 -- * CFA
 
-type T_CFAMonetaryUnitData = CFA.MonetaryUnitData T_SuperfluidTypes
+type T_CFAMonetaryUnitData = CFA.MonetaryUnitData T_SuperfluidSystem
 
 instance Arbitrary T_CFAMonetaryUnitData where
     arbitrary = do
@@ -107,9 +120,9 @@ instance Arbitrary T_CFAMonetaryUnitData where
             , CFA.net_flow_rate = T_MVal nfr
             }
 
-deriving instance Show (CFA.MonetaryUnitLenses T_SuperfluidTypes)
+deriving instance Show (CFA.MonetaryUnitLenses T_SuperfluidSystem)
 
-type T_CFAContractData = CFA.ContractData T_SuperfluidTypes
+type T_CFAContractData = CFA.ContractData T_SuperfluidSystem
 type T_CFAOperation = AgreementOperation T_CFAContractData
 
 instance Arbitrary T_CFAOperation where
@@ -119,7 +132,7 @@ deriving instance Show T_CFAOperation
 
 -- * CFDA
 
-type T_CFDAPublisherMUD = CFDA.PublisherMonetaryUnitData T_SuperfluidTypes
+type T_CFDAPublisherMUD = CFDA.PublisherMonetaryUnitData T_SuperfluidSystem
 
 instance Arbitrary T_CFDAPublisherMUD where
     arbitrary = do
@@ -131,11 +144,11 @@ instance Arbitrary T_CFDAPublisherMUD where
             , CFDA.pub_settled_value   = coerce $ T_MVal sv
             , CFDA.pub_total_flow_rate = T_MVal tfr
             }
-deriving instance Show (CFDA.PublisherData T_SuperfluidTypes)
+deriving instance Show (CFDA.PublisherData T_SuperfluidSystem)
 deriving instance Show T_CFDAPublisherMUD
 
-type T_CFDAPublisherContract = CFDA.PublisherContract T_SuperfluidTypes
+type T_CFDAPublisherContract = CFDA.PublisherContract T_SuperfluidSystem
 type T_CFDAPublisherOperation = AgreementOperation T_CFDAPublisherContract
 
-type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidTypes
+type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidSystem
 type T_CFDASubscriberOperation = AgreementOperation T_CFDASubscriberContract

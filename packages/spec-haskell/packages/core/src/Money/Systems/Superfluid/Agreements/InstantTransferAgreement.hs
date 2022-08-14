@@ -13,9 +13,10 @@ import           Data.Default
 import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue as IVMUD
+
 
 -- * Monetary data lenses
 --
@@ -23,12 +24,12 @@ import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue as IVMUD
 data MonetaryUnitLenses sft = MonetaryUnitLenses
     { untapped_value         :: UntappedValue (SFT_MVAL sft)
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+deriving instance SuperfluidSystemTypes sft => Default (MonetaryUnitLenses sft)
 
 type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
-instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
 
-instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+instance SuperfluidSystemTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     untappedValue = $(field 'untapped_value)
 
 -- * Contract & Operation
@@ -37,10 +38,10 @@ instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft
 -- No ongoing relationships between parties
 data ContractData sft = ContractData
 
-instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData
-instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
+instance SuperfluidSystemTypes sft => Default (ContractData sft) where def = ContractData
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
 
-instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
+instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft where
     applyAgreementOperation ac (Transfer amount) _ = let
         ac' = ac
         mudsΔ = fmap IVMUD.MkMonetaryUnitData (OperationOutputF
@@ -48,10 +49,10 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
                     (def & set IVMUD.untappedValue (coerce    amount)))
         in (ac', mudsΔ)
 
-    concatAgreementOperationOutput _ (OperationOutputF a b) (OperationOutputF a' b') =
+    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
         OperationOutputF (a <> a') (b <> b')
 
-    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (ContractData sft) = Transfer (SFT_MVAL sft)
 
@@ -64,4 +65,4 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
 
 type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
 
-instance SuperfluidTypes sft => Default (OperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)

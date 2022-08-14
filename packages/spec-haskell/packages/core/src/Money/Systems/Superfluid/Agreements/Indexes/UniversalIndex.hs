@@ -7,7 +7,7 @@ import           Data.Default
 import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement    as CFA
 import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement    as DFA
@@ -25,7 +25,7 @@ data UniversalData sft = UniversalData
     , _cfa   :: CFA.MonetaryUnitLenses sft
     , _dfa   :: DFA.MonetaryUnitLenses sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (UniversalData sft)
+deriving instance SuperfluidSystemTypes sft => Default (UniversalData sft)
 
 minta_lenses :: Lens' (UniversalData sft) (MINTA.MonetaryUnitLenses sft)
 minta_lenses  = $(field '_minta)

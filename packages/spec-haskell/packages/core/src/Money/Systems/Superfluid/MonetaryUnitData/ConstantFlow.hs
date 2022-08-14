@@ -6,13 +6,13 @@ module Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
     , MonetaryUnitData (..)
     ) where
 
-import           Data.Default                      (Default (..))
-import           Data.Kind                         (Type)
+import           Data.Default                         (Default (..))
+import           Data.Kind                            (Type)
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 
-class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+class (Default amuLs, SuperfluidSystemTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
     settledAt          :: Lens' amuLs (SFT_TS sft)
     settledValue       :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
     netFlowRate        :: Lens' amuLs (SFT_MVAL sft)

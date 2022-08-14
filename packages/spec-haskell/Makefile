@@ -25,13 +25,16 @@ default: build
 build:
 	$(CABAL) v2-build all
 
+build-test:
+	$(CABAL_TEST) v2-build all
+
 clean:
 	rm -rf $(DOCS_BUILDDIR)
 	rm -rf $(TEST_BUILDDIR)
 	rm -rf $(TEST_COVERAGE_BUILDDIR)
 	rm -rf dist-*
 
-.PHONY: default build clean
+.PHONY: default build* clean
 
 #
 # Testing
@@ -50,13 +53,13 @@ test-coverage:
 #
 # Demos
 #
-demo-expo: build
+demo-expo: build-test
 	$(CABAL_TEST) v2-exec superfluid-validator -- --demo expo
 
-demo-dfa: build
+demo-dfa: build-test
 	$(CABAL_TEST) v2-exec superfluid-validator -- --demo dfa | ./utils/self-gnuplot.sh
 
-demo-cfda: build
+demo-cfda: build-test
 	$(CABAL_TEST) v2-exec superfluid-validator -- --demo cfda | ./utils/self-gnuplot.sh
 
 .PHONY: demo-*
@@ -109,7 +112,10 @@ docs: docs-haddock docs-yellowpaper
 # Dev Environment
 #
 dev:
-	nodemon -e lhs,hs,cabal -i "$(TEST_BUILDDIR)" -x "make $(DEV_TARGETS) || exit 1"
+	nodemon \
+		-e lhs,hs,cabal \
+		-i dist-newstyle -i "$(TEST_BUILDDIR)" -i "$(TEST_COVERAGE_BUILDDIR)" \
+		-x "make $(DEV_TARGETS) || exit 1"
 
 freeze:
 	rm -f cabal.project.freeze

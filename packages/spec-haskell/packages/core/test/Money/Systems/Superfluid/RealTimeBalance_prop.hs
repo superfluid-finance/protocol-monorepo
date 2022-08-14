@@ -7,7 +7,7 @@ module Money.Systems.Superfluid.RealTimeBalance_prop (tests) where
 import           Test.Hspec
 import           Test.QuickCheck
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.CoreTypes
 import           Money.Systems.Superfluid.TestTypes
 
 

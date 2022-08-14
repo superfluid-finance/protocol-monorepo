@@ -13,7 +13,7 @@ import           Data.Foldable                                                  
 import           Data.Kind                                                                 (Type)
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
@@ -38,7 +38,7 @@ class Eq addr => Address addr
 --   * Type name: acc
 --   * Type family name: SF_ACC
 --   * Term name: *MonetaryUnit
-class (SuperfluidTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sft where
+class (SuperfluidSystemTypes sft, MonetaryUnit acc sft) => Account acc sft | acc -> sft where
     type ACC_ADDR acc :: Type
 
 -- | ID for the proportional distribution index. Maybe an indexed type instead?
@@ -58,7 +58,7 @@ type ProportionalDistributionIndexID = Int
 --   * and agreement (ITA/CFA/GDA) operations.
 -- * Instructions for write operations are executed in `execTokenInstructions`.
 class ( Monad tk
-      , SuperfluidTypes sft
+      , SuperfluidSystemTypes sft
       , Account acc sft
       ) => Token tk acc sft | tk -> acc, tk -> sft where
     -- * System Functions
@@ -240,7 +240,7 @@ type UIDX_CONTRACT_ADDR acc ac = AgreementOperationOutputF ac (ACC_ADDR acc)
 
 -- | Effectuate an agreement operation application
 eff_agreement_operation_base
-    :: ( SuperfluidTypes sft
+    :: ( SuperfluidSystemTypes sft
        , Token tk acc sft
        , AgreementContract ac sft
        , f ~ AgreementOperationOutputF ac
@@ -263,7 +263,7 @@ eff_agreement_operation_base aoAddrs ao acGetter acSetter = do
     return (t, aoAccounts, mudsΔ)
 
 eff_agreement_operation_uniform_mud
-    :: ( SuperfluidTypes sft
+    :: ( SuperfluidSystemTypes sft
        , Token tk acc sft
        , AgreementContract ac sft
        , SemigroupMonetaryUnitData mud sft

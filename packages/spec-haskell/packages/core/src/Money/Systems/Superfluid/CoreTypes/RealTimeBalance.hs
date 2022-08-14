@@ -1,10 +1,11 @@
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Money.Systems.Superfluid.Concepts.RealTimeBalance where
+module Money.Systems.Superfluid.CoreTypes.RealTimeBalance where
 
 import           Data.Default
 
-import           Money.Systems.Superfluid.Concepts.TypedValue
+import           Money.Systems.Superfluid.CoreTypes.TypedValue
+
 
 -- | RealTimeBalance type Class requires two requires two type parameters:
 --
@@ -29,7 +30,7 @@ class ( Value v
       , Foldable rtbF
       , Monoid (rtbF v)
       , Eq (rtbF v)
-      ) => RealTimeBalance rtbF v | v -> rtbF where
+      ) => RealTimeBalance rtbF v | rtbF -> v, v -> rtbF where
 
     -- | Convert a single monetary value to a RTB value.
     valueToRTB :: v -> rtbF v

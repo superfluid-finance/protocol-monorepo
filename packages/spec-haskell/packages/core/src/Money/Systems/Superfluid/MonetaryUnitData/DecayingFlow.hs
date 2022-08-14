@@ -9,13 +9,14 @@ module Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow
     , MonetaryUnitData (..)
     ) where
 
-import           Data.Default                      (Default (..))
-import           Data.Kind                         (Type)
+import           Data.Default                         (Default (..))
+import           Data.Kind                            (Type)
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 
-class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+
+class (Default amuLs, SuperfluidSystemTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
     decayingFactor  :: Lens' amuLs (SFT_FLOAT sft)
     settledAt       :: Lens' amuLs (SFT_TS sft)
     αVal            :: Lens' amuLs (SFT_FLOAT sft)

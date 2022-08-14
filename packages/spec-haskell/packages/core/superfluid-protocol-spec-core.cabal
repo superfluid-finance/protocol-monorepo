@@ -15,14 +15,15 @@ build-type:    Simple
 
 library
     exposed-modules:
+        Data.Type.Any
         Money.Theory.Distribution
         Money.Systems.Communism
-        Money.Systems.Superfluid.Concepts.TypedValue
-        Money.Systems.Superfluid.Concepts.RealTimeBalance
-        Money.Systems.Superfluid.Concepts.SuperfluidTypes
+        Money.Systems.Superfluid.CoreTypes.TypedValue
+        Money.Systems.Superfluid.CoreTypes.RealTimeBalance
+        Money.Systems.Superfluid.CoreTypes
         Money.Systems.Superfluid.Concepts.MonetaryUnitData
         Money.Systems.Superfluid.Concepts.Agreement
-        Money.Systems.Superfluid.Concepts
+        Money.Systems.Superfluid.SystemTypes
         Money.Systems.Superfluid.MonetaryUnitData.MintedValue
         Money.Systems.Superfluid.MonetaryUnitData.InstantValue
         Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
@@ -36,8 +37,8 @@ library
         Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
         Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
         Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
-        Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
+        Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token
     other-modules:
         Lens.Internal

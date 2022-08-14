@@ -9,7 +9,7 @@ import           Data.Default
 import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement      as CFDA
 import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
@@ -24,7 +24,7 @@ data DistributionContract sft = DistributionContract
     , dc_ida  :: IDA.DistributionContract sft
     , dc_cfda :: CFDA.DistributionContract sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (DistributionContract sft)
+deriving instance SuperfluidSystemTypes sft => Default (DistributionContract sft)
 
 -- | Agreement contract for a subscription to a distribution. Its sole party is also known as the "subscriber".
 data SubscriptionContract sft = SubscriptionContract
@@ -32,7 +32,7 @@ data SubscriptionContract sft = SubscriptionContract
     , sc_ida  :: IDA.SubscriptionContract sft
     , sc_cfda :: CFDA.SubscriptionContract sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (SubscriptionContract sft)
+deriving instance SuperfluidSystemTypes sft => Default (SubscriptionContract sft)
 
 -- * Monetary unit data
 
@@ -41,7 +41,7 @@ data PublisherData sft = PublisherData
     { pub_ida  :: IDA.PublisherData sft
     , pub_cfda :: CFDA.PublisherData sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (PublisherData sft)
+deriving instance SuperfluidSystemTypes sft => Default (PublisherData sft)
 
 pub_ida_lenses :: Lens' (PublisherData sft) (IDA.PublisherData sft)
 pub_ida_lenses = $(field 'pub_ida)
@@ -67,7 +67,7 @@ cfda_sub_data a = (((dc_base.fst) a, (dc_cfda.fst) a), ((sc_base.snd) a, (sc_cfd
 
 type SubscriberContract sft = (DistributionContract sft , SubscriptionContract sft)
 
-settle_ida :: SuperfluidTypes sft => SubscriberContract sft -> SFT_TS sft
+settle_ida :: SuperfluidSystemTypes sft => SubscriberContract sft -> SFT_TS sft
            -> SubscriberContract sft
 settle_ida (dc, sc) t = let
     ac = ((dc_base dc, dc_ida dc), (sc_base sc, sc_ida sc))
@@ -75,7 +75,7 @@ settle_ida (dc, sc) t = let
     (((_, dc_ida'), (_, sc_ida')), _) = ac'
     in (dc { dc_ida = dc_ida' }, sc { sc_ida = sc_ida' })
 
-settle_cfda :: SuperfluidTypes sft => SubscriberContract sft -> SFT_TS sft
+settle_cfda :: SuperfluidSystemTypes sft => SubscriberContract sft -> SFT_TS sft
             -> (SubscriberContract sft, CFDA.PublisherMonetaryUnitData sft)
 settle_cfda (dc, sc) t = let
     ac = ((dc_base dc, dc_cfda dc), (sc_base sc, sc_cfda sc))
@@ -84,11 +84,11 @@ settle_cfda (dc, sc) t = let
         , CFDA.SubscriberOperationOutputF cfdaMUDΔ ) = ac'
     in ((dc { dc_cfda = dc_cfda' }, sc { sc_cfda = sc_cfda' }), cfdaMUDΔ)
 
-instance SuperfluidTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (SubscriberContract sft) sft where
     balanceProvided ac t = balanceProvided (ida_sub_data ac) t <>
                            balanceProvided (cfda_sub_data ac) t
 
-instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft where
+instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft) sft where
     applyAgreementOperation (dc0, sc0) (Subscribe unit) t' = let
         (dc1, sc1) = settle_ida (dc0, sc0) t'
         ((dc2, sc2), cfdaMUDΔ) = settle_cfda (dc1, sc1) t'
@@ -104,9 +104,9 @@ instance SuperfluidTypes sft => AgreementContract (SubscriberContract sft) sft w
         where DistributionContract { dc_base = DistributionContractBase { total_unit = tu }} = dc0
               SubscriptionContract { sc_base = SubscriptionContractBase { sub_owned_unit = u }} = sc0
 
-    concatAgreementOperationOutput _ cfda cfda' = cfda <> cfda'
+    concatAgreementOperationOutput cfda cfda' = cfda <> cfda'
 
-    functorizeAgreementOperationOutput _ cfda = SubscriberOperationOutputF
+    functorizeAgreementOperationOutput cfda = SubscriberOperationOutputF
         (MkAnySemigroupMonetaryUnitData cfda)
 
     data AgreementOperation (SubscriberContract sft) = Subscribe (SFT_FLOAT sft)

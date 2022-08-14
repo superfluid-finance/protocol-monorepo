@@ -12,9 +12,10 @@ import           Data.Default
 import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
+
 
 -- * Monetary unit lenses.
 --
@@ -24,22 +25,19 @@ data MonetaryUnitLenses sft = MonetaryUnitLenses
     , settled_value :: UntappedValue (SFT_MVAL sft)
     , net_flow_rate :: SFT_MVAL sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+deriving instance SuperfluidSystemTypes sft => Default (MonetaryUnitLenses sft)
 
 -- | Type alias for the constant flow monetary unit data.
 type MonetaryUnitData sft = CFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
-instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
 
 -- | Monetary unit lenses for the universal index.
-instance SuperfluidTypes sft => CFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     settledAt          = $(field 'settled_at)
     settledValue       = $(field 'settled_value)
     netFlowRate        = $(field 'net_flow_rate)
 
 -- * Contract
---
-
--- * Operation
 --
 
 type FlowRate sft = SFT_MVAL sft
@@ -48,11 +46,14 @@ data ContractData sft = ContractData
     { flow_updated_at :: SFT_TS sft -- TODO, useless field, move to effect stage
     , flow_rate       :: FlowRate sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (ContractData sft)
+deriving instance SuperfluidSystemTypes sft => Default (ContractData sft)
 
-instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (ContractData sft) sft
 
-instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
+-- * Operation
+--
+
+instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft where
     applyAgreementOperation ac (UpdateFlow newFlowRate) t' = let
         fr        = flow_rate ac
         flowRateΔ = newFlowRate - fr
@@ -68,10 +69,10 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
                      & set CFMUD.netFlowRate  flowRateΔ)
         in (ac', fmap CFMUD.MkMonetaryUnitData mudsΔ)
 
-    concatAgreementOperationOutput _ (OperationOutputF a b) (OperationOutputF a' b') =
+    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
         OperationOutputF (a <> a') (b <> b')
 
-    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (ContractData sft) = UpdateFlow (FlowRate sft)
 
@@ -84,4 +85,4 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
 
 type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
 
-instance SuperfluidTypes sft => Default (OperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)

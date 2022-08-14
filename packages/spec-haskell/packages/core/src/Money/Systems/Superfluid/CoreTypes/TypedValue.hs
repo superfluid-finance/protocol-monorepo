@@ -1,4 +1,4 @@
-{-# LANGUAGE DefaultSignatures      #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
@@ -16,7 +16,7 @@
 -- Here is how their relations look like:
 --
 -- @
--- TODO
+-- TODO new ASCIIFlow insert
 -- @
 -- [(ASCIIFlow Link)](https://asciiflow.com/#/share/eJyrVspLzE1VslIKLi1ILUrLKc1MUfDJLARSmSWVSjpKOYmVqUVA6eoYpYoYJStLcwOdGKVKIMvIEsQqSa0oAXJilBTQwKMpe0hCMTF5WIwISUxPT00JqSxITUzKScWpDDuatotYm5CMwpQl1SdwhMsWqoUSmm9BwZQCjztg0GENAeJdgm7io%2BkthJxDcXDhdSBZQYY1XvHHDmFH4JADWkK29zHCgUomURYjlFgPCY3QvJLEAvSEifClhrNmCFZ5W1tbOzsFbAbAXYapl%2B5x4DDAMYDPfjwFHQnJGn9yx6%2BAShFBCxsIut0xrxJ7wiTgIkx9Qz2klGqVagHvSCn9)
 --
@@ -26,12 +26,12 @@
 -- * Buffer Based Solvency (BBS)
 -- * Composition Credit System
 --
-module Money.Systems.Superfluid.Concepts.TypedValue
+module Money.Systems.Superfluid.CoreTypes.TypedValue
     -- Untyped Value
     ( Value
     -- Typed Value
     , TypedValueTag (..)
-    , TypedValue (..)
+    , TypedValue
     -- Untapped Value
     , UntappedValueTag
     , untappedValueTag
@@ -45,7 +45,7 @@ module Money.Systems.Superfluid.Concepts.TypedValue
     , untypeAnyTappedValue
     ) where
 
-import           Data.Coerce               (Coercible, coerce)
+import           Data.Coerce               (Coercible)
 import           Data.Default              (Default (..))
 import           Data.Typeable             (Proxy (..), Typeable)
 
@@ -55,10 +55,7 @@ import           Money.Theory.Distribution (Value)
 --
 -- Notional conventions:
 --  * Type name: tv
-class (TypedValueTag vtag, Value v) => TypedValue tv vtag v | tv -> v, tv -> vtag where
-    untypeValue :: tv -> v
-    default untypeValue :: Coercible tv v => tv -> v
-    untypeValue = coerce
+class (TypedValueTag vtag, Value v, Coercible tv v) => TypedValue tv vtag v | tv -> v, tv -> vtag where
 
 -- | Tag for typed value type class using ~Typeable~ runtime information.
 --

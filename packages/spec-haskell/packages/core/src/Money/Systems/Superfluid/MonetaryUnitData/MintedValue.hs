@@ -10,12 +10,12 @@ module Money.Systems.Superfluid.MonetaryUnitData.MintedValue
     , MonetaryUnitData (..)
     ) where
 
-import           Data.Default                      (Default (..))
-import           Data.Kind                         (Type)
-import           Data.Proxy                        (Proxy (..))
+import           Data.Default                         (Default (..))
+import           Data.Kind                            (Type)
+import           Data.Proxy                           (Proxy (..))
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 
 -- * Minted value type
 --
@@ -32,7 +32,7 @@ mkMintedValue = TappedValue
 
 -- * Monetary unit data
 --
-class (Default amuLs, SuperfluidTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+class (Default amuLs, SuperfluidSystemTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
     untappedValue :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
     mintedValue   :: Lens' amuLs (MintedValue (SFT_MVAL sft))
 

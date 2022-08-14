@@ -1,27 +1,26 @@
 {-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementContract (..)
+    , AnySemigroupMonetaryUnitData (..)
     , ao_prop_zero_sum_balance_series_ops
     ) where
 
 import           Data.Default
 import           Data.Kind                                          (Type)
-import           Data.Proxy
 
 import           Money.Systems.Superfluid.Concepts.MonetaryUnitData
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.CoreTypes
 
 
 -- | Agreement contract type class.
-class ( Default ac
-      , Default (AgreementOperationOutput ac)
-      , Functor (AgreementOperationOutputF ac)
-      , Foldable (AgreementOperationOutputF ac)
-      , Traversable (AgreementOperationOutputF ac)
+class ( SuperfluidCoreTypes sft
+      , Default ac
       , MonetaryUnitDataClass ac sft
+      , Default (AgreementOperationOutput ac)
+      , Traversable (AgreementOperationOutputF ac) -- <= Foldable Functor
       ) => AgreementContract ac sft | ac -> sft where
 
     -- | ω function - apply agreement operation ~ao~ (hear: ω) to the agreement operation data ~ac~ to get a tuple of:
@@ -36,44 +35,52 @@ class ( Default ac
         -> SFT_TS sft                        -- t
         -> (ac, AgreementOperationOutput ac) -- (ac', mudsΔ)
 
-    -- | κ' function -
-    concatAgreementOperationOutput
-        :: Proxy ac
-        -> AgreementOperationOutput ac
-        -> AgreementOperationOutput ac
-        -> AgreementOperationOutput ac
-
-    -- | φ' function - functorize the existential monetary unit data of agreement parties
+    -- | φ function - functorize the existential semigroup monetary unit data of agreement operation output
+    --
+    -- TODO make the mkSmud an input choice
     functorizeAgreementOperationOutput
-        :: forall f.
-           f ~ AgreementOperationOutputF ac
-        => Proxy ac
-        -> AgreementOperationOutput ac
-        -> f (AnySemigroupMonetaryUnitData sft)
+        :: forall muds f.
+           ( muds ~ AgreementOperationOutput ac
+           , f ~ AgreementOperationOutputF ac
+           )
+        => muds -> f (AnySemigroupMonetaryUnitData sft)
+
+    -- | κ function - concatenate agreement operation output, which can be functorized any time.
+    concatAgreementOperationOutput
+        :: forall muds.
+           muds ~ AgreementOperationOutput ac
+        => muds -> muds -> muds
 
     -- Note: though ~ac~ is injected, but it seems natural to have operation as associated data type instead.
-    data AgreementOperation ac :: Type
+    data family AgreementOperation ac :: Type
 
     -- Note: though ~ac~ is injected, none terminal type can only be associated data type.
-    data AgreementOperationOutputF ac :: Type -> Type
+    data family AgreementOperationOutputF ac :: Type -> Type
 
     -- Note: since ~ac~ is injected, hence this can be associated type alias.
-    type AgreementOperationOutput ac :: Type
+    type family AgreementOperationOutput ac = (muds :: Type) | muds -> ac
+
+-- * Internal Types
+
+-- | Existential type wrapper of semigroup monetary unit data
+data AnySemigroupMonetaryUnitData sft = forall mud. SemigroupMonetaryUnitData mud sft => MkAnySemigroupMonetaryUnitData mud
+instance SuperfluidCoreTypes sft => MonetaryUnitDataClass (AnySemigroupMonetaryUnitData sft) sft where
+    balanceProvided (MkAnySemigroupMonetaryUnitData a) = balanceProvided a
 
 -- * Agreement Laws
 
 ao_is_zero_sum_balance :: forall ac sft.
-                          ( SuperfluidTypes sft
+                          ( SuperfluidCoreTypes sft
                           , AgreementContract ac sft
                           )
                        => ac -> AgreementOperationOutput ac -> SFT_TS sft -> Bool
-ao_is_zero_sum_balance ac muds t = foldr (<>) (π₂ t ac ) (fmap (π₁ t) (φ muds)) == mempty
-    where φ  = functorizeAgreementOperationOutput (Proxy @ac)
-          π₁ = flip balanceProvided                           -- π function (flipped) for semigroup mud
-          π₂ = flip (balanceProvided . MkAnyMonetaryUnitData) -- π function (flipped) for contract mud
+ao_is_zero_sum_balance ac muds t = foldr (<>) (π₂ t ac) (fmap (π₁ t) (φ muds)) == mempty
+    where φ  = functorizeAgreementOperationOutput
+          π₁ = flip balanceProvided -- π function (flipped) for semigroup mud
+          π₂ = flip balanceProvided -- π function (flipped) for contract mud
 
 ao_go_zero_sum_balance_single_op :: forall ac sft.
-                                 ( SuperfluidTypes sft
+                                 ( SuperfluidCoreTypes sft
                                  , AgreementContract ac sft
                                  )
                                  => ac
@@ -88,11 +95,11 @@ ao_go_zero_sum_balance_single_op ac muds ao t' =
           ao_is_zero_sum_balance ac' muds' t'
         , ac', muds')
     where ω  = applyAgreementOperation
-          κ  = concatAgreementOperationOutput (Proxy @ac)
+          κ  = concatAgreementOperationOutput
 
 -- | Series of agreement operations should result a funcorful of monetary unit data whose balance sum is always zero.
 ao_prop_zero_sum_balance_series_ops :: forall ac sft.
-                                       ( SuperfluidTypes sft
+                                       ( SuperfluidCoreTypes sft
                                        , AgreementContract ac sft
                                        )
                                     => SFT_TS sft -> [(AgreementOperation ac, SFT_TS sft)] -> Bool

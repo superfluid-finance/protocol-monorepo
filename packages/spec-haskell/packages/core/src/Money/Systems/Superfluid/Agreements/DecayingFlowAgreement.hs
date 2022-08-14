@@ -13,9 +13,10 @@ import           Data.Proxy
 import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow as DFMUD
+
 
 -- * Monetary data lenses
 --
@@ -25,18 +26,18 @@ data MonetaryUnitLenses sft = MonetaryUnitLenses
     , α_val      :: SFT_FLOAT sft
     , ε_val      :: SFT_FLOAT sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (MonetaryUnitLenses sft)
+deriving instance SuperfluidSystemTypes sft => Default (MonetaryUnitLenses sft)
 
 type MonetaryUnitData sft = DFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
-instance SuperfluidTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
 
-instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+instance SuperfluidSystemTypes sft => DFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
     decayingFactor = readOnlyLens (\_ -> dfa_default_lambda (Proxy @sft))
     settledAt      = $(field 'settled_at)
     αVal           = $(field 'α_val)
     εVal           = $(field 'ε_val)
 
--- * Operation
+-- * Contract
 
 type DistributionLimit sft = SFT_MVAL sft
 
@@ -44,11 +45,13 @@ data ContractData sft = ContractData
     { flow_last_updated_at :: SFT_TS sft
     , distribution_limit   :: SFT_MVAL sft
     } deriving (Generic)
-deriving instance SuperfluidTypes sft => Default (ContractData sft)
+deriving instance SuperfluidSystemTypes sft => Default (ContractData sft)
 
-instance SuperfluidTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (ContractData sft) sft
 
-instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
+-- * Operation
+
+instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft where
     -- | Create data of agreement parties from the changes of the contract.
     --
     -- Formula:
@@ -69,10 +72,10 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
 
         in (ac', fmap DFMUD.MkMonetaryUnitData mudsΔ)
 
-    concatAgreementOperationOutput _ (OperationOutputF a b) (OperationOutputF a' b') =
+    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
         OperationOutputF (a <> a') (b <> b')
 
-    functorizeAgreementOperationOutput _ = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
 
     data AgreementOperation (ContractData sft) =
         UpdateDecayingFlow (DistributionLimit sft)
@@ -86,4 +89,4 @@ instance SuperfluidTypes sft => AgreementContract (ContractData sft) sft where
 
 type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
 
-instance SuperfluidTypes sft => Default (OperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)

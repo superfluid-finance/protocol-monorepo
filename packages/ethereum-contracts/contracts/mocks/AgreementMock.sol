@@ -193,10 +193,10 @@ contract AgreementMock is AgreementBase {
         return host.appCallbackPop(ctx, 0);
     }
 
-    function tryCtxUseAllowance(ISuperfluid host, bool hackCtx, bytes calldata ctx)
+    function tryCtxUseCredit(ISuperfluid host, bool hackCtx, bytes calldata ctx)
         external returns (bytes memory newCtx)
     {
-        return host.ctxUseAllowance(hackCtx ? new bytes(0) : ctx, 0, 0);
+        return host.ctxUseCredit(hackCtx ? new bytes(0) : ctx, 0);
     }
 
     function tryJailApp(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)

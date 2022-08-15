@@ -60,14 +60,14 @@ contract MultiFlowTesterApp is SuperAppBase {
 
         configuration.ratioPct = ratioPct;
         configuration.receivers = new ReceiverData[](receivers.length);
-        for(uint256 i = 0; i < receivers.length; i++) {
+        for (uint256 i; i < receivers.length; i++) {
             assert(proportions[i] != 0);
             configuration.receivers[i] = ReceiverData(receivers[i], proportions[i]);
         }
     }
 
     function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256 sum) {
-        for(uint256 i = 0; i < receivers.length; i++) {
+        for (uint256 i; i < receivers.length; i++) {
             sum += receivers[i].proportion;
         }
     }
@@ -96,7 +96,7 @@ contract MultiFlowTesterApp is SuperAppBase {
         // NOTE casting to int96 is okay here because ratioPct is uint8
         flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
 
-        for(uint256 i = 0; i < configuration.receivers.length; i++) {
+        for (uint256 i; i < configuration.receivers.length; i++) {
             ReceiverData memory receiverData = configuration.receivers[i];
             uint256 targetAllowance = appAllowanceGranted * receiverData.proportion / sum;
             int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
@@ -271,7 +271,7 @@ contract MultiFlowTesterApp is SuperAppBase {
         bytes memory callData;
         newCtx = ctx;
         if (vars.flowReceiver == address(this)) {
-            for(uint256 i = 0; i < vars.configuration.receivers.length; i++) {
+            for (uint256 i; i < vars.configuration.receivers.length; i++) {
                 callData = abi.encodeCall(
                     _cfa.deleteFlow,
                     (
@@ -289,7 +289,7 @@ contract MultiFlowTesterApp is SuperAppBase {
                 );
             }
         } else /* if (vars.flowSender == address(this)) */ {
-            for(uint256 i = 0; i < vars.configuration.receivers.length; i++) {
+            for (uint256 i; i < vars.configuration.receivers.length; i++) {
                 // skip current closed flow
                 if (vars.configuration.receivers[i].to == vars.flowReceiver) continue;
                 // close the rest of the mfa receiver flows

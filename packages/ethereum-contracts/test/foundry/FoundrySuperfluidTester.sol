@@ -39,7 +39,7 @@ contract FoundrySuperfluidTester is Test {
     ERC20PresetMinterPauser internal token;
     SuperToken internal superToken;
 
-    uint256 private _expectedTotalSupply = 0;
+    uint256 private _expectedTotalSupply;
 
     constructor (uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
@@ -59,7 +59,7 @@ contract FoundrySuperfluidTester is Test {
     function setUp() virtual public {
         (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT");
 
-        for (uint i = 0; i < N_TESTERS; ++i) {
+        for (uint i; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
 
             vm.startPrank(TEST_ACCOUNTS[i]);
@@ -78,7 +78,7 @@ contract FoundrySuperfluidTester is Test {
 
     function checkLiquiditySumInvariance() public view returns (bool) {
         int256 liquiditySum;
-        for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
+        for (uint i; i < TEST_ACCOUNTS.length; ++i) {
             (int256 avb, uint256 d, uint256 od, ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
             liquiditySum += avb + int256(d) - int256(od);
         }
@@ -87,7 +87,7 @@ contract FoundrySuperfluidTester is Test {
 
     function checkNetFlowRateSumInvariant() public view returns (bool) {
         int96 netFlowRateSum;
-        for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
+        for (uint i; i < TEST_ACCOUNTS.length; ++i) {
             netFlowRateSum += sf.cfa.getNetFlow(superToken, address(TEST_ACCOUNTS[i]));
         }
         return netFlowRateSum == 0;

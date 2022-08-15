@@ -30,7 +30,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     constructor(address adminRole, address[] memory backendAddr) {
         require(adminRole != address(0), "adminRole is empty");
         _setupRole(DEFAULT_ADMIN_ROLE, adminRole);
-        for (uint256 i = 0; i < backendAddr.length; ++i) {
+        for (uint256 i; i < backendAddr.length; ++i) {
             require(backendAddr[i] != address(0), "backend can't be zero");
             _setupRole(BACKEND_ROLE, backendAddr[i]);
         }
@@ -98,7 +98,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     function getBackendAgents() external view returns(address[] memory) {
         uint256 numberOfMembers = getRoleMemberCount(BACKEND_ROLE);
         address[] memory members = new address[](numberOfMembers);
-        for(uint256 i = 0; i < numberOfMembers; i++) {
+        for (uint256 i; i < numberOfMembers; i++) {
             members[i] = getRoleMember(BACKEND_ROLE, i);
         }
         return members;

@@ -33,7 +33,7 @@ library SlotsBitmapLibrary {
             address(this),
             account,
             bitmapStateSlotId, 1)[0]);
-        for (slotId = 0; slotId < _MAX_NUM_SLOTS; ++slotId) {
+        for (slotId; slotId < _MAX_NUM_SLOTS; ++slotId) {
             if ((uint256(subsBitmap >> slotId) & 1) == 0) {
                 // update slot data
                 bytes32[] memory slotData = new bytes32[](1);
@@ -98,7 +98,7 @@ library SlotsBitmapLibrary {
         dataList = new bytes32[](_MAX_NUM_SLOTS);
         // read all slots
         uint nSlots;
-        for (uint32 slotId = 0; slotId < _MAX_NUM_SLOTS; ++slotId) {
+        for (uint32 slotId; slotId < _MAX_NUM_SLOTS; ++slotId) {
             if ((uint256(subsBitmap >> slotId) & 1) == 0) continue;
             slotIds[nSlots] = slotId;
             dataList[nSlots] = token.getAgreementStateSlot(

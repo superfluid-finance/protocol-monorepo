@@ -81,7 +81,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         availableBalance = _balances[account];
         ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
-        for (uint256 i = 0; i < activeAgreements.length; i++) {
+        for (uint256 i; i < activeAgreements.length; i++) {
             (
                 int256 agreementDynamicBalance,
                 uint256 agreementDeposit,

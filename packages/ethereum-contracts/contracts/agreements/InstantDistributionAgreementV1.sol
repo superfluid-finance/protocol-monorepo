@@ -101,7 +101,7 @@ contract InstantDistributionAgreementV1 is
         uint32[] memory slotIds;
         bytes32[] memory sidList;
         (slotIds, sidList) = _listSubscriptionIds(token, account);
-        for (uint32 i = 0; i < sidList.length; ++i) {
+        for (uint32 i; i < sidList.length; ++i) {
             bool exist;
             SubscriptionData memory sdata;
             bytes32 iId;
@@ -681,7 +681,7 @@ contract InstantDistributionAgreementV1 is
         publishers = new address[](sidList.length);
         indexIds = new uint32[](sidList.length);
         unitsList = new uint128[](sidList.length);
-        for (uint32 i = 0; i < sidList.length; ++i) {
+        for (uint32 i; i < sidList.length; ++i) {
             uint32 subId = slotIds[i];
             bytes32 sId = sidList[i];
             (exist, sdata) = _getSubscriptionData(token, sId);
@@ -1100,7 +1100,7 @@ contract InstantDistributionAgreementV1 is
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
             _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START);
         // map data to subId
-        for (uint i = 0; i < sidList.length; ++i) {
+        for (uint i; i < sidList.length; ++i) {
             sidList[i] = _getSubscriptionId(subscriber, sidList[i]);
         }
     }

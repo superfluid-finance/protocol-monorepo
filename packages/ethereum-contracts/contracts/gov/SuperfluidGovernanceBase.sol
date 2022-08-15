@@ -65,7 +65,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             UUPSProxiable(address(host)).updateCode(hostNewLogic);
             UUPSProxiable(address(hostNewLogic)).castrate();
         }
-        for (uint i = 0; i < agreementClassNewLogics.length; ++i) {
+        for (uint i; i < agreementClassNewLogics.length; ++i) {
             host.updateAgreementClass(ISuperAgreement(agreementClassNewLogics[i]));
             UUPSProxiable(address(agreementClassNewLogics[i])).castrate();
         }
@@ -88,7 +88,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         external override
         onlyAuthorized(host)
     {
-        for (uint i = 0; i < tokens.length; ++i) {
+        for (uint i; i < tokens.length; ++i) {
             host.updateSuperTokenLogic(tokens[i]);
         }
     }
@@ -99,7 +99,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         uint256[] calldata minimumDeposits
     ) external {
         require(tokens.length == minimumDeposits.length, "SFGov: arrays are not the same length");
-        for (uint i = 0; i < minimumDeposits.length; ++i) {
+        for (uint i; i < minimumDeposits.length; ++i) {
             setSuperTokenMinimumDeposit(
                 host,
                 tokens[i],

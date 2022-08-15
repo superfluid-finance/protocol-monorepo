@@ -27,7 +27,7 @@ contract BatchLiquidator {
     ) external {
         require(senders.length == receivers.length, "arrays different sizes");
 
-        for (uint i = 0; i < senders.length; ++i) {
+        for (uint i; i < senders.length; ++i) {
             bool success;
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.

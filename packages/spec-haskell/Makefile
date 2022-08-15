@@ -129,15 +129,19 @@ repl-simple:
 
 cloc:
 	@echo '**** Core Source Files ****'
-	cloc packages/core/src*
+	cloc packages/core/src/
 	@echo
 
 	@echo '**** Simple System Source Files ****'
-	cloc packages/simple/src
+	cloc packages/simple/src/
 	@echo
 
 	@echo '**** Validator Source Files ****'
-	cloc packages/validator/src
+	cloc packages/validator/src/
+	@echo
+
+	@echo '**** Internal Source ****'
+	cloc packages/src-internal/
 	@echo
 
 	@echo '**** Test Files ****'

@@ -769,7 +769,7 @@ contract Superfluid is
     )
        internal
     {
-        for (uint256 i; i < operations.length; i++) {
+        for (uint256 i; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
                 (address spender, uint256 amount) =

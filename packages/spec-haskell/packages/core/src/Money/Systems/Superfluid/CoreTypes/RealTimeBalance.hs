@@ -3,7 +3,7 @@
 module Money.Systems.Superfluid.CoreTypes.RealTimeBalance where
 
 import           Data.Default
-import           Data.Proxy
+import           Data.Typeable
 
 import           Money.Systems.Superfluid.CoreTypes.TypedValue
 
@@ -55,5 +55,8 @@ rtb_prop_mappend_commutativity a b = (a <> b) == (b <> a)
 rtb_prop_identity_from_and_to_typed_values :: forall rtbF v. RealTimeBalance rtbF v => rtbF v -> Bool
 rtb_prop_identity_from_and_to_typed_values x = (typedValuesToRTB . typedValuesFromRTB) x == x
 
-rtb_prop_conservation_of_net_value :: forall rtbF v. RealTimeBalance rtbF v => rtbF v -> Bool
-rtb_prop_conservation_of_net_value x = (netValueOfRTB . valueToRTB (Proxy @rtbF) . netValueOfRTB) x == netValueOfRTB x
+rtb_prop_conservation_of_net_value :: forall rtbF v. RealTimeBalance rtbF v => Proxy rtbF -> v -> Bool
+rtb_prop_conservation_of_net_value p nv = (netValueOfRTB . valueToRTB p) nv == nv
+
+rtb_prop_untapped_value_to_rtb :: forall rtbF v. (Typeable v, RealTimeBalance rtbF v) => Proxy rtbF -> v -> Bool
+rtb_prop_untapped_value_to_rtb p nv = valueToRTB p nv == typedValuesToRTB [(mkAnyTypedValue . MkUntappedValue) nv]

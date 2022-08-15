@@ -49,7 +49,7 @@ const chainIds = {
 
     "bsc-mainnet": 56,
 
-    localhost: 1337,
+    localhost: 31337,
     hardhat: 31337,
 };
 

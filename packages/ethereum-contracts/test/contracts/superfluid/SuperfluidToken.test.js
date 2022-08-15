@@ -432,7 +432,7 @@ describe("SuperfluidToken implementation", function () {
                 );
                 await expectRevertedWith(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
-                    "SuperfluidToken: only listed agreeement"
+                    "SuperfluidToken: only listed agreement"
                 );
             });
 
@@ -479,7 +479,7 @@ describe("SuperfluidToken implementation", function () {
                     0,
                     0
                 ),
-                "SuperfluidToken: only listed agreeement"
+                "SuperfluidToken: only listed agreement"
             );
         });
 

@@ -2,17 +2,14 @@
 {-# LANGUAGE FunctionalDependencies #-}
 
 module Money.Systems.Superfluid.MonetaryUnitData.MintedValue
-    ( MintedValueTag
-    , mintedValueTag
-    , MintedValue
-    , mkMintedValue
+    ( MintedValue (..)
     , MonetaryUnitLenses (..)
     , MonetaryUnitData (..)
     ) where
 
 import           Data.Default                         (Default (..))
 import           Data.Kind                            (Type)
-import           Data.Proxy                           (Proxy (..))
+import           Data.Typeable
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
@@ -20,15 +17,9 @@ import           Money.Systems.Superfluid.SystemTypes
 -- * Minted value type
 --
 
--- TODO use TH: $(defineTappedValue MintedValueTag "m" BufferValue)
-data MintedValueTag
-instance TypedValueTag MintedValueTag where tappedValueTag _ = "m"
-instance TappedValueTag MintedValueTag
-type MintedValue v = TappedValue MintedValueTag v
-mintedValueTag :: Proxy MintedValueTag
-mintedValueTag = Proxy @MintedValueTag
-mkMintedValue :: Value v => v -> MintedValue v
-mkMintedValue = TappedValue
+newtype MintedValue v = MkMintedValue v
+    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
+instance (Typeable v, Value v) => TypedValue (MintedValue v) v where typedValueTag _ = "b"
 
 -- * Monetary unit data
 --
@@ -48,5 +39,6 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
 
 instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
     balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB
-        ( a^.untappedValue )
-        [ mkAnyTappedValue $ a^.mintedValue ]
+        [ mkAnyTypedValue $ a^.untappedValue
+        , mkAnyTypedValue $ a^.mintedValue
+        ]

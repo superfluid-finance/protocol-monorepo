@@ -49,23 +49,23 @@ instance Applicative T_RealTimeBalanceF where
         T_RealTimeBalanceF (f a a') (f b b') (f c c')
 instance Semigroup (T_RealTimeBalanceF T_MVal) where (<>) = liftA2 (+)
 instance Monoid (T_RealTimeBalanceF T_MVal) where mempty = pure 0
--- instance Eq (T_RealTimeBalanceF T_MVal) where (==) = (==)
 
 instance RealTimeBalance T_RealTimeBalanceF T_MVal where
-    valueToRTB uval = T_RealTimeBalanceF uval def def
+    valueToRTB _ uval = T_RealTimeBalanceF uval def def
 
-    typedValuesToRTB (UntappedValue uval) tvec =
-        T_RealTimeBalanceF uval def def <> foldMap g tvec
-        -- extra correctly typed RTB monoid
-        where g (AnyTappedValue (p, v)) = case typeRep p of
-                  t | t == typeRep MVMUD.mintedValueTag -> T_RealTimeBalanceF def   v def
-                    | t == typeRep BBS.bufferValueTag  -> T_RealTimeBalanceF def def   v
-                    | otherwise -> error "Invalid monetary value tag"
+    typedValuesToRTB = foldMap g
+        where g (AnyTypedValue (p, v)) =
+                  let v' = coerce v
+                  in case typeRep p of
+                      t | t == typeRep (Proxy @(UntappedValue T_MVal))     -> T_RealTimeBalanceF  v' def def
+                        | t == typeRep (Proxy @(MVMUD.MintedValue T_MVal)) -> T_RealTimeBalanceF def  v' def
+                        | t == typeRep (Proxy @(BBS.BufferValue T_MVal))   -> T_RealTimeBalanceF def def  v'
+                        | otherwise -> error ("Invalid value tag: " <> show t)
 
-    typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
-                              [ mkAnyTappedValue $ MVMUD.mkMintedValue $ mintedValue rtb
-                              , mkAnyTappedValue $ BBS.mkBufferValue   $ depositValue rtb
-                              ])
+    typedValuesFromRTB rtb = [ mkAnyTypedValue $ MkUntappedValue     $ untappedValue rtb
+                             , mkAnyTypedValue $ MVMUD.MkMintedValue $ mintedValue rtb
+                             , mkAnyTypedValue $ BBS.MkBufferValue   $ depositValue rtb
+                             ]
 
 instance Arbitrary T_RealTimeBalance where
     arbitrary = do

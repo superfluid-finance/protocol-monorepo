@@ -87,11 +87,11 @@ instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData s
            ( SubscriptionContractBase { sub_owned_unit        = u
                                       , sub_settled_at        = t_sc
                                       }
-           , SubscriptionContract { sc_settled_value          = UntappedValue sv
+           , SubscriptionContract { sc_settled_value          = sv
                                   , sc_settled_value_per_unit = svpu
                                   })
           ) -> let vpuΔ = floor $ fromIntegral dcfr * fromIntegral (t_dc - t_sc) / tu
-               in  UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu - vpuΔ)))
+               in  sv + floor (u * fromIntegral (vpu - svpu - vpuΔ)))
 
 -- * Publisher Operations
 
@@ -157,7 +157,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                   }
 
         svΔ = floor $ fromIntegral (vpu' - svpu) * u
-        sc' = sc { sc_settled_value = UntappedValue $ sv + svΔ
+        sc' = sc { sc_settled_value = sv + svΔ
                  , sc_settled_value_per_unit = vpu'
                  }
 
@@ -174,7 +174,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                                    } = dc
               SubscriptionContractBase { sub_owned_unit        = u
                                    } = scBase
-              SubscriptionContract { sc_settled_value          = UntappedValue sv
+              SubscriptionContract { sc_settled_value          = sv
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 

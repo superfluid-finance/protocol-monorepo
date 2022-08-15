@@ -6,6 +6,7 @@ module Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
     , MonetaryUnitData (..)
     ) where
 
+import           Data.Coerce
 import           Data.Default                         (Default (..))
 import           Data.Kind                            (Type)
 import           Lens.Internal
@@ -24,16 +25,16 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
     (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
         let t  = a^.settledAt
             t' = b^.settledAt
-            settledΔ = UntappedValue $ a^.netFlowRate * fromIntegral (t' - t)
+            settledΔ = MkUntappedValue $ a^.netFlowRate * fromIntegral (t' - t)
             c = a & set  settledAt t'
                   & over netFlowRate        (+ b^.netFlowRate)
                   & over settledValue       (+ (b^.settledValue + settledΔ))
         in MkMonetaryUnitData c
 
 instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
-    balanceProvided (MkMonetaryUnitData a) t = typedValuesToRTB
-            ( UntappedValue $ uval_s + fr * fromIntegral (t - t_s) )
-            [ ]
-        where t_s                  = a^.settledAt
-              UntappedValue uval_s = a^.settledValue
-              fr                   = a^.netFlowRate
+    balanceProvided (MkMonetaryUnitData a) t =
+        let b = uval_s + coerce (fr * fromIntegral (t - t_s))
+        in  typedValuesToRTB [ mkAnyTypedValue b ]
+        where t_s    = a^.settledAt
+              uval_s = a^.settledValue
+              fr     = a^.netFlowRate

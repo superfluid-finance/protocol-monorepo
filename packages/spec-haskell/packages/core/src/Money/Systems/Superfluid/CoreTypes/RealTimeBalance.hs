@@ -3,6 +3,7 @@
 module Money.Systems.Superfluid.CoreTypes.RealTimeBalance where
 
 import           Data.Default
+import           Data.Proxy
 
 import           Money.Systems.Superfluid.CoreTypes.TypedValue
 
@@ -30,17 +31,29 @@ class ( Value v
       , Foldable rtbF
       , Monoid (rtbF v)
       , Eq (rtbF v)
-      ) => RealTimeBalance rtbF v | rtbF -> v, v -> rtbF where
+      ) => RealTimeBalance rtbF v | rtbF -> v where
 
     -- | Convert a single monetary value to a RTB value.
-    valueToRTB :: v -> rtbF v
+    valueToRTB :: Proxy rtbF -> v -> rtbF v
 
     -- | Net monetary value of a RTB value.
     netValueOfRTB :: rtbF v -> v
     netValueOfRTB = foldr (+) def
 
     -- | Convert typed values to a RTB value.
-    typedValuesToRTB :: UntappedValue v -> [AnyTappedValue v] -> rtbF v
+    typedValuesToRTB :: [AnyTypedValue v] -> rtbF v
 
     -- | Get typed values from a RTB value.
-    typedValuesFromRTB :: rtbF v -> (UntappedValue v, [AnyTappedValue v])
+    typedValuesFromRTB :: rtbF v -> [AnyTypedValue v]
+
+-- =====================================================================================================================
+-- * RealTimeBalance Laws
+
+rtb_prop_mappend_commutativity :: forall rtbF v. RealTimeBalance rtbF v => rtbF v -> rtbF v -> Bool
+rtb_prop_mappend_commutativity a b = (a <> b) == (b <> a)
+
+rtb_prop_identity_from_and_to_typed_values :: forall rtbF v. RealTimeBalance rtbF v => rtbF v -> Bool
+rtb_prop_identity_from_and_to_typed_values x = (typedValuesToRTB . typedValuesFromRTB) x == x
+
+rtb_prop_conservation_of_net_value :: forall rtbF v. RealTimeBalance rtbF v => rtbF v -> Bool
+rtb_prop_conservation_of_net_value x = (netValueOfRTB . valueToRTB (Proxy @rtbF) . netValueOfRTB) x == netValueOfRTB x

@@ -49,9 +49,9 @@ instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData
     -- Formula:
     --   rtb(aad, t) = α * e ^ (-λ * (t - t_s)) + ε
     --       where { t_s = t_s, αVal = α, εVal = ε } = aad
-    balanceProvided (MkMonetaryUnitData a) t = typedValuesToRTB
-            ( UntappedValue $ ceiling $ α * exp (-λ * t_Δ) + ε )
-            [ ]
+    balanceProvided (MkMonetaryUnitData a) t =
+        let b = ceiling $ α * exp (-λ * t_Δ) + ε
+        in  typedValuesToRTB [ (mkAnyTypedValue . MkUntappedValue) b ]
         where t_s   = a^.settledAt
               α     = a^.αVal
               ε     = a^.εVal

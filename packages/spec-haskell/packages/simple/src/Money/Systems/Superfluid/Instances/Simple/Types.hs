@@ -40,6 +40,7 @@ module Money.Systems.Superfluid.Instances.Simple.Types
 
 import           Control.Applicative                                                        (Applicative (..))
 import           Data.Binary
+import           Data.Coerce
 import           Data.Default
 import           Data.Foldable                                                              (toList)
 import           Data.List                                                                  (intercalate)
@@ -103,14 +104,11 @@ instance Show Wad where
 
 -- ** Typed Values:
 
-instance Show (UntappedValue Wad) where
-    show (UntappedValue val) = show val ++ "@_"
-
-instance TypedValueTag vtag => Show (TappedValue vtag Wad) where
-    show (TappedValue val) = show val ++ "@" ++ tappedValueTag (Proxy @vtag)
-
-instance Show (AnyTappedValue Wad) where
-    show (AnyTappedValue (vtagProxy, val)) = show val ++ "@" ++ tappedValueTag vtagProxy
+instance Show (AnyTypedValue Wad) where
+    show (AnyTypedValue (p, val)) = show (coerce val :: Wad) ++ "@" ++ typedValueTag p
+instance Show (UntappedValue Wad) where show = show . mkAnyTypedValue
+instance Show (MVMUD.MintedValue Wad) where show = show . mkAnyTypedValue
+instance Show (BBS.BufferValue Wad) where show = show . mkAnyTypedValue
 
 -- ** Timestamp type
 
@@ -157,11 +155,10 @@ instance Show (SimpleRealTimeBalanceF Wad) where
         (show       . netValueOfRTB      $ rtb) ++ " " ++
         (showDetail . typedValuesFromRTB $ rtb)
         where
-        showDetail :: (UntappedValue Wad, [AnyTappedValue Wad]) -> String
-        showDetail (UntappedValue uval, tvec) = "( "
-            ++ show uval
+        showDetail :: [AnyTypedValue Wad] -> String
+        showDetail tvec = "( "
             -- skip zero/default values
-            ++ foldl ((++) . (++ ", ")) "" (map show . filter ((/= def) . untypeAnyTappedValue ) $ tvec)
+            ++ foldl ((++) . (++ ", ")) "" (map show . filter ((/= def) . exAnyTypedValue) $ tvec)
             ++ " )"
 
 instance Semigroup (SimpleRealTimeBalanceF Wad) where
@@ -171,20 +168,21 @@ instance Monoid (SimpleRealTimeBalanceF Wad) where
     mempty = pure 0
 
 instance RealTimeBalance SimpleRealTimeBalanceF Wad where
-    valueToRTB uval = SimpleRealTimeBalanceF uval def def
+    valueToRTB _ uval = SimpleRealTimeBalanceF uval def def
 
-    typedValuesToRTB (UntappedValue uval) tvec =
-        SimpleRealTimeBalanceF uval def def <> foldMap g tvec
-        -- extra correctly typed RTB monoid
-        where g (AnyTappedValue (p, v)) = case typeRep p of
-                  t | t == typeRep MVMUD.mintedValueTag -> SimpleRealTimeBalanceF def   v def
-                    | t == typeRep BBS.bufferValueTag  -> SimpleRealTimeBalanceF def def   v
-                    | otherwise -> error "Invalid monetary value tag"
+    typedValuesToRTB = foldMap g
+        where g (AnyTypedValue (p, v)) =
+                  let v' = coerce v
+                  in case typeRep p of
+                      t | t == typeRep (Proxy @(UntappedValue Wad))     -> SimpleRealTimeBalanceF  v' def def
+                        | t == typeRep (Proxy @(MVMUD.MintedValue Wad)) -> SimpleRealTimeBalanceF def  v' def
+                        | t == typeRep (Proxy @(BBS.BufferValue Wad))   -> SimpleRealTimeBalanceF def def  v'
+                        | otherwise -> error ("Invalid value tag: " <> show t)
 
-    typedValuesFromRTB rtb = (UntappedValue (untappedValue rtb),
-                              [ mkAnyTappedValue $ MVMUD.mkMintedValue $ mintedValue rtb
-                              , mkAnyTappedValue $ BBS.mkBufferValue   $ depositValue rtb
-                              ])
+    typedValuesFromRTB rtb = [ mkAnyTypedValue $ MkUntappedValue     $ untappedValue rtb
+                             , mkAnyTypedValue $ MVMUD.MkMintedValue $ mintedValue rtb
+                             , mkAnyTypedValue $ BBS.MkBufferValue   $ depositValue rtb
+                             ]
 
 -- ** Superfluid Core Types
 

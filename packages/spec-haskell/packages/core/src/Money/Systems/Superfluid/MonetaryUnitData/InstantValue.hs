@@ -27,4 +27,4 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
         in MkMonetaryUnitData c
 
 instance MonetaryUnitLenses amuLs sft => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
-    balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB (a^.untappedValue) []
+    balanceProvided (MkMonetaryUnitData a) _ = typedValuesToRTB [mkAnyTypedValue $ a^.untappedValue]

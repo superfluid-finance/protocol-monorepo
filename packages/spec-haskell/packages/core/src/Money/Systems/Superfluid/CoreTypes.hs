@@ -12,6 +12,7 @@ module Money.Systems.Superfluid.CoreTypes
 
 import           Data.Default                                       (Default)
 import           Data.Kind                                          (Type)
+import           Data.Typeable                                      (Typeable)
 
 import           Money.Systems.Superfluid.CoreTypes.RealTimeBalance
 import           Money.Systems.Superfluid.CoreTypes.TypedValue
@@ -35,7 +36,7 @@ class (Default ts, Integral ts) => Timestamp ts
 -- Note:
 -- - Note the "6.4.9.7.1. Syntax of injectivity annotation"
 class ( SFTFloat (SFT_FLOAT sft)
-      , Value (SFT_MVAL sft)
+      , Typeable (SFT_MVAL sft), Value (SFT_MVAL sft)
       , Timestamp (SFT_TS sft)
       , RealTimeBalance (SFT_RTB_F sft) (SFT_MVAL sft)
       ) => SuperfluidCoreTypes (sft :: Type) where

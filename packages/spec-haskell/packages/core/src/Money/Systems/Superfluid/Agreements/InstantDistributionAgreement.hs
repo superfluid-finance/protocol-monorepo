@@ -68,9 +68,9 @@ instance SuperfluidSystemTypes sft => IVMUD.MonetaryUnitLenses (SubscriberData s
         (\(( _
            , DistributionContract { dc_value_per_unit         = vpu              }),
            ( SubscriptionContractBase { sub_owned_unit        = u                }
-           , SubscriptionContract { sc_settled_value          = UntappedValue sv
+           , SubscriptionContract { sc_settled_value          = sv
                                   , sc_settled_value_per_unit = svpu             })
-          ) -> UntappedValue $ sv + floor (u * fromIntegral (vpu - svpu)))
+          ) -> sv + floor (u * fromIntegral (vpu - svpu)))
 
 -- * Publisher Operations
 
@@ -119,7 +119,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
     applyAgreementOperation ((dcBase, dc), (scBase, sc)) SettleSubscription _ = let
         svΔ = floor $ fromIntegral (vpu - svpu) * u
 
-        sc'  = sc { sc_settled_value = UntappedValue $ sv + svΔ
+        sc'  = sc { sc_settled_value = sv + svΔ
                   , sc_settled_value_per_unit = vpu
                   }
 
@@ -129,7 +129,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                                    } = dc
               SubscriptionContractBase { sub_owned_unit        = u
                                        } = scBase
-              SubscriptionContract { sc_settled_value          = UntappedValue sv
+              SubscriptionContract { sc_settled_value          = sv
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 

@@ -3,12 +3,17 @@
 module Lens.Internal
     ( module Lens.Micro
     , module Lens.Micro.Extras
+    , readOnlyLens
     , field
     ) where
 
 import           Language.Haskell.TH
 import           Lens.Micro
 import           Lens.Micro.Extras
+
+-- | A short hand for creating a read only lens
+readOnlyLens :: (s -> a) -> Lens s t a b
+readOnlyLens g = lens g (error "setting a read only lens")
 
 -- | Make a lens from a field name.
 --

@@ -20,7 +20,9 @@ library
         Money.Systems.Superfluid.Instances.Simple.System
     other-modules:
         Lens.Internal
-    hs-source-dirs:   src
+    hs-source-dirs:
+        src-internal
+        src
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:

@@ -372,8 +372,8 @@ contract Superfluid is
             SuperAppDefinitions.getAppCallbackLevel(configWord) != 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
             "SF: invalid config word");
-        require(_appManifests[ISuperApp(app)].configWord == 0 , "SF: app already registered");
-        _appManifests[ISuperApp(app)] = AppManifest(configWord);
+        require(_appManifests[app].configWord == 0 , "SF: app already registered");
+        _appManifests[app] = AppManifest(configWord);
         emit AppRegistered(app);
     }
 

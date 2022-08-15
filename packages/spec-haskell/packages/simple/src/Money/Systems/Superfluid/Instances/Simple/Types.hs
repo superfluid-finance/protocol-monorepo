@@ -158,7 +158,7 @@ instance Show (SimpleRealTimeBalanceF Wad) where
         showDetail :: [AnyTypedValue Wad] -> String
         showDetail tvec = "( "
             -- skip zero/default values
-            ++ foldl ((++) . (++ ", ")) "" (map show . filter ((/= def) . exAnyTypedValue) $ tvec)
+            ++ intercalate ", " (map show . filter ((/= def) . exAnyTypedValue) $ tvec)
             ++ " )"
 
 instance Semigroup (SimpleRealTimeBalanceF Wad) where

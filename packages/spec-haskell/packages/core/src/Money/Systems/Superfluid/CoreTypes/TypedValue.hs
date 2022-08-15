@@ -8,7 +8,7 @@
 -- - In /Superfluid Money Concepts/, plain 'Value' is also called "untyped" value, while 'TypedValue' is 'Value' that is
 --   further typed denoting its purpose.
 --
--- - Sub systems split untyped values into different types of typed value.
+-- - Sub systems split "untyped" values into different types of typed value for the purposes of sub systems.
 --
 -- - UntappedValue is a special type of 'TypedValue' that its purpose is to signal that the value is "untapped", hence
 --   readily to be used by any 'sub-system'.
@@ -37,7 +37,8 @@ class (Typeable tv, Value v, Coercible tv v) => TypedValue tv v | tv -> v where
     -- | Get string representation of typed value tag.
     typedValueTag :: Proxy tv -> String
 
--- | Untapped value type. It does not have a designated sub system, and can be freely accessed by any sub systems.
+-- | Untapped value type. It does not have a designated purpose controlled a specific sub system.
+--   Hence any sub system may freely tap into it.
 --
 -- Notional conventions:
 --  * Term name: uval
@@ -45,7 +46,7 @@ newtype UntappedValue v = MkUntappedValue v
     deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
 instance (Typeable v, Value v) => TypedValue (UntappedValue v) v where typedValueTag _ = "_"
 
--- | Any typed value
+-- | Any typed value.
 --
 -- Notional conventions:
 --  * Term name: anyv
@@ -55,6 +56,6 @@ data AnyTypedValue v = forall tv. TypedValue tv v => AnyTypedValue (Proxy tv, tv
 mkAnyTypedValue :: forall tv v. TypedValue tv v => tv -> AnyTypedValue v
 mkAnyTypedValue tval = AnyTypedValue (Proxy @tv, tval)
 
--- | Extract raw monetary value from any typed value
+-- | Extract raw monetary value from any typed value.
 exAnyTypedValue :: AnyTypedValue v -> v
 exAnyTypedValue (AnyTypedValue (_, tval)) = coerce tval

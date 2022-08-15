@@ -507,9 +507,9 @@ contract Superfluid is
     function appCallbackPush(
         bytes calldata ctx,
         ISuperApp app,
-        uint256 appAllowanceGranted,
-        int256 appAllowanceUsed,
-        ISuperfluidToken appAllowanceToken
+        uint256 appCreditGranted,
+        int256 appCreditUsed,
+        ISuperfluidToken appCreditToken
     )
         external override
         onlyAgreement
@@ -525,31 +525,29 @@ contract Superfluid is
         }
         context.appCallbackLevel++;
         context.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
-        context.appAllowanceGranted = appAllowanceGranted;
-        context.appAllowanceWanted = 0;
-        context.appAllowanceUsed = appAllowanceUsed;
+        context.appCreditGranted = appCreditGranted;
+        context.appCreditUsed = appCreditUsed;
         context.appAddress = address(app);
-        context.appAllowanceToken = appAllowanceToken;
+        context.appCreditToken = appCreditToken;
         appCtx = _updateContext(context);
     }
 
     function appCallbackPop(
         bytes calldata ctx,
-        int256 appAllowanceUsedDelta
+        int256 appCreditUsedDelta
     )
         external override
         onlyAgreement
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
+        context.appCreditUsed += appCreditUsedDelta;
         newCtx = _updateContext(context);
     }
 
-    function ctxUseAllowance(
+    function ctxUseCredit(
         bytes calldata ctx,
-        uint256 appAllowanceWantedMore,
-        int256 appAllowanceUsedDelta
+        int256 appCreditUsedMore
     )
         external override
         onlyAgreement
@@ -557,9 +555,7 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-
-        context.appAllowanceWanted = context.appAllowanceWanted + appAllowanceWantedMore;
-        context.appAllowanceUsed = context.appAllowanceUsed + appAllowanceUsedDelta;
+        context.appCreditUsed += appCreditUsedMore;
 
         newCtx = _updateContext(context);
     }
@@ -604,11 +600,11 @@ contract Superfluid is
             msgSender: msgSender,
             agreementSelector: agreementSelector,
             userData: userData,
-            appAllowanceGranted: 0,
-            appAllowanceWanted: 0,
-            appAllowanceUsed: 0,
+            appCreditGranted: 0,
+            appCreditWantedDeprecated: 0,
+            appCreditUsed: 0,
             appAddress: address(0),
-            appAllowanceToken: ISuperfluidToken(address(0))
+            appCreditToken: ISuperfluidToken(address(0))
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
@@ -649,11 +645,11 @@ contract Superfluid is
             msgSender: msgSender,
             agreementSelector: 0,
             userData: "",
-            appAllowanceGranted: 0,
-            appAllowanceWanted: 0,
-            appAllowanceUsed: 0,
+            appCreditGranted: 0,
+            appCreditWantedDeprecated: 0,
+            appCreditUsed: 0,
             appAddress: address(app),
-            appAllowanceToken: ISuperfluidToken(address(0))
+            appCreditToken: ISuperfluidToken(address(0))
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
@@ -868,9 +864,9 @@ contract Superfluid is
     {
         require(context.appCallbackLevel <= MAX_APP_CALLBACK_LEVEL, "SF: APP_RULE_MAX_APP_LEVEL_REACHED");
         uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appCallbackLevel, context.callType);
-        uint256 allowanceIO =
-            context.appAllowanceGranted.toUint128() |
-            (uint256(context.appAllowanceWanted.toUint128()) << 128);
+        uint256 creditIO =
+            context.appCreditGranted.toUint128() |
+            (uint256(context.appCreditWantedDeprecated.toUint128()) << 128);
         // NOTE: nested encoding done due to stack too deep error when decoding in _decodeCtx
         ctx = abi.encode(
             abi.encode(
@@ -881,10 +877,10 @@ contract Superfluid is
                 context.userData
             ),
             abi.encode(
-                allowanceIO,
-                context.appAllowanceUsed,
+                creditIO,
+                context.appCreditUsed,
                 context.appAddress,
-                context.appAllowanceToken
+                context.appCreditToken
             )
         );
         _ctxStamp = keccak256(ctx);
@@ -914,19 +910,19 @@ contract Superfluid is
             (context.appCallbackLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
         }
         {
-            uint256 allowanceIO;
+            uint256 creditIO;
             (
-                allowanceIO,
-                context.appAllowanceUsed,
+                creditIO,
+                context.appCreditUsed,
                 context.appAddress,
-                context.appAllowanceToken
+                context.appCreditToken
             ) = abi.decode(ctx2, (
                 uint256,
                 int256,
                 address,
                 ISuperfluidToken));
-            context.appAllowanceGranted = allowanceIO & type(uint128).max;
-            context.appAllowanceWanted = allowanceIO >> 128;
+            context.appCreditGranted = creditIO & type(uint128).max;
+            context.appCreditWantedDeprecated = creditIO >> 128;
         }
     }
 
@@ -1019,7 +1015,7 @@ contract Superfluid is
             // NOTE: len(data) is data.length + 32 https://docs.soliditylang.org/en/latest/abi-spec.html
             // solhint-disable-next-line no-inline-assembly
             assembly { placeHolderCtxLength := mload(add(data, dataLen)) }
-            require(placeHolderCtxLength == 0, "SF: placerholder ctx should have zero length");
+            require(placeHolderCtxLength == 0, "SF: placeholder ctx should have zero length");
         }
 
         // 1.b remove the placeholder ctx
@@ -1055,7 +1051,7 @@ contract Superfluid is
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
-        require(isAgreementClassListed(agreementClass), "SF: only listed agreeement allowed");
+        require(isAgreementClassListed(agreementClass), "SF: only listed agreement allowed");
         _;
     }
 
@@ -1065,7 +1061,7 @@ contract Superfluid is
     }
 
     modifier onlyAgreement() {
-        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: sender is not listed agreeement");
+        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: sender is not listed agreement");
         _;
     }
 

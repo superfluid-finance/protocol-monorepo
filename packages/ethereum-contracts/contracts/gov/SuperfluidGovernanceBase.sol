@@ -451,7 +451,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(factory) }
-            require(cs > 0, "SFGov: factory must be a contract");
+            require(cs != 0, "SFGov: factory must be a contract");
         }
 
         _setConfig(

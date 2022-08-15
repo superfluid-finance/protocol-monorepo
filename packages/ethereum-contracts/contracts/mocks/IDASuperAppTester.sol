@@ -150,7 +150,7 @@ contract IDASuperAppTester is ISuperApp {
         uint128 units;
         uint256 pendingDistribution;
 
-        if (cbdata.length > 0) {
+        if (cbdata.length != 0) {
             (
                 publisher,
                 indexId,

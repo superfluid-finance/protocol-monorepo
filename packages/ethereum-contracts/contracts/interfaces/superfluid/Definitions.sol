@@ -31,7 +31,7 @@ library SuperAppDefinitions {
 
     uint256 constant internal APP_JAIL_BIT = 1 << 15;
     function isAppJailed(uint256 configWord) internal pure returns (bool) {
-        return (configWord & SuperAppDefinitions.APP_JAIL_BIT) > 0;
+        return (configWord & SuperAppDefinitions.APP_JAIL_BIT) != 0;
     }
 
     /**************************************************************************

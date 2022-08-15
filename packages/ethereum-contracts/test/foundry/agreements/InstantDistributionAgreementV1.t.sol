@@ -11,7 +11,7 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
     constructor () FoundrySuperfluidTester(3) { }
 
     function testAlice2Bob(uint32 indexId, uint32 units, uint32 newIndexValue) public {
-        vm.assume(units > 0);
+        vm.assume(units != 0);
 
         bool exist;
         uint128 indexValue;

@@ -30,7 +30,7 @@ library FixedSizeData {
         for (uint j = 0; j < dataLength; ++j) {
             bytes32 d;
             assembly { d := sload(add(slot, j)) }
-            if (uint256(d) > 0) return true;
+            if (uint256(d) != 0) return true;
         }
         return false;
     }

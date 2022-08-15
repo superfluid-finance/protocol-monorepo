@@ -68,7 +68,7 @@ library CallUtils {
      * @dev Pad length to 32 bytes word boundary
      */
     function padLength32(uint256 len) internal pure returns (uint256 paddedLen) {
-        return ((len / 32) +  (((len & 31) > 0) /* rounding? */ ? 1 : 0)) * 32;
+        return ((len / 32) +  (((len & 31) != 0) /* rounding? */ ? 1 : 0)) * 32;
     }
 
     /**

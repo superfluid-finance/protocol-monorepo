@@ -993,7 +993,7 @@ contract ConstantFlowAgreementV1 is
         // and its range will be [0, currentContext.appAllowance]
         {
             // clipping the allowance used amount before storing
-            if (vars.appContext.appAllowanceUsed > 0) {
+            if (vars.appContext.appAllowanceUsed != 0) {
                 // give more to the app
                 vars.appContext.appAllowanceUsed =
                     _clipDepositNumber(vars.appContext.appAllowanceUsed.toUint256()).toInt256();
@@ -1301,7 +1301,7 @@ contract ConstantFlowAgreementV1 is
         returns(uint256)
     {
         // clipping the value, rounding up
-        uint256 rounding = (deposit & type(uint32).max) > 0 ? 1 : 0;
+        uint256 rounding = (deposit & type(uint32).max) != 0 ? 1 : 0;
         return ((deposit >> 32) + rounding) << 32;
     }
 
@@ -1364,7 +1364,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bool exist, FlowData memory flowData)
     {
-        exist = wordA > 0;
+        exist = wordA != 0;
         if (exist) {
             flowData.timestamp = uint32(wordA >> 224);
             // NOTE because we are upcasting from type(uint96).max to uint256 to int256, we do not need to use safecast
@@ -1456,7 +1456,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bool exist, FlowOperatorData memory flowOperatorData)
     {
-        exist = wordA > 0;
+        exist = wordA != 0;
         if (exist) {
             // NOTE: For safecast, doing extra bitmasking to not to have any trust assumption of token storage
             flowOperatorData.flowRateAllowance = int96(int256(wordA & uint256(int256(type(int96).max))));

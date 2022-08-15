@@ -61,7 +61,7 @@ contract MultiFlowTesterApp is SuperAppBase {
         configuration.ratioPct = ratioPct;
         configuration.receivers = new ReceiverData[](receivers.length);
         for(uint256 i = 0; i < receivers.length; i++) {
-            assert(proportions[i] > 0);
+            assert(proportions[i] != 0);
             configuration.receivers[i] = ReceiverData(receivers[i], proportions[i]);
         }
     }
@@ -179,7 +179,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
             assert(vars.flowSender == vars.context.msgSender);
             assert(vars.flowReceiver == address(this));
-            assert(vars.context.appAllowanceGranted > 0);
+            assert(vars.context.appAllowanceGranted != 0);
         }
         int96 flowRate;
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
@@ -231,7 +231,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
             assert(vars.flowSender == vars.context.msgSender);
             assert(vars.flowReceiver == address(this));
-            assert(vars.context.appAllowanceGranted > 0);
+            assert(vars.context.appAllowanceGranted != 0);
         }
         int96 flowRate;
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);

@@ -214,7 +214,7 @@ contract Superfluid is
         // add to the output
         n = 0;
         for (i = 0; i < _agreementClasses.length; ++i) {
-            if ((bitmap & (1 << i)) > 0) {
+            if ((bitmap & (1 << i)) != 0) {
                 agreementClasses[n++] = _agreementClasses[i];
             }
         }
@@ -341,7 +341,7 @@ contract Superfluid is
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(caller()) }
-            require(cs > 0, "SF: factory must be a contract");
+            require(cs != 0, "SF: factory must be a contract");
         }
 
         if (APP_WHITE_LISTING_ENABLED) {
@@ -370,7 +370,7 @@ contract Superfluid is
         }
         require(
             SuperAppDefinitions.isConfigWordClean(configWord) &&
-            SuperAppDefinitions.getAppCallbackLevel(configWord) > 0 &&
+            SuperAppDefinitions.getAppCallbackLevel(configWord) != 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
             "SF: invalid config word");
         require(_appManifests[ISuperApp(app)].configWord == 0 , "SF: app already registered");
@@ -379,7 +379,7 @@ contract Superfluid is
     }
 
     function isApp(ISuperApp app) public view override returns(bool) {
-        return _appManifests[app].configWord > 0;
+        return _appManifests[app].configWord != 0;
     }
 
     function getAppCallbackLevel(ISuperApp appAddr) public override view returns(uint8) {
@@ -397,7 +397,7 @@ contract Superfluid is
         )
     {
         AppManifest memory manifest = _appManifests[app];
-        isSuperApp = (manifest.configWord > 0);
+        isSuperApp = (manifest.configWord != 0);
         if (isSuperApp) {
             isJailed = SuperAppDefinitions.isAppJailed(manifest.configWord);
             noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
@@ -953,7 +953,7 @@ contract Superfluid is
         (success, returnedData) = target.call(callData);
 
         if (success) {
-            require(returnedData.length > 0, "SF: APP_RULE_CTX_IS_EMPTY");
+            require(returnedData.length != 0, "SF: APP_RULE_CTX_IS_EMPTY");
         }
     }
 
@@ -1071,7 +1071,7 @@ contract Superfluid is
 
     modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
-        require(w > 0, "SF: not a super app");
+        require(w != 0, "SF: not a super app");
         require(!SuperAppDefinitions.isAppJailed(w), "SF: app is jailed");
         _;
     }

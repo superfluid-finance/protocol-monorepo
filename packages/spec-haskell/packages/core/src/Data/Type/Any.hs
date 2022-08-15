@@ -3,7 +3,8 @@
 
 module Data.Type.Any where
 
-import           Data.Kind (Constraint, Type)
+import           Data.Kind  (Constraint, Type)
+import           Data.Proxy (Proxy)
 
 
 -- | ~AnyType~ ~a~ can hold wrap any instances of ~c~ constraint.
@@ -11,7 +12,10 @@ import           Data.Kind (Constraint, Type)
 -- Note:
 --    - It can be implemented with some flavor of existential type: https://wiki.haskell.org/Existential_type.
 --
---    - ~a~ should also be an instance of ~c~. But it would require the ~UndecidableSuperClasses~ extension.
-class c a => IsAnyTypeOf (a :: Type) (c :: Type -> Constraint) | a -> c where
+class IsAnyTypeOf (a :: Type) (c :: Type -> Constraint) | a -> c where
     -- | Make a ~AnyType~ from a term that is of type that has ~c~ constraint.
-    mkAny :: c e => e -> a
+    mkAny :: c e => Proxy a -> e -> a
+
+-- | Flip MPTC type params.
+class c a b => MPTC_Flip c b a
+instance c a b => MPTC_Flip c b a

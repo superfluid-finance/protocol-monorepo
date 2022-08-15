@@ -11,6 +11,7 @@
 module Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement where
 
 import           Data.Default
+import           Data.Type.Any
 import           GHC.Generics
 
 import           Lens.Internal
@@ -125,7 +126,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) 
     concatAgreementOperationOutput (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
         PublisherOperationOutputF (a <> a')
 
-    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (PublisherContract sft) = UpdateDistributionFlowRate (SFT_MVAL sft)
 
@@ -180,7 +181,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
     concatAgreementOperationOutput (SubscriberOperationOutputF a) (SubscriberOperationOutputF a') =
         SubscriberOperationOutputF (a <> a')
 
-    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 

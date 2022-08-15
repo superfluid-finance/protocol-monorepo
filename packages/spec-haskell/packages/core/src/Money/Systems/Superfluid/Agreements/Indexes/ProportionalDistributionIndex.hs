@@ -6,6 +6,7 @@
 module Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex where
 
 import           Data.Default
+import           Data.Type.Any
 import           GHC.Generics
 import           Lens.Internal
 
@@ -106,8 +107,8 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
 
     concatAgreementOperationOutput cfda cfda' = cfda <> cfda'
 
-    functorizeAgreementOperationOutput cfda = SubscriberOperationOutputF
-        (MkAnySemigroupMonetaryUnitData cfda)
+    functorizeAgreementOperationOutput p cfda = SubscriberOperationOutputF
+        (mkAny p cfda)
 
     data AgreementOperation (SubscriberContract sft) = Subscribe (SFT_FLOAT sft)
 

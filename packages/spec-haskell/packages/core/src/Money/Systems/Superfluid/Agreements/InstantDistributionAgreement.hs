@@ -12,6 +12,7 @@ module Money.Systems.Superfluid.Agreements.InstantDistributionAgreement where
 
 import           Data.Coerce
 import           Data.Default
+import           Data.Type.Any
 import           GHC.Generics
 import           Lens.Internal
 
@@ -93,7 +94,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) 
     concatAgreementOperationOutput (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
         PublisherOperationOutputF (a <> a')
 
-    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (PublisherContract sft) = Distribute (SFT_MVAL sft)
 
@@ -134,7 +135,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
 
     concatAgreementOperationOutput _ a = a
 
-    functorizeAgreementOperationOutput _ = SubscriberOperationOutputF
+    functorizeAgreementOperationOutput _ _ = SubscriberOperationOutputF
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 

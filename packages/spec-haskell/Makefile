@@ -114,7 +114,7 @@ docs: docs-haddock docs-yellowpaper
 dev:
 	nodemon \
 		-e lhs,hs,cabal \
-		-i dist-newstyle -i "$(TEST_BUILDDIR)" -i "$(TEST_COVERAGE_BUILDDIR)" \
+		-i dist-newstyle/ -i "$(TEST_BUILDDIR)/" -i "$(TEST_COVERAGE_BUILDDIR)/" \
 		-x "make $(DEV_TARGETS) || exit 1"
 
 freeze:

@@ -7,6 +7,7 @@ module Money.Systems.Superfluid.TestTypes where
 import           Control.Applicative
 import           Data.Coerce
 import           Data.Default
+import           Data.Type.Any
 import           Data.Typeable
 import           GHC.Generics
 
@@ -28,11 +29,12 @@ newtype T_Timestamp = T_Timestamp Int
 
 -- * Value
 newtype T_MVal = T_MVal Integer
-    deriving (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
+    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
 
 deriving instance Show (UntappedValue T_MVal)
 
 -- * RealTimeBalance
+
 data T_RealTimeBalanceF a = T_RealTimeBalanceF
     { untappedValue :: a
     , mintedValue   :: a
@@ -76,7 +78,7 @@ instance Arbitrary T_RealTimeBalance where
             , depositValue  = T_MVal d
             }
 
--- * Superfluid System
+-- * Superfluid Core Types
 
 data T_SuperfluidSystem
 
@@ -87,20 +89,6 @@ instance SuperfluidCoreTypes T_SuperfluidSystem where
     type SFT_MVAL  T_SuperfluidSystem = T_MVal
     type SFT_TS    T_SuperfluidSystem = T_Timestamp
     type SFT_RTB_F T_SuperfluidSystem = T_RealTimeBalanceF
-
--- | Existential type wrapper of monetary unit data
-data AnyMonetaryUnitData sft = forall mud. MonetaryUnitDataClass mud sft => MkAnyMonetaryUnitData mud
-instance SuperfluidCoreTypes sft => MonetaryUnitDataClass (AnyMonetaryUnitData sft) sft where
-    balanceProvided (MkAnyMonetaryUnitData a) = balanceProvided a
-
--- instance SuperfluidCoreTypes sft => AnyMonetaryUnitData sft `IsAnyTypeOf` MonetaryUnitDataClass where
---    mkAny :: (SuperfluidCoreTypes sft, MonetaryUnitDataClass sft e) =>
---        e -> AnyMonetaryUnitData sft
---    mkAny = MkAnyMonetaryUnitData
-
-instance SuperfluidSystemTypes T_SuperfluidSystem where
-    type SFT_ANY_MUD T_SuperfluidSystem = AnyMonetaryUnitData T_SuperfluidSystem
-    dfa_default_lambda _ = log 2 / (3600 * 24 * 7)
 
 -- * BBS
 deriving instance Show (BBS.BufferValue T_MVal)
@@ -152,3 +140,26 @@ type T_CFDAPublisherOperation = AgreementOperation T_CFDAPublisherContract
 
 type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidSystem
 type T_CFDASubscriberOperation = AgreementOperation T_CFDASubscriberContract
+
+-- * Superfluid System Types
+
+-- | Existential type wrapper of monetary unit data
+data T_AnyMonetaryUnitData = forall mud.
+    MonetaryUnitDataClass mud T_SuperfluidSystem
+    => MkAnyMonetaryUnitData mud
+
+instance MonetaryUnitDataClass T_AnyMonetaryUnitData T_SuperfluidSystem where
+    balanceProvided (MkAnyMonetaryUnitData a) = balanceProvided a
+
+instance SuperfluidSystemTypes T_SuperfluidSystem where
+    type SFT_ANY_MUD T_SuperfluidSystem = T_AnyMonetaryUnitData
+    dfa_default_lambda _ = log 2 / (3600 * 24 * 7)
+
+-- | Existential type wrapper of semigroup monetary unit data.
+data T_AnySemigroupMonetaryUnitData = forall mud. SemigroupMonetaryUnitData mud T_SuperfluidSystem
+    => MkAnySemigroupMonetaryUnitData mud
+instance MonetaryUnitDataClass T_AnySemigroupMonetaryUnitData T_SuperfluidSystem where
+    balanceProvided (MkAnySemigroupMonetaryUnitData a) = balanceProvided a
+
+instance T_AnySemigroupMonetaryUnitData `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData T_SuperfluidSystem where
+    mkAny _ = MkAnySemigroupMonetaryUnitData

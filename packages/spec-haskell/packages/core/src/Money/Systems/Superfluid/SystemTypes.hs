@@ -9,7 +9,6 @@ module Money.Systems.Superfluid.SystemTypes
 
 import           Data.Kind                                          (Type)
 import           Data.Proxy
-import           Data.Type.Any
 
 import           Money.Systems.Superfluid.CoreTypes
 --
@@ -26,11 +25,10 @@ import           Money.Systems.Superfluid.Concepts.MonetaryUnitData
 --
 class ( SuperfluidCoreTypes sft
       , MonetaryUnitDataClass (SFT_ANY_MUD sft) sft
-      -- TODO, use AnyType SFT_ANY_MUD sft `IsAnyTypeOf` MonetaryUnitDataClass sft
       ) => SuperfluidSystemTypes sft where
 
     -- | Default lambda value used by DFA.
     dfa_default_lambda :: Proxy sft -> SFT_FLOAT sft
 
-    -- | Actual ~AnyMUD~ type.
+    -- | The any type wrapper for monetary unit data instances.
     type family SFT_ANY_MUD sft = (any_mud :: Type) | any_mud -> sft

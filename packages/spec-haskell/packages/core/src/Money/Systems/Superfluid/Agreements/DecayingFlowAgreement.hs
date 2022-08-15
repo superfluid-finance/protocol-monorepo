@@ -10,6 +10,7 @@ module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
 
 import           Data.Default
 import           Data.Proxy
+import           Data.Type.Any
 import           GHC.Generics
 import           Lens.Internal
 
@@ -75,7 +76,7 @@ instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft w
     concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
         OperationOutputF (a <> a') (b <> b')
 
-    functorizeAgreementOperationOutput = fmap MkAnySemigroupMonetaryUnitData
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (ContractData sft) =
         UpdateDecayingFlow (DistributionLimit sft)

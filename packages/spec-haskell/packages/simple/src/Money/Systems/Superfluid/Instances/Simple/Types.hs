@@ -44,6 +44,7 @@ import           Data.Default
 import           Data.Foldable                                                              (toList)
 import           Data.List                                                                  (intercalate)
 import           Data.Proxy
+import           Data.Type.Any
 import           Data.Type.TaggedTypeable
 import           GHC.Generics                                                               (Generic)
 import           Lens.Internal
@@ -201,10 +202,18 @@ instance SuperfluidCoreTypes SimpleSuperfluidSystem where
 -- * Agreements
 --
 
+-- | SimpleMonetaryUnitData type class to capture constraints.
+class ( MonetaryUnitDataClass mud SimpleSuperfluidSystem
+      , TaggedTypeable mud
+      , Show mud
+      ) => SimpleMonetaryUnitData mud
+
 -- ** MINTA
 --
 
 type SimpleMinterMonetaryUnitData = MINTA.MonetaryUnitData SimpleSuperfluidSystem
+
+instance SimpleMonetaryUnitData SimpleMinterMonetaryUnitData
 
 instance TaggedTypeable SimpleMinterMonetaryUnitData where
     tagFromProxy _ = "Minter"
@@ -223,6 +232,8 @@ instance TaggedTypeable SimpleITAContractData where
     tagFromProxy _ = "ITA#"
 
 type SimpleITAMonetaryUnitData = ITA.MonetaryUnitData SimpleSuperfluidSystem
+
+instance SimpleMonetaryUnitData SimpleITAMonetaryUnitData
 
 instance TaggedTypeable SimpleITAMonetaryUnitData where
     tagFromProxy _ = "ITA"
@@ -244,6 +255,8 @@ instance Show SimpleCFAMonetaryUnitData where
         (show $ x^.CFMUD.settledAt)
         (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
+
+instance SimpleMonetaryUnitData SimpleCFAMonetaryUnitData
 
 instance TaggedTypeable SimpleCFAContractData where
     tagFromProxy _ = "CFA#"
@@ -273,6 +286,8 @@ instance Show SimpleDFAMonetaryUnitData where
 instance TaggedTypeable SimpleDFAContractData where
     tagFromProxy _ = "DFA#"
 
+instance SimpleMonetaryUnitData SimpleDFAMonetaryUnitData
+
 type SimpleDFAContractData = DFA.ContractData SimpleSuperfluidSystem
 
 instance Show SimpleDFAContractData where
@@ -290,12 +305,16 @@ instance Show (IDA.PublisherMonetaryUnitData SimpleSuperfluidSystem) where
     show (IVMUD.MkMonetaryUnitData x) = printf "pub { uval = %s }"
         (show $ x^.IVMUD.untappedValue)
 
+instance SimpleMonetaryUnitData (IDA.PublisherMonetaryUnitData SimpleSuperfluidSystem)
+
 instance TaggedTypeable (IDA.SubscriberMonetaryUnitData SimpleSuperfluidSystem) where
     tagFromProxy _ = "IDA(S)"
 
 instance Show (IDA.SubscriberMonetaryUnitData SimpleSuperfluidSystem) where
     show (IVMUD.MkMonetaryUnitData x) = printf "sub { uval = %s }"
         (show $ x^.IVMUD.untappedValue)
+
+instance SimpleMonetaryUnitData (IDA.SubscriberMonetaryUnitData SimpleSuperfluidSystem)
 
 -- ** CFDA
 --
@@ -309,6 +328,8 @@ instance Show (CFDA.PublisherMonetaryUnitData SimpleSuperfluidSystem) where
         (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
 
+instance SimpleMonetaryUnitData (CFDA.PublisherMonetaryUnitData SimpleSuperfluidSystem)
+
 instance TaggedTypeable (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidSystem) where
     tagFromProxy _ = "CFDA(S)"
 
@@ -317,6 +338,8 @@ instance Show (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidSystem) where
         (show $ x^.CFMUD.settledAt)
         (show $ x^.CFMUD.settledValue)
         (show $ x^.CFMUD.netFlowRate)
+
+instance SimpleMonetaryUnitData (CFDA.SubscriberMonetaryUnitData SimpleSuperfluidSystem)
 
 -- =====================================================================================================================
 -- * Indexes
@@ -355,16 +378,26 @@ type SimpleSubscriberData = PDIDX.SubscriberData SimpleSuperfluidSystem
 --
 
 -- | AnyMonetaryUnitData type.
-data AnySimpleMonetaryUnitData = forall mud.
-    ( MonetaryUnitDataClass mud SimpleSuperfluidSystem
-    , TaggedTypeable mud
-    , Show mud
-    ) => MkAnySimpleMonetaryUnitData mud
+data AnySimpleMonetaryUnitData = forall mud. SimpleMonetaryUnitData mud => MkAnySimpleMonetaryUnitData mud
+
 instance MonetaryUnitDataClass AnySimpleMonetaryUnitData SimpleSuperfluidSystem where
     balanceProvided (MkAnySimpleMonetaryUnitData a) = balanceProvided a
 
+instance TaggedTypeable AnySimpleMonetaryUnitData where
+    tagFromProxy _ = "Any#"
+
 instance Show AnySimpleMonetaryUnitData where
     show (MkAnySimpleMonetaryUnitData a) = show a
+
+instance SimpleMonetaryUnitData AnySimpleMonetaryUnitData
+
+-- Conjouring some type tricks to define the any type.
+deriving instance SimpleMonetaryUnitData mud
+    => MPTC_Flip MonetaryUnitDataClass SimpleSuperfluidSystem mud
+instance AnySimpleMonetaryUnitData `IsAnyTypeOf` SimpleMonetaryUnitData where
+    mkAny _ = MkAnySimpleMonetaryUnitData
+
+-- deriving instance MPTC_Flip MonetaryUnitDataClass SimpleSuperfluidSystem AnySimpleMonetaryUnitData
 
 -- ** Some useful AgreementOperationOutputF instances
 --

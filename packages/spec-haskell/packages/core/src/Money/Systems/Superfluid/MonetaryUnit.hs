@@ -22,10 +22,6 @@ import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex     
 --
 -- It represents the Superfluid take on the monetary unit in the theory of money distribution.
 class SuperfluidSystemTypes sft => MonetaryUnit mu sft | mu -> sft where
-    -- * Polymorphic agreement account data functions
-    --
-
-    monetaryUnitDataList :: mu -> [SFT_ANY_MUD sft]
 
     -- * Nomenclature:
     --
@@ -72,6 +68,9 @@ class SuperfluidSystemTypes sft => MonetaryUnit mu sft | mu -> sft where
 
     -- | Getter for the list of subscriber CFDA data.
     cfdaSubscriberMonetaryUnitDataList :: SimpleGetter mu [CFDA.SubscriberMonetaryUnitData sft]
+
+    -- | List of monetary unit data warapped in ~AnyType~.
+    monetaryUnitDataList :: mu -> [SFT_ANY_MUD sft]
 
     -- | Calculate the real time balance of an monetary unit at a given time.
     balanceOfAt :: mu -> SFT_TS sft -> SFT_RTB sft

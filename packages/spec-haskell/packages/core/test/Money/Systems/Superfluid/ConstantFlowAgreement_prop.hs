@@ -2,6 +2,7 @@
 
 module Money.Systems.Superfluid.ConstantFlowAgreement_prop (tests) where
 
+import           Data.Proxy
 import           Lens.Internal
 import           Test.Hspec
 import           Test.QuickCheck
@@ -28,7 +29,8 @@ semigroup_mud_settles_pi = mud_prop_semigroup_settles_pi
 -- * Agreement Laws
 
 ao_zero_sum_balance :: T_Timestamp -> NonEmptyList (T_CFAOperation, T_Timestamp) -> Bool
-ao_zero_sum_balance t aos = ao_prop_zero_sum_balance_series_ops t (getNonEmpty aos)
+ao_zero_sum_balance t aos = ao_prop_zero_sum_balance_series_ops p t (getNonEmpty aos)
+    where p = Proxy @T_AnySemigroupMonetaryUnitData
 
 tests = describe "ConstantFlowAgreement properties" $ do
     it "CFA semigroup MUD associativity"          $ property semigroup_mud_associativity

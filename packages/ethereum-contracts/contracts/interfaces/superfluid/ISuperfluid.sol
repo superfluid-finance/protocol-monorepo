@@ -69,7 +69,7 @@ interface ISuperfluid {
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic Initial agreement class code
      *
-     * @custom:modifiers
+     * @custom:modifiers 
      * - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -85,7 +85,7 @@ interface ISuperfluid {
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
     *
-    * @custom:modifiers
+    * @custom:modifiers 
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -484,6 +484,13 @@ interface ISuperfluid {
         // app credit wanted by the app callback
         uint256 appCreditWantedDeprecated;
         // app credit used, allowing negative values over a callback session
+        // the appCreditUsed value over a callback sessions is calculated with:
+        // existing flow data owed deposit + sum of the callback agreements
+        // deposit deltas 
+        // the final value used to modify the state is determined by the
+        // _adjustNewAppCreditUsed function (in AgreementLibrary.sol) which takes 
+        // the appCreditUsed value reached in the callback session and the app
+        // credit granted
         int256 appCreditUsed;
         // app address
         address appAddress;

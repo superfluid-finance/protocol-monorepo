@@ -152,9 +152,10 @@ library AgreementLibrary {
     }
 
     /**
-     * Determines how much app credit the app will use.
+     * @dev Determines how much app credit the app will use.
      * @param appCreditGranted set prior to callback based on input flow
-     * @param appCallbackDepositDelta set in callback - summed deposit deltas of callback agreements
+     * @param appCallbackDepositDelta set in callback - sum of deposit deltas of callback agreements and
+     * current flow owed deposit amount
      */
     function _adjustNewAppCreditUsed(
         uint256 appCreditGranted,

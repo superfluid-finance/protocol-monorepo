@@ -959,16 +959,17 @@ contract ConstantFlowAgreementV1 is
 
             ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
 
+            (,cbStates.appCreditGranted,) = _changeFlow(
+                    currentContext.timestamp,
+                    currentContext.appCreditToken,
+                    token, flowParams, oldFlowData);
+
+
             // Rule CFA-2
             // https://github.com/superfluid-finance/protocol-monorepo/wiki/About-App-Credit
             // Allow apps to take an additional amount of app credit (minimum deposit)
             uint256 minimumDeposit = gov.getConfigAsUint256(
                 ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-
-            (,cbStates.appCreditGranted,) = _changeFlow(
-                    currentContext.timestamp,
-                    currentContext.appCreditToken,
-                    token, flowParams, oldFlowData);
 
             // NOTE: we do not provide additionalAppCreditAmount when cbStates.appCreditGranted is 0
             // (closing streams)
@@ -978,8 +979,8 @@ contract ConstantFlowAgreementV1 is
                     DEFAULT_MINIMUM_DEPOSIT,
                     minimumDeposit
                 );
-
             cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
+
             cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
 
             // - each app level can at least "relay" the same amount of input flow rate to others

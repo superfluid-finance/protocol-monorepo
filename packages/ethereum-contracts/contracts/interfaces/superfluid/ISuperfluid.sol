@@ -453,6 +453,7 @@ interface ISuperfluid {
      * - The order of the fields hence should not be rearranged in order to be backward compatible:
      *    - non-dynamic fields will be parsed at the same memory location,
      *    - and dynamic fields will simply have a greater offset than it was.
+     * - We cannot change the structure of the Context struct because of ABI compatibility requirements
      */
     struct Context {
         //
@@ -481,7 +482,7 @@ interface ISuperfluid {
         // app credit granted
         uint256 appCreditGranted;
         // app credit wanted by the app callback
-        uint256 appCreditWanted;
+        uint256 appCreditWantedDeprecated;
         // app credit used, allowing negative values over a callback session
         int256 appCreditUsed;
         // app address

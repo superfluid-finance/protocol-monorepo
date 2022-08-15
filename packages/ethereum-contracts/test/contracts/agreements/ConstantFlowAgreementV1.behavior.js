@@ -146,11 +146,6 @@ async function _shouldChangeFlow({
             mfa && toBN(flowRate).gt(toBN(0))
                 ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
                 : mainFlowAppCreditGranted;
-        // const appCreditWanted = Object.values(cfaDataModel.expectedFlowInfo)
-        //         .map((i) => i.deposit)
-        //         .reduce((acc, cur) => {
-        //             return acc.add(cur);
-        //         }, toBN(0));
         const appCreditUsed = Object.entries(cfaDataModel.expectedFlowInfo)
             .map((x) => {
                 const depositBefore =

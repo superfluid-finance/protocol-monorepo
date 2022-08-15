@@ -601,7 +601,7 @@ contract Superfluid is
             agreementSelector: agreementSelector,
             userData: userData,
             appCreditGranted: 0,
-            appCreditWanted: 0,
+            appCreditWantedDeprecated: 0,
             appCreditUsed: 0,
             appAddress: address(0),
             appCreditToken: ISuperfluidToken(address(0))
@@ -646,7 +646,7 @@ contract Superfluid is
             agreementSelector: 0,
             userData: "",
             appCreditGranted: 0,
-            appCreditWanted: 0,
+            appCreditWantedDeprecated: 0,
             appCreditUsed: 0,
             appAddress: address(app),
             appCreditToken: ISuperfluidToken(address(0))
@@ -866,7 +866,7 @@ contract Superfluid is
         uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appCallbackLevel, context.callType);
         uint256 creditIO =
             context.appCreditGranted.toUint128() |
-            (uint256(context.appCreditWanted.toUint128()) << 128);
+            (uint256(context.appCreditWantedDeprecated.toUint128()) << 128);
         // NOTE: nested encoding done due to stack too deep error when decoding in _decodeCtx
         ctx = abi.encode(
             abi.encode(
@@ -922,7 +922,7 @@ contract Superfluid is
                 address,
                 ISuperfluidToken));
             context.appCreditGranted = creditIO & type(uint128).max;
-            context.appCreditWanted = creditIO >> 128;
+            context.appCreditWantedDeprecated = creditIO >> 128;
         }
     }
 

@@ -100,11 +100,11 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly { mstore(add(context, mul(32, 6)), 42) }
             require(context.appCreditGranted == 42, "appCreditGranted changed location");
         }
-        // context.appCreditWanted
+        // context.appCreditWantedDeprecated
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 7)), 42) }
-            require(context.appCreditWanted == 42, "appCreditWanted changed location");
+            require(context.appCreditWantedDeprecated == 42, "appCreditWantedDeprecated changed location");
         }
         // context.appCreditUsed
         {

@@ -154,17 +154,22 @@ library AgreementLibrary {
     /**
      * Determines how much app credit the app will use.
      * @param appCreditGranted set prior to callback based on input flow
-     * @param appCreditUsed set in callback - summed deposit deltas of agreements
+     * @param appCallbackDepositDelta set in callback - summed deposit deltas of callback agreements
      */
     function _adjustNewAppCreditUsed(
         uint256 appCreditGranted,
-        int256 appCreditUsed
+        int256 appCallbackDepositDelta
     ) internal pure returns (int256) {
+        // NOTE: we use max(0, ...) because appCallbackDepositDelta can be negative and appCallbackDepositDelta
+        // should never go below 0, otherwise the SuperApp can return more money than borrowed
         return max(
             0,
+            
+            // NOTE: we use min(appCreditGranted, appCallbackDepositDelta) to ensure that the SuperApp borrows
+            // appCreditGranted at most and appCallbackDepositDelta at least (if smaller than appCreditGranted)
             min(
                 appCreditGranted.toInt256(),
-                appCreditUsed
+                appCallbackDepositDelta
             )
         );
     }

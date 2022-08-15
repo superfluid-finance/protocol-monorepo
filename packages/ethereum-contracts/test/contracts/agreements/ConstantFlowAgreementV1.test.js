@@ -3239,16 +3239,20 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#2.6 mfa-1to1-?pct_create-should-fail-without-extra-funds", async () => {
             // @note - the ratio pct is dependent on the additional app credit amount
-            // in proportion to the flow deposit
+            // in proportion to the flow deposit hence the ?pct
             const deposit = CFADataModel.clipDepositNumber(
                 FLOW_RATE1.muln(LIQUIDATION_PERIOD)
             );
+            // calculate what percentage minimum deposit is of the deposit
             const minDepositToDepositRatio =
                 Number(MINIMUM_DEPOSIT.toString()) / Number(deposit.toString());
             const ratioPercentage = minDepositToDepositRatio * 100;
+            console.log("MIN DEP / DEP RATIO:", ratioPercentage);
+            // add this percentage to 100 to get the maximum ratiopct allowed
+            // given the additional app credit amount then add 1 to make it not work
             const exceededRatioPct = 100 + ratioPercentage + 1;
 
-            const mfa = {
+            let mfa = {
                 ratioPct: exceededRatioPct,
                 sender,
                 receivers: {
@@ -3269,6 +3273,22 @@ describe("Using ConstantFlowAgreement v1", function () {
                 }),
                 "CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT"
             );
+
+            // original case
+            // this now works because 101%
+            mfa = {
+                ...mfa,
+                ratioPct: 101,
+            };
+            await shouldCreateFlow({
+                testenv: t,
+                superToken,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -3712,6 +3732,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             );
 
             // @note - need to consider new additional app credit rule CFA-2
+            // it takes additional time to drain the account due to the
+            // additional app credit amount/minimum deposit
             const minDepTime = MINIMUM_DEPOSIT.div(mfaNetFlowRate);
             await timeTravelOnceAndVerifyAll({
                 time:

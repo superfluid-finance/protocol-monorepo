@@ -1065,6 +1065,8 @@ contract ConstantFlowAgreementV1 is
                             // user will take the damage if the app is broke,
                             -availableBalance,
                             // but user's damage is limited to the amount of app credit it gives to the app
+                            // appCreditDelta should ALWAYS be negative because we are closing an agreement
+                            // therefore the value will be positive due to the '-' sign in front of it
                             -appCreditDelta);
                         token.settleBalance(
                             flowParams.sender,

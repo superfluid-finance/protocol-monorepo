@@ -3280,14 +3280,17 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ...mfa,
                 ratioPct: 101,
             };
-            await shouldCreateFlow({
-                testenv: t,
-                superToken,
-                sender,
-                receiver: "mfa",
-                mfa,
-                flowRate: FLOW_RATE1,
-            });
+            await expectRevertedWith(
+                shouldCreateFlow({
+                    testenv: t,
+                    superToken,
+                    sender,
+                    receiver: "mfa",
+                    mfa,
+                    flowRate: FLOW_RATE1,
+                }),
+                "CFA: not enough available balance"
+            );
 
             await timeTravelOnceAndVerifyAll();
         });

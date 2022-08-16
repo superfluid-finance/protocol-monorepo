@@ -77,7 +77,7 @@ instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData s
         (\(( DistributionContractBase { total_unit     = tu }
            , DistributionContract { dc_flow_rate       = dcfr }),
            ( SubscriptionContractBase { sub_owned_unit = u }
-           , _)) -> floor $ fromIntegral dcfr * u / tu )
+           , _)) -> if tu /= 0 then floor $ fromIntegral dcfr * u / tu else 0)
 
     settledValue = readOnlyLens
         (\(( DistributionContractBase { total_unit            = tu }
@@ -90,17 +90,19 @@ instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData s
            , SubscriptionContract { sc_settled_value          = sv
                                   , sc_settled_value_per_unit = svpu
                                   })
-          ) -> let vpuΔ = floor $ fromIntegral dcfr * fromIntegral (t_dc - t_sc) / tu
-               in  sv + floor (u * fromIntegral (vpu - svpu - vpuΔ)))
+          ) -> let compensatedΔ = dcfr * fromIntegral (t_dc - t_sc)
+                   compensatedVpuΔ = if tu /= 0 then floor $ fromIntegral compensatedΔ / tu else 0
+               in  sv + floor (u * fromIntegral (vpu - svpu - compensatedVpuΔ)))
 
 -- * Publisher Operations
 
 instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (PublisherContract sft) sft where
 
 instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) sft where
-    applyAgreementOperation (dcBase, dc) (UpdateDistributionFlowRate dcfr') t' = let
+    applyAgreementOperation (dcBase, dc) (UpdateDistributionFlowRate dcfrNew) t' = let
         -- FIXME can be a black hole due to tu == 0 or precision error
         --       need to communicate the actual distribution flow rate instead
+        dcfr' = if tu /= 0 then floor $ fromIntegral dcfrNew / tu * tu else 0
         settledΔ = dcfr * fromIntegral (t' - t_dc)
         vpuΔ = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0
 
@@ -130,16 +132,16 @@ instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) 
 
     data AgreementOperation (PublisherContract sft) = UpdateDistributionFlowRate (SFT_MVAL sft)
 
-    type AgreementOperationOutput (PublisherContract sft) = PublisherOperationOutputF sft
+    type AgreementOperationOutput (PublisherContract sft) = PublisherOperationOutput sft
 
     data AgreementOperationOutputF (PublisherContract sft) elem = PublisherOperationOutputF
         elem -- publisher mud
         deriving stock (Functor, Foldable, Traversable, Generic)
 
-type PublisherOperationOutputF sft = AgreementOperationOutputF (PublisherContract sft)
+type PublisherOperationOutput sft = AgreementOperationOutputF (PublisherContract sft)
     (PublisherMonetaryUnitData sft)
 
-instance SuperfluidSystemTypes sft => Default (PublisherOperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (PublisherOperationOutput sft)
 
 -- * Subscriber Operations
 

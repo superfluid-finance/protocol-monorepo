@@ -2,6 +2,7 @@
 
 module Money.Systems.Superfluid.ConstantFlowAgreement_prop (tests) where
 
+import           Data.Default
 import           Data.Proxy
 import           Lens.Internal
 import           Test.Hspec
@@ -28,11 +29,28 @@ semigroup_mud_settles_pi = mud_prop_semigroup_settles_pi
 
 -- * Agreement Laws
 
-ao_zero_sum_balance :: T_Timestamp -> NonEmptyList (T_CFAOperation, T_Timestamp) -> Bool
-ao_zero_sum_balance t aos = ao_prop_zero_sum_balance_series_ops p t (getNonEmpty aos)
-    where p = Proxy @T_AnySemigroupMonetaryUnitData
+data TestOperations = Nop () | Op T_CFAOperation deriving Show
+
+instance Arbitrary TestOperations where
+    arbitrary = oneof [ (arbitrary :: Gen T_CFAOperation) <&> Op
+                      , (arbitrary :: Gen ()) <&> Nop
+                      ]
+
+ao_zero_sum_balance_2ps :: T_Timestamp -> NonEmptyList (TestOperations, T_Timestamp) -> Bool
+ao_zero_sum_balance_2ps t0 aos0 = go (getNonEmpty aos0) t0 (def, def)
+    where go ((Nop (), tΔ):aos) t cs =
+              ao_sum_contract_balance p (MkAnyAgreementContractState cs) t' == mempty && go aos t' cs
+              where t' = t + tΔ
+          go ((Op ao, tΔ):aos) t cs =
+              let cs' = ao_go_single_op cs ao t'
+              in  ao_sum_contract_balance p (MkAnyAgreementContractState cs)  t' == mempty &&
+                  ao_sum_contract_balance p (MkAnyAgreementContractState cs') t' == mempty &&
+                  go aos t' cs'
+              where t' = t + tΔ
+          go [] _ _ = True
+          p = Proxy @T_AnySemigroupMonetaryUnitData
 
 tests = describe "ConstantFlowAgreement properties" $ do
-    it "CFA semigroup MUD associativity"          $ property semigroup_mud_associativity
-    it "CFA semigroup MUD settles pi"             $ property semigroup_mud_settles_pi
-    it "CFA operations produces zero balance sum" $ property ao_zero_sum_balance
+    it "CFA semigroup MUD associativity"                              $ property semigroup_mud_associativity
+    it "CFA semigroup MUD settles pi"                                 $ property semigroup_mud_settles_pi
+    it "CFA operations produces zero balance sum between two parties" $ property ao_zero_sum_balance_2ps

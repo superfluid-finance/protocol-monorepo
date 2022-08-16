@@ -15,11 +15,12 @@ import           Test.QuickCheck
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement             as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement as CFDA
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                as CFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                 as MVMUD
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency               as BBS
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
+import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
+import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                     as MVMUD
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
 
 
 -- * Timestamp
@@ -118,6 +119,16 @@ instance Arbitrary T_CFAOperation where
 deriving instance Show T_CFAMonetaryUnitData
 deriving instance Show T_CFAOperation
 
+-- * PDIDX
+
+type T_PDIDXSubscriberContract = PDIDX.SubscriberContract T_SuperfluidSystem
+type T_PDIDXSubscriberOperation = AgreementOperation T_PDIDXSubscriberContract
+
+instance Arbitrary T_PDIDXSubscriberOperation where
+    arbitrary = PDIDX.Subscribe <$> arbitrary
+
+deriving instance Show T_PDIDXSubscriberOperation
+
 -- * CFDA
 
 type T_CFDAPublisherMUD = CFDA.PublisherMonetaryUnitData T_SuperfluidSystem
@@ -138,8 +149,11 @@ deriving instance Show T_CFDAPublisherMUD
 type T_CFDAPublisherContract = CFDA.PublisherContract T_SuperfluidSystem
 type T_CFDAPublisherOperation = AgreementOperation T_CFDAPublisherContract
 
+instance Arbitrary T_CFDAPublisherOperation where
+    arbitrary = CFDA.UpdateDistributionFlowRate <$> arbitrary
+deriving instance Show T_CFDAPublisherOperation
+
 type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidSystem
-type T_CFDASubscriberOperation = AgreementOperation T_CFDASubscriberContract
 
 -- * Superfluid System Types
 

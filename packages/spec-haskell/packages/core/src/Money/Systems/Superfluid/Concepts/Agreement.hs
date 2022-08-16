@@ -4,7 +4,11 @@
 
 module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementContract (..)
-    , ao_prop_zero_sum_balance_series_ops
+    , AgreementContractState
+    , AnyAgreementContractState (..)
+    , ao_sum_contract_balance
+    , ao_go_single_op
+    -- , ao_go_zero_sum_balance_single_op
     ) where
 
 import           Data.Default
@@ -61,54 +65,59 @@ class ( SuperfluidCoreTypes sft
     -- Note: since ~ac~ is injected, hence this can be associated type alias.
     type family AgreementOperationOutput ac = (muds :: Type) | muds -> ac
 
-
 -- =====================================================================================================================
 -- * Agreement Laws
 
-ao_is_zero_sum_balance :: forall ac sft any_smud.
-                          ( SuperfluidCoreTypes sft
-                          , AgreementContract ac sft
-                          , MonetaryUnitDataClass any_smud sft
-                          , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
-                          )
-                       => Proxy any_smud -> ac -> AgreementOperationOutput ac -> SFT_TS sft -> Bool
-ao_is_zero_sum_balance p ac muds t = foldr (<>) (π₂ t ac) (fmap (π₁ t) (φ muds)) == mempty
+type AgreementContractState ac sft = (SuperfluidCoreTypes sft, AgreementContract ac sft)
+    => (ac, AgreementOperationOutput ac)
+
+data AnyAgreementContractState sft = forall ac. AgreementContract ac sft
+    => MkAnyAgreementContractState (ac, AgreementOperationOutput ac)
+
+ao_sum_contract_balance :: forall sft any_smud.
+                           ( SuperfluidCoreTypes sft
+                           , MonetaryUnitDataClass any_smud sft
+                           , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+                           )
+                        => Proxy any_smud
+                        -> AnyAgreementContractState sft
+                        -> SFT_TS sft
+                        -> SFT_RTB sft
+ao_sum_contract_balance p (MkAnyAgreementContractState (ac, muds)) t =
+    foldr (<>) (π₂ t ac) (fmap (π₁ t) (φ muds))
     where φ  = functorizeAgreementOperationOutput p
           π₁ = flip balanceProvided -- π function (flipped) for semigroup mud
           π₂ = flip balanceProvided -- π function (flipped) for contract mud
 
-ao_go_zero_sum_balance_single_op :: forall ac sft any_smud.
-                                 ( SuperfluidCoreTypes sft
-                                 , AgreementContract ac sft
-                                 , MonetaryUnitDataClass any_smud sft
-                                 , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
-                                 )
-                                 => Proxy any_smud
-                                 -> ac
-                                 -> AgreementOperationOutput ac
-                                 -> AgreementOperation ac
-                                 -> SFT_TS sft
-                                 -> (Bool, ac, AgreementOperationOutput ac)
-ao_go_zero_sum_balance_single_op p ac muds ao t' =
+ao_go_single_op :: forall ac sft.
+                   ( SuperfluidCoreTypes sft
+                   , AgreementContract ac sft
+                   )
+                => AgreementContractState ac sft
+                -> AgreementOperation ac
+                -> SFT_TS sft
+                -> AgreementContractState ac sft
+ao_go_single_op (ac, muds) ao t' =
     let (ac', mudsΔ) = ω ac ao t'
         muds'        = κ muds mudsΔ
-    in  ( ao_is_zero_sum_balance p ac  muds  t' &&
-          ao_is_zero_sum_balance p ac' muds' t'
-        , ac', muds')
+    in  (ac', muds')
     where ω  = applyAgreementOperation
           κ  = concatAgreementOperationOutput
 
--- | Series of agreement operations should result a funcorful of monetary unit data whose balance sum is always zero.
-ao_prop_zero_sum_balance_series_ops :: forall ac sft any_smud.
-                                       ( SuperfluidCoreTypes sft
-                                       , AgreementContract ac sft
-                                       , MonetaryUnitDataClass any_smud sft
-                                       , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
-                                       )
-                                    => Proxy any_smud -> SFT_TS sft -> [(AgreementOperation ac, SFT_TS sft)] -> Bool
-ao_prop_zero_sum_balance_series_ops p = go def def
-    where go ac muds t ((ao, tΔ):aos) =
-              let (good, ac', muds') = ao_go_zero_sum_balance_single_op p ac muds ao t'
-              in  good && go ac' muds' t' aos
-              where t' = t + tΔ
-          go _ _ _ [] = True
+-- ao_go_zero_sum_balance_single_op :: forall ac sft any_smud.
+--                                     ( SuperfluidCoreTypes sft
+--                                     , AgreementContract ac sft
+--                                     , MonetaryUnitDataClass any_smud sft
+--                                     , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+--                                     )
+--                                  => Proxy any_smud
+--                                  -> AgreementContractState ac sft
+--                                  -> AgreementOperation ac
+--                                  -> [AnyAgreementContractState sft]
+--                                  -> SFT_TS sft
+--                                  -> (Bool, AgreementContractState ac sft)
+-- ao_go_zero_sum_balance_single_op p cs ao ocss t' =
+--     let cs' = ao_go_single_op cs ao t'
+--     in  (σ cs t' == mempty && σ cs' t' == mempty, cs')
+--     where σ cs' = foldMap (ao_sum_contract_balance p) ocss <>
+--                   ao_sum_contract_balance p (MkAnyAgreementContractState cs')

@@ -7,9 +7,12 @@ module Money.Systems.Superfluid.TestTypes where
 import           Control.Applicative
 import           Data.Coerce
 import           Data.Default
+import           Data.Functor                                                              ((<&>))
+import           Data.Int
 import           Data.Type.Any
 import           Data.Typeable
 import           GHC.Generics
+import           Math.Extras.Double                                                        (fuzzyEq)
 
 import           Test.QuickCheck
 
@@ -29,10 +32,14 @@ newtype T_Timestamp = T_Timestamp Int
     deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show, Arbitrary)
 
 -- * Value
+
 newtype T_MVal = T_MVal Integer
     deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
 
 deriving instance Show (UntappedValue T_MVal)
+
+fuzzyEqMVal :: T_MVal -> T_MVal -> Bool
+fuzzyEqMVal a b = fuzzyEq 1e6 (fromIntegral a) (fromIntegral b)
 
 -- * RealTimeBalance
 
@@ -125,7 +132,8 @@ type T_PDIDXSubscriberContract = PDIDX.SubscriberContract T_SuperfluidSystem
 type T_PDIDXSubscriberOperation = AgreementOperation T_PDIDXSubscriberContract
 
 instance Arbitrary T_PDIDXSubscriberOperation where
-    arbitrary = PDIDX.Subscribe <$> arbitrary
+    arbitrary = chooseBoundedIntegral (0 :: Int, 1000)
+        <&> fromIntegral <&> PDIDX.Subscribe
 
 deriving instance Show T_PDIDXSubscriberOperation
 
@@ -150,7 +158,8 @@ type T_CFDAPublisherContract = CFDA.PublisherContract T_SuperfluidSystem
 type T_CFDAPublisherOperation = AgreementOperation T_CFDAPublisherContract
 
 instance Arbitrary T_CFDAPublisherOperation where
-    arbitrary = CFDA.UpdateDistributionFlowRate <$> arbitrary
+    arbitrary = chooseBoundedIntegral (0 :: Int64, floor (1e24 :: Double))
+        <&> fromIntegral <&> CFDA.UpdateDistributionFlowRate
 deriving instance Show T_CFDAPublisherOperation
 
 type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidSystem

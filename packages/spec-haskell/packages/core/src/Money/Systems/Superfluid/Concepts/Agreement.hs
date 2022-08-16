@@ -6,10 +6,13 @@
 module Money.Systems.Superfluid.Concepts.Agreement
     ( AgreementContract (..)
     , AgreementContractState
+    , NullAgreementContract
+    , AgreementOperation (..)
+    , AgreementOperationOutputF (..)
     , AnyAgreementContractState (..)
     , ao_sum_contract_balance
     , ao_go_single_op
-    , ao_go_zero_sum_balance_single_op
+    , ao_go_zero_sum_balance_after_single_op
     ) where
 
 import           Data.Default
@@ -66,6 +69,27 @@ class ( SuperfluidCoreTypes sft
     -- Note: since ~ac~ is injected, hence this can be associated type alias.
     type family AgreementOperationOutput ac = (muds :: Type) | muds -> ac
 
+-- * Null Agreement
+
+data NullAgreementContract sft
+
+instance SuperfluidCoreTypes sft => Default (NullAgreementContract sft) where def = def
+instance SuperfluidCoreTypes sft => MonetaryUnitDataClass (NullAgreementContract sft) sft
+
+instance SuperfluidCoreTypes sft => AgreementContract (NullAgreementContract sft) sft where
+    applyAgreementOperation ac _ _ = (ac, NullAgreementOutoutF)
+    functorizeAgreementOperationOutput _ _ = NullAgreementOutoutF
+    concatAgreementOperationOutput = const
+    data AgreementOperation (NullAgreementContract sft) = NullAgreementOperation
+    data AgreementOperationOutputF (NullAgreementContract sft) _ = NullAgreementOutoutF
+        deriving stock (Functor, Foldable, Traversable)
+    type AgreementOperationOutput (NullAgreementContract sft) = NullAgreementOutout sft
+
+type NullAgreementOutout sft = AgreementOperationOutputF (NullAgreementContract sft) ()
+
+instance SuperfluidCoreTypes sft => Default (NullAgreementOutout sft) where def = def
+
+-- * Agreement Contract State
 
 type AgreementContractState ac sft = (SuperfluidCoreTypes sft, AgreementContract ac sft)
     => (ac, AgreementOperationOutput ac)
@@ -106,21 +130,25 @@ ao_go_single_op (ac, muds) ao t' =
     where ω  = applyAgreementOperation
           κ  = concatAgreementOperationOutput
 
-ao_go_zero_sum_balance_single_op :: forall ac sft any_smud.
-                                    ( SuperfluidCoreTypes sft
-                                    , AgreementContract ac sft
-                                    , MonetaryUnitDataClass any_smud sft
-                                    , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
-                                    )
-                                 => Proxy any_smud
-                                 -> AgreementContractState ac sft
-                                 -> AgreementOperation ac
-                                 -> [AnyAgreementContractState sft]
-                                 -> SFT_TS sft
-                                 -> (Bool, AgreementContractState ac sft)
-ao_go_zero_sum_balance_single_op p cs ao ocss t' =
+ao_go_zero_sum_balance_after_single_op :: forall ac sft any_smud.
+                                          ( SuperfluidCoreTypes sft
+                                          , AgreementContract ac sft
+                                          , MonetaryUnitDataClass any_smud sft
+                                          , any_smud
+                                            `IsAnyTypeOf`
+                                            MPTC_Flip SemigroupMonetaryUnitData sft
+                                          )
+                                       => Proxy any_smud
+                                       -> (SFT_MVAL sft -> SFT_MVAL sft -> Bool)
+                                       -> AgreementContractState ac sft
+                                       -> AgreementOperation ac
+                                       -> [AnyAgreementContractState sft]
+                                       -> SFT_TS sft
+                                       -> (Bool, AgreementContractState ac sft)
+ao_go_zero_sum_balance_after_single_op p mvalEq cs ao ocss t' =
     let cs' = ao_go_single_op cs ao t'
-    in  (σ cs t' == b && σ cs' t' == b, cs')
-    where b = ao_sum_contract_balance p (MkAnyAgreementContractState cs) t'
-          σ cs' = foldMap (ao_sum_contract_balance p) ocss <>
-                  ao_sum_contract_balance p (MkAnyAgreementContractState cs')
+    in  (σ cs `mvalEq` b && σ cs' `mvalEq` b, cs')
+    where b = netValueOfRTB $ ao_sum_contract_balance p (MkAnyAgreementContractState cs) t'
+          σ cs' = netValueOfRTB $
+              foldMap (flip (ao_sum_contract_balance p) t') ocss <>
+              ao_sum_contract_balance p (MkAnyAgreementContractState cs') t'

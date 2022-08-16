@@ -77,4 +77,5 @@ test-suite tests
         QuickCheck >=2.13,
         hspec >=2.0,
         HUnit >=1.6.0.0,
+        math-extras,
         superfluid-protocol-spec-core     ==0.0.1.0

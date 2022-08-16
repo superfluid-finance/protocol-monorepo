@@ -1,4 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE MonoLocalBinds     #-}
 
 module Money.Systems.Superfluid.ConstantFlowDistributionAgreement_prop (tests) where
 
@@ -47,39 +49,43 @@ instance Arbitrary TO1Pub2Subs where
                       ]
 ao_1pub2subs_zero_sum_balance :: T_Timestamp -> NonEmptyList (TO1Pub2Subs, T_Timestamp) -> Bool
 ao_1pub2subs_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) def def
-    where go ((TO1Pub2Subs (Nop ()), tΔ):aos) t (dcFull, muds) scFull1 scFull2 =
-              go' aos t' (dcFull, muds) scFull1 scFull2
+    where go ((TO1Pub2Subs (Nop ()), tΔ):aos) t (dcFull, pubMuds) scFull1 scFull2 =
+              let (isGood, (_, _)) = single_op
+                      t' (dcFull, pubMuds) scFull1 scFull2
+                      def NullAgreementOperation
+              in  isGood && go aos t' (dcFull, pubMuds) scFull1 scFull2
               where t' = t + tΔ
-          go ((TO1Pub2Subs (PubOp1 ao), tΔ):aos) t (dcFull, muds) scFull1 scFull2 =
+          go ((TO1Pub2Subs (PubOp1 ao), tΔ):aos) t (dcFull, pubMuds) scFull1 scFull2 =
               let cfdaDCFull = (PDIDX.dc_base dcFull, PDIDX.dc_cfda dcFull)
-                  ((_, cfdaDC'), CFDA.PublisherOperationOutputF muds') =
-                      ao_go_single_op (cfdaDCFull, CFDA.PublisherOperationOutputF muds) ao t'
+                  (isGood, ((_, cfdaDC'), CFDA.PublisherOperationOutputF pubMuds')) = single_op
+                      t' (dcFull, pubMuds) scFull1 scFull2
+                      (cfdaDCFull, CFDA.PublisherOperationOutputF pubMuds) ao
                   dcFull' = dcFull { PDIDX.dc_cfda = cfdaDC' }
-              in  go' aos t' (dcFull', muds') scFull1 scFull2
+              in  isGood && go aos t' (dcFull', pubMuds') scFull1 scFull2
               where t' = t + tΔ
-          go ((TO1Pub2Subs (PubOp2 _), _) :_) _ _ _ _ = error "huh"
-          go ((TO1Pub2Subs (SubOp1 ao), tΔ):aos) t (dcFull, muds) scFull1 scFull2 =
-              let ((_, scFull1'), mudsΔ') =
-                      ao_go_single_op ((dcFull, scFull1), def) ao t'
-              in  go' aos t' (dcFull, muds <> mudsΔ') scFull1' scFull2
+          go ((TO1Pub2Subs (PubOp2 _), _) :_) _ _ _ _ = error "huh? there is no pub2"
+          go ((TO1Pub2Subs (SubOp1 ao), tΔ):aos) t (dcFull, pubMuds) scFull1 scFull2 =
+              let (isGood, ((dcFull', scFull1'), pubMudsΔ)) = single_op
+                      t' (dcFull, pubMuds) scFull1 scFull2
+                      ((dcFull, scFull1), def) ao
+              in  isGood && go aos t' (dcFull', pubMuds <> pubMudsΔ) scFull1' scFull2
               where t' = t + tΔ
-          go ((TO1Pub2Subs (SubOp2 ao), tΔ):aos) t (dcFull, muds) scFull1 scFull2 =
-              let ((_, scFull2'), mudsΔ') =
-                      ao_go_single_op ((dcFull, scFull2), def) ao t'
-              in  go' aos t' (dcFull, muds <> mudsΔ') scFull1 scFull2'
+          go ((TO1Pub2Subs (SubOp2 ao), tΔ):aos) t (dcFull, pubMuds) scFull1 scFull2 =
+              let (isGood, ((dcFull', scFull2'), pubMudsΔ)) = single_op
+                      t' (dcFull, pubMuds) scFull1 scFull2
+                      ((dcFull, scFull2), def) ao
+              in  isGood && go aos t' (dcFull', pubMuds <> pubMudsΔ) scFull1 scFull2'
               where t' = t + tΔ
           go [] _ _ _ _ = True
-          go' aos' t' (dcFull', muds') sc1Full' sc2Full' =
-              is_zero_sum t' (dcFull', muds') sc1Full' sc2Full'
-              && go aos' t' (dcFull', muds') sc1Full' sc2Full'
-          is_zero_sum t' (dcFull', muds') sc1Full' sc2Full' =
+          single_op t' (dcFull', pubMuds') scFull1' scFull2' cs ao =
               let cfdaDCFull' = (PDIDX.dc_base dcFull', PDIDX.dc_cfda dcFull')
-              in foldMap (flip (ao_sum_contract_balance p) t')
-                 [ MkAnyAgreementContractState (cfdaDCFull', CFDA.PublisherOperationOutputF muds')
-                 , MkAnyAgreementContractState ((dcFull', sc1Full'), def)
-                 , MkAnyAgreementContractState ((dcFull', sc2Full'), def)
-                 ] == mempty
-              where p = Proxy @T_AnySemigroupMonetaryUnitData
+                  ocss = [ MkAnyAgreementContractState (cfdaDCFull', CFDA.PublisherOperationOutputF pubMuds')
+                         , MkAnyAgreementContractState ((dcFull', scFull1'), def)
+                         , MkAnyAgreementContractState ((dcFull', scFull2'), def)
+                         ]
+              in  ao_go_zero_sum_balance_after_single_op
+                  (Proxy @T_AnySemigroupMonetaryUnitData) fuzzyEqMVal
+                  cs ao ocss t'
 
 newtype TO2Pubs1Sub = TO2Pubs1Sub TestOperations deriving Show
 instance Arbitrary TO2Pubs1Sub where
@@ -91,48 +97,52 @@ instance Arbitrary TO2Pubs1Sub where
                       ]
 ao_2pubs1sub_zero_sum_balance :: T_Timestamp -> NonEmptyList (TO2Pubs1Sub, T_Timestamp) -> Bool
 ao_2pubs1sub_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) (def, def) def
-    where
-          go ((TO2Pubs1Sub (Nop ()), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
-              go' aos t' (dcFull1, muds1) (dcFull2, muds2) scFull
+    where go ((TO2Pubs1Sub (Nop ()), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull =
+              let (isGood, (_, _)) = single_op
+                      t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull
+                      def NullAgreementOperation
+              in  isGood && go aos t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull
               where t' = t + tΔ
-          go ((TO2Pubs1Sub (PubOp1 ao), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
+          go ((TO2Pubs1Sub (PubOp1 ao), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull =
               let cfdaDCFull1 = (PDIDX.dc_base dcFull1, PDIDX.dc_cfda dcFull1)
-                  ((_, cfdaDC1'), CFDA.PublisherOperationOutputF muds1') =
-                      ao_go_single_op (cfdaDCFull1, CFDA.PublisherOperationOutputF muds1) ao t'
+                  (isGood, ((_, cfdaDC1'), CFDA.PublisherOperationOutputF pubMuds1')) = single_op
+                      t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull
+                      (cfdaDCFull1, CFDA.PublisherOperationOutputF pubMuds1) ao
                   dcFull1' = dcFull1 { PDIDX.dc_cfda = cfdaDC1' }
-              in  go' aos t' (dcFull1', muds1') (dcFull2, muds2) scFull
+              in  isGood && go aos t' (dcFull1', pubMuds1') (dcFull2, pubMuds2) scFull
               where t' = t + tΔ
-          go ((TO2Pubs1Sub (PubOp2 ao), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
+          go ((TO2Pubs1Sub (PubOp2 ao), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull =
               let cfdaDCFull2 = (PDIDX.dc_base dcFull2, PDIDX.dc_cfda dcFull2)
-                  ((_, cfdaDC2'), CFDA.PublisherOperationOutputF muds2') =
-                      ao_go_single_op (cfdaDCFull2, CFDA.PublisherOperationOutputF muds2) ao t'
+                  (isGood, ((_, cfdaDC2'), CFDA.PublisherOperationOutputF pubMuds2')) = single_op
+                      t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull
+                      (cfdaDCFull2, CFDA.PublisherOperationOutputF pubMuds2) ao
                   dcFull1' = dcFull1 { PDIDX.dc_cfda = cfdaDC2' }
-              in  go' aos t' (dcFull1', muds1) (dcFull2, muds2') scFull
+              in  isGood && go aos t' (dcFull1', pubMuds1) (dcFull2, pubMuds2') scFull
               where t' = t + tΔ
-          go ((TO2Pubs1Sub (SubOp1 ao), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
-              let ((_, scFull'), muds1Δ') =
-                      ao_go_single_op ((dcFull1, scFull), def) ao t'
-              in  go' aos t' (dcFull1, muds1 <> muds1Δ') (dcFull2, muds2) scFull'
+          go ((TO2Pubs1Sub (SubOp1 ao), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull =
+              let (isGood, ((dcFull1', scFull'), pubMuds1Δ')) = single_op
+                      t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull
+                      ((dcFull1, scFull), def) ao
+              in  isGood && go aos t' (dcFull1', pubMuds1 <> pubMuds1Δ') (dcFull2, pubMuds2) scFull'
               where t' = t + tΔ
-          go ((TO2Pubs1Sub (SubOp2 ao), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
-              let ((_, scFull'), muds2Δ') =
-                      ao_go_single_op ((dcFull2, scFull), def) ao t'
-              in  go' aos t' (dcFull1, muds1) (dcFull2, muds2 <> muds2Δ') scFull'
+          go ((TO2Pubs1Sub (SubOp2 ao), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull =
+              let (isGood, ((dcFull2', scFull'), pubMuds2Δ')) = single_op
+                      t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull
+                      ((dcFull2, scFull), def) ao
+              in  isGood && go aos t' (dcFull1, pubMuds1) (dcFull2', pubMuds2 <> pubMuds2Δ') scFull'
               where t' = t + tΔ
           go [] _ _ _ _ = True
-          go' aos' t' (dcFull', muds') sc1Full' sc2Full' =
-              is_zero_sum t' (dcFull', muds') sc1Full' sc2Full'
-              && go aos' t' (dcFull', muds') sc1Full' sc2Full'
-          is_zero_sum t' (dcFull1', muds1')  (dcFull2', muds2') scFull' =
+          single_op t' (dcFull1', pubMuds1') (dcFull2', pubMuds2') scFull' cs ao =
               let cfdaDCFull1' = (PDIDX.dc_base dcFull1', PDIDX.dc_cfda dcFull1')
                   cfdaDCFull2' = (PDIDX.dc_base dcFull2', PDIDX.dc_cfda dcFull2')
-              in foldMap (flip (ao_sum_contract_balance p) t')
-                 [ MkAnyAgreementContractState (cfdaDCFull1', CFDA.PublisherOperationOutputF muds1')
-                 , MkAnyAgreementContractState (cfdaDCFull2', CFDA.PublisherOperationOutputF muds2')
-                 , MkAnyAgreementContractState ((dcFull1', scFull'), def)
-                 , MkAnyAgreementContractState ((dcFull2', scFull'), def)
-                 ] == mempty
-              where p = Proxy @T_AnySemigroupMonetaryUnitData
+                  ocss = [ MkAnyAgreementContractState (cfdaDCFull1', CFDA.PublisherOperationOutputF pubMuds1')
+                         , MkAnyAgreementContractState (cfdaDCFull2', CFDA.PublisherOperationOutputF pubMuds2')
+                         , MkAnyAgreementContractState ((dcFull1', scFull'), def)
+                         , MkAnyAgreementContractState ((dcFull2', scFull'), def)
+                         ]
+              in  ao_go_zero_sum_balance_after_single_op
+                  (Proxy @T_AnySemigroupMonetaryUnitData) fuzzyEqMVal
+                  cs ao ocss t'
 
 tests = describe "ConstantFlowDistributionAgreement properties" $ do
     it "CFDA semigroup Publisher MUD associativity"                       $ property semigroup_pubmud_associativity

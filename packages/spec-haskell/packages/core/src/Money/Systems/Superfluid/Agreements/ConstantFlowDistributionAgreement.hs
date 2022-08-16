@@ -187,13 +187,13 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 
-    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutputF sft
+    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutput sft
 
     data AgreementOperationOutputF (SubscriberContract sft) elem = SubscriberOperationOutputF
         elem -- publisher mud
         deriving stock (Functor, Foldable, Traversable, Generic)
 
-type SubscriberOperationOutputF sft = AgreementOperationOutputF (SubscriberContract sft)
+type SubscriberOperationOutput sft = AgreementOperationOutputF (SubscriberContract sft)
     (PublisherMonetaryUnitData sft)
 
-instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutput sft)

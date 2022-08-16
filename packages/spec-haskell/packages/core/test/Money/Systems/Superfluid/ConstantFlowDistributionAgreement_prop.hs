@@ -74,10 +74,11 @@ ao_1pub2subs_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) def 
               && go aos' t' (dcFull', muds') sc1Full' sc2Full'
           is_zero_sum t' (dcFull', muds') sc1Full' sc2Full' =
               let cfdaDCFull' = (PDIDX.dc_base dcFull', PDIDX.dc_cfda dcFull')
-              in ao_sum_contract_balance p (MkAnyAgreementContractState (cfdaDCFull', CFDA.PublisherOperationOutputF muds')) t'
-              <> ao_sum_contract_balance p (MkAnyAgreementContractState ((dcFull', sc1Full'), def)) t'
-              <> ao_sum_contract_balance p (MkAnyAgreementContractState ((dcFull', sc2Full'), def)) t'
-              == mempty
+              in foldMap (flip (ao_sum_contract_balance p) t')
+                 [ MkAnyAgreementContractState (cfdaDCFull', CFDA.PublisherOperationOutputF muds')
+                 , MkAnyAgreementContractState ((dcFull', sc1Full'), def)
+                 , MkAnyAgreementContractState ((dcFull', sc2Full'), def)
+                 ] == mempty
               where p = Proxy @T_AnySemigroupMonetaryUnitData
 
 newtype TO2Pubs1Sub = TO2Pubs1Sub TestOperations deriving Show
@@ -90,7 +91,8 @@ instance Arbitrary TO2Pubs1Sub where
                       ]
 ao_2pubs1sub_zero_sum_balance :: T_Timestamp -> NonEmptyList (TO2Pubs1Sub, T_Timestamp) -> Bool
 ao_2pubs1sub_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) (def, def) def
-    where go ((TO2Pubs1Sub (Nop ()), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
+    where
+          go ((TO2Pubs1Sub (Nop ()), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
               go' aos t' (dcFull1, muds1) (dcFull2, muds2) scFull
               where t' = t + tΔ
           go ((TO2Pubs1Sub (PubOp1 ao), tΔ):aos) t (dcFull1, muds1) (dcFull2, muds2) scFull =
@@ -124,11 +126,12 @@ ao_2pubs1sub_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) (def
           is_zero_sum t' (dcFull1', muds1')  (dcFull2', muds2') scFull' =
               let cfdaDCFull1' = (PDIDX.dc_base dcFull1', PDIDX.dc_cfda dcFull1')
                   cfdaDCFull2' = (PDIDX.dc_base dcFull2', PDIDX.dc_cfda dcFull2')
-              in ao_sum_contract_balance p (MkAnyAgreementContractState (cfdaDCFull1', CFDA.PublisherOperationOutputF muds1')) t'
-              <> ao_sum_contract_balance p (MkAnyAgreementContractState (cfdaDCFull2', CFDA.PublisherOperationOutputF muds2')) t'
-              <> ao_sum_contract_balance p (MkAnyAgreementContractState ((dcFull1', scFull'), def)) t'
-              <> ao_sum_contract_balance p (MkAnyAgreementContractState ((dcFull2', scFull'), def)) t'
-              == mempty
+              in foldMap (flip (ao_sum_contract_balance p) t')
+                 [ MkAnyAgreementContractState (cfdaDCFull1', CFDA.PublisherOperationOutputF muds1')
+                 , MkAnyAgreementContractState (cfdaDCFull2', CFDA.PublisherOperationOutputF muds2')
+                 , MkAnyAgreementContractState ((dcFull1', scFull'), def)
+                 , MkAnyAgreementContractState ((dcFull2', scFull'), def)
+                 ] == mempty
               where p = Proxy @T_AnySemigroupMonetaryUnitData
 
 tests = describe "ConstantFlowDistributionAgreement properties" $ do

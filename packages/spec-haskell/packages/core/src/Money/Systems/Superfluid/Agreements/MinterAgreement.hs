@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -8,51 +8,72 @@
 -- This module is typically imported using qualified name MINTA.
 module Money.Systems.Superfluid.Agreements.MinterAgreement where
 
-import           Data.Coerce                                                 (coerce)
+import           Data.Coerce                                           (coerce)
 import           Data.Default
-import           Data.Kind
+import           Data.Type.Any
+import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.MintedValue as MMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue as MVMUD
 
 -- * Monetary unit lenses
 --
 
-instance SuperfluidTypes sft => MMUD.MonetaryUnitLenses (UniversalData sft) sft where
-    untappedValue = $(field 'minter_untapped_value)
-    mintedValue   = $(field 'minter_minted_value)
-type MonetaryUnitData sft = MMUD.MonetaryUnitData (UniversalData sft) sft
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { untapped_value :: UntappedValue (SFT_MVAL sft)
+    , minted_value   :: MVMUD.MintedValue (SFT_MVAL sft)
+    } deriving (Generic)
+deriving instance SuperfluidSystemTypes sft => Default (MonetaryUnitLenses sft)
 
--- * Operation
+type MonetaryUnitData sft = MVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+
+instance SuperfluidSystemTypes sft => MVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    untappedValue = $(field 'untapped_value)
+    mintedValue   = $(field 'minted_value)
+
+-- * Contract & Operation
 --
 
-data Operation sft = Mint (SFT_MVAL sft) |
-                           Burn (SFT_MVAL sft)
+-- No ongoing relationships between parties
+data ContractData sft = ContractData
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
-    data AgreementOperationResultF (Operation sft) elem = OperationResultF
-        { mintFrom :: elem
-        , mintTo   :: elem
-        } deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
 
-    applyAgreementOperation (Mint amount) acd _ = let
-        acd'  = acd
-        aorΔ = fmap MMUD.MkMonetaryUnitData (OperationResultF
-                (def & set MMUD.mintedValue   (coerce (- amount)))
-                (def & set MMUD.untappedValue (coerce    amount)))
-        in (acd', aorΔ)
-    applyAgreementOperation (Burn amount) acd _ = let
-        acd'  = acd
-        aorΔ = fmap MMUD.MkMonetaryUnitData (OperationResultF
-                (def & set MMUD.mintedValue   (coerce    amount))
-                (def & set MMUD.untappedValue (coerce (- amount))))
-        in (acd', aorΔ)
+instance SuperfluidSystemTypes sft => Default (ContractData sft) where def = ContractData
 
-type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
-instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData
+instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft where
+    applyAgreementOperation ac (Mint amount) _ = let
+        ac' = ac
+        mudsΔ = MVMUD.MkMonetaryUnitData <$> OperationOutputF
+                (def & set MVMUD.mintedValue   (coerce (- amount)))
+                (def & set MVMUD.untappedValue (coerce    amount))
+        in (ac', mudsΔ)
+
+    applyAgreementOperation ac (Burn amount) _ = let
+        ac' = ac
+        mudsΔ = fmap MVMUD.MkMonetaryUnitData (OperationOutputF
+                (def & set MVMUD.mintedValue   (coerce    amount))
+                (def & set MVMUD.untappedValue (coerce (- amount))))
+        in (ac', mudsΔ)
+
+    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
+        OperationOutputF (a <> a') (b <> b')
+
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
+
+    data AgreementOperation (ContractData sft) = Mint (SFT_MVAL sft) |
+                                                 Burn (SFT_MVAL sft)
+
+    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
+
+    data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
+        { mint_from :: elem
+        , mint_to   :: elem
+        } deriving stock (Functor, Foldable, Traversable, Generic)
+
+type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)

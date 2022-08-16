@@ -100,8 +100,6 @@ instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (PublisherContract s
 
 instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) sft where
     applyAgreementOperation (dcBase, dc) (UpdateDistributionFlowRate dcfrNew) t' = let
-        -- FIXME can be a black hole due to tu == 0 or precision error
-        --       need to communicate the actual distribution flow rate instead
         dcfr' = if tu /= 0 then floor $ fromIntegral dcfrNew / tu * tu else 0
         settledΔ = dcfr * fromIntegral (t' - t_dc)
         vpuΔ = if tu /= 0 then floor $ fromIntegral settledΔ / tu else 0

@@ -32,8 +32,8 @@ u1x = fromIntegral tstep * fr1x
 -- * Test Scenarios
 --
 
-simple1to2ScenarioTest1 = TokenTestCase TokenTestSpec
-    { testCaseLabel = "Simple 1to2 Scenario Test 1"
+scenario1Pub2SubsSimple = TokenTestCase TokenTestSpec
+    { testCaseLabel = "Simple 1 Pub 2 Subs Scenario"
     , testAddressesToInit = ["alice", "bob", "carol"]
     , testAccountInitBalance = constInitBalance
     } (\ctx -> do
@@ -54,8 +54,8 @@ simple1to2ScenarioTest1 = TokenTestCase TokenTestSpec
     expectZeroTotalValue
       )
 
-simple1to2ScenarioTest2 = TokenTestCase TokenTestSpec
-    { testCaseLabel = "Simple 1to2 Scenario Test 2"
+scenario1Pub2SubsComplex = TokenTestCase TokenTestSpec
+    { testCaseLabel = "Complex 1 Pub 2 Subs Scenario"
     , testAddressesToInit = ["alice", "bob", "carol"]
     , testAccountInitBalance = constInitBalance
     } (\ctx -> do
@@ -102,8 +102,31 @@ simple1to2ScenarioTest2 = TokenTestCase TokenTestSpec
 
     expectZeroTotalValue)
 
-multi1to2and1to1ScenarioTest = TokenTestCase TokenTestSpec
-    { testCaseLabel = "Multi 1to1 1to2 Scenario Test"
+scenario2Pubs1SubsSimple = TokenTestCase TokenTestSpec
+    { testCaseLabel = "Simple 2 Pubs 1 Sub Scenario"
+    , testAddressesToInit = ["alice", "bob", "carol"]
+    , testAccountInitBalance = constInitBalance
+    } (\ctx -> do
+    let [alice, bob, carol] = testAddresses ctx
+    expectZeroTotalValue
+
+    -- T0: setup subscription from carol to alice, and carol to bob
+    runToken $ SF.updateProportionalDistributionSubscription carol alice 0 1000
+    runToken $ SF.updateProportionalDistributionSubscription carol bob 0 4000
+
+    -- T1: alice distribute 5x
+    runToken $ SF.distributeFlow alice 0 (5*fr1x)
+    runToken $ SF.distributeFlow bob 0 (3*fr1x)
+    timeTravel tstep
+    expectAccountBalanceTo alice $ assertEqual' (constInitBalance - 5 * u1x)
+    expectAccountBalanceTo bob   $ assertEqual' (constInitBalance - 3 * u1x)
+    expectAccountBalanceTo carol $ assertEqual' (constInitBalance + 8 * u1x)
+
+    expectZeroTotalValue
+      )
+
+multi1Pub2x1SubsScenarioTest = TokenTestCase TokenTestSpec
+    { testCaseLabel = "Multi indexes 1 Pub 2x1 Subs Scenario"
     , testAddressesToInit = ["alice", "bob", "carol", "dan"]
     , testAccountInitBalance = constInitBalance
     } (\ctx -> do
@@ -135,7 +158,8 @@ multi1to2and1to1ScenarioTest = TokenTestCase TokenTestSpec
       )
 
 tests = createTokenTestSuite "ConstantFlowDistributionAgreement System Testsuite"
-    [ simple1to2ScenarioTest1
-    , simple1to2ScenarioTest2
-    , multi1to2and1to1ScenarioTest
+    [ scenario1Pub2SubsSimple
+    , scenario1Pub2SubsComplex
+    , scenario2Pubs1SubsSimple
+    , multi1Pub2x1SubsScenarioTest
     ]

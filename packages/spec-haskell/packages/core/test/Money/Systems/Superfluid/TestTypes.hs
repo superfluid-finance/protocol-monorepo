@@ -8,11 +8,10 @@ import           Control.Applicative
 import           Data.Coerce
 import           Data.Default
 import           Data.Functor                                                              ((<&>))
-import           Data.Int
 import           Data.Type.Any
 import           Data.Typeable
 import           GHC.Generics
-import           Math.Extras.Double                                                        (fuzzyEq)
+import           Math.Extras.Double                                                        (Tolerance, fuzzyEq)
 
 import           Test.QuickCheck
 
@@ -28,8 +27,11 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 
 -- * Timestamp
 
-newtype T_Timestamp = T_Timestamp Int
-    deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show, Arbitrary)
+newtype T_Timestamp = T_Timestamp Integer
+    deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show)
+
+instance Arbitrary T_Timestamp where
+    arbitrary = arbitrary <&> abs <&> T_Timestamp
 
 -- * Value
 
@@ -38,8 +40,20 @@ newtype T_MVal = T_MVal Integer
 
 deriving instance Show (UntappedValue T_MVal)
 
+mval_base :: T_MVal
+mval_base = floor (1e18 :: Double)
+
+flowrate_base :: T_MVal
+flowrate_base = floor (fromIntegral mval_base / (3600 * 24 * 30) :: Double) -- 1$ / month
+
+test_flowrate_per_mon_max :: Int
+test_flowrate_per_mon_max = floor (100e6 :: Double)
+
+fuzzy_tolerance :: Tolerance
+fuzzy_tolerance = fromIntegral flowrate_base / 1e4 -- accurate to 4 decimals of $1 / month
+
 fuzzyEqMVal :: T_MVal -> T_MVal -> Bool
-fuzzyEqMVal a b = fuzzyEq 1e6 (fromIntegral a) (fromIntegral b)
+fuzzyEqMVal a b = fuzzyEq fuzzy_tolerance (fromIntegral a) (fromIntegral b)
 
 -- * RealTimeBalance
 
@@ -111,7 +125,7 @@ instance Arbitrary T_CFAMonetaryUnitData where
         sv  <- arbitrary
         nfr <- arbitrary
         return $ CFMUD.MkMonetaryUnitData CFA.MonetaryUnitLenses
-            { CFA.settled_at    = T_Timestamp t_s
+            { CFA.settled_at    = t_s
             , CFA.settled_value = coerce $ T_MVal sv
             , CFA.net_flow_rate = T_MVal nfr
             }
@@ -147,7 +161,7 @@ instance Arbitrary T_CFDAPublisherMUD where
         sv  <- arbitrary
         tfr <- arbitrary
         return $ CFMUD.MkMonetaryUnitData CFDA.PublisherData
-            { CFDA.pub_settled_at      = T_Timestamp t_s
+            { CFDA.pub_settled_at      = t_s
             , CFDA.pub_settled_value   = coerce $ T_MVal sv
             , CFDA.pub_total_flow_rate = T_MVal tfr
             }
@@ -158,8 +172,8 @@ type T_CFDAPublisherContract = CFDA.PublisherContract T_SuperfluidSystem
 type T_CFDAPublisherOperation = AgreementOperation T_CFDAPublisherContract
 
 instance Arbitrary T_CFDAPublisherOperation where
-    arbitrary = chooseBoundedIntegral (0 :: Int64, floor (1e24 :: Double))
-        <&> fromIntegral <&> CFDA.UpdateDistributionFlowRate
+    arbitrary = chooseBoundedIntegral  (0 :: Int, test_flowrate_per_mon_max)
+        <&> (* flowrate_base) . fromIntegral <&> CFDA.UpdateDistributionFlowRate
 deriving instance Show T_CFDAPublisherOperation
 
 type T_CFDASubscriberContract = CFDA.SubscriberContract T_SuperfluidSystem

@@ -625,7 +625,7 @@ describe("Superfluid Host Contract", function () {
                             .encodeABI(),
                         "0xbeef"
                     ),
-                    "SF: placerholder ctx should have zero length"
+                    "SF: placeholder ctx should have zero length"
                 );
             });
         });
@@ -696,13 +696,11 @@ describe("Superfluid Host Contract", function () {
                         )
                     );
                     await expectReverted(superfluid.appCallbackPop("0x", 0));
-                    await expectReverted(
-                        superfluid.ctxUseAllowance("0x", 0, 0)
-                    );
+                    await expectReverted(superfluid.ctxUseCredit("0x", 0));
                 });
 
                 it("#6.2 use agreement framework as an unregistered agreement", async () => {
-                    const reason = "SF: sender is not listed agreeement";
+                    const reason = "SF: sender is not listed agreement";
 
                     // call from an unregistered mock agreement
                     const mock = await createAgreementMock(
@@ -741,7 +739,7 @@ describe("Superfluid Host Contract", function () {
                         reason
                     );
                     await expectRevertedWith(
-                        mock.tryCtxUseAllowance(
+                        mock.tryCtxUseCredit(
                             superfluid.address,
                             false /* do not hack Ctx */,
                             "0x"
@@ -760,7 +758,7 @@ describe("Superfluid Host Contract", function () {
                 });
 
                 it("#6.3 use agreement framework as an impersonating agreement", async () => {
-                    const reason = "SF: sender is not listed agreeement";
+                    const reason = "SF: sender is not listed agreement";
 
                     const mock = await createAgreementMock(
                         await t.contracts.cfa.agreementType.call(),
@@ -798,7 +796,7 @@ describe("Superfluid Host Contract", function () {
                         reason
                     );
                     await expectRevertedWith(
-                        mock.tryCtxUseAllowance(
+                        mock.tryCtxUseCredit(
                             superfluid.address,
                             false /* do not hack Ctx */,
                             "0x"
@@ -925,7 +923,7 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.callAgreement(
                         agreement.address,
                         agreement.contract.methods
-                            .tryCtxUseAllowance(
+                            .tryCtxUseCredit(
                                 superfluid.address,
                                 false /* hack the Ctx */,
                                 "0x"
@@ -937,7 +935,7 @@ describe("Superfluid Host Contract", function () {
                         superfluid.callAgreement(
                             agreement.address,
                             agreement.contract.methods
-                                .tryCtxUseAllowance(
+                                .tryCtxUseCredit(
                                     superfluid.address,
                                     true /* hack the Ctx */,
                                     "0x"
@@ -1704,7 +1702,7 @@ describe("Superfluid Host Contract", function () {
 
         describe("#7 callAgreement", () => {
             it("#7.1 only listed agreement allowed", async () => {
-                const reason = "SF: only listed agreeement allowed";
+                const reason = "SF: only listed agreement allowed";
                 // call to an non agreement
                 await expectRevertedWith(
                     superfluid.callAgreement(alice, "0x", "0x"),

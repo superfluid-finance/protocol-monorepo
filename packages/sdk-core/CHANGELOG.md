@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Support for: `optimism-goerli` and `arbitrum-goerli` added
+### Breaking
+- Support for: `rinkeby`, `ropsten`, `kovan`, `optimism-kovan` and `arbitrum-rinkeby` removed
+
 ## [0.5.3] - 2022-08-15
 
 ### Added

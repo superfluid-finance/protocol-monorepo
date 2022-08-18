@@ -173,12 +173,6 @@
                     }
                 });
 
-                // form validation
-                const hasValidUpdateReceiverInput = () => {
-                    return isAddress(currentReceiverAddress.value)
-                        && (currentReceiverProportion.value === 0
-                            || currentReceiverProportion.value === 1);
-                }
                 const hasValidMFAInput = () => {
                     return mfaData.ratioPct !== ""
                         && mfaData.flowRate !== ""
@@ -193,10 +187,6 @@
                 const addReceiver = () => {
                     let newAddress;
                     if (currentReceiverAddress.value !== "" || currentReceiverProportion.value !== "") {
-                        if (!hasValidUpdateReceiverInput() || receiverAddresses.value.includes(currentReceiverAddress.value)) {
-                            window.alert("what are ya doing");
-                            return;
-                        }
 
                         const currentData = {
                             address: currentReceiverAddress.value,
@@ -205,20 +195,12 @@
                         receivers.push(currentData);
                         newAddress = currentReceiverAddress.value;
                     } else {
-                        if (receiverAddresses.value.includes(EMPTY_RECEIVER.address)) {
-                            window.alert("what are ya doing");
-                            return;
-                        }
                         receivers.push(EMPTY_RECEIVER);
                         newAddress = EMPTY_RECEIVER.address;
                     }
                     selected.value = newAddress;
                 };
                 const updateReceiver = () => {
-                    if (!hasValidUpdateReceiverInput()) {
-                        window.alert("what are ya doing");
-                        return;
-                    }
                     const i = receivers.map(x => x.address).indexOf(selected.value);
                     receivers[i].address = selected.value = currentReceiverAddress.value;
                     receivers[i].proportion = currentReceiverProportion.value;
@@ -443,7 +425,7 @@
                                     userData
                                 }).exec(s);
                         const receipt = await txn.wait();
-                        
+
                         console.log("RECEIPT", receipt);
                         const block = await provider.getBlock(receipt.blockNumber);
                         blockTimestamp.value = block.timestamp;

@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+# [0.5.4] - 2022-08-19
+
+### Fixes
+- Properly console the cause, not the caught serialization error
+
 ## [0.5.3] - 2022-08-15
 
 ### Added

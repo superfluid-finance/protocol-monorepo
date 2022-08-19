@@ -55,8 +55,8 @@ const stringifyCause = (cause?: Error | unknown) => {
     } catch (err) {
         try {
             return JSON.stringify(cause, null, 2);
-        } catch (err) {
-            console.error("Caused by: ", err);
+        } catch {
+            console.error("Caused by: ", cause);
             return "[Couldn't serialize error. Error logged to console.]";
         }
     }

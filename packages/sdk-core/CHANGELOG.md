@@ -5,10 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.5.5] - 2022-08-31
 ### Added
 - Support for: `optimism-goerli` and `arbitrum-goerli` added
 ### Breaking
 - Support for: `rinkeby`, `ropsten`, `kovan`, `optimism-kovan` and `arbitrum-rinkeby` removed
+# [0.5.4] - 2022-08-19
+
+### Fixes
+- Properly console the cause, not the caught serialization error
 
 ## [0.5.3] - 2022-08-15
 
@@ -205,7 +210,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.3...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...HEAD
+[0.5.5]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.5
+[0.5.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.3...sdk-core%40v0.5.4
 [0.5.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.2...sdk-core%40v0.5.3
 [0.5.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.1...sdk-core%40v0.5.2
 [0.5.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.0...sdk-core%40v0.5.1

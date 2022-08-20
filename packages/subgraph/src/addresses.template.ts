@@ -5,54 +5,21 @@ import { Address, TypedMap } from "@graphprotocol/graph-ts";
 // more as a result.
 
 export function getHostAddress(): Address {
-    let network = "{{network}}";
-    let address = "";
-    if (network == "mainnet") {
-        address = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
-    }
-    if (network == "goerli") {
-        address = "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9";
-    }
-    if (network == "kovan") {
-        address = "0xF0d7d1D47109bA426B9D8A3Cde1941327af1eea3";
-    }
-    if (network == "matic") {
-        address = "0x3E14dC1b13c488a8d5D310918780c983bD5982E7";
-    }
-    if (network == "mumbai") {
-        address = "0xEB796bdb90fFA0f28255275e16936D25d3418603";
-    }
-    if (network == "rinkeby") {
-        address = "0xeD5B5b32110c3Ded02a07c8b8e97513FAfb883B6";
-    }
-    if (network == "ropsten") {
-        address = "0xF2B4E81ba39F5215Db2e05B2F66f482BB8e87FD2";
-    }
-    if (network == "xdai") {
-        address = "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7";
-    }
-    if (network == "fuji") {
-        address = "0xf04F2C525819691ed9ABD3D2B7109E1633795e68";
-    }
-    if (network == "arbitrum-rinkeby") {
-        address = "0xE01F8743677Da897F4e7De9073b57Bf034FC2433";
-    }
-    if (network == "optimism-kovan") {
-        address = "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED";
-    }
-    if (network == "avalanche") {
-        address = "0x60377C7016E4cdB03C87EF474896C11cB560752C";
-    }
-    if (network == "arbitrum-one") {
-        address = "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192";
-    }
-    if (network == "optimism") {
-        address = "0x567c4B141ED61923967cA25Ef4906C8781069a10";
-    }
-    if (network == "bsc") {
-        address = "0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E";
-    }
-    return Address.fromString(address);
+    const network = "{{network}}";
+    const addresses: TypedMap<string, string> = new TypedMap<string, string>();
+    addresses.set("mainnet", "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853");
+    addresses.set("goerli", "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9");
+    addresses.set("matic", "0x3E14dC1b13c488a8d5D310918780c983bD5982E7");
+    addresses.set("mumbai", "0xEB796bdb90fFA0f28255275e16936D25d3418603");
+    addresses.set("xdai", "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7");
+    addresses.set("fuji", "0xf04F2C525819691ed9ABD3D2B7109E1633795e68");
+    addresses.set("arbitrum-goerli", "0xE40983C2476032A0915600b9472B3141aA5B5Ba9");
+    addresses.set("optimism-goerli", "0xE40983C2476032A0915600b9472B3141aA5B5Ba9");
+    addresses.set("avalanche", "0x60377C7016E4cdB03C87EF474896C11cB560752C");
+    addresses.set("arbitrum-one", "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192");
+    addresses.set("optimism", "0x567c4B141ED61923967cA25Ef4906C8781069a10");
+    addresses.set("bsc", "0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E");
+    return Address.fromString(addresses.mustGet(network));
 }
 
 export function getResolverAddress(): Address {

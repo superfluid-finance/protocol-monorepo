@@ -1,9 +1,6 @@
 import { Query } from "@superfluid-finance/sdk-core/src";
 import { expect } from "chai";
-import {
-    ETH_GOERLI_CHAIN_ID,
-    MATIC_CHAIN_ID,
-} from "@superfluid-finance/sdk-core/src/constants";
+import metadata from "@superfluid-finance/metadata";
 
 /**
  * We only use matic network endpoints for v1 release tests
@@ -11,9 +8,10 @@ import {
  * @returns chainId
  */
 export const getChainId = () => {
+    // null coalesce, but this should NEVER return null for either
     return process.env.SUBGRAPH_RELEASE_TAG == "v1"
-        ? MATIC_CHAIN_ID
-        : ETH_GOERLI_CHAIN_ID;
+        ? metadata.getNetworkByShortName("matic")?.chainId ?? 0
+        : metadata.getNetworkByShortName("goerli")?.chainId ?? 0;
 };
 
 export const testQueryClassFunctions = async (query: Query) => {

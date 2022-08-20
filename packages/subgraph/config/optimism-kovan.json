@@ -1,9 +1,0 @@
-{
-    "network": "optimism-kovan",
-    "hostStartBlock": 318221,
-    "hostAddress": "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED",
-    "cfaAddress": "0x523481a8a5455efB1F301C6e00B5525Eb12a51da",
-    "idaAddress": "0x98E5E5d915Bf79ceeF02c72D1bf8f5b26f0bcBaA",
-    "superTokenFactoryAddress": "0xB5f0501908ca8A99fD31bEFCAc1cA458F3588671",
-    "resolverV1Address": "0x218B65780615Ff134f9Ad810CB98839534D3C0D6"
-}

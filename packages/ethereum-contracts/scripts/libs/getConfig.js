@@ -140,6 +140,13 @@ module.exports = function getConfig(chainId) {
                 getLogsRange: 50000,
             },
         },
+        420: {
+            // optimism testnet (goerli)
+            data: {
+                initialBlockNumber: 340000,
+                getLogsRange: 50000,
+            },
+        },
 
         //
         // Arbitrum: https://developer.offchainlabs.com
@@ -162,6 +169,13 @@ module.exports = function getConfig(chainId) {
             // arbitrum testnet (rinkeby)
             data: {
                 initialBlockNumber: 7300000,
+                getLogsRange: 50000,
+            },
+        },
+        421613: {
+            // arbitrum testnet (goerli)
+            data: {
+                initialBlockNumber: 93000,
                 getLogsRange: 50000,
             },
         },

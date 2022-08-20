@@ -10,10 +10,10 @@ echo ADDRESSES_VARS=$ADDRESSES_VARS
 
 # network specifics
 case $TRUFFLE_NETWORK in
-    eth-goerli | eth-rinkeby | eth-ropsten | eth-kovan | \
+    eth-goerli | \
     polygon-mumbai | \
-    optimism-kovan | \
-    arbitrum-rinkeby | \
+    optimism-goerli | \
+    arbitrum-goerli | \
     avalanche-fuji )
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1

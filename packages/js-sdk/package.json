@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
     "repository": {
@@ -43,7 +43,8 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
-        "@truffle/contract": "4.5.5",
+        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
+        "@truffle/contract": "4.5.15",
         "auto-bind": "^4.0.0",
         "node-fetch": "^2.6.7"
     },

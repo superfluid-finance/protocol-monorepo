@@ -1,5 +1,5 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {web3tx, wad4human, toWad} = require("@decentral.ee/web3-helpers");
+const {wad4human} = require("@decentral.ee/web3-helpers");
 
 const {
     shouldCreateIndex,
@@ -16,6 +16,7 @@ const {expectRevertedWith} = require("../../utils/expectRevert");
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
+const {toWad} = require("../utils/helpers");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -1504,20 +1505,18 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await expectRevertedWith(
                     superfluid.callAgreement(
                         ida.address,
-                        ida.contract.methods
-                            .createIndex(
+                        t.agreementHelper.idaInterface.encodeFunctionData(
+                            "createIndex",
+                            [
                                 superToken.address,
                                 DEFAULT_INDEX_ID,
                                 web3.eth.abi.encodeParameters(
                                     ["bytes", "bytes"],
                                     ["0xdeadbeef", "0x"]
-                                )
-                            )
-                            .encodeABI(),
-                        "0x",
-                        {
-                            from: alice,
-                        }
+                                ),
+                            ]
+                        ),
+                        "0x"
                     ),
                     "invalid ctx"
                 );
@@ -1736,10 +1735,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 subscriberName: "alice",
                 units,
                 fn: async () => {
-                    return await web3tx(
-                        app.updateSubscription,
-                        "app.updateSubscription alice"
-                    )(alice, units);
+                    console.log("app.updateSubscription alice");
+                    return await app.updateSubscription(alice, units);
                 },
             });
             const tx = await shouldApproveSubscription({
@@ -1966,10 +1963,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 subscriberName: "alice",
                 units,
                 fn: async () => {
-                    return await web3tx(
-                        app.updateSubscription,
-                        "app.updateSubscription alice"
-                    )(alice, units);
+                    console.log("app.updateSubscription alice");
+                    return await app.updateSubscription(alice, units);
                 },
             });
             await shouldDistribute({
@@ -1979,10 +1974,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 indexId: DEFAULT_INDEX_ID,
                 amount: distributionAmount,
                 fn: async () => {
-                    return await web3tx(
-                        app.distribute,
-                        "app.distribute"
-                    )(distributionAmount);
+                    console.log("app.distribute");
+                    return await app.distribute(distributionAmount);
                 },
             });
             const tx = await shouldClaimPendingDistribution({
@@ -2054,56 +2047,50 @@ describe("Using InstantDistributionAgreement v1", function () {
             await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
-                    ida.contract.methods
-                        .createIndex(superToken.address, 42, "0x")
-                        .encodeABI(),
-                    {from: alice}
+                    t.agreementHelper.idaInterface.encodeFunctionData(
+                        "createIndex",
+                        [superToken.address, 42, "0x"]
+                    )
                 ),
                 "unauthorized host"
             );
             await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
-                    ida.contract.methods
-                        .updateIndex(superToken.address, 42, 9000, "0x")
-                        .encodeABI(),
-                    {from: alice}
+                    t.agreementHelper.idaInterface.encodeFunctionData(
+                        "updateIndex",
+                        [superToken.address, 42, 9000, "0x"]
+                    )
                 ),
                 "unauthorized host"
             );
             await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
-                    ida.contract.methods
-                        .distribute(superToken.address, 42, 9000, "0x")
-                        .encodeABI(),
-                    {from: alice}
+                    t.agreementHelper.idaInterface.encodeFunctionData(
+                        "distribute",
+                        [superToken.address, 42, 9000, "0x"]
+                    )
                 ),
                 "unauthorized host"
             );
             await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
-                    ida.contract.methods
-                        .approveSubscription(superToken.address, bob, 42, "0x")
-                        .encodeABI(),
-                    {from: alice}
+                    t.agreementHelper.idaInterface.encodeFunctionData(
+                        "approveSubscription",
+                        [superToken.address, bob, 42, "0x"]
+                    )
                 ),
                 "unauthorized host"
             );
             await expectRevertedWith(
                 fakeHost.callAgreement(
                     ida.address,
-                    ida.contract.methods
-                        .updateSubscription(
-                            superToken.address,
-                            42,
-                            alice,
-                            1000,
-                            "0x"
-                        )
-                        .encodeABI(),
-                    {from: alice}
+                    t.agreementHelper.idaInterface.encodeFunctionData(
+                        "updateSubscription",
+                        [superToken.address, 42, alice, 1000, "0x"]
+                    )
                 ),
                 "unauthorized host"
             );

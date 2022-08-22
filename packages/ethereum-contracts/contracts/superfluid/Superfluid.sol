@@ -970,7 +970,8 @@ contract Superfluid is
         }
 
         if (!success) {
-            // "/ 63" is a magic to avoid out of gas attack. See https://ronan.eth.link/blog/ethereum-gas-dangers/.
+            // "/ 63" is a magic to avoid out of gas attack. 
+            // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
             // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
             if (gasleft() > gasLeftBefore / 63) {
                 if (!isTermination) {

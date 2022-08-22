@@ -727,7 +727,7 @@ describe("TOGA", function () {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
 
-        const revertingRecipientHook = await ethers.getContractFactory(
+        let revertingRecipientHook = await ethers.getContractFactory(
             "ERC777RecipientReverting"
         );
         revertingRecipientHook = await revertingRecipientHook.deploy();

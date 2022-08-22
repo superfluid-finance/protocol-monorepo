@@ -29,6 +29,43 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
  *
  */
 interface ISuperfluid {
+    // Superfluid Custom Errors
+    error Host_AgreementCallbackIsNotAction();
+    error Host_AgreementClassAlreadyRegistered();
+    error Host_AgreementClassNotRegistered();
+    error Host_CannotDowngradeToNonUpgradeable();
+    error Host_CallAgreementWithCtxFromWrongAddress();
+    error Host_CallAppActionWithCtxFromWrongAddress();
+    error Host_InvalidConfigWord();
+    error Host_Max256Agreements();
+    error Host_NonUpgradeable();
+    error Host_NonZeroLengthPlaceholderCtx();
+    error Host_OnlyGovernance();
+    error Host_NeedMoreGas();
+    error Host_UnknownBatchCallOperationType();
+    error Host_UnlistedAgreement();
+
+    // App Related Custom Errors
+    error Host_AppFactoryMustBeAContract();
+    error Host_InvalidOrExpiredSuperAppRegistrationKey();
+    error Host_NotASuperApp();
+    error Host_NoAppRegistrationPermissions();
+    error Host_ReceiverIsNotSuperApp();
+    error Host_SenderIsNotSuperApp();
+    error Host_SourceAppNeedsHigherAppLevel();
+    error Host_SuperAppIsJailed();
+    error Host_SuperAppAlreadyRegistered();
+    error Host_UnauthorizedSuperAppFactory();
+
+    // App Rule Custom Errors
+    error Host_AppRuleCompositeAppNotWhitelisted();
+    error Host_AppRuleMaxAppCallbackLevelReached();
+    error Host_AppRuleNoRegistrationForEOA();
+    error Host_AppRuleRegistrationOnlyInConstructor();
+    error Host_AppRuleCtxIsEmpty();
+    error Host_AppRuleCtxIsInvalid(); // IsReadonly
+    error Host_AppRuleCtxIsMalformated();
+    error Host_AppRuleCtxIsNotClean();
 
     /**************************************************************************
      * Time

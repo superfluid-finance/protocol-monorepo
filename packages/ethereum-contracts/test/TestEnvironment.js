@@ -76,10 +76,12 @@ module.exports = class TestEnvironment {
         };
 
         this.constants = {
-            ...Object.assign(
-                {},
-                require("@openzeppelin/test-helpers").constants
-            ),
+            ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
+            ZERO_BYTES32:
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+            MAX_UINT256: toBN("2").pow(toBN("256")).sub(toBN("1")),
+            MAX_INT256: toBN("2").pow(toBN("255")).sub(toBN("1")),
+            MIN_INT256: toBN("2").pow(toBN("255")).mul(toBN("-1")),
             MAXIMUM_FLOW_RATE: toBN(2).pow(toBN(95)).sub(toBN(1)),
             APP_LEVEL_FINAL: 1 << 0,
             APP_LEVEL_SECOND: 1 << 1,

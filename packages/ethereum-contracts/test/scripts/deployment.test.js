@@ -1,6 +1,9 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {expectRevertedWith} = require("../utils/expectRevert");
+const {
+    expectRevertedWith,
+    expectCustomError,
+} = require("../utils/expectRevert");
 const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
@@ -204,19 +207,21 @@ contract("Embeded deployment scripts", (accounts) => {
                 // use the same resolver for the entire test
                 const resolver = await web3tx(Resolver.new, "Resolver.new")();
                 process.env.RESOLVER_ADDRESS = resolver.address;
+                const s = await getSuperfluidAddresses();
 
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
                     nonUpgradable: true,
                     useMocks: false,
                 });
-                await expectRevertedWith(
+                await expectCustomError(
                     deployFramework(errorHandler, {
                         ...deploymentOptions,
                         nonUpgradable: true,
                         useMocks: true, // force an update attempt
                     }),
-                    "SF: non upgradable"
+                    s.superfluid,
+                    "Host_NonUpgradeable"
                 );
             });
 

@@ -4492,7 +4492,14 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         let aliceSenderBaseData;
         let aliceSenderAdminFlowOperator;
+        let streamRedirectorFactory;
         let signer;
+
+        before(async () => {
+            streamRedirectorFactory = await ethers.getContractFactory(
+                "StreamRedirector"
+            );
+        });
 
         beforeEach(async () => {
             await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
@@ -5635,8 +5642,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#4.29 SuperApp with ACL permissions should be able to stream to itself", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let app = await StreamRedirector.new(
+            let app = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 bob, // Stream back to Bob in the callback
@@ -5775,8 +5781,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#4.30 SuperApp with permissions should be able to stream to itself (blue elephant)", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let app = await StreamRedirector.new(
+            let app = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 alice, // Note that in this case, we stream back to Alice in the callback
@@ -5900,14 +5905,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#4.31 SuperApp to SuperApp is not allowed (non-ACL)", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let redirectorA = await StreamRedirector.new(
+            let redirectorA = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 alice,
                 t.constants.APP_LEVEL_FINAL
             );
-            let redirectorB = await StreamRedirector.new(
+            let redirectorB = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 redirectorA.address,
@@ -5919,38 +5923,41 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             // Attempting to do SuperApp callback to SuperApp should fail
             // Alice -> redirectorB cb-> redirectorA cb-> Alice is not allowed
-            await expect(
-                t.sf.cfa.createFlow({
+            await expectCustomError(
+                agreementHelper.modifyFlow({
+                    type: FLOW_TYPE_CREATE,
                     superToken: superToken.address,
                     sender: t.getAddress("alice"),
                     receiver: t.getAddress("redirectorB"),
                     flowRate: FLOW_RATE1.toString(),
-                })
-            ).to.be.revertedWith(
-                "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                }),
+                superfluid,
+                "Host_AppRuleCompositeAppNotWhitelisted"
             );
 
             // Should still fail after allow composite app due to max app level rule
             await redirectorB.allowCompositeApp(redirectorA.address);
-            await expect(
-                t.sf.cfa.createFlow({
+            await expectCustomError(
+                agreementHelper.modifyFlow({
+                    type: FLOW_TYPE_CREATE,
                     superToken: superToken.address,
                     sender: t.getAddress("alice"),
                     receiver: t.getAddress("redirectorB"),
                     flowRate: FLOW_RATE1.toString(),
-                })
-            ).to.be.revertedWith("SF: APP_RULE_MAX_APP_LEVEL_REACHED");
+                }),
+                superfluid,
+                "Host_AppRuleMaxAppCallbackLevelReached"
+            );
         });
 
         it("#4.32 SuperApp to SuperApp is not allowed (ACL)", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let redirectorA = await StreamRedirector.new(
+            let redirectorA = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 alice,
                 t.constants.APP_LEVEL_FINAL
             );
-            let redirectorB = await StreamRedirector.new(
+            let redirectorB = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 redirectorA.address,
@@ -5979,28 +5986,29 @@ describe("Using ConstantFlowAgreement v1", function () {
             // Attempting to do SuperApp callback to SuperApp should fail via ACL
             // originating from SuperApp
             // (SuperApp ACL) Alice -> redirectorB cb-> redirectorA cb-> Alice is not allowed
-            await expect(
-                redirectorB.startStreamToSelf(alice, FLOW_RATE1)
-            ).to.be.revertedWith(
-                "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+            await expectCustomError(
+                redirectorB.startStreamToSelf(alice, FLOW_RATE1),
+                superfluid,
+                "Host_AppRuleCompositeAppNotWhitelisted"
             );
 
             // Should still fail after allow composite app due to max app level rule
             await redirectorB.allowCompositeApp(redirectorA.address);
-            await expect(
-                redirectorB.startStreamToSelf(alice, FLOW_RATE1)
-            ).to.be.revertedWith("SF: APP_RULE_MAX_APP_LEVEL_REACHED");
+            await expectCustomError(
+                redirectorB.startStreamToSelf(alice, FLOW_RATE1),
+                superfluid,
+                "Host_AppRuleMaxAppCallbackLevelReached"
+            );
         });
 
         it("#4.33 SuperApp to SuperApp (agreement creation originates from SuperApp)-Alice deletes", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let redirectorA = await StreamRedirector.new(
+            let redirectorA = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 alice,
                 t.constants.APP_LEVEL_FINAL
             );
-            let redirectorB = await StreamRedirector.new(
+            let redirectorB = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 redirectorA.address,
@@ -6059,14 +6067,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#4.34 SuperApp to SuperApp (agreement creation originates from SuperApp)-RDB deletes", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let redirectorA = await StreamRedirector.new(
+            let redirectorA = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 alice,
                 t.constants.APP_LEVEL_FINAL
             );
-            let redirectorB = await StreamRedirector.new(
+            let redirectorB = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 redirectorA.address,
@@ -6124,14 +6131,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         });
 
         it("#4.35 SuperApp to SuperApp (agreement creation originates from SuperApp)-RDA deletes", async () => {
-            const StreamRedirector = artifacts.require("StreamRedirector");
-            let redirectorA = await StreamRedirector.new(
+            let redirectorA = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 alice,
                 t.constants.APP_LEVEL_FINAL
             );
-            let redirectorB = await StreamRedirector.new(
+            let redirectorB = await streamRedirectorFactory.deploy(
                 superfluid.address,
                 superToken.address,
                 redirectorA.address,

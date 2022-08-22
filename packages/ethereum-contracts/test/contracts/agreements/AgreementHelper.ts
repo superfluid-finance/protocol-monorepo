@@ -1,7 +1,8 @@
 import {Signer} from "ethers";
 import {ethers} from "hardhat";
 
-import IConstantFlowAgreementV1ABI from "../../../artifacts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json";
+import IConstantFlowAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json";
+import SuperfluidMockArtifact from "../../../artifacts/contracts/mocks/SuperfluidMock.sol/SuperfluidMock.json";
 
 // TEMP FOR INTERFACING W/ JS
 export const FLOW_TYPE_CREATE = "createFlow";
@@ -44,11 +45,15 @@ interface CallAppActionParams {
 export class AgreementHelper {
     readonly testEnvironment: any;
     readonly cfaInterface: any;
+    readonly hostInterface: any;
 
     constructor(testEnvironment: any) {
         this.testEnvironment = testEnvironment;
         this.cfaInterface = new ethers.utils.Interface(
-            IConstantFlowAgreementV1ABI.abi
+            IConstantFlowAgreementV1Artifact.abi
+        );
+        this.hostInterface = new ethers.utils.Interface(
+            SuperfluidMockArtifact.abi
         );
     }
 

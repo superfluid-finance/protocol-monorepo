@@ -3,25 +3,21 @@ const fs = require("fs");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const traveler = require("ganache-time-traveler");
+const {ethers} = require("hardhat");
 
 const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
-const IERC1820Registry = artifacts.require("IERC1820Registry");
-const SuperfluidMock = artifacts.require("SuperfluidMock");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
-const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
-const InstantDistributionAgreementV1 = artifacts.require(
-    "InstantDistributionAgreementV1"
-);
-const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
 
-const {BN} = require("@openzeppelin/test-helpers");
-const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
+const {toBN, toWad, max} = require("./contracts/utils/helpers");
+const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
+const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data.js");
+const {AgreementHelper} = require("./contracts/agreements/AgreementHelper");
 
 let _singleton;
 
@@ -261,29 +257,46 @@ module.exports = class TestEnvironment {
         });
         await this.sf.initialize();
 
+        const signer = await ethers.getSigner(this.accounts[0]);
+
         // load contracts with testing/mocking interfaces
         this.contracts = {};
         await Promise.all([
             // load singletons
-            (this.contracts.erc1820 = await IERC1820Registry.at(
+            (this.contracts.erc1820 = await ethers.getContractAt(
+                "IERC1820Registry",
                 "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
             )),
             // load host contract
-            (this.contracts.superfluid = await SuperfluidMock.at(
+            (this.contracts.superfluid = await ethers.getContractAt(
+                "SuperfluidMock",
                 this.sf.host.address
             )),
             // load agreement contracts
-            (this.contracts.cfa = await ConstantFlowAgreementV1.at(
+            (this.contracts.cfa = await ethers.getContractAt(
+                "ConstantFlowAgreementV1",
                 this.sf.agreements.cfa.address
             )),
-            (this.contracts.ida = await InstantDistributionAgreementV1.at(
+            (this.contracts.ida = await ethers.getContractAt(
+                "InstantDistributionAgreementV1",
                 this.sf.agreements.ida.address
             )),
             // load governance contract
-            (this.contracts.governance = await TestGovernance.at(
+            (this.contracts.governance = await ethers.getContractAt(
+                "TestGovernance",
                 await this.sf.host.getGovernance()
             )),
+            (this.contracts.ISuperToken = new ethers.Contract(
+                "ISuperToken",
+                ISuperTokenArtifact.abi,
+                signer
+            )),
+            (this.contracts.resolver = await ethers.getContractAt(
+                "Resolver",
+                this.sf.resolver.address
+            )),
         ]);
+        this.agreementHelper = new AgreementHelper(this);
     }
 
     /*
@@ -299,7 +312,7 @@ module.exports = class TestEnvironment {
         // plot data can be persisted over a test case here
         this.plotData = {};
 
-        // reset governace parameters
+        // reset governance parameters
         await Promise.all([
             await web3tx(
                 this.contracts.governance.setPPPConfig,
@@ -324,7 +337,7 @@ module.exports = class TestEnvironment {
             )(
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
-                this.configs.MINIMUM_DEPOSIT
+                this.configs.MINIMUM_DEPOSIT.toString()
             ),
         ]);
     }
@@ -561,7 +574,7 @@ module.exports = class TestEnvironment {
     updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
-        assert.isDefined(balanceSnapshot.timestamp);
+        assert.isDefined(balanceSnapshot.timestamp.toString());
         _.merge(this.data, {
             tokens: {
                 [superToken]: {
@@ -610,7 +623,7 @@ module.exports = class TestEnvironment {
         expectedBalanceDelta
     ) {
         assert.isDefined(account);
-        assert.isDefined(expectedBalanceDelta);
+        assert.isDefined(expectedBalanceDelta.toString());
         _.merge(this.data, {
             tokens: {
                 [superToken]: {
@@ -801,10 +814,12 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     realtimeBalance(balance) {
-        return toBN(balance.availableBalance).add(
-            BN.max(
+        return toBN(balance.availableBalance.toString()).add(
+            max(
                 toBN(0),
-                toBN(balance.deposit).sub(toBN(balance.owedDeposit))
+                toBN(balance.deposit.toString()).sub(
+                    toBN(balance.owedDeposit.toString())
+                )
             )
         );
     }
@@ -968,7 +983,9 @@ module.exports = class TestEnvironment {
                     );
                 }
 
-                rtBalanceSum = rtBalanceSum.add(realtimeBalance);
+                rtBalanceSum = rtBalanceSum.add(
+                    toBN(realtimeBalance.toString())
+                );
             })
         );
 
@@ -977,7 +994,9 @@ module.exports = class TestEnvironment {
             rtBalanceSum
         );
 
-        const aum = await testToken.balanceOf.call(superToken.address);
+        const aum = toBN(
+            (await testToken.balanceOf.call(superToken.address)).toString()
+        );
         this.printSingleBalance("AUM of super tokens", aum);
 
         const totalSupply = await superToken.totalSupply.call();

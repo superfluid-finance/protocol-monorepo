@@ -123,7 +123,7 @@ contract ConstantFlowAgreementV1 is
          internal pure
          returns (int96 flowRate)
      {
-         require(deposit <= MAXIMUM_DEPOSIT, "CFA: deposit number too big");
+        if (deposit > MAXIMUM_DEPOSIT) revert CFA_DepositTooBig();
          deposit = _clipDepositNumberRoundingDown(deposit);
 
          uint256 flowrate1 = deposit / liquidationPeriod;
@@ -140,9 +140,11 @@ contract ConstantFlowAgreementV1 is
          internal pure
          returns (uint256 deposit)
      {
-         require(flowRate > 0, "CFA: not for non-positive flow rate");
-         require(uint256(int256(flowRate)) * liquidationPeriod <= uint256(int256(type(int96).max)),
-             "CFA: flow rate too big");
+        // @note not sure why this was > 0 before, should be allowed to be 0?
+        if (flowRate < 0) revert CFA_InvalidFlowRate();
+        if (uint256(int256(flowRate)) * liquidationPeriod > uint256(int256(type(int96).max))) {
+            revert CFA_FlowRateTooBig();
+        }
          uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
          return AgreementLibrary.max(minimumDeposit, calculatedDeposit);
      }
@@ -165,6 +167,9 @@ contract ConstantFlowAgreementV1 is
          external view override
          returns (uint256 deposit)
      {
+        // base case: 0 flow rate
+        if (flowRate == 0) return 0;
+
          ISuperfluid host = ISuperfluid(token.getHost());
          ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
          uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
@@ -402,7 +407,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bytes32 flowId, FlowParams memory flowParams)
     {
-        require(flowVars.receiver != address(0), "CFA: receiver is zero");
+        if (flowVars.receiver == address(0)) revert CFA_ZeroAddressReceiver();
 
         flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
         flowParams.flowId = flowId;
@@ -411,8 +416,8 @@ contract ConstantFlowAgreementV1 is
         flowParams.flowOperator = currentContext.msgSender;
         flowParams.flowRate = flowVars.flowRate;
         flowParams.userData = currentContext.userData;
-        require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
-        require(flowParams.flowRate > 0, "CFA: invalid flow rate");
+        if (flowParams.sender == flowParams.receiver) revert CFA_NoSelfFlow();
+        if (flowParams.flowRate <= 0) revert CFA_InvalidFlowRate();
     }
 
     function _createFlow(
@@ -426,7 +431,7 @@ contract ConstantFlowAgreementV1 is
         (bytes32 flowId, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
-        require(!exist, "CFA: flow already exist");
+        if (exist) revert CFA_FlowAlreadyExists();
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
             newCtx = _changeFlowToApp(
@@ -454,7 +459,7 @@ contract ConstantFlowAgreementV1 is
     {
         (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
-        require(exist, "CFA: flow does not exist");
+        if (!exist) revert CFA_FlowDoesNotExist();
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
             newCtx = _changeFlowToApp(
@@ -480,8 +485,8 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         FlowParams memory flowParams;
-        require(flowVars.sender != address(0), "CFA: sender is zero");
-        require(flowVars.receiver != address(0), "CFA: receiver is zero");
+        if (flowVars.sender == address(0)) revert CFA_ZeroAddressSender();
+        if (flowVars.receiver == address(0)) revert CFA_ZeroAddressReceiver();
         flowParams.flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
         flowParams.sender = flowVars.sender;
         flowParams.receiver = flowVars.receiver;
@@ -489,7 +494,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.flowRate = 0;
         flowParams.userData = currentContext.userData;
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowParams.flowId);
-        require(exist, "CFA: flow does not exist");
+        if (!exist) revert CFA_FlowDoesNotExist();
 
         (int256 availableBalance,,) = flowVars.token.realtimeBalanceOf(flowVars.sender, currentContext.timestamp);
 
@@ -501,7 +506,7 @@ contract ConstantFlowAgreementV1 is
         {
             if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.sender)) &&
                 !ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.receiver))) {
-                require(availableBalance < 0, "CFA: sender account is not critical");
+                if (availableBalance >= 0) revert CFA_NonCriticalSender();
             }
         }
 
@@ -592,7 +597,7 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        require(currentContext.msgSender != sender, "CFA: E_NO_SENDER_CREATE");
+        if (currentContext.msgSender == sender) revert CFA_ACL_NoSenderCreate();
 
         {
             // check if flow operator has create permissions
@@ -601,16 +606,15 @@ contract ConstantFlowAgreementV1 is
                 uint8 permissions,
                 int96 flowRateAllowance
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
-            require(
-                _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.CREATE_FLOW),
-                "CFA: E_NO_OPERATOR_CREATE_FLOW"
-            );
+            if (!_getBooleanFlowOperatorPermissions(permissions, FlowChangeType.CREATE_FLOW)) {
+                revert CFA_ACL_OperatorNoCreatePermissions();
+            }
 
             // check if desired flow rate is allowed and update flow rate allowance
             int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max
                 ? flowRateAllowance
                 : flowRateAllowance - flowRate;
-            require(updatedFlowRateAllowance >= 0, "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE");
+            if (updatedFlowRateAllowance < 0) revert CFA_ACL_FlowRateAllowanceExceeded();
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
         {
@@ -639,7 +643,7 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        require(currentContext.msgSender != sender, "CFA: E_NO_SENDER_UPDATE");
+        if (currentContext.msgSender == sender) revert CFA_ACL_NoSenderUpdate();
 
         // check if flow exists
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
@@ -651,16 +655,15 @@ contract ConstantFlowAgreementV1 is
                 uint8 permissions,
                 int96 flowRateAllowance
             ) = getFlowOperatorData(token, sender, currentContext.msgSender);
-            require(
-                _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.UPDATE_FLOW),
-                "E_NO_OPERATOR_UPDATE_FLOW"
-            );
+            if (!_getBooleanFlowOperatorPermissions(permissions, FlowChangeType.UPDATE_FLOW)) {
+                revert CFA_ACL_OperatorNoUpdatePermissions();
+            }
 
             // check if desired flow rate is allowed and update flow rate allowance
             int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max || oldFlowData.flowRate >= flowRate
                 ? flowRateAllowance
                 : flowRateAllowance - (flowRate - oldFlowData.flowRate);
-            require(updatedFlowRateAllowance >= 0, "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE");
+            if (updatedFlowRateAllowance < 0) revert CFA_ACL_FlowRateAllowanceExceeded();
             _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
         }
 
@@ -693,7 +696,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
         bool hasPermissions = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
-        require(hasPermissions, "E_NO_OPERATOR_DELETE_FLOW");
+        if (!hasPermissions) revert CFA_ACL_OperatorNoDeletePermissions();
 
         _StackVars_createOrUpdateFlow memory flowVars;
         flowVars.token = token;
@@ -713,12 +716,12 @@ contract ConstantFlowAgreementV1 is
         bytes calldata ctx
     ) public override returns(bytes memory newCtx) {
         newCtx = ctx;
-        require(FlowOperatorDefinitions.isPermissionsClean(permissions), "CFA: Unclean permissions");
+        if (!FlowOperatorDefinitions.isPermissionsClean(permissions)) revert CFA_ACL_UncleanPermissions();
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
         // authorizeTokenAccess:
-        require(currentContext.msgSender != flowOperator, "CFA: E_NO_SENDER_FLOW_OPERATOR");
-        require(flowRateAllowance >= 0, "CFA: E_NO_NEGATIVE_ALLOWANCE");
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NoSenderFlowOperator();
+        if (flowRateAllowance < 0) revert CFA_ACL_NoNegativeAllowance();
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = permissions;
         flowOperatorData.flowRateAllowance = flowRateAllowance;
@@ -1078,7 +1081,7 @@ contract ConstantFlowAgreementV1 is
                             userDamageAmount
                         );
                     } else {
-                        revert("CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
+                        revert CFA_APP_NoCriticalReceiverAccount();
                     }
                 }
             }
@@ -1220,7 +1223,7 @@ contract ConstantFlowAgreementV1 is
         if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK ||
             currentContext.appCreditToken != token) {
             (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
-            require(availableBalance >= 0, "CFA: not enough available balance");
+            if (availableBalance < 0) revert CFA_NotEnoughBalance();
         }
     }
 

@@ -1,13 +1,14 @@
 import {HardhatUserConfig, subtask} from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
-import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
+import "@nomicfoundation/hardhat-chai-matchers";
+import "@nomiclabs/hardhat-ethers";
 import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names";
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 import {NetworkUserConfig} from "hardhat/types";
 import "solidity-docgen";
-import { resolve, relative } from "path";
+import {relative} from "path";
 
 try {
     dotenvConfig();
@@ -142,9 +143,13 @@ const config: HardhatUserConfig = {
     docgen: {
         outputDir: "docs/api",
         templates: "./docs/docgen-templates",
-        pages: (item: any, file: any) => file.absolutePath.startsWith('contracts/interfaces/')
-            ? relative('contracts', file.absolutePath).replace('.sol', '.md')
-            : undefined,
+        pages: (item: any, file: any) =>
+            file.absolutePath.startsWith("contracts/interfaces/")
+                ? relative("contracts", file.absolutePath).replace(
+                      ".sol",
+                      ".md"
+                  )
+                : undefined,
     },
 };
 

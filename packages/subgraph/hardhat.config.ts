@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-chai-matchers";
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 

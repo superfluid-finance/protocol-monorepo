@@ -11,6 +11,31 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
+    /// Custom Errors
+    error CFA_ACL_NoSenderCreate();
+    error CFA_ACL_NoSenderUpdate();
+    error CFA_ACL_NoSenderDelete();
+    error CFA_ACL_OperatorNoCreatePermissions();
+    error CFA_ACL_OperatorNoUpdatePermissions();
+    error CFA_ACL_OperatorNoDeletePermissions();
+    error CFA_ACL_FlowRateAllowanceExceeded();
+    error CFA_ACL_UncleanPermissions();
+    error CFA_ACL_NoSenderFlowOperator();
+    error CFA_ACL_NoNegativeAllowance();
+
+    error CFA_DepositTooBig();
+    error CFA_FlowAlreadyExists();
+    error CFA_FlowDoesNotExist();
+    error CFA_FlowRateTooBig();
+    error CFA_NonCriticalSender();
+    error CFA_InvalidFlowRate();
+    error CFA_NotEnoughBalance();
+    error CFA_NoSelfFlow();
+    error CFA_ZeroAddressSender();
+    error CFA_ZeroAddressReceiver();
+
+    error CFA_APP_NoCriticalReceiverAccount();
+
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {
         return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");

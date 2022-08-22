@@ -1,4 +1,4 @@
-const {toBN} = require("@decentral.ee/web3-helpers");
+const {toBN} = require("./helpers");
 const CFADataModel = require("../agreements/ConstantFlowAgreementV1.data.js");
 
 module.exports = class MFASupport {
@@ -38,7 +38,7 @@ module.exports = class MFASupport {
         cfaDataModel,
     }) {
         const roles = cfaDataModel.roles;
-        const expectedNetFlowDeltas = cfaDataModel.expectedNetFlowDeltas;
+        let expectedNetFlowDeltas = cfaDataModel.expectedNetFlowDeltas;
         const expectedFlowInfo = cfaDataModel.expectedFlowInfo;
         let totalProportions = Object.values(mfa.receivers)
             .map((i) => i.proportion)
@@ -78,7 +78,7 @@ module.exports = class MFASupport {
                         toBN(depositAllowance)
                             .mul(toBN(mfa.receivers[receiverAlias].proportion))
                             .mul(toBN(mfa.ratioPct))
-                            .divn(100)
+                            .div(100)
                             .div(toBN(totalProportions)),
                         true /* rounding down */
                     );
@@ -101,10 +101,10 @@ module.exports = class MFASupport {
                             ).flowRate
                         )
                     );
-                    expectedNetFlowDeltas[receiverAddress].iadd(
+                    expectedNetFlowDeltas[receiverAddress] = expectedNetFlowDeltas[receiverAddress].add(
                         mfaFlowRateDelta
                     );
-                    expectedNetFlowDeltas[roles.mfa].isub(mfaFlowRateDelta);
+                    expectedNetFlowDeltas[roles.mfa] = expectedNetFlowDeltas[roles.mfa].sub(mfaFlowRateDelta);
                 }
 
                 expectedFlowInfo[mfaFlowName] = {
@@ -126,10 +126,10 @@ module.exports = class MFASupport {
                 expectedNetFlowDeltas[roles.mfaSender] = toBN(0);
             if (!(roles.mfa in expectedNetFlowDeltas))
                 expectedNetFlowDeltas[roles.mfa] = toBN(0);
-            expectedNetFlowDeltas[roles.mfaSender].iadd(
+            expectedNetFlowDeltas[roles.mfaSender] = expectedNetFlowDeltas[roles.mfaSender].add(
                 toBN(mfaSenderFlow.flowRate)
             );
-            expectedNetFlowDeltas[roles.mfa].isub(toBN(mfaSenderFlow.flowRate));
+            expectedNetFlowDeltas[roles.mfa] = expectedNetFlowDeltas[roles.mfa].sub(toBN(mfaSenderFlow.flowRate));
             await cfaDataModel.addFlowInfoBefore("mfa.sender", {
                 sender: roles.mfaSender,
                 receiver: roles.mfa,

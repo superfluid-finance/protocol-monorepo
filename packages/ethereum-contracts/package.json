@@ -57,7 +57,7 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.7.0",
-        "@superfluid-finance/js-sdk": "0.6.2",
+        "@superfluid-finance/js-sdk": "0.6.3",
         "@truffle/contract": "4.5.15",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.5",

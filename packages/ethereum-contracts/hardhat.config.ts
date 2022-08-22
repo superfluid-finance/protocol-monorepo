@@ -29,18 +29,15 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 
 const chainIds = {
     "eth-mainnet": 1,
-    "eth-ropsten": 3,
-    "eth-rinkeby": 4,
-    "eth-kovan": 42,
     "eth-goerli": 5,
 
     "xdai-mainnet": 100,
 
     "optimism-mainnet": 10,
-    "optimism-kovan": 69,
+    "optimism-goerli": 420,
 
     "arbitrum-one": 42161,
-    "arbitrum-rinkeby": 421611,
+    "arbitrum-goerli": 421613,
 
     "polygon-mainnet": 137,
     "polygon-mumbai": 80001,
@@ -81,14 +78,6 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("localhost"),
             url: "http://0.0.0.0:8545/",
         },
-        "eth-ropsten": {
-            ...createNetworkConfig("eth-ropsten"),
-            url: process.env.ROPSTEN_PROVIDER_URL || "",
-        },
-        "eth-rinkeby": {
-            ...createNetworkConfig("eth-rinkeby"),
-            url: process.env.RINKEBY_PROVIDER_URL || "",
-        },
         "bsc-mainnet": {
             ...createNetworkConfig("bsc-mainnet"),
             url: process.env.BSC_PROVIDER_URL || "",
@@ -103,19 +92,19 @@ const config: HardhatUserConfig = {
         },
         "optimism-mainnet": {
             ...createNetworkConfig("optimism-mainnet"),
-            url: process.env.OPKOVAN_PROVIDER_URL || "",
+            url: process.env.OPMAINNET_PROVIDER_URL || "",
         },
-        "optimism-kovan": {
-            ...createNetworkConfig("optimism-kovan"),
-            url: process.env.OPKOVAN_PROVIDER_URL || "",
+        "optimism-goerli": {
+            ...createNetworkConfig("optimism-goerli"),
+            url: process.env.OPGOERLI_PROVIDER_URL || "",
         },
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
-            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
+            url: process.env.ARBONE_PROVIDER_URL || "",
         },
-        "arbitrum-rinkeby": {
-            ...createNetworkConfig("arbitrum-rinkeby"),
-            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
+        "arbitrum-goerli": {
+            ...createNetworkConfig("arbitrum-goerli"),
+            url: process.env.ARBGOERLI_PROVIDER_URL || "",
         },
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),

@@ -2,6 +2,7 @@ import {Signer} from "ethers";
 import {ethers} from "hardhat";
 
 import IConstantFlowAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json";
+import IInstantDistributionAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol/IInstantDistributionAgreementV1.json";
 import SuperfluidMockArtifact from "../../../artifacts/contracts/mocks/SuperfluidMock.sol/SuperfluidMock.json";
 
 // TEMP FOR INTERFACING W/ JS
@@ -46,6 +47,7 @@ export class AgreementHelper {
     readonly testEnvironment: any;
     readonly cfaInterface: any;
     readonly hostInterface: any;
+    readonly idaInterface: any;
 
     constructor(testEnvironment: any) {
         this.testEnvironment = testEnvironment;
@@ -54,6 +56,9 @@ export class AgreementHelper {
         );
         this.hostInterface = new ethers.utils.Interface(
             SuperfluidMockArtifact.abi
+        );
+        this.idaInterface = new ethers.utils.Interface(
+            IInstantDistributionAgreementV1Artifact.abi
         );
     }
 

@@ -1,7 +1,8 @@
 const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
-const {toBN, toWad, wad4human} = require("@decentral.ee/web3-helpers");
+const {wad4human} = require("@decentral.ee/web3-helpers");
+const {toBN, toWad} = require("../utils/helpers");
 
 const {
     shouldCreateFlow,
@@ -89,7 +90,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: FLOW_RATE1.mul(toBN(-1)),
+                value: FLOW_RATE1.mul(toBN(0).sub(toBN(1))),
             });
             await expectNetFlow({
                 testenv: t,
@@ -126,8 +127,8 @@ describe("Superfluid scenarios", function () {
             //   ^---------------|
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-            const flowRateBC = FLOW_RATE1.muln(2).divn(3);
-            const flowRateCA = FLOW_RATE1.divn(3);
+            const flowRateBC = FLOW_RATE1.mul(2).div(3);
+            const flowRateCA = FLOW_RATE1.div(3);
 
             await shouldCreateFlow({
                 testenv: t,
@@ -212,10 +213,10 @@ describe("Superfluid scenarios", function () {
         });
 
         it("#1.3 a slight complex flow map", async () => {
-            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.muln(2));
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.mul(2));
 
-            const flowRateBD = FLOW_RATE1.muln(2).divn(3);
-            const flowRateDC = FLOW_RATE1.divn(3);
+            const flowRateBD = FLOW_RATE1.mul(2).div(3);
+            const flowRateDC = FLOW_RATE1.div(3);
             //const flowRate;
 
             await shouldCreateFlow({
@@ -236,7 +237,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: toBN(0).sub(FLOW_RATE1.muln(2)),
+                value: toBN(0).sub(FLOW_RATE1.mul(2)),
             });
             await expectNetFlow({
                 testenv: t,
@@ -269,7 +270,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: toBN(0).sub(FLOW_RATE1.muln(2)),
+                value: toBN(0).sub(FLOW_RATE1.mul(2)),
             });
             await expectNetFlow({
                 testenv: t,
@@ -302,7 +303,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: toBN(0).sub(FLOW_RATE1.muln(2)),
+                value: toBN(0).sub(FLOW_RATE1.mul(2)),
             });
             await expectNetFlow({
                 testenv: t,

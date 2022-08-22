@@ -163,7 +163,7 @@ describe("TOGA", function () {
             EXIT_RATE_1
         );
 
-        expectEvent.inTransaction(r1.tx, toga.contract, "NewPIC", {
+        await expectEvent.inTransaction(r1.tx, toga.contract, "NewPIC", {
             token: superToken.address,
             pic: alice,
             bond: BOND_AMOUNT_1E18.toString(),
@@ -219,7 +219,7 @@ describe("TOGA", function () {
             BOND_AMOUNT_1E18.add(toBN(1)).toString()
         );
 
-        expectEvent.inTransaction(r2.tx, toga.contract, "NewPIC", {
+        await expectEvent.inTransaction(r2.tx, toga.contract, "NewPIC", {
             token: superToken.address,
             pic: bob,
             bond: BOND_AMOUNT_1E18.add(toBN(1)).toString(),
@@ -410,7 +410,7 @@ describe("TOGA", function () {
             from: alice,
         });
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
-        expectEvent.inTransaction(r.tx, toga.contract, "ExitRateChanged", {
+        await expectEvent.inTransaction(r.tx, toga.contract, "ExitRateChanged", {
             token: superToken.address,
             exitRate: EXIT_RATE_1.toString(),
         });
@@ -724,7 +724,7 @@ describe("TOGA", function () {
         ).bond;
 
         const r1 = await sendPICBid(bob, superToken, BOND_AMOUNT_2E18, 0);
-        expectEvent.inTransaction(
+        await expectEvent.inTransaction(
             r1.tx,
             custodian.contract,
             "CustodianDeposit",
@@ -745,7 +745,7 @@ describe("TOGA", function () {
         ).bond;
 
         const r2 = await sendPICBid(carol, superToken, BOND_AMOUNT_3E18, 0);
-        expectEvent.inTransaction(
+        await expectEvent.inTransaction(
             r2.tx,
             custodian.contract,
             "CustodianDeposit",
@@ -782,7 +782,7 @@ describe("TOGA", function () {
             (await superToken.balanceOf(alice)).toString(),
             alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
         );
-        expectEvent.inTransaction(
+        await expectEvent.inTransaction(
             r3.tx,
             custodian.contract,
             "CustodianWithdrawal",
@@ -802,7 +802,7 @@ describe("TOGA", function () {
         const r4 = await toga.withdrawFundsInCustody(superToken.address, {
             from: bob,
         });
-        expectEvent.inTransaction(
+        await expectEvent.inTransaction(
             r4.tx,
             custodian.contract,
             "CustodianWithdrawal",

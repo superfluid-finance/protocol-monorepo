@@ -13,6 +13,7 @@ const {
     shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook,
     shouldBehaveLikeERC777SendBurnWithSendHook,
 } = require("./ERC777.behavior");
+const {ethers} = require("hardhat");
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
@@ -558,14 +559,17 @@ describe("SuperToken's ERC777 implementation", function () {
                                 recipient
                             );
 
-                            await erc1820.setInterfaceImplementer(
-                                recipient,
-                                web3.utils.soliditySha3(
-                                    "ERC777TokensRecipient"
-                                ),
-                                this.tokensRecipientImplementer.address,
-                                {from: recipient}
-                            );
+                            const signer = await ethers.getSigner(recipient);
+
+                            await erc1820
+                                .connect(signer)
+                                .setInterfaceImplementer(
+                                    recipient,
+                                    web3.utils.soliditySha3(
+                                        "ERC777TokensRecipient"
+                                    ),
+                                    this.tokensRecipientImplementer.address
+                                );
                         });
 
                         shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook(
@@ -639,12 +643,14 @@ describe("SuperToken's ERC777 implementation", function () {
 
                         await this.tokensSenderImplementer.senderFor(sender);
 
-                        await erc1820.setInterfaceImplementer(
-                            sender,
-                            web3.utils.soliditySha3("ERC777TokensSender"),
-                            this.tokensSenderImplementer.address,
-                            {from: sender}
-                        );
+                        const signer = await ethers.getSigner(sender);
+                        await erc1820
+                            .connect(signer)
+                            .setInterfaceImplementer(
+                                sender,
+                                web3.utils.soliditySha3("ERC777TokensSender"),
+                                this.tokensSenderImplementer.address
+                            );
                     });
 
                     shouldBehaveLikeERC777SendBurnWithSendHook(

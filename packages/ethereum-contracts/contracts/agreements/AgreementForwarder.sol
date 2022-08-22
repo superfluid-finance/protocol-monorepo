@@ -146,6 +146,7 @@ contract AgreementForwarder {
      * @param subscribers List of accounts to be subscribed
      * @param units List of units to be assigned to subscribed accounts
      */
+    /*
     function createIndexWithSubscriptions(
         ISuperToken token,
         uint32 indexId,
@@ -155,6 +156,7 @@ contract AgreementForwarder {
         createIndex(token, indexId);
         updateSubscriptions(token, indexId, subscribers, units);
     }
+    */
 
     /**
      * @notice Creates or changes a subscription to an index

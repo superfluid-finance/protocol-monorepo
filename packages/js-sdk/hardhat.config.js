@@ -9,7 +9,7 @@ require("dotenv").config();
  * Note: For tests to work, 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
  * must be the deployer of the contracts.
  */
-const config = {
+module.exports = {
     solidity: {
         version: "0.8.15",
         settings: {
@@ -41,5 +41,3 @@ const config = {
         timeout: 250000,
     },
 };
-
-export default config;

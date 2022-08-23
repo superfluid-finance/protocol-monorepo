@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# NOTE: This utility checks the solc-0.8.0 compatibility of all the interface contracts we export
+# NOTE: This utility checks the solc-0.8.4 compatibility of all the interface contracts we export
 
 # make sure that if any step fails, the script fails
 set -xe
@@ -11,18 +11,18 @@ cd "$(dirname "$0")"/..
 
 # Download solc if needed and verify its checksum
 mkdir -p ./build/bin
-SOLC=build/bin/solc-0.8.2
+SOLC=build/bin/solc-0.8.4
 if [ ! -f "$SOLC" ]; then
-    wget https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/solc-linux-amd64-v0.8.2%2Bcommit.661d1103 -O $SOLC
+    wget https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/solc-linux-amd64-v0.8.4%2Bcommit.c7e474f2 -O $SOLC
     chmod +x ./$SOLC
 fi
 CHKSUM=$(sha256sum ./$SOLC | awk '{print $1}')
-EXPECTED_CHKSUM="b6b9429d71d4395901795936a0aaee0b23082fcaee10d563d87b42e69c0e68c2"
+EXPECTED_CHKSUM="f7115ccaf11899dcf3aaa888949f8614421f2d10af65a74870bcfd67010da7f8"
 [ "$CHKSUM" == "$EXPECTED_CHKSUM" ]
 
 # https://github.com/ethereum/solc-bin/blob/gh-pages/linux-amd64/list.json
 # 0x64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc
-# TODO: get json file, find builds with path: solc-linux-amd64-v0.8.0%2Bcommit.c7dfd78e
+# TODO: get json file, find builds with path: solc-linux-amd64-v0.8.4%2Bcommit.c7e474f2
 # compare sha256 we generate with the downloaded bin file above with the sha256 obtained
 # from here - don't forget to add 0x to our generated sha256
 

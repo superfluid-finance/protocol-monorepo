@@ -49,7 +49,7 @@ module.exports = class MFASupport {
             true /* rounding down */
         );
 
-        // expected unwindng of mfa receiver flows
+        // expected unwinding of mfa receiver flows
         Object.keys(mfa.receivers).forEach((receiverAlias) => {
             const receiverAddress = testenv.getAddress(receiverAlias);
             if (!(receiverAddress in expectedNetFlowDeltas)) {
@@ -115,7 +115,7 @@ module.exports = class MFASupport {
             })
         );
 
-        // expected unwindng of mfa sender flow if the flow being deleted is not sending to the mfa
+        // expected unwinding of mfa sender flow if the flow being deleted is not sending to the mfa
         if (roles.mfa != roles.receiver) {
             const mfaSenderFlow = cfaDataModel.getFlowInfo({
                 superToken: superToken.address,

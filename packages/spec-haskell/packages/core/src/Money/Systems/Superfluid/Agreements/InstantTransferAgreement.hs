@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -10,47 +10,60 @@ module Money.Systems.Superfluid.Agreements.InstantTransferAgreement where
 
 import           Data.Coerce
 import           Data.Default
-import           Data.Kind
+import           Data.Type.Any
+import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.InstantValue as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue as IVMUD
+
 
 -- * Monetary data lenses
 --
 
-instance SuperfluidTypes sft => IVMUD.MonetaryUnitLenses (UniversalData sft) sft where
-    untappedValue = $(field 'ita_untapped_value)
-type MonetaryUnitData sft = IVMUD.MonetaryUnitData (UniversalData sft) sft
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { untapped_value         :: UntappedValue (SFT_MVAL sft)
+    } deriving (Generic)
+deriving instance SuperfluidSystemTypes sft => Default (MonetaryUnitLenses sft)
 
--- * Contract
+type MonetaryUnitData sft = IVMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+
+instance SuperfluidSystemTypes sft => IVMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    untappedValue = $(field 'untapped_value)
+
+-- * Contract & Operation
 --
 
--- * Operation
---
+-- No ongoing relationships between parties
+data ContractData sft = ContractData
 
-newtype Operation sft = Transfer (SFT_MVAL sft)
+instance SuperfluidSystemTypes sft => Default (ContractData sft) where def = ContractData
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (ContractData sft) sft where
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
-
-    data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
-        { transferFrom :: elem
-        , transferTo   :: elem
-        } deriving stock (Functor, Foldable, Traversable)
-
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
-
-    applyAgreementOperation (Transfer amount) acd _ = let
-        acd'  = acd
-        aorΔ = fmap IVMUD.MkMonetaryUnitData (OperationPartiesF
+instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft where
+    applyAgreementOperation ac (Transfer amount) _ = let
+        ac' = ac
+        mudsΔ = fmap IVMUD.MkMonetaryUnitData (OperationOutputF
                     (def & set IVMUD.untappedValue (coerce (- amount)))
                     (def & set IVMUD.untappedValue (coerce    amount)))
-        in (acd', aorΔ)
+        in (ac', mudsΔ)
 
-type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
+    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
+        OperationOutputF (a <> a') (b <> b')
 
-instance SuperfluidTypes sft => Default (ContractData sft) where def = ContractData
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
+
+    data AgreementOperation (ContractData sft) = Transfer (SFT_MVAL sft)
+
+    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
+
+    data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
+        { transfer_from :: elem
+        , transfer_to   :: elem
+        } deriving stock (Functor, Foldable, Traversable, Generic)
+
+type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)

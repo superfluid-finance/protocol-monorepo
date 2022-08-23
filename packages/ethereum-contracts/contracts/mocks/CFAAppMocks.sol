@@ -12,7 +12,7 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
 /**
  * @dev This is a CFA SuperApp that maintains at most one inflow from a sender at any moment.
  *
- * This can test the deposit allowance logic in the deleteFlow as a recipient.
+ * This can test the deposit credit logic in the deleteFlow as a recipient.
  */
 contract ExclusiveInflowTestApp is SuperAppBase {
 

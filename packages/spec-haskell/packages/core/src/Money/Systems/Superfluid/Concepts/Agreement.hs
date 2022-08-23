@@ -1,77 +1,154 @@
+{-# LANGUAGE DerivingVia            #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE ImpredicativeTypes     #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 
 module Money.Systems.Superfluid.Concepts.Agreement
-    ( AgreementMonetaryUnitData (..)
-    , NullAgreementMonetaryUnitData
+    ( AgreementContract (..)
+    , AgreementContractState
+    , NullAgreementContract
     , AgreementOperation (..)
+    , AgreementOperationOutputF (..)
+    , AnyAgreementContractState (..)
+    , ao_sum_contract_balance
+    , ao_go_single_op
+    , ao_go_zero_sum_balance_after_single_op
     ) where
 
-import           Data.Kind                                         (Type)
+import           Data.Default
+import           Data.Kind                                          (Type)
+import           Data.Proxy
+import           Data.Type.Any
 
-import           Money.Systems.Superfluid.Concepts.SuperfluidTypes
+import           Money.Systems.Superfluid.Concepts.MonetaryUnitData
+import           Money.Systems.Superfluid.CoreTypes
 
 
--- | Agreement monetary unit data type class.
---
--- Note: a. ~amud~ needs not to have a binary function, but when it does, it must conform to the monoid laws.
---
---       b. ~amud~ that doesn't have a binary function may also be referred to as "read only" ~amud~. See agreement
---          operation note below where it reveals a class of ~amud~ that is "non-scalable".
---
---       c. What can make a ~amud~ "scalable" then is exactly when it is a real monoid. Since a new state can be merged
---          onto the previous state to a new single state. It is still worth mentioning that it is only a sufficient
---          condition, since a monoid could still "cheat" by linearly grow its data size on each binary operation.
-class ( SuperfluidTypes sft
-      , Monoid amud
-      ) => AgreementMonetaryUnitData amud sft | amud -> sft where
-    -- | π function - balance provided (hear: π) by the agreement monetary unit data.
-    balanceProvidedByAgreement
-        :: amud          -- amud
-        -> SFT_TS sft    -- t
-        -> SFT_RTB sft   -- rtb
+-- | Agreement contract type class.
+class ( SuperfluidCoreTypes sft
+      , Default ac
+      , MonetaryUnitDataClass ac sft
+      , Default (AgreementOperationOutput ac)
+      , Traversable (AgreementOperationOutputF ac) -- <= Foldable Functor
+      ) => AgreementContract ac sft | ac -> sft where
 
--- | Agreement operation type class.
---
--- It has three associated type/data families: ~aod~, ~aorF~ and ~amud~. See their documentations.
---
--- Note: a. The constraint on ~amud~ may seems too strong, since a semigroup should also be sufficient. But why would you
---          define an operation that has nothing to do with any ~amud~, apart from the trivial case of
---          ~NullAgreementMonetaryUnitData~?
---
---       b. It is conceivable that some ~amud~ are "read only" hence "fake monoid", where their π is implicitly a
---          function of ~aod~. This class of ~amud~ is also known as "non-scalable", since ~amud~ is a product of ~aod~,
---          and a monetary unit would need as many ~amud~ as the needed ~aod~.
-class ( SuperfluidTypes sft
-      -- change to ~Semigroup amud~ can work too, see note (a).
-      , AgreementMonetaryUnitData (AgreementMonetaryUnitDataInOperation ao) sft
-      ) => AgreementOperation ao sft | ao -> sft where
-    -- | Areement operation data type ~aod~.
-    data AgreementOperationData ao :: Type
-
-    -- | Agreement operation result container type ~aorF~.
-    data AgreementOperationResultF ao elem :: Type
-
-    -- | Type of agreement monetary unit data ~amud~ created in operation result.
-    type AgreementMonetaryUnitDataInOperation ao :: Type
-
-    -- | ω function - apply agreement operation ~ao~ (hear: ω) onto the agreement operation data ~aod~ to get a tuple of:
+    -- | ω function - apply agreement operation ~ao~ (hear: ω) to the agreement operation data ~ac~ to get a tuple of:
     --
-    --   1. An updated ~aod'~.
-    --   2. A functorful delta of agreement monetary unit data ~aorΔ~, which then can be monoid-appended to existing ~amud~.
-    --      This is what can make an agreement scalable.
+    --   1. An updated ~ac'~.
+    --
+    --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which then can be monoid-appended to existing
+    --      ~mudΔ~.  This is what can make an agreement scalable.
     applyAgreementOperation
-        :: amud ~ (AgreementMonetaryUnitDataInOperation ao)
-        => ao                                   -- ao
-        -> AgreementOperationData ao            -- aod
-        -> SFT_TS sft                           -- t
-        -> ( AgreementOperationData ao
-           , AgreementOperationResultF ao amud) -- (aod', aorΔ)
+        :: ac                                -- ac
+        -> AgreementOperation ac             -- ao
+        -> SFT_TS sft                        -- t
+        -> (ac, AgreementOperationOutput ac) -- (ac', mudsΔ)
 
--- | A special null agreement monetary unit data.
---
--- Note: It is handy for agreement operation that does not modify any ~amud~, where their ~AgreementOperationResultF~ is
---       actually an empty container.
-type NullAgreementMonetaryUnitData sft = ()
-instance SuperfluidTypes sft => AgreementMonetaryUnitData (NullAgreementMonetaryUnitData sft) sft where
-    balanceProvidedByAgreement _ _ = mempty
+    -- | φ' function - functorize the existential semigroup monetary unit data of agreement operation output
+    functorizeAgreementOperationOutput
+        :: forall muds f any_smud.
+           ( muds ~ AgreementOperationOutput ac
+           , f ~ AgreementOperationOutputF ac
+           , MonetaryUnitDataClass any_smud sft
+           , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+           )
+        => Proxy any_smud -> muds -> f any_smud
+
+    -- | κ function - concatenate agreement operation output, which can be functorized any time.
+    concatAgreementOperationOutput
+        :: forall muds.
+           muds ~ AgreementOperationOutput ac
+        => muds -> muds -> muds
+
+    -- Note: though ~ac~ is injected, but it seems natural to have operation as associated data type instead.
+    data family AgreementOperation ac :: Type
+
+    -- Note: though ~ac~ is injected, none terminal type can only be associated data type.
+    data family AgreementOperationOutputF ac :: Type -> Type
+
+    -- Note: since ~ac~ is injected, hence this can be associated type alias.
+    type family AgreementOperationOutput ac = (muds :: Type) | muds -> ac
+
+-- * Null Agreement
+
+data NullAgreementContract sft
+
+instance SuperfluidCoreTypes sft => Default (NullAgreementContract sft) where def = def
+instance SuperfluidCoreTypes sft => MonetaryUnitDataClass (NullAgreementContract sft) sft
+
+instance SuperfluidCoreTypes sft => AgreementContract (NullAgreementContract sft) sft where
+    applyAgreementOperation ac _ _ = (ac, NullAgreementOutoutF)
+    functorizeAgreementOperationOutput _ _ = NullAgreementOutoutF
+    concatAgreementOperationOutput = const
+    data AgreementOperation (NullAgreementContract sft) = NullAgreementOperation
+    data AgreementOperationOutputF (NullAgreementContract sft) _ = NullAgreementOutoutF
+        deriving stock (Functor, Foldable, Traversable)
+    type AgreementOperationOutput (NullAgreementContract sft) = NullAgreementOutout sft
+
+type NullAgreementOutout sft = AgreementOperationOutputF (NullAgreementContract sft) ()
+
+instance SuperfluidCoreTypes sft => Default (NullAgreementOutout sft) where def = def
+
+-- * Agreement Contract State
+
+type AgreementContractState ac sft = (SuperfluidCoreTypes sft, AgreementContract ac sft)
+    => (ac, AgreementOperationOutput ac)
+
+data AnyAgreementContractState sft = forall ac. AgreementContract ac sft
+    => MkAnyAgreementContractState (ac, AgreementOperationOutput ac)
+
+-- =====================================================================================================================
+-- * Agreement Laws
+
+ao_sum_contract_balance :: forall sft any_smud.
+                           ( SuperfluidCoreTypes sft
+                           , MonetaryUnitDataClass any_smud sft
+                           , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+                           )
+                        => Proxy any_smud
+                        -> AnyAgreementContractState sft
+                        -> SFT_TS sft
+                        -> SFT_RTB sft
+ao_sum_contract_balance p (MkAnyAgreementContractState (ac, muds)) t =
+    foldr (<>) (π₂ t ac) (fmap (π₁ t) (φ muds))
+    where φ  = functorizeAgreementOperationOutput p
+          π₁ = flip balanceProvided -- π function (flipped) for semigroup mud
+          π₂ = flip balanceProvided -- π function (flipped) for contract mud
+
+ao_go_single_op :: forall ac sft.
+                   ( SuperfluidCoreTypes sft
+                   , AgreementContract ac sft
+                   )
+                => AgreementContractState ac sft
+                -> AgreementOperation ac
+                -> SFT_TS sft
+                -> AgreementContractState ac sft
+ao_go_single_op (ac, muds) ao t' =
+    let (ac', mudsΔ) = ω ac ao t'
+        muds'        = κ muds mudsΔ
+    in  (ac', muds')
+    where ω  = applyAgreementOperation
+          κ  = concatAgreementOperationOutput
+
+ao_go_zero_sum_balance_after_single_op :: forall ac sft any_smud.
+                                          ( SuperfluidCoreTypes sft
+                                          , AgreementContract ac sft
+                                          , MonetaryUnitDataClass any_smud sft
+                                          , any_smud
+                                            `IsAnyTypeOf`
+                                            MPTC_Flip SemigroupMonetaryUnitData sft
+                                          )
+                                       => Proxy any_smud
+                                       -> (SFT_MVAL sft -> SFT_MVAL sft -> Bool)
+                                       -> AgreementContractState ac sft
+                                       -> AgreementOperation ac
+                                       -> [AnyAgreementContractState sft]
+                                       -> SFT_TS sft
+                                       -> (Bool, AgreementContractState ac sft)
+ao_go_zero_sum_balance_after_single_op p mvalEq cs ao ocss t' =
+    let cs' = ao_go_single_op cs ao t'
+    in  (σ cs `mvalEq` b && σ cs' `mvalEq` b, cs')
+    where b = netValueOfRTB $ ao_sum_contract_balance p (MkAnyAgreementContractState cs) t'
+          σ cs' = netValueOfRTB $
+              foldMap (flip (ao_sum_contract_balance p) t') ocss <>
+              ao_sum_contract_balance p (MkAnyAgreementContractState cs') t'

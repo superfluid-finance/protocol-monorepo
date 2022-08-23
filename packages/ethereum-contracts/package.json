@@ -36,7 +36,7 @@
         "testenv:deploy": "yarn run-truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
-        "test:contracts:hardhat": "yarn run-hardhat test testsuites/all-contracts.js --parallel",
+        "test:contracts:hardhat": "yarn run-hardhat test testsuites/all-contracts.js",
         "test:contracts:foundry": "yarn run-forge test --hardhat",
         "test:contracts:solc-0.8.0-compatibility": "test/test-solc-0.8.0-compatibility.sh",
         "test:deployment:scripts-js-hardhat": "yarn run-hardhat test test/scripts/deployment.test.js",
@@ -57,7 +57,7 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.7.0",
-        "@superfluid-finance/js-sdk": "0.6.2",
+        "@superfluid-finance/js-sdk": "0.6.3",
         "@truffle/contract": "4.5.15",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.5",

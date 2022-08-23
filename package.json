@@ -11,7 +11,6 @@
     "scripts": {
         "prepare": "tasks/git-submodule-init.sh lib/forge-std",
         "git:submodule:cleanup": "git submodule deinit --all --force",
-        "checkout-examples": "tasks/git-submodule-init.sh super-examples",
         "lint": "yarn workspaces run lint",
         "build": "yarn build-essentials #synonym of build-essentials",
         "build-essentials": "set -e;for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",

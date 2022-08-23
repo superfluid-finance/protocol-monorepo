@@ -6,7 +6,7 @@ const {toBN, toWad} = require("./helpers");
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
 
-describe("TOGA", function () {
+describe.only("TOGA", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
     const {ZERO_ADDRESS} = t.constants;
@@ -158,19 +158,16 @@ describe("TOGA", function () {
             ZERO_ADDRESS
         );
 
-        const r1 = await sendPICBid(
-            alice,
-            superToken,
-            BOND_AMOUNT_1E18,
-            EXIT_RATE_1
-        );
-
-        expectEvent.inTransaction(r1.tx, toga.contract, "NewPIC", {
-            token: superToken.address,
-            pic: alice,
-            bond: BOND_AMOUNT_1E18.toString(),
-            exitRate: EXIT_RATE_1.toString(),
-        });
+        await expect(
+            sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1)
+        )
+            .to.emit(toga, "NewPIC")
+            .withArgs(
+                superToken.address,
+                alice,
+                BOND_AMOUNT_1E18.toString(),
+                EXIT_RATE_1.toString()
+            );
 
         assert.equal(await toga.getCurrentPIC(superToken.address), alice);
 
@@ -208,25 +205,27 @@ describe("TOGA", function () {
         );
 
         // should succeed with 1 wad more
-        const r2 = await sendPICBid(
-            bob,
-            superToken,
-            BOND_AMOUNT_1E18.add(toBN(1)),
-            EXIT_RATE_1
-        );
+        await expect(
+            sendPICBid(
+                bob,
+                superToken,
+                BOND_AMOUNT_1E18.add(toBN(1)),
+                EXIT_RATE_1
+            )
+        )
+            .to.emit(toga, "NewPIC")
+            .withArgs(
+                superToken.address,
+                bob,
+                BOND_AMOUNT_1E18.add(toBN(1)).toString(),
+                EXIT_RATE_1.toString()
+            );
 
         assert.equal(await toga.getCurrentPIC(superToken.address), bob);
         assert.equal(
             (await toga.getCurrentPICInfo(superToken.address)).bond.toString(),
             BOND_AMOUNT_1E18.add(toBN(1)).toString()
         );
-
-        expectEvent.inTransaction(r2.tx, toga.contract, "NewPIC", {
-            token: superToken.address,
-            pic: bob,
-            bond: BOND_AMOUNT_1E18.add(toBN(1)).toString(),
-            exitRate: EXIT_RATE_1.toString(),
-        });
     });
 
     it("#3 TOGA registered with ERC1820", async () => {
@@ -407,14 +406,14 @@ describe("TOGA", function () {
         );
 
         // lower to 1 wad
-        const r = await toga
-            .connect(aliceSigner)
-            .changeExitRate(superToken.address, EXIT_RATE_1);
+        await expect(
+            toga
+                .connect(aliceSigner)
+                .changeExitRate(superToken.address, EXIT_RATE_1)
+        )
+            .to.emit(toga, "ExitRateChanged")
+            .withArgs(superToken.address, EXIT_RATE_1.toString());
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
-        expectEvent.inTransaction(r.tx, toga.contract, "ExitRateChanged", {
-            token: superToken.address,
-            exitRate: EXIT_RATE_1.toString(),
-        });
 
         // increase to 1000 wad
         await toga
@@ -752,17 +751,9 @@ describe("TOGA", function () {
             await toga.getCurrentPICInfo(superToken.address)
         ).bond;
 
-        const r1 = await sendPICBid(bob, superToken, BOND_AMOUNT_2E18, 0);
-        expectEvent.inTransaction(
-            r1.tx,
-            custodian.contract,
-            "CustodianDeposit",
-            {
-                token: superToken.address,
-                recipient: alice,
-                amount: BOND_AMOUNT_1E18.toString(),
-            }
-        );
+        await expect(sendPICBid(bob, superToken, BOND_AMOUNT_2E18, 0))
+            .to.emit(custodian, "CustodianDeposit")
+            .withArgs(superToken.address, alice, BOND_AMOUNT_1E18.toString());
         assert.equal(
             (await superToken.balanceOf(custodian.address)).toString(),
             alicePreOutbid1Bond.toString()
@@ -773,17 +764,9 @@ describe("TOGA", function () {
             await toga.getCurrentPICInfo(superToken.address)
         ).bond;
 
-        const r2 = await sendPICBid(carol, superToken, BOND_AMOUNT_3E18, 0);
-        expectEvent.inTransaction(
-            r2.tx,
-            custodian.contract,
-            "CustodianDeposit",
-            {
-                token: superToken.address,
-                recipient: bob,
-                amount: BOND_AMOUNT_2E18.toString(),
-            }
-        );
+        await expect(sendPICBid(carol, superToken, BOND_AMOUNT_3E18, 0))
+            .to.emit(custodian, "CustodianDeposit")
+            .withArgs(superToken.address, bob, BOND_AMOUNT_2E18.toString());
         assert.equal(
             (await superToken.balanceOf(custodian.address)).toString(),
             alicePreOutbid1Bond.add(bobPreOutbid1Bond).toString()
@@ -806,22 +789,16 @@ describe("TOGA", function () {
                 ZERO_ADDRESS
             );
 
-        const r3 = await toga
-            .connect(await ethers.getSigner(alice))
-            .withdrawFundsInCustody(superToken.address);
+        await expect(
+            toga
+                .connect(await ethers.getSigner(alice))
+                .withdrawFundsInCustody(superToken.address)
+        )
+            .to.emit(custodian, "CustodianWithdrawal")
+            .withArgs(superToken.address, alice, BOND_AMOUNT_1E18.toString());
         assert.equal(
             (await superToken.balanceOf(alice)).toString(),
             alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
-        );
-        expectEvent.inTransaction(
-            r3.tx,
-            custodian.contract,
-            "CustodianWithdrawal",
-            {
-                token: superToken.address,
-                recipient: alice,
-                amount: BOND_AMOUNT_1E18.toString(),
-            }
         );
         // withdrawing again shall have no effect
         await toga
@@ -832,19 +809,13 @@ describe("TOGA", function () {
             alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
         );
 
-        const r4 = await toga
-            .connect(await ethers.getSigner(bob))
-            .withdrawFundsInCustody(superToken.address);
-        expectEvent.inTransaction(
-            r4.tx,
-            custodian.contract,
-            "CustodianWithdrawal",
-            {
-                token: superToken.address,
-                recipient: bob,
-                amount: BOND_AMOUNT_2E18.toString(),
-            }
-        );
+        await expect(
+            toga
+                .connect(await ethers.getSigner(bob))
+                .withdrawFundsInCustody(superToken.address)
+        )
+            .to.emit(custodian, "CustodianWithdrawal")
+            .withArgs(superToken.address, bob, BOND_AMOUNT_2E18.toString());
         assert.equal(
             (await superToken.balanceOf(bob)).toString(),
             bobPreOutbid1Bal.add(bobPreOutbid1Bond).toString()

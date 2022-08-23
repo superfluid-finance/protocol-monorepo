@@ -15,8 +15,6 @@ const topSectionMessage =
     "Looks like there are some lonely pull requests open in your area";
 const workflowFileName = ".github/workflows/ci.canary.yml";
 
-const exampleWorkflowFileName = ".github/workflows/handler.build-examples.yml";
-
 const redImage =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Solid_red.svg/512px-Solid_red.svg.png?20150316143248";
 const orangeImage =
@@ -97,9 +95,6 @@ async function sendMessageToSlack(data) {
         (x) => x.path === workflowFileName
     )[0];
     const lastWorkflowId = lastWorkflow.id;
-    const lastExampleWorkflow = workflowJson.workflow_runs.filter(
-        (x) => x.path === exampleWorkflowFileName && x.head_branch === "dev"
-    )[0];
     const lastWorkflowUsage = await getDataAsJson(
         "/repos/superfluid-finance/protocol-monorepo/actions/runs/" +
             lastWorkflowId +
@@ -108,15 +103,11 @@ async function sendMessageToSlack(data) {
 
     const workflowStatus = lastWorkflow.status;
     const workflowConclusion = lastWorkflow.conclusion;
-    const examplesConclusion = lastExampleWorkflow.conclusion;
-    const examplesStatus = lastExampleWorkflow.status;
     const workflowRanAt = new Date(lastWorkflow.run_started_at).toUTCString();
     const workflowUrl = lastWorkflow.html_url;
     const workflowNumber = lastWorkflow.run_number;
     const workflowName = lastWorkflow.name;
-    const examplesWorkflowName = lastExampleWorkflow.name;
-    const examplesWorkflowUrl = lastExampleWorkflow.html_url;
-    const examplesWorkflowNumber = lastExampleWorkflow.run_number;
+
     const workflowTriggeringCommitMessage =
         lastWorkflow.head_commit.message.split("\n")[0];
     const workflowCommitLink =
@@ -303,14 +294,10 @@ async function sendMessageToSlack(data) {
     }
 
     function getOverallWorkflowString() {
-        if (
-            workflowStatus === "in_progress" ||
-            examplesStatus === "in_progress"
-        ) {
+        if (workflowStatus === "in_progress") {
             return "In progress";
         } else {
-            return workflowConclusion === "success" &&
-                examplesConclusion === "success"
+            return workflowConclusion === "success"
                 ? "Success"
                 : "Failed";
         }
@@ -326,14 +313,6 @@ async function sendMessageToSlack(data) {
             ">*: " +
             workflowConclusion +
             "\n" +
-            examplesWorkflowName +
-            " *<" +
-            examplesWorkflowUrl +
-            "|#" +
-            examplesWorkflowNumber +
-            ">*: " +
-            examplesConclusion +
-            "\nLast commit: *<" +
             workflowCommitLink +
             "|" +
             workflowTriggeringCommitMessage +
@@ -347,14 +326,10 @@ async function sendMessageToSlack(data) {
     }
 
     function getWorkflowPicture() {
-        if (
-            workflowStatus === "in_progress" ||
-            examplesStatus === "in_progress"
-        ) {
+        if (workflowStatus === "in_progress") {
             return orangeImage;
         } else {
-            return workflowConclusion === "success" &&
-                examplesConclusion === "success"
+            return workflowConclusion === "success"
                 ? greenImage
                 : redImage;
         }
@@ -376,8 +351,6 @@ async function sendMessageToSlack(data) {
     addHeader(
         webhookPayload,
         workflowName +
-            " and " +
-            examplesWorkflowName +
             " latest status: " +
             getOverallWorkflowString()
     );

@@ -6,7 +6,7 @@ const {toBN, toWad} = require("./helpers");
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
 
-describe.only("TOGA", function () {
+describe("TOGA", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
     const {ZERO_ADDRESS} = t.constants;

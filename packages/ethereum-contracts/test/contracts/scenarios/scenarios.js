@@ -1,5 +1,5 @@
 const TestEnvironment = require("../../TestEnvironment");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectCustomError} = require("../../utils/expectRevert");
 
 const {wad4human} = require("@decentral.ee/web3-helpers");
 const {toBN, toWad} = require("../utils/helpers");
@@ -17,6 +17,7 @@ const {
     shouldUpdateSubscription,
     shouldDeleteSubscription,
 } = require("../agreements/InstantDistributionAgreementV1.behaviour.js");
+const {ethers} = require("hardhat");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -446,7 +447,7 @@ describe("Superfluid scenarios", function () {
             await t.upgradeBalance("alice", INIT_BALANCE);
             await t.upgradeBalance("bob", INIT_BALANCE);
 
-            // alice and bob create indeces and dan subscribes to them
+            // alice and bob create indices and dan subscribes to them
             const publishers = [
                 [alice, toWad("0.0001"), true],
                 [bob, toWad("0.0002"), false],
@@ -590,15 +591,19 @@ describe("Superfluid scenarios", function () {
 
             await t.timeTravelOnce();
 
-            await expectRevertedWith(
-                shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(75).toString(),
+            await expectCustomError(
+                t.agreementHelper.callAgreement({
+                    agreementAddress: t.contracts.ida.address,
+                    callData: t.agreementHelper.getIDACallData("distribute", [
+                        superToken.address,
+                        DEFAULT_INDEX_ID,
+                        toWad(75).toString(),
+                        "0x",
+                    ]),
+                    signer: await ethers.getSigner(alice),
                 }),
-                "IDA: E_LOW_BALANCE"
+                t.contracts.ida,
+                "IDA_InsufficientBalance"
             );
         });
 
@@ -716,15 +721,19 @@ describe("Superfluid scenarios", function () {
                 units: toWad("0.001").toString(),
             });
 
-            await expectRevertedWith(
-                shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(24).toString(),
+            await expectCustomError(
+                t.agreementHelper.callAgreement({
+                    agreementAddress: t.contracts.ida.address,
+                    callData: t.agreementHelper.getIDACallData("distribute", [
+                        superToken.address,
+                        DEFAULT_INDEX_ID,
+                        toWad(24).toString(),
+                        "0x",
+                    ]),
+                    signer: await ethers.getSigner(alice),
                 }),
-                "IDA: E_LOW_BALANCE"
+                t.contracts.ida,
+                "IDA_InsufficientBalance"
             );
 
             await t.sf.cfa.createFlow({

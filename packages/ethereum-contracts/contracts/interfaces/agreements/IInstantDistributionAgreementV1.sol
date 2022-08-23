@@ -35,6 +35,16 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
+    error IDA_IndexDoesNotExist();           // index does not exist
+    error IDA_IndexAlreadyExist();           // index already exists
+    error IDA_IndexShouldGrow();             // index value should grow
+    error IDA_InsufficientBalance();         // insufficient balance
+    error IDA_SubscriptionAlreadyApproved(); // subscription already approved
+    error IDA_SubscriptionIsNotApproved();   // subscription not approved
+    error IDA_SubscriptionDoesNotExist();    // subscription does not exist
+    error IDA_OperationNotAllowed();         // operation not allowed
+    error IDA_NoZeroAddressSubscribers();    // no zero address subscribers
+
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {
         return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");

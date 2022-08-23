@@ -11,12 +11,14 @@ const {
     shouldClaimPendingDistribution,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
 
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectCustomError} = require("../../utils/expectRevert");
 
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 const {toWad} = require("../utils/helpers");
+const {ethers} = require("hardhat");
+const {expect} = require("chai");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -28,6 +30,8 @@ describe("Using InstantDistributionAgreement v1", function () {
 
     let alice, bob, carol;
     let superToken;
+    let aliceSigner, bobSigner;
+    let ida;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -35,8 +39,11 @@ describe("Using InstantDistributionAgreement v1", function () {
             nAccounts: 5,
         });
         ({alice, bob, carol} = t.aliases);
+        ({ida} = t.contracts);
 
         superToken = t.sf.tokens.TESTx;
+        aliceSigner = await ethers.getSigner(alice);
+        bobSigner = await ethers.getSigner(bob);
     });
 
     beforeEach(async function () {
@@ -82,14 +89,17 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevertedWith(
-                    shouldCreateIndex({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "createIndex",
+                            [superToken.address, DEFAULT_INDEX_ID, "0x"]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_INDEX_EXISTS"
+                    ida,
+                    "IDA_IndexAlreadyExist"
                 );
             });
 
@@ -136,32 +146,39 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.1.5 publisher should fail to update non-existent index", async () => {
-                await expectRevertedWith(
-                    t.sf.ida.updateIndex({
-                        superToken: superToken.address,
-                        publisher: alice,
-                        indexId: DEFAULT_INDEX_ID,
-                        indexValue: "42",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "updateIndex",
+                            [superToken.address, DEFAULT_INDEX_ID, "42", "0x"]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
-                await expectRevertedWith(
-                    t.sf.ida.distribute({
-                        superToken: superToken.address,
-                        publisher: alice,
-                        indexId: DEFAULT_INDEX_ID,
-                        amount: "42",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "distribute",
+                            [superToken.address, DEFAULT_INDEX_ID, "42", "0x"]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
-                await expectRevertedWith(
-                    t.sf.agreements.ida.calculateDistribution(
+                await expectCustomError(
+                    ida.calculateDistribution(
                         superToken.address,
                         alice,
                         DEFAULT_INDEX_ID,
                         "42"
                     ),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
             });
 
@@ -208,19 +225,21 @@ describe("Using InstantDistributionAgreement v1", function () {
                     [bob, toWad("0.00")],
                 ]);
 
-                await expectRevertedWith(
-                    shouldDistribute({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        indexValue: "199",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "updateIndex",
+                            [superToken.address, DEFAULT_INDEX_ID, "199", "0x"]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_INDEX_GROW"
+                    ida,
+                    "IDA_IndexShouldGrow"
                 );
             });
 
-            it("#1.1.7 publisher can distribute by specifiying amount", async () => {
+            it("#1.1.7 publisher can distribute by specifying amount", async () => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
                 await shouldCreateIndex({
@@ -281,15 +300,22 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: toWad("0.001").toString(),
                 });
 
-                await expectRevertedWith(
-                    shouldDistribute({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        amount: toWad(1).toString(),
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "distribute",
+                            [
+                                superToken.address,
+                                DEFAULT_INDEX_ID,
+                                toWad(1).toString(),
+                                "0x",
+                            ]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_LOW_BALANCE"
+                    ida,
+                    "IDA_InsufficientBalance"
                 );
             });
 
@@ -300,15 +326,23 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevertedWith(
-                    t.sf.ida.updateSubscription({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriber: ZERO_ADDRESS,
-                        units: toWad("0.001").toString(),
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "updateSubscription",
+                            [
+                                superToken.address,
+                                DEFAULT_INDEX_ID,
+                                ZERO_ADDRESS,
+                                toWad("0.001").toString(),
+                                "0x",
+                            ]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_NO_ZERO_SUBS"
+                    ida,
+                    "IDA_NoZeroAddressSubscribers"
                 );
             });
 
@@ -320,15 +354,23 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevertedWith(
-                    t.sf.ida.deleteSubscription({
-                        superToken: superToken.address,
-                        indexId: DEFAULT_INDEX_ID,
-                        publisher: t.getAddress("alice"),
-                        subscriber: ZERO_ADDRESS,
-                        sender: t.getAddress("alice"),
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "deleteSubscription",
+                            [
+                                superToken.address,
+                                alice,
+                                DEFAULT_INDEX_ID,
+                                ZERO_ADDRESS,
+                                "0x",
+                            ]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_NO_ZERO_SUBS"
+                    ida,
+                    "IDA_NoZeroAddressSubscribers"
                 );
             });
 
@@ -383,15 +425,17 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await expectRevertedWith(
-                    shouldApproveSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "approveSubscription",
+                            [superToken.address, alice, DEFAULT_INDEX_ID, "0x"]
+                        ),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_SUBS_APPROVED"
+                    ida,
+                    "IDA_SubscriptionAlreadyApproved"
                 );
             });
 
@@ -497,23 +541,30 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await verifyAll();
             });
 
-            it("#1.2.5 publisher should fail to delete a non-existen subscription", async () => {
+            it("#1.2.5 publisher should fail to delete a non-existent subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevertedWith(
-                    shouldDeleteSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "alice",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "deleteSubscription",
+                            [
+                                superToken.address,
+                                alice,
+                                DEFAULT_INDEX_ID,
+                                bob,
+                                "0x",
+                            ]
+                        ),
+                        signer: aliceSigner,
                     }),
-                    "IDA: E_NO_SUBS"
+                    ida,
+                    "IDA_SubscriptionDoesNotExist"
                 );
             });
 
@@ -531,16 +582,23 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await expectRevertedWith(
-                    shouldDeleteSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "dan",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "deleteSubscription",
+                            [
+                                superToken.address,
+                                alice,
+                                DEFAULT_INDEX_ID,
+                                bob,
+                                "0x",
+                            ]
+                        ),
+                        signer: await ethers.getSigner(t.getAddress("dan")),
                     }),
-                    "IDA: E_NOT_ALLOWED"
+                    ida,
+                    "IDA_OperationNotAllowed"
                 );
             });
 
@@ -687,35 +745,45 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.2.10 one should fail to use a subscription of a non-existent index", async () => {
-                await expectRevertedWith(
-                    shouldApproveSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "approveSubscription",
+                            [superToken.address, alice, DEFAULT_INDEX_ID, "0x"]
+                        ),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
-                await expectRevertedWith(
-                    shouldUpdateSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        units: "42",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "updateSubscription",
+                            [
+                                superToken.address,
+                                DEFAULT_INDEX_ID,
+                                bob,
+                                "42",
+                                "0x",
+                            ]
+                        ),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
-                await expectRevertedWith(
-                    t.sf.ida.getSubscription({
-                        superToken: superToken.address,
-                        publisher: alice,
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriber: bob,
-                    }),
-                    "IDA: E_NO_INDEX"
+                await expectCustomError(
+                    ida.getSubscription(
+                        superToken.address,
+                        alice,
+                        DEFAULT_INDEX_ID,
+                        bob
+                    ),
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
             });
 
@@ -807,48 +875,53 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                     units: toWad("0.001").toString(),
                 });
-                await expectRevertedWith(
-                    shouldRevokeSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "revokeSubscription",
+                            [superToken.address, alice, DEFAULT_INDEX_ID, "0x"]
+                        ),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_SUBS_NOT_APPROVED"
+                    ida,
+                    "IDA_SubscriptionIsNotApproved"
                 );
             });
 
-            it("#1.2.13 subscriber should fail to revoke a non-existen subscription", async () => {
+            it("#1.2.13 subscriber should fail to revoke a non-existent subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevertedWith(
-                    shouldRevokeSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "revokeSubscription",
+                            [superToken.address, alice, DEFAULT_INDEX_ID, "0x"]
+                        ),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_SUBS"
+                    ida,
+                    "IDA_SubscriptionDoesNotExist"
                 );
             });
 
             it("#1.2.14 subscriber should fail to revoke a subscription of a non-existent index", async () => {
-                await expectRevertedWith(
-                    shouldRevokeSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "revokeSubscription",
+                            [superToken.address, alice, DEFAULT_INDEX_ID, "0x"]
+                        ),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
             });
 
@@ -947,16 +1020,15 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: toWad(0.01).toString(),
                 });
 
-                expectRevertedWith(
+                await expect(
                     shouldApproveSubscription({
                         testenv: t,
                         superToken,
                         publisherName: "alice",
                         indexId: maxNumberOfSubs,
                         subscriberName: "bob",
-                    }),
-                    "SlotBitmap out of bound"
-                );
+                    })
+                ).to.be.revertedWith("SlotBitmap out of bound");
             });
         });
 
@@ -1373,30 +1445,38 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevertedWith(
-                    shouldClaimPendingDistribution({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData("claim", [
+                            superToken.address,
+                            alice,
+                            DEFAULT_INDEX_ID,
+                            bob,
+                            "0x",
+                        ]),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_SUBS"
+                    ida,
+                    "IDA_SubscriptionDoesNotExist"
                 );
             });
 
             it("#1.4.4 one should not claim from a subscription of a non-existent index", async () => {
-                await expectRevertedWith(
-                    shouldClaimPendingDistribution({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData("claim", [
+                            superToken.address,
+                            alice,
+                            DEFAULT_INDEX_ID,
+                            bob,
+                            "0x",
+                        ]),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_INDEX"
+                    ida,
+                    "IDA_IndexDoesNotExist"
                 );
             });
 
@@ -1416,16 +1496,20 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                 });
 
-                await expectRevertedWith(
-                    shouldClaimPendingDistribution({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "bob",
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData("claim", [
+                            superToken.address,
+                            alice,
+                            DEFAULT_INDEX_ID,
+                            bob,
+                            "0x",
+                        ]),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_SUBS_APPROVED"
+                    ida,
+                    "IDA_SubscriptionAlreadyApproved"
                 );
             });
 
@@ -1437,15 +1521,20 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevertedWith(
-                    t.sf.ida.claim({
-                        superToken: superToken.address,
-                        indexId: DEFAULT_INDEX_ID,
-                        publisher: t.getAddress("alice"),
-                        subscriber: ZERO_ADDRESS,
-                        sender: t.getAddress("bob"),
+                await expectCustomError(
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData("claim", [
+                            superToken.address,
+                            alice,
+                            DEFAULT_INDEX_ID,
+                            ZERO_ADDRESS,
+                            "0x",
+                        ]),
+                        signer: bobSigner,
                     }),
-                    "IDA: E_NO_ZERO_SUBS"
+                    ida,
+                    "IDA_NoZeroAddressSubscribers"
                 );
             });
         });
@@ -1501,8 +1590,7 @@ describe("Using InstantDistributionAgreement v1", function () {
 
             it("#1.5.2 context should not be exploited", async () => {
                 const {superfluid, ida} = t.contracts;
-
-                await expectRevertedWith(
+                await expect(
                     superfluid.callAgreement(
                         ida.address,
                         t.agreementHelper.idaInterface.encodeFunctionData(
@@ -1517,9 +1605,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                             ]
                         ),
                         "0x"
-                    ),
-                    "invalid ctx"
-                );
+                    )
+                ).to.be.revertedWith("invalid ctx");
             });
 
             it("#1.5.3 publisher subscribing to their own index and receiving a distribution", async () => {
@@ -2016,15 +2103,20 @@ describe("Using InstantDistributionAgreement v1", function () {
             );
         });
 
-        it("#2.8 getSubscriptionByID revert with E_NO_SUBS", async () => {
+        it("#2.8 getSubscriptionByID revert with IDA_SubscriptionDoesNotExist", async () => {
             await app.setForceGetSubscriptionByID();
-            await expectRevertedWith(
-                shouldApproveSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "app",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "alice",
+            await expectCustomError(
+                t.agreementHelper.callAgreement({
+                    agreementAddress: ida.address,
+                    callData: t.agreementHelper.getIDACallData(
+                        "approveSubscription",
+                        [
+                            superToken.address,
+                            app.address,
+                            DEFAULT_INDEX_ID,
+                            "0x",
+                        ]
+                    ),
                     userData: web3.eth.abi.encodeParameters(
                         ["bytes32", "bytes4", "bytes"],
                         [
@@ -2033,8 +2125,10 @@ describe("Using InstantDistributionAgreement v1", function () {
                             "0x",
                         ]
                     ),
+                    signer: aliceSigner,
                 }),
-                "IDA: E_NO_SUBS"
+                ida,
+                "IDA_SubscriptionDoesNotExist"
             );
         });
     });
@@ -2044,56 +2138,51 @@ describe("Using InstantDistributionAgreement v1", function () {
             const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
             const fakeHost = await FakeSuperfluidMock.new();
             const ida = t.sf.agreements.ida;
-            await expectRevertedWith(
+            await expect(
                 fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "createIndex",
                         [superToken.address, 42, "0x"]
                     )
-                ),
-                "unauthorized host"
-            );
-            await expectRevertedWith(
+                )
+            ).to.be.revertedWith("unauthorized host");
+            await expect(
                 fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "updateIndex",
                         [superToken.address, 42, 9000, "0x"]
                     )
-                ),
-                "unauthorized host"
-            );
-            await expectRevertedWith(
+                )
+            ).to.be.revertedWith("unauthorized host");
+            await expect(
                 fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "distribute",
                         [superToken.address, 42, 9000, "0x"]
                     )
-                ),
-                "unauthorized host"
-            );
-            await expectRevertedWith(
+                )
+            ).to.be.revertedWith("unauthorized host");
+            await expect(
                 fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "approveSubscription",
                         [superToken.address, bob, 42, "0x"]
                     )
-                ),
-                "unauthorized host"
-            );
-            await expectRevertedWith(
+                )
+            ).to.be.revertedWith("unauthorized host");
+            await expect(
                 fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "updateSubscription",
                         [superToken.address, 42, alice, 1000, "0x"]
                     )
-                ),
-                "unauthorized host"
-            );
+                )
+            ).to.be.revertedWith("unauthorized host");
         });
     });
 });

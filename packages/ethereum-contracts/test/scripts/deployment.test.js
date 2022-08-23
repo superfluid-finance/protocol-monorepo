@@ -1,14 +1,12 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../utils/expectRevert");
+const {expectRevertedWith} = require("../utils/expectRevert");
 const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");
 const deployTestEnvironment = require("../../scripts/deploy-test-environment");
+const {expect} = require("chai");
 const Resolver = artifacts.require("Resolver");
 const TestToken = artifacts.require("TestToken");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
@@ -16,14 +14,14 @@ const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers").constants;
 
-contract("Embeded deployment scripts", (accounts) => {
+contract("Embedded deployment scripts", (accounts) => {
     const errorHandler = (err) => {
         if (err) throw err;
     };
-    const cfav1Type = web3.utils.sha3(
+    const cfaV1Type = web3.utils.sha3(
         "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
     );
-    const idav1Type = web3.utils.sha3(
+    const idaV1Type = web3.utils.sha3(
         "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
     );
 
@@ -58,12 +56,12 @@ contract("Embeded deployment scripts", (accounts) => {
         ).getSuperTokenLogic();
         const cfa = await (
             await UUPSProxiable.at(
-                await superfluid.getAgreementClass(cfav1Type)
+                await superfluid.getAgreementClass(cfaV1Type)
             )
         ).getCodeAddress.call();
         const ida = await (
             await UUPSProxiable.at(
-                await superfluid.getAgreementClass(idav1Type)
+                await superfluid.getAgreementClass(idaV1Type)
             )
         ).getCodeAddress.call();
         const s = {
@@ -108,16 +106,16 @@ contract("Embeded deployment scripts", (accounts) => {
         assert.notEqual(s.ida, ZERO_ADDRESS, "ida not registered");
         assert.isTrue(
             await s.superfluid.isAgreementClassListed.call(
-                await s.superfluid.getAgreementClass(cfav1Type)
+                await s.superfluid.getAgreementClass(cfaV1Type)
             )
         );
         assert.isTrue(
             await s.superfluid.isAgreementClassListed.call(
-                await s.superfluid.getAgreementClass(idav1Type)
+                await s.superfluid.getAgreementClass(idaV1Type)
             )
         );
-        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(cfav1Type));
-        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(idav1Type));
+        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(cfaV1Type));
+        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(idaV1Type));
         return s;
     }
 
@@ -207,22 +205,25 @@ contract("Embeded deployment scripts", (accounts) => {
                 // use the same resolver for the entire test
                 const resolver = await web3tx(Resolver.new, "Resolver.new")();
                 process.env.RESOLVER_ADDRESS = resolver.address;
-                const s = await getSuperfluidAddresses();
 
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
                     nonUpgradable: true,
                     useMocks: false,
                 });
-                await expectCustomError(
-                    deployFramework(errorHandler, {
+                try {
+                    await deployFramework(errorHandler, {
                         ...deploymentOptions,
                         nonUpgradable: true,
                         useMocks: true, // force an update attempt
-                    }),
-                    s.superfluid,
-                    "Host_NonUpgradeable"
-                );
+                    });
+                } catch (err) {
+                    if (process.env.IS_TRUFFLE) {
+                        expect(err.message).to.include("Custom error");
+                    } else {
+                        expect(err.message).to.include("Host_NonUpgradeable");
+                    }
+                }
             });
 
             // TODO deployment script upgrades detection only works for truffle

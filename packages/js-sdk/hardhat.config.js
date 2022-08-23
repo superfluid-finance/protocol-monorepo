@@ -19,6 +19,9 @@ module.exports = {
             },
         },
     },
+    paths: {
+        artifacts: "../ethereum-contracts/artifacts",
+    },
     networks: {
         localhost: {
             // url may not be necessary for localhost/hardhat node chainId

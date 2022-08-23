@@ -1,55 +1,17 @@
-import {Signer} from "ethers";
-import {ethers} from "hardhat";
+const {ethers} = require("hardhat");
+const basePath = "../../../artifacts/contracts/";
+const IConstantFlowAgreementV1Artifact = require(basePath +
+    "interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json");
+const IInstantDistributionAgreementV1Artifact = require(basePath +
+    "interfaces/agreements/IInstantDistributionAgreementV1.sol/IInstantDistributionAgreementV1.json");
+const SuperfluidMockArtifact = require(basePath +
+    "mocks/SuperfluidMock.sol/SuperfluidMock.json");
 
-import IConstantFlowAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json";
-import IInstantDistributionAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol/IInstantDistributionAgreementV1.json";
-import SuperfluidMockArtifact from "../../../artifacts/contracts/mocks/SuperfluidMock.sol/SuperfluidMock.json";
-
-// TEMP FOR INTERFACING W/ JS
-export const FLOW_TYPE_CREATE = "createFlow";
-export const FLOW_TYPE_UPDATE = "updateFlow";
-export const FLOW_TYPE_DELETE = "deleteFlow";
-
-interface UpdateFlowOperatorPermissionsParams {
-    readonly superToken: string;
-    readonly flowOperator: string;
-    readonly permissions: string;
-    readonly flowRateAllowance: string;
-}
-interface AuthorizeFlowOperatorWithFullControlParams {
-    readonly superToken: string;
-    readonly flowOperator: string;
-}
-interface ModifyFlowParams {
-    readonly type: string;
-    readonly receiver: string;
-    readonly superToken: string;
-    readonly signer?: Signer;
-    readonly flowRate: string | null;
-    readonly sender: string | null;
-    readonly userData: string | null;
-}
-interface ModifyFlowByOperatorParams extends ModifyFlowParams {
-    readonly sender: string;
-}
-interface CallAgreementParams {
-    readonly agreementAddress: string;
-    readonly callData: string;
-    readonly signer: Signer;
-    readonly userData: string | null;
-}
-interface CallAppActionParams {
-    readonly appAddress: string;
-    readonly callData: string;
-    readonly signer: Signer;
-}
-export class AgreementHelper {
-    readonly testEnvironment: any;
-    readonly cfaInterface: any;
-    readonly hostInterface: any;
-    readonly idaInterface: any;
-
-    constructor(testEnvironment: any) {
+const FLOW_TYPE_CREATE = "createFlow";
+const FLOW_TYPE_UPDATE = "updateFlow";
+const FLOW_TYPE_DELETE = "deleteFlow";
+const AgreementHelper = class AgreementHelper {
+    constructor(testEnvironment) {
         this.testEnvironment = testEnvironment;
         this.cfaInterface = new ethers.utils.Interface(
             IConstantFlowAgreementV1Artifact.abi
@@ -62,7 +24,7 @@ export class AgreementHelper {
         );
     }
 
-    callAgreement = async (params: CallAgreementParams) => {
+    async callAgreement(params) {
         return await this.testEnvironment.contracts.superfluid
             .connect(params.signer)
             .callAgreement(
@@ -70,17 +32,15 @@ export class AgreementHelper {
                 params.callData,
                 params.userData || "0x"
             );
-    };
+    }
 
-    callAppAction = async (params: CallAppActionParams) => {
+    async callAppAction(params) {
         return await this.testEnvironment.contracts.superfluid
             .connect(params.signer)
             .callAppAction(params.appAddress, params.callData);
-    };
+    }
 
-    getUpdateFlowOperatorPermissionsCallData = (
-        params: UpdateFlowOperatorPermissionsParams
-    ) => {
+    getUpdateFlowOperatorPermissionsCallData(params) {
         return this.cfaInterface.encodeFunctionData(
             "updateFlowOperatorPermissions",
             [
@@ -90,18 +50,19 @@ export class AgreementHelper {
                 params.flowRateAllowance,
             ]
         );
-    };
+    }
 
-    getAuthorizeFlowOperatorWithFullControlCallData = (
-        params: AuthorizeFlowOperatorWithFullControlParams
-    ) => {
+    getAuthorizeFlowOperatorWithFullControlCallData(params) {
         return this.cfaInterface.encodeFunctionData(
             "updateFlowOperatorPermissions",
             [params.superToken, params.flowOperator]
         );
-    };
+    }
 
-    getModifyFlowCallData = (params: ModifyFlowParams) => {
+    getIDACallData(fragment, args) {
+        this.idaInterface.encodeFunctionData(fragment, args);
+    }
+    getModifyFlowCallData(params) {
         const normalizedToken = ethers.utils.getAddress(params.superToken);
         const normalizedReceiver = ethers.utils.getAddress(params.receiver);
         const normalizedSender =
@@ -113,9 +74,9 @@ export class AgreementHelper {
                 ? [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
                 : [normalizedToken, normalizedReceiver, params.flowRate, "0x"];
         return this.cfaInterface.encodeFunctionData(params.type, values);
-    };
+    }
 
-    getModifyFlowByOperatorCallData = (params: ModifyFlowByOperatorParams) => {
+    getModifyFlowByOperatorCallData(params) {
         const normalizedToken = ethers.utils.getAddress(params.superToken);
         const normalizedReceiver = ethers.utils.getAddress(params.receiver);
         const normalizedSender = ethers.utils.getAddress(params.sender);
@@ -130,9 +91,9 @@ export class AgreementHelper {
                       "0x",
                   ];
         return this.cfaInterface.encodeFunctionData(params.type, values);
-    };
+    }
 
-    modifyFlow = async (params: ModifyFlowParams) => {
+    async modifyFlow(params) {
         const signer = params.signer
             ? params.signer
             : await ethers.getSigner(params.sender || "");
@@ -143,5 +104,11 @@ export class AgreementHelper {
             userData: params.userData,
             signer,
         });
-    };
-}
+    }
+};
+module.exports = {
+    FLOW_TYPE_CREATE,
+    FLOW_TYPE_UPDATE,
+    FLOW_TYPE_DELETE,
+    AgreementHelper,
+};

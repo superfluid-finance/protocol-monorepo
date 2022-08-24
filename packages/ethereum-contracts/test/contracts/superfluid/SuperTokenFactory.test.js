@@ -144,17 +144,11 @@ describe("SuperTokenFactory Contract", function () {
                     (await superToken1.waterMark.call()).toString(),
                     "0"
                 );
-
-                const proxiable = await ethers.getContractAt(
-                    "UUPSProxiable",
-                    factory.address
-                );
-                await expectCustomError(
+                await expectRevertedWith(
                     governance.batchUpdateSuperTokenLogic(superfluid.address, [
                         superToken1.address,
                     ]),
-                    proxiable,
-                    "UUPSProxiable_NotUpgradeable"
+                    "UUPSProxiable: not upgradable"
                 );
                 assert.equal(
                     (await superToken1.waterMark.call()).toString(),
@@ -197,10 +191,6 @@ describe("SuperTokenFactory Contract", function () {
                     "FullUpgradableSuperTokenProxy",
                     superToken1.address
                 );
-                const proxiable = await ethers.getContractAt(
-                    "UUPSProxiable",
-                    factory.address
-                );
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
                     token: superToken1.address,
                 });
@@ -210,12 +200,11 @@ describe("SuperTokenFactory Contract", function () {
                     (await superToken1.waterMark.call()).toString(),
                     "42"
                 );
-                await expectCustomError(
+                await expectRevertedWith(
                     governance.batchUpdateSuperTokenLogic(superfluid.address, [
                         superToken1.address,
                     ]),
-                    proxiable,
-                    "UUPSProxiable_NotUpgradeable"
+                    "UUPSProxiable: not upgradable"
                 );
                 await expectCustomError(
                     proxy.initialize(),

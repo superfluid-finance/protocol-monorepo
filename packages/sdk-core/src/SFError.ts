@@ -12,9 +12,6 @@ export type ErrorType =
     | "INVALID_OBJECT"
     | "UNCLEAN_PERMISSIONS"
     | "NEGATIVE_FLOW_ALLOWANCE"
-    | "EXECUTE_TRANSACTION"
-    | "POPULATE_TRANSACTION"
-    | "SIGN_TRANSACTION"
     | "UNSUPPORTED_OPERATION"
     | "MISSING_TRANSACTION_PROPERTIES"
     | "BATCH_CALL_ERROR"
@@ -30,9 +27,6 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
     ["INVALID_ADDRESS", "Invalid Address"],
     ["INVALID_OBJECT", "Invalid Object"],
-    ["POPULATE_TRANSACTION", "Populate Transaction"],
-    ["EXECUTE_TRANSACTION", "Execute Transaction"],
-    ["SIGN_TRANSACTION", "Sign Transaction"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
@@ -49,10 +43,13 @@ interface ErrorProps {
 
 const miniStringifyCause = (cause?: Error | unknown) => {
     try {
-        return JSON.stringify(miniSerializeError(cause), null, 2);
+        const serializedError = miniSerializeError(cause);
+        const stringifiedError = JSON.stringify(serializedError, null, 2);
+        return stringifiedError.replace(/\\"/g, '"'); // Get rid of escaping of quotes.
     } catch {
+        // `miniSerializeError` is safe enough that this should never occur.
         console.error("SFError caused by: ", cause);
-        return "[Couldn't serialize error. Error logged to console.]";
+        return "[Couldn't serialize internal error. Error logged to console instead.]";
     }
 };
 

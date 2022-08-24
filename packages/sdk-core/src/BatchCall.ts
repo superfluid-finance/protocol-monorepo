@@ -140,20 +140,12 @@ export default class BatchCall {
     exec = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
-        try {
-            const operationStructArray = await Promise.all(
-                this.getOperationStructArrayPromises
-            );
-            return await this.host.contract
-                .connect(signer)
-                .batchCall(operationStructArray);
-        } catch (err) {
-            throw new SFError({
-                type: "BATCH_CALL_ERROR",
-                message: "There was an error executing your batch call:",
-                cause: err,
-            });
-        }
+        const operationStructArray = await Promise.all(
+            this.getOperationStructArrayPromises
+        );
+        return await this.host.contract
+            .connect(signer)
+            .batchCall(operationStructArray);
     };
 
     /* istanbul ignore next */
@@ -167,19 +159,11 @@ export default class BatchCall {
     execForward = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
-        try {
-            const operationStructArray = await Promise.all(
-                this.getOperationStructArrayPromises
-            );
-            return await this.host.contract
-                .connect(signer)
-                .forwardBatchCall(operationStructArray);
-        } catch (err) {
-            throw new SFError({
-                type: "BATCH_CALL_ERROR",
-                message: "There was an error executing your batch call:",
-                cause: err,
-            });
-        }
+        const operationStructArray = await Promise.all(
+            this.getOperationStructArrayPromises
+        );
+        return await this.host.contract
+            .connect(signer)
+            .forwardBatchCall(operationStructArray);
     };
 }

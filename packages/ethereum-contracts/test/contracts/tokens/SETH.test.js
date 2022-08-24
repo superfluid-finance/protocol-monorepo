@@ -106,16 +106,19 @@ describe("Super ETH (SETH) Contract", function () {
     });
 
     it("#1.4 downgradeToETH", async () => {
+        const ethersSETH = await ethers.getContractAt("ISETH", seth.address);
+        const aliceSigner = await ethers.getSigner(alice);
         await web3tx(
-            seth.connect(await ethers.getSigner(alice)).upgradeByETH,
+            ethersSETH.connect(aliceSigner).upgradeByETH,
             "seth.upgradeByETH by alice"
         )({
-            value: toWad(1),
+            value: toWad(1).toString(),
         });
-        seth = await ethers.getContractAt("ISETH", seth.address);
         await expectCustomError(
-            seth.downgradeToETH(toWad(1).addn(1), {from: alice}),
-            seth,
+            ethersSETH
+                .connect(aliceSigner)
+                .downgradeToETH(toWad(1).addn(1).toString()),
+            ethersSETH,
             "SFToken_BurnAmountExceedsBalance"
         );
 
@@ -123,9 +126,7 @@ describe("Super ETH (SETH) Contract", function () {
         const tx = await web3tx(
             seth.downgradeToETH,
             "seth.downgradeToETH by alice"
-        )(toWad(1), {
-            from: alice,
-        });
+        )(toWad(1).toString(), {from: alice});
         const aliceBalance2 = await web3.eth.getBalance(alice);
         await expectEvent.inTransaction(
             tx.tx,

@@ -88,28 +88,28 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
         await expectRevertedWith(
             token.deposit(
                 bob,
-                web3.eth.abi.encodeParameter("uint256", AMOUNT_1)
+                web3.eth.abi.encodeParameter("uint256", AMOUNT_1.toString())
             ),
             "MBNSuperToken: no permission to deposit"
         );
 
         await token.deposit(
             bob,
-            web3.eth.abi.encodeParameter("uint256", AMOUNT_1),
+            web3.eth.abi.encodeParameter("uint256", AMOUNT_1.toString()),
             {from: chainMgr}
         );
 
         const tokenContract = await ethers.getContractAt(
-            "SuperToken",
+            "IMaticBridgedNativeSuperToken",
             token.address
         );
         await expectCustomError(
-            token.withdraw(AMOUNT_1),
+            tokenContract.withdraw(AMOUNT_1.toString()),
             tokenContract,
             "SFToken_BurnAmountExceedsBalance"
         );
 
-        await token.withdraw(AMOUNT_1, {from: bob});
+        await token.withdraw(AMOUNT_1.toString(), {from: bob});
 
         await expectRevertedWith(
             token.updateChildChainManager(bob),

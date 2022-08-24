@@ -6,7 +6,7 @@
 -- | Constant flow agreement.
 --
 -- This module is typically imported using qualified name CFA.
-module Money.Systems.Superfluid.Agreements.ConstantFlowAgreement where
+module Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement where
 
 import           Data.Default
 import           Data.Type.Any

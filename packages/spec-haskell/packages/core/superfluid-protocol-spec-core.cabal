@@ -28,15 +28,15 @@ library
         Money.Systems.Superfluid.MonetaryUnitData.InstantValue
         Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
         Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow
-        Money.Systems.Superfluid.Agreements.MinterAgreement
-        Money.Systems.Superfluid.Agreements.InstantTransferAgreement
-        Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
-        Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Systems.Superfluid.Agreements.InstantDistributionAgreement
-        Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement
-        Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
+        Money.Systems.Superfluid.Agreements.Universal.MinterAgreement
+        Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement
+        Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement
+        Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement
+        Money.Systems.Superfluid.Agreements.UniversalIndex
+        Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+        Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement
+        Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement
+        Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex
         Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
         Money.Systems.Superfluid.MonetaryUnit
         Money.Systems.Superfluid.Token

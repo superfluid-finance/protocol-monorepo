@@ -6,7 +6,7 @@
 -- | Decaying flow agreement.
 --
 -- This module is typically imported using qualified name .
-module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
+module Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement where
 
 import           Data.Default
 import           Data.Proxy

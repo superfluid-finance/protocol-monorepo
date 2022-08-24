@@ -8,7 +8,7 @@
 -- It is instant transferring over an proportional distribution index
 --
 -- This module is typically imported using qualified name CFDA.
-module Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement where
+module Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement where
 
 import           Data.Default
 import           Data.Type.Any
@@ -18,8 +18,8 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                     as CFMUD
+import           Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow              as CFMUD
 
 
 -- * Contracts

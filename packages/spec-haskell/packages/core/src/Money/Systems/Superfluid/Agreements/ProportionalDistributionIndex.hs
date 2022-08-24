@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex where
+module Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex where
 
 import           Data.Default
 import           Data.Type.Any
@@ -12,9 +12,9 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement      as CFDA
-import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement           as IDA
+import           Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
 
 
 -- * Contracts

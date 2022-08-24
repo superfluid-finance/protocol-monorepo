@@ -5,15 +5,15 @@ module Money.Systems.Superfluid.DecayingFlowAgreement_test (tests) where
 
 import           Control.Monad.IO.Class
 import           Lens.Micro
-import           Math.Extras.Double                                                (fuzzyEq)
-import           Test.Hspec                                                        (HasCallStack)
+import           Math.Extras.Double                                                  (fuzzyEq)
+import           Test.Hspec                                                          (HasCallStack)
 import           Test.HUnit
 
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement         as DFA
-import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex        as UIDX
-import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow as DFMUD
+import qualified Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement as DFA
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                  as UIDX
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow              as DFMUD
 --
-import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System                    as SF
 --
 import           Money.Systems.Superfluid.TokenTester
 

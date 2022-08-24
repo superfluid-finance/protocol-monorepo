@@ -10,9 +10,9 @@ import           Lens.Internal
 import           Test.Hspec
 import           Test.QuickCheck
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                                         as CFMUD
 import           Money.Systems.Superfluid.SystemTypes
 import           Money.Systems.Superfluid.TestTypes
 

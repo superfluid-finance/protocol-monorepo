@@ -7,22 +7,29 @@ module Money.Systems.Superfluid.TestTypes where
 import           Control.Applicative
 import           Data.Coerce
 import           Data.Default
-import           Data.Functor                                                              ((<&>))
+import           Data.Functor                                                                                   ((<&>))
 import           Data.Type.Any
 import           Data.Typeable
 import           GHC.Generics
-import           Math.Extras.Double                                                        (Tolerance, fuzzyEq)
+import           Math.Extras.Double
+    ( Tolerance
+    , fuzzyEq
+    )
 
 import           Test.QuickCheck
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                     as MVMUD
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+-- import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement                            as CFA
+-- import qualified Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement                            as DFA
+-- import qualified Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement                         as ITA
+-- import qualified Money.Systems.Superfluid.Agreements.Universal.MinterAgreement                                  as MINTA
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                                         as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                                          as MVMUD
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                                        as BBS
 
 
 -- * Timestamp

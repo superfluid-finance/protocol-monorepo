@@ -6,7 +6,7 @@
 -- | Instant transferring agreement.
 --
 -- This module is typically imported using qualified name ITA.
-module Money.Systems.Superfluid.Agreements.InstantTransferAgreement where
+module Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement where
 
 import           Data.Coerce
 import           Data.Default

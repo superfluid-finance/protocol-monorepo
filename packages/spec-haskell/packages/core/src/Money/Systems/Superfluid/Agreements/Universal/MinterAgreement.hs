@@ -6,7 +6,7 @@
 -- | Instant transferring agreement.
 --
 -- This module is typically imported using qualified name MINTA.
-module Money.Systems.Superfluid.Agreements.MinterAgreement where
+module Money.Systems.Superfluid.Agreements.Universal.MinterAgreement where
 
 import           Data.Coerce                                           (coerce)
 import           Data.Default

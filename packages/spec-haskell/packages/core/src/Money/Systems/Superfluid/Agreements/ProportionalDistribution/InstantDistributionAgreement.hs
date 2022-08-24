@@ -8,7 +8,7 @@
 -- It is instant transferring over an proportional distribution index
 --
 -- This module is typically imported using qualified name .
-module Money.Systems.Superfluid.Agreements.InstantDistributionAgreement where
+module Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement where
 
 import           Data.Coerce
 import           Data.Default
@@ -18,8 +18,8 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                     as IVMUD
+import           Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue              as IVMUD
 
 
 -- * Contracts

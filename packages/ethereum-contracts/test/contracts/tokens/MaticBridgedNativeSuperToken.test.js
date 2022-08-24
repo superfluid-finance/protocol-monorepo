@@ -14,6 +14,7 @@ const IMaticBridgedNativeSuperToken = artifacts.require(
 );
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("hardhat");
 
 describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
     this.timeout(300e3);
@@ -98,9 +99,13 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             {from: chainMgr}
         );
 
+        const tokenContract = await ethers.getContractAt(
+            "SuperToken",
+            token.address
+        );
         await expectCustomError(
             token.withdraw(AMOUNT_1),
-            token,
+            tokenContract,
             "SFToken_BurnAmountExceedsBalance"
         );
 

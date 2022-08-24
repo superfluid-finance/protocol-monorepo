@@ -107,11 +107,10 @@ describe("Super ETH (SETH) Contract", function () {
 
     it("#1.4 downgradeToETH", async () => {
         await web3tx(
-            seth.upgradeByETH,
+            seth.connect(await ethers.getSigner(alice)).upgradeByETH,
             "seth.upgradeByETH by alice"
         )({
             value: toWad(1),
-            from: alice,
         });
         seth = await ethers.getContractAt("ISETH", seth.address);
         await expectCustomError(

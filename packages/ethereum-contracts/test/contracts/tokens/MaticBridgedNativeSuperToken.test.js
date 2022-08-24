@@ -1,5 +1,8 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectRevertedWith,
+    expectCustomError,
+} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -95,9 +98,10 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             {from: chainMgr}
         );
 
-        await expectRevertedWith(
+        await expectCustomError(
             token.withdraw(AMOUNT_1),
-            "SuperfluidToken: burn amount exceeds balance"
+            token,
+            "SFToken_BurnAmountExceedsBalance"
         );
 
         await token.withdraw(AMOUNT_1, {from: bob});

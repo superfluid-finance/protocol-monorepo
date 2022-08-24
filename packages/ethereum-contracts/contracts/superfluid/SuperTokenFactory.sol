@@ -60,7 +60,7 @@ abstract contract SuperTokenFactoryBase is
     }
 
     function updateCode(address newAddress) external override {
-        require(msg.sender == address(_host), "SuperTokenFactory: only host can update code");
+        if (msg.sender != address(_host)) revert SuperTokenFactory_OnlyHost();
         _updateCodeAddress(newAddress);
         _updateSuperTokenLogic();
     }
@@ -94,7 +94,7 @@ abstract contract SuperTokenFactoryBase is
         public override
         returns (ISuperToken superToken)
     {
-        require(address(underlyingToken) != address(0), "SuperTokenFactory: zero address");
+        if (address(underlyingToken) == address(0)) revert SuperTokenFactory_ZeroAddress();
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
             superToken = ISuperToken(this.createSuperTokenLogic(_host));

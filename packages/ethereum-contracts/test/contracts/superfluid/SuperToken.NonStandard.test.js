@@ -199,9 +199,10 @@ describe("SuperToken's Non Standard Functions", function () {
 
         it("#2.5 - should not downgrade if there is no balance", async () => {
             console.log("SuperToken.downgrade - bad balance");
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.connect(aliceSigner).downgrade(toBN(1)),
-                "SuperfluidToken: burn amount exceeds balance"
+                superToken,
+                "SFToken_BurnAmountExceedsBalance"
             );
         });
 
@@ -609,9 +610,10 @@ describe("SuperToken's Non Standard Functions", function () {
             );
             assert.equal((await customToken.totalSupply()).toString(), "100");
 
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.callSelfBurn(alice, 101, "0x"),
-                "SuperfluidToken: burn amount exceeds balance"
+                customToken,
+                "SFToken_BurnAmountExceedsBalance"
             );
 
             await web3tx(customToken.callSelfBurn, "customToken.callSelfBurn")(
@@ -646,9 +648,10 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // holder must have enough balance
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.callSelfTransferFrom(bob, alice, alice, 100),
-                "SuperfluidToken: move amount exceeds balance."
+                customToken,
+                "SFToken_MoveAmountExceedsBalance"
             );
 
             // holder cannot be zero address
@@ -785,21 +788,25 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#10.3 batchCall should only be called by host", async function () {
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.operationApprove(alice, bob, "0"),
-                "SuperfluidToken: Only host contract allowed"
+                superToken,
+                "SFToken_OnlyHost"
             );
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.operationTransferFrom(alice, bob, admin, "0"),
-                "SuperfluidToken: Only host contract allowed"
+                superToken,
+                "SFToken_OnlyHost"
             );
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.operationUpgrade(alice, "0"),
-                "SuperfluidToken: Only host contract allowed"
+                superToken,
+                "SFToken_OnlyHost"
             );
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.operationDowngrade(alice, "0"),
-                "SuperfluidToken: Only host contract allowed"
+                superToken,
+                "SFToken_OnlyHost"
             );
         });
     });

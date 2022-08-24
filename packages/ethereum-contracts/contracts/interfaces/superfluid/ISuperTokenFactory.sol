@@ -14,6 +14,12 @@ import {
  */
 interface ISuperTokenFactory {
 
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+     error SuperTokenFactory_OnlyHost();
+     error SuperTokenFactory_ZeroAddress();
+
     /**
      * @dev Get superfluid host contract address
      */

@@ -144,11 +144,12 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         const amount = initialSupply.add(1);
 
                         it("reverts", async function () {
-                            await expectRevertedWith(
+                            await expectCustomError(
                                 this.token
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount),
-                                "SuperfluidToken: move amount exceeds balance"
+                                this.token,
+                                "SFToken_MoveAmountExceedsBalance"
                             );
                         });
                     });
@@ -178,11 +179,12 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         const amount = initialSupply.add(1);
 
                         it("reverts", async function () {
-                            await expectRevertedWith(
+                            await expectCustomError(
                                 this.token
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount),
-                                "SuperfluidToken: move amount exceeds balance"
+                                this.token,
+                                "SFToken_MoveAmountExceedsBalance"
                             );
                         });
                     });
@@ -264,7 +266,8 @@ function shouldBehaveLikeERC20Transfer(
             it("reverts", async function () {
                 await expectRevertedWith(
                     transfer.call(this, from, to, amount),
-                    "SuperfluidToken: move amount exceeds balance"
+                    this.token,
+                    "SFToken_MoveAmountExceedsBalance"
                 );
             });
         });

@@ -1,12 +1,13 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {expectRevertedWith} = require("../utils/expectRevert");
+const {expectCustomError} = require("../utils/expectRevert");
 const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");
 const deployTestEnvironment = require("../../scripts/deploy-test-environment");
 const {expect} = require("chai");
+const {ethers} = require("hardhat");
 const Resolver = artifacts.require("Resolver");
 const TestToken = artifacts.require("TestToken");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
@@ -516,37 +517,50 @@ contract("Embedded deployment scripts", (accounts) => {
     context("UUPS security", () => {
         it("UUPSProxiable should not be a proxy", async () => {
             const attacker = accounts[0];
+            const attackerSigner = await ethers.getSigner(attacker);
             const Destructor = artifacts.require("SuperfluidDestructorMock");
             const destructor = await Destructor.new();
             await deployFramework(errorHandler, {isTruffle: true});
             const s = await getSuperfluidAddresses();
-            const superfluidLogic = await Superfluid.at(s.superfluidCode);
-            await superfluidLogic.initialize(attacker, {from: attacker});
+            const superfluidLogic = await ethers.getContractAt(
+                "Superfluid",
+                s.superfluidCode
+            );
+            await superfluidLogic.connect(attackerSigner).initialize(attacker);
             console.log("superfluid(proxy)", s.superfluid.address);
             console.log("*superfluid(logic)", superfluidLogic.address);
             console.log("**superfluid", await superfluidLogic.getCodeAddress());
-            await expectRevertedWith(
-                superfluidLogic.updateCode(destructor.address, {
-                    from: attacker,
-                }),
-                "UUPSProxiable: not upgradable"
+            const proxiable = await ethers.getContractAt(
+                "Superfluid",
+                s.superfluid.address
+            );
+            await expectCustomError(
+                superfluidLogic
+                    .connect(attackerSigner)
+                    .updateCode(destructor.address),
+                proxiable,
+                "UUPSProxiable_NotUpgradeable"
             );
         });
 
         it("UUPSProxy should not be a proxiable", async () => {
-            const TestGovernance = artifacts.require("TestGovernance");
             await deployFramework(errorHandler, {isTruffle: true});
             const s = await getSuperfluidAddresses();
-            const gov = await TestGovernance.at(s.gov);
+            const gov = await ethers.getContractAt("TestGovernance", s.gov);
             assert.equal(gov.address, await s.superfluid.getGovernance());
-            await expectRevertedWith(
+            const proxiable = await ethers.getContractAt(
+                "Superfluid",
+                s.superfluid.address
+            );
+            await expectCustomError(
                 gov.updateContracts(
                     s.superfluid.address,
                     s.superfluid.address, // a dead loop proxy
                     [],
                     ZERO_ADDRESS
                 ),
-                "UUPSProxiable: proxy loop"
+                proxiable,
+                "UUPSProxiable_ProxyLoop"
             );
         });
     });

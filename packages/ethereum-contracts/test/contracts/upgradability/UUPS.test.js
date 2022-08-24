@@ -1,5 +1,9 @@
+const {ethers} = require("hardhat");
 const TestEnvironment = require("../../TestEnvironment");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectRevertedWith,
+    expectCustomError,
+} = require("../../utils/expectRevert");
 
 describe("Miscellaneous for test coverages", function () {
     const t = TestEnvironment.getSingleton();
@@ -14,39 +18,48 @@ describe("Miscellaneous for test coverages", function () {
     });
 
     describe("UUPS", () => {
-        const UUPSProxy = artifacts.require("UUPSProxy");
-        const UUPSProxiableMock = artifacts.require("UUPSProxiableMock");
+        let UUPSProxy, UUPSProxiableMock;
+
+        before(async () => {
+            UUPSProxiableMock = await ethers.getContractFactory(
+                "UUPSProxiableMock"
+            );
+            UUPSProxy = await ethers.getContractFactory("UUPSProxy");
+        });
 
         it("UUPSProxy", async () => {
-            const proxy = await UUPSProxy.new();
-            const proxiable = await UUPSProxiableMock.at(proxy.address);
+            const proxy = await UUPSProxy.deploy();
+            const proxiable = await UUPSProxiableMock.attach(proxy.address);
             const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
-            const mock = await UUPSProxiableMock.new(uuid1, 1);
-            await expectRevertedWith(
+            const mock = await UUPSProxiableMock.deploy(uuid1, 1);
+            await expectCustomError(
                 proxy.initializeProxy(ZERO_ADDRESS),
-                "UUPSProxy: zero address"
+                proxy,
+                "UUPSProxy_ZeroAddress"
             );
             await proxy.initializeProxy(mock.address);
-            await expectRevertedWith(
+            await expectCustomError(
                 proxy.initializeProxy(mock.address),
-                "UUPSProxy: already initialized"
+                proxy,
+                "UUPSProxy_AlreadyInitialized"
             );
             assert.equal(await proxiable.proxiableUUID(), uuid1);
         });
 
         it("UUPSProxiable", async () => {
-            const proxy = await UUPSProxy.new();
-            const proxiable = await UUPSProxiableMock.at(proxy.address);
+            const proxy = await UUPSProxy.deploy();
+            const proxiable = await UUPSProxiableMock.attach(proxy.address);
             const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
             const uuid2 = web3.utils.sha3("UUPSProxiableMock2");
-            const mock1a = await UUPSProxiableMock.new(uuid1, 1);
-            const mock1b = await UUPSProxiableMock.new(uuid1, 2);
-            const mock2 = await UUPSProxiableMock.new(uuid2, 1);
+            const mock1a = await UUPSProxiableMock.deploy(uuid1, 1);
+            const mock1b = await UUPSProxiableMock.deploy(uuid1, 2);
+            const mock2 = await UUPSProxiableMock.deploy(uuid2, 1);
 
             assert.equal(await mock1a.getCodeAddress(), ZERO_ADDRESS);
-            await expectRevertedWith(
+            await expectCustomError(
                 mock1a.updateCode(mock1a.address),
-                "UUPSProxiable: not upgradable"
+                proxiable,
+                "UUPSProxiable_NotUpgradeable"
             );
             await proxiable.updateCode(mock1a.address);
 
@@ -58,23 +71,25 @@ describe("Miscellaneous for test coverages", function () {
             assert.equal(await proxiable.proxiableUUID(), uuid1);
             assert.equal(await proxiable.waterMark(), 2);
 
-            await expectRevertedWith(
+            await expectCustomError(
                 proxiable.updateCode(mock2.address),
-                "UUPSProxiable: not compatible logic"
+                proxiable,
+                "UUPSProxiable_IncompatibleLogic"
             );
 
-            await expectRevertedWith(
+            await expectCustomError(
                 proxiable.updateCode(proxiable.address),
-                "UUPSProxiable: proxy loop"
+                proxiable,
+                "UUPSProxiable_ProxyLoop"
             );
         });
 
         it("Can't initialize castrated UUPSProxiable", async () => {
             const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
-            const mock1 = await UUPSProxiableMock.new(uuid1, 1);
+            const mock1 = await UUPSProxiableMock.deploy(uuid1, 1);
 
             const uuid2 = web3.utils.sha3("UUPSProxiableMock2");
-            const mock2 = await UUPSProxiableMock.new(uuid2, 1);
+            const mock2 = await UUPSProxiableMock.deploy(uuid2, 1);
 
             // can initialize if not castrated
             await mock1.initialize();

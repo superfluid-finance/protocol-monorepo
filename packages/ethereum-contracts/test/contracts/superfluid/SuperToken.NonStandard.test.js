@@ -1,17 +1,16 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectRevertedWith,
+    expectCustomError,
+} = require("../../utils/expectRevert");
 
-const {web3tx, toWad, toDecimals, toBN} = require("@decentral.ee/web3-helpers");
+const {web3tx, toDecimals} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("hardhat");
+const {toWad, toBN} = require("../utils/helpers");
+const {expect} = require("chai");
 
 const TestToken = artifacts.require("TestToken");
-const ERC777SenderRecipientMock = artifacts.require(
-    "ERC777SenderRecipientMock"
-);
-
-const WalletMock = artifacts.require("MockSmartWallet");
-const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 describe("SuperToken's Non Standard Functions", function () {
     this.timeout(300e3);
@@ -20,6 +19,7 @@ describe("SuperToken's Non Standard Functions", function () {
     const {MAX_UINT256, ZERO_ADDRESS} = t.constants;
 
     let admin, alice, bob;
+    let aliceSigner, bobSigner;
     let superfluid;
     let testToken;
     let superToken;
@@ -33,14 +33,24 @@ describe("SuperToken's Non Standard Functions", function () {
 
         testToken = t.sf.tokens.TEST;
         superToken = t.sf.tokens.TESTx;
-        superToken = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
+        testToken = await ethers.getContractAt(
+            "TestToken",
+            t.sf.tokens.TEST.address
+        );
+        superToken = await ethers.getContractAt(
+            "SuperTokenMock",
+            t.sf.tokens.TESTx.address
+        );
         ({admin, alice, bob} = t.aliases);
         ({superfluid} = t.contracts);
+        aliceSigner = await ethers.getSigner(alice);
+        bobSigner = await ethers.getSigner(bob);
     });
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        mockWallet = await WalletMock.new();
+        mockWallet = await ethers.getContractFactory("MockSmartWallet");
+        mockWallet = await mockWallet.deploy();
     });
 
     describe("#1 upgradability", () => {
@@ -60,9 +70,10 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#1.3 only host can update the code", async () => {
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.updateCode(ZERO_ADDRESS),
-                "SuperToken: only host can update code"
+                superToken,
+                "SuperToken_OnlyHost"
             );
         });
 
@@ -76,25 +87,17 @@ describe("SuperToken's Non Standard Functions", function () {
 
     describe("#2 SuperToken.upgrade/downgrade", () => {
         it("#2.1 - should upgrade if enough balance", async () => {
-            const initialBalance = await testToken.balanceOf.call(alice);
+            const initialBalance = await testToken.balanceOf(alice);
 
-            const tx = await web3tx(
-                superToken.upgrade,
-                "SuperToken.upgrade 2.0 tokens from alice"
-            )(toWad(2), {
-                from: alice,
-            });
-            expectEvent(tx.receipt, "TokenUpgraded", {
-                account: alice,
-                amount: toWad(2).toString(),
-            });
+            console.log("SuperToken.upgrade 2.0 tokens from alice");
+            await expect(superToken.connect(aliceSigner).upgrade(toWad(2)))
+                .to.emit(superToken, "TokenUpgraded")
+                .withArgs(alice, toWad(2).toString());
             const {timestamp} = await web3.eth.getBlock("latest");
 
-            const finalBalance = await testToken.balanceOf.call(alice);
-            const finalSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
-            const finalRealBalance = await superToken.realtimeBalanceOf.call(
+            const finalBalance = await testToken.balanceOf(alice);
+            const finalSuperTokenBalance = await superToken.balanceOf(alice);
+            const finalRealBalance = await superToken.realtimeBalanceOf(
                 alice,
                 timestamp
             );
@@ -119,38 +122,28 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.2 - should not upgrade without enough underlying balance", async () => {
-            const initialBalance = await testToken.balanceOf.call(alice);
+            const initialBalance = await testToken.balanceOf(alice);
+            console.log("SuperToken.upgrade - bad balance");
             await expectRevertedWith(
-                web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
-                    initialBalance.add(toBN(1)),
-                    {from: alice}
-                ),
+                superToken
+                    .connect(aliceSigner)
+                    .upgrade(initialBalance.add(toBN(1))),
                 "ERC20: transfer amount exceeds balance"
             );
             await t.validateSystemInvariance();
         });
 
         it("#2.3 - should downgrade by single account", async () => {
-            const initialBalance = await testToken.balanceOf.call(alice);
+            const initialBalance = await testToken.balanceOf(alice);
 
-            await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice")(
-                toWad(2),
-                {
-                    from: alice,
-                }
-            );
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
 
-            await web3tx(
-                superToken.downgrade,
-                "SuperToken.downgrade 2 from alice"
-            )(toWad(1), {
-                from: alice,
-            });
+            console.log("SuperToken.downgrade 1 from alice");
+            await superToken.connect(aliceSigner).downgrade(toWad(1));
 
-            const finalBalance = await testToken.balanceOf.call(alice);
-            const finalSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
+            const finalBalance = await testToken.balanceOf(alice);
+            const finalSuperTokenBalance = await superToken.balanceOf(alice);
 
             assert.isOk(
                 initialBalance.sub(finalBalance).toString(),
@@ -167,32 +160,23 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.4 - should downgrade by multiple accounts", async () => {
-            const initialBalanceAlice = await testToken.balanceOf.call(alice);
-            const initialSuperBalanceAlice = await superToken.balanceOf.call(
-                alice
-            );
+            const initialBalanceAlice = await testToken.balanceOf(alice);
+            const initialSuperBalanceAlice = await superToken.balanceOf(alice);
 
-            await web3tx(superToken.upgrade, "upgrade 2 from alice")(toWad(2), {
-                from: alice,
-            });
-            await web3tx(superToken.upgrade, "upgrade 1 from bob")(toWad(1), {
-                from: bob,
-            });
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
 
-            const initialSuperBalanceBob = await superToken.balanceOf.call(bob);
+            console.log("SuperToken.upgrade 1 from bob");
+            await superToken.connect(bobSigner).upgrade(toWad(1));
 
-            await web3tx(superToken.downgrade, "downgrade 2 from alice")(
-                toWad(2),
-                {
-                    from: alice,
-                }
-            );
+            const initialSuperBalanceBob = await superToken.balanceOf(bob);
 
-            const finalBalanceAlice = await testToken.balanceOf.call(alice);
-            const finalSuperBalanceAlice = await superToken.balanceOf.call(
-                alice
-            );
-            const finalSuperBalanceBob = await superToken.balanceOf.call(bob);
+            console.log("SuperToken.downgrade 2 from alice");
+            await superToken.connect(aliceSigner).downgrade(toWad(2));
+
+            const finalBalanceAlice = await testToken.balanceOf(alice);
+            const finalSuperBalanceAlice = await superToken.balanceOf(alice);
+            const finalSuperBalanceBob = await superToken.balanceOf(bob);
 
             assert.equal(
                 initialBalanceAlice.toString(),
@@ -214,13 +198,9 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.5 - should not downgrade if there is no balance", async () => {
+            console.log("SuperToken.downgrade - bad balance");
             await expectRevertedWith(
-                web3tx(
-                    superToken.downgrade,
-                    "SuperToken.downgrade - bad balance"
-                )(toBN(1), {
-                    from: alice,
-                }),
+                superToken.connect(aliceSigner).downgrade(toBN(1)),
                 "SuperfluidToken: burn amount exceeds balance"
             );
         });
@@ -242,15 +222,12 @@ describe("SuperToken's Non Standard Functions", function () {
                 }
             );
             assert.equal(
-                (await token6D.balanceOf.call(bob)).toString(),
+                (await token6D.balanceOf(bob)).toString(),
                 toDecimals("100", 6)
             );
 
             const superToken6D = await t.sf.createERC20Wrapper(token6D);
-            assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
-                "0"
-            );
+            assert.equal((await superToken6D.balanceOf(bob)).toString(), "0");
 
             await web3tx(
                 token6D.approve,
@@ -263,11 +240,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 from: bob,
             });
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad(1).toString()
             );
             assert.equal(
-                (await token6D.balanceOf.call(bob)).toString(),
+                (await token6D.balanceOf(bob)).toString(),
                 toDecimals("99", 6)
             );
 
@@ -278,11 +255,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 }
             );
             assert.equal(
-                (await token6D.balanceOf.call(bob)).toString(),
+                (await token6D.balanceOf(bob)).toString(),
                 toDecimals("98.876544", 6)
             );
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad("1.123456").toString()
             );
 
@@ -293,11 +270,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 }
             );
             assert.equal(
-                (await token6D.balanceOf.call(bob)).toString(),
+                (await token6D.balanceOf(bob)).toString(),
                 toDecimals("99.876544", 6)
             );
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad("0.123456").toString()
             );
 
@@ -309,11 +286,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 from: bob,
             });
             assert.equal(
-                (await token6D.balanceOf.call(bob)).toString(),
+                (await token6D.balanceOf(bob)).toString(),
                 toDecimals("99.976544", 6)
             );
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad("0.023456").toString()
             );
 
@@ -325,11 +302,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 }
             );
             assert.equal(
-                (await token6D.balanceOf.call(bob)).toString(),
+                (await token6D.balanceOf(bob)).toString(),
                 toDecimals("100", 6)
             );
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad("0").toString()
             );
         });
@@ -351,15 +328,12 @@ describe("SuperToken's Non Standard Functions", function () {
                 }
             );
             assert.equal(
-                (await token20D.balanceOf.call(bob)).toString(),
+                (await token20D.balanceOf(bob)).toString(),
                 toDecimals("100", 20)
             );
 
             const superToken6D = await t.sf.createERC20Wrapper(token20D);
-            assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
-                "0"
-            );
+            assert.equal((await superToken6D.balanceOf(bob)).toString(), "0");
 
             await web3tx(
                 token20D.approve,
@@ -372,11 +346,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 from: bob,
             });
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad(1).toString()
             );
             assert.equal(
-                (await token20D.balanceOf.call(bob)).toString(),
+                (await token20D.balanceOf(bob)).toString(),
                 toDecimals("99", 20)
             );
 
@@ -387,43 +361,39 @@ describe("SuperToken's Non Standard Functions", function () {
                 }
             );
             assert.equal(
-                (await token20D.balanceOf.call(bob)).toString(),
+                (await token20D.balanceOf(bob)).toString(),
                 toDecimals("100", 20)
             );
             assert.equal(
-                (await superToken6D.balanceOf.call(bob)).toString(),
+                (await superToken6D.balanceOf(bob)).toString(),
                 toWad("0").toString()
             );
         });
 
         it("#2.8 - should upgradeTo if enough balance", async () => {
-            const initialBalanceAlice = await testToken.balanceOf.call(alice);
-            const initialBalanceBob = await testToken.balanceOf.call(bob);
+            const initialBalanceAlice = await testToken.balanceOf(alice);
+            const initialBalanceBob = await testToken.balanceOf(bob);
 
-            const tx = await web3tx(
-                superToken.upgradeTo,
-                "SuperToken.upgrade 2.0 tokens from alice to bob"
-            )(bob, toWad(2), "0x", {
-                from: alice,
-            });
-            expectEvent(tx.receipt, "TokenUpgraded", {
-                account: bob,
-                amount: toWad(2).toString(),
-            });
+            console.log("SuperToken.upgrade 2.0 tokens from alice to bob");
+            await expect(
+                superToken.connect(aliceSigner).upgradeTo(bob, toWad(2), "0x")
+            )
+                .to.emit(superToken, "TokenUpgraded")
+                .withArgs(bob, toWad(2).toString());
             const {timestamp} = await web3.eth.getBlock("latest");
 
-            const finalBalanceAlice = await testToken.balanceOf.call(alice);
-            const finalSuperTokenBalanceAlice = await superToken.balanceOf.call(
+            const finalBalanceAlice = await testToken.balanceOf(alice);
+            const finalSuperTokenBalanceAlice = await superToken.balanceOf(
                 alice
             );
-            const finalRealBalanceAlice =
-                await superToken.realtimeBalanceOf.call(alice, timestamp);
-
-            const finalBalanceBob = await testToken.balanceOf.call(bob);
-            const finalSuperTokenBalanceBob = await superToken.balanceOf.call(
-                bob
+            const finalRealBalanceAlice = await superToken.realtimeBalanceOf(
+                alice,
+                timestamp
             );
-            const finalRealBalanceBob = await superToken.realtimeBalanceOf.call(
+
+            const finalBalanceBob = await testToken.balanceOf(bob);
+            const finalSuperTokenBalanceBob = await superToken.balanceOf(bob);
+            const finalRealBalanceBob = await superToken.realtimeBalanceOf(
                 bob,
                 timestamp
             );
@@ -464,136 +434,130 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
-            const mock = await ERC777SenderRecipientMock.new();
-            await expectRevertedWith(
-                superToken.upgradeTo(mock.address, toWad(2), "0x", {
-                    from: alice,
-                }),
-                "SuperToken: not an ERC777TokensRecipient"
+            let mock = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
             );
-            await web3tx(
-                mock.registerRecipient,
-                "registerRecipient"
-            )(mock.address);
-            await web3tx(
-                superToken.upgradeTo,
-                "SuperToken.upgrade 2.0 tokens from alice to bob"
-            )(mock.address, toWad(2), "0x", {
-                from: alice,
-            });
+            mock = await mock.deploy();
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .upgradeTo(mock.address, toWad(2), "0x"),
+                superToken,
+                "SuperToken_NotERC777TokensRecipient"
+            );
+            console.log("registerRecipient");
+            await mock.registerRecipient(mock.address);
+            console.log("SuperToken.upgrade 2.0 tokens from alice to bob");
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(mock.address, toWad(2), "0x");
         });
 
         it("#2.10 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
-            const mock = await ERC777SenderRecipientMock.new();
-            await web3tx(testToken.transfer, "send token from alice to mock")(
-                mock.address,
-                toWad(2),
-                {
-                    from: alice,
-                }
+            let mock = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
             );
-            await web3tx(
-                mock.upgradeAll,
-                "mock.upgradeAll"
-            )(superToken.address);
+            mock = await mock.deploy();
+
+            console.log("send token from alice to mock");
+            await testToken
+                .connect(aliceSigner)
+                .transfer(mock.address, toWad(2));
+
+            console.log("mock.upgradeAll");
+            await mock.upgradeAll(superToken.address);
             assert.equal(
-                (await superToken.balanceOf.call(mock.address)).toString(),
+                (await superToken.balanceOf(mock.address)).toString(),
                 toWad(2).toString()
             );
-            await web3tx(testToken.transfer, "send token from alice to mock")(
-                mock.address,
-                toWad(2),
-                {
-                    from: alice,
-                }
-            );
-            await web3tx(
-                mock.upgradeAllToSelf,
-                "mock.upgradeAllToSelf"
-            )(superToken.address);
+
+            console.log("send token from alice to mock");
+            await testToken
+                .connect(aliceSigner)
+                .transfer(mock.address, toWad(2));
+
+            console.log("mock.upgradeAllToSelf");
+            await mock.upgradeAllToSelf(superToken.address);
             assert.equal(
-                (await superToken.balanceOf.call(mock.address)).toString(),
+                (await superToken.balanceOf(mock.address)).toString(),
                 toWad(4).toString()
             );
         });
 
         it("#2.11 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract", async () => {
-            await web3tx(testToken.transfer, "send token from alice to wallet")(
-                mockWallet.address,
-                toWad(2),
-                {
-                    from: alice,
-                }
-            );
-            await web3tx(
-                mockWallet.approveTest,
-                "mockWallet.approve - from Wallet to SuperToken"
-            )(testToken.address, superToken.address, MAX_UINT256, {
-                from: alice,
-            });
-            await web3tx(mockWallet.upgradeToTest, "mockWallet.upgradeToTest")(
-                superToken.address,
-                mockWallet.address,
-                toWad(2),
-                "0x"
-            );
+            console.log("send token from alice to wallet");
+            await testToken
+                .connect(aliceSigner)
+                .transfer(mockWallet.address, toWad(2));
+
+            console.log("mockWallet.approve - from Wallet to SuperToken");
+            await mockWallet
+                .connect(aliceSigner)
+                .approveTest(
+                    testToken.address,
+                    superToken.address,
+                    MAX_UINT256
+                );
+
+            console.log("mockWallet.upgradeToTest");
+            await mockWallet
+                .connect(aliceSigner)
+                .upgradeToTest(
+                    superToken.address,
+                    mockWallet.address,
+                    toWad(2),
+                    "0x"
+                );
             assert.equal(
-                (
-                    await superToken.balanceOf.call(mockWallet.address)
-                ).toString(),
+                (await superToken.balanceOf(mockWallet.address)).toString(),
                 toWad(2).toString(),
                 "0x"
             );
         });
 
         it("#2.12 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
-            const reason = "SuperToken: not an ERC777TokensRecipient";
-            await web3tx(
-                testToken.approve,
-                "TestToken.approve - from alice to SuperToken"
-            )(superToken.address, MAX_UINT256, {
-                from: alice,
-            });
+            console.log("TestToken.approve - from alice to SuperToken");
+            await testToken
+                .connect(aliceSigner)
+                .approve(superToken.address, MAX_UINT256);
 
-            await expectRevertedWith(
-                superToken.upgradeTo(mockWallet.address, toWad(2), "0x", {
-                    from: alice,
-                }),
-                reason
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .upgradeTo(mockWallet.address, toWad(2), "0x"),
+                superToken,
+                "SuperToken_NotERC777TokensRecipient"
             );
         });
     });
 
     describe("#3 SuperToken custom token support", () => {
-        const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-        const CustomSuperTokenMock = artifacts.require("CustomSuperTokenMock");
-        const CustomSuperTokenProxyMock = artifacts.require(
-            "CustomSuperTokenProxyMock"
-        );
-
         let customToken;
 
         beforeEach(async () => {
-            customToken = await CustomSuperTokenMock.at(
-                (
-                    await web3tx(
-                        CustomSuperTokenProxyMock.new,
-                        "CustomSuperTokenProxyMock.new"
-                    )(superfluid.address)
-                ).address
+            let customSuperTokenProxyMock = await ethers.getContractFactory(
+                "CustomSuperTokenProxyMock"
             );
-            const factory = await ISuperTokenFactory.at(
+            customSuperTokenProxyMock =
+                await customSuperTokenProxyMock.deploy();
+            customToken = await ethers.getContractAt(
+                "CustomSuperTokenMock",
+                customSuperTokenProxyMock.address
+            );
+            const factory = await ethers.getContractAt(
+                "ISuperTokenFactory",
                 await superfluid.getSuperTokenFactory()
             );
-            await web3tx(
-                factory.initializeCustomSuperToken,
-                "initializeCustomSuperToken"
-            )(customToken.address);
+
+            console.log("initializeCustomSuperToken");
+            await factory.initializeCustomSuperToken(customToken.address);
         });
 
         it("#3.1 Custom token storage should not overlap with super token", async () => {
-            const T = artifacts.require("SuperTokenStorageLayoutTester");
-            const tester = await T.new(superfluid.address);
+            const T = await ethers.getContractFactory(
+                "SuperTokenStorageLayoutTester"
+            );
+            const tester = await T.deploy(superfluid.address);
             const a = await tester.getLastSuperTokenStorageSlot();
             const b = await customToken.getFirstCustomTokenStorageSlot();
             console.log("lastSuperTokenStorageSlot", a.toString());
@@ -602,25 +566,30 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.2 Custom token functions can only be called by self", async () => {
-            const reason = "SuperToken: only self allowed";
-            await expectRevertedWith(
+            const reason = "SuperToken_OnlySelf";
+            await expectCustomError(
                 superToken.selfMint(alice, 100, "0x"),
+                superToken,
                 reason
             );
-            await expectRevertedWith(
+            await expectCustomError(
                 superToken.selfBurn(alice, 100, "0x"),
+                superToken,
                 reason
             );
         });
 
         it("#3.3 Custom token that mints/burn and disabling upgrade/downgrade", async () => {
-            await expectRevertedWith(
+            const reason = "SuperToken_NoUnderlyingToken";
+            await expectCustomError(
                 customToken.upgrade(100),
-                "SuperToken: no underlying token"
+                customToken,
+                reason
             );
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.downgrade(100),
-                "SuperToken: no underlying token"
+                customToken,
+                reason
             );
             await web3tx(customToken.initialize, "customToken.initialize")(
                 ZERO_ADDRESS,
@@ -655,18 +624,16 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.4 Custom token can use selfTransferFrom", async () => {
-            await web3tx(customToken.initialize, "customToken.initialize")(
+            console.log("customToken.initialize");
+            await customToken.initialize(
                 ZERO_ADDRESS,
                 0,
                 "Custom SuperTestToken",
                 "CSTT"
             );
 
-            await web3tx(customToken.selfMint, "customToken.selfMint")(
-                alice,
-                100,
-                "0x"
-            );
+            console.log("customToken.selfMint");
+            await customToken.selfMint(alice, 100, "0x");
             assert.equal(
                 (await customToken.balanceOf(alice)).toString(),
                 "100"
@@ -685,42 +652,44 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // holder cannot be zero address
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.callSelfTransferFrom(
                     ZERO_ADDRESS,
                     ZERO_ADDRESS,
                     bob,
                     100
                 ),
-                "SuperToken: transfer from zero address"
+                customToken,
+                "SuperToken_TransferFromZeroAddressNotAllowed"
             );
 
             // recipient cannot be zero address
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.callSelfTransferFrom(alice, bob, ZERO_ADDRESS, 100),
-                "SuperToken: transfer to zero address"
+                customToken,
+                "SuperToken_TransferToZeroAddressNotAllowed"
             );
 
             // alice approves bob to spend her tokens
-            await web3tx(
-                customToken.approve,
+            console.log(
                 "customToken.approve Alice approves (100) -> customToken.address"
-            )(bob, 100, {from: alice});
+            );
+            await customToken.connect(aliceSigner).approve(bob, 100);
             // selfTransferFrom is called from alice => bob, where bob is the spender
             // (spender and holder are different so approval is required)
-            await web3tx(
-                customToken.callSelfTransferFrom,
-                "customToken.callSelfTransferFrom Alice -> Bob"
-            )(alice, bob, bob, 100, {from: bob});
+            console.log("customToken.callSelfTransferFrom Alice -> Bob");
+            await customToken
+                .connect(bobSigner)
+                .callSelfTransferFrom(alice, bob, bob, 100);
             assert.equal((await customToken.balanceOf(bob)).toString(), "100");
             assert.equal((await customToken.balanceOf(alice)).toString(), "0");
 
             // should be able to send tokens without approval
             // as long as spender and holder are the same
-            await web3tx(
-                customToken.callSelfTransferFrom,
-                "customToken.callSelfTransferFrom Bob -> Alice"
-            )(bob, bob, alice, 100, {from: alice});
+            console.log("customToken.callSelfTransferFrom Bob -> Alice");
+            await customToken
+                .connect(aliceSigner)
+                .callSelfTransferFrom(bob, bob, alice, 100);
             assert.equal((await customToken.balanceOf(bob)).toString(), "0");
             assert.equal(
                 (await customToken.balanceOf(alice)).toString(),
@@ -728,10 +697,8 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // should be able to send tokens to yourself without approval
-            await web3tx(
-                customToken.callSelfTransferFrom,
-                "customToken.callSelfTransferFrom Alice -> Alice"
-            )(alice, alice, alice, 100);
+            console.log("customToken.callSelfTransferFrom Alice -> Alice");
+            await customToken.callSelfTransferFrom(alice, alice, alice, 100);
         });
 
         it("#3.5 Custom token can use selfApproveFor", async () => {
@@ -753,43 +720,51 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // account cannot be zero address
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.callSelfApproveFor(ZERO_ADDRESS, bob, 100),
-                "SuperToken: approve from zero address"
+                customToken,
+                "SuperToken_ApproveFromZeroAddressNotAllowed"
             );
 
             // spender cannot be zero address
-            await expectRevertedWith(
+            await expectCustomError(
                 customToken.callSelfApproveFor(alice, ZERO_ADDRESS, 100),
-                "SuperToken: approve to zero address"
+                customToken,
+                "SuperToken_ApproveToZeroAddressNotAllowed"
             );
 
             // should be able to call selfApprove at will + make a selfTransferFrom
-            await web3tx(
-                customToken.callSelfApproveFor,
+            console.log(
                 "customToken.callSelfApproveFor Alice approves (100) -> Bob"
-            )(alice, bob, 100, {from: bob});
-            await web3tx(
-                customToken.callSelfTransferFrom,
+            );
+            await customToken
+                .connect(bobSigner)
+                .callSelfApproveFor(alice, bob, 100);
+            console.log(
                 "customToken.callSelfTransferFrom Alice transfers (100) -> Bob"
-            )(alice, bob, bob, 100);
+            );
+            await customToken.callSelfTransferFrom(alice, bob, bob, 100);
 
             // should be able to call selfApprove and make a regular transferFrom
-            await web3tx(
-                customToken.callSelfApproveFor,
+            console.log(
                 "customToken.callSelfApproveFor Bob approves (100) -> Alice"
-            )(bob, alice, 100, {from: alice});
-            await web3tx(
-                customToken.transferFrom,
+            );
+            await customToken
+                .connect(aliceSigner)
+                .callSelfApproveFor(bob, alice, 100);
+            console.log(
                 "customToken.transferFrom Bob transfers (100) -> Alice"
-            )(bob, alice, 100, {from: alice});
+            );
+            await customToken
+                .connect(aliceSigner)
+                .transferFrom(bob, alice, 100);
         });
     });
 
     describe("#10 misc", () => {
         it("#10.1 should return underlying token", async () => {
             assert.equal(
-                await superToken.getUnderlyingToken.call(),
+                await superToken.getUnderlyingToken(),
                 testToken.address
             );
         });
@@ -797,16 +772,14 @@ describe("SuperToken's Non Standard Functions", function () {
         it("#10.2 transferAll", async () => {
             await t.upgradeBalance("alice", toWad(2));
             assert.equal(
-                (await superToken.balanceOf.call(alice)).toString(),
+                (await superToken.balanceOf(alice)).toString(),
                 toWad(2).toString()
             );
-            await web3tx(superToken.transferAll, "superToken.transferAll")(
-                bob,
-                {from: alice}
-            );
-            assert.equal(await superToken.balanceOf.call(alice), "0");
+            console.log("superToken.transferAll alice -> bob");
+            await superToken.connect(aliceSigner).transferAll(bob);
+            assert.equal(await superToken.balanceOf(alice), "0");
             assert.equal(
-                (await superToken.balanceOf.call(bob)).toString(),
+                (await superToken.balanceOf(bob)).toString(),
                 toWad(2).toString()
             );
         });

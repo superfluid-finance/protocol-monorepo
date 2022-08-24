@@ -60,7 +60,7 @@ const AgreementHelper = class AgreementHelper {
     }
 
     getIDACallData(fragment, args) {
-        this.idaInterface.encodeFunctionData(fragment, args);
+        return this.idaInterface.encodeFunctionData(fragment, args);
     }
     getModifyFlowCallData(params) {
         const normalizedToken = ethers.utils.getAddress(params.superToken);

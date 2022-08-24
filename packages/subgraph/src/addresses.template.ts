@@ -49,8 +49,8 @@ export function getNativeAssetSuperTokenAddress(): Address {
     addresses.set("mumbai", "0x96b82b65acf7072efeb00502f45757f254c2a0d4");
     addresses.set("xdai", "0x59988e47a3503aafaa0368b9def095c818fdca01");
     addresses.set("fuji", "0x5735c32c38f5af0fb04a7c77c832ba4d7abffec8");
-    addresses.set("arbitrum-goerli", "");
-    addresses.set("optimism-goerli", "");
+    addresses.set("arbitrum-goerli", "0xE01F8743677Da897F4e7De9073b57Bf034FC2433");
+    addresses.set("optimism-goerli", "0xE01F8743677Da897F4e7De9073b57Bf034FC2433");
     addresses.set("avalanche", "0xbe916845d8678b5d2f7ad79525a62d7c08abba7e");
     addresses.set("arbitrum-one", "0xe6c8d111337d0052b9d88bf5d7d55b7f8385acd3");
     addresses.set("optimism", "0x4ac8bd1bdae47beef2d1c6aa62229509b962aa0d");

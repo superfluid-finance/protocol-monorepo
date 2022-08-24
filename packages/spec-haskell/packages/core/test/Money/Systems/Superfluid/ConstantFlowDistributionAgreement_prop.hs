@@ -89,10 +89,10 @@ ao_1pub2subs_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) def 
 
 newtype TO_2Pubs1Sub = TO_2Pubs1Sub TestOperations deriving Show
 instance Arbitrary TO_2Pubs1Sub where
-    arbitrary = oneof [ -- (arbitrary :: Gen ()) <&> TO_2Pubs1Sub . Nop
-                      -- , (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp1
-                      (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp2
-                      -- , (arbitrary :: Gen T_PDIDXSubscriberOperation) <&> TO_2Pubs1Sub . SubOp1
+    arbitrary = oneof [ (arbitrary :: Gen ()) <&> TO_2Pubs1Sub . Nop
+                      , (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp1
+                      , (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp2
+                      , (arbitrary :: Gen T_PDIDXSubscriberOperation) <&> TO_2Pubs1Sub . SubOp1
                       , (arbitrary :: Gen T_PDIDXSubscriberOperation) <&> TO_2Pubs1Sub . SubOp2
                       ]
 ao_2pubs1sub_zero_sum_balance :: T_Timestamp -> NonEmptyList (TO_2Pubs1Sub, T_Timestamp) -> Bool

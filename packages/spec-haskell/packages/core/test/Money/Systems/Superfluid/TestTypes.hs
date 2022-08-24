@@ -31,7 +31,7 @@ newtype T_Timestamp = T_Timestamp Integer
     deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show)
 
 instance Arbitrary T_Timestamp where
-    arbitrary = arbitrary <&> abs <&> T_Timestamp
+    arbitrary = arbitrary <&> id <&> T_Timestamp
 
 -- * Value
 
@@ -50,7 +50,7 @@ test_flowrate_per_mon_max :: Int
 test_flowrate_per_mon_max = floor (100e6 :: Double)
 
 fuzzy_tolerance :: Tolerance
-fuzzy_tolerance = fromIntegral flowrate_base / 1e4 -- accurate to 4 decimals of $1 / month
+fuzzy_tolerance = fromIntegral flowrate_base / 1e4 -- accurate to 4 decimals of $1
 
 fuzzyEqMVal :: T_MVal -> T_MVal -> Bool
 fuzzyEqMVal a b = fuzzyEq fuzzy_tolerance (fromIntegral a) (fromIntegral b)

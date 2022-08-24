@@ -63,9 +63,9 @@ type SubscriberData sft = SubscriberContract sft
 type SubscriberMonetaryUnitData sft = CFMUD.MonetaryUnitData (SubscriberData sft) sft
 
 instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (PublisherData sft) sft where
-    settledAt          = $(field 'pub_settled_at)
-    settledValue       = $(field 'pub_settled_value)
-    netFlowRate        = $(field 'pub_total_flow_rate)
+    settledAt    = $(field 'pub_settled_at)
+    settledValue = $(field 'pub_settled_value)
+    netFlowRate  = $(field 'pub_total_flow_rate)
 
 instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     settledAt     = readOnlyLens
@@ -75,7 +75,7 @@ instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData s
 
     netFlowRate   = readOnlyLens
         (\(( DistributionContractBase { total_unit     = tu }
-           , DistributionContract { dc_flow_rate       = dcfr }),
+           , DistributionContract     { dc_flow_rate   = dcfr }),
            ( SubscriptionContractBase { sub_owned_unit = u }
            , _)) -> if tu /= 0 then floor $ fromIntegral dcfr * u / tu else 0)
 

@@ -39,20 +39,26 @@ class ( SuperfluidCoreTypes sft
     --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which then can be monoid-appended to existing
     --      ~mudΔ~.  This is what can make an agreement scalable.
     applyAgreementOperation
-        :: ac                                -- ac
-        -> AgreementOperation ac             -- ao
-        -> SFT_TS sft                        -- t
-        -> (ac, AgreementOperationOutput ac) -- (ac', mudsΔ)
+        :: forall t ao aoo acs.
+           -- indexed type aliases
+           ( t ~ SFT_TS sft
+           , ao ~ AgreementOperation ac
+           , aoo ~ AgreementOperationOutput ac
+           , acs ~ (ac, aoo)
+           )
+        => ac -> ao -> t -> acs
 
     -- | φ' function - functorize the existential semigroup monetary unit data of agreement operation output
     functorizeAgreementOperationOutput
-        :: forall muds f any_smud.
-           ( muds ~ AgreementOperationOutput ac
-           , f ~ AgreementOperationOutputF ac
+        :: forall any_smud muds f.
+           ( any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
            , MonetaryUnitDataClass any_smud sft
-           , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+           -- indexed type aliases
+           , muds ~ AgreementOperationOutput ac
+           , f ~ AgreementOperationOutputF ac
            )
-        => Proxy any_smud -> muds -> f any_smud
+        => Proxy any_smud
+        -> muds -> f any_smud
 
     -- | κ function - concatenate agreement operation output, which can be functorized any time.
     concatAgreementOperationOutput
@@ -100,29 +106,33 @@ data AnyAgreementContractState sft = forall ac. AgreementContract ac sft
 -- =====================================================================================================================
 -- * Agreement Laws
 
-ao_sum_contract_balance :: forall sft any_smud.
+ao_sum_contract_balance :: forall sft any_smud t rtb any_acs.
                            ( SuperfluidCoreTypes sft
-                           , MonetaryUnitDataClass any_smud sft
                            , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+                           , MonetaryUnitDataClass any_smud sft
+                           -- indexed type aliases
+                           , t ~ SFT_TS sft
+                           , rtb ~ SFT_RTB sft
+                           , any_acs ~ AnyAgreementContractState sft
                            )
                         => Proxy any_smud
-                        -> AnyAgreementContractState sft
-                        -> SFT_TS sft
-                        -> SFT_RTB sft
+                        -> any_acs -> t -> rtb
 ao_sum_contract_balance p (MkAnyAgreementContractState (ac, muds)) t =
     foldr (<>) (π₂ t ac) (fmap (π₁ t) (φ muds))
     where φ  = functorizeAgreementOperationOutput p
           π₁ = flip balanceProvided -- π function (flipped) for semigroup mud
           π₂ = flip balanceProvided -- π function (flipped) for contract mud
 
-ao_go_single_op :: forall ac sft.
+ao_go_single_op :: forall ac sft t ao aoo acs.
                    ( SuperfluidCoreTypes sft
                    , AgreementContract ac sft
+                   -- indexed type aliases
+                   , t ~ SFT_TS sft
+                   , ao ~ AgreementOperation ac
+                   , aoo ~ AgreementOperationOutput ac
+                   , acs ~ (ac, aoo)
                    )
-                => AgreementContractState ac sft
-                -> AgreementOperation ac
-                -> SFT_TS sft
-                -> AgreementContractState ac sft
+                => acs -> ao -> t -> acs
 ao_go_single_op (ac, muds) ao t' =
     let (ac', mudsΔ) = ω ac ao t'
         muds'        = κ muds mudsΔ
@@ -130,21 +140,21 @@ ao_go_single_op (ac, muds) ao t' =
     where ω  = applyAgreementOperation
           κ  = concatAgreementOperationOutput
 
-ao_go_zero_sum_balance_after_single_op :: forall ac sft any_smud.
+ao_go_zero_sum_balance_after_single_op :: forall ac sft any_smud t v ao aoo acs any_acs.
                                           ( SuperfluidCoreTypes sft
                                           , AgreementContract ac sft
+                                          , any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
                                           , MonetaryUnitDataClass any_smud sft
-                                          , any_smud
-                                            `IsAnyTypeOf`
-                                            MPTC_Flip SemigroupMonetaryUnitData sft
+                                          -- indexed type aliases
+                                          , t ~ SFT_TS sft
+                                          , v ~ SFT_MVAL sft
+                                          , ao ~ AgreementOperation ac
+                                          , aoo ~ AgreementOperationOutput ac
+                                          , acs ~ (ac, aoo)
+                                          , any_acs ~ AnyAgreementContractState sft
                                           )
                                        => Proxy any_smud
-                                       -> (SFT_MVAL sft -> SFT_MVAL sft -> Bool)
-                                       -> AgreementContractState ac sft
-                                       -> AgreementOperation ac
-                                       -> [AnyAgreementContractState sft]
-                                       -> SFT_TS sft
-                                       -> (Bool, AgreementContractState ac sft)
+                                       -> (v -> v -> Bool) -> acs -> ao -> [any_acs] -> t -> (Bool, acs)
 ao_go_zero_sum_balance_after_single_op p mvalEq cs ao ocss t' =
     let cs' = ao_go_single_op cs ao t'
     in  (σ cs `mvalEq` b && σ cs' `mvalEq` b, cs')

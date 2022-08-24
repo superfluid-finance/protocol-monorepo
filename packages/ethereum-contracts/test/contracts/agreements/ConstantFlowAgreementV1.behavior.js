@@ -4,6 +4,8 @@ const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
+const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 
 //
 // test functions
@@ -196,66 +198,69 @@ async function _shouldChangeFlow({
 
     // change flow
     let tx;
-    let signer;
+    let superfluid;
+    let cfa;
     switch (fn) {
         case "createFlow":
         case "updateFlow":
-        case "deleteFlow":
-            signer = await ethers.getSigner(
-                fn === "deleteFlow"
-                    ? cfaDataModel.roles.agent
-                    : testenv.getAddress(sender)
-            );
-
-            console.log(`${fn} from ${sender} to ${receiver}`);
-
-            tx = await testenv.agreementHelper.modifyFlow({
+            tx = await web3tx(
+                testenv.sf.cfa[fn],
+                `${fn} from ${sender} to ${receiver}`
+            )({
                 ...cfaDataModel.flows.main.flowId,
-                type: fn,
+                flowRate: flowRate.toString(),
                 userData,
-                signer,
-                flowRate: flowRate ? flowRate.toString() : null,
+            });
+            break;
+        case "deleteFlow":
+            tx = await web3tx(
+                testenv.sf.cfa[fn],
+                `${fn} from ${sender} to ${receiver}`
+            )({
+                ...cfaDataModel.flows.main.flowId,
+                by: cfaDataModel.roles.agent,
+                userData,
             });
             break;
         case "createFlowByOperator":
         case "updateFlowByOperator":
-            signer = await ethers.getSigner(testenv.getAddress(by));
-            tx = await testenv.contracts.superfluid
-                .connect(signer)
-                .callAgreement(
-                    testenv.contracts.cfa.address,
-                    testenv.agreementHelper.cfaInterface.encodeFunctionData(
-                        fn,
-                        [
-                            cfaDataModel.flows.main.flowId.superToken,
-                            cfaDataModel.flows.main.flowId.sender,
-                            cfaDataModel.flows.main.flowId.receiver,
-                            flowRate.toString(),
-                            "0x",
-                        ]
-                    ),
+            cfa = await testenv.sf.contracts.IConstantFlowAgreementV1.at(
+                testenv.contracts.cfa.address
+            );
+            superfluid = await testenv.sf.contracts.ISuperfluid.at(
+                testenv.contracts.superfluid.address
+            );
+            tx = await superfluid.callAgreement(
+                testenv.contracts.cfa.address,
+                cfa.contract.methods[fn](
+                    cfaDataModel.flows.main.flowId.superToken,
+                    cfaDataModel.flows.main.flowId.sender,
+                    cfaDataModel.flows.main.flowId.receiver,
+                    flowRate.toString(),
                     "0x"
-                );
+                ).encodeABI(),
+                "0x",
+                {from: testenv.getAddress(by)}
+            );
             break;
         case "deleteFlowByOperator":
-            signer = await ethers.getSigner(
-                testenv.getAddress(cfaDataModel.roles.agent)
+            cfa = await testenv.sf.contracts.IConstantFlowAgreementV1.at(
+                testenv.contracts.cfa.address
             );
-            tx = await testenv.contracts.superfluid
-                .connect(signer)
-                .callAgreement(
-                    testenv.contracts.cfa.address,
-                    testenv.agreementHelper.cfaInterface.encodeFunctionData(
-                        fn,
-                        [
-                            cfaDataModel.flows.main.flowId.superToken,
-                            cfaDataModel.flows.main.flowId.sender,
-                            cfaDataModel.flows.main.flowId.receiver,
-                            "0x",
-                        ]
-                    ),
+            superfluid = await testenv.sf.contracts.ISuperfluid.at(
+                testenv.contracts.superfluid.address
+            );
+            tx = await superfluid.callAgreement(
+                testenv.contracts.cfa.address,
+                cfa.contract.methods[fn](
+                    cfaDataModel.flows.main.flowId.superToken,
+                    cfaDataModel.flows.main.flowId.sender,
+                    cfaDataModel.flows.main.flowId.receiver,
                     "0x"
-                );
+                ).encodeABI(),
+                "0x",
+                {from: cfaDataModel.roles.agent}
+            );
             break;
         default:
             assert(false);
@@ -339,39 +344,43 @@ async function _shouldChangeFlow({
                         expectedRewardAmount
                     )
                 );
-                // const liquidationTypeData = web3.eth.abi.encodeParameters(
-                //     ["uint256", "uint8"],
-                //     [1, isPatricianPeriod ? 0 : 1]
-                // );
-                // const provider = ethers.provider;
-                // @note figure out a solution for expecting events
-                // await expect(tx.wait())
-                //     .to.emit(
-                //         testenv.contracts.ISuperToken,
-                //         "AgreementLiquidatedV2"
-                //     )
-                //     .withArgs(
-                //         testenv.sf.agreements.cfa.address,
-                //         cfaDataModel.roles.agent,
-                //         cfaDataModel.roles.sender,
-                //         isPatricianPeriod
-                //             ? cfaDataModel.roles.reward
-                //             : cfaDataModel.roles.agent,
-                //         expectedRewardAmount.toString(),
-                //         expectedRewardAmount.mul(toBN(-1)).toString(),
-                //         liquidationTypeData
-                //     );
+                const liquidationTypeData = web3.eth.abi.encodeParameters(
+                    ["uint256", "uint8"],
+                    [1, isPatricianPeriod ? 0 : 1]
+                );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {
+                        agreementClass: testenv.sf.agreements.cfa.address,
+                        liquidatorAccount: cfaDataModel.roles.agent,
+                        targetAccount: cfaDataModel.roles.sender,
+                        rewardAmountReceiver: isPatricianPeriod
+                            ? cfaDataModel.roles.reward
+                            : cfaDataModel.roles.agent,
+                        rewardAmount: expectedRewardAmount.toString(),
+                        targetAccountBalanceDelta: expectedRewardAmount
+                            .mul(toBN(-1))
+                            .toString(),
+                        liquidationTypeData,
+                    }
+                );
 
                 // targetAccount (sender) transferring remaining deposit to
                 // rewardAccount / liquidatorAccount depending on isPatricianPeriod
-                // const receipt = await tx.wait();
-                // await expectEvent(receipt, "Transfer", {
-                //     from: cfaDataModel.roles.sender,
-                //     to: isPatricianPeriod
-                //         ? cfaDataModel.roles.reward
-                //         : cfaDataModel.roles.agent,
-                //     value: expectedRewardAmount.toString(),
-                // })
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.sender,
+                        to: isPatricianPeriod
+                            ? cfaDataModel.roles.reward
+                            : cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
+                    }
+                );
             } else {
                 const expectedRewardAmount = toBN(
                     cfaDataModel.flows.main.flowInfoBefore.deposit
@@ -412,44 +421,50 @@ async function _shouldChangeFlow({
                         expectedBailoutAmount
                     )
                 );
-                // const liquidationTypeData = web3.eth.abi.encodeParameters(
-                //     ["uint256", "uint8"],
-                //     [1, 2]
-                // );
-                // @note figure out a solution for expecting events
-                // await expect(tx)
-                //     .to.emit(
-                //         testenv.sf.contracts.ISuperToken,
-                //         "AgreementLiquidatedV2"
-                //     )
-                //     .withArgs(
-                //         testenv.sf.agreements.cfa.address,
-                //         cfaDataModel.roles.agent,
-                //         cfaDataModel.roles.sender,
-                //         cfaDataModel.roles.agent,
-                //         expectedRewardAmount.toString(),
-                //         expectedBailoutAmount.toString(),
-                //         liquidationTypeData
-                //     );
+                const liquidationTypeData = web3.eth.abi.encodeParameters(
+                    ["uint256", "uint8"],
+                    [1, 2]
+                );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedV2",
+                    {
+                        agreementClass: testenv.sf.agreements.cfa.address,
+                        liquidatorAccount: cfaDataModel.roles.agent,
+                        targetAccount: cfaDataModel.roles.sender,
+                        rewardAmountReceiver: cfaDataModel.roles.agent,
+                        rewardAmount: expectedRewardAmount.toString(),
+                        targetAccountBalanceDelta:
+                            expectedBailoutAmount.toString(),
+                        liquidationTypeData,
+                    }
+                );
 
-                // // reward account transferring the single flow deposit to the
-                // // liquidator (agent)
-                // await expect(tx)
-                //     .to.emit(testenv.sf.contracts.ISuperToken, "Transfer")
-                //     .withArgs(
-                //         cfaDataModel.roles.reward,
-                //         cfaDataModel.roles.agent,
-                //         expectedRewardAmount.toString()
-                //     );
+                // reward account transferring the single flow deposit to the
+                // liquidator (agent)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
+                    }
+                );
 
-                // // // reward account bailing out the targetAccount (sender)
-                // await expect(tx)
-                //     .to.emit(testenv.sf.contracts.ISuperToken, "Transfer")
-                //     .withArgs(
-                //         cfaDataModel.roles.reward,
-                //         cfaDataModel.roles.sender,
-                //         expectedBailoutAmount.toString()
-                //     );
+                // reward account bailing out the targetAccount (sender)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.sender,
+                        value: expectedBailoutAmount.toString(),
+                    }
+                );
             }
             console.log("--------");
         }
@@ -534,56 +549,55 @@ async function _shouldChangeFlow({
     console.log("--------");
 
     // validate FlowUpdated event
-    // @note figure out a solution for expecting events
-    // await expectEvent.inTransaction(
-    //     tx,
-    //     testenv.sf.agreements.cfa.contract,
-    //     "FlowUpdated",
-    //     {
-    //         token: superToken.address,
-    //         sender: cfaDataModel.roles.sender,
-    //         receiver: cfaDataModel.roles.receiver,
-    //         flowRate: flowRate.toString(),
-    //         // we don't test total flow rates when using mfa
-    //         // since mfa mangles with flows in callbacks
-    //         ...(!mfa
-    //             ? {
-    //                   totalSenderFlowRate: cfaDataModel
-    //                       .getAccountFlowInfo({
-    //                           superToken: superToken.address,
-    //                           account: cfaDataModel.roles.sender,
-    //                       })
-    //                       .flowRate.toString(),
-    //                   totalReceiverFlowRate: cfaDataModel
-    //                       .getAccountFlowInfo({
-    //                           superToken: superToken.address,
-    //                           account: mfa
-    //                               ? cfaDataModel.roles.mfa
-    //                               : cfaDataModel.roles.receiver,
-    //                       })
-    //                       .flowRate.toString(),
-    //               }
-    //             : {}),
-    //         userData: userData ? userData : null,
-    //     }
-    // );
-    // await expectEvent.inTransaction(
-    //     tx,
-    //     testenv.sf.agreements.cfa.contract,
-    //     "FlowUpdatedExtension",
-    //     {
-    //         flowOperator: testenv.getAddress(by) || cfaDataModel.roles.sender,
-    //         // we don't test total flow rates when using mfa
-    //         // since mfa mangles with flows in callbacks
-    //         // similarly with deposit, we can't get the expected deposit
-    //         // from main.deposit
-    //         ...(!mfa
-    //             ? {
-    //                   deposit: cfaDataModel.expectedFlowInfo.main.deposit,
-    //               }
-    //             : {}),
-    //     }
-    // );
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.agreements.cfa.contract,
+        "FlowUpdated",
+        {
+            token: superToken.address,
+            sender: cfaDataModel.roles.sender,
+            receiver: cfaDataModel.roles.receiver,
+            flowRate: flowRate.toString(),
+            // we don't test total flow rates when using mfa
+            // since mfa mangles with flows in callbacks
+            ...(!mfa
+                ? {
+                      totalSenderFlowRate: cfaDataModel
+                          .getAccountFlowInfo({
+                              superToken: superToken.address,
+                              account: cfaDataModel.roles.sender,
+                          })
+                          .flowRate.toString(),
+                      totalReceiverFlowRate: cfaDataModel
+                          .getAccountFlowInfo({
+                              superToken: superToken.address,
+                              account: mfa
+                                  ? cfaDataModel.roles.mfa
+                                  : cfaDataModel.roles.receiver,
+                          })
+                          .flowRate.toString(),
+                  }
+                : {}),
+            userData: userData ? userData : null,
+        }
+    );
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.agreements.cfa.contract,
+        "FlowUpdatedExtension",
+        {
+            flowOperator: testenv.getAddress(by) || cfaDataModel.roles.sender,
+            // we don't test total flow rates when using mfa
+            // since mfa mangles with flows in callbacks
+            // similarly with deposit, we can't get the expected deposit
+            // from main.deposit
+            ...(!mfa
+                ? {
+                      deposit: cfaDataModel.expectedFlowInfo.main.deposit,
+                  }
+                : {}),
+        }
+    );
     console.log("--------");
 
     //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));

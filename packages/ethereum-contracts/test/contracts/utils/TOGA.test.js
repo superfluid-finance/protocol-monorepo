@@ -1,4 +1,3 @@
-const {expectEvent} = require("@openzeppelin/test-helpers");
 const {expectRevertedWith} = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");

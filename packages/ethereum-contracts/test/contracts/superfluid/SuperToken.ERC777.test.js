@@ -34,6 +34,7 @@ describe("SuperToken's ERC777 implementation", function () {
 
     let holder, defaultOperatorA, defaultOperatorB, newOperator, anyone;
     let erc1820;
+    let tokenContract;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -49,6 +50,10 @@ describe("SuperToken's ERC777 implementation", function () {
             eve: anyone,
         } = t.aliases);
         this.token = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
+        tokenContract = await ethers.getContractAt(
+            "SuperTokenMock",
+            t.sf.tokens.TESTx.address
+        );
         ({erc1820} = t.contracts);
 
         await web3tx(
@@ -467,54 +472,71 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("send reverts", async function () {
+                            const holderSigner = await ethers.getSigner(holder);
                             await expectCustomError(
-                                this.token.send(recipient, amount, testData, {
-                                    from: holder,
-                                }),
-                                this.token,
+                                tokenContract
+                                    .connect(holderSigner)
+                                    .send(
+                                        recipient,
+                                        amount.toString(),
+                                        testData
+                                    ),
+                                tokenContract,
                                 "SuperToken_NotERC777TokensRecipient"
                             );
                         });
 
                         it("operatorSend reverts", async function () {
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
                             await expectCustomError(
-                                this.token.operatorSend(
-                                    sender,
-                                    recipient,
-                                    amount,
-                                    testData,
-                                    operatorData,
-                                    {from: operator}
-                                ),
-                                this.token,
+                                tokenContract
+                                    .connect(operatorSigner)
+                                    .operatorSend(
+                                        sender,
+                                        recipient,
+                                        amount.toString(),
+                                        testData,
+                                        operatorData
+                                    ),
+                                tokenContract,
                                 "SuperToken_NotERC777TokensRecipient"
                             );
                         });
 
                         it("mint (internal) reverts", async function () {
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
                             await expectCustomError(
-                                this.token.mintInternal(
-                                    recipient,
-                                    amount,
-                                    testData,
-                                    operatorData,
-                                    {from: operator}
-                                ),
-                                this.token,
+                                tokenContract
+                                    .connect(operatorSigner)
+                                    .mintInternal(
+                                        recipient,
+                                        amount.toString(),
+                                        testData,
+                                        operatorData
+                                    ),
+                                tokenContract,
                                 "SuperToken_NotERC777TokensRecipient"
                             );
                         });
 
                         it("mint (internal) to zero address reverts", async function () {
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
                             await expectCustomError(
-                                this.token.mintInternal(
-                                    ZERO_ADDRESS,
-                                    amount,
-                                    testData,
-                                    operatorData,
-                                    {from: operator}
-                                ),
-                                this.token,
+                                tokenContract
+                                    .connect(operatorSigner)
+                                    .mintInternal(
+                                        ZERO_ADDRESS,
+                                        amount.toString(),
+                                        testData,
+                                        operatorData
+                                    ),
+                                tokenContract,
                                 "SuperToken_MintToZeroAddressNotAllowed"
                             );
                         });

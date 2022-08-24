@@ -18,6 +18,9 @@ describe("SuperfluidToken implementation", function () {
     let acA;
     let acB;
 
+    // Lots of the tests are using 0x42 to test, but it needs to be zero padded
+    const formattedData = ethers.utils.hexZeroPad("0x42", 32);
+
     async function createAgreementMock(type, version) {
         const agreementMockFactory = await ethers.getContractFactory(
             "AgreementMock"
@@ -38,6 +41,10 @@ describe("SuperfluidToken implementation", function () {
         ({admin, alice, bob} = t.aliases);
         ({superfluid, governance} = t.contracts);
         superToken = t.sf.tokens.TESTx;
+        superToken = await ethers.getContractAt(
+            "SuperToken",
+            superToken.address
+        );
 
         const acALogic = await createAgreementMock(web3.utils.sha3("typeA"), 1);
         await web3tx(
@@ -234,19 +241,31 @@ describe("SuperfluidToken implementation", function () {
             it("#3.a.1 should create new agreement", async function () {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     testData
                 );
                 assert.deepEqual(
-                    await superToken.getAgreementData(acA.address, "0x42", 2),
+                    await superToken.getAgreementData(
+                        acA.address,
+                        formattedData,
+                        2
+                    ),
                     testData
                 );
                 assert.deepEqual(
-                    await superToken.getAgreementData(acA.address, "0x42", 1),
+                    await superToken.getAgreementData(
+                        acA.address,
+                        formattedData,
+                        1
+                    ),
                     [testData[0]]
                 );
                 assert.deepEqual(
-                    await superToken.getAgreementData(acA.address, "0x42", 3),
+                    await superToken.getAgreementData(
+                        acA.address,
+                        formattedData,
+                        3
+                    ),
                     [...testData, ZERO_BYTES32]
                 );
             });
@@ -254,32 +273,32 @@ describe("SuperfluidToken implementation", function () {
             it("#3.a.2 should not create the same agreement twice", async () => {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     testData
                 );
                 await expectCustomError(
                     acA.createAgreementFor(
                         superToken.address,
-                        "0x42",
+                        formattedData,
                         testData
                     ),
-                    acA,
+                    superToken,
                     "SFToken_AgreementAlreadyCreated"
                 );
                 // try overlapping data
                 await expectCustomError(
-                    acA.createAgreementFor(superToken.address, "0x42", [
+                    acA.createAgreementFor(superToken.address, formattedData, [
                         testData[0],
                     ]),
-                    acA,
+                    superToken,
                     "SFToken_AgreementAlreadyCreated"
                 );
                 await expectCustomError(
-                    acA.createAgreementFor(superToken.address, "0x42", [
+                    acA.createAgreementFor(superToken.address, formattedData, [
                         ...testData,
                         ...testData,
                     ]),
-                    acA,
+                    superToken,
                     "SFToken_AgreementAlreadyCreated"
                 );
             });
@@ -287,11 +306,15 @@ describe("SuperfluidToken implementation", function () {
             it("#3.a.3 should not overlap data", async () => {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     testData
                 );
                 assert.deepEqual(
-                    await superToken.getAgreementData(acA.address, "0x43", 1),
+                    await superToken.getAgreementData(
+                        acA.address,
+                        ethers.utils.hexZeroPad("0x43", 32),
+                        1
+                    ),
                     [ZERO_BYTES32]
                 );
             });
@@ -299,15 +322,19 @@ describe("SuperfluidToken implementation", function () {
             it("#3.a.4 should update data", async () => {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     testData
                 );
                 await web3tx(
                     acA.updateAgreementDataFor,
                     "updateAgreementDataFor"
-                )(superToken.address, "0x42", testData2);
+                )(superToken.address, formattedData, testData2);
                 assert.deepEqual(
-                    await superToken.getAgreementData(acA.address, "0x42", 2),
+                    await superToken.getAgreementData(
+                        acA.address,
+                        formattedData,
+                        2
+                    ),
                     testData2
                 );
             });
@@ -315,15 +342,19 @@ describe("SuperfluidToken implementation", function () {
             it("#3.a.5 should terminate agreement", async () => {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     testData
                 );
                 await web3tx(
                     acA.terminateAgreementFor,
                     "terminateAgreementFor"
-                )(superToken.address, "0x42", 2);
+                )(superToken.address, formattedData, 2);
                 assert.deepEqual(
-                    await superToken.getAgreementData(acA.address, "0x42", 2),
+                    await superToken.getAgreementData(
+                        acA.address,
+                        formattedData,
+                        2
+                    ),
                     [ZERO_BYTES32, ZERO_BYTES32]
                 );
             });
@@ -331,16 +362,20 @@ describe("SuperfluidToken implementation", function () {
             it("#3.a.6 should not terminate agreement twice", async () => {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     testData
                 );
                 await web3tx(
                     acA.terminateAgreementFor,
                     "terminateAgreementFor"
-                )(superToken.address, "0x42", 2);
+                )(superToken.address, formattedData, 2);
                 await expectCustomError(
-                    acA.terminateAgreementFor(superToken.address, "0x42", 2),
-                    acA,
+                    acA.terminateAgreementFor(
+                        superToken.address,
+                        formattedData,
+                        2
+                    ),
+                    superToken,
                     "SFToken_AgreementDoesNotExist"
                 );
             });
@@ -440,7 +475,7 @@ describe("SuperfluidToken implementation", function () {
                 );
                 await expectCustomError(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
-                    acBad,
+                    superToken,
                     "SFToken_OnlyListedAgreement"
                 );
             });
@@ -481,14 +516,14 @@ describe("SuperfluidToken implementation", function () {
             await expectCustomError(
                 acBad.makeLiquidationPayoutsFor(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     true,
                     bob,
                     alice,
                     0,
                     0
                 ),
-                acBad,
+                superToken,
                 "SFToken_OnlyListedAgreement"
             );
         });
@@ -505,7 +540,7 @@ describe("SuperfluidToken implementation", function () {
             it("#4.a.1 liquidation without bailout by alice (liquidator)", async () => {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     true,
                     alice /* liquidator account */,
                     bob /* target account */,
@@ -520,7 +555,7 @@ describe("SuperfluidToken implementation", function () {
             it("#4.a.2 liquidation without bailout by admin (reward address) directly", async () => {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     true,
                     admin /* liquidator account */,
                     bob /* target account */,
@@ -535,7 +570,7 @@ describe("SuperfluidToken implementation", function () {
             it("#4.a.3 liquidation with bailout by alice (liquidator)", async () => {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     false,
                     alice /* liquidator account */,
                     bob /* target account */,
@@ -560,7 +595,7 @@ describe("SuperfluidToken implementation", function () {
             it("#4.b.1 liquidation without bailout by alice (liquidator)", async () => {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     true,
                     alice /* liquidator account */,
                     bob /* target account */,
@@ -574,7 +609,7 @@ describe("SuperfluidToken implementation", function () {
             it("#4.b.2 liquidation with bailout by alice (liquidator and bailout account)", async () => {
                 await acA.makeLiquidationPayoutsFor(
                     superToken.address,
-                    "0x42",
+                    formattedData,
                     false,
                     alice /* liquidator account */,
                     bob /* target account */,

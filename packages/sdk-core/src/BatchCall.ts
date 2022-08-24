@@ -62,8 +62,7 @@ export default class BatchCall {
         if (!operationType) {
             throw new SFError({
                 type: "UNSUPPORTED_OPERATION",
-                customMessage:
-                    "The operation at index " + index + " is unsupported.",
+                message: "The operation at index " + index + " is unsupported.",
             });
         }
 
@@ -71,8 +70,7 @@ export default class BatchCall {
         if (!populatedTransaction.to || !populatedTransaction.data) {
             throw new SFError({
                 type: "MISSING_TRANSACTION_PROPERTIES",
-                customMessage:
-                    "The transaction is missing the to or data property.",
+                message: "The transaction is missing the to or data property.",
             });
         }
 
@@ -122,20 +120,12 @@ export default class BatchCall {
     exec = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
-        try {
-            const operationStructArray = await Promise.all(
-                this.getOperationStructArrayPromises
-            );
-            return await this.host.contract
-                .connect(signer)
-                .batchCall(operationStructArray);
-        } catch (err) {
-            throw new SFError({
-                type: "BATCH_CALL_ERROR",
-                customMessage: "There was an error executing your batch call:",
-                errorObject: err,
-            });
-        }
+        const operationStructArray = await Promise.all(
+            this.getOperationStructArrayPromises
+        );
+        return await this.host.contract
+            .connect(signer)
+            .batchCall(operationStructArray);
     };
 
     /* istanbul ignore next */
@@ -149,19 +139,11 @@ export default class BatchCall {
     execForward = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
-        try {
-            const operationStructArray = await Promise.all(
-                this.getOperationStructArrayPromises
-            );
-            return await this.host.contract
-                .connect(signer)
-                .forwardBatchCall(operationStructArray);
-        } catch (err) {
-            throw new SFError({
-                type: "BATCH_CALL_ERROR",
-                customMessage: "There was an error executing your batch call:",
-                errorObject: err,
-            });
-        }
+        const operationStructArray = await Promise.all(
+            this.getOperationStructArrayPromises
+        );
+        return await this.host.contract
+            .connect(signer)
+            .forwardBatchCall(operationStructArray);
     };
 }

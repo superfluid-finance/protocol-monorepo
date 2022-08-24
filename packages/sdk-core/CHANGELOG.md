@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Breaking
+- Don't throw `SFError` when executing `Operation` or `BatchCall`; let the original error bubble up
+- Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
+
 ## [0.5.5] - 2022-08-31
 ### Added
 - Support for: `optimism-goerli` and `arbitrum-goerli` added

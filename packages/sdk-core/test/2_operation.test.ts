@@ -157,9 +157,8 @@ describe("Operation Tests", () => {
             await operation.exec(deployer);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Execute Transaction Error: There was an error executing the transaction"
+                "cannot estimate gas"
             );
-            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 
@@ -173,9 +172,8 @@ describe("Operation Tests", () => {
             await operation.getSignedTransaction(alpha);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Sign Transaction Error: There was an error signing the transaction"
+                "signing transactions is unsupported"
             );
-            expect(err.cause).to.be.instanceOf(Error);
         }
     });
 

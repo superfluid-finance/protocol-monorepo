@@ -1,8 +1,6 @@
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 
-import { SFError } from "./SFError";
-
 export type OperationType =
     | "UNSUPPORTED" // 0
     | "ERC20_APPROVE" // 1
@@ -37,17 +35,10 @@ export default class Operation {
     exec = async (
         signer: ethers.Signer
     ): Promise<ethers.providers.TransactionResponse> => {
-        try {
-            const populatedTransaction =
-                await this.getPopulatedTransactionRequest(signer);
-            return await signer.sendTransaction(populatedTransaction);
-        } catch (err) {
-            throw new SFError({
-                type: "EXECUTE_TRANSACTION",
-                customMessage: "There was an error executing the transaction",
-                errorObject: err,
-            });
-        }
+        const populatedTransaction = await this.getPopulatedTransactionRequest(
+            signer
+        );
+        return await signer.sendTransaction(populatedTransaction);
     };
 
     /**
@@ -58,17 +49,8 @@ export default class Operation {
     getPopulatedTransactionRequest = async (
         signer: ethers.Signer
     ): Promise<TransactionRequest> => {
-        try {
-            const prePopulated = await this.populateTransactionPromise;
-            return await signer.populateTransaction(prePopulated);
-        } catch (err) {
-            /* istanbul ignore next */
-            throw new SFError({
-                type: "POPULATE_TRANSACTION",
-                customMessage: "There was an error populating the transaction",
-                errorObject: err,
-            });
-        }
+        const prePopulated = await this.populateTransactionPromise;
+        return await signer.populateTransaction(prePopulated);
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).
@@ -76,20 +58,11 @@ export default class Operation {
      * @returns {Promise<string>} Fully serialized, signed transaction
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
-        try {
-            const populatedTransaction =
-                await this.getPopulatedTransactionRequest(signer);
-            const signedTxn = await signer.signTransaction(
-                populatedTransaction
-            );
-            return signedTxn;
-        } catch (err) {
-            throw new SFError({
-                type: "SIGN_TRANSACTION",
-                customMessage: "There was an error signing the transaction",
-                errorObject: err,
-            });
-        }
+        const populatedTransaction = await this.getPopulatedTransactionRequest(
+            signer
+        );
+        const signedTxn = await signer.signTransaction(populatedTransaction);
+        return signedTxn;
     };
 
     /**

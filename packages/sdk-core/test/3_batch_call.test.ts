@@ -65,10 +65,7 @@ describe("Batch Call Tests", () => {
         try {
             await framework.batchCall([createFlowOp]).exec(deployer);
         } catch (err: any) {
-            expect(err.message).to.contain(
-                "Batch Call Error - There was an error executing your batch call:"
-            );
-            expect(err.cause).to.be.instanceOf(Error);
+            expect(err.message).to.contain("cannot estimate gas;");
         }
     });
 

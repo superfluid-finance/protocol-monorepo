@@ -12,6 +12,13 @@ import { ISuperfluid } from "./ISuperfluid.sol";
  * @author Superfluid
  */
 interface ISuperfluidGovernance {
+    
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SFGov_ArraysNotSameLength();
+    error SFGov_FactoryMustBeContract();
+    error SFGov_InvalidLiquidationOrPatricianPeriod();
 
     /**
      * @dev Replace the current governance with a new governance

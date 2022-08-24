@@ -13,6 +13,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
     error SuperToken_ApproveFromZeroAddressNotAllowed();
     error SuperToken_ApproveToZeroAddressNotAllowed();
     error SuperToken_CallerIsNotOperatorForHolder();

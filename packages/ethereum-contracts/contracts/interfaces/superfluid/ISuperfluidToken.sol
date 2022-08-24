@@ -11,6 +11,16 @@ import { ISuperAgreement } from "./ISuperAgreement.sol";
 interface ISuperfluidToken {
 
     /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SFToken_AgreementAlreadyCreated();
+    error SFToken_AgreementDoesNotExist();
+    error SFToken_BurnAmountExceedsBalance();
+    error SFToken_MoveAmountExceedsBalance();
+    error SFToken_OnlyHost();
+    error SFToken_OnlyListedAgreement();
+
+    /**************************************************************************
      * Basic information
      *************************************************************************/
 

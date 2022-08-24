@@ -29,6 +29,10 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
  *
  */
 interface ISuperfluid {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
     // Superfluid Custom Errors
     error Host_AgreementCallbackIsNotAction();
     error Host_AgreementClassAlreadyRegistered();

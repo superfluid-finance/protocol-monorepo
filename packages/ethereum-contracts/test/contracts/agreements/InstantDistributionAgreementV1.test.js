@@ -1020,6 +1020,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: toWad(0.01).toString(),
                 });
 
+                // @note still unsure about how to catch library custom errors
                 await expect(
                     shouldApproveSubscription({
                         testenv: t,

@@ -296,9 +296,10 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#2.3 only host can update agreement code", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     t.contracts.ida.updateCode(ZERO_ADDRESS),
-                    "only host can update code"
+                    t.contracts.ida,
+                    "AgreementBase_OnlyHost"
                 );
             });
 

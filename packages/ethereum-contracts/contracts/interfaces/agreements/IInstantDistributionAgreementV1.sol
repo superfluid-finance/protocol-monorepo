@@ -35,6 +35,9 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
     error IDA_IndexDoesNotExist();           // index does not exist
     error IDA_IndexAlreadyExist();           // index already exists
     error IDA_IndexShouldGrow();             // index value should grow

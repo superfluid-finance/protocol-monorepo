@@ -1,4 +1,4 @@
-import { serializeError } from "serialize-error";
+import { miniSerializeError } from "./miniSerializeError";
 
 export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
@@ -47,18 +47,12 @@ interface ErrorProps {
     cause?: Error | unknown;
 }
 
-// NOTE: this is a temporary solution to fix serializeError
-// which throws a weird JSON error
-const stringifyCause = (cause?: Error | unknown) => {
+const miniStringifyCause = (cause?: Error | unknown) => {
     try {
-        return JSON.stringify(serializeError(cause), null, 2);
-    } catch (err) {
-        try {
-            return JSON.stringify(cause, null, 2);
-        } catch {
-            console.error("Caused by: ", cause);
-            return "[Couldn't serialize error. Error logged to console.]";
-        }
+        return JSON.stringify(miniSerializeError(cause), null, 2);
+    } catch {
+        console.error("SFError caused by: ", cause);
+        return "[Couldn't serialize error. Error logged to console.]";
     }
 };
 
@@ -72,7 +66,7 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${stringifyCause(cause)}`
+Caused by: ${miniStringifyCause(cause)}`
                 : ""
         }`;
         super(

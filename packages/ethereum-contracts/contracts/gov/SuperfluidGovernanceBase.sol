@@ -365,7 +365,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     )
         public
     {
-        return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+        _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         emit SuperTokenMinimumDepositChanged(host, superToken, false, 0);
     }
 

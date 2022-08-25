@@ -79,6 +79,7 @@ Caused by: ${miniStringifyCause(cause)}`
             this.cause = cause as Error;
         }
         this.type = type;
+        this.name = "SFError";
         Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }
 }

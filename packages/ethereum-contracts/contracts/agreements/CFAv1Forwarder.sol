@@ -14,6 +14,12 @@ import {
 
 import { CallUtils } from "../libs/CallUtils.sol";
 
+/**
+ * The CFAv1Forwarder contract provides an easy to use interface to
+ * ConstantFlowAgreementV1 specific functionality of Super Tokens.
+ * Instances of this contract can operate on the protocol only if configured as "trusted forwarder"
+ * by protocol governance.
+ */
 contract CFAv1Forwarder {
 
     ISuperfluid internal _host;

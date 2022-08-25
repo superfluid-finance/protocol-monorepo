@@ -33,18 +33,19 @@ contract CFAv1Forwarder {
      * If there's an existing flow and `flowrate` non-zero, the flowrate of that flow is updated.
      * If there's an existing flow and `flowrate` zero, the flow is deleted.
      * If the existing and given flowrate are equal, no action is taken.
-     * On creation of a flow, a "buffer" amount is automatically detracted from the sender account's available token balance.
-     * This buffer amount is redeemed upon deletion of that flow, provided that the sender account is then solvent (non-zero balance).
+     * On creation of a flow, a "buffer" amount is automatically detracted from the sender account's available balance.
+     * This buffer is redeemed on deletion of that flow, if the sender account is then solvent (non-zero balance).
      * @param token Super token address
      * @param receiver The receiver of the flow
-     * @param flowrate The flowrate of the flow denominated in wad/second. Supported values range from 0 to 2^95.
+     * @param flowrate The wanted flowrate in wad/second. Only positive values are valid here.
      */
     function setFlowrate(ISuperToken token, address receiver, int96 flowrate) external {
        _setFlowrateFrom(token, msg.sender, receiver, flowrate);
     }
 
-    /** 
-     * @notice Like `setFlowrate`, but can be invoked by an account with flowOperator permissions on behalf of the sender account.
+    /**
+     * @notice Like `setFlowrate`, but can be invoked by an account with flowOperator permissions
+     * on behalf of the sender account.
      */
     function setFlowrateFrom(ISuperToken token, address sender, address receiver, int96 flowrate) external {
         _setFlowrateFrom(token, sender, receiver, flowrate);
@@ -58,8 +59,8 @@ contract CFAv1Forwarder {
      * @param receiver The receiver of the flow
      * @return flowrate The flowrate from the sender to the receiver account. Returns 0 if no flow exists.
      */
-    function getFlowrate(ISuperToken token, address sender, address receiver) external view 
-        returns(int96 flowrate) 
+    function getFlowrate(ISuperToken token, address sender, address receiver) external view
+        returns(int96 flowrate)
     {
         (, flowrate, , ) = _cfa.getFlow(token, sender, receiver);
     }
@@ -84,7 +85,8 @@ contract CFAv1Forwarder {
     /**
      * @notice Get the buffer amount required for the given token and flowrate.
      * This amount can vary based on the combination of token, flowrate and chain being queried.
-     * The result for a given set of parameters can change over time, because it depends on governance configurable protocol parameters.
+     * The result for a given set of parameters can change over time,
+     * because it depends on governance configurable protocol parameters.
      * Changes of the required buffer amount affect only flows created or updated after the change.
      * @param token Super token address
      * @param flowrate The flowrate for which the buffer amount is calculated
@@ -100,8 +102,7 @@ contract CFAv1Forwarder {
      * @notice Get the net flowrate of an account.
      * @param token Super token address
      * @param account Account to query
-     * @return flowrate The net flowrate. Negative if the aggregate outgoing flowrate exceed the aggregate incoming flowrate.
-     * TODO: should we really use int96 here?
+     * @return flowrate The net flowrate (aggregate incoming minus aggregate outgoing flowrate), can be negative.
      */
     function getAccountFlowrate(ISuperToken token, address account) external view
         returns (int96 flowrate)
@@ -115,7 +116,7 @@ contract CFAv1Forwarder {
      * @param token Super token address
      * @param account Account to query
      * @return lastUpdated Timestamp of last update of a flow to or from the account (flowrate change)
-     * @return flowrate Current net aggregate flowrate 
+     * @return flowrate Current net aggregate flowrate
      * @return deposit Deposit amount locked. Returned to the the flow is deleted while solvent. TODO: rename to buffer?
      * @return owedDeposit TODO
      */
@@ -130,18 +131,19 @@ contract CFAv1Forwarder {
      * If the address of msg.sender is not the same as the address of the `sender` argument,
      * createFlowByOperator is used internally. In this case msg.sender needs to have permission to create flows
      * on behalf of the given sender account with sufficient flowRateAllowance.
-     * Currently, only 1 flow can exist between 2 accounts, thus attempts to invoke `createFlow` while a flow already exists will fail.
+     * Currently, only 1 flow can exist between 2 accounts, thus `createFlow` will fail if one already exists.
      * @param token Super token address
      * @param sender Sender address of the flow
      * @param receiver Receiver address of the flow
      * @param flowrate The flowrate in wad/second to be set initially
      * @param userData (optional) User data to be set. Should be set to zero if not needed.
      */
-    function createFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData) external
+    function createFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData)
+        external
     {
         _createFlow(token, sender, receiver, flowrate, userData);
     }
-    
+
     /**
      * @notice Low-level wrapper if updateFlow/updateFlowByOperator.
      * If the address of msg.sender doesn't match the address of the `sender` argument,
@@ -153,14 +155,15 @@ contract CFAv1Forwarder {
      * @param flowrate The flowrate in wad/second the flow should be updated to
      * @param userData (optional) User data to be set. Should be set to zero if not needed.
      */
-    function updateFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData) external
+    function updateFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData)
+        external
     {
         _updateFlow(token, sender, receiver, flowrate, userData);
     }
 
     /**
      * @notice Low-level wrapper of deleteFlow/deleteFlowByOperator.
-     * If msg.sender isn't the same as sender address, msg.sender needs to have permission 
+     * If msg.sender isn't the same as sender address, msg.sender needs to have permission
      * to delete flows on behalf of the given sender account.
      * @param token Super token address
      * @param sender Sender address of the flow
@@ -182,7 +185,7 @@ contract CFAv1Forwarder {
     function grantPermissions(ISuperToken token, address flowOperator) external
     {
         _updateFlowOperatorPermissions(
-            token, 
+            token,
             flowOperator,
             FlowOperatorDefinitions.AUTHORIZE_FULL_CONTROL,
             type(int96).max
@@ -192,7 +195,7 @@ contract CFAv1Forwarder {
     /**
      * @notice Revokes all permissions previously granted to a flowOperator by msg.sender.
      * Revocation doesn't undo or reset flows previously created/updated by the flowOperator.
-     * In order to be sure about the state of flows at the time of revocation, you need to check that state 
+     * In order to be sure about the state of flows at the time of revocation, you need to check that state
      * either in the same transaction or after this transaction.
      * @param token Super token address
      * @param flowOperator Account from which permissions are revoked
@@ -200,13 +203,13 @@ contract CFAv1Forwarder {
     function revokePermissions(ISuperToken token, address flowOperator) external
     {
         _updateFlowOperatorPermissions(
-            token, 
+            token,
             flowOperator,
             0,
             0
         );
     }
-    
+
     /**
      * @notice Low-level wrapper of `IConstantFlowAgreementV1.updateFlowOperatorPermissions`
      * @param token Super token address
@@ -216,7 +219,13 @@ contract CFAv1Forwarder {
      * @notice flowrateAllowance does NOT restrict the net flowrate a flowOperator is able to set.
      * In order to restrict that, flowOperator needs to be a contract implementing the wanted limitations.
      */
-    function updateFlowOperatorPermissions(ISuperToken token, address flowOperator, uint8 permissions, int96 flowrateAllowance) external
+    function updateFlowOperatorPermissions(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 flowrateAllowance
+    )
+        external
     {
         _updateFlowOperatorPermissions(token, flowOperator, permissions, flowrateAllowance);
     }
@@ -330,7 +339,9 @@ contract CFAv1Forwarder {
         _forwardBatchCall(address(_cfa), cfaCallData);
     }
 
-    function _createFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData) internal {
+    function _createFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData)
+        internal
+    {
         bytes memory cfaCallData = sender == msg.sender ?
             abi.encodeCall(
                 _cfa.createFlow,
@@ -355,7 +366,9 @@ contract CFAv1Forwarder {
         _forwardBatchCall(address(_cfa), cfaCallData, userData);
     }
 
-    function _updateFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData) internal {
+    function _updateFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData)
+        internal
+    {
         bytes memory cfaCallData = sender == msg.sender ?
             abi.encodeCall(
                 _cfa.updateFlow,
@@ -404,7 +417,14 @@ contract CFAv1Forwarder {
         _forwardBatchCall(address(_cfa), cfaCallData, userData);
     }
 
-    function _updateFlowOperatorPermissions(ISuperToken token, address flowOperator, uint8 permissions, int96 flowrateAllowance) internal {
+    function _updateFlowOperatorPermissions(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 flowrateAllowance
+    )
+        internal
+    {
         bytes memory cfaCallData =
             abi.encodeCall(
                 _cfa.updateFlowOperatorPermissions,

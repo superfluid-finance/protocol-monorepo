@@ -47,6 +47,7 @@ describe("Framework Tests", async () => {
                     chainId: null as any,
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
                     "Framework Initialization Error - You must input chainId."
                 );
@@ -62,6 +63,7 @@ describe("Framework Tests", async () => {
                     provider: deployer.provider!,
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
                     "Network Mismatch Error - Your provider network chainId is: " +
                         chainId +
@@ -79,6 +81,7 @@ describe("Framework Tests", async () => {
                     chainId: networkNameToChainIdMap.get("polygon-mainnet")!,
                 } as any);
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
                     "Framework Initialization Error - You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
                 );
@@ -95,6 +98,7 @@ describe("Framework Tests", async () => {
                     protocolReleaseVersion: "test",
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
                     "Framework Initialization Error - You must input your own resolver address if you use an unsupported network."
                 );
@@ -115,6 +119,7 @@ describe("Framework Tests", async () => {
                     protocolReleaseVersion: "test",
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.contain(
                     "Framework Initialization Error - There was an error initializing the framework"
                 );

@@ -1808,7 +1808,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRule_CtxIsMalformated"
+                    "Host_AppRule_CtxIsNotClean"
                 );
                 await expectCustomError(
                     superfluid.callAppAction(
@@ -1819,7 +1819,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRule_CtxIsMalformated"
+                    "Host_AppRule_CtxIsNotClean"
                 );
             });
 

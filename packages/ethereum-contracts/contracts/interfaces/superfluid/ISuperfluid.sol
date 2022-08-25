@@ -69,7 +69,7 @@ interface ISuperfluid {
     error Host_AppRule_CtxIsEmpty();
     error Host_AppRule_CtxIsInvalid(); // IsReadonly
     error Host_AppRule_CtxIsMalformated();
-    error Host_AppRule_CtxIsMalformated();
+    error Host_AppRule_CtxIsNotClean();
 
     /**************************************************************************
      * Time

@@ -1040,7 +1040,7 @@ contract Superfluid is
     }
 
     modifier cleanCtx() {
-        if (_ctxStamp != 0) revert Host_AppRule_CtxIsMalformated();
+        if (_ctxStamp != 0) revert Host_AppRule_CtxIsNotClean();
         _;
     }
 

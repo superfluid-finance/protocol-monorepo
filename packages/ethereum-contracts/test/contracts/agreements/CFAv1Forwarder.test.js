@@ -15,6 +15,11 @@ describe("Agreement Forwarder", function () {
     let superToken, host, cfa, ida, governance, cfaFwd;
     let alice, bob, carol;
 
+    // ACL flags
+    const ALLOW_CREATE = 1 << 0;
+    const ALLOW_UPDATE = 1 << 1;
+    const ALLOW_DELETE = 1 << 2;
+
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
@@ -219,11 +224,6 @@ describe("Agreement Forwarder", function () {
     });
 
     describe("Wrapper methods", async function () {
-
-        const ALLOW_CREATE = 1 << 0;
-        const ALLOW_UPDATE = 1 << 1;
-        const ALLOW_DELETE = 1 << 2;
-
         it("updateFlowOperatorPermissions: enforce flowrateAllowance", async () => {
             await cfaFwd.updateFlowOperatorPermissions(superToken.address, carol, ALLOW_CREATE | ALLOW_UPDATE, flowRate, {
                 from: alice,
@@ -459,6 +459,18 @@ describe("Agreement Forwarder", function () {
             assert.equal(accFIBobW.owedDeposit.toString(), accFIBobI.owedDeposit.toString());
         });
 
-        // TODO: flowOperatorPermissions
+        it("getFlowOperatorPermissions", async () => {
+            const permPre = await cfaFwd.getFlowOperatorPermissions(superToken.address, alice, carol);
+            assert.equal(permPre.permissions, 0);
+            assert.equal(permPre.flowrateAllowance, 0);
+
+            await cfaFwd.updateFlowOperatorPermissions(superToken.address, carol, ALLOW_DELETE, flowRate, {
+                from: alice,
+            });
+
+            const permPost = await cfaFwd.getFlowOperatorPermissions(superToken.address, alice, carol);
+            assert.equal(permPost.permissions, ALLOW_DELETE);
+            assert.equal(permPost.flowrateAllowance, flowRate);
+        });
     });
 });

@@ -240,7 +240,7 @@ contract CFAv1Forwarder {
     function getFlowOperatorPermissions(ISuperToken token, address sender, address flowOperator) external view
         returns (uint8 permissions, int96 flowrateAllowance)
     {
-        // TODO
+        (, permissions, flowrateAllowance) = _cfa.getFlowOperatorData(token, sender, flowOperator);
     }
 
     /**************************************************************************

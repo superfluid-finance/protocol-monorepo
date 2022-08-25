@@ -5932,7 +5932,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     flowRate: FLOW_RATE1.toString(),
                 }),
                 superfluid,
-                "Host_AppRuleCompositeAppNotWhitelisted"
+                "Host_AppRule_CompositeAppNotWhitelisted"
             );
 
             // Should still fail after allow composite app due to max app level rule
@@ -5946,7 +5946,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     flowRate: FLOW_RATE1.toString(),
                 }),
                 superfluid,
-                "Host_AppRuleMaxAppCallbackLevelReached"
+                "Host_AppRule_MaxAppCallbackLevelReached"
             );
         });
 
@@ -5989,7 +5989,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectCustomError(
                 redirectorB.startStreamToSelf(alice, FLOW_RATE1),
                 superfluid,
-                "Host_AppRuleCompositeAppNotWhitelisted"
+                "Host_AppRule_CompositeAppNotWhitelisted"
             );
 
             // Should still fail after allow composite app due to max app level rule
@@ -5997,7 +5997,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectCustomError(
                 redirectorB.startStreamToSelf(alice, FLOW_RATE1),
                 superfluid,
-                "Host_AppRuleMaxAppCallbackLevelReached"
+                "Host_AppRule_MaxAppCallbackLevelReached"
             );
         });
 

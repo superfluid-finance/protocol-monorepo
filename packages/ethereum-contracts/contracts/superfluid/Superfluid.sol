@@ -353,13 +353,13 @@ contract Superfluid is
     function _registerApp(uint256 configWord, ISuperApp app, bool checkIfInAppConstructor) private
     {
         // solhint-disable-next-line avoid-tx-origin
-        if (msg.sender == tx.origin) revert Host_AppRuleNoRegistrationForEOA();
+        if (msg.sender == tx.origin) revert Host_AppRule_NoRegistrationForEOA();
 
         if (checkIfInAppConstructor) {
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(app) }
-            if (cs != 0) revert Host_AppRuleRegistrationOnlyInConstructor();
+            if (cs != 0) revert Host_AppRule_RegistrationOnlyInConstructor();
         }
         if (
             !SuperAppDefinitions.isConfigWordClean(configWord) ||
@@ -453,7 +453,7 @@ contract Superfluid is
                 cbdata = abi.decode(returnedData, (bytes));
             } else {
                 if (!isTermination) {
-                    revert Host_AppRuleCtxIsMalformated();
+                    revert Host_AppRule_CtxIsMalformated();
                 } else {
                     _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
                 }
@@ -479,7 +479,7 @@ contract Superfluid is
                 newCtx = abi.decode(returnedData, (bytes));
                 if (!_isCtxValid(newCtx)) {
                     if (!isTermination) {
-                        revert Host_AppRuleCtxIsInvalid();
+                        revert Host_AppRule_CtxIsInvalid();
                     } else {
                         newCtx = ctx;
                         _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
@@ -487,7 +487,7 @@ contract Superfluid is
                 }
             } else {
                 if (!isTermination) {
-                    revert Host_AppRuleCtxIsMalformated();
+                    revert Host_AppRule_CtxIsMalformated();
                 } else {
                     newCtx = ctx;
                     _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
@@ -514,7 +514,7 @@ contract Superfluid is
         // NOTE: we use 1 as a magic number here as we want to do this check once we are in a callback
         // we use 1 instead of MAX_APP_CALLBACK_LEVEL because 1 captures what we are trying to enforce
         if (isApp(ISuperApp(context.msgSender)) && context.appCallbackLevel >= 1) {
-            if (!_compositeApps[ISuperApp(context.msgSender)][app]) revert Host_AppRuleCompositeAppNotWhitelisted();
+            if (!_compositeApps[ISuperApp(context.msgSender)][app]) revert Host_AppRule_CompositeAppNotWhitelisted();
         }
         context.appCallbackLevel++;
         context.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
@@ -648,7 +648,7 @@ contract Superfluid is
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
         if (success) {
             ctx = abi.decode(returnedData, (bytes));
-            if (!_isCtxValid(ctx)) revert Host_AppRuleCtxIsInvalid();
+            if (!_isCtxValid(ctx)) revert Host_AppRule_CtxIsInvalid();
         } else {
             CallUtils.revertFromReturnedData(returnedData);
         }
@@ -725,7 +725,7 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
-            if (!_isCtxValid(newCtx)) revert Host_AppRuleCtxIsInvalid();
+            if (!_isCtxValid(newCtx)) revert Host_AppRule_CtxIsInvalid();
             // back to old msg.sender
             context = decodeCtx(newCtx);
             context.msgSender = oldSender;
@@ -855,7 +855,7 @@ contract Superfluid is
         private
         returns (bytes memory ctx)
     {
-        if (context.appCallbackLevel > MAX_APP_CALLBACK_LEVEL) revert Host_AppRuleMaxAppCallbackLevelReached();
+        if (context.appCallbackLevel > MAX_APP_CALLBACK_LEVEL) revert Host_AppRule_MaxAppCallbackLevelReached();
         uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appCallbackLevel, context.callType);
         uint256 creditIO =
             context.appCreditGranted.toUint128() |
@@ -942,7 +942,7 @@ contract Superfluid is
         (success, returnedData) = target.call(callData);
 
         if (success) {
-            if (returnedData.length == 0) revert Host_AppRuleCtxIsEmpty();
+            if (returnedData.length == 0) revert Host_AppRule_CtxIsEmpty();
         }
     }
 
@@ -1030,7 +1030,7 @@ contract Superfluid is
     }
 
     modifier requireValidCtx(bytes memory ctx) {
-        if (!_isCtxValid(ctx)) revert Host_AppRuleCtxIsInvalid();
+        if (!_isCtxValid(ctx)) revert Host_AppRule_CtxIsInvalid();
         _;
     }
 
@@ -1040,7 +1040,7 @@ contract Superfluid is
     }
 
     modifier cleanCtx() {
-        if (_ctxStamp != 0) revert Host_AppRuleCtxIsNotClean();
+        if (_ctxStamp != 0) revert Host_AppRule_CtxIsMalformated();
         _;
     }
 

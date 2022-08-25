@@ -62,14 +62,14 @@ interface ISuperfluid {
     error Host_UnauthorizedSuperAppFactory();
 
     // App Rule Custom Errors
-    error Host_AppRuleCompositeAppNotWhitelisted();
-    error Host_AppRuleMaxAppCallbackLevelReached();
-    error Host_AppRuleNoRegistrationForEOA();
-    error Host_AppRuleRegistrationOnlyInConstructor();
-    error Host_AppRuleCtxIsEmpty();
-    error Host_AppRuleCtxIsInvalid(); // IsReadonly
-    error Host_AppRuleCtxIsMalformated();
-    error Host_AppRuleCtxIsNotClean();
+    error Host_AppRule_CompositeAppNotWhitelisted();
+    error Host_AppRule_MaxAppCallbackLevelReached();
+    error Host_AppRule_NoRegistrationForEOA();
+    error Host_AppRule_RegistrationOnlyInConstructor();
+    error Host_AppRule_CtxIsEmpty();
+    error Host_AppRule_CtxIsInvalid(); // IsReadonly
+    error Host_AppRule_CtxIsMalformated();
+    error Host_AppRule_CtxIsMalformated();
 
     /**************************************************************************
      * Time

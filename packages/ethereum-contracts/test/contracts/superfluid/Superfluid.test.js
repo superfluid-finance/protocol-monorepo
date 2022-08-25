@@ -484,12 +484,12 @@ describe("Superfluid Host Contract", function () {
                 await expectCustomError(
                     superfluid.registerApp(1, {from: admin}),
                     superfluid,
-                    "Host_AppRuleNoRegistrationForEOA"
+                    "Host_AppRule_NoRegistrationForEOA"
                 );
                 await expectCustomError(
                     superAppMock.tryRegisterApp(0),
                     superfluid,
-                    "Host_AppRuleRegistrationOnlyInConstructor"
+                    "Host_AppRule_RegistrationOnlyInConstructor"
                 );
             });
 
@@ -1185,7 +1185,7 @@ describe("Superfluid Host Contract", function () {
                             ),
                             "0x"
                         ),
-                        "Host_AppRuleCtxIsInvalid"
+                        "Host_AppRule_CtxIsInvalid"
                     );
                 });
 
@@ -1497,7 +1497,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        "Host_AppRuleCompositeAppNotWhitelisted"
+                        "Host_AppRule_CompositeAppNotWhitelisted"
                     );
                     await app3.allowCompositeApp();
                     await expectCustomError(
@@ -1510,7 +1510,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        "Host_AppRuleMaxAppCallbackLevelReached"
+                        "Host_AppRule_MaxAppCallbackLevelReached"
                     );
                 });
 
@@ -1534,7 +1534,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        "Host_AppRuleCompositeAppNotWhitelisted"
+                        "Host_AppRule_CompositeAppNotWhitelisted"
                     );
                     await superfluid["jailApp(address)"](app.address);
                     await superfluid.callAgreement(
@@ -1570,7 +1570,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        "Host_AppRuleCtxIsMalformated"
+                        "Host_AppRule_CtxIsMalformated"
                     );
 
                     console.debug("callAppAfterAgreementCreatedCallback");
@@ -1584,7 +1584,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        "Host_AppRuleCtxIsMalformated"
+                        "Host_AppRule_CtxIsMalformated"
                     );
 
                     console.debug("callAppAfterAgreementCreatedCallback");
@@ -1601,7 +1601,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        "Host_AppRuleCtxIsMalformated"
+                        "Host_AppRule_CtxIsMalformated"
                     );
                 });
 
@@ -1808,7 +1808,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsNotClean"
+                    "Host_AppRule_CtxIsMalformated"
                 );
                 await expectCustomError(
                     superfluid.callAppAction(
@@ -1819,7 +1819,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsNotClean"
+                    "Host_AppRule_CtxIsMalformated"
                 );
             });
 
@@ -1885,7 +1885,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsInvalid"
+                    "Host_AppRule_CtxIsInvalid"
                 );
             });
 
@@ -1913,7 +1913,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsEmpty"
+                    "Host_AppRule_CtxIsEmpty"
                 );
             });
 
@@ -1986,7 +1986,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsInvalid"
+                    "Host_AppRule_CtxIsInvalid"
                 );
                 await expectCustomError(
                     superfluid.callAppAction(
@@ -1997,7 +1997,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsInvalid"
+                    "Host_AppRule_CtxIsInvalid"
                 );
             });
 
@@ -2011,7 +2011,7 @@ describe("Superfluid Host Contract", function () {
                         )
                     ),
                     superfluid,
-                    "Host_AppRuleCtxIsInvalid"
+                    "Host_AppRule_CtxIsInvalid"
                 );
             });
 

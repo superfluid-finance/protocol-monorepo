@@ -11,7 +11,9 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
-    /// Custom Errors
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
     error CFA_ACL_NoSenderCreate();
     error CFA_ACL_NoSenderUpdate();
     error CFA_ACL_NoSenderDelete();

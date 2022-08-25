@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
-tested-with:   ghc ==9.2.2
+tested-with:   ghc ==9.2.4
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol simple system instances.
 description:
@@ -15,13 +15,14 @@ build-type:    Simple
 
 library
     exposed-modules:
+        Data.Type.TaggedTypeable
         Money.Systems.Superfluid.Instances.Simple.Types
         Money.Systems.Superfluid.Instances.Simple.System
     other-modules:
         Lens.Internal
-        Data.Type.TaggedTypeable
-
-    hs-source-dirs:   src
+    hs-source-dirs:
+        src-internal
+        src
     default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
@@ -40,11 +41,11 @@ test-suite tests
     main-is:          Tests.hs
     hs-source-dirs:   test
     other-modules:
-        Money.Systems.Superfluid.RealTimeBalance_prop
         Money.Systems.Superfluid.TokenTester
         Money.Systems.Superfluid.ConstantFlowAgreement_test
         Money.Systems.Superfluid.DecayingFlowAgreement_test
         Money.Systems.Superfluid.InstantDistributionAgreement_test
+        Money.Systems.Superfluid.ConstantFlowDistributionAgreement_test
     default-language: GHC2021
     ghc-options:      -Wall -Wno-incomplete-uni-patterns
     build-depends:

@@ -4,13 +4,10 @@
     "optimism-mainnet",
     "arbitrum-one",
     "avalanche-c",
-    "ropsten",
     "goerli",
-    "kovan",
-    "rinkeby",
     "mumbai",
-    "arbitrum-rinkeby",
-    "optimism-kovan",
+    "arbitrum-goerli",
+    "optimism-goerli",
     "avalanche-fuji",
     "bsc-mainnet"
 ]

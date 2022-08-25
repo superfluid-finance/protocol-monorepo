@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
@@ -31,7 +31,9 @@ jobs:
         id: check_versions
         run: |
           # hardhat-deployer
-          PUBLISHED_HARDHAT_DEPLOYER_VERSION=`npm show @superfluid-finance/hardhat-deployer@latest version`
+          # temporarily changing for initial publish
+          # PUBLISHED_HARDHAT_DEPLOYER_VERSION=`npm show @superfluid-finance/hardhat-deployer@latest version`
+          PUBLISHED_HARDHAT_DEPLOYER_VERSION=`npm show @superfluid-finance/hardhat-deployer@latest version 2>/dev/null | cat`
           NEW_HARDHAT_DEPLOYER_VERSION=`jq -r .version packages/hardhat-deployer/package.json`
           if [ "$PUBLISHED_HARDHAT_DEPLOYER_VERSION" != "$NEW_HARDHAT_DEPLOYER_VERSION" ];then
             echo "PUBLISHED_HARDHAT_DEPLOYER_VERSION=1" >> $GITHUB_ENV
@@ -49,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: hardht-deployer@v${{ steps.check_versions.outputs.NEW_HARDHAT_DEPLOYER_VERSION }}
+          tag_name: hardhat-deployer@v${{ steps.check_versions.outputs.NEW_HARDHAT_DEPLOYER_VERSION }}
           release_name: hardhat-deployer@v${{ steps.check_versions.outputs.NEW_HARDHAT_DEPLOYER_VERSION }}
           body: |
             Changes in this hardhat-deployer stable release

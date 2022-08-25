@@ -69,3 +69,4 @@
 #
 
 - ignore: {name: Use camelCase}
+- ignore: {name: Use newtype instead of data}

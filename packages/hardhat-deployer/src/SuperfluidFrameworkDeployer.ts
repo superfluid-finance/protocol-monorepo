@@ -1,5 +1,4 @@
 import ERC20PresetMinterPauser from "@superfluid-finance/ethereum-contracts/build/contracts/ERC20PresetMinterPauser.json";
-import Resolver from "@superfluid-finance/ethereum-contracts/build/contracts/Resolver.json";
 import SlotsBitmapLibrary from "@superfluid-finance/ethereum-contracts/build/contracts/SlotsBitmapLibrary.json";
 import SuperToken from "@superfluid-finance/ethereum-contracts/build/contracts/SuperToken.json";
 import SuperfluidFrameworkDeployerContract from "@superfluid-finance/ethereum-contracts/build/contracts/SuperfluidFrameworkDeployer.json";
@@ -51,13 +50,6 @@ export class SuperfluidFrameworkDeployer {
             await deployer.provider!.sendTransaction(ERC1820_PAYLOAD);
         }
 
-        // Deploy `Resolver`
-        const resolver = await new ethers.ContractFactory(
-            Resolver.abi,
-            Resolver.bytecode,
-            deployer
-        ).deploy(overrides);
-
         const slotsBitmapLibrary = await new ethers.ContractFactory(
             SlotsBitmapLibrary.abi,
             SlotsBitmapLibrary.bytecode,
@@ -75,24 +67,15 @@ export class SuperfluidFrameworkDeployer {
             deployer
         ).deploy({ gasLimit: 100000000 });
 
-        const framework = await superfluidFrameworkDeployer.getFramework();
-
-        // Register `TestGovernance` with `Resolver`
-        await resolver.set(
-            "TestGovernance.test",
-            framework.governance,
-            overrides
-        );
-
-        // // Register `Superfluid` with `Resolver`
-        await resolver.set("Superfluid.test", framework.host, overrides);
+        const { resolver: resolverAddress } =
+            await superfluidFrameworkDeployer.getFramework();
 
         // Update Internal State
         this.address = superfluidFrameworkDeployer.address;
-        this.resolverAddress = resolver.address;
+        this.resolverAddress = resolverAddress;
 
         // Return `Resolver` address
-        return resolver.address;
+        return resolverAddress;
     }
 
     async deployWrapperSuperToken(

@@ -132,36 +132,44 @@ async function _shouldChangeFlow({
         const mainFlowDepositUnclipped = toBN(flowRate).mul(
             toBN(testenv.configs.LIQUIDATION_PERIOD)
         );
-        // Aren't these two the exact same?
         const mainFlowDeposit = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
-        const mainFlowAppAllowance = CFADataModel.clipDepositNumber(
+        let mainFlowAppCreditGranted = CFADataModel.clipDepositNumber(
             mainFlowDepositUnclipped,
             false /* rounding up */
         );
-        const newAppAllowanceUsed = Object.values(cfaDataModel.expectedFlowInfo)
-            .map((i) => i.deposit)
-            .reduce((acc, cur) => {
-                return acc.add(cur);
-            }, toBN(0));
-        const mainFlowAllowanceUsed = CFADataModel.adjustNewAppAllowanceUsed(
-            mainFlowAppAllowance,
-            mainFlowDeposit, // appAllowanceUsed
-            newAppAllowanceUsed
+        // @note - add minimum deposit amount to appCreditGranted when
+        // sending to an app (mfa)
+        mainFlowAppCreditGranted =
+            mfa && toBN(flowRate).gt(toBN(0))
+                ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
+                : mainFlowAppCreditGranted;
+        const appCreditUsed = Object.entries(cfaDataModel.expectedFlowInfo)
+            .map((x) => {
+                const depositBefore =
+                    cfaDataModel.flows[x[0]].flowInfoBefore.deposit;
+                return x[1].deposit.sub(toBN(depositBefore));
+            })
+            .reduce((acc, cur) => acc.add(cur), toBN(0))
+            .add(toBN(cfaDataModel.flows.main.flowInfoBefore.owedDeposit));
+
+        const mainFlowCreditUsed = CFADataModel.adjustNewAppCreditUsed(
+            mainFlowAppCreditGranted,
+            appCreditUsed
         );
 
         cfaDataModel.expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
             deposit:
                 mainFlowDeposit
-                    .add(mainFlowAllowanceUsed)
+                    .add(mainFlowCreditUsed)
                     .lt(testenv.configs.MINIMUM_DEPOSIT) &&
                 toBN(flowRate).gt(toBN(0))
                     ? testenv.configs.MINIMUM_DEPOSIT
-                    : mainFlowDeposit.add(mainFlowAllowanceUsed),
-            owedDeposit: mainFlowAllowanceUsed,
+                    : mainFlowDeposit.add(mainFlowCreditUsed),
+            owedDeposit: mfa ? mainFlowCreditUsed : toBN(0),
         };
     }
 
@@ -252,7 +260,7 @@ async function _shouldChangeFlow({
         await MFASupport.postCheck({testenv, roles: cfaDataModel.roles});
     }
 
-    // caculate additional expected balance changes per liquidation rules
+    // calculate additional expected balance changes per liquidation rules
     if (isDeleteFlow) {
         if (isSenderCritical) {
             console.log("validating liquidation rules...");
@@ -932,6 +940,85 @@ async function expectNetFlow({testenv, account, superToken, value}) {
     );
 }
 
+async function expectFlow({
+    testenv,
+    sender,
+    receiver,
+    superToken,
+    flowRate,
+    deposit,
+    owedDeposit,
+}) {
+    const flowData = await testenv.contracts.cfa.getFlow(
+        superToken.address,
+        testenv.getAddress(sender),
+        testenv.getAddress(receiver)
+    );
+    console.log(
+        `expected flow rate for ${sender}->${receiver} flow: ${flowRate.toString()}`
+    );
+    assert.equal(
+        flowData.flowRate.toString(),
+        flowRate.toString(),
+        "Unexpected flowRate"
+    );
+    console.log(
+        `expected deposit for ${sender}->${receiver} flow: ${deposit.toString()}`
+    );
+    assert.equal(
+        flowData.deposit.toString(),
+        deposit.toString(),
+        "Unexpected deposit"
+    );
+    console.log(
+        `expected owedDeposit for ${sender}->${receiver} flow: ${owedDeposit.toString()}`
+    );
+    assert.equal(
+        flowData.owedDeposit.toString(),
+        owedDeposit.toString(),
+        "Unexpected owedDeposit"
+    );
+}
+
+async function expectDepositAndOwedDeposit({
+    testenv,
+    account,
+    superToken,
+    deposit,
+    owedDeposit,
+}) {
+    const flowData = await testenv.contracts.cfa.getAccountFlowInfo(
+        superToken.address,
+        testenv.getAddress(account)
+    );
+
+    console.log(`expected deposit for ${account}: ${deposit.toString()}`);
+    assert.equal(
+        flowData.deposit.toString(),
+        deposit.toString(),
+        "Unexpected deposit"
+    );
+
+    console.log(
+        `expected owedDeposit for ${account}: ${owedDeposit.toString()}`
+    );
+    assert.equal(
+        flowData.owedDeposit.toString(),
+        owedDeposit.toString(),
+        "Unexpected owedDeposit"
+    );
+}
+
+/**
+ * Gets the clipped deposit given a flowRate and test environment
+ * @returns
+ */
+function getDeposit({testenv, flowRate}) {
+    return CFADataModel.clipDepositNumber(
+        flowRate.mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
+    );
+}
+
 module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
@@ -943,4 +1030,7 @@ module.exports = {
     shouldUpdateFlowOperatorPermissionsAndValidateEvent,
     shouldRevertChangeFlowByOperator,
     expectNetFlow,
+    expectFlow,
+    expectDepositAndOwedDeposit,
+    getDeposit,
 };

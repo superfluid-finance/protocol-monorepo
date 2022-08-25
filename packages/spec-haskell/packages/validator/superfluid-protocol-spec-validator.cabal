@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
-tested-with:   ghc ==9.2.2
+tested-with:   ghc ==9.2.4
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol specifications validator.
 description:
@@ -18,8 +18,7 @@ executable superfluid-validator
     hs-source-dirs:   src
     other-modules:
         Money.Systems.Superfluid.Validator.Simulation
-        Money.Systems.Superfluid.Validator.Demos.Expo
-        Money.Systems.Superfluid.Validator.Demos.DFA
+        Money.Systems.Superfluid.Validator.Demos
 
     default-language: GHC2021
     ghc-options:      -Wall

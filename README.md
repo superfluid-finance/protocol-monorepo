@@ -23,6 +23,9 @@
   <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>
+  <a href="https://www.codetriage.com/superfluid-finance/protocol-monorepo">
+      <img src="https://www.codetriage.com/superfluid-finance/protocol-monorepo/badges/users.svg">
+  </a>
 </p>
 
 > Contracts and resources for the Superfluid Protocol

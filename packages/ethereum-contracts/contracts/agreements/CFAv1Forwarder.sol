@@ -39,15 +39,15 @@ contract CFAv1Forwarder {
      * @param receiver The receiver of the flow
      * @param flowrate The flowrate of the flow denominated in wad/second. Supported values range from 0 to 2^95.
      */
-    function setFlowrate(ISuperToken token, address receiver, uint256 flowrate) external {
-       _setFlowrateFrom(token, msg.sender, receiver, int96(int256(flowrate)));
+    function setFlowrate(ISuperToken token, address receiver, int96 flowrate) external {
+       _setFlowrateFrom(token, msg.sender, receiver, flowrate);
     }
 
     /** 
      * @notice Like `setFlowrate`, but can be invoked by an account with flowOperator permissions on behalf of the sender account.
      */
-    function setFlowrateFrom(ISuperToken token, address sender, address receiver, uint256 flowrate) external {
-        _setFlowrateFrom(token, sender, receiver, int96(int256(flowrate)));
+    function setFlowrateFrom(ISuperToken token, address sender, address receiver, int96 flowrate) external {
+        _setFlowrateFrom(token, sender, receiver, flowrate);
     }
 
     /**
@@ -59,11 +59,9 @@ contract CFAv1Forwarder {
      * @return flowrate The flowrate from the sender to the receiver account. Returns 0 if no flow exists.
      */
     function getFlowrate(ISuperToken token, address sender, address receiver) external view 
-        returns(uint256 flowrate) 
+        returns(int96 flowrate) 
     {
-        (, int96 flowrate96, , ) = _cfa.getFlow(token, sender, receiver);
-        assert(flowrate96 >= 0); // can't be negative
-        return uint256(int256(flowrate96));
+        (, flowrate, , ) = _cfa.getFlow(token, sender, receiver);
     }
 
     /**
@@ -75,17 +73,12 @@ contract CFAv1Forwarder {
      * @return lastUpdated Timestamp of last update (flowrate change) or zero if no flow exists
      * @return flowrate Current flowrate of the flow or zero if no flow exists
      * @return deposit Deposit amount locked. Returned to the the flow is deleted while solvent. TODO: rename to buffer?
-     * @return owedDeposit TODO
+     * @return owedDeposit TODO: "deposit" or "buffer" terminology?
      */
     function getFlowInfo(ISuperToken token, address sender, address receiver) external view
-        returns(uint256 lastUpdated, uint256 flowrate, uint256 deposit, uint256 owedDeposit)
+        returns(uint256 lastUpdated, int96 flowrate, uint256 deposit, uint256 owedDeposit)
     {
-        (uint256 ts, int96 fr96, uint256 d, uint256 od) = _cfa.getFlow(token, sender, receiver);
-        lastUpdated = ts;
-        assert(fr96 >= 0); // can't be negative
-        flowrate = uint256(int256(fr96));
-        deposit = d;
-        owedDeposit = od;
+        (lastUpdated, flowrate, deposit, owedDeposit) = _cfa.getFlow(token, sender, receiver);
     }
 
     /**
@@ -96,12 +89,11 @@ contract CFAv1Forwarder {
      * @param token Super token address
      * @param flowrate The flowrate for which the buffer amount is calculated
      * @return bufferAmount The buffer amount required for the given configuration.
-     * TODO: check flowrate range?
      */
-    function getBufferAmountByFlowrate(ISuperToken token, uint256 flowrate) external view
+    function getBufferAmountByFlowrate(ISuperToken token, int96 flowrate) external view
         returns (uint256 bufferAmount)
     {
-        return _cfa.getDepositRequiredForFlowRate(token, int96(int256(flowrate)));
+        return _cfa.getDepositRequiredForFlowRate(token, flowrate);
     }
 
     /**

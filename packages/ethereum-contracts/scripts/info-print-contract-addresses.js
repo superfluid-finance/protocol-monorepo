@@ -38,17 +38,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
 
-    config.tokenList = [];
-
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        tokens: [], //config.tokenList,
-        loadSuperNativeToken: false, //true,
+        tokens: config.tokenList,
+        loadSuperNativeToken: true,
         additionalContracts: ["UUPSProxiable"],
     });
     await sf.initialize();
-    sf.config.nativeTokenSymbol = undefined;
 
     const {UUPSProxiable, ISuperTokenFactory} = sf.contracts;
 

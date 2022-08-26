@@ -8,21 +8,21 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev Deploy unlisted native super token to the network.
+ * @dev Deploy unlisted pure super token to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/deploy-matic-bridged-native-super-token.js : {NAME} {SYMBOL} {CHILD_CHAIN_MANAGER}
+ * Usage: npx truffle exec scripts/deploy-matic-bridged-pure-super-token.js : {NAME} {SYMBOL} {CHILD_CHAIN_MANAGER}
  *        CHILD_CHAIN_MANAGER is the bridge contract account calling the deposit function which mints tokens
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("== Deploying unlisted Matic bridged native super token ==");
+    console.log("== Deploying unlisted Matic bridged pure super token ==");
     let {protocolReleaseVersion} = options;
 
     if (args.length !== 3) {
@@ -43,26 +43,24 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
         additionalContracts: [
-            "MaticBridgedNativeSuperTokenProxy",
-            "IMaticBridgedNativeSuperToken",
+            "MaticBridgedPureSuperTokenProxy",
+            "IMaticBridgedPureSuperToken",
         ],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const {MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken} =
+    const {MaticBridgedPureSuperTokenProxy, IMaticBridgedPureSuperToken} =
         sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()
     );
 
-    console.log("Deploying MaticBridgedNativeSuperTokenProxy...");
-    const proxy = await MaticBridgedNativeSuperTokenProxy.new(
-        childChainManager
-    );
+    console.log("Deploying MaticBridgedPureSuperTokenProxy...");
+    const proxy = await MaticBridgedPureSuperTokenProxy.new(childChainManager);
 
-    const token = await IMaticBridgedNativeSuperToken.at(proxy.address);
+    const token = await IMaticBridgedPureSuperToken.at(proxy.address);
 
     console.log("Invoking initializeCustomSuperToken...");
     await superTokenFactory.initializeCustomSuperToken(token.address);
@@ -70,6 +68,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("Invoking initialize...");
     await token.initialize(ZERO_ADDRESS, 18, superTokenName, superTokenSymbol);
 
-    console.log(`Matic Bridged Native SuperToken deployed at ${token.address}`);
+    console.log(`Matic Bridged Pure SuperToken deployed at ${token.address}`);
     return token.address;
 });

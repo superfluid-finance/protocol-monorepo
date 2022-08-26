@@ -6,19 +6,19 @@ import {
     CustomSuperTokenBase
 }
 from "../interfaces/superfluid/CustomSuperTokenBase.sol";
-import { IMaticBridgedNativeSuperTokenCustom } from "../interfaces/tokens/IMaticBridgedNativeSuperToken.sol";
+import { IMaticBridgedPureSuperTokenCustom } from "../interfaces/tokens/IMaticBridgedPureSuperToken.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 
 
 /**
- * @title Matic bridged native super token proxy contract
+ * @title Matic bridged pure super token proxy contract
  * @author Superfluid
- * @dev Native SuperToken with interfaces for the Matic POS bridge to mint and burn.
+ * @dev Pure SuperToken with interfaces for the Matic POS bridge to mint and burn.
  * @dev See https://docs.polygon.technology/docs/develop/ethereum-matic/pos/mapping-assets/
  */
-contract MaticBridgedNativeSuperTokenProxy is IMaticBridgedNativeSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
+contract MaticBridgedPureSuperTokenProxy is IMaticBridgedPureSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
     address public childChainManager;
 
     constructor(address childChainManager_) {
@@ -26,7 +26,7 @@ contract MaticBridgedNativeSuperTokenProxy is IMaticBridgedNativeSuperTokenCusto
     }
 
     function deposit(address user, bytes calldata depositData) external override {
-        require(msg.sender == childChainManager, "MBNSuperToken: no permission to deposit");
+        require(msg.sender == childChainManager, "MBPSuperToken: no permission to deposit");
         uint256 amount = abi.decode(depositData, (uint256));
         ISuperToken(address(this)).selfMint(user, amount, new bytes(0));
     }
@@ -38,7 +38,7 @@ contract MaticBridgedNativeSuperTokenProxy is IMaticBridgedNativeSuperTokenCusto
     function updateChildChainManager(address newChildChainManager) external override {
         address host = ISuperToken(address(this)).getHost();
         address gov = address(ISuperfluid(host).getGovernance());
-        require(msg.sender == gov, "MBNSuperToken: only governance allowed");
+        require(msg.sender == gov, "MBPSuperToken: only governance allowed");
 
         childChainManager = newChildChainManager;
         emit ChildChainManagerChanged(newChildChainManager);

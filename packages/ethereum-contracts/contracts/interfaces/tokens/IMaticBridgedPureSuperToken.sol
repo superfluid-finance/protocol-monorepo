@@ -4,11 +4,11 @@ pragma solidity >= 0.8.0;
 import { ISuperToken } from "../superfluid/ISuperToken.sol";
 
 /**
- * @title Matic Bridged Native SuperToken Custom interface
+ * @title Matic Bridged Pure SuperToken Custom interface
  * @author Superfluid
- * @dev Functionality specific for Matic Bridged Native Super Tokens
+ * @dev Functionality specific for Matic Bridged Pure Super Tokens
  */
-interface IMaticBridgedNativeSuperTokenCustom {
+interface IMaticBridgedPureSuperTokenCustom {
     /// @dev triggers minting of tokens to the given user, called by the child chain manager
     function deposit(address user, bytes calldata depositData) external;
 
@@ -23,7 +23,7 @@ interface IMaticBridgedNativeSuperTokenCustom {
 }
 
 /**
- * @dev Matic Bridged Native SuperToken full interface
+ * @dev Matic Bridged Pure SuperToken full interface
  * @author Superfluid
  */
-interface IMaticBridgedNativeSuperToken is IMaticBridgedNativeSuperTokenCustom, ISuperToken {}
+interface IMaticBridgedPureSuperToken is IMaticBridgedPureSuperTokenCustom, ISuperToken {}

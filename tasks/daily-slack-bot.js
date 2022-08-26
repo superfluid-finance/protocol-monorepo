@@ -312,7 +312,7 @@ async function sendMessageToSlack(data) {
             workflowNumber +
             ">*: " +
             workflowConclusion +
-            "\n" +
+            "\nLast commit: *<" +
             workflowCommitLink +
             "|" +
             workflowTriggeringCommitMessage +

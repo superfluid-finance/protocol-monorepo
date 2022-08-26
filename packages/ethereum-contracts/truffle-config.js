@@ -406,6 +406,7 @@ const E = (module.exports = {
         optimistic_etherscan: process.env.OPTIMISTIC_API_KEY,
         bscscan: process.env.BSCSCAN_API_KEY,
         arbiscan: process.env.ARBISCAN_API_KEY,
+        gnosisscan: process.env.GNOSISSCAN_API_KEY,
     },
 });
 

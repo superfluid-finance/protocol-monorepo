@@ -47,29 +47,29 @@ function try_verify() {
 }
 
 echo SUPERFLUID_HOST
-try_verify UUPSProxy@${SUPERFLUID_HOST_PROXY} --implementation Superfluid
+try_verify Superfluid@${SUPERFLUID_HOST_PROXY} --custom-proxy UUPSProxy
 
 echo SUPERFLUID_GOVERNANCE
 if [ ! -z "$IS_TESTNET" ];then
 try_verify TestGovernance@${SUPERFLUID_GOVERNANCE}
 else
-try_verify SuperfluidGovernanceIIProxy@${SUPERFLUID_GOVERNANCE} --implementation SuperfluidGovernanceII
+try_verify SuperfluidGovernanceII@${SUPERFLUID_GOVERNANCE} --custom-proxy SuperfluidGovernanceIIProxy
 fi
 
 echo SUPERFLUID_SUPER_TOKEN_FACTORY
-try_verify UUPSProxy@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY} --implementation SuperTokenFactory
+try_verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY} --custom-proxy UUPSProxy
 
 echo SUPERFLUID_SUPER_TOKEN_LOGIC
 if [ -z "$NO_FORCE_CONSTRUCTOR_ARGS" ];then
     # it is required to provide the constructor arguments manually, because the super token logic is created through a contract not an EOA
     SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log("'${SUPERFLUID_HOST_PROXY}'".toLowerCase().slice(2).padStart(64, "0"))')
-    try_verify UUPSProxy@${SUPERFLUID_SUPER_TOKEN_LOGIC} --implementation SuperToken --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
+    try_verify SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC} --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS} --custom-proxy UUPSProxy
 else
     echo "!!! WARNING !!! Cannot verify super token logic due to forceConstructorArgs not supported."
 fi
 
 echo CFA
-try_verify UUPSProxy@${CFA_PROXY} --implementation ConstantFlowAgreementV1
+try_verify ConstantFlowAgreementV1@${CFA_PROXY} --custom-proxy UUPSProxy
 
 echo SlotsBitmapLibrary
 try_verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
@@ -91,12 +91,12 @@ jq -s '.[0] * .[1]' \
 }
 EOF
     ) > build/contracts/InstantDistributionAgreementV1.json
-try_verify UUPSProxy@${IDA_PROXY} --implementation InstantDistributionAgreementV1
+try_verify InstantDistributionAgreementV1@${IDA_PROXY} --custom-proxy UUPSProxy
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
 
 if [ ! -z "$SUPER_TOKEN_NATIVE_COIN" ];then
     echo SUPER_TOKEN_NATIVE_COIN
-    try_verify SETHProxy@${SUPER_TOKEN_NATIVE_COIN} --implementation SuperToken
+    try_verify SuperToken@${SUPER_TOKEN_NATIVE_COIN} --custom-proxy SETHProxy
 fi
 
 set +x

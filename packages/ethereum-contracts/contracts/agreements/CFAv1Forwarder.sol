@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import {
     ISuperfluid,
@@ -21,6 +21,7 @@ import { CallUtils } from "../libs/CallUtils.sol";
  * by protocol governance.
  */
 contract CFAv1Forwarder {
+    error CFAFwd_InvalidFlowrate();
 
     ISuperfluid internal _host;
     IConstantFlowAgreementV1 internal _cfa;
@@ -79,8 +80,8 @@ contract CFAv1Forwarder {
      * @param receiver The receiver of the flow
      * @return lastUpdated Timestamp of last update (flowrate change) or zero if no flow exists
      * @return flowrate Current flowrate of the flow or zero if no flow exists
-     * @return deposit Deposit amount locked. Returned to the the flow is deleted while solvent. TODO: rename to buffer?
-     * @return owedDeposit TODO: "deposit" or "buffer" terminology?
+     * @return deposit Deposit amount locked as security buffer during the lifetime of the flow
+     * @return owedDeposit Extra deposit amount borrowed to a SuperApp receiver by the flow sender
      */
     function getFlowInfo(ISuperToken token, address sender, address receiver) external view
         returns(uint256 lastUpdated, int96 flowrate, uint256 deposit, uint256 owedDeposit)
@@ -123,8 +124,8 @@ contract CFAv1Forwarder {
      * @param account Account to query
      * @return lastUpdated Timestamp of last update of a flow to or from the account (flowrate change)
      * @return flowrate Current net aggregate flowrate
-     * @return deposit Deposit amount locked. Returned to the the flow is deleted while solvent. TODO: rename to buffer?
-     * @return owedDeposit TODO
+     * @return deposit Aggregate deposit amount currently locked as security buffer for outgoing flows
+     * @return owedDeposit Aggregate extra deposit amount currently borrowed to SuperApps receiving from this account
      */
     function getAccountFlowInfo(ISuperToken token, address account) external view
         returns (uint256 lastUpdated, int96 flowrate, uint256 deposit, uint256 owedDeposit)
@@ -260,89 +261,21 @@ contract CFAv1Forwarder {
         address receiver,
         int96 flowrate
     ) internal {
-         (, int96 prevFlowRate,,) = _cfa.getFlow(token, sender, receiver);
-        bytes memory cfaCallData;
+        (, int96 prevFlowRate,,) = _cfa.getFlow(token, sender, receiver);
 
         if (flowrate > 0) {
             if (prevFlowRate == 0) {
-                // create flow
-                cfaCallData = sender == msg.sender ?
-                    abi.encodeCall(
-                        _cfa.createFlow,
-                        (
-                            token,
-                            receiver,
-                            flowrate,
-                            new bytes(0) // placeholder
-                        )
-                    ) :
-                    abi.encodeCall(
-                        _cfa.createFlowByOperator,
-                        (
-                            token,
-                            sender,
-                            receiver,
-                            flowrate,
-                            new bytes(0) // placeholder
-                        )
-                    );
+                _createFlow(token, sender, receiver, flowrate, new bytes(0));
             } else if (prevFlowRate != flowrate) {
-                // update flow
-                cfaCallData = cfaCallData = sender == msg.sender ?
-                    abi.encodeCall(
-                        _cfa.updateFlow,
-                        (
-                            token,
-                            receiver,
-                            flowrate,
-                            new bytes(0) // placeholder
-                        )
-                    ) :
-                    abi.encodeCall(
-                        _cfa.updateFlowByOperator,
-                        (
-                            token,
-                            sender,
-                            receiver,
-                            flowrate,
-                            new bytes(0) // placeholder
-                        )
-                    );
-            } else {
-                // no change
-                return;
-            }
+                _updateFlow(token, sender, receiver, flowrate, new bytes(0));
+            } // else no change, do nothing
         } else if (flowrate == 0) {
             if (prevFlowRate > 0) {
-                // delete flow
-                cfaCallData = sender == msg.sender ?
-                    abi.encodeCall(
-                        _cfa.deleteFlow,
-                        (
-                            token,
-                            sender,
-                            receiver,
-                            new bytes(0) // placeholder
-                        )
-                    ) :
-                    abi.encodeCall(
-                        _cfa.deleteFlowByOperator,
-                        (
-                            token,
-                            sender,
-                            receiver,
-                            new bytes(0) // placeholder
-                        )
-                    );
-            } else {
-                // do nothing
-                return;
-            }
+                _deleteFlow(token, sender, receiver, new bytes(0));
+            } // else no change, do nothing
         } else {
-            revert("invalid flowrate");
+            revert CFAFwd_InvalidFlowrate();
         }
-
-        _forwardBatchCall(address(_cfa), cfaCallData);
     }
 
     function _createFlow(ISuperToken token, address sender, address receiver, int96 flowrate, bytes memory userData)
@@ -443,38 +376,20 @@ contract CFAv1Forwarder {
                 )
             );
 
-        // TODO: does non-zero userData make sense here?
         _forwardBatchCall(address(_cfa), cfaCallData, new bytes(0));
     }
 
-
     // compiles the calldata of a single operation for the host invocation and executes it
-    function _forwardBatchCall(address target, bytes memory callData) internal {
-        _forwardBatchCall(target, callData, new bytes(0));
-    }
-
-    // version with userData parameter
     function _forwardBatchCall(address target, bytes memory callData, bytes memory userData) internal {
-        bytes[] memory callDataArr = new bytes[](1);
-        bytes[] memory userDataArr = new bytes[](1);
-        callDataArr[0] = callData;
-        userDataArr[0] = userData;
-        _forwardBatchCallMany(target, callDataArr, userDataArr);
-    }
-
-    // compiles the calldata of multiple operations for the host invocation and executes it
-    function _forwardBatchCallMany(address target, bytes[] memory callDataArr, bytes[] memory userDataArr) internal {
-        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](callDataArr.length);
-        for (uint i = 0; i < callDataArr.length; ++i) {
-            ops[i] = ISuperfluid.Operation(
-                BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT, // type
-                address(target), // target
-                abi.encode(
-                    callDataArr[i], // callData
-                    userDataArr[i] // userData
-                )
-            );
-        }
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation(
+            BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT, // type
+            address(target), // target
+            abi.encode( // data
+                callData,
+                userData
+            )
+        );
 
         bytes memory fwBatchCallData = abi.encodeCall(
             _host.forwardBatchCall,
@@ -489,5 +404,10 @@ contract CFAv1Forwarder {
         if (!success) {
             CallUtils.revertFromReturnedData(returnedData);
         }
+    }
+
+    // invokes_forwardBatchCall with empty userData
+    function _forwardBatchCall(address target, bytes memory callData) internal {
+        _forwardBatchCall(target, callData, new bytes(0));
     }
 }

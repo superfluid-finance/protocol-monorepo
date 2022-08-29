@@ -1,5 +1,8 @@
 const TestEnvironment = require("../../TestEnvironment");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectReverted,
+    expectRevertedWith,
+} = require("../../utils/expectRevert");
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
@@ -48,11 +51,10 @@ describe("Agreement Forwarder", function () {
 
     describe("Convenience methods", async function () {
         it("Revert on negative flowrate", async () => {
-            await expectRevertedWith(
-                cfaFwd.setFlowrate(superToken.address, alice, flowrate, {
+            await expectReverted(
+                cfaFwd.setFlowrate(superToken.address, bob, -1, {
                     from: alice,
-                }),
-                "CFA: no self flow"
+                })
             );
         });
 

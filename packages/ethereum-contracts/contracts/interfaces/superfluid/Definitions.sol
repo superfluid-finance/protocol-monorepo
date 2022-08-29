@@ -227,3 +227,93 @@ library SuperfluidGovernanceConfigs {
         patricianPeriod = pppConfig & type(uint32).max;
     }
 }
+
+/**
+ * @title Superfluid Common Custom Errors and Error Codes
+ * @author Superfluid
+ */
+library SuperfluidErrors {
+    /**************************************************************************
+    / Shared Custom Errors
+    /**************************************************************************/
+    error APP_RULE(uint256 _code); // uses SuperAppDefinitions' App Jail Reasons
+
+    // The Error Code Reference refers to the types of errors within a range,
+    // e.g. ALREADY_EXISTS and DOES_NOT_EXIST error codes will live between
+    // 1000-1099 for Constant Flow Agreement error codes.
+
+                                                 // Error Code Reference
+    error ALREADY_EXISTS(uint256 _code);         // 0 - 99
+    error DOES_NOT_EXIST(uint256 _code);         // 0 - 99
+    error INSUFFICIENT_BALANCE(uint256 _code);   // 100 - 199
+    error MUST_BE_CONTRACT(uint256 _code);       // 200 - 299
+    error ONLY_LISTED_AGREEMENT(uint256 _code);  // 300 - 399
+    error ONLY_HOST(uint256 _code);              // 400 - 499
+    error ZERO_ADDRESS(uint256 _code);           // 500 - 599
+
+    /**************************************************************************
+    / Error Codes
+    /**************************************************************************/
+    // 1000 - 1999 | Constant Flow Agreement
+    uint256 constant internal CFA_FLOW_ALREADY_EXISTS = 1000;
+    uint256 constant internal CFA_FLOW_DOES_NOT_EXIST = 1001;
+
+    uint256 constant internal CFA_INSUFFICIENT_BALANCE = 1100;
+
+    uint256 constant internal CFA_ZERO_ADDRESS_SENDER = 1500;
+    uint256 constant internal CFA_ZERO_ADDRESS_RECEIVER = 1501;
+
+    // 2000 - 2999 | Instant Distribution Agreement
+    uint256 constant internal IDA_INDEX_ALREADY_EXISTS = 2000;
+    uint256 constant internal IDA_INDEX_DOES_NOT_EXIST = 2001;
+
+    uint256 constant internal IDA_SUBSCRIPTION_DOES_NOT_EXIST = 2002;
+
+    uint256 constant internal IDA_SUBSCRIPTION_ALREADY_APPROVED = 2003;
+    uint256 constant internal IDA_SUBSCRIPTION_IS_NOT_APPROVED = 2004;
+
+    uint256 constant internal IDA_INSUFFICIENT_BALANCE = 2100;
+
+    uint256 constant internal IDA_ZERO_ADDRESS_SUBSCRIBER = 2500;
+    
+    // 3000 - 3999 | Host
+    uint256 constant internal HOST_AGREEMENT_ALREADY_REGISTERED = 3000;
+    uint256 constant internal HOST_AGREEMENT_IS_NOT_REGISTERED = 3001;
+    uint256 constant internal HOST_SUPER_APP_ALREADY_REGISTERED = 3002;
+    
+    uint256 constant internal HOST_MUST_BE_CONTRACT = 3200;
+
+    uint256 constant internal HOST_ONLY_LISTED_AGREEMENT = 3300;
+
+    // 4000 - 4999 | Superfluid Governance II
+    uint256 constant internal SF_GOV_MUST_BE_CONTRACT = 4200;
+
+    // 5000 - 5999 | SuperfluidToken
+    uint256 constant internal SF_TOKEN_AGREEMENT_ALREADY_EXISTS = 5000;
+    uint256 constant internal SF_TOKEN_AGREEMENT_DOES_NOT_EXIST = 5001;
+
+    uint256 constant internal SF_TOKEN_BURN_INSUFFICIENT_BALANCE = 5100;
+    uint256 constant internal SF_TOKEN_MOVE_INSUFFICIENT_BALANCE = 5101;
+
+    uint256 constant internal SF_TOKEN_ONLY_LISTED_AGREEMENT = 5300;
+
+    uint256 constant internal SF_TOKEN_ONLY_HOST = 5400;
+    
+    // 6000 - 6999 | SuperToken
+    uint256 constant internal SUPER_TOKEN_ONLY_HOST = 6400;
+
+    uint256 constant internal SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS = 6500;
+    uint256 constant internal SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS = 6501;
+    uint256 constant internal SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS = 6502;
+    uint256 constant internal SUPER_TOKEN_MINT_TO_ZERO_ADDRESS = 6503;
+    uint256 constant internal SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS = 6504;
+    uint256 constant internal SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS = 6505;
+
+    // 7000 - 7999 | SuperToken Factory
+    uint256 constant internal SUPER_TOKEN_FACTORY_ONLY_HOST = 7400;
+
+    uint256 constant internal SUPER_TOKEN_FACTORY_ZERO_ADDRESS = 7500;
+
+    // 8000 - 8999 | Agreement Base
+    uint256 constant internal AGREEMENT_BASE_ONLY_HOST = 8400;
+}

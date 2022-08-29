@@ -3,11 +3,19 @@ const {BN, constants, expectEvent} = require("@openzeppelin/test-helpers");
 const {ZERO_ADDRESS} = constants;
 
 const {expect} = require("chai");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {ethers} = require("hardhat");
+const {
+    expectRevertedWith,
+    expectCustomError,
+} = require("../../utils/expectRevert");
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
 );
+
+async function getEthersContract(artifact, address) {
+    return await ethers.getContractAt(artifact, address);
+}
 
 function shouldBehaveLikeERC777DirectSendBurn(setupAccounts, data) {
     _shouldBehaveLikeERC777DirectSend(setupAccounts, data);
@@ -17,10 +25,21 @@ function shouldBehaveLikeERC777DirectSendBurn(setupAccounts, data) {
 function shouldBehaveLikeERC777OperatorSendBurn(
     setupAccounts,
     data,
-    operatorData
+    operatorData,
+    isDefaultOperator
 ) {
-    _shouldBehaveLikeERC777OperatorSend(setupAccounts, data, operatorData);
-    _shouldBehaveLikeERC777OperatorBurn(setupAccounts, data, operatorData);
+    _shouldBehaveLikeERC777OperatorSend(
+        setupAccounts,
+        data,
+        operatorData,
+        isDefaultOperator
+    );
+    _shouldBehaveLikeERC777OperatorBurn(
+        setupAccounts,
+        data,
+        operatorData,
+        isDefaultOperator
+    );
 }
 
 function shouldBehaveLikeERC777UnauthorizedOperatorSendBurn(
@@ -42,9 +61,16 @@ function shouldBehaveLikeERC777UnauthorizedOperatorSendBurn(
 
 function _shouldBehaveLikeERC777DirectSend(setupAccounts, data) {
     let holder, recipient;
+    let holderSigner;
+    let tokenContract;
 
-    before(function () {
+    before(async function () {
         ({holder, recipient} = setupAccounts());
+        holderSigner = await ethers.getSigner(holder);
+        tokenContract = await getEthersContract(
+            "SuperTokenMock",
+            this.token.address
+        );
     });
 
     describe("direct send", function () {
@@ -68,20 +94,26 @@ function _shouldBehaveLikeERC777DirectSend(setupAccounts, data) {
 
             it("reverts when sending more than the balance", async function () {
                 const balance = await this.token.balanceOf(holder);
-                await expectRevertedWith(
-                    this.token.send(recipient, balance.addn(1), data, {
-                        from: holder,
-                    }),
-                    "revert"
+                await expectCustomError(
+                    tokenContract
+                        .connect(holderSigner)
+                        .send(recipient, balance.addn(1).toString(), data),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                 );
             });
 
             it("reverts when sending to the zero address", async function () {
-                await expectRevertedWith(
-                    this.token.send(ZERO_ADDRESS, new BN("1"), data, {
-                        from: holder,
-                    }),
-                    "revert"
+                await expectCustomError(
+                    tokenContract
+                        .connect(holderSigner)
+                        .send(ZERO_ADDRESS, new BN("1").toString(), data),
+                    tokenContract,
+                    "ZERO_ADDRESS",
+                    this.testenv.customErrorCode
+                        .SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
                 );
             });
         });
@@ -101,11 +133,14 @@ function _shouldBehaveLikeERC777DirectSend(setupAccounts, data) {
             );
 
             it("reverts when sending a non-zero amount", async function () {
-                await expectRevertedWith(
-                    this.token.send(recipient, new BN("1"), data, {
-                        from: holder,
-                    }),
-                    "revert"
+                await expectCustomError(
+                    tokenContract
+                        .connect(holderSigner)
+                        .send(recipient, new BN("1").toString(), data),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                 );
             });
         });
@@ -115,12 +150,18 @@ function _shouldBehaveLikeERC777DirectSend(setupAccounts, data) {
 function _shouldBehaveLikeERC777OperatorSend(
     setupAccounts,
     data,
-    operatorData
+    operatorData,
+    isDefaultOperator
 ) {
     let holder, recipient, operator;
+    let tokenContract;
 
-    before(function () {
+    before(async function () {
         ({holder, recipient, operator} = setupAccounts());
+        tokenContract = await getEthersContract(
+            "SuperTokenMock",
+            this.token.address
+        );
     });
 
     describe("operator send", function () {
@@ -147,31 +188,41 @@ function _shouldBehaveLikeERC777OperatorSend(
             );
 
             it("reverts when sending more than the balance", async function () {
+                const operatorSigner = await ethers.getSigner(operator);
                 const balance = await this.token.balanceOf(holder);
-                await expectRevertedWith(
-                    this.token.operatorSend(
-                        holder,
-                        recipient,
-                        balance.addn(1),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorSend(
+                            holder,
+                            recipient,
+                            balance.addn(1).toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                 );
             });
 
             it("reverts when sending to the zero address", async function () {
-                await expectRevertedWith(
-                    this.token.operatorSend(
-                        holder,
-                        ZERO_ADDRESS,
-                        new BN("1"),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                const operatorSigner = await ethers.getSigner(operator);
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorSend(
+                            holder,
+                            ZERO_ADDRESS,
+                            new BN("1").toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    "ZERO_ADDRESS",
+                    this.testenv.customErrorCode
+                        .SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
                 );
             });
         });
@@ -193,31 +244,45 @@ function _shouldBehaveLikeERC777OperatorSend(
             );
 
             it("reverts when sending a non-zero amount", async function () {
-                await expectRevertedWith(
-                    this.token.operatorSend(
-                        holder,
-                        recipient,
-                        new BN("1"),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                const operatorSigner = await ethers.getSigner(operator);
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorSend(
+                            holder,
+                            recipient,
+                            new BN("1").toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                 );
             });
 
             it("reverts when sending from the zero address", async function () {
+                const operatorSigner = await ethers.getSigner(operator);
                 // This is not yet reflected in the spec
-                await expectRevertedWith(
-                    this.token.operatorSend(
-                        ZERO_ADDRESS,
-                        recipient,
-                        new BN("0"),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorSend(
+                            ZERO_ADDRESS,
+                            recipient,
+                            new BN("0").toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    isDefaultOperator
+                        ? "ZERO_ADDRESS"
+                        : "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER",
+                    isDefaultOperator
+                        ? this.testenv.customErrorCode
+                              .SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
+                        : undefined
                 );
             });
         });
@@ -237,18 +302,23 @@ function _shouldBehaveLikeERC777UnauthorizedOperatorSend(
 
     describe("operator send", function () {
         it("reverts", async function () {
-            await expectRevertedWith(
-                this.token.operatorSend(
-                    holder,
-                    recipient,
-                    new BN("0"),
-                    data,
-                    operatorData,
-                    {
-                        from: operator,
-                    }
-                ),
-                "revert"
+            const operatorSigner = await ethers.getSigner(operator);
+            const tokenContract = await getEthersContract(
+                "SuperTokenMock",
+                this.token.address
+            );
+            await expectCustomError(
+                tokenContract
+                    .connect(operatorSigner)
+                    .operatorSend(
+                        holder,
+                        recipient,
+                        new BN("0").toString(),
+                        data,
+                        operatorData
+                    ),
+                tokenContract,
+                "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER"
             );
         });
     });
@@ -280,9 +350,20 @@ function _shouldBehaveLikeERC777DirectBurn(setupAccounts, data) {
 
             it("reverts when burning more than the balance", async function () {
                 const balance = await this.token.balanceOf(holder);
-                await expectRevertedWith(
-                    this.token.burn(balance.addn(1), data, {from: holder}),
-                    "revert"
+                const holderSigner = await ethers.getSigner(holder);
+
+                const tokenContract = await getEthersContract(
+                    "SuperTokenMock",
+                    this.token.address
+                );
+                await expectCustomError(
+                    tokenContract
+                        .connect(holderSigner)
+                        .burn(balance.addn(1).toString(), data),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
                 );
             });
         });
@@ -301,9 +382,19 @@ function _shouldBehaveLikeERC777DirectBurn(setupAccounts, data) {
             );
 
             it("reverts when burning a non-zero amount", async function () {
-                await expectRevertedWith(
-                    this.token.burn(new BN("1"), data, {from: holder}),
-                    "revert"
+                const holderSigner = await ethers.getSigner(holder);
+                const tokenContract = await getEthersContract(
+                    "SuperTokenMock",
+                    this.token.address
+                );
+                await expectCustomError(
+                    tokenContract
+                        .connect(holderSigner)
+                        .burn(new BN("1").toString(), data),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
                 );
             });
         });
@@ -313,7 +404,8 @@ function _shouldBehaveLikeERC777DirectBurn(setupAccounts, data) {
 function _shouldBehaveLikeERC777OperatorBurn(
     setupAccounts,
     data,
-    operatorData
+    operatorData,
+    isDefaultOperator
 ) {
     let holder, operator;
 
@@ -344,15 +436,24 @@ function _shouldBehaveLikeERC777OperatorBurn(
 
             it("reverts when burning more than the balance", async function () {
                 const balance = await this.token.balanceOf(holder);
-                await expectRevertedWith(
-                    this.token.operatorBurn(
-                        holder,
-                        balance.addn(1),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                const operatorSigner = await ethers.getSigner(operator);
+                const tokenContract = await getEthersContract(
+                    "SuperTokenMock",
+                    this.token.address
+                );
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorBurn(
+                            holder,
+                            balance.addn(1).toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
                 );
             });
         });
@@ -373,29 +474,51 @@ function _shouldBehaveLikeERC777OperatorBurn(
             );
 
             it("reverts when burning a non-zero amount", async function () {
-                await expectRevertedWith(
-                    this.token.operatorBurn(
-                        holder,
-                        new BN("1"),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                const tokenContract = await getEthersContract(
+                    "SuperTokenMock",
+                    this.token.address
+                );
+                const operatorSigner = await ethers.getSigner(operator);
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorBurn(
+                            holder,
+                            new BN("1").toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    "INSUFFICIENT_BALANCE",
+                    this.testenv.customErrorCode
+                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
                 );
             });
 
             it("reverts when burning from the zero address", async function () {
+                const tokenContract = await getEthersContract(
+                    "SuperTokenMock",
+                    this.token.address
+                );
+                const operatorSigner = await ethers.getSigner(operator);
                 // This is not yet reflected in the spec
-                await expectRevertedWith(
-                    this.token.operatorBurn(
-                        ZERO_ADDRESS,
-                        new BN("0"),
-                        data,
-                        operatorData,
-                        {from: operator}
-                    ),
-                    "revert"
+                await expectCustomError(
+                    tokenContract
+                        .connect(operatorSigner)
+                        .operatorBurn(
+                            ZERO_ADDRESS,
+                            new BN("0").toString(),
+                            data,
+                            operatorData
+                        ),
+                    tokenContract,
+                    isDefaultOperator
+                        ? "ZERO_ADDRESS"
+                        : "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER",
+                    isDefaultOperator
+                        ? this.testenv.customErrorCode
+                              .SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS
+                        : undefined
                 );
             });
         });
@@ -415,15 +538,22 @@ function _shouldBehaveLikeERC777UnauthorizedOperatorBurn(
 
     describe("operator burn", function () {
         it("reverts", async function () {
-            await expectRevertedWith(
-                this.token.operatorBurn(
-                    holder,
-                    new BN("0"),
-                    data,
-                    operatorData,
-                    {from: operator}
-                ),
-                "revert"
+            const tokenContract = await getEthersContract(
+                "SuperTokenMock",
+                this.token.address
+            );
+            const operatorSigner = await ethers.getSigner(operator);
+            await expectCustomError(
+                tokenContract
+                    .connect(operatorSigner)
+                    .operatorBurn(
+                        holder,
+                        new BN("0").toString(),
+                        data,
+                        operatorData
+                    ),
+                tokenContract,
+                "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER"
             );
         });
     });
@@ -636,6 +766,14 @@ function shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook(
     operatorData
 ) {
     let operator, sender, recipient;
+    let tokenContract;
+
+    before(async function () {
+        tokenContract = await getEthersContract(
+            "SuperTokenMock",
+            this.token.address
+        );
+    });
 
     beforeEach(() => {
         ({operator, sender, recipient} = setupAccounts());
@@ -648,31 +786,47 @@ function shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook(
 
         it("send reverts", async function () {
             await expectRevertedWith(
-                _sendFromHolder(this.token, sender, recipient, amount, data),
-                "revert"
+                _sendFromHolder(
+                    tokenContract,
+                    sender,
+                    recipient,
+                    amount.toString(),
+                    data,
+                    tokenContract,
+                    true
+                ),
+                "_shouldRevertReceive"
             );
         });
 
         it("operatorSend reverts", async function () {
+            const operatorSigner = await ethers.getSigner(operator);
             await expectRevertedWith(
-                this.token.operatorSend(
-                    sender,
-                    recipient,
-                    amount,
-                    data,
-                    operatorData,
-                    {from: operator}
-                ),
-                "revert"
+                tokenContract
+                    .connect(operatorSigner)
+                    .operatorSend(
+                        sender,
+                        recipient,
+                        amount.toString(),
+                        data,
+                        operatorData
+                    ),
+                "_shouldRevertReceive"
             );
         });
 
         it("mint (internal) reverts", async function () {
+            const operatorSigner = await ethers.getSigner(operator);
             await expectRevertedWith(
-                this.token.mintInternal(recipient, amount, data, operatorData, {
-                    from: operator,
-                }),
-                "revert"
+                tokenContract
+                    .connect(operatorSigner)
+                    .mintInternal(
+                        recipient,
+                        amount.toString(),
+                        data,
+                        operatorData
+                    ),
+                "_shouldRevertReceive"
             );
         });
     });
@@ -769,50 +923,81 @@ function shouldBehaveLikeERC777SendBurnWithSendHook(
     operatorData
 ) {
     let sender, recipient, operator;
+    let tokenContract;
 
     beforeEach(() => {
         ({sender, recipient, operator} = setupAccounts());
     });
 
     describe("when TokensSender reverts", function () {
+        before(async function () {
+            tokenContract = await getEthersContract(
+                "SuperTokenMock",
+                this.token.address
+            );
+        });
+
         beforeEach(async function () {
             await this.tokensSenderImplementer.setShouldRevertSend(true);
         });
 
         it("send reverts", async function () {
             await expectRevertedWith(
-                _sendFromHolder(this.token, sender, recipient, amount, data),
-                "revert"
+                _sendFromHolder(
+                    this.token,
+                    sender,
+                    recipient,
+                    amount.toString(),
+                    data,
+                    tokenContract,
+                    true
+                ),
+                "_shouldRevertSend"
             );
         });
 
         it("operatorSend reverts", async function () {
+            const operatorSigner = await ethers.getSigner(operator);
             await expectRevertedWith(
-                this.token.operatorSend(
-                    sender,
-                    recipient,
-                    amount,
-                    data,
-                    operatorData,
-                    {from: operator}
-                ),
-                "revert"
+                tokenContract
+                    .connect(operatorSigner)
+                    .operatorSend(
+                        sender,
+                        recipient,
+                        amount.toString(),
+                        data,
+                        operatorData
+                    ),
+                "_shouldRevertSend"
             );
         });
 
         it("burn reverts", async function () {
             await expectRevertedWith(
-                _burnFromHolder(this.token, sender, amount, data),
-                "revert"
+                _burnFromHolder(
+                    this.token,
+                    sender,
+                    amount.toString(),
+                    data,
+                    tokenContract,
+                    true
+                ),
+                "_shouldRevertSend"
             );
         });
 
         it("operatorBurn reverts", async function () {
+            const operatorSigner = await ethers.getSigner(operator);
             await expectRevertedWith(
-                this.token.operatorBurn(sender, amount, data, operatorData, {
-                    from: operator,
-                }),
-                "revert"
+                tokenContract
+                    .connect(operatorSigner)
+                    .operatorBurn(
+                        sender,
+                        amount.toString(),
+                        data,
+                        operatorData
+                    ),
+                "_shouldRevertSend"
             );
         });
     });
@@ -992,30 +1177,69 @@ async function _assertTokensToSendCalled(
     );
 }
 
-async function _sendFromHolder(token, holder, to, amount, data) {
+async function _sendFromHolder(
+    token,
+    holder,
+    to,
+    amount,
+    data,
+    ethersToken,
+    ethersERC777
+) {
     if ((await web3.eth.getCode(holder)).length <= "0x".length) {
-        return token.send(to, amount, data, {from: holder});
+        if (ethersToken && ethersToken.from == null) {
+            return ethersToken
+                .connect(await ethers.getSigner(holder))
+                .send(to, amount, data);
+        } else {
+            return token.send(to, amount, data, {from: holder});
+        }
     } else {
         // assume holder is ERC777SenderRecipientMock contract
-        return (await ERC777SenderRecipientMock.at(holder)).send(
-            token.address,
-            to,
-            amount,
-            data
-        );
+        if (ethersERC777) {
+            return (
+                await ethers.getContractAt("ERC777SenderRecipientMock", holder)
+            ).send(token.address, to, amount, data);
+        } else {
+            return (await ERC777SenderRecipientMock.at(holder)).send(
+                token.address,
+                to,
+                amount,
+                data
+            );
+        }
     }
 }
 
-async function _burnFromHolder(token, holder, amount, data) {
+async function _burnFromHolder(
+    token,
+    holder,
+    amount,
+    data,
+    ethersToken,
+    ethersERC777
+) {
     if ((await web3.eth.getCode(holder)).length <= "0x".length) {
-        return token.burn(amount, data, {from: holder});
+        if (ethersToken && ethersToken.from == null) {
+            return ethersToken
+                .connect(await ethers.getSigner(holder))
+                .burn(amount, data);
+        } else {
+            return token.burn(amount, data, {from: holder});
+        }
     } else {
         // assume holder is ERC777SenderRecipientMock contract
-        return (await ERC777SenderRecipientMock.at(holder)).burn(
-            token.address,
-            amount,
-            data
-        );
+        if (ethersERC777) {
+            return (
+                await ethers.getContractAt("ERC777SenderRecipientMock", holder)
+            ).burn(token.address, amount, data);
+        } else {
+            return (await ERC777SenderRecipientMock.at(holder)).burn(
+                token.address,
+                amount,
+                data
+            );
+        }
     }
 }
 

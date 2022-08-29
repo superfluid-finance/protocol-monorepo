@@ -12,6 +12,7 @@ import {
     ContextDefinitions,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
+    SuperfluidErrors,
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
@@ -34,42 +35,27 @@ interface ISuperfluid {
      * Errors
      *************************************************************************/
     // Superfluid Custom Errors
-    error Host_AgreementCallbackIsNotAction();
-    error Host_AgreementClassAlreadyRegistered();
-    error Host_AgreementClassNotRegistered();
-    error Host_CannotDowngradeToNonUpgradeable();
-    error Host_CallAgreementWithCtxFromWrongAddress();
-    error Host_CallAppActionWithCtxFromWrongAddress();
-    error Host_InvalidConfigWord();
-    error Host_Max256Agreements();
-    error Host_NonUpgradeable();
-    error Host_NonZeroLengthPlaceholderCtx();
-    error Host_OnlyGovernance();
-    error Host_NeedMoreGas();
-    error Host_UnknownBatchCallOperationType();
-    error Host_UnlistedAgreement();
+    error HOST_AGREEMENT_CALLBACK_IS_NOT_ACTION();
+    error HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();
+    error HOST_CALL_AGREEMENT_WITH_CTX_FROM_WRONG_ADDRESS();
+    error HOST_CALL_APP_ACTION_WITH_CTX_FROM_WRONG_ADDRESS();
+    error HOST_INVALID_CONFIG_WORD();
+    error HOST_MAX_256_AGREEMENTS();
+    error HOST_NON_UPGRADEABLE();
+    error HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX();
+    error HOST_ONLY_GOVERNANCE();
+    error HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
 
     // App Related Custom Errors
-    error Host_AppFactoryMustBeAContract();
-    error Host_InvalidOrExpiredSuperAppRegistrationKey();
-    error Host_NotASuperApp();
-    error Host_NoAppRegistrationPermissions();
-    error Host_ReceiverIsNotSuperApp();
-    error Host_SenderIsNotSuperApp();
-    error Host_SourceAppNeedsHigherAppLevel();
-    error Host_SuperAppIsJailed();
-    error Host_SuperAppAlreadyRegistered();
-    error Host_UnauthorizedSuperAppFactory();
-
-    // App Rule Custom Errors
-    error Host_AppRule_CompositeAppNotWhitelisted();
-    error Host_AppRule_MaxAppCallbackLevelReached();
-    error Host_AppRule_NoRegistrationForEOA();
-    error Host_AppRule_RegistrationOnlyInConstructor();
-    error Host_AppRule_CtxIsEmpty();
-    error Host_AppRule_CtxIsInvalid(); // IsReadonly
-    error Host_AppRule_CtxIsMalformated();
-    error Host_AppRule_CtxIsNotClean();
+    error HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY();
+    error HOST_NOT_A_SUPER_APP();
+    error HOST_NO_APP_REGISTRATION_PERMISSIONS();
+    error HOST_RECEIVER_IS_NOT_SUPER_APP();
+    error HOST_SENDER_IS_NOT_SUPER_APP();
+    error HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();
+    error HOST_SUPER_APP_IS_JAILED();
+    error HOST_SUPER_APP_ALREADY_REGISTERED();
+    error HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
 
     /**************************************************************************
      * Time

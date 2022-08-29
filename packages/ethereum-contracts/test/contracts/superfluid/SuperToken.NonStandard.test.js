@@ -9,6 +9,7 @@ const {web3tx, toDecimals} = require("@decentral.ee/web3-helpers");
 const {ethers} = require("hardhat");
 const {toWad, toBN} = require("../utils/helpers");
 const {expect} = require("chai");
+const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 
 const TestToken = artifacts.require("TestToken");
 
@@ -24,6 +25,7 @@ describe("SuperToken's Non Standard Functions", function () {
     let testToken;
     let superToken;
     let mockWallet;
+    let superTokenContract;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -45,6 +47,11 @@ describe("SuperToken's Non Standard Functions", function () {
         ({superfluid} = t.contracts);
         aliceSigner = await ethers.getSigner(alice);
         bobSigner = await ethers.getSigner(bob);
+        superTokenContract = new ethers.Contract(
+            "SuperToken",
+            SuperTokenArtifact.abi,
+            aliceSigner
+        );
     });
 
     beforeEach(async function () {
@@ -73,7 +80,8 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.updateCode(ZERO_ADDRESS),
                 superToken,
-                "SuperToken_OnlyHost"
+                "ONLY_HOST",
+                t.customErrorCode.SUPER_TOKEN_ONLY_HOST
             );
         });
 
@@ -202,7 +210,8 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.connect(aliceSigner).downgrade(toBN(1)),
                 superToken,
-                "SFToken_BurnAmountExceedsBalance"
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
             );
         });
 
@@ -444,7 +453,7 @@ describe("SuperToken's Non Standard Functions", function () {
                     .connect(aliceSigner)
                     .upgradeTo(mock.address, toWad(2), "0x"),
                 superToken,
-                "SuperToken_NotERC777TokensRecipient"
+                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
             );
             console.log("registerRecipient");
             await mock.registerRecipient(mock.address);
@@ -527,7 +536,7 @@ describe("SuperToken's Non Standard Functions", function () {
                     .connect(aliceSigner)
                     .upgradeTo(mockWallet.address, toWad(2), "0x"),
                 superToken,
-                "SuperToken_NotERC777TokensRecipient"
+                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
             );
         });
     });
@@ -567,7 +576,7 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.2 Custom token functions can only be called by self", async () => {
-            const reason = "SuperToken_OnlySelf";
+            const reason = "SUPER_TOKEN_ONLY_SELF";
             await expectCustomError(
                 superToken.selfMint(alice, 100, "0x"),
                 superToken,
@@ -581,7 +590,7 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.3 Custom token that mints/burn and disabling upgrade/downgrade", async () => {
-            const reason = "SuperToken_NoUnderlyingToken";
+            const reason = "SUPER_TOKEN_NO_UNDERLYING_TOKEN";
             await expectCustomError(
                 customToken.upgrade(100),
                 customToken,
@@ -612,8 +621,9 @@ describe("SuperToken's Non Standard Functions", function () {
 
             await expectCustomError(
                 customToken.callSelfBurn(alice, 101, "0x"),
-                customToken,
-                "SFToken_BurnAmountExceedsBalance"
+                superTokenContract,
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
             );
 
             await web3tx(customToken.callSelfBurn, "customToken.callSelfBurn")(
@@ -650,8 +660,9 @@ describe("SuperToken's Non Standard Functions", function () {
             // holder must have enough balance
             await expectCustomError(
                 customToken.callSelfTransferFrom(bob, alice, alice, 100),
-                customToken,
-                "SFToken_MoveAmountExceedsBalance"
+                superTokenContract,
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
             );
 
             // holder cannot be zero address
@@ -662,15 +673,17 @@ describe("SuperToken's Non Standard Functions", function () {
                     bob,
                     100
                 ),
-                customToken,
-                "SuperToken_TransferFromZeroAddressNotAllowed"
+                superTokenContract,
+                "ZERO_ADDRESS",
+                t.customErrorCode.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
             );
 
             // recipient cannot be zero address
             await expectCustomError(
                 customToken.callSelfTransferFrom(alice, bob, ZERO_ADDRESS, 100),
-                customToken,
-                "SuperToken_TransferToZeroAddressNotAllowed"
+                superTokenContract,
+                "ZERO_ADDRESS",
+                t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
             );
 
             // alice approves bob to spend her tokens
@@ -725,15 +738,17 @@ describe("SuperToken's Non Standard Functions", function () {
             // account cannot be zero address
             await expectCustomError(
                 customToken.callSelfApproveFor(ZERO_ADDRESS, bob, 100),
-                customToken,
-                "SuperToken_ApproveFromZeroAddressNotAllowed"
+                superTokenContract,
+                "ZERO_ADDRESS",
+                t.customErrorCode.SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS
             );
 
             // spender cannot be zero address
             await expectCustomError(
                 customToken.callSelfApproveFor(alice, ZERO_ADDRESS, 100),
-                customToken,
-                "SuperToken_ApproveToZeroAddressNotAllowed"
+                superTokenContract,
+                "ZERO_ADDRESS",
+                t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
             );
 
             // should be able to call selfApprove at will + make a selfTransferFrom
@@ -791,22 +806,26 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.operationApprove(alice, bob, "0"),
                 superToken,
-                "SFToken_OnlyHost"
+                "ONLY_HOST",
+                t.customErrorCode.SF_TOKEN_ONLY_HOST
             );
             await expectCustomError(
                 superToken.operationTransferFrom(alice, bob, admin, "0"),
                 superToken,
-                "SFToken_OnlyHost"
+                "ONLY_HOST",
+                t.customErrorCode.SF_TOKEN_ONLY_HOST
             );
             await expectCustomError(
                 superToken.operationUpgrade(alice, "0"),
                 superToken,
-                "SFToken_OnlyHost"
+                "ONLY_HOST",
+                t.customErrorCode.SF_TOKEN_ONLY_HOST
             );
             await expectCustomError(
                 superToken.operationDowngrade(alice, "0"),
                 superToken,
-                "SFToken_OnlyHost"
+                "ONLY_HOST",
+                t.customErrorCode.SF_TOKEN_ONLY_HOST
             );
         });
     });

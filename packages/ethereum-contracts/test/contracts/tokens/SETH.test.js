@@ -2,6 +2,7 @@ const {expectEvent} = require("@openzeppelin/test-helpers");
 const {expectCustomError} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 const TestEnvironment = require("../../TestEnvironment");
 const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
@@ -114,12 +115,18 @@ describe("Super ETH (SETH) Contract", function () {
         )({
             value: toWad(1).toString(),
         });
+        const superTokenContract = new ethers.Contract(
+            "SuperToken",
+            SuperTokenArtifact.abi,
+            aliceSigner
+        );
         await expectCustomError(
             ethersSETH
                 .connect(aliceSigner)
                 .downgradeToETH(toWad(1).addn(1).toString()),
-            ethersSETH,
-            "SFToken_BurnAmountExceedsBalance"
+            superTokenContract,
+            "INSUFFICIENT_BALANCE",
+            t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
         );
 
         const aliceBalance1 = await web3.eth.getBalance(alice);

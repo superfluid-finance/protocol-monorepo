@@ -51,11 +51,16 @@ describe("SuperToken's ERC20 compliance", function () {
     });
 
     describe("ERC20 compliance", () => {
-        shouldBehaveLikeERC20("SuperToken", initialSupply, () => ({
-            initialHolder: alice,
-            recipient: bob,
-            anotherAccount: carol,
-        }));
+        shouldBehaveLikeERC20(
+            "SuperToken",
+            initialSupply,
+            () => ({
+                initialHolder: alice,
+                recipient: bob,
+                anotherAccount: carol,
+            }),
+            t
+        );
     });
 
     describe("decrease allowance", function () {
@@ -269,7 +274,8 @@ describe("SuperToken's ERC20 compliance", function () {
                         .connect(aliceSigner)
                         .increaseAllowance(spender, amount),
                     this.token,
-                    "SuperToken_ApproveToZeroAddressNotAllowed"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
                 );
             });
         });
@@ -285,7 +291,8 @@ describe("SuperToken's ERC20 compliance", function () {
             }),
             function (from, to, amount) {
                 return this.token.transferInternal(from, to, amount);
-            }
+            },
+            t
         );
 
         describe("when the sender is the zero address", function () {
@@ -297,7 +304,8 @@ describe("SuperToken's ERC20 compliance", function () {
                         initialSupply
                     ),
                     this.token,
-                    "SuperToken_TransferFromZeroAddressNotAllowed"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
                 );
             });
         });
@@ -313,7 +321,8 @@ describe("SuperToken's ERC20 compliance", function () {
             }),
             function (owner, spender, amount) {
                 return this.token.approveInternal(owner, spender, amount);
-            }
+            },
+            t
         );
 
         describe("when the owner is the zero address", function () {
@@ -325,7 +334,8 @@ describe("SuperToken's ERC20 compliance", function () {
                         initialSupply
                     ),
                     this.token,
-                    "SuperToken_ApproveFromZeroAddressNotAllowed"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS
                 );
             });
         });

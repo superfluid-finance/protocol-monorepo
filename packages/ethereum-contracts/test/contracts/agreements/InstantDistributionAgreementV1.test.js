@@ -99,7 +99,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_IndexAlreadyExist"
+                    "ALREADY_EXISTS",
+                    t.customErrorCode.IDA_INDEX_ALREADY_EXISTS
                 );
             });
 
@@ -156,7 +157,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
                 await expectCustomError(
                     t.agreementHelper.callAgreement({
@@ -168,7 +170,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
                 await expectCustomError(
                     ida.calculateDistribution(
@@ -178,7 +181,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         "42"
                     ),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
             });
 
@@ -235,7 +239,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_IndexShouldGrow"
+                    "IDA_INDEX_SHOULD_GROW"
                 );
             });
 
@@ -315,7 +319,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_InsufficientBalance"
+                    "INSUFFICIENT_BALANCE",
+                    t.customErrorCode.IDA_INSUFFICIENT_BALANCE
                 );
             });
 
@@ -342,7 +347,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_NoZeroAddressSubscribers"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.IDA_ZERO_ADDRESS_SUBSCRIBER
                 );
             });
 
@@ -370,7 +376,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_NoZeroAddressSubscribers"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.IDA_ZERO_ADDRESS_SUBSCRIBER
                 );
             });
 
@@ -435,7 +442,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_SubscriptionAlreadyApproved"
+                    "ALREADY_EXISTS",
+                    t.customErrorCode.IDA_SUBSCRIPTION_ALREADY_APPROVED
                 );
             });
 
@@ -564,7 +572,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "IDA_SubscriptionDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
                 );
             });
 
@@ -598,7 +607,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: await ethers.getSigner(t.getAddress("dan")),
                     }),
                     ida,
-                    "IDA_OperationNotAllowed"
+                    "IDA_OPERATION_NOT_ALLOWED"
                 );
             });
 
@@ -755,7 +764,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
                 await expectCustomError(
                     t.agreementHelper.callAgreement({
@@ -773,7 +783,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
                 await expectCustomError(
                     ida.getSubscription(
@@ -783,7 +794,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         bob
                     ),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
             });
 
@@ -885,7 +897,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_SubscriptionIsNotApproved"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_SUBSCRIPTION_IS_NOT_APPROVED
                 );
             });
 
@@ -906,7 +919,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_SubscriptionDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
                 );
             });
 
@@ -921,7 +935,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
             });
 
@@ -1022,13 +1037,21 @@ describe("Using InstantDistributionAgreement v1", function () {
 
                 // @note still unsure about how to catch library custom errors
                 await expect(
-                    shouldApproveSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: maxNumberOfSubs,
-                        subscriberName: "bob",
-                    })
+                    t.contracts.superfluid
+                        .connect(await ethers.getSigner(bob))
+                        .callAgreement(
+                            ida.address,
+                            t.agreementHelper.idaInterface.encodeFunctionData(
+                                "approveSubscription",
+                                [
+                                    superToken.address,
+                                    alice,
+                                    maxNumberOfSubs,
+                                    "0x",
+                                ]
+                            ),
+                            "0x"
+                        )
                 ).to.be.revertedWith("SlotBitmap out of bound");
             });
         });
@@ -1459,7 +1482,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_SubscriptionDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
                 );
             });
 
@@ -1477,7 +1501,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_IndexDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
                 );
             });
 
@@ -1510,7 +1535,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_SubscriptionAlreadyApproved"
+                    "ALREADY_EXISTS",
+                    t.customErrorCode.IDA_SUBSCRIPTION_ALREADY_APPROVED
                 );
             });
 
@@ -1535,7 +1561,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "IDA_NoZeroAddressSubscribers"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.IDA_ZERO_ADDRESS_SUBSCRIBER
                 );
             });
         });
@@ -2104,7 +2131,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             );
         });
 
-        it("#2.8 getSubscriptionByID revert with IDA_SubscriptionDoesNotExist", async () => {
+        it("#2.8 getSubscriptionByID revert with IDA_SUBSCRIPTION_DOES_NOT_EXIST", async () => {
             await app.setForceGetSubscriptionByID();
             await expectCustomError(
                 t.agreementHelper.callAgreement({
@@ -2129,15 +2156,18 @@ describe("Using InstantDistributionAgreement v1", function () {
                     signer: aliceSigner,
                 }),
                 ida,
-                "IDA_SubscriptionDoesNotExist"
+                "DOES_NOT_EXIST",
+                t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
             );
         });
     });
 
     context("#3 misc", async () => {
-        it("#4.1 only authorized host can access token", async () => {
-            const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
-            const fakeHost = await FakeSuperfluidMock.new();
+        it("#3.1 only authorized host can access token", async () => {
+            let fakeHost = await ethers.getContractFactory(
+                "FakeSuperfluidMock"
+            );
+            fakeHost = await fakeHost.deploy();
             const ida = t.sf.agreements.ida;
             await expect(
                 fakeHost.callAgreement(

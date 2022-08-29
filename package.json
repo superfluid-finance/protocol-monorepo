@@ -47,7 +47,6 @@
         "eslint-plugin-eslint-comments": "^3.2.0",
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-prettier": "^4.2.1",
-        "ethereum-waffle": "^3.4.4",
         "hardhat": "^2.9.9",
         "husky": "^8.0.1",
         "lerna": "^5.1.6",

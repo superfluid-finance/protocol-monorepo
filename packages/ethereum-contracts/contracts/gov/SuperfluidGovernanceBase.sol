@@ -8,6 +8,7 @@ import {
     ISuperToken,
     ISuperTokenFactory,
     ISuperfluidGovernance,
+    SuperfluidErrors,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
@@ -98,7 +99,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperToken[] calldata tokens,
         uint256[] calldata minimumDeposits
     ) external {
-        if (tokens.length != minimumDeposits.length) revert SFGov_ArraysNotSameLength();
+        if (tokens.length != minimumDeposits.length) revert SF_GOV_ARRAYS_NOT_SAME_LENGTH();
         for (uint i = 0; i < minimumDeposits.length; ++i) {
             setSuperTokenMinimumDeposit(
                 host,
@@ -306,7 +307,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             || liquidationPeriod >= type(uint32).max
             || patricianPeriod >= type(uint32).max
         ) {
-            revert SFGov_InvalidLiquidationOrPatricianPeriod();
+            revert SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD();
         }
         emit PPPConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
         uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
@@ -452,7 +453,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(factory) }
-            if (cs == 0) revert SFGov_FactoryMustBeContract();
+            if (cs == 0) revert SuperfluidErrors.MUST_BE_CONTRACT(SuperfluidErrors.SF_GOV_MUST_BE_CONTRACT);
         }
 
         _setConfig(

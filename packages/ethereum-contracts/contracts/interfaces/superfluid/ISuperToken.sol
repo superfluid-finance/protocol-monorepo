@@ -6,6 +6,7 @@ import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
@@ -16,18 +17,11 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**************************************************************************
      * Errors
      *************************************************************************/
-    error SuperToken_ApproveFromZeroAddressNotAllowed();
-    error SuperToken_ApproveToZeroAddressNotAllowed();
-    error SuperToken_CallerIsNotOperatorForHolder();
-    error SuperToken_BurnFromZeroAddressNotAllowed();
-    error SuperToken_MintToZeroAddressNotAllowed();
-    error SuperToken_NotERC777TokensRecipient();
-    error SuperToken_InflationaryDeflationaryUnsupported();
-    error SuperToken_NoUnderlyingToken();
-    error SuperToken_OnlyHost();
-    error SuperToken_OnlySelf();
-    error SuperToken_TransferFromZeroAddressNotAllowed();
-    error SuperToken_TransferToZeroAddressNotAllowed();
+    error SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
+    error SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT();
+    error SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
+    error SUPER_TOKEN_NO_UNDERLYING_TOKEN();
+    error SUPER_TOKEN_ONLY_SELF();
 
     /**
      * @dev Initialize the contract

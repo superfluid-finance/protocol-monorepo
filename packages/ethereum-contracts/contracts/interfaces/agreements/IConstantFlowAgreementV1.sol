@@ -3,7 +3,7 @@ pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-
+import { SuperfluidErrors } from "../superfluid/Definitions.sol";
 
 /**
  * @title Constant Flow Agreement interface
@@ -14,29 +14,21 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     /**************************************************************************
      * Errors
      *************************************************************************/
-    error CFA_ACL_NoSenderCreate();
-    error CFA_ACL_NoSenderUpdate();
-    error CFA_ACL_NoSenderDelete();
-    error CFA_ACL_OperatorNoCreatePermissions();
-    error CFA_ACL_OperatorNoUpdatePermissions();
-    error CFA_ACL_OperatorNoDeletePermissions();
-    error CFA_ACL_FlowRateAllowanceExceeded();
-    error CFA_ACL_UncleanPermissions();
-    error CFA_ACL_NoSenderFlowOperator();
-    error CFA_ACL_NoNegativeAllowance();
+    error CFA_ACL_NO_SENDER_CREATE();
+    error CFA_ACL_NO_SENDER_UPDATE();
+    error CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS();
+    error CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS();
+    error CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS();
+    error CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED();
+    error CFA_ACL_UNCLEAN_PERMISSIONS();
+    error CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+    error CFA_ACL_NO_NEGATIVE_ALLOWANCE();
 
-    error CFA_DepositTooBig();
-    error CFA_FlowAlreadyExists();
-    error CFA_FlowDoesNotExist();
-    error CFA_FlowRateTooBig();
-    error CFA_NonCriticalSender();
-    error CFA_InvalidFlowRate();
-    error CFA_NotEnoughBalance();
-    error CFA_NoSelfFlow();
-    error CFA_ZeroAddressSender();
-    error CFA_ZeroAddressReceiver();
-
-    error CFA_APP_NoCriticalReceiverAccount();
+    error CFA_DEPOSIT_TOO_BIG();
+    error CFA_FLOW_RATE_TOO_BIG();
+    error CFA_NON_CRITICAL_SENDER();
+    error CFA_INVALID_FLOW_RATE();
+    error CFA_NO_SELF_FLOW();
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {

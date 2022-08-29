@@ -5,6 +5,7 @@ import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluidToken  } from "./ISuperfluidToken.sol";
 import { ISuperfluid } from "./ISuperfluid.sol";
+import { SuperfluidErrors } from "./Definitions.sol";
 
 
 /**
@@ -16,9 +17,8 @@ interface ISuperfluidGovernance {
     /**************************************************************************
      * Errors
      *************************************************************************/
-    error SFGov_ArraysNotSameLength();
-    error SFGov_FactoryMustBeContract();
-    error SFGov_InvalidLiquidationOrPatricianPeriod();
+    error SF_GOV_ARRAYS_NOT_SAME_LENGTH();
+    error SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD();
 
     /**
      * @dev Replace the current governance with a new governance

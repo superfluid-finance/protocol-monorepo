@@ -3,6 +3,7 @@ pragma solidity 0.8.14;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
+import { SuperfluidErrors } from "../interfaces/superfluid/Definitions.sol";
 
 /**
  * @title Superfluid agreement base boilerplate contract
@@ -13,8 +14,6 @@ abstract contract AgreementBase is
     ISuperAgreement
 {
     address immutable internal _host;
-
-    error AgreementBase_OnlyHost();
 
     constructor(address host)
     {
@@ -31,7 +30,7 @@ abstract contract AgreementBase is
     function updateCode(address newAddress)
         external override
     {
-        if (msg.sender != _host) revert AgreementBase_OnlyHost();
+        if (msg.sender != _host) revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.AGREEMENT_BASE_ONLY_HOST);
         return _updateCodeAddress(newAddress);
     }
 

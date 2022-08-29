@@ -704,7 +704,7 @@ describe("TOGA", function () {
         // send hook has higher allowance than gas limit, causes the tx to fail
         await expectRevertedWith(
             sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E3),
-            "revert"
+            "CallUtils: target revert()"
         );
 
         // tx gets high enough gas limit for the send allowance not to make it fail

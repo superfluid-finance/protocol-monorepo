@@ -9,7 +9,7 @@ const {
 } = require("../../utils/expectRevert");
 const {toBN} = require("../utils/helpers");
 
-function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
+function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
     let initialHolder, recipient, anotherAccount;
 
     before(() => {
@@ -53,7 +53,8 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
             async function (from, to, value) {
                 const signer = await ethers.getSigner(from);
                 return this.token.connect(signer).transfer(to, value);
-            }
+            },
+            t
         );
     });
 
@@ -149,7 +150,9 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount),
                                 this.token,
-                                "SFToken_MoveAmountExceedsBalance"
+                                "INSUFFICIENT_BALANCE",
+                                t.customErrorCode
+                                    .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                             );
                         });
                     });
@@ -184,7 +187,9 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount),
                                 this.token,
-                                "SFToken_MoveAmountExceedsBalance"
+                                "INSUFFICIENT_BALANCE",
+                                t.customErrorCode
+                                    .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                             );
                         });
                     });
@@ -205,7 +210,8 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                             .connect(spenderSigner)
                             .transferFrom(tokenOwner, to, amount),
                         this.token,
-                        "SuperToken_TransferToZeroAddressNotAllowed"
+                        "ZERO_ADDRESS",
+                        t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
                     );
                 });
             });
@@ -226,7 +232,8 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         .connect(spenderSigner)
                         .transferFrom(tokenOwner, to, amount),
                     this.token,
-                    "SuperToken_TransferFromZeroAddressNotAllowed"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
                 );
             });
         });
@@ -243,7 +250,8 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
             async function (owner, spender, amount) {
                 const signer = await ethers.getSigner(owner);
                 return this.token.connect(signer).approve(spender, amount);
-            }
+            },
+            t
         );
     });
 }
@@ -252,7 +260,8 @@ function shouldBehaveLikeERC20Transfer(
     _errorPrefix,
     balance,
     setupAccounts,
-    transfer
+    transfer,
+    t
 ) {
     let from, to;
 
@@ -264,10 +273,11 @@ function shouldBehaveLikeERC20Transfer(
             const amount = toBN(balance).add(1);
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectCustomError(
                     transfer.call(this, from, to, amount),
                     this.token,
-                    "SFToken_MoveAmountExceedsBalance"
+                    "INSUFFICIENT_BALANCE",
+                    t.customErrorCode.SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
                 );
             });
         });
@@ -290,7 +300,7 @@ function shouldBehaveLikeERC20Transfer(
             it("emits a transfer event", async function () {
                 await expect(transfer.call(this, from, to, amount))
                     .to.emit(this.token, "Transfer")
-                    .withArgs(from, to, amount.toString);
+                    .withArgs(from, to, amount.toString());
             });
         });
 
@@ -319,9 +329,11 @@ function shouldBehaveLikeERC20Transfer(
 
     describe("when the recipient is the zero address", function () {
         it("reverts", async function () {
-            await expectRevertedWith(
+            await expectCustomError(
                 transfer.call(this, from, ZERO_ADDRESS, balance),
-                "SuperToken_TransferToZeroAddressNotAllowed"
+                this.token,
+                "ZERO_ADDRESS",
+                t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
             );
         });
     });
@@ -331,7 +343,8 @@ function shouldBehaveLikeERC20Approve(
     errorPrefix,
     supply,
     setupAccounts,
-    approve
+    approve,
+    t
 ) {
     let owner, spender;
 
@@ -414,7 +427,8 @@ function shouldBehaveLikeERC20Approve(
             await expectCustomError(
                 approve.call(this, owner, ZERO_ADDRESS, supply),
                 this.token,
-                "SuperToken_ApproveToZeroAddressNotAllowed"
+                "ZERO_ADDRESS",
+                t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
             );
         });
     });

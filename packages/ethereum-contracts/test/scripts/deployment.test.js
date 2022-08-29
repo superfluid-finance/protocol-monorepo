@@ -221,7 +221,7 @@ contract("Embedded deployment scripts", (accounts) => {
                     if (process.env.IS_TRUFFLE) {
                         expect(err.message).to.include("Custom error");
                     } else {
-                        expect(err.message).to.include("Host_NonUpgradeable");
+                        expect(err.message).to.include("HOST_NON_UPGRADEABLE");
                     }
                 }
             });

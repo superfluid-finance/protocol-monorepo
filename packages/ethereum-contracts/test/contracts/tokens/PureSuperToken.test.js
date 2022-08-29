@@ -2,9 +2,10 @@ const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
-const PureSuperToken = artifacts.require("PureSuperToken");
 
-const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("hardhat");
+const {toWad} = require("../utils/helpers");
 
 describe("PureSuperToken Contract", function () {
     this.timeout(300e3);
@@ -30,7 +31,8 @@ describe("PureSuperToken Contract", function () {
     });
 
     it("#1 initialization", async () => {
-        const tokenProxy = await PureSuperToken.new();
+        let tokenProxy = await ethers.getContractFactory("PureSuperToken");
+        tokenProxy = await tokenProxy.deploy();
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,
             "superTokenFactory.initializeCustomSuperToken"
@@ -38,7 +40,7 @@ describe("PureSuperToken Contract", function () {
         await web3tx(tokenProxy.initialize, "tokenProxy.initialize")(
             "Didi Token",
             "DD",
-            toWad(42)
+            toWad(42).toString()
         );
         const token = await t.sf.contracts.ISuperToken.at(tokenProxy.address);
         assert.equal(
@@ -46,7 +48,7 @@ describe("PureSuperToken Contract", function () {
             toWad(42).toString()
         );
         await expectRevertedWith(
-            tokenProxy.initialize("Hacker", "HH", toWad(0)),
+            tokenProxy.initialize("Hacker", "HH", toWad(0).toString()),
             "Initializable: contract is already initialized"
         );
     });

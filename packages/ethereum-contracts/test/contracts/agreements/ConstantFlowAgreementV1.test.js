@@ -297,7 +297,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_NotEnoughBalance"
+                    "INSUFFICIENT_BALANCE",
+                    t.customErrorCode.CFA_INSUFFICIENT_BALANCE
                 );
             });
 
@@ -311,7 +312,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: "0",
                     }),
                     cfa,
-                    "CFA_InvalidFlowRate"
+                    "CFA_INVALID_FLOW_RATE"
                 );
             });
 
@@ -325,7 +326,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: "-1",
                     }),
                     cfa,
-                    "CFA_InvalidFlowRate"
+                    "CFA_INVALID_FLOW_RATE"
                 );
             });
 
@@ -339,7 +340,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_NoSelfFlow"
+                    "CFA_NO_SELF_FLOW"
                 );
             });
 
@@ -362,7 +363,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_FlowAlreadyExists"
+                    "ALREADY_EXISTS",
+                    t.customErrorCode.CFA_FLOW_ALREADY_EXISTS
                 );
             });
 
@@ -389,7 +391,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_ZeroAddressReceiver"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.CFA_ZERO_ADDRESS_RECEIVER
                 );
             });
         });
@@ -453,7 +456,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: "0",
                     }),
                     cfa,
-                    "CFA_InvalidFlowRate"
+                    "CFA_INVALID_FLOW_RATE"
                 );
             });
 
@@ -467,7 +470,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: "-1",
                     }),
                     cfa,
-                    "CFA_InvalidFlowRate"
+                    "CFA_INVALID_FLOW_RATE"
                 );
             });
 
@@ -481,7 +484,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_FlowDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.CFA_FLOW_DOES_NOT_EXIST
                 );
             });
 
@@ -495,7 +499,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_NoSelfFlow"
+                    "CFA_NO_SELF_FLOW"
                 );
             });
 
@@ -511,7 +515,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                             .toString(),
                     }),
                     cfa,
-                    "CFA_NotEnoughBalance"
+                    "INSUFFICIENT_BALANCE",
+                    t.customErrorCode.CFA_INSUFFICIENT_BALANCE
                 );
             });
 
@@ -538,7 +543,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         flowRate: FLOW_RATE1.toString(),
                     }),
                     cfa,
-                    "CFA_ZeroAddressReceiver"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.CFA_ZERO_ADDRESS_RECEIVER
                 );
             });
         });
@@ -610,7 +616,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         receiver: t.aliases[agent],
                     }),
                     cfa,
-                    "CFA_FlowDoesNotExist"
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.CFA_FLOW_DOES_NOT_EXIST
                 );
             });
 
@@ -623,7 +630,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         receiver: ZERO_ADDRESS,
                     }),
                     cfa,
-                    "CFA_ZeroAddressReceiver"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.CFA_ZERO_ADDRESS_RECEIVER
                 );
             });
 
@@ -637,7 +645,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer: await ethers.getSigner(t.aliases[sender]),
                     }),
                     cfa,
-                    "CFA_ZeroAddressSender"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.CFA_ZERO_ADDRESS_SENDER
                 );
             });
         });
@@ -669,7 +678,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer,
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
             });
 
@@ -684,7 +693,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer,
                     }),
                     cfa,
-                    "CFA_ZeroAddressSender"
+                    "ZERO_ADDRESS",
+                    t.customErrorCode.CFA_ZERO_ADDRESS_SENDER
                 );
             });
 
@@ -699,7 +709,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer,
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
             });
 
@@ -1968,7 +1978,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer: agentSigner,
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
 
                 await expectCustomError(
@@ -1980,7 +1990,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer: receiverSigner,
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
 
                 await expectCustomError(
@@ -1992,7 +2002,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer: receiverSigner,
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
             });
 
@@ -2049,7 +2059,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer: await ethers.getSigner(t.aliases[receiver]),
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
             });
 
@@ -2105,7 +2115,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         signer: await ethers.getSigner(t.aliases[receiver]),
                     }),
                     cfa,
-                    "CFA_NonCriticalSender"
+                    "CFA_NON_CRITICAL_SENDER"
                 );
             });
         });
@@ -2188,7 +2198,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 expectCustomError(
                     test(maxDeposit.add(1)),
                     cfa,
-                    "CFA_DepositTooBig"
+                    "CFA_DEPOSIT_TOO_BIG"
                 );
             });
 
@@ -2223,7 +2233,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                         toBN("-100000000000000").toString()
                     ),
                     cfa,
-                    "CFA_InvalidFlowRate"
+                    "CFA_INVALID_FLOW_RATE"
                 );
                 const maxFlowRate = toBN(1)
                     .shl(95)
@@ -2232,12 +2242,11 @@ describe("Using ConstantFlowAgreement v1", function () {
                 await expectCustomError(
                     test(maxFlowRate.add(1).toString()),
                     cfa,
-                    "CFA_FlowRateTooBig"
+                    "CFA_FLOW_RATE_TOO_BIG"
                 );
             });
 
             it("#1.8.4 only authorized host can access token", async () => {
-                // @note figure out how to do w/ library
                 const fakeSfMockFactory = await ethers.getContractFactory(
                     "FakeSuperfluidMock"
                 );
@@ -2560,7 +2569,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                         receiver: t.aliases[receiver],
                     }),
                     cfa,
-                    "CFA_NotEnoughBalance"
+                    "INSUFFICIENT_BALANCE",
+                    t.customErrorCode.CFA_INSUFFICIENT_BALANCE
                 );
             });
         });
@@ -3318,7 +3328,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     userData,
                 }),
                 cfa,
-                "CFA_APP_NoCriticalReceiverAccount"
+                "APP_RULE",
+                t.customErrorCode.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT
             );
 
             // original case
@@ -3342,7 +3353,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     userData,
                 }),
                 cfa,
-                "CFA_NotEnoughBalance"
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
             );
 
             await timeTravelOnceAndVerifyAll();
@@ -3660,7 +3672,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     signer: await ethers.getSigner(t.aliases[dan]),
                 }),
                 cfa,
-                "CFA_NonCriticalSender"
+                "CFA_NON_CRITICAL_SENDER"
             );
 
             const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
@@ -3787,7 +3799,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                     signer: await ethers.getSigner(t.aliases[dan]),
                 }),
                 cfa,
-                "CFA_NonCriticalSender"
+                "CFA_NON_CRITICAL_SENDER"
             );
 
             // @note - need to consider new additional app credit rule CFA-2
@@ -3815,7 +3827,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await expectJailed(
                 app.address,
-                11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */
+                t.customErrorCode.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT
             );
             await expectNetFlow({
                 testenv: t,
@@ -3856,7 +3868,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await expectJailed(
                 app.address,
-                11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */
+                t.customErrorCode.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT
             );
             await expectNetFlow({
                 testenv: t,
@@ -3893,7 +3905,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await expectJailed(
                 app.address,
-                11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */
+                t.customErrorCode.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT
             );
             await expectNetFlow({
                 testenv: t,
@@ -3994,7 +4006,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await expectJailed(
                 app.address,
-                12 /* APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT */
+                t.customErrorCode.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT
             );
             await t.validateSystemInvariance();
             await expectNetFlow({
@@ -4034,7 +4046,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     signer: await ethers.getSigner(t.accounts[0]),
                 }),
                 cfa,
-                "CFA_NotEnoughBalance"
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
             );
         });
 
@@ -4071,7 +4084,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     userData,
                 }),
                 cfa,
-                "CFA_APP_NoCriticalReceiverAccount"
+                "APP_RULE",
+                t.customErrorCode.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT
             );
         });
     });
@@ -4390,7 +4404,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     flowRate: FLOW_RATE1.toString(),
                 }),
                 cfa,
-                "CFA_NotEnoughBalance"
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
             );
 
             // fund the app with
@@ -4527,14 +4542,14 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ...aliceSenderAdminFlowOperator,
                 permissions: "69",
                 flowRateAllowance: "42069",
-                expectedCustomError: "CFA_ACL_UncleanPermissions",
+                expectedCustomError: "CFA_ACL_UNCLEAN_PERMISSIONS",
                 signer,
             });
             await shouldRevertUpdateFlowOperatorPermissions({
                 ...aliceSenderAdminFlowOperator,
                 permissions: "8",
                 flowRateAllowance: "42069",
-                expectedCustomError: "CFA_ACL_UncleanPermissions",
+                expectedCustomError: "CFA_ACL_UNCLEAN_PERMISSIONS",
                 signer,
             });
         });
@@ -4547,7 +4562,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 permissions: "7",
                 flowRateAllowance: "99999999999999",
                 signer: await ethers.getSigner(admin),
-                expectedCustomError: "CFA_ACL_NoSenderFlowOperator",
+                expectedCustomError: "CFA_ACL_NO_SENDER_FLOW_OPERATOR",
             });
         });
 
@@ -4746,7 +4761,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: "1738",
-                expectedCustomError: "CFA_ACL_OperatorNoCreatePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS",
                 signer,
             });
 
@@ -4756,7 +4771,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: "1738",
-                expectedCustomError: "CFA_ACL_OperatorNoUpdatePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS",
                 signer,
             });
 
@@ -4774,7 +4789,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: "0",
-                expectedCustomError: "CFA_ACL_OperatorNoDeletePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS",
                 signer,
             });
         });
@@ -4786,7 +4801,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: alice,
                 flowRate: "1738",
-                expectedCustomError: "CFA_ACL_NoSenderCreate",
+                expectedCustomError: "CFA_ACL_NO_SENDER_CREATE",
                 signer,
             });
 
@@ -4796,7 +4811,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: alice,
                 flowRate: "1738",
-                expectedCustomError: "CFA_ACL_NoSenderUpdate",
+                expectedCustomError: "CFA_ACL_NO_SENDER_UPDATE",
                 signer,
             });
 
@@ -4806,7 +4821,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: alice,
                 flowRate: FLOW_RATE1,
-                expectedCustomError: "CFA_ACL_OperatorNoDeletePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS",
                 signer,
             });
         });
@@ -4827,7 +4842,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: dan,
                 flowOperator: admin,
                 flowRate: flowRateAllowance.add(toBN(1)).toString(),
-                expectedCustomError: "CFA_ACL_FlowRateAllowanceExceeded",
+                expectedCustomError: "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED",
                 signer,
             });
 
@@ -4847,7 +4862,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: dan,
                 flowOperator: admin,
                 flowRate: flowRateAllowance.toString(),
-                expectedCustomError: "CFA_ACL_FlowRateAllowanceExceeded",
+                expectedCustomError: "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED",
                 signer,
             });
 
@@ -4868,7 +4883,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: flowRateAllowance.add(toBN(1)),
-                expectedCustomError: "CFA_ACL_FlowRateAllowanceExceeded",
+                expectedCustomError: "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED",
                 signer,
             });
         });
@@ -4896,7 +4911,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: FLOW_RATE1,
-                expectedCustomError: "CFA_ACL_OperatorNoUpdatePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS",
                 signer,
             });
             await shouldRevertChangeFlowByOperator({
@@ -4905,7 +4920,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: FLOW_RATE1,
-                expectedCustomError: "CFA_ACL_OperatorNoDeletePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS",
                 signer,
             });
 
@@ -4930,7 +4945,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: bob,
                 flowOperator: admin,
                 flowRate: FLOW_RATE1,
-                expectedCustomError: "CFA_ACL_OperatorNoDeletePermissions",
+                expectedCustomError: "CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS",
                 signer,
             });
 
@@ -5555,7 +5570,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ...aliceSenderAdminFlowOperator,
                 permissions: ALLOW_CREATE.toString(),
                 flowRateAllowance: "-1",
-                expectedCustomError: "CFA_ACL_NoNegativeAllowance",
+                expectedCustomError: "CFA_ACL_NO_NEGATIVE_ALLOWANCE",
                 signer,
             });
         });
@@ -5932,7 +5947,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     flowRate: FLOW_RATE1.toString(),
                 }),
                 superfluid,
-                "Host_AppRule_CompositeAppNotWhitelisted"
+                "APP_RULE",
+                t.customErrorCode.APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED
             );
 
             // Should still fail after allow composite app due to max app level rule
@@ -5946,7 +5962,8 @@ describe("Using ConstantFlowAgreement v1", function () {
                     flowRate: FLOW_RATE1.toString(),
                 }),
                 superfluid,
-                "Host_AppRule_MaxAppCallbackLevelReached"
+                "APP_RULE",
+                t.customErrorCode.APP_RULE_MAX_APP_LEVEL_REACHED
             );
         });
 
@@ -5989,7 +6006,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectCustomError(
                 redirectorB.startStreamToSelf(alice, FLOW_RATE1),
                 superfluid,
-                "Host_AppRule_CompositeAppNotWhitelisted"
+                "APP_RULE",
+                t.customErrorCode.APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED
             );
 
             // Should still fail after allow composite app due to max app level rule
@@ -5997,7 +6015,8 @@ describe("Using ConstantFlowAgreement v1", function () {
             await expectCustomError(
                 redirectorB.startStreamToSelf(alice, FLOW_RATE1),
                 superfluid,
-                "Host_AppRule_MaxAppCallbackLevelReached"
+                "APP_RULE",
+                t.customErrorCode.APP_RULE_MAX_APP_LEVEL_REACHED
             );
         });
 

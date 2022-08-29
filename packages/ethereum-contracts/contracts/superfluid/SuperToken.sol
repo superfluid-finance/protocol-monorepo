@@ -22,7 +22,7 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-
+import { SuperfluidErrors } from "../interfaces/superfluid/Definitions.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -114,7 +114,7 @@ contract SuperToken is
     }
 
     function updateCode(address newAddress) external override {
-        if (msg.sender != address(_host)) revert SuperToken_OnlyHost();
+        if (msg.sender != address(_host)) revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SUPER_TOKEN_ONLY_HOST);
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 
@@ -149,9 +149,12 @@ contract SuperToken is
     function _transferFrom(address spender, address holder, address recipient, uint amount)
         internal returns (bool)
     {
-        if (holder == address(0)) revert SuperToken_TransferFromZeroAddressNotAllowed();
-        if (recipient == address(0)) revert SuperToken_TransferToZeroAddressNotAllowed();
-
+        if (holder == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS);
+        }
+        if (recipient == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS);
+        }
         address operator = msg.sender;
 
         _move(operator, holder, recipient, amount, "", "");
@@ -187,8 +190,12 @@ contract SuperToken is
     )
         private
     {
-        if (from == address(0)) revert SuperToken_TransferFromZeroAddressNotAllowed();
-        if (to == address(0)) revert SuperToken_TransferToZeroAddressNotAllowed();
+        if (from == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS);
+        }
+        if (to == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS);
+        }
 
         _callTokensToSend(operator, from, to, amount, userData, operatorData);
 
@@ -240,7 +247,9 @@ contract SuperToken is
     )
         internal
     {
-        if (account == address(0)) revert SuperToken_MintToZeroAddressNotAllowed();
+        if (account == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_MINT_TO_ZERO_ADDRESS);
+        }
 
         SuperfluidToken._mint(account, amount);
 
@@ -266,7 +275,9 @@ contract SuperToken is
     )
         internal
     {
-        if (from == address(0)) revert SuperToken_BurnFromZeroAddressNotAllowed();
+        if (from == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS);
+        }
 
         _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
 
@@ -292,8 +303,12 @@ contract SuperToken is
     function _approve(address account, address spender, uint256 amount)
         internal
     {
-        if (account == address(0)) revert SuperToken_ApproveFromZeroAddressNotAllowed();
-        if (spender == address(0)) revert SuperToken_ApproveToZeroAddressNotAllowed();
+        if (account == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS);
+        }
+        if (spender == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS);
+        }
 
         _allowances[account][spender] = amount;
         emit Approval(account, spender, amount);
@@ -352,7 +367,7 @@ contract SuperToken is
         if (implementer != address(0)) {
             IERC777Recipient(implementer).tokensReceived(operator, from, to, amount, userData, operatorData);
         } else if (requireReceptionAck) {
-            if (to.isContract()) revert SuperToken_NotERC777TokensRecipient();
+            if (to.isContract()) revert SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT();
         }
     }
 
@@ -460,7 +475,7 @@ contract SuperToken is
         bytes calldata operatorData
     ) external override {
         address operator = msg.sender;
-        if (!_operators.isOperatorFor(operator, sender)) revert SuperToken_CallerIsNotOperatorForHolder();
+        if (!_operators.isOperatorFor(operator, sender)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
         _send(operator, sender, recipient, amount, data, operatorData, true);
     }
 
@@ -471,7 +486,7 @@ contract SuperToken is
         bytes calldata operatorData
     ) external override {
         address operator = msg.sender;
-        if (!_operators.isOperatorFor(operator, account)) revert SuperToken_CallerIsNotOperatorForHolder();
+        if (!_operators.isOperatorFor(operator, account)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
         _downgrade(operator, account, amount, data, operatorData);
     }
 
@@ -571,7 +586,7 @@ contract SuperToken is
         bytes memory userData,
         bytes memory operatorData
     ) private {
-        if (address(_underlyingToken) == address(0)) revert SuperToken_NoUnderlyingToken();
+        if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
@@ -579,7 +594,7 @@ contract SuperToken is
         _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualUpgradedAmount = amountAfter - amountBefore;
-        if (underlyingAmount != actualUpgradedAmount) revert SuperToken_InflationaryDeflationaryUnsupported();
+        if (underlyingAmount != actualUpgradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
 
         _mint(operator, to, adjustedAmount,
             // if `to` is diffferent from `account`, we requireReceptionAck
@@ -594,7 +609,7 @@ contract SuperToken is
         uint256 amount,
         bytes memory data,
         bytes memory operatorData) private {
-        if (address(_underlyingToken) == address(0)) revert SuperToken_NoUnderlyingToken();
+        if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
@@ -605,7 +620,7 @@ contract SuperToken is
         _underlyingToken.safeTransfer(account, underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualDowngradedAmount = amountBefore - amountAfter;
-        if (underlyingAmount != actualDowngradedAmount) revert SuperToken_InflationaryDeflationaryUnsupported();
+        if (underlyingAmount != actualDowngradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
 
         emit TokenDowngraded(account, adjustedAmount);
     }
@@ -682,7 +697,7 @@ contract SuperToken is
     *************************************************************************/
 
     modifier onlySelf() {
-        if (msg.sender != address(this)) revert SuperToken_OnlySelf();
+        if (msg.sender != address(this)) revert SUPER_TOKEN_ONLY_SELF();
         _;
     }
 

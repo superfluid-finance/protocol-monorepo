@@ -5,7 +5,8 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {
     IInstantDistributionAgreementV1,
-    ISuperfluidToken
+    ISuperfluidToken,
+    SuperfluidErrors
 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import {
     ISuperfluid,
@@ -138,7 +139,9 @@ contract InstantDistributionAgreementV1 is
         ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
-        if (_hasIndexData(token, iId)) revert IDA_IndexAlreadyExist();
+        if (_hasIndexData(token, iId)) {
+            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.IDA_INDEX_ALREADY_EXISTS);
+        }
 
         token.createAgreement(iId, _encodeIndexData(IndexData(0, 0, 0)));
 
@@ -185,7 +188,7 @@ contract InstantDistributionAgreementV1 is
     {
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
-        if (!exist) revert IDA_IndexDoesNotExist();
+        if (!exist) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST);
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
         uint128 indexDelta = (amount / totalUnits).toUint128();
@@ -206,7 +209,7 @@ contract InstantDistributionAgreementV1 is
         ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
         (bytes32 iId, IndexData memory idata) = _loadIndexData(token, publisher, indexId);
-        if (indexValue < idata.indexValue) revert IDA_IndexShouldGrow();
+        if (indexValue < idata.indexValue) revert IDA_INDEX_SHOULD_GROW();
 
         _updateIndex(token, publisher, indexId, iId, idata, indexValue, context.userData);
 
@@ -275,7 +278,9 @@ contract InstantDistributionAgreementV1 is
             userData);
 
         // check account solvency
-        if (token.isAccountCriticalNow(publisher)) revert IDA_InsufficientBalance();
+        if (token.isAccountCriticalNow(publisher)) {
+            revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.IDA_INSUFFICIENT_BALANCE);
+        }
     }
 
     function _loadIndexData(
@@ -291,7 +296,7 @@ contract InstantDistributionAgreementV1 is
         bool exist;
         iId = _getPublisherId(publisher, indexId);
         (exist, idata) = _getIndexData(token, iId);
-        if (!exist) revert IDA_IndexDoesNotExist();
+        if (!exist) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST);
     }
 
     /**************************************************************************
@@ -339,7 +344,9 @@ contract InstantDistributionAgreementV1 is
 
         if (vars.subscriptionExists) {
             // required condition check
-            if (vars.sdata.subId != _UNALLOCATED_SUB_ID) revert IDA_SubscriptionAlreadyApproved();
+            if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
+                revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.IDA_SUBSCRIPTION_ALREADY_APPROVED);
+            }
         }
 
         newCtx = ctx;
@@ -425,7 +432,9 @@ contract InstantDistributionAgreementV1 is
         ) = _loadAllData(token, publisher, subscriber, indexId, true);
 
         // should not revoke an pending(un-approved) subscription
-        if (vars.sdata.subId == _UNALLOCATED_SUB_ID) revert IDA_SubscriptionIsNotApproved();
+        if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
+            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_SUBSCRIPTION_IS_NOT_APPROVED);
+        }
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
@@ -474,7 +483,9 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        if (subscriber == address(0)) revert IDA_NoZeroAddressSubscribers();
+        if (subscriber == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER);
+        }
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         bytes memory userData;
@@ -634,7 +645,9 @@ contract InstantDistributionAgreementV1 is
         SubscriptionData memory sdata;
 
         (exist, sdata) = _getSubscriptionData(token, agreementId);
-        if (!exist) revert IDA_SubscriptionDoesNotExist();
+        if (!exist) {
+            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_SUBSCRIPTION_DOES_NOT_EXIST);
+        }
 
         publisher = sdata.publisher;
         indexId = sdata.indexId;
@@ -699,12 +712,14 @@ contract InstantDistributionAgreementV1 is
             sender = context.msgSender;
             userData = context.userData;
         }
-        if (subscriber == address(0)) revert IDA_NoZeroAddressSubscribers();
+        if (subscriber == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER);
+        }
 
         // only publisher can delete a subscription
         // follows from the invariant that only the publisher
         // has the ability to modify the units a subscriber has
-        if (sender != publisher) revert IDA_OperationNotAllowed();
+        if (sender != publisher) revert IDA_OPERATION_NOT_ALLOWED();
 
         (
             vars.iId,
@@ -773,7 +788,9 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         AgreementLibrary.authorizeTokenAccess(token, ctx);
-        if (subscriber == address(0)) revert IDA_NoZeroAddressSubscribers();
+        if (subscriber == address(0)) {
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER);
+        }
 
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
@@ -787,7 +804,9 @@ contract InstantDistributionAgreementV1 is
         ) = _loadAllData(token, publisher, subscriber, indexId, true);
 
         // required condition check
-        if (vars.sdata.subId != _UNALLOCATED_SUB_ID) revert IDA_SubscriptionAlreadyApproved();
+        if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
+            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.IDA_SUBSCRIPTION_ALREADY_APPROVED);
+        }
 
         uint256 pendingDistribution = uint256(vars.idata.indexValue - vars.sdata.indexValue)
             * uint256(vars.sdata.units);
@@ -843,10 +862,12 @@ contract InstantDistributionAgreementV1 is
         iId = _getPublisherId(publisher, indexId);
         sId = _getSubscriptionId(subscriber, iId);
         (indexExists, idata) = _getIndexData(token, iId);
-        if (!indexExists) revert IDA_IndexDoesNotExist();
+        if (!indexExists) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST);
         (subscriptionExists, sdata) = _getSubscriptionData(token, sId);
         if (requireSubscriptionExisting) {
-            if (!subscriptionExists) revert IDA_SubscriptionDoesNotExist();
+            if (!subscriptionExists) {
+                revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_SUBSCRIPTION_DOES_NOT_EXIST);
+            }
              // sanity check
             assert(sdata.publisher == publisher);
             assert(sdata.indexId == indexId);

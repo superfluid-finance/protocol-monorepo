@@ -1,6 +1,3 @@
-const SuperfluidGovernanceIIProxy = artifacts.require(
-    "SuperfluidGovernanceIIProxy"
-);
 const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
 const {
     expectRevertedWith,
@@ -18,7 +15,7 @@ describe("Superfluid Ownable Governance Contract", function () {
     const FAKE_TOKEN_ADDRESS2 = "0x" + "f".repeat(40);
     const FAKE_ADDRESS1 = "0x" + "1".repeat(40);
     const FAKE_ADDRESS2 = "0x" + "2".repeat(40);
-    const onlyOwnerReason = "SFGovII_OnlyOwner";
+    const onlyOwnerReason = "SF_GOV_II_ONLY_OWNER";
 
     let alice;
     let aliceSigner;
@@ -120,7 +117,8 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#1.4 initializeProxy can't be invoked again", async () => {
-            const govProxy = await SuperfluidGovernanceIIProxy.at(
+            const govProxy = await ethers.getContractAt(
+                "SuperfluidGovernanceIIProxy",
                 governance.address
             );
             const newGovLogic = await SuperfluidGovernanceII.new();
@@ -544,7 +542,8 @@ describe("Superfluid Ownable Governance Contract", function () {
                     .connect(aliceSigner)
                     .authorizeAppFactory(superfluid.address, FAKE_ADDRESS1),
                 governance,
-                "SFGov_FactoryMustBeContract"
+                "MUST_BE_CONTRACT",
+                t.customErrorCode.SF_GOV_MUST_BE_CONTRACT
             );
 
             assert.isFalse(

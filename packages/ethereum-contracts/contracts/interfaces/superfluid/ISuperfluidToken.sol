@@ -2,24 +2,13 @@
 pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
-
+import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
  * @title Superfluid token interface
  * @author Superfluid
  */
 interface ISuperfluidToken {
-
-    /**************************************************************************
-     * Errors
-     *************************************************************************/
-    error SFToken_AgreementAlreadyCreated();
-    error SFToken_AgreementDoesNotExist();
-    error SFToken_BurnAmountExceedsBalance();
-    error SFToken_MoveAmountExceedsBalance();
-    error SFToken_OnlyHost();
-    error SFToken_OnlyListedAgreement();
-
     /**************************************************************************
      * Basic information
      *************************************************************************/

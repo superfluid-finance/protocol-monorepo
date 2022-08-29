@@ -12,6 +12,7 @@ const MaticBridgedNativeSuperTokenProxy = artifacts.require(
 const IMaticBridgedNativeSuperToken = artifacts.require(
     "IMaticBridgedNativeSuperToken"
 );
+const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
 const {ethers} = require("hardhat");
@@ -66,6 +67,10 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             (await token.balanceOf.call(admin)).toString(),
             toWad(0).toString()
         );
+        token = await ethers.getContractAt(
+            "IMaticBridgedNativeSuperToken",
+            tokenProxy.address
+        );
         await expectRevertedWith(
             token.initialize(
                 t.constants.ZERO_ADDRESS,
@@ -84,6 +89,10 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             "MBT",
             "MBT"
         );
+        token = await ethers.getContractAt(
+            "IMaticBridgedNativeSuperToken",
+            tokenProxy.address
+        );
 
         await expectRevertedWith(
             token.deposit(
@@ -93,23 +102,32 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             "MBNSuperToken: no permission to deposit"
         );
 
-        await token.deposit(
-            bob,
-            web3.eth.abi.encodeParameter("uint256", AMOUNT_1.toString()),
-            {from: chainMgr}
-        );
+        await token
+            .connect(await ethers.getSigner(chainMgr))
+            .deposit(
+                bob,
+                web3.eth.abi.encodeParameter("uint256", AMOUNT_1.toString())
+            );
 
         const tokenContract = await ethers.getContractAt(
             "IMaticBridgedNativeSuperToken",
             token.address
         );
+        const superTokenContract = new ethers.Contract(
+            "SuperToken",
+            SuperTokenArtifact.abi,
+            await ethers.getSigner(chainMgr)
+        );
         await expectCustomError(
             tokenContract.withdraw(AMOUNT_1.toString()),
-            tokenContract,
-            "SFToken_BurnAmountExceedsBalance"
+            superTokenContract,
+            "INSUFFICIENT_BALANCE",
+            t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
         );
 
-        await token.withdraw(AMOUNT_1.toString(), {from: bob});
+        await token
+            .connect(await ethers.getSigner(bob))
+            .withdraw(AMOUNT_1.toString());
 
         await expectRevertedWith(
             token.updateChildChainManager(bob),

@@ -41,7 +41,7 @@ contract CFAv1Forwarder {
      * If there's an existing flow and `flowrate` zero, the flow is deleted.
      * If the existing and given flowrate are equal, no action is taken.
      * On creation of a flow, a "buffer" amount is automatically detracted from the sender account's available balance.
-     * This buffer is redeemed on deletion of that flow, if the sender account is then solvent (non-zero balance).
+     * If the sender account is solvent when the flow is deleted, this buffer is redeemed to it.
      * @param token Super token address
      * @param receiver The receiver of the flow
      * @param flowrate The wanted flowrate in wad/second. Only positive values are valid here.

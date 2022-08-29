@@ -31,36 +31,30 @@ All subgraphs are available via The Graph's hosted service:
 | Network | URL |
 | --- | --- |
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-matic |
-| Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
-| Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
-| Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
-| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-c |
-| BNB Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-bsc-mainnet |
-| Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
-| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
-| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
-| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-rinkeby |
+| Gnosis | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
+| Optimism Mainnet | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-mainnet |
+| Arbitrum One | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-one |
+| Avalanche C-Chain | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-c |
+| BNB Chain | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-bsc-mainnet |
+| Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-mumbai |
-| Optimism Kovan| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-kovan |
-| Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-rinkeby |
+| Optimism Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-optimism-goerli |
+| Arbitrum Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-arbitrum-goerli |
 | Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-avalanche-fuji |
 
 **Development Endpoints**
 | Network | URL |
 | --- | --- |
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-matic |
-| Gnosis| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
-| Optimism Mainnet| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
-| Arbitrum One| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
-| Avalanche C-Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-c |
-| BNB Chain| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-bsc-mainnet |
+| Gnosis | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
+| Optimism Mainnet | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-mainnet |
+| Arbitrum One | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-one |
+| Avalanche C-Chain | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-c |
+| BNB Chain | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-bsc-mainnet |
 | Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
 | Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
-| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |
-| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-kovan |
-| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-rinkeby |
-| Optimism Kovan| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-kovan |
-| Arbitrum Rinkeby| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-rinkeby |
+| Optimism Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-optimism-goerli |
+| Arbitrum Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-arbitrum-goerli |
 | Avalanche Fuji | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-avalanche-fuji |
 
 **Feature Endpoints**

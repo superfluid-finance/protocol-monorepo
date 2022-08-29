@@ -52,11 +52,11 @@ contract SuperfluidUpgradabilityTester is Superfluid {
     function validateContextStructLayout()
         external pure
     {
-        // context.appLevel
+        // context.appCallbackLevel
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 0)), 42) }
-            require(context.appLevel == 42, "appLevel changed location");
+            require(context.appCallbackLevel == 42, "appLevel changed location");
         }
         // context.callType
         {
@@ -94,35 +94,35 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly { dataLen := mload(dataOffset) }
             require(dataLen == 42, "userData changed location");
         }
-        // context.appAllowanceGranted
+        // context.appCreditGranted
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 6)), 42) }
-            require(context.appAllowanceGranted == 42, "appAllowanceGranted changed location");
+            require(context.appCreditGranted == 42, "appCreditGranted changed location");
         }
-        // context.appAllowanceGranted
+        // context.appCreditWantedDeprecated
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 7)), 42) }
-            require(context.appAllowanceWanted == 42, "appAllowanceWanted changed location");
+            require(context.appCreditWantedDeprecated == 42, "appCreditWantedDeprecated changed location");
         }
-        // context.appAllowanceGranted
+        // context.appCreditUsed
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 8)), 42) }
-            require(context.appAllowanceUsed == 42, "appAllowanceUsed changed location");
+            require(context.appCreditUsed == 42, "appCreditUsed changed location");
         }
-        // context.appAllowanceGranted
+        // context.appAddress
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 9)), 42) }
             require(context.appAddress == address(42), "appAddress changed location");
         }
-        // context.appAllowanceToken
+        // context.appCreditToken
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 10)), 42) }
-            require(address(context.appAllowanceToken) == address(42), "appAllowanceToken changed location");
+            require(address(context.appCreditToken) == address(42), "appCreditToken changed location");
         }
     }
 }

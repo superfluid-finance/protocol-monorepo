@@ -136,7 +136,7 @@ Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/pa
 
 ## Examples
 
-See [examples/](examples/) for some Superfluid app examples.
+See our [examples repo](https://github.com/superfluid-finance/super-examples) for some Superfluid app examples.
 
 ## Contributing
 

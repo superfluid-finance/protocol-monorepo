@@ -19,7 +19,6 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
-
 /**
  * @title ConstantFlowAgreementV1 contract
  * @author Superfluid
@@ -898,15 +897,14 @@ contract ConstantFlowAgreementV1 is
         FlowData memory newFlowData;
         (depositDelta,,newFlowData) = _changeFlow(
             currentContext.timestamp,
-            currentContext.appAllowanceToken,
+            currentContext.appCreditToken,
             token, flowParams, oldFlowData);
 
-        // STEP 2: update app allowance used
-        if (currentContext.appAllowanceToken == token) {
-            newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
+        // STEP 2: update app credit used
+        if (currentContext.appCreditToken == token) {
+            newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                 ctx,
-                newFlowData.deposit, // allowanceWantedMore
-                depositDelta // allowanceUsedDelta
+                depositDelta
             );
         } else {
             newCtx = ctx;
@@ -959,14 +957,34 @@ contract ConstantFlowAgreementV1 is
             }
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
-            (,cbStates.appAllowanceGranted,) = _changeFlow(
+            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
+
+            (,cbStates.appCreditGranted,) = _changeFlow(
                     currentContext.timestamp,
-                    currentContext.appAllowanceToken,
+                    currentContext.appCreditToken,
                     token, flowParams, oldFlowData);
-            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted * uint256(currentContext.appLevel + 1);
-            cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
+
+
+            // Rule CFA-2
+            // https://github.com/superfluid-finance/protocol-monorepo/wiki/About-App-Credit
+            // Allow apps to take an additional amount of app credit (minimum deposit)
+            uint256 minimumDeposit = gov.getConfigAsUint256(
+                ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+
+            // NOTE: we do not provide additionalAppCreditAmount when cbStates.appCreditGranted is 0
+            // (closing streams)
+            uint256 additionalAppCreditAmount = cbStates.appCreditGranted == 0
+                ? 0
+                : AgreementLibrary.max(
+                    DEFAULT_MINIMUM_DEPOSIT,
+                    minimumDeposit
+                );
+            cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
+
+            cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
+
             // - each app level can at least "relay" the same amount of input flow rate to others
-            // - each app level get a same amount of allowance
+            // - each app level gets the same amount of credit
 
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
@@ -983,38 +1001,31 @@ contract ConstantFlowAgreementV1 is
         } else {
             (,,vars.newFlowData) = _changeFlow(
                     currentContext.timestamp,
-                    currentContext.appAllowanceToken,
+                    currentContext.appCreditToken,
                     token, flowParams, oldFlowData);
         }
 
         // REVIEW the re-entrace assumptions from this point on
 
-        // NOTE: vars.appContext.appAllowanceUsed will be adjusted by callAppAfterCallback
-        // and its range will be [0, currentContext.appAllowance]
+        // NOTE: vars.appContext.appCreditUsed will be adjusted by callAppAfterCallback
+        // and its range will be [0, currentContext.appCreditGranted]
         {
-            // clipping the allowance used amount before storing
-            if (vars.appContext.appAllowanceUsed > 0) {
-                // give more to the app
-                vars.appContext.appAllowanceUsed =
-                    _clipDepositNumber(vars.appContext.appAllowanceUsed.toUint256()).toInt256();
-            }
-
-            int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
+            int256 appCreditDelta = vars.appContext.appCreditUsed
                 - oldFlowData.owedDeposit.toInt256();
 
-            // update flow data and account state with the allowance delta
+            // update flow data and account state with the credit delta
             {
                 vars.newFlowData.deposit = (vars.newFlowData.deposit.toInt256()
-                    + appAllowanceDelta).toUint256();
+                    + appCreditDelta).toUint256();
                 vars.newFlowData.owedDeposit = (vars.newFlowData.owedDeposit.toInt256()
-                    + appAllowanceDelta).toUint256();
+                    + appCreditDelta).toUint256();
                 token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
                 // update sender and receiver deposit (for sender) and owed deposit (for receiver)
                 _updateAccountFlowState(
                     token,
                     flowParams.sender,
                     0, // flow rate delta
-                    appAllowanceDelta, // deposit delta
+                    appCreditDelta, // deposit delta
                     0, // owed deposit delta
                     currentContext.timestamp
                 );
@@ -1023,22 +1034,21 @@ contract ConstantFlowAgreementV1 is
                     flowParams.receiver,
                     0, // flow rate delta
                     0, // deposit delta
-                    appAllowanceDelta, // owed deposit delta
+                    appCreditDelta, // owed deposit delta
                     currentContext.timestamp
                 );
             }
 
-            if (address(currentContext.appAllowanceToken) == address(0) ||
-                currentContext.appAllowanceToken == token)
+            if (address(currentContext.appCreditToken) == address(0) ||
+                currentContext.appCreditToken == token)
             {
-                newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
+                newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                     newCtx,
-                    vars.newFlowData.deposit, // allowanceWantedMore
-                    appAllowanceDelta // allowanceUsedDelta
+                    appCreditDelta
                 );
             }
 
-            // if receiver super app doesn't have enough available balance to give back app allowance
+            // if receiver super app doesn't have enough available balance to give back app credit
             // revert (non termination callbacks),
             // or take it from the sender and jail the app
             if (ISuperfluid(msg.sender).isApp(ISuperApp(flowParams.receiver))) {
@@ -1055,8 +1065,10 @@ contract ConstantFlowAgreementV1 is
                         int256 userDamageAmount = AgreementLibrary.min(
                             // user will take the damage if the app is broke,
                             -availableBalance,
-                            // but user's damage is limited to the amount of app allowance it gives to the app
-                            AgreementLibrary.max(0, -appAllowanceDelta));
+                            // but user's damage is limited to the amount of app credit it gives to the app
+                            // appCreditDelta should ALWAYS be negative because we are closing an agreement
+                            // therefore the value will be positive due to the '-' sign in front of it
+                            -appCreditDelta);
                         token.settleBalance(
                             flowParams.sender,
                             -userDamageAmount
@@ -1085,11 +1097,11 @@ contract ConstantFlowAgreementV1 is
      *
      * NOTE:
      * - leaving owed deposit unchanged for later adjustment
-     * - depositDelta output is always clipped (see _clipDepositNumber)
+     * - depositDelta output is always clipped (see _clipDepositNumberRoundingUp)
      */
     function _changeFlow(
         uint256 currentTimestamp,
-        ISuperfluidToken appAllowanceToken,
+        ISuperfluidToken appCreditToken,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData
@@ -1097,7 +1109,7 @@ contract ConstantFlowAgreementV1 is
         private
         returns (
             int256 depositDelta,
-            uint256 appAllowanceBase,
+            uint256 appCreditBase,
             FlowData memory newFlowData
         )
     {
@@ -1110,25 +1122,25 @@ contract ConstantFlowAgreementV1 is
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
                 minimumDeposit = gov.getConfigAsUint256(
                     ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-                // rounding up the number for app allowance too
+                // rounding up the number for app credit too
                 // CAVEAT:
                 // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
                 // - The app may be jailed due to negative balance if it does this without its own balance.
                 // Rule of thumbs:
-                // - App can use app allowance to create a flow that has the same incoming flow rate
+                // - App can use app credit to create a flow that has the same incoming flow rate
                 // - But due to deposit clipping, there is no guarantee that the sum of the out going flow
-                //   deposit can be covered by the allowance always.
-                // - It is advisable for the app to check the allowance usages carefully, and if possible
+                //   deposit can be covered by the credit always.
+                // - It is advisable for the app to check the credit usages carefully, and if possible
                 //   Always have some its own balances to cover the deposits.
 
                 // preliminary calc of new deposit required, may be changed later in step 2.
                 // used as a variable holding the new deposit amount in the meantime
-                appAllowanceBase = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+                appCreditBase = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
             }
 
             // STEP 2: apply minimum deposit rule and calculate deposit delta
             // preliminary calc depositDelta (minimum deposit rule not yet applied)
-            depositDelta = appAllowanceBase.toInt256()
+            depositDelta = appCreditBase.toInt256()
                 - oldFlowData.deposit.toInt256()
                 + oldFlowData.owedDeposit.toInt256();
 
@@ -1143,11 +1155,11 @@ contract ConstantFlowAgreementV1 is
                 newDeposit = minimumDeposit;
             }
 
-            // allowance should be of the same token
-            if (address(appAllowanceToken) != address(0) &&
-                appAllowanceToken != token)
+            // credit should be of the same token
+            if (address(appCreditToken) != address(0) &&
+                appCreditToken != token)
             {
-                appAllowanceBase = 0;
+                appCreditBase = 0;
             }
 
             // STEP 3: update current flow info
@@ -1204,9 +1216,9 @@ contract ConstantFlowAgreementV1 is
     )
         private view
     {
-        // do not enforce balance checks during callbacks for the appAllowanceToken
+        // do not enforce balance checks during callbacks for the appCreditToken
         if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK ||
-            currentContext.appAllowanceToken != token) {
+            currentContext.appCreditToken != token) {
             (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
             require(availableBalance >= 0, "CFA: not enough available balance");
         }
@@ -1296,7 +1308,7 @@ contract ConstantFlowAgreementV1 is
         return ((deposit >> 32)) << 32;
     }
 
-    function _clipDepositNumber(uint256 deposit)
+    function _clipDepositNumberRoundingUp(uint256 deposit)
         internal pure
         returns(uint256)
     {
@@ -1317,7 +1329,7 @@ contract ConstantFlowAgreementV1 is
         // NOTE: safecast for int96 with extra assertion
         assert(liquidationPeriod <= uint256(int256(type(int96).max)));
         deposit = uint256(int256(flowRate * int96(uint96(liquidationPeriod))));
-        return _clipDepositNumber(deposit);
+        return _clipDepositNumberRoundingUp(deposit);
     }
 
     /**************************************************************************

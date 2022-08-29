@@ -49,7 +49,8 @@ createTokenTestCase (TokenTestCase spec runner) = it (testCaseLabel spec) $ do
         mapM_ (`createTestAccount` testAccountInitBalance spec) addresses
         runner TokenTestContext { testSpec = spec, testAddresses = addresses }
         ) TokenTesterData
-        { sfSys = SF.SimpleSystemData { SF.currentTime = 0 }
+        { sfSys = SF.SimpleSystemData { SF.currentTime = 51084000 -- nixon shock, 15th August 1971
+                                      }
         , token = def
         }
 
@@ -92,13 +93,16 @@ expectZeroTotalValueFuzzily tolerance = do
     let (SF.Wad totalBalance) = SF.netValueOfRTB $ SF.sumBalancesAt (map snd accounts) t
     liftIO $ assertBool "Zero Value Invariance" $ fuzzyEq tolerance (fromInteger totalBalance) (0 :: Double)
 
-expectZeroTotalValue :: TokenTester ()
+expectZeroTotalValue :: HasCallStack => TokenTester ()
 expectZeroTotalValue = expectZeroTotalValueFuzzily 0
 
 -- Convenient utilities just for formatting prettiness (message in the end)
 
-assertBoolWith :: (a -> Bool) -> String -> a -> Assertion
-assertBoolWith f msg x = assertBool msg (f x)
+assertBoolWith :: HasCallStack => String -> (a -> Bool) -> a -> Assertion
+assertBoolWith msg f x = assertBool msg (f x)
 
-assertEqualWith :: (Show a, Eq a) => a -> String -> a -> Assertion
-assertEqualWith a msg = assertEqual msg a
+assertBoolWith' :: HasCallStack => (a -> Bool) -> a -> Assertion
+assertBoolWith' f x = assertBool "?" (f x)
+
+assertEqual' :: HasCallStack => (Show a, Eq a) => a -> a -> Assertion
+assertEqual' = assertEqual "=="

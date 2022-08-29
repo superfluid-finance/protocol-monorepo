@@ -20,11 +20,19 @@ cradle:
       config:
         cradle:
           cabal:
+            - path: "./packages/core/src-internal"
+              component: "lib:superfluid-protocol-spec-core"
             - path: "./packages/core/src"
               component: "lib:superfluid-protocol-spec-core"
+            - path: "./packages/core/test"
+              component: "superfluid-protocol-spec-core:test:tests"
+
+            - path: "packages/simple/src-internal"
+              component: "lib:superfluid-protocol-system-simple"
             - path: "packages/simple/src"
               component: "lib:superfluid-protocol-system-simple"
             - path: "packages/simple/test"
               component: "superfluid-protocol-system-simple:test:tests"
+
             - path: "packages/validator/src"
               component: "superfluid-protocol-spec-validator:exe:superfluid-validator"

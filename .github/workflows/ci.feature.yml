@@ -25,7 +25,6 @@ jobs:
       build_js_sdk: ${{ env.BUILD_JS_SDK }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
-      build_hardhat_deployer: ${{ env.BUILD_HARDHAT_DEPLOYER }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
 
     steps:
@@ -182,12 +181,6 @@ jobs:
     with:
       subgraph-release: feature
 
-  test-hardhat-deployer:
-    uses: ./.github/workflows/call.test-hardhat-deployer.yml
-    name: Build and Test Hardhat-Deployer (Feature Branch)
-    needs: [check]
-    if: needs.check.outputs.build_hardhat_deployer
-
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Feature Branch)
@@ -200,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs, test-hardhat-deployer]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs]
 
     steps:
       - name: Test Results
@@ -223,4 +216,3 @@ jobs:
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
           check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
           check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}
-          check_result test-hardhat-deployer ${{ needs.test-hardhat-deployer.result }}

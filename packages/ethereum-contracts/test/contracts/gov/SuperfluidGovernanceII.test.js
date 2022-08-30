@@ -180,7 +180,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 onlyOwnerReason
             );
             await expectRevertedWith(
-                governance.clearTrustedForwarder(
+                governance.disableTrustedForwarder(
                     superfluid.address,
                     ZERO_ADDRESS,
                     FAKE_ADDRESS1
@@ -228,8 +228,8 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
 
             await web3tx(
-                governance.clearTrustedForwarder,
-                "governance.clearTrustedForwarder FAKE_TOKEN_ADDRESS1 FAKE_ADDRESS2"
+                governance.disableTrustedForwarder,
+                "governance.disableTrustedForwarder FAKE_TOKEN_ADDRESS1 FAKE_ADDRESS2"
             )(superfluid.address, FAKE_TOKEN_ADDRESS1, FAKE_ADDRESS2, {
                 from: alice,
             });
@@ -363,6 +363,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 "69"
             );
         });
+
         it("#2.4 SuperTokenMinimumDeposit", async () => {
             await expectRevertedWith(
                 governance.setSuperTokenMinimumDeposit(
@@ -460,7 +461,54 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.5 authorizeAppFactory", async () => {
+        it("#2.5 setAppRegistrationKey", async () => {
+            const expirationTs = 4242424242; // year 2104 for extra future proofing
+            await expectRevertedWith(
+                governance.setAppRegistrationKey(
+                    superfluid.address,
+                    FAKE_ADDRESS1,
+                    "test",
+                    expirationTs
+                ),
+                onlyOwnerReason
+            );
+            await governance.setAppRegistrationKey(
+                superfluid.address,
+                FAKE_ADDRESS1,
+                "test",
+                expirationTs,
+                {
+                    from: alice,
+                }
+            );
+
+            const regStatus = await governance.verifyAppRegistrationKey(
+                superfluid.address,
+                FAKE_ADDRESS1,
+                "test"
+            );
+            assert.equal(regStatus.validNow, true);
+            assert.equal(regStatus.expirationTs, expirationTs);
+
+            await governance.clearAppRegistrationKey(
+                superfluid.address,
+                FAKE_ADDRESS1,
+                "test",
+                {
+                    from: alice,
+                }
+            );
+
+            const regStatus2 = await governance.verifyAppRegistrationKey(
+                superfluid.address,
+                FAKE_ADDRESS1,
+                "test"
+            );
+            assert.equal(regStatus2.validNow, false);
+            assert.equal(regStatus2.expirationTs, 0);
+        });
+
+        it("#2.6 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );
@@ -523,7 +571,7 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
         });
 
-        it("#2.6 external set/clear config", async () => {
+        it("#2.7 external set/clear config", async () => {
             const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = web3.utils.keccak256(
                 "org.superfluid-finance.superfluid.rewardAddress"
             );

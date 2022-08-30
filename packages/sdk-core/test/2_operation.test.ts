@@ -156,7 +156,9 @@ describe("Operation Tests", () => {
         try {
             await operation.exec(deployer);
         } catch (err: any) {
-            expect(err.message).to.contain("cannot estimate gas");
+            expect(err.message).to.contain(
+                "cannot estimate gas"
+            );
         }
     });
 

@@ -1,0 +1,65 @@
+name: Deploy to Network
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Protocol release version (test/master/v1/etc.)'
+        required: true
+        default: 'v1'
+      network:
+        description: 'Network on which to deploy/upgrade'
+        required: true
+      provider_url:
+        description: 'HTTP or WS RPC provider (overrides the one preset in GH env)'
+        required: false
+      environments:
+        description: 'Additional env vars, separated by semicolons'
+        required: false
+
+jobs:
+
+  deploy-to-network:
+    name: Deploy to network
+
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+      OVERRIDE_PROVIDER_URL: ${{ github.event.inputs.provider_url }}
+      # testnet web3 providers
+      ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+      POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
+      OPTIMISM_GOERLI_PROVIDER_URL: ${{ secrets.OPTIMISM_GOERLI_PROVIDER_URL }}
+      ARBITRUM_GOERLI_PROVIDER_URL: ${{ secrets.ARBITRUM_GOERLI_PROVIDER_URL }}
+      AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+      # mainnet web3 providers
+      XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
+      POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+      OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
+      ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
+      AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
+      BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-for-contracts-dev
+
+      - name: Build and deploy to ${{ github.event.inputs.network }}
+        run: |
+          cd packages/ethereum-contracts
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
+          npx truffle exec --network ${{ github.event.inputs.network }} scripts/deploy-framework.js
+        env:
+          GOVERNANCE_ADMIN_TYPE: MULTISIG

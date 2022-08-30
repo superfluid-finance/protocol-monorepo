@@ -1,4 +1,4 @@
-import { serializeError } from "serialize-error";
+import { miniSerializeError } from "./miniSerializeError";
 
 export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
@@ -12,9 +12,6 @@ export type ErrorType =
     | "INVALID_OBJECT"
     | "UNCLEAN_PERMISSIONS"
     | "NEGATIVE_FLOW_ALLOWANCE"
-    | "EXECUTE_TRANSACTION"
-    | "POPULATE_TRANSACTION"
-    | "SIGN_TRANSACTION"
     | "UNSUPPORTED_OPERATION"
     | "MISSING_TRANSACTION_PROPERTIES"
     | "BATCH_CALL_ERROR"
@@ -30,9 +27,6 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
     ["INVALID_ADDRESS", "Invalid Address"],
     ["INVALID_OBJECT", "Invalid Object"],
-    ["POPULATE_TRANSACTION", "Populate Transaction"],
-    ["EXECUTE_TRANSACTION", "Execute Transaction"],
-    ["SIGN_TRANSACTION", "Sign Transaction"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
@@ -47,18 +41,15 @@ interface ErrorProps {
     cause?: Error | unknown;
 }
 
-// NOTE: this is a temporary solution to fix serializeError
-// which throws a weird JSON error
-const stringifyCause = (cause?: Error | unknown) => {
+const miniStringifyCause = (cause?: Error | unknown) => {
     try {
-        return JSON.stringify(serializeError(cause), null, 2);
-    } catch (err) {
-        try {
-            return JSON.stringify(cause, null, 2);
-        } catch {
-            console.error("Caused by: ", cause);
-            return "[Couldn't serialize error. Error logged to console.]";
-        }
+        const serializedError = miniSerializeError(cause);
+        const stringifiedError = JSON.stringify(serializedError, null, 2);
+        return stringifiedError.replace(/\\"/g, '"'); // Get rid of escaping of quotes.
+    } catch {
+        // `miniSerializeError` is safe enough that this should never occur.
+        console.error("SFError caused by: ", cause);
+        return "[Couldn't serialize internal error. Error logged to console instead.]";
     }
 };
 
@@ -72,7 +63,7 @@ export class SFError extends Error {
         )} Error: ${message}${
             cause
                 ? `
-Caused by: ${stringifyCause(cause)}`
+Caused by: ${miniStringifyCause(cause)}`
                 : ""
         }`;
         super(
@@ -88,6 +79,7 @@ Caused by: ${stringifyCause(cause)}`
             this.cause = cause as Error;
         }
         this.type = type;
+        this.name = "SFError";
         Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }
 }

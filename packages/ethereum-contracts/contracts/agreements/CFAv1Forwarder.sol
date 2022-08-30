@@ -21,7 +21,7 @@ import { CallUtils } from "../libs/CallUtils.sol";
  * by protocol governance.
  */
 contract CFAv1Forwarder {
-    error CFAFwd_InvalidFlowrate();
+    error CFA_FWD_INVALID_FLOWRATE();
 
     ISuperfluid internal _host;
     IConstantFlowAgreementV1 internal _cfa;
@@ -274,7 +274,7 @@ contract CFAv1Forwarder {
                 _deleteFlow(token, sender, receiver, new bytes(0));
             } // else no change, do nothing
         } else {
-            revert CFAFwd_InvalidFlowrate();
+            revert CFA_FWD_INVALID_FLOWRATE();
         }
     }
 

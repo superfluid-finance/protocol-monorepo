@@ -524,13 +524,14 @@ describe("Superfluid Ownable Governance Contract", function () {
 
         it("#2.5 setAppRegistrationKey", async () => {
             const expirationTs = 4242424242; // year 2104 for extra future proofing
-            await expectRevertedWith(
+            await expectCustomError(
                 governance.setAppRegistrationKey(
                     superfluid.address,
                     FAKE_ADDRESS1,
                     "test",
                     expirationTs
                 ),
+                governance,
                 onlyOwnerReason
             );
             await governance.setAppRegistrationKey(

@@ -534,15 +534,15 @@ describe("Superfluid Ownable Governance Contract", function () {
                 governance,
                 onlyOwnerReason
             );
-            await governance.setAppRegistrationKey(
-                superfluid.address,
-                FAKE_ADDRESS1,
-                "test",
-                expirationTs,
-                {
-                    from: alice,
-                }
-            );
+            const aliceSigner = await ethers.getSigner(alice);
+            await governance
+                .connect(aliceSigner)
+                .setAppRegistrationKey(
+                    superfluid.address,
+                    FAKE_ADDRESS1,
+                    "test",
+                    expirationTs
+                );
 
             const regStatus = await governance.verifyAppRegistrationKey(
                 superfluid.address,
@@ -552,14 +552,13 @@ describe("Superfluid Ownable Governance Contract", function () {
             assert.equal(regStatus.validNow, true);
             assert.equal(regStatus.expirationTs, expirationTs);
 
-            await governance.clearAppRegistrationKey(
-                superfluid.address,
-                FAKE_ADDRESS1,
-                "test",
-                {
-                    from: alice,
-                }
-            );
+            await governance
+                .connect(aliceSigner)
+                .clearAppRegistrationKey(
+                    superfluid.address,
+                    FAKE_ADDRESS1,
+                    "test"
+                );
 
             const regStatus2 = await governance.verifyAppRegistrationKey(
                 superfluid.address,

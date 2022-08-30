@@ -38,7 +38,7 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
 interface ErrorProps {
     type: ErrorType;
     message: string;
-    cause?: unknown;
+    cause?: Error | unknown;
 }
 
 const miniStringifyCause = (cause?: Error | unknown) => {
@@ -55,8 +55,7 @@ const miniStringifyCause = (cause?: Error | unknown) => {
 
 export class SFError extends Error {
     readonly type: ErrorType;
-    readonly message: string;
-    readonly errorObject?: unknown;
+    override readonly cause?: Error;
 
     constructor({ type, message, cause }: ErrorProps) {
         const fullMessage = `${errorTypeToTitleMap.get(
@@ -80,9 +79,6 @@ Caused by: ${miniStringifyCause(cause)}`
             this.cause = cause as Error;
         }
         this.type = type;
-        this.errorObject = errorObject;
-        this.message =
-            title + " Error - " + customMessage + formattedErrorObject;
         this.name = "SFError";
         Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }

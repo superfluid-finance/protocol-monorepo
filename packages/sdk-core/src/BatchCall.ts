@@ -68,8 +68,7 @@ export default class BatchCall {
         if (!operationType) {
             throw new SFError({
                 type: "UNSUPPORTED_OPERATION",
-                customMessage:
-                    "The operation at index " + index + " is unsupported.",
+                message: "The operation at index " + index + " is unsupported.",
             });
         }
 
@@ -77,8 +76,7 @@ export default class BatchCall {
         if (!populatedTransaction.to || !populatedTransaction.data) {
             throw new SFError({
                 type: "MISSING_TRANSACTION_PROPERTIES",
-                customMessage:
-                    "The transaction is missing the to or data property.",
+                message: "The transaction is missing the to or data property.",
             });
         }
 

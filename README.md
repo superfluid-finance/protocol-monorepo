@@ -123,17 +123,6 @@ SDK-Core is an application framework for interacting with the Superfluid Protoco
 
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
-#### [`@superfluid-finance/hardhat-deployer`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hardhat-deployer)
-
-<p>
-  <a href="https://www.npmjs.com/package/@superfluid-finance/hardhat-deployer" target="_blank">
-    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/hardhat-deployer.svg">
-  </a>
-  <a href="#" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-  </a>
-</p>
-
 #### [`@superfluid-finance/hot-fuzz`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hot-fuzz)
 
 <p>

@@ -2554,19 +2554,6 @@ describe("Superfluid Host Contract", function () {
             await t.popEvmSnapshot();
         });
 
-        function createAppKey(deployer, registrationKey) {
-            return web3.utils.sha3(
-                web3.eth.abi.encodeParameters(
-                    ["string", "address", "string"],
-                    [
-                        "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
-                        deployer,
-                        registrationKey,
-                    ]
-                )
-            );
-        }
-
         context("#40.x register app with key", () => {
             it("#40.1 app registration without key should fail", async () => {
                 await expectCustomError(
@@ -2593,13 +2580,13 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#40.3 app can register with a correct key", async () => {
-                const appKey = createAppKey(bob, "hello world");
+                const regKey = "hello world";
                 const expirationTs =
                     Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
-                await governance["setConfig(address,address,bytes32,uint256)"](
+                await governance.setAppRegistrationKey(
                     superfluid.address,
-                    ZERO_ADDRESS,
-                    appKey,
+                    bob,
+                    regKey,
                     expirationTs
                 );
                 const bobSigner = await ethers.getSigner(bob);
@@ -2614,13 +2601,13 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#40.4 app registration with key for different deployer should fail", async () => {
-                const appKey = createAppKey(bob, "hello world");
+                const regKey = "hello world";
                 const expirationTs =
                     Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
-                await governance["setConfig(address,address,bytes32,uint256)"](
+                await governance.setAppRegistrationKey(
                     superfluid.address,
-                    ZERO_ADDRESS,
-                    appKey,
+                    bob,
+                    regKey,
                     expirationTs
                 );
                 await expectCustomError(
@@ -2635,12 +2622,12 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#40.5 app can register with an expired key should fail", async () => {
-                const appKey = createAppKey(bob, "hello world again");
+                const regKey = "hello world again";
                 const expirationTs = Math.floor(Date.now() / 1000) - 3600 * 24; // expired yesterday
-                await governance["setConfig(address,address,bytes32,uint256)"](
+                await governance.setAppRegistrationKey(
                     superfluid.address,
-                    ZERO_ADDRESS,
-                    appKey,
+                    bob,
+                    regKey,
                     expirationTs
                 );
                 await expectCustomError(

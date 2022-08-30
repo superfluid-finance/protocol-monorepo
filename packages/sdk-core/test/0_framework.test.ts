@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
-import { ETH_RINKEBY_CHAIN_ID, MATIC_CHAIN_ID } from "../src/constants";
+import { networkNameToChainIdMap } from "../src/constants";
 import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "../scripts/setup";
 import hre from "hardhat";
 
@@ -31,22 +31,27 @@ describe("Framework Tests", async () => {
         deployer = Deployer;
         alpha = Alpha;
         superToken = SuperToken;
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
     });
 
     beforeEach(async () => {
-        await hre.network.provider.send("evm_revert",[evmSnapshotId])
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot")
-    })
+        await hre.network.provider.send("evm_revert", [evmSnapshotId]);
+        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
+    });
 
-    describe("Validate Framework Constructor Options Tests", async() => {
+    describe("Validate Framework Constructor Options Tests", async () => {
         it("Should throw an error if no networkName or chainId", async () => {
             try {
-                await Framework.create({ provider: deployer.provider!, chainId: null as any });
+                await Framework.create({
+                    provider: deployer.provider!,
+                    chainId: null as any,
+                });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must input chainId."
+                    "Framework Initialization Error: You must input chainId."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -54,15 +59,17 @@ describe("Framework Tests", async () => {
             const chainId = (await deployer.provider!.getNetwork()).chainId;
             try {
                 await Framework.create({
-                    chainId: ETH_RINKEBY_CHAIN_ID,
+                    // force cast because we know this exists
+                    chainId: networkNameToChainIdMap.get("eth-goerli")!,
                     provider: deployer.provider!,
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
-                    "Network Mismatch Error - Your provider network chainId is: " +
+                    "Network Mismatch Error: Your provider network chainId is: " +
                         chainId +
                         " whereas your desired chainId is: " +
-                        ETH_RINKEBY_CHAIN_ID
+                        networkNameToChainIdMap.get("eth-goerli")!
                 );
             }
         });
@@ -71,12 +78,15 @@ describe("Framework Tests", async () => {
             try {
                 // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
-                    chainId: MATIC_CHAIN_ID,
+                    // force cast because we know this exists
+                    chainId: networkNameToChainIdMap.get("polygon-mainnet")!,
                 } as any);
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
+                    "Framework Initialization Error: You must pass in a provider, an injected web3.js or ethers.js instance when initializing the framework."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -90,9 +100,11 @@ describe("Framework Tests", async () => {
                     protocolReleaseVersion: "test",
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.equal(
-                    "Framework Initialization Error - You must input your own resolver address if you use an unsupported network."
+                    "Framework Initialization Error: You must input your own resolver address if you use an unsupported network."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
     });
@@ -110,15 +122,17 @@ describe("Framework Tests", async () => {
                     protocolReleaseVersion: "test",
                 });
             } catch (err: any) {
+                expect(err.name).to.equal("SFError");
                 expect(err.message).to.contain(
-                    "Framework Initialization Error - There was an error initializing the framework"
+                    "Framework Initialization Error: There was an error initializing the framework"
                 );
+                expect(err.cause).to.be.instanceOf(Error);
             }
         });
 
         it("Should be able to create a framework with chain id only", async () => {
             await Framework.create({
-                chainId: MATIC_CHAIN_ID,
+                chainId: networkNameToChainIdMap.get("polygon-mainnet")!,
                 provider: customProvider,
             });
         });
@@ -163,8 +177,9 @@ describe("Framework Tests", async () => {
                 framework.createSigner({});
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Create Signer Error - You must pass in a private key, provider or signer."
+                    "Create Signer Error: You must pass in a private key, provider or signer."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 
@@ -175,8 +190,9 @@ describe("Framework Tests", async () => {
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
-                    "Create Signer Error - You must pass in a provider with your private key."
+                    "Create Signer Error: You must pass in a provider with your private key."
                 );
+                expect(err.cause).to.be.undefined;
             }
         });
 

@@ -1,3 +1,5 @@
+import { miniSerializeError } from "./miniSerializeError";
+
 export type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
     | "SUPERTOKEN_INITIALIZATION"
@@ -10,9 +12,6 @@ export type ErrorType =
     | "INVALID_OBJECT"
     | "UNCLEAN_PERMISSIONS"
     | "NEGATIVE_FLOW_ALLOWANCE"
-    | "EXECUTE_TRANSACTION"
-    | "POPULATE_TRANSACTION"
-    | "SIGN_TRANSACTION"
     | "UNSUPPORTED_OPERATION"
     | "MISSING_TRANSACTION_PROPERTIES"
     | "BATCH_CALL_ERROR"
@@ -28,9 +27,6 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
     ["INVALID_ADDRESS", "Invalid Address"],
     ["INVALID_OBJECT", "Invalid Object"],
-    ["POPULATE_TRANSACTION", "Populate Transaction"],
-    ["EXECUTE_TRANSACTION", "Execute Transaction"],
-    ["SIGN_TRANSACTION", "Sign Transaction"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
     ["BATCH_CALL_ERROR", "Batch Call"],
@@ -39,27 +35,51 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["NEGATIVE_FLOW_ALLOWANCE", "Negative Flow Rate Allowance"],
 ]);
 
-interface ISFErrorProps {
+interface ErrorProps {
     type: ErrorType;
-    customMessage: string;
-    errorObject?: unknown;
+    message: string;
+    cause?: Error | unknown;
 }
 
-export class SFError {
+const miniStringifyCause = (cause?: Error | unknown) => {
+    try {
+        const serializedError = miniSerializeError(cause);
+        const stringifiedError = JSON.stringify(serializedError, null, 2);
+        return stringifiedError.replace(/\\"/g, '"'); // Get rid of escaping of quotes.
+    } catch {
+        // `miniSerializeError` is safe enough that this should never occur.
+        console.error("SFError caused by: ", cause);
+        return "[Couldn't serialize internal error. Error logged to console instead.]";
+    }
+};
+
+export class SFError extends Error {
     readonly type: ErrorType;
-    readonly message: string;
-    readonly errorObject?: unknown;
+    override readonly cause?: Error;
 
-    constructor(props: ISFErrorProps) {
-        const { type, errorObject, customMessage } = props;
-
-        const title = errorTypeToTitleMap.get(type);
-        const formattedErrorObject = errorObject
-            ? ": " + JSON.stringify(errorObject, null, 2) // Pretty-print the error: https://stackoverflow.com/a/7220510
-            : "";
+    constructor({ type, message, cause }: ErrorProps) {
+        const fullMessage = `${errorTypeToTitleMap.get(
+            type
+        )} Error: ${message}${
+            cause
+                ? `
+Caused by: ${miniStringifyCause(cause)}`
+                : ""
+        }`;
+        super(
+            fullMessage,
+            cause
+                ? {
+                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expects "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
+                  }
+                : {}
+        );
+        // Fallback back environments where `Error.cause` is now yet natively supported
+        if (cause && !this.cause) {
+            this.cause = cause as Error;
+        }
         this.type = type;
-        this.errorObject = errorObject;
-        this.message =
-            title + " Error - " + customMessage + formattedErrorObject;
+        this.name = "SFError";
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     }
 }

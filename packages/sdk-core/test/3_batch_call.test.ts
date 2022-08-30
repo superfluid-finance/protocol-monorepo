@@ -7,6 +7,7 @@ import { setup } from "../scripts/setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
 import { ethers } from "ethers";
 import hre from "hardhat";
+import { createCallAppActionOperation } from "./2_operation.test";
 
 describe("Batch Call Tests", () => {
     let evmSnapshotId: string;
@@ -49,8 +50,9 @@ describe("Batch Call Tests", () => {
             await Promise.all(promises);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Unsupported Batch Call Operation Error - The operation at index 0 is unsupported"
+                "Unsupported Batch Call Operation Error: The operation at index 0 is unsupported"
             );
+            expect(err.cause).to.be.undefined;
         }
     });
 
@@ -64,9 +66,7 @@ describe("Batch Call Tests", () => {
         try {
             await framework.batchCall([createFlowOp]).exec(deployer);
         } catch (err: any) {
-            expect(err.message).to.contain(
-                "Batch Call Error - There was an error executing your batch call:"
-            );
+            expect(err.message).to.not.be.null;
         }
     });
 
@@ -122,6 +122,14 @@ describe("Batch Call Tests", () => {
             receiver: bravo.address,
         });
         await framework.batchCall([deleteFlow1, deleteFlow2]).exec(charlie);
+    });
+
+    it("Should be able to create a call app action operation and execute from batch call", async () => {
+        const NEW_VAL = 69;
+        const { superAppTester, operation } =
+            await createCallAppActionOperation(deployer, framework, NEW_VAL);
+        await framework.batchCall([operation]).exec(deployer);
+        expect(await superAppTester.val()).to.equal("69");
     });
 
     // NOTE: this may be quite hard to test locally

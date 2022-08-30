@@ -7,7 +7,7 @@ on:
 jobs:
   update-evm-contracts-docs:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
 
@@ -21,9 +21,10 @@ jobs:
           echo github.base_ref: ${{ github.base_ref }}
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Install
         run: |
@@ -54,7 +55,7 @@ jobs:
       #     aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
       #     s3_uri: ${{ format('{0}ethereum-contracts@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.CONTRACTS_VERSION) }}
       #     cloudfront_distribution_id: E3SV855CTC9UJO
-    
+
       - name: Update the docs repo
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:

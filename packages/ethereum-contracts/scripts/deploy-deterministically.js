@@ -1,11 +1,13 @@
 const {getScriptRunnerFactory: S} = require("./libs/common");
 
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const Resolver = artifacts.require("Resolver");
 
 const SuperfluidLoader = artifacts.require("SuperfluidLoader");
+const AgreementForwarder = artifacts.require("AgreementForwarder");
 
 /**
- * @dev Deploy Superfluid Loader at a deterministic address (defined by sender, nonce)
+ * @dev Deploy specified contract at a deterministic address (defined by sender, nonce)
  * This facilitates deployment of the contract at the same address across networks.
  * In order to make this easy, the script takes a private key of the deployer account and funds it.
  * Recommendation: create a new account (guaranteed to be at nonce 1 everywhere) for the deployer.
@@ -13,7 +15,8 @@ const SuperfluidLoader = artifacts.require("SuperfluidLoader");
  * @param web3 The web3 instance to be used
  * @param from address to use for funding the deployer account
  *
- * Usage: npx truffle exec scripts/deploy-deterministic-loader.js : {PRIVATE KEY} [{NONCE}]
+ * Usage: npx truffle exec scripts/deploy-deterministically.js : {PRIVATE KEY} {CONTRACT NAME} [{NONCE}]
+ *        CONTRACT NAME must be one of SuperfluidLoader, AgreementForwarder
  *        If NONCE is not defined, 1 is assumed (-> first tx done from the deployer account)
  *
  * (optional) ENV vars:
@@ -27,23 +30,52 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 ) {
     let {protocolReleaseVersion} = options;
 
-    console.log("======== Deploying deterministic loader ========");
+    console.log("======== Deploying deterministically ========");
 
     let nonce = 1;
-    if (args.length === 2) {
+    if (args.length === 3) {
         nonce = parseInt(args.pop());
         if (nonce <= 0) {
             console.error("nonce must be > 0");
             process.exit(1);
         }
-    } else if (args.length !== 1) {
+    } else if (args.length !== 2) {
         throw new Error("Wrong number of arguments");
     }
+    const contractName = args.pop();
     const privKey = args.pop();
 
     const deployer = web3.eth.accounts.privateKeyToAccount(privKey);
     console.log("deployer:", deployer.address);
     console.log("nonce:", nonce);
+
+    const chainId = await web3.eth.getChainId();
+    const resolverAddr = SuperfluidSDK.getConfig(
+        chainId,
+        protocolReleaseVersion
+    ).resolverAddress;
+    console.log("resolver addr:", resolverAddr);
+    const resolver = await Resolver.at(resolverAddr);
+    const hostAddr = await resolver.get(`Superfluid.${protocolReleaseVersion}`);
+    console.log("host addr:", hostAddr);
+
+    let ContractArtifact;
+    let deployArgs;
+    if (contractName === "SuperfluidLoader") {
+        ContractArtifact = SuperfluidLoader;
+        deployArgs = [resolverAddr];
+        console.log(
+            `setting up SuperfluidLoader for chainId ${chainId}, resolver ${resolverAddr}`
+        );
+    } else if (contractName === "AgreementForwarder") {
+        ContractArtifact = AgreementForwarder;
+        deployArgs = [hostAddr];
+        console.log(
+            `setting up AgreementForwarder for chainId ${chainId}, host ${hostAddr}`
+        );
+    } else {
+        throw new Error("Contract unknown / not supported");
+    }
 
     const deployerTxCnt = await web3.eth.getTransactionCount(deployer.address);
     if (nonce !== deployerTxCnt + 1) {
@@ -61,20 +93,10 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const gasPrice = await web3.eth.getGasPrice();
     console.log("gas price:", gasPrice);
 
-    const chainId = await web3.eth.getChainId();
-    const resolverAddr = SuperfluidSDK.getConfig(
-        chainId,
-        protocolReleaseVersion
-    ).resolverAddress;
-
-    console.log(
-        `setting up loader for chainId ${chainId}, resolver ${resolverAddr}`
-    );
-
-    const LoaderContract = new web3.eth.Contract(SuperfluidLoader.abi);
-    const deployTx = LoaderContract.deploy({
-        data: SuperfluidLoader.bytecode,
-        arguments: [resolverAddr],
+    const Contract = new web3.eth.Contract(ContractArtifact.abi);
+    const deployTx = Contract.deploy({
+        data: ContractArtifact.bytecode,
+        arguments: deployArgs,
     });
 
     const gasLimit = process.env.GASLIMIT || (await deployTx.estimateGas());

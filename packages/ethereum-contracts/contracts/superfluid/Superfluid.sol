@@ -315,12 +315,12 @@ contract Superfluid is
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
-        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
-            // solhint-disable-next-line avoid-tx-origin
-            tx.origin,
-            registrationKey
-        );
         if (APP_WHITE_LISTING_ENABLED) {
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
+                // solhint-disable-next-line avoid-tx-origin
+                tx.origin,
+                registrationKey
+            );
             // check if the key is valid and not expired
             if (
                 _gov.getConfigAsUint256(

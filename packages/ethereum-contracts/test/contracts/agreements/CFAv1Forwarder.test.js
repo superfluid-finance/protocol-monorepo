@@ -59,7 +59,7 @@ describe("Agreement Forwarder", function () {
                     .connect(aliceSigner)
                     .setFlowrate(superToken.address, bob, -1),
                 cfaFwd,
-                "CFA_FWD_INVALID_FLOWRATE"
+                "CFA_FWD_INVALID_FLOW_RATE"
             );
         });
 

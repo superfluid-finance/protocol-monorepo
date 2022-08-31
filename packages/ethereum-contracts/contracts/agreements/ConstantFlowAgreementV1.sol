@@ -181,7 +181,7 @@ contract ConstantFlowAgreementV1 is
     function isPatricianPeriodNow(
         ISuperfluidToken token,
         address account)
-        public view override
+        external view override
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
     {
         ISuperfluid host = ISuperfluid(token.getHost());

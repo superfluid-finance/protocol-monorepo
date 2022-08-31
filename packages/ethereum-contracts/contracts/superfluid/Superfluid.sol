@@ -416,7 +416,7 @@ contract Superfluid is
     function isAppJailed(
         ISuperApp app
     )
-        public view override
+        external view override
         returns(bool)
     {
         return SuperAppDefinitions.isAppJailed(_appManifests[app].configWord);

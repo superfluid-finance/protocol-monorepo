@@ -233,7 +233,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        public view
+        external view
         returns (address)
     {
         return getConfigAsAddress(
@@ -259,7 +259,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        public
+        external
     {
         _clearConfig(
             host, superToken,
@@ -286,7 +286,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        public view
+        external view
         returns (uint256 liquidationPeriod, uint256 patricianPeriod)
     {
         uint256 pppConfig = getConfigAsUint256(
@@ -325,7 +325,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        public
+        external
     {
         _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY);
         emit PPPConfigurationChanged(host, superToken, false, 0, 0);
@@ -343,7 +343,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        public view
+        external view
         returns (uint256 value)
     {
         return getConfigAsUint256(host, superToken,
@@ -365,7 +365,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperToken superToken
     )
-        public
+        external
     {
         _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         emit SuperTokenMinimumDepositChanged(host, superToken, false, 0);
@@ -384,7 +384,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken,
         address forwarder
     )
-        public view
+        external view
         returns (bool)
     {
         return getConfigAsUint256(
@@ -411,7 +411,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken,
         address forwarder
     )
-        public
+        external
     {
         _clearConfig(
             host, superToken,
@@ -432,7 +432,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         address deployer,
         string memory registrationKey
     )
-        public view
+        external view
         returns(bool validNow, uint256 expirationTs)
     {
         bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
@@ -453,7 +453,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         string memory registrationKey,
         uint256 expirationTs
     )
-        public
+        external
     {
         bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
             deployer,
@@ -468,7 +468,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         address deployer,
         string memory registrationKey
     )
-        public
+        external
     {
         bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
             deployer,
@@ -492,7 +492,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         address factory
     )
-        public view
+        external view
         returns (bool)
     {
         return getConfigAsUint256(
@@ -508,7 +508,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         address factory
     )
-        public
+        external
     {
         // check if contract
         {
@@ -532,7 +532,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         address factory
     )
-        public
+        external
     {
         _clearConfig(
             host, ISuperfluidToken(address(0)),

@@ -771,7 +771,7 @@ contract Superfluid is
 
     function _batchCall(
         address msgSender,
-        Operation[] memory operations
+        Operation[] calldata operations
     )
        internal
     {
@@ -820,7 +820,7 @@ contract Superfluid is
 
     /// @dev ISuperfluid.batchCall implementation
     function batchCall(
-       Operation[] memory operations
+       Operation[] calldata operations
     )
        external override
     {
@@ -828,7 +828,7 @@ contract Superfluid is
     }
 
     /// @dev ISuperfluid.forwardBatchCall implementation
-    function forwardBatchCall(Operation[] memory operations)
+    function forwardBatchCall(Operation[] calldata operations)
         external override
     {
         _batchCall(_getTransactionSigner(), operations);

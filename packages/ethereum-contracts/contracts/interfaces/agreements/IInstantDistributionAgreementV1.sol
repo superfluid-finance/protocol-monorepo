@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
+import { SuperfluidErrors } from "../superfluid/Definitions.sol";
 
 
 /**
@@ -34,6 +35,12 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  *     - or the subscriber can explicitly claim them.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error IDA_INDEX_SHOULD_GROW();             // index value should grow
+    error IDA_OPERATION_NOT_ALLOWED();         // operation not allowed
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {

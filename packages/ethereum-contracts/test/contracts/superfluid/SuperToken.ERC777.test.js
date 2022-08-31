@@ -1,7 +1,10 @@
 const TestEnvironment = require("../../TestEnvironment");
 
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectRevertedWith,
+    expectCustomError,
+} = require("../../utils/expectRevert");
 const {expect} = require("chai");
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
@@ -13,6 +16,7 @@ const {
     shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook,
     shouldBehaveLikeERC777SendBurnWithSendHook,
 } = require("./ERC777.behavior");
+const {ethers} = require("hardhat");
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
@@ -30,6 +34,7 @@ describe("SuperToken's ERC777 implementation", function () {
 
     let holder, defaultOperatorA, defaultOperatorB, newOperator, anyone;
     let erc1820;
+    let tokenContract;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -45,6 +50,10 @@ describe("SuperToken's ERC777 implementation", function () {
             eve: anyone,
         } = t.aliases);
         this.token = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
+        tokenContract = await ethers.getContractAt(
+            "SuperTokenMock",
+            t.sf.tokens.TESTx.address
+        );
         ({erc1820} = t.contracts);
 
         await web3tx(
@@ -53,8 +62,8 @@ describe("SuperToken's ERC777 implementation", function () {
         )(initialSupply, {
             from: holder,
         });
-
         await t.pushEvmSnapshot();
+        this.testenv = t;
     });
 
     after(async function () {
@@ -174,7 +183,8 @@ describe("SuperToken's ERC777 implementation", function () {
                                 operator: defaultOperatorA,
                             }),
                             testData,
-                            operatorData
+                            operatorData,
+                            true
                         );
                     });
 
@@ -186,7 +196,8 @@ describe("SuperToken's ERC777 implementation", function () {
                                 operator: defaultOperatorB,
                             }),
                             testData,
-                            operatorData
+                            operatorData,
+                            true
                         );
                     });
 
@@ -249,15 +260,19 @@ describe("SuperToken's ERC777 implementation", function () {
             });
 
             it("reverts when self-authorizing", async function () {
+                const holderSigner = await ethers.getSigner(holder);
                 await expectRevertedWith(
-                    this.token.authorizeOperator(holder, {from: holder}),
+                    tokenContract
+                        .connect(holderSigner)
+                        .authorizeOperator(holder),
                     "ERC777Operators: authorizing self as operator"
                 );
             });
 
             it("reverts when self-revoking", async function () {
+                const holderSigner = await ethers.getSigner(holder);
                 await expectRevertedWith(
-                    this.token.revokeOperator(holder, {from: holder}),
+                    tokenContract.connect(holderSigner).revokeOperator(holder),
                     "ERC777Operators: revoking self as operator"
                 );
             });
@@ -383,9 +398,9 @@ describe("SuperToken's ERC777 implementation", function () {
 
                 it("cannot be revoked for themselves", async function () {
                     await expectRevertedWith(
-                        this.token.revokeOperator(defaultOperatorA, {
-                            from: defaultOperatorA,
-                        }),
+                        tokenContract
+                            .connect(await ethers.getSigner(defaultOperatorA))
+                            .revokeOperator(defaultOperatorA),
                         "ERC777Operators: revoking self as operator"
                     );
                 });
@@ -463,51 +478,74 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("send reverts", async function () {
-                            await expectRevertedWith(
-                                this.token.send(recipient, amount, testData, {
-                                    from: holder,
-                                }),
-                                "SuperToken: not an ERC777TokensRecipient"
+                            const holderSigner = await ethers.getSigner(holder);
+                            await expectCustomError(
+                                tokenContract
+                                    .connect(holderSigner)
+                                    .send(
+                                        recipient,
+                                        amount.toString(),
+                                        testData
+                                    ),
+                                tokenContract,
+                                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
                             );
                         });
 
                         it("operatorSend reverts", async function () {
-                            await expectRevertedWith(
-                                this.token.operatorSend(
-                                    sender,
-                                    recipient,
-                                    amount,
-                                    testData,
-                                    operatorData,
-                                    {from: operator}
-                                ),
-                                "SuperToken: not an ERC777TokensRecipient"
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
+                            await expectCustomError(
+                                tokenContract
+                                    .connect(operatorSigner)
+                                    .operatorSend(
+                                        sender,
+                                        recipient,
+                                        amount.toString(),
+                                        testData,
+                                        operatorData
+                                    ),
+                                tokenContract,
+                                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
                             );
                         });
 
                         it("mint (internal) reverts", async function () {
-                            await expectRevertedWith(
-                                this.token.mintInternal(
-                                    recipient,
-                                    amount,
-                                    testData,
-                                    operatorData,
-                                    {from: operator}
-                                ),
-                                "SuperToken: not an ERC777TokensRecipient"
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
+                            await expectCustomError(
+                                tokenContract
+                                    .connect(operatorSigner)
+                                    .mintInternal(
+                                        recipient,
+                                        amount.toString(),
+                                        testData,
+                                        operatorData
+                                    ),
+                                tokenContract,
+                                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
                             );
                         });
 
                         it("mint (internal) to zero address reverts", async function () {
-                            await expectRevertedWith(
-                                this.token.mintInternal(
-                                    ZERO_ADDRESS,
-                                    amount,
-                                    testData,
-                                    operatorData,
-                                    {from: operator}
-                                ),
-                                "SuperToken: mint to zero address"
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
+                            await expectCustomError(
+                                tokenContract
+                                    .connect(operatorSigner)
+                                    .mintInternal(
+                                        ZERO_ADDRESS,
+                                        amount.toString(),
+                                        testData,
+                                        operatorData
+                                    ),
+                                tokenContract,
+                                "ZERO_ADDRESS",
+                                t.customErrorCode
+                                    .SUPER_TOKEN_MINT_TO_ZERO_ADDRESS
                             );
                         });
 
@@ -558,14 +596,17 @@ describe("SuperToken's ERC777 implementation", function () {
                                 recipient
                             );
 
-                            await erc1820.setInterfaceImplementer(
-                                recipient,
-                                web3.utils.soliditySha3(
-                                    "ERC777TokensRecipient"
-                                ),
-                                this.tokensRecipientImplementer.address,
-                                {from: recipient}
-                            );
+                            const signer = await ethers.getSigner(recipient);
+
+                            await erc1820
+                                .connect(signer)
+                                .setInterfaceImplementer(
+                                    recipient,
+                                    web3.utils.soliditySha3(
+                                        "ERC777TokensRecipient"
+                                    ),
+                                    this.tokensRecipientImplementer.address
+                                );
                         });
 
                         shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook(
@@ -639,12 +680,14 @@ describe("SuperToken's ERC777 implementation", function () {
 
                         await this.tokensSenderImplementer.senderFor(sender);
 
-                        await erc1820.setInterfaceImplementer(
-                            sender,
-                            web3.utils.soliditySha3("ERC777TokensSender"),
-                            this.tokensSenderImplementer.address,
-                            {from: sender}
-                        );
+                        const signer = await ethers.getSigner(sender);
+                        await erc1820
+                            .connect(signer)
+                            .setInterfaceImplementer(
+                                sender,
+                                web3.utils.soliditySha3("ERC777TokensSender"),
+                                this.tokensSenderImplementer.address
+                            );
                     });
 
                     shouldBehaveLikeERC777SendBurnWithSendHook(

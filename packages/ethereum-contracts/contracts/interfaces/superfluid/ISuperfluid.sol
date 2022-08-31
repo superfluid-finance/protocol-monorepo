@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.2;
+pragma solidity >= 0.8.4;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
@@ -12,6 +12,7 @@ import {
     ContextDefinitions,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
+    SuperfluidErrors,
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
@@ -29,6 +30,32 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
  *
  */
 interface ISuperfluid {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    // Superfluid Custom Errors
+    error HOST_AGREEMENT_CALLBACK_IS_NOT_ACTION();
+    error HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();
+    error HOST_CALL_AGREEMENT_WITH_CTX_FROM_WRONG_ADDRESS();
+    error HOST_CALL_APP_ACTION_WITH_CTX_FROM_WRONG_ADDRESS();
+    error HOST_INVALID_CONFIG_WORD();
+    error HOST_MAX_256_AGREEMENTS();
+    error HOST_NON_UPGRADEABLE();
+    error HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX();
+    error HOST_ONLY_GOVERNANCE();
+    error HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
+
+    // App Related Custom Errors
+    error HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY();
+    error HOST_NOT_A_SUPER_APP();
+    error HOST_NO_APP_REGISTRATION_PERMISSIONS();
+    error HOST_RECEIVER_IS_NOT_SUPER_APP();
+    error HOST_SENDER_IS_NOT_SUPER_APP();
+    error HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();
+    error HOST_SUPER_APP_IS_JAILED();
+    error HOST_SUPER_APP_ALREADY_REGISTERED();
+    error HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
 
     /**************************************************************************
      * Time

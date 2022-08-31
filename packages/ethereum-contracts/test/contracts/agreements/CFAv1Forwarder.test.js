@@ -1,11 +1,9 @@
 const TestEnvironment = require("../../TestEnvironment");
-const {
-    expectReverted,
-    expectRevertedWith,
-} = require("../../utils/expectRevert");
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectCustomError} = require("../../utils/expectRevert");
+const {ethers} = require("hardhat");
+const {expect} = require("chai");
+const {toBN} = require("../utils/helpers");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
-const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowrate = "1000000000000";
@@ -16,6 +14,7 @@ describe("Agreement Forwarder", function () {
     const {ZERO_ADDRESS} = t.constants;
     let superToken, host, cfa, governance, cfaFwd;
     let alice, bob, carol;
+    let aliceSigner, bobSigner, carolSigner;
 
     // ACL flags
     const ALLOW_CREATE = 1 << 0;
@@ -32,7 +31,8 @@ describe("Agreement Forwarder", function () {
         host = t.contracts.superfluid;
         governance = t.contracts.governance;
 
-        cfaFwd = await CFAv1Forwarder.new(host.address);
+        cfaFwd = await ethers.getContractFactory("CFAv1Forwarder");
+        cfaFwd = await cfaFwd.deploy(host.address);
 
         await governance.enableTrustedForwarder(
             host.address,
@@ -41,6 +41,9 @@ describe("Agreement Forwarder", function () {
         );
 
         ({alice, bob, carol} = t.aliases);
+        aliceSigner = await ethers.getSigner(alice);
+        bobSigner = await ethers.getSigner(bob);
+        carolSigner = await ethers.getSigner(carol);
     });
 
     beforeEach(async () => {
@@ -51,26 +54,29 @@ describe("Agreement Forwarder", function () {
 
     describe("Convenience methods", async function () {
         it("Revert on negative flowrate", async () => {
-            await expectReverted(
-                cfaFwd.setFlowrate(superToken.address, bob, -1, {
-                    from: alice,
-                })
+            await expectCustomError(
+                cfaFwd
+                    .connect(aliceSigner)
+                    .setFlowrate(superToken.address, bob, -1),
+                cfaFwd,
+                "CFA_FWD_INVALID_FLOW_RATE"
             );
         });
 
         it("On failure: provide correct error", async () => {
-            await expectRevertedWith(
-                cfaFwd.setFlowrate(superToken.address, alice, flowrate, {
-                    from: alice,
-                }),
-                "CFA: no self flow"
+            await expectCustomError(
+                cfaFwd
+                    .connect(aliceSigner)
+                    .setFlowrate(superToken.address, alice, flowrate),
+                cfa,
+                "CFA_NO_SELF_FLOW"
             );
         });
 
         it("Set flow without pre-existing flow (create)", async () => {
-            await cfaFwd.setFlowrate(superToken.address, bob, flowrate, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
 
             assert.equal(
                 (
@@ -81,13 +87,13 @@ describe("Agreement Forwarder", function () {
         });
 
         it("Set flow with pre-existing flow (update)", async () => {
-            await cfaFwd.setFlowrate(superToken.address, bob, flowrate, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
 
-            await cfaFwd.setFlowrate(superToken.address, bob, flowrate2, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate2);
 
             assert.equal(
                 (
@@ -98,13 +104,13 @@ describe("Agreement Forwarder", function () {
         });
 
         it("Set flow to 0 with pre-existing flow (delete)", async () => {
-            await cfaFwd.setFlowrate(superToken.address, bob, flowrate, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
 
-            await cfaFwd.setFlowrate(superToken.address, bob, 0, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, 0);
 
             assert.equal(
                 (
@@ -115,9 +121,9 @@ describe("Agreement Forwarder", function () {
         });
 
         it("Set flow to 0 without pre-existing flow (do nothing)", async () => {
-            await cfaFwd.setFlowrate(superToken.address, bob, 0, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, 0);
 
             assert.equal(
                 (
@@ -128,12 +134,12 @@ describe("Agreement Forwarder", function () {
         });
 
         it("Set flow with same flowrate as before (do nothing)", async () => {
-            await cfaFwd.setFlowrate(superToken.address, bob, flowrate, {
-                from: alice,
-            });
-            await cfaFwd.setFlowrate(superToken.address, bob, flowrate, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
 
             assert.equal(
                 (
@@ -144,34 +150,23 @@ describe("Agreement Forwarder", function () {
         });
 
         it("Grant all flowOperator permissions", async () => {
-            await cfaFwd.grantPermissions(superToken.address, carol, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .grantPermissions(superToken.address, carol);
 
             // bob is not authorized
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(
-                    superToken.address,
-                    alice,
-                    bob,
-                    flowrate,
-                    {
-                        from: bob,
-                    }
-                ),
-                "CFA: E_NO_OPERATOR_CREATE_FLOW"
+            await expectCustomError(
+                cfaFwd
+                    .connect(bobSigner)
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate),
+                cfa,
+                "CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS"
             );
 
             // create
-            await cfaFwd.setFlowrateFrom(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                {
-                    from: carol,
-                }
-            );
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(superToken.address, alice, bob, flowrate);
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -180,15 +175,9 @@ describe("Agreement Forwarder", function () {
             );
 
             // update
-            await cfaFwd.setFlowrateFrom(
-                superToken.address,
-                alice,
-                bob,
-                flowrate2,
-                {
-                    from: carol,
-                }
-            );
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(superToken.address, alice, bob, flowrate2);
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -197,9 +186,9 @@ describe("Agreement Forwarder", function () {
             );
 
             // delete
-            await cfaFwd.setFlowrateFrom(superToken.address, alice, bob, 0, {
-                from: carol,
-            });
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(superToken.address, alice, bob, 0);
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -209,154 +198,131 @@ describe("Agreement Forwarder", function () {
         });
 
         it("Revoke all flowOperator permissions", async () => {
-            await cfaFwd.grantPermissions(superToken.address, carol, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .grantPermissions(superToken.address, carol);
 
             // create
-            await cfaFwd.setFlowrateFrom(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                {
-                    from: carol,
-                }
-            );
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(superToken.address, alice, bob, flowrate);
 
-            await cfaFwd.revokePermissions(superToken.address, carol, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .revokePermissions(superToken.address, carol);
 
             // update denied
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(
-                    superToken.address,
-                    alice,
-                    bob,
-                    flowrate2,
-                    {
-                        from: carol,
-                    }
-                ),
-                "E_NO_OPERATOR_UPDATE_FLOW"
+            await expectCustomError(
+                cfaFwd
+                    .connect(carolSigner)
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate2),
+                cfa,
+                "CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS"
             );
 
             // delete denied
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(superToken.address, alice, bob, 0, {
-                    from: carol,
-                }),
-                "E_NO_OPERATOR_DELETE_FLOW"
+            await expectCustomError(
+                cfaFwd
+                    .connect(carolSigner)
+                    .setFlowrateFrom(superToken.address, alice, bob, 0),
+                cfa,
+                "CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS"
             );
         });
     });
 
     describe("Wrapper methods", async function () {
         it("updateFlowOperatorPermissions: enforce flowrateAllowance", async () => {
-            await cfaFwd.updateFlowOperatorPermissions(
-                superToken.address,
-                carol,
-                ALLOW_CREATE | ALLOW_UPDATE,
-                flowrate,
-                {
-                    from: alice,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .updateFlowOperatorPermissions(
+                    superToken.address,
+                    carol,
+                    ALLOW_CREATE | ALLOW_UPDATE,
+                    flowrate
+                );
 
             // create with excess flowrate
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(
-                    superToken.address,
-                    alice,
-                    bob,
-                    flowrate2,
-                    {
-                        from: carol,
-                    }
-                ),
-                "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE"
+            await expectCustomError(
+                cfaFwd
+                    .connect(carolSigner)
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate2),
+                cfa,
+                "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED"
             );
 
             // create with allowed flowrate
-            await cfaFwd.setFlowrateFrom(
-                superToken.address,
-                alice,
-                bob,
-                Number(flowrate) - 1,
-                {
-                    from: carol,
-                }
-            );
-
-            // update with excess flowrate
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(
                     superToken.address,
                     alice,
                     bob,
-                    flowrate2,
-                    {
-                        from: carol,
-                    }
-                ),
-                "CFA: E_EXCEED_FLOW_RATE_ALLOWANCE"
+                    Number(flowrate) - 1
+                );
+
+            // update with excess flowrate
+            await expectCustomError(
+                cfaFwd
+                    .connect(carolSigner)
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate2),
+                cfa,
+                "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED"
             );
 
             // update with allowed flowrate
-            await cfaFwd.setFlowrateFrom(
-                superToken.address,
-                alice,
-                bob,
-                Number(flowrate) - 1,
-                {
-                    from: carol,
-                }
-            );
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(
+                    superToken.address,
+                    alice,
+                    bob,
+                    Number(flowrate) - 1
+                );
 
             // permission for close not granted
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(superToken.address, alice, bob, 0, {
-                    from: carol,
-                }),
-                "E_NO_OPERATOR_DELETE_FLOW"
+            await expectCustomError(
+                cfaFwd
+                    .connect(carolSigner)
+                    .setFlowrateFrom(superToken.address, alice, bob, 0),
+                cfa,
+                "CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS"
             );
         });
 
         it("updateFlowOperatorPermissions: can only delete", async () => {
             // alice starts flow to bob...
-            cfaFwd.setFlowrate(superToken.address, bob, flowrate2, {
-                from: alice,
-            }),
+            cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate2),
                 // and gives carol permission to delete flows
-                await cfaFwd.updateFlowOperatorPermissions(
-                    superToken.address,
-                    carol,
-                    ALLOW_DELETE,
-                    flowrate,
-                    {
-                        from: alice,
-                    }
-                );
+                await cfaFwd
+                    .connect(aliceSigner)
+                    .updateFlowOperatorPermissions(
+                        superToken.address,
+                        carol,
+                        ALLOW_DELETE,
+                        flowrate
+                    );
 
             // carol: no update permission
-            await expectRevertedWith(
-                cfaFwd.setFlowrateFrom(
-                    superToken.address,
-                    alice,
-                    bob,
-                    Number(flowrate) - 1,
-                    {
-                        from: carol,
-                    }
-                ),
-                "E_NO_OPERATOR_UPDATE_FLOW"
+            await expectCustomError(
+                cfaFwd
+                    .connect(carolSigner)
+                    .setFlowrateFrom(
+                        superToken.address,
+                        alice,
+                        bob,
+                        Number(flowrate) - 1
+                    ),
+                cfa,
+                "CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS"
             );
 
             // but can delete
-            await cfaFwd.setFlowrateFrom(superToken.address, alice, bob, 0, {
-                from: carol,
-            });
+            await cfaFwd
+                .connect(carolSigner)
+                .setFlowrateFrom(superToken.address, alice, bob, 0);
 
             assert.equal(
                 (
@@ -367,16 +333,9 @@ describe("Agreement Forwarder", function () {
         });
 
         it("create/update/delete Flow", async () => {
-            await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0x",
-                {
-                    from: alice,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .createFlow(superToken.address, alice, bob, flowrate, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -384,16 +343,9 @@ describe("Agreement Forwarder", function () {
                 flowrate
             );
 
-            await cfaFwd.updateFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate2,
-                "0x",
-                {
-                    from: alice,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .updateFlow(superToken.address, alice, bob, flowrate2, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -401,9 +353,9 @@ describe("Agreement Forwarder", function () {
                 flowrate2
             );
 
-            await cfaFwd.deleteFlow(superToken.address, alice, bob, "0x", {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .deleteFlow(superToken.address, alice, bob, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -413,20 +365,13 @@ describe("Agreement Forwarder", function () {
         });
 
         it("create/update/delete Flow by flowOperator", async () => {
-            await cfaFwd.grantPermissions(superToken.address, carol, {
-                from: alice,
-            });
+            await cfaFwd
+                .connect(aliceSigner)
+                .grantPermissions(superToken.address, carol);
 
-            await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0x",
-                {
-                    from: carol,
-                }
-            );
+            await cfaFwd
+                .connect(carolSigner)
+                .createFlow(superToken.address, alice, bob, flowrate, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -434,16 +379,9 @@ describe("Agreement Forwarder", function () {
                 flowrate
             );
 
-            await cfaFwd.updateFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate2,
-                "0x",
-                {
-                    from: carol,
-                }
-            );
+            await cfaFwd
+                .connect(carolSigner)
+                .updateFlow(superToken.address, alice, bob, flowrate2, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -451,9 +389,9 @@ describe("Agreement Forwarder", function () {
                 flowrate2
             );
 
-            await cfaFwd.deleteFlow(superToken.address, alice, bob, "0x", {
-                from: carol,
-            });
+            await cfaFwd
+                .connect(carolSigner)
+                .deleteFlow(superToken.address, alice, bob, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -463,76 +401,73 @@ describe("Agreement Forwarder", function () {
         });
 
         it("create/update/delete Flow with userData", async () => {
-            const r1 = await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0xd1",
-                {
-                    from: alice,
-                }
-            );
-            await expectEvent.inTransaction(
-                r1.tx,
-                t.contracts.cfa,
-                "FlowUpdated",
-                {
-                    userData: "0xd1",
-                }
-            );
+            await expect(
+                cfaFwd
+                    .connect(aliceSigner)
+                    .createFlow(
+                        superToken.address,
+                        alice,
+                        bob,
+                        flowrate,
+                        "0xd1"
+                    )
+            )
+                .to.emit(cfa, "FlowUpdated")
+                .withArgs(
+                    superToken.address,
+                    alice,
+                    bob,
+                    flowrate,
+                    toBN(flowrate).mul(toBN(-1)),
+                    flowrate,
+                    "0xd1"
+                );
 
-            const r2 = await cfaFwd.updateFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate2,
-                "0xd2",
-                {
-                    from: alice,
-                }
-            );
-            await expectEvent.inTransaction(
-                r2.tx,
-                t.contracts.cfa,
-                "FlowUpdated",
-                {
-                    userData: "0xd2",
-                }
-            );
+            await expect(
+                cfaFwd
+                    .connect(aliceSigner)
+                    .updateFlow(
+                        superToken.address,
+                        alice,
+                        bob,
+                        flowrate2,
+                        "0xd2"
+                    )
+            )
+                .to.emit(cfa, "FlowUpdated")
+                .withArgs(
+                    superToken.address,
+                    alice,
+                    bob,
+                    flowrate2,
+                    toBN(flowrate2).mul(toBN(-1)),
+                    flowrate2,
+                    "0xd2"
+                );
 
-            const r3 = await cfaFwd.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0xd3",
-                {
-                    from: alice,
-                }
-            );
-            await expectEvent.inTransaction(
-                r3.tx,
-                t.contracts.cfa,
-                "FlowUpdated",
-                {
-                    userData: "0xd3",
-                }
-            );
+            await expect(
+                cfaFwd
+                    .connect(aliceSigner)
+                    .deleteFlow(superToken.address, alice, bob, "0xd3")
+            )
+                .to.emit(cfa, "FlowUpdated")
+                .withArgs(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0",
+                    "0",
+                    "0",
+                    "0xd3"
+                );
         });
     });
 
     describe("Readonly methods", async function () {
         it("getFlowrate", async () => {
-            await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0x",
-                {
-                    from: alice,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .createFlow(superToken.address, alice, bob, flowrate, "0x");
             assert.equal(
                 (
                     await cfaFwd.getFlowrate(superToken.address, alice, bob)
@@ -542,16 +477,9 @@ describe("Agreement Forwarder", function () {
         });
 
         it("getFlowInfo", async () => {
-            await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0x",
-                {
-                    from: alice,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .createFlow(superToken.address, alice, bob, flowrate, "0x");
 
             const flowInfo = await cfaFwd.getFlowInfo(
                 superToken.address,
@@ -588,26 +516,18 @@ describe("Agreement Forwarder", function () {
         });
 
         it("getAccountFlowrate", async () => {
-            await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0x",
-                {
-                    from: alice,
-                }
-            );
-            await cfaFwd.createFlow(
-                superToken.address,
-                bob,
-                alice,
-                Number(flowrate) - 1,
-                "0x",
-                {
-                    from: bob,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .createFlow(superToken.address, alice, bob, flowrate, "0x");
+            await cfaFwd
+                .connect(bobSigner)
+                .createFlow(
+                    superToken.address,
+                    bob,
+                    alice,
+                    Number(flowrate) - 1,
+                    "0x"
+                );
 
             const accFrAlice = await cfaFwd.getAccountFlowrate(
                 superToken.address,
@@ -623,26 +543,18 @@ describe("Agreement Forwarder", function () {
         });
 
         it("getAccountFlowInfo", async () => {
-            await cfaFwd.createFlow(
-                superToken.address,
-                alice,
-                bob,
-                flowrate,
-                "0x",
-                {
-                    from: alice,
-                }
-            );
-            await cfaFwd.createFlow(
-                superToken.address,
-                bob,
-                alice,
-                Number(flowrate) - 1,
-                "0x",
-                {
-                    from: bob,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .createFlow(superToken.address, alice, bob, flowrate, "0x");
+            await cfaFwd
+                .connect(bobSigner)
+                .createFlow(
+                    superToken.address,
+                    bob,
+                    alice,
+                    Number(flowrate) - 1,
+                    "0x"
+                );
 
             const accFIAliceI = await cfa.getAccountFlowInfo(
                 superToken.address,
@@ -705,15 +617,14 @@ describe("Agreement Forwarder", function () {
             assert.equal(permPre.permissions, 0);
             assert.equal(permPre.flowrateAllowance, 0);
 
-            await cfaFwd.updateFlowOperatorPermissions(
-                superToken.address,
-                carol,
-                ALLOW_DELETE,
-                flowrate,
-                {
-                    from: alice,
-                }
-            );
+            await cfaFwd
+                .connect(aliceSigner)
+                .updateFlowOperatorPermissions(
+                    superToken.address,
+                    carol,
+                    ALLOW_DELETE,
+                    flowrate
+                );
 
             const permPost = await cfaFwd.getFlowOperatorPermissions(
                 superToken.address,

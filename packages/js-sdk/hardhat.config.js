@@ -1,17 +1,15 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@typechain/hardhat";
-import "@nomiclabs/hardhat-ethers";
-import "@nomicfoundation/hardhat-chai-matchers";
-import "@nomiclabs/hardhat-web3";
-import { config as dotenvConfig } from "dotenv";
-dotenvConfig();
+require("@typechain/hardhat");
+require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomiclabs/hardhat-web3");
+require("dotenv").config();
 
 /**
  * This Hardhat config is only used for testing the SDK-Core.
  * Note: For tests to work, 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
  * must be the deployer of the contracts.
  */
-const config: HardhatUserConfig = {
+module.exports = {
     solidity: {
         version: "0.8.15",
         settings: {
@@ -20,6 +18,9 @@ const config: HardhatUserConfig = {
                 runs: 200,
             },
         },
+    },
+    paths: {
+        artifacts: "../ethereum-contracts/artifacts",
     },
     networks: {
         localhost: {
@@ -43,5 +44,3 @@ const config: HardhatUserConfig = {
         timeout: 250000,
     },
 };
-
-export default config;

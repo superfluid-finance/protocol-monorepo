@@ -1,8 +1,11 @@
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
-const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
+const {expectCustomError} = require("../../utils/expectRevert");
+const {toBN} = require("../utils/helpers");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
+const {ethers} = require("hardhat");
+const {expect} = require("chai");
+const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
+const {web3tx} = require("@decentral.ee/web3-helpers");
 
 //
 // test functions
@@ -195,6 +198,8 @@ async function _shouldChangeFlow({
 
     // change flow
     let tx;
+    let superfluid;
+    let cfa;
     switch (fn) {
         case "createFlow":
         case "updateFlow":
@@ -219,9 +224,15 @@ async function _shouldChangeFlow({
             break;
         case "createFlowByOperator":
         case "updateFlowByOperator":
-            tx = await testenv.contracts.superfluid.callAgreement(
+            cfa = await testenv.sf.contracts.IConstantFlowAgreementV1.at(
+                testenv.contracts.cfa.address
+            );
+            superfluid = await testenv.sf.contracts.ISuperfluid.at(
+                testenv.contracts.superfluid.address
+            );
+            tx = await superfluid.callAgreement(
                 testenv.contracts.cfa.address,
-                testenv.contracts.cfa.contract.methods[fn](
+                cfa.contract.methods[fn](
                     cfaDataModel.flows.main.flowId.superToken,
                     cfaDataModel.flows.main.flowId.sender,
                     cfaDataModel.flows.main.flowId.receiver,
@@ -233,9 +244,15 @@ async function _shouldChangeFlow({
             );
             break;
         case "deleteFlowByOperator":
-            tx = await testenv.contracts.superfluid.callAgreement(
+            cfa = await testenv.sf.contracts.IConstantFlowAgreementV1.at(
+                testenv.contracts.cfa.address
+            );
+            superfluid = await testenv.sf.contracts.ISuperfluid.at(
+                testenv.contracts.superfluid.address
+            );
+            tx = await superfluid.callAgreement(
                 testenv.contracts.cfa.address,
-                testenv.contracts.cfa.contract.methods[fn](
+                cfa.contract.methods[fn](
                     cfaDataModel.flows.main.flowId.superToken,
                     cfaDataModel.flows.main.flowId.sender,
                     cfaDataModel.flows.main.flowId.receiver,
@@ -248,7 +265,7 @@ async function _shouldChangeFlow({
         default:
             assert(false);
     }
-    txBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
+    txBlock = await ethers.provider.getBlock(tx.blockNumber);
     console.log("--------");
 
     /**************************************************************************
@@ -271,7 +288,11 @@ async function _shouldChangeFlow({
             const netFlowRate = toBN(accountFlowInfo.flowRate);
             const adjustedRewardAmount = toBN(netFlowRate).mul(
                 toBN(txBlock.timestamp).sub(
-                    toBN(cfaDataModel.getBalancesBefore("sender").timestamp)
+                    toBN(
+                        cfaDataModel
+                            .getBalancesBefore("sender")
+                            .timestamp.toString()
+                    )
                 )
             );
             if (isSenderSolvent) {
@@ -281,18 +302,21 @@ async function _shouldChangeFlow({
                 // executes the liquidation
 
                 // deposit = signedTotalDeposit
-                const totalRewardLeft = cfaDataModel
-                    .getBalancesBefore("sender")
-                    .availableBalance.add(toBN(accountFlowInfo.deposit))
+                const totalRewardLeft = toBN(
+                    cfaDataModel
+                        .getBalancesBefore("sender")
+                        .availableBalance.toString()
+                )
+                    .add(toBN(accountFlowInfo.deposit.toString()))
                     .add(adjustedRewardAmount);
                 const expectedRewardAmount = toBN(
-                    cfaDataModel.flows.main.flowInfoBefore.deposit
+                    cfaDataModel.flows.main.flowInfoBefore.deposit.toString()
                 )
                     .mul(totalRewardLeft)
-                    .div(toBN(accountFlowInfo.deposit));
-                const totalCFAOutflowRate = toBN(accountFlowInfo.deposit).div(
-                    toBN(testenv.configs.LIQUIDATION_PERIOD)
-                );
+                    .div(toBN(accountFlowInfo.deposit.toString()));
+                const totalCFAOutflowRate = toBN(
+                    accountFlowInfo.deposit.toString()
+                ).div(toBN(testenv.configs.LIQUIDATION_PERIOD));
                 const isPatricianPeriod = totalRewardLeft
                     .div(totalCFAOutflowRate)
                     .gt(
@@ -362,8 +386,9 @@ async function _shouldChangeFlow({
                     cfaDataModel.flows.main.flowInfoBefore.deposit
                 );
                 const expectedBailoutAmount = toBN(
-                    cfaDataModel.getBalancesBefore("sender")
-                        .availableBalance /* is negative */
+                    cfaDataModel
+                        .getBalancesBefore("sender")
+                        .availableBalance.toString() /* is negative */
                 )
                     .add(toBN(accountFlowInfo.deposit))
                     .mul(toBN(-1))
@@ -709,23 +734,25 @@ function getUpdateFlowOperatorPermissionsPromise({
     permissions,
     flowRateAllowance,
     ctx,
-    from,
+    signer,
 }) {
     const {cfa, superfluid} = testenv.contracts;
-    return superfluid.callAgreement(
-        cfa.address,
-        cfa.contract.methods
-            .updateFlowOperatorPermissions(
-                token,
-                flowOperator,
-                permissions,
-                flowRateAllowance,
-                ctx
-            )
-            .encodeABI(),
-        "0x",
-        {from}
-    );
+    return superfluid
+        .connect(signer)
+        .callAgreement(
+            cfa.address,
+            testenv.agreementHelper.cfaInterface.encodeFunctionData(
+                "updateFlowOperatorPermissions",
+                [
+                    token,
+                    flowOperator,
+                    permissions,
+                    flowRateAllowance.toString(),
+                    ctx,
+                ]
+            ),
+            "0x"
+        );
 }
 
 function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
@@ -733,58 +760,57 @@ function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
     token,
     flowOperator,
     ctx,
-    from,
     isRevokeFullControl,
+    signer,
 }) {
     const {cfa, superfluid} = testenv.contracts;
     const methodSignature = isRevokeFullControl
         ? "revokeFlowOperatorWithFullControl"
         : "authorizeFlowOperatorWithFullControl";
-    return superfluid.callAgreement(
-        cfa.address,
-        cfa.contract.methods[methodSignature](
-            token,
-            flowOperator,
-            ctx
-        ).encodeABI(),
-        "0x",
-        {from}
-    );
+    return superfluid
+        .connect(signer)
+        .callAgreement(
+            cfa.address,
+            testenv.agreementHelper.cfaInterface.encodeFunctionData(
+                methodSignature,
+                [token, flowOperator, ctx]
+            ),
+            "0x"
+        );
 }
 
-function getChangeFlowByFlowOperatorPromise({
+async function getChangeFlowByFlowOperatorPromise({
     testenv,
     methodSignature,
     token,
     sender,
     receiver,
-    flowOperator,
+    signer,
     flowRate,
-    ctx,
 }) {
     const {cfa, superfluid} = testenv.contracts;
     if (methodSignature === "deleteFlowByOperator") {
-        return superfluid.callAgreement(
-            cfa.address,
-            cfa.contract.methods
-                .deleteFlowByOperator(token, sender, receiver, ctx)
-                .encodeABI(),
-            "0x",
-            {from: flowOperator}
-        );
+        return superfluid
+            .connect(signer)
+            .callAgreement(
+                cfa.address,
+                testenv.agreementHelper.cfaInterface.encodeFunctionData(
+                    "deleteFlowByOperator",
+                    [token, sender, receiver, "0x"]
+                ),
+                "0x"
+            );
     }
-    return superfluid.callAgreement(
-        cfa.address,
-        cfa.contract.methods[methodSignature](
-            token,
-            sender,
-            receiver,
-            flowRate,
-            ctx
-        ).encodeABI(),
-        "0x",
-        {from: flowOperator}
-    );
+    return superfluid
+        .connect(signer)
+        .callAgreement(
+            cfa.address,
+            testenv.agreementHelper.cfaInterface.encodeFunctionData(
+                methodSignature,
+                [token, sender, receiver, flowRate.toString(), "0x"]
+            ),
+            "0x"
+        );
 }
 
 async function shouldRevertUpdateFlowOperatorPermissions({
@@ -794,14 +820,14 @@ async function shouldRevertUpdateFlowOperatorPermissions({
     permissions,
     flowRateAllowance,
     ctx,
-    from,
-    expectedErrorString,
+    signer,
+    expectedCustomError,
 }) {
     console.log("\n[EXPECT UPDATE FLOW OPERATOR PERMISSIONS REVERT]");
     console.log(
-        `${from} granting ${permissions} to ${flowOperator} with ${flowRateAllowance} flow rate allowance`
+        `${signer.address} granting ${permissions} to ${flowOperator} with ${flowRateAllowance} flow rate allowance`
     );
-    await expectRevertedWith(
+    await expectCustomError(
         getUpdateFlowOperatorPermissionsPromise({
             testenv,
             token,
@@ -809,9 +835,10 @@ async function shouldRevertUpdateFlowOperatorPermissions({
             permissions,
             flowRateAllowance,
             ctx,
-            from,
+            signer,
         }),
-        expectedErrorString
+        testenv.contracts.cfa,
+        expectedCustomError
     );
 }
 
@@ -827,68 +854,81 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     permissions,
     flowRateAllowance,
     ctx,
-    from,
+    signer,
     isFullControl,
     isFullControlRevoke,
 }) {
     const {cfa} = testenv.contracts;
     const {MAXIMUM_FLOW_RATE} = testenv.constants;
-    let tx;
     if (isFullControl && isFullControlRevoke) {
         throw new Error("You cannot grant full control and revoke it.");
     }
-    // updateFlowOperatorPermissions
-    if (!isFullControl && !isFullControlRevoke) {
-        tx = await getUpdateFlowOperatorPermissionsPromise({
-            testenv,
-            token,
-            flowOperator,
-            permissions,
-            flowRateAllowance,
-            ctx,
-            from,
-        });
-    }
-
-    if (isFullControl || isFullControlRevoke) {
-        tx = await getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
-            testenv,
-            token,
-            flowOperator,
-            ctx,
-            from,
-            isRevokeFullControl: isFullControlRevoke,
-        });
-    }
 
     const expectedPermissions = isFullControl
-        ? "7" // 1 1 1
+        ? 7 // 1 1 1
         : isFullControlRevoke
-        ? "0" // 0 0 0
-        : permissions;
+        ? 0 // 0 0 0
+        : Number(permissions);
     const expectedFlowRateAllowance = isFullControl
         ? MAXIMUM_FLOW_RATE
         : isFullControlRevoke
         ? "0"
         : flowRateAllowance;
+
+    // updateFlowOperatorPermissions &&
     // validate event was emitted with correct values
-    await expectEvent.inTransaction(
-        tx.tx,
-        cfa.contract,
-        "FlowOperatorUpdated",
-        {
-            token,
-            sender: from,
-            flowOperator,
-            permissions: expectedPermissions,
-            flowRateAllowance: expectedFlowRateAllowance,
-        }
-    );
+    if (!isFullControl && !isFullControlRevoke) {
+        await expect(
+            getUpdateFlowOperatorPermissionsPromise({
+                testenv,
+                token,
+                flowOperator,
+                permissions,
+                flowRateAllowance,
+                ctx,
+                signer,
+            })
+        )
+            .to.emit(cfa, "FlowOperatorUpdated")
+            .withArgs(
+                token,
+                signer.address,
+                flowOperator,
+                expectedPermissions,
+                expectedFlowRateAllowance
+            );
+    }
+
+    if (isFullControl || isFullControlRevoke) {
+        await expect(
+            getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
+                testenv,
+                token,
+                flowOperator,
+                ctx,
+                signer,
+                isRevokeFullControl: isFullControlRevoke,
+            })
+        )
+            .to.emit(cfa, "FlowOperatorUpdated")
+            .withArgs(
+                token,
+                signer.address,
+                flowOperator,
+                expectedPermissions,
+                expectedFlowRateAllowance
+            );
+    }
 
     // validate agreementData was properly updated
-    const data = await cfa.getFlowOperatorData(token, from, flowOperator);
+    const data = await cfa.getFlowOperatorData(
+        token,
+        signer.address,
+        flowOperator
+    );
+
     const expectedFlowOperatorId = testenv.getFlowOperatorId(
-        from,
+        signer.address,
         flowOperator
     );
     assert.equal(data.flowOperatorId, expectedFlowOperatorId);
@@ -905,25 +945,26 @@ async function shouldRevertChangeFlowByOperator({
     flowOperator,
     flowRate,
     ctx,
-    expectedErrorString,
+    expectedCustomError,
 }) {
     console.log("\n[EXPECT CHANGE FLOW BY OPERATOR REVERT]");
     console.log(
         `${methodSignature}: ${sender} to ${receiver} at ${flowRate}/s by ${flowOperator}`
     );
-
-    await expectRevertedWith(
+    const signer = await ethers.getSigner(flowOperator);
+    await expectCustomError(
         getChangeFlowByFlowOperatorPromise({
             testenv,
             methodSignature,
             token,
             sender,
             receiver,
-            flowOperator,
+            signer,
             flowRate,
             ctx,
         }),
-        expectedErrorString
+        testenv.contracts.cfa,
+        expectedCustomError
     );
 }
 

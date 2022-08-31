@@ -1,30 +1,23 @@
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const {ethers} = require("hardhat");
 const {
     expectRevertedWith,
     expectReverted,
+    expectCustomError,
 } = require("../../utils/expectRevert");
-
-const SuperfluidMock = artifacts.require("SuperfluidMock");
-const AgreementMock = artifacts.require("AgreementMock");
-const SuperAppFactoryMock = artifacts.require("SuperAppFactoryMock");
-const SuperAppMock = artifacts.require("SuperAppMock");
-const SuperAppMockUsingDeprecatedRegisterApp = artifacts.require(
-    "SuperAppMockUsingDeprecatedRegisterApp"
-);
-const SuperAppMockNotSelfRegistering = artifacts.require(
-    "SuperAppMockNotSelfRegistering"
-);
-const TestGovernance = artifacts.require("TestGovernance");
-const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
-const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 
 const TestEnvironment = require("../../TestEnvironment");
 
-const {web3tx, toWad, toBN} = require("@decentral.ee/web3-helpers");
+const {expect} = require("chai");
+const {toBN, toWad} = require("../utils/helpers");
 
 describe("Superfluid Host Contract", function () {
     this.timeout(300e3);
+
     const t = TestEnvironment.getSingleton();
+    let superAppMockFactory;
+    let superAppMockInterface;
+    let agreementMockFactory;
+    let agreementMockInterface;
 
     let admin, alice, bob;
     const {MAX_UINT256, ZERO_ADDRESS} = t.constants;
@@ -41,26 +34,41 @@ describe("Superfluid Host Contract", function () {
 
             ({admin, alice, bob} = t.aliases);
             ({superfluid, governance} = t.contracts);
+            agreementMockFactory = await ethers.getContractFactory(
+                "AgreementMock"
+            );
+            agreementMockInterface = agreementMockFactory.interface;
+            superAppMockFactory = await ethers.getContractFactory(
+                "SuperAppMock"
+            );
+            superAppMockInterface = superAppMockFactory.interface;
         });
 
         beforeEach(async function () {
             await t.beforeEachTestCase();
         });
 
-        function createAgreementMock(type, version) {
-            return AgreementMock.new(superfluid.address, type, version);
+        async function createAgreementMock(type, version) {
+            const agreementMockFactory = await ethers.getContractFactory(
+                "AgreementMock"
+            );
+            return agreementMockFactory.deploy(
+                superfluid.address,
+                type,
+                version
+            );
         }
 
         describe("#1 upgradability", () => {
             it("#1.1 storage layout", async () => {
                 const T = artifacts.require("SuperfluidUpgradabilityTester");
                 const tester = await T.new();
-                await tester.validateStorageLayout.call();
+                await tester.validateStorageLayout();
             });
 
             it("#1.2 proxiable info", async () => {
                 assert.equal(
-                    await superfluid.proxiableUUID.call(),
+                    await superfluid.proxiableUUID(),
                     web3.utils.sha3(
                         "org.superfluid-finance.contracts.Superfluid.implementation"
                     )
@@ -68,9 +76,10 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#1.3 only governance can update the code", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.updateCode(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
             });
 
@@ -82,11 +91,14 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#1.5 update the code by governance", async () => {
-                const mock1 = await SuperfluidMock.new(
+                const sfMockFactory = await ethers.getContractFactory(
+                    "SuperfluidMock"
+                );
+                const mock1 = await sfMockFactory.deploy(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
                 );
-                const mock2 = await SuperfluidMock.new(
+                const mock2 = await sfMockFactory.deploy(
                     true /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
                 );
@@ -104,28 +116,29 @@ describe("Superfluid Host Contract", function () {
                 );
 
                 assert.equal(await superfluid.getCodeAddress(), mock1.address);
-                await expectRevertedWith(
+                await expectCustomError(
                     governance.updateContracts(
                         superfluid.address,
                         mock2.address,
                         [],
                         ZERO_ADDRESS
                     ),
-                    "SF: cannot downgrade to non upgradable"
+                    superfluid,
+                    "HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE"
                 );
             });
 
             it("#1.6 context struct layout", async () => {
                 const T = artifacts.require("SuperfluidUpgradabilityTester");
                 const tester = await T.new();
-                await tester.validateContextStructLayout.call();
+                await tester.validateContextStructLayout();
             });
         });
 
         describe("#2 Agreement Whitelisting", async () => {
             it("#2.1 Agreement whitelisting operations", async () => {
                 const N_DEFAULT_AGREEMENTS = (
-                    await superfluid.mapAgreementClasses.call(MAX_UINT256)
+                    await superfluid.mapAgreementClasses(MAX_UINT256)
                 ).length;
                 const typeA = web3.utils.sha3("typeA");
                 const typeB = web3.utils.sha3("typeB");
@@ -133,15 +146,9 @@ describe("Superfluid Host Contract", function () {
                 const mockAFake = await createAgreementMock(typeA, 42);
                 const mockB = await createAgreementMock(typeB, 1);
                 const mockA2 = await createAgreementMock(typeA, 2);
-
-                assert.isFalse(
-                    await superfluid.isAgreementTypeListed.call(typeA)
-                );
-                assert.isFalse(
-                    await superfluid.isAgreementTypeListed.call(typeB)
-                );
-                assert.equal(await mockA.agreementType.call(), typeA);
-
+                assert.isFalse(await superfluid.isAgreementTypeListed(typeA));
+                assert.isFalse(await superfluid.isAgreementTypeListed(typeB));
+                assert.equal(await mockA.agreementType(), typeA);
                 // register typeA
                 await governance.registerAgreementClass(
                     superfluid.address,
@@ -149,79 +156,66 @@ describe("Superfluid Host Contract", function () {
                 );
                 console.debug(
                     "Agreement classes",
-                    await superfluid.mapAgreementClasses.call(MAX_UINT256)
+                    await superfluid.mapAgreementClasses(MAX_UINT256)
                 );
-                const mockAProxy = await AgreementMock.at(
-                    await superfluid.getAgreementClass.call(typeA)
+                const mockAProxy = await ethers.getContractAt(
+                    "AgreementMock",
+                    await superfluid.getAgreementClass(typeA)
                 );
-                assert.equal(await mockAProxy.version.call(), 1);
+                assert.equal(await mockAProxy.version(), 1);
                 assert.equal(
-                    await mockA.agreementType.call(),
-                    await mockAProxy.agreementType.call()
+                    await mockA.agreementType(),
+                    await mockAProxy.agreementType()
                 );
+                assert.isTrue(await superfluid.isAgreementTypeListed(typeA));
                 assert.isTrue(
-                    await superfluid.isAgreementTypeListed.call(typeA)
-                );
-                assert.isTrue(
-                    await superfluid.isAgreementClassListed.call(
-                        mockAProxy.address
-                    )
+                    await superfluid.isAgreementClassListed(mockAProxy.address)
                 );
                 assert.isFalse(
-                    await superfluid.isAgreementClassListed.call(mockA.address)
+                    await superfluid.isAgreementClassListed(mockA.address)
                 );
                 assert.isFalse(
-                    await superfluid.isAgreementClassListed.call(
-                        mockAFake.address
-                    )
+                    await superfluid.isAgreementClassListed(mockAFake.address)
                 );
-                assert.isFalse(
-                    await superfluid.isAgreementTypeListed.call(typeB)
-                );
+                assert.isFalse(await superfluid.isAgreementTypeListed(typeB));
                 assert.deepEqual(
-                    (
-                        await superfluid.mapAgreementClasses.call(MAX_UINT256)
-                    ).slice(-1),
+                    (await superfluid.mapAgreementClasses(MAX_UINT256)).slice(
+                        -1
+                    ),
                     [mockAProxy.address]
                 );
 
                 // register typeB
-                await web3tx(
-                    governance.registerAgreementClass,
-                    "registerAgreementClass typeB"
-                )(superfluid.address, mockB.address);
+                console.log("registerAgreementClass typeB started");
+                await governance.registerAgreementClass(
+                    superfluid.address,
+                    mockB.address
+                );
                 console.debug(
                     "Agreement classes",
-                    await superfluid.mapAgreementClasses.call(MAX_UINT256)
+                    await superfluid.mapAgreementClasses(MAX_UINT256)
                 );
-                const mockBProxy = await AgreementMock.at(
-                    await superfluid.getAgreementClass.call(typeB)
+                const mockBProxy = await ethers.getContractAt(
+                    "AgreementMock",
+                    await superfluid.getAgreementClass(typeB)
                 );
-                assert.equal(await mockBProxy.version.call(), 1);
+                assert.equal(await mockBProxy.version(), 1);
                 assert.equal(
-                    await mockB.agreementType.call(),
-                    await mockBProxy.agreementType.call()
+                    await mockB.agreementType(),
+                    await mockBProxy.agreementType()
                 );
+                assert.isTrue(await superfluid.isAgreementTypeListed(typeA));
                 assert.isTrue(
-                    await superfluid.isAgreementTypeListed.call(typeA)
+                    await superfluid.isAgreementClassListed(mockAProxy.address)
                 );
+                assert.isTrue(await superfluid.isAgreementTypeListed(typeB));
                 assert.isTrue(
-                    await superfluid.isAgreementClassListed.call(
-                        mockAProxy.address
-                    )
-                );
-                assert.isTrue(
-                    await superfluid.isAgreementTypeListed.call(typeB)
-                );
-                assert.isTrue(
-                    await superfluid.isAgreementClassListed.call(
-                        mockBProxy.address
-                    )
+                    await superfluid.isAgreementClassListed(mockBProxy.address)
                 );
                 assert.deepEqual(
-                    (
-                        await superfluid.mapAgreementClasses.call(MAX_UINT256)
-                    ).slice(-2),
+                    (await superfluid.mapAgreementClasses(MAX_UINT256)).slice(
+                        -2
+                    ),
                     [mockAProxy.address, mockBProxy.address]
                 );
 
@@ -234,33 +228,34 @@ describe("Superfluid Host Contract", function () {
                 );
                 console.debug(
                     "Agreement classes",
-                    await superfluid.mapAgreementClasses.call(MAX_UINT256)
+                    await superfluid.mapAgreementClasses(MAX_UINT256)
                 );
-                const mockAProxy2 = await AgreementMock.at(
-                    await superfluid.getAgreementClass.call(typeA)
+                const mockAProxy2 = await ethers.getContractAt(
+                    "AgreementMock",
+                    await superfluid.getAgreementClass(typeA)
                 );
                 assert.equal(mockAProxy2.address, mockAProxy.address);
-                assert.equal(await mockAProxy2.version.call(), 2);
+                assert.equal(await mockAProxy2.version(), 2);
 
                 // bitmap operations
                 assert.equal(
                     toBN(MAX_UINT256)
                         .xor(
                             toBN(
-                                await superfluid.removeFromAgreementClassesBitmap.call(
+                                await superfluid.removeFromAgreementClassesBitmap(
                                     MAX_UINT256,
                                     typeA
                                 )
                             )
                         )
                         .toString(),
-                    toBN(1).shln(N_DEFAULT_AGREEMENTS).toString()
+                    toBN(1).shl(N_DEFAULT_AGREEMENTS).toString()
                 );
                 assert.equal(
                     toBN(MAX_UINT256)
                         .xor(
                             toBN(
-                                await superfluid.removeFromAgreementClassesBitmap.call(
+                                await superfluid.removeFromAgreementClassesBitmap(
                                     MAX_UINT256,
                                     typeB
                                 )
@@ -268,14 +263,14 @@ describe("Superfluid Host Contract", function () {
                         )
                         .toString(),
                     toBN(1)
-                        .shln(N_DEFAULT_AGREEMENTS + 1)
+                        .shl(N_DEFAULT_AGREEMENTS + 1)
                         .toString()
                 );
                 assert.equal(
                     (
                         await superfluid.addToAgreementClassesBitmap(
                             (
-                                await superfluid.removeFromAgreementClassesBitmap.call(
+                                await superfluid.removeFromAgreementClassesBitmap(
                                     MAX_UINT256,
                                     typeA
                                 )
@@ -288,20 +283,24 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#2.2 only governance can update agreement listings", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.registerAgreementClass(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.updateAgreementClass(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
             });
 
             it("#2.3 only host can update agreement code", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     t.contracts.ida.updateCode(ZERO_ADDRESS),
-                    "only host can update code"
+                    t.contracts.ida,
+                    "ONLY_HOST",
+                    t.customErrorCode.AGREEMENT_BASE_ONLY_HOST
                 );
             });
 
@@ -314,12 +313,14 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     mockA.address
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     governance.registerAgreementClass(
                         superfluid.address,
                         mockA2.address
                     ),
-                    "SF: agreement class already registered"
+                    superfluid,
+                    "ALREADY_EXISTS",
+                    t.customErrorCode.HOST_AGREEMENT_ALREADY_REGISTERED
                 );
             });
 
@@ -339,7 +340,7 @@ describe("Superfluid Host Contract", function () {
                 }
                 process.stdout.write("\n");
 
-                const agreements = await superfluid.mapAgreementClasses.call(
+                const agreements = await superfluid.mapAgreementClasses(
                     MAX_UINT256
                 );
                 for (let i = 0; i < 256; ++i) {
@@ -354,12 +355,13 @@ describe("Superfluid Host Contract", function () {
                     web3.utils.sha3("type.bad"),
                     1
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     governance.registerAgreementClass(
                         superfluid.address,
                         badMock.address
                     ),
-                    "SF: support up to 256 agreement classes"
+                    superfluid,
+                    "HOST_MAX_256_AGREEMENTS"
                 );
             });
 
@@ -367,32 +369,40 @@ describe("Superfluid Host Contract", function () {
                 const typeA = web3.utils.sha3("typeA");
                 const mockA = await createAgreementMock(typeA, 1);
 
-                await expectRevertedWith(
+                await expectCustomError(
                     governance.updateContracts(
                         superfluid.address,
                         ZERO_ADDRESS,
                         [mockA.address],
                         ZERO_ADDRESS
                     ),
-                    "SF: agreement class not registered"
+                    superfluid,
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
                 );
 
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.getAgreementClass(typeA),
-                    "SF: agreement class not registered"
+                    superfluid,
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.addToAgreementClassesBitmap(0, typeA),
-                    "SF: agreement class not registered"
+                    superfluid,
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.removeFromAgreementClassesBitmap(0, typeA),
-                    "SF: agreement class not registered"
+                    superfluid,
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
                 );
             });
 
             it("#2.7 mapAgreementClasses", async () => {
-                const agreements = await superfluid.mapAgreementClasses.call(1);
+                const agreements = await superfluid.mapAgreementClasses(1);
                 assert.equal(agreements.length, 1);
                 assert.equal(agreements[0], t.contracts.cfa.address);
             });
@@ -400,22 +410,31 @@ describe("Superfluid Host Contract", function () {
 
         describe("#3 Super Token Factory", () => {
             it("#3.1 only governance can update super token factory", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.updateSuperTokenFactory(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
             });
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const helper = await SuperTokenFactoryHelper.new();
-                const factory2Logic = await SuperTokenFactory.new(
+                let superTokenFactoryHelper = await ethers.getContractFactory(
+                    "SuperTokenFactoryHelper"
+                );
+                superTokenFactoryHelper =
+                    await superTokenFactoryHelper.deploy();
+                let factory2Logic = await ethers.getContractFactory(
+                    "SuperTokenFactory"
+                );
+                factory2Logic = await factory2Logic.deploy(
                     superfluid.address,
-                    helper.address
+                    superTokenFactoryHelper.address
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -429,7 +448,7 @@ describe("Superfluid Host Contract", function () {
                     "Upgradable factory address does not change"
                 );
                 assert.equal(
-                    await superfluid.getSuperTokenFactoryLogic.call(),
+                    await superfluid.getSuperTokenFactoryLogic(),
                     factory2Logic.address,
                     "Upgradable factory logic address should change to the new one"
                 );
@@ -437,25 +456,29 @@ describe("Superfluid Host Contract", function () {
         });
 
         describe("#4 App Registry", () => {
-            let app;
+            let superAppMock;
 
             beforeEach(async () => {
-                app = await SuperAppMock.new(
+                superAppMock = await superAppMockFactory.deploy(
                     superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
+                    1,
                     false
                 );
             });
 
             it("#4.1 basic app info", async () => {
                 assert.isFalse(await superfluid.isApp(governance.address));
-                assert.isTrue(await superfluid.isApp(app.address));
-                assert.isFalse(await superfluid.isAppJailed(app.address));
+                assert.isTrue(await superfluid.isApp(superAppMock.address));
+                assert.isFalse(
+                    await superfluid.isAppJailed(superAppMock.address)
+                );
                 assert.equal(
-                    await superfluid.getAppCallbackLevel(app.address),
+                    await superfluid.getAppCallbackLevel(superAppMock.address),
                     1
                 );
-                const manifest = await superfluid.getAppManifest(app.address);
+                const manifest = await superfluid.getAppManifest(
+                    superAppMock.address
+                );
                 assert.equal(manifest.isSuperApp, true);
                 assert.equal(manifest.isJailed, false);
                 assert.equal(manifest.noopMask, 0);
@@ -464,99 +487,120 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#4.2 app registration rules", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.registerApp(1, {from: admin}),
-                    "SF: APP_RULE_NO_REGISTRATION_FOR_EOA"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_NO_REGISTRATION_FOR_EOA
                 );
-                await expectRevertedWith(
-                    app.tryRegisterApp(0),
-                    "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR"
+                await expectCustomError(
+                    superAppMock.tryRegisterApp(0),
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR
                 );
             });
 
             it("#4.3 app registration with bad config", async () => {
-                const reason = "SF: invalid config word";
-                await expectRevertedWith(
-                    SuperAppMock.new(superfluid.address, 0, false),
+                const reason = "HOST_INVALID_CONFIG_WORD";
+                await expectCustomError(
+                    superAppMockFactory.deploy(superfluid.address, 0, false),
+                    superfluid,
                     reason
                 );
-                await expectRevertedWith(
-                    SuperAppMock.new(
+                await expectCustomError(
+                    superAppMockFactory.deploy(
                         superfluid.address,
                         1 | (1 << 15) /* jail bit */,
                         false
                     ),
+                    superfluid,
                     reason
                 );
-                await expectRevertedWith(
-                    SuperAppMock.new(
+                await expectCustomError(
+                    superAppMockFactory.deploy(
                         superfluid.address,
                         1 | (1 << 16) /* garbage bit */,
                         false
                     ),
+                    superfluid,
                     reason
                 );
             });
 
             it("#4.4 app double registration should fail", async () => {
-                await expectRevertedWith(
-                    SuperAppMock.new(superfluid.address, 1, true),
-                    "SF: app already registered"
+                await expectCustomError(
+                    superAppMockFactory.deploy(superfluid.address, 1, true),
+                    superfluid,
+                    "HOST_SUPER_APP_ALREADY_REGISTERED"
                 );
             });
 
             it("#4.5 allowCompositeApp", async () => {
-                const app2 = await SuperAppMock.new(
+                const app2 = await superAppMockFactory.deploy(
                     superfluid.address,
                     2 /* APP_LEVEL_SECOND */,
                     false
                 );
-                await expectRevertedWith(
-                    superfluid.allowCompositeApp(app.address),
-                    "SF: sender is not an app"
+                await expectCustomError(
+                    superfluid.allowCompositeApp(superAppMock.address),
+                    superfluid,
+                    "HOST_SENDER_IS_NOT_SUPER_APP"
                 );
-                await expectRevertedWith(
-                    app.allowCompositeApp(alice),
-                    "SF: target is not an app"
+                await expectCustomError(
+                    superAppMock.allowCompositeApp(alice),
+                    superfluid,
+                    "HOST_RECEIVER_IS_NOT_SUPER_APP"
                 );
-                await expectRevertedWith(
-                    app.allowCompositeApp(app2.address),
-                    "SF: source app should have higher app level"
+                await expectCustomError(
+                    superAppMock.allowCompositeApp(app2.address),
+                    superfluid,
+                    "HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL"
                 );
                 assert.isFalse(
-                    await superfluid.isCompositeAppAllowed.call(
-                        app.address,
+                    await superfluid.isCompositeAppAllowed(
+                        superAppMock.address,
                         app2.address
                     )
                 );
-                await app2.allowCompositeApp(app.address);
+                await app2.allowCompositeApp(superAppMock.address);
                 assert.isTrue(
-                    await superfluid.isCompositeAppAllowed.call(
+                    await superfluid.isCompositeAppAllowed(
                         app2.address,
-                        app.address
+                        superAppMock.address
                     )
                 );
             });
 
             it("#4.6 deprecated register app should continues to work", async () => {
-                const app2 = await SuperAppMockUsingDeprecatedRegisterApp.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */
+                let app2 = await ethers.getContractFactory(
+                    "SuperAppMockUsingDeprecatedRegisterApp"
                 );
+                app2 = await app2.deploy(
+                    superfluid.address,
+                    1
+                ); /* APP_TYPE_FINAL_LEVEL */
                 assert.isTrue(await superfluid.isApp(app2.address));
             });
 
             it("#4.7 app registration as factory by EOA should fail", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.registerAppByFactory(ZERO_ADDRESS, 1),
-                    "SF: factory must be a contract"
+                    superfluid,
+                    "MUST_BE_CONTRACT",
+                    t.customErrorCode.HOST_MUST_BE_CONTRACT
                 );
             });
 
             it("#4.8 register app by factory", async () => {
-                const appFactory = await SuperAppFactoryMock.new();
+                const superAppFactoryMockFactory =
+                    await ethers.getContractFactory("SuperAppFactoryMock");
+                const appFactory = await superAppFactoryMockFactory.deploy();
                 // since whitelisting is disabled, so governance ain't required
-                const app = await SuperAppMockNotSelfRegistering.new();
+                let app = await ethers.getContractFactory(
+                    "SuperAppMockNotSelfRegistering"
+                );
+                app = await app.deploy();
                 assert.isFalse(await superfluid.isApp(app.address));
                 await appFactory.registerAppWithHost(
                     superfluid.address,
@@ -572,17 +616,15 @@ describe("Superfluid Host Contract", function () {
                 const testCtxFunc = async (ctxFuncX, args, ctx) => {
                     const result = (
                         await superfluid.testCtxFuncX(
-                            superfluid.contract.methods[ctxFuncX](
-                                ...args,
-                                "0x"
-                            ).encodeABI(),
+                            t.agreementHelper.hostInterface.encodeFunctionData(
+                                ctxFuncX,
+                                [...args, "0x"]
+                            ),
                             ctx
                         )
                     ).slice(2);
-                    const expectedResult = superfluid.contract.methods[
-                        ctxFuncX
-                    ](...args, ctx)
-                        .encodeABI()
+                    const expectedResult = t.agreementHelper.hostInterface
+                        .encodeFunctionData(ctxFuncX, [...args, ctx])
                         .slice(10);
                     assert.equal(result, expectedResult);
                 };
@@ -590,7 +632,11 @@ describe("Superfluid Host Contract", function () {
                 // test the boundary conditions
                 for (let i = 0; i < 33; ++i) {
                     // with 32 bytes boundary padding
-                    await testCtxFunc("ctxFunc1", [42], "0x" + "d".repeat(i));
+                    await testCtxFunc(
+                        "ctxFunc1",
+                        [42],
+                        "0x" + (i % 2 !== 0 ? "0" : "") + "d".repeat(i)
+                    );
                 }
 
                 // more complicated ABI
@@ -599,7 +645,7 @@ describe("Superfluid Host Contract", function () {
                     [
                         governance.address,
                         t.contracts.ida.address,
-                        "0x2020",
+                        ethers.utils.hexZeroPad("0x2020", 32),
                         "0x" /* agreementData */,
                         "0x" /* cbdata */,
                     ],
@@ -610,7 +656,7 @@ describe("Superfluid Host Contract", function () {
                     [
                         governance.address,
                         t.contracts.ida.address,
-                        "0x2020",
+                        ethers.utils.hexZeroPad("0x2020", 32),
                         "0xdead" /* agreementData */,
                         "0xbeef" /* cbdata */,
                     ],
@@ -618,14 +664,16 @@ describe("Superfluid Host Contract", function () {
                 );
 
                 // error case
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.testCtxFuncX(
-                        superfluid.contract.methods
-                            .ctxFunc1(42, "0xbad")
-                            .encodeABI(),
+                        t.agreementHelper.hostInterface.encodeFunctionData(
+                            "ctxFunc1",
+                            [42, "0x0bad"]
+                        ),
                         "0xbeef"
                     ),
-                    "SF: placeholder ctx should have zero length"
+                    superfluid,
+                    "HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX"
                 );
             });
         });
@@ -638,9 +686,7 @@ describe("Superfluid Host Contract", function () {
             before(async () => {
                 await t.useLastEvmSnapshot();
 
-                gasLimit = (
-                    await superfluid.CALLBACK_GAS_LIMIT.call()
-                ).toString();
+                gasLimit = (await superfluid.CALLBACK_GAS_LIMIT()).toString();
                 agreement = await createAgreementMock(
                     web3.utils.sha3("MockAgreement"),
                     0
@@ -649,17 +695,15 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     agreement.address
                 );
-                agreement = await AgreementMock.at(
+                agreement = await ethers.getContractAt(
+                    "AgreementMock",
                     await superfluid.getAgreementClass(
                         web3.utils.sha3("MockAgreement")
                     )
                 );
 
-                app = await SuperAppMock.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    false
-                );
+                app = await ethers.getContractFactory("SuperAppMock");
+                app = await app.deploy(superfluid.address, 1, false);
 
                 await t.pushEvmSnapshot();
             });
@@ -700,131 +744,153 @@ describe("Superfluid Host Contract", function () {
                 });
 
                 it("#6.2 use agreement framework as an unregistered agreement", async () => {
-                    const reason = "SF: sender is not listed agreement";
+                    const reason = "ONLY_LISTED_AGREEMENT";
 
                     // call from an unregistered mock agreement
                     const mock = await createAgreementMock(
                         web3.utils.sha3("typeA"),
                         0
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryCallAppBeforeCallback(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryCallAppAfterCallback(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryAppCallbackPush(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryAppCallbackPop(superfluid.address, "0x"),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryCtxUseCredit(
                             superfluid.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryJailApp(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
                 });
 
                 it("#6.3 use agreement framework as an impersonating agreement", async () => {
-                    const reason = "SF: sender is not listed agreement";
+                    const reason = "ONLY_LISTED_AGREEMENT";
 
                     const mock = await createAgreementMock(
-                        await t.contracts.cfa.agreementType.call(),
+                        await t.contracts.cfa.agreementType(),
                         0
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryCallAppBeforeCallback(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryCallAppAfterCallback(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryAppCallbackPush(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryAppCallbackPop(superfluid.address, "0x"),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryCtxUseCredit(
                             superfluid.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         mock.tryJailApp(
                             superfluid.address,
                             app.address,
                             false /* do not hack Ctx */,
                             "0x"
                         ),
-                        reason
+                        superfluid,
+                        reason,
+                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                     );
                 });
 
                 it("#6.4 callback will not be called for jailed apps", async () => {
-                    await superfluid.jailApp(app.address);
+                    await superfluid["jailApp(address)"](app.address);
                     await app.setNextCallbackAction(1 /* assert */, "0x");
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementCreatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
+                        agreementMockInterface.encodeFunctionData(
+                            "callAppAfterAgreementCreatedCallback",
+                            [app.address, "0x"]
+                        ),
                         "0x"
                     );
                 });
@@ -832,142 +898,153 @@ describe("Superfluid Host Contract", function () {
                 it("#6.5 bad agreement implementations", async () => {
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .tryCallAppBeforeCallback(
+                        agreementMockInterface.encodeFunctionData(
+                            "tryCallAppBeforeCallback",
+                            [
                                 superfluid.address,
                                 app.address,
                                 false /* do not hack Ctx */,
-                                "0x"
-                            )
-                            .encodeABI(),
+                                "0x",
+                            ]
+                        ),
                         "0x"
                     );
                     await expectReverted(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .tryCallAppBeforeCallback(
+                            agreementMockInterface.encodeFunctionData(
+                                "tryCallAppBeforeCallback",
+                                [
                                     superfluid.address,
                                     app.address,
                                     true /* hack the Ctx */,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                                    "0x",
+                                ]
+                            ),
                             "0x"
                         )
                     );
 
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .tryCallAppAfterCallback(
+                        agreementMockInterface.encodeFunctionData(
+                            "tryCallAppAfterCallback",
+                            [
                                 superfluid.address,
                                 app.address,
                                 false /* do not hack Ctx */,
-                                "0x"
-                            )
-                            .encodeABI(),
+                                "0x",
+                            ]
+                        ),
                         "0x"
                     );
                     await expectReverted(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .tryCallAppAfterCallback(
+                            agreementMockInterface.encodeFunctionData(
+                                "tryCallAppAfterCallback",
+                                [
                                     superfluid.address,
                                     app.address,
                                     true /* hack the Ctx */,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                                    "0x",
+                                ]
+                            ),
                             "0x"
                         )
                     );
 
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .tryAppCallbackPush(
+                        agreementMockInterface.encodeFunctionData(
+                            "tryAppCallbackPush",
+                            [
                                 superfluid.address,
                                 app.address,
-                                false /* hack the Ctx */,
-                                "0x"
-                            )
-                            .encodeABI(),
+                                false /* do not hack Ctx */,
+                                "0x",
+                            ]
+                        ),
                         "0x"
                     );
                     await expectReverted(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .tryAppCallbackPush(
+                            agreementMockInterface.encodeFunctionData(
+                                "tryAppCallbackPush",
+                                [
                                     superfluid.address,
                                     app.address,
                                     true /* hack the Ctx */,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                                    "0x",
+                                ]
+                            ),
                             "0x"
                         )
                     );
 
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .tryAppCallbackPop(superfluid.address, "0x")
-                            .encodeABI(),
+                        agreementMockInterface.encodeFunctionData(
+                            "tryAppCallbackPop",
+                            [superfluid.address, "0x"]
+                        ),
                         "0x"
                     );
                     // NOTE that tryAppCallbackPop cannot be protected YET
 
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .tryCtxUseCredit(
+                        agreementMockInterface.encodeFunctionData(
+                            "tryCtxUseCredit",
+                            [
                                 superfluid.address,
-                                false /* hack the Ctx */,
-                                "0x"
-                            )
-                            .encodeABI(),
+                                false,
+                                /* do not hack Ctx */ "0x",
+                            ]
+                        ),
                         "0x"
                     );
                     await expectReverted(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .tryCtxUseCredit(
+                            agreementMockInterface.encodeFunctionData(
+                                "tryCtxUseCredit",
+                                [
                                     superfluid.address,
                                     true /* hack the Ctx */,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                                    "0x",
+                                ]
+                            ),
                             "0x"
                         )
                     );
 
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .tryJailApp(
+                        agreementMockInterface.encodeFunctionData(
+                            "tryJailApp",
+                            [
                                 superfluid.address,
                                 app.address,
-                                false /* hack the Ctx */,
-                                "0x"
-                            )
-                            .encodeABI(),
+                                false /* do not hack Ctx */,
+                                "0x",
+                            ]
+                        ),
                         "0x"
                     );
                     await expectReverted(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .tryJailApp(
+                            agreementMockInterface.encodeFunctionData(
+                                "tryJailApp",
+                                [
                                     superfluid.address,
                                     app.address,
                                     true /* hack the Ctx */,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                                    "0x",
+                                ]
+                            ),
                             "0x"
                         )
                     );
@@ -977,31 +1054,27 @@ describe("Superfluid Host Contract", function () {
             context("#6.1x agreement callback rules", async () => {
                 it("#6.10 beforeAgreementCreated callback noop should work", async () => {
                     await app.setNextCallbackAction(0 /* noop */, "0x");
-                    const tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppBeforeAgreementCreatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        agreement.contract,
-                        "AppBeforeCallbackResult",
-                        {
-                            appLevel: "0",
-                            callType: "1" /* CALL_INFO_CALL_TYPE_AGREEMENT */,
-                            agreementSelector: agreement.abi.filter(
-                                (i) =>
-                                    i.name ===
-                                    "callAppBeforeAgreementCreatedCallback"
-                            )[0].signature,
-                            cbdata: "0x" + Buffer.from("Noop").toString("hex"),
-                        }
-                    );
+                    const agreementSignature =
+                        agreementMockInterface.getSighash(
+                            "callAppBeforeAgreementCreatedCallback(address,bytes calldata)"
+                        );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(agreement, "AppBeforeCallbackResult")
+                        .withArgs(
+                            0,
+                            1,
+                            agreementSignature,
+                            "0x" + Buffer.from("Noop").toString("hex")
+                        );
                 });
 
                 it("#6.11 beforeAgreementCreated callback assert or revert", async () => {
@@ -1009,12 +1082,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppBeforeAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "CallUtils: target panicked: 0x01"
@@ -1024,12 +1095,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppBeforeAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "CallUtils: target revert()"
@@ -1042,12 +1111,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppBeforeAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "error 42"
@@ -1056,40 +1123,32 @@ describe("Superfluid Host Contract", function () {
 
                 it("#6.12 afterAgreementCreated callback noop should work", async () => {
                     await app.setNextCallbackAction(0 /* noop */, "0x");
-                    const tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementCreatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
-                    const agreementSelector = agreement.abi.filter(
-                        (i) => i.name === "callAppAfterAgreementCreatedCallback"
-                    )[0].signature;
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        app.contract,
-                        "NoopEvent",
-                        {
-                            appLevel: "1",
-                            callType:
-                                "3" /* CALL_INFO_CALL_TYPE_APP_CALLBACK */,
-                            agreementSelector,
-                        }
-                    );
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        agreement.contract,
-                        "AppAfterCallbackResult",
-                        {
-                            appLevel: "0",
-                            callType: "1" /* CALL_INFO_CALL_TYPE_AGREEMENT */,
-                            agreementSelector,
-                        }
-                    );
+                    const agreementSignature =
+                        agreementMockInterface.getSighash(
+                            "callAppAfterAgreementCreatedCallback(address,bytes calldata)"
+                        );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(app, "NoopEvent")
+                        .withArgs(
+                            1,
+                            3 /* CALL_INFO_CALL_TYPE_APP_CALLBACK */,
+                            agreementSignature
+                        )
+                        .and.to.emit(agreement, "AppAfterCallbackResult")
+                        .withArgs(
+                            0,
+                            1 /* CALL_INFO_CALL_TYPE_AGREEMENT */,
+                            agreementSignature
+                        );
                 });
 
                 it("#6.13 afterAgreementCreated callback assert or revert", async () => {
@@ -1097,12 +1156,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "CallUtils: target panicked: 0x01"
@@ -1112,12 +1169,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "CallUtils: target revert()"
@@ -1130,12 +1185,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "error 42"
@@ -1144,91 +1197,73 @@ describe("Superfluid Host Contract", function () {
 
                 it("#6.14 afterAgreementCreated callback altering ctx", async () => {
                     await app.setNextCallbackAction(4 /* AlteringCtx */, "0x");
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_CTX_IS_READONLY"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_CTX_IS_READONLY
                     );
                 });
 
                 it("#6.15 beforeAgreementTerminated callback revert jail rule", async () => {
                     await app.setNextCallbackAction(1 /* assert */, "0x");
-                    const tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppBeforeAgreementTerminatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementTerminatedCallback",
+                                [app.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(
+                            app.address,
+                            10 /* APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK */
+                        );
                     assert.isTrue(await superfluid.isAppJailed(app.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app.address,
-                            reason: "10", // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
-                        }
-                    );
                 });
 
                 it("#6.16 afterAgreementTerminated callback revert jail rule", async () => {
                     await app.setNextCallbackAction(1 /* assert */, "0x");
-                    const tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementTerminatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementTerminatedCallback",
+                                [app.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app.address, 10);
                     assert.isTrue(await superfluid.isAppJailed(app.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app.address,
-                            reason: "10", // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
-                        }
-                    );
                 });
 
                 it("#6.17 afterAgreementTerminated callback readonly ctx jail rule", async () => {
                     await app.setNextCallbackAction(4 /* AlteringCtx */, "0x");
-                    const tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementTerminatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementTerminatedCallback",
+                                [app.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app.address, 20);
                     assert.isTrue(await superfluid.isAppJailed(app.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app.address,
-                            reason: "20", // APP_RULE_CTX_IS_READONLY
-                        }
-                    );
                 });
 
                 it("#6.18 agreement callback noops masks", async () => {
@@ -1242,44 +1277,40 @@ describe("Superfluid Host Contract", function () {
                     ];
                     for (let i = 0; i < tests.length; ++i) {
                         console.debug("testing noop mask for", tests[i][1]);
-                        let app2 = await SuperAppMock.new(
+
+                        let app2 = await ethers.getContractFactory(
+                            "SuperAppMock"
+                        );
+                        app2 = await app2.deploy(
                             superfluid.address,
                             /* APP_TYPE_FINAL_LEVEL */
-                            toBN(1).add(
-                                // *_NOOP:  1 << (32 + n)
-                                toBN(1).shln(32 + tests[i][0])
-                            ),
+                            toBN(1)
+                                .add(
+                                    // *_NOOP:  1 << (32 + n)
+                                    toBN(1).shl(32 + tests[i][0])
+                                )
+                                .toString(),
                             false
                         );
                         await app2.setNextCallbackAction(1 /* assert */, "0x");
                         await superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods[tests[i][1]](
-                                app2.address,
-                                "0x"
-                            ).encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                tests[i][1],
+                                [app2.address, "0x"]
+                            ),
                             "0x"
                         );
                     }
                 });
 
                 it("#6.19 Jail event should not be emitted twice", async () => {
-                    let tx = await superfluid.jailApp(app.address);
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app.address,
-                            reason: "6942", // it is scientific, check the code
-                        }
-                    );
-                    tx = await superfluid.jailApp(app.address);
-                    await expectEvent.notEmitted.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail"
-                    );
+                    await expect(superfluid["jailApp(address)"](app.address))
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app.address, "6942");
+                    await expect(
+                        superfluid["jailApp(address)"](app.address)
+                    ).to.not.emit(superfluid, "Jail");
                 });
             });
 
@@ -1294,12 +1325,10 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppBeforeAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x"
                         ),
                         "CallUtils: target revert()"
@@ -1316,15 +1345,13 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppBeforeAgreementCreatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x",
                             {
-                                gas: Math.ceil(gasLimit / 2),
+                                gasLimit: Math.ceil(gasLimit / 2),
                             }
                         ),
                         "SF: need more gas"
@@ -1338,30 +1365,23 @@ describe("Superfluid Host Contract", function () {
                     );
 
                     // provide less gas
-                    const tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementTerminatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x",
-                        {
-                            // give enough gas to trigger the error
-                            gas: gasLimit * 2,
-                        }
-                    );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementTerminatedCallback",
+                                [app.address, "0x"]
+                            ),
+                            "0x",
+                            {
+                                // give enough gas to trigger the error
+                                gasLimit: gasLimit * 2,
+                            }
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app.address, 10);
                     assert.isTrue(await superfluid.isAppJailed(app.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app.address,
-                            reason: "10", // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
-                        }
-                    );
                 });
 
                 it("#6.23 afterTerminated try to burn all gas but with less gas provided", async () => {
@@ -1374,15 +1394,13 @@ describe("Superfluid Host Contract", function () {
                     await expectRevertedWith(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementTerminatedCallback(
-                                    app.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app.address, "0x"]
+                            ),
                             "0x",
                             {
-                                gas: Math.ceil(gasLimit / 2),
+                                gasLimit: Math.ceil(gasLimit / 2),
                             }
                         ),
                         "SF: need more gas"
@@ -1403,16 +1421,15 @@ describe("Superfluid Host Contract", function () {
                     await setNextAction();
                     let tx = await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .callAppBeforeAgreementCreatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
+                        agreementMockInterface.encodeFunctionData(
+                            "callAppBeforeAgreementCreatedCallback",
+                            [app.address, "0x"]
+                        ),
                         "0x"
                     );
-                    console.debug("Gas used", tx.receipt.gasUsed);
-                    let gasLowerBound = tx.receipt.gasUsed;
+                    let receipt = await tx.wait();
+                    console.debug("Gas used", receipt.gasUsed);
+                    let gasLowerBound = Number(receipt.gasUsed.toString());
                     let gasUpperBound = gasLowerBound + 300000;
                     console.debug(
                         "Current bound",
@@ -1428,24 +1445,25 @@ describe("Superfluid Host Contract", function () {
                         const gap = Math.floor(
                             (gasUpperBound - gasLowerBound) / 2
                         );
-                        gas = gasLowerBound + gap;
+                        gas =
+                            Number(gasLowerBound.toString()) +
+                            Number(gap.toString());
                         console.debug("Trying with new gas limit", gas);
                         try {
                             await setNextAction();
                             tx = await superfluid.callAgreement(
                                 agreement.address,
-                                agreement.contract.methods
-                                    .callAppBeforeAgreementCreatedCallback(
-                                        app.address,
-                                        "0x"
-                                    )
-                                    .encodeABI(),
+                                agreementMockInterface.encodeFunctionData(
+                                    "callAppBeforeAgreementCreatedCallback",
+                                    [app.address, "0x"]
+                                ),
                                 "0x",
                                 {
-                                    gas,
+                                    gasLimit: gas,
                                 }
                             );
-                            console.debug("Gas used", tx.receipt.gasUsed);
+                            receipt = await tx.wait();
+                            console.debug("Gas used", receipt.gasUsed);
                             console.debug(
                                 "No error, decreasing gas with gap",
                                 gasLowerBound,
@@ -1456,6 +1474,8 @@ describe("Superfluid Host Contract", function () {
                             ++errorCount;
                         } catch (error) {
                             // with error, check error and increase gas
+                            // @note this doesn't currently work with custom errors
+                            // not sure why though
                             assert.isNotNull(
                                 error.message.match("SF: need more gas")
                             );
@@ -1490,32 +1510,33 @@ describe("Superfluid Host Contract", function () {
                         app.address,
                         agreement.address
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app3.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app3.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode
+                            .APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED
                     );
                     await app3.allowCompositeApp();
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app3.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app3.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_MAX_APP_LEVEL_REACHED"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_MAX_APP_LEVEL_REACHED
                     );
                 });
 
@@ -1529,28 +1550,27 @@ describe("Superfluid Host Contract", function () {
                         app.address,
                         agreement.address
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app3.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app3.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode
+                            .APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED
                     );
-                    await superfluid.jailApp(app.address);
+                    await superfluid["jailApp(address)"](app.address);
                     await superfluid.callAgreement(
                         agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementCreatedCallback(
-                                app3.address,
-                                "0x"
-                            )
-                            .encodeABI(),
+                        agreementMockInterface.encodeFunctionData(
+                            "callAppAfterAgreementCreatedCallback",
+                            [app3.address, "0x"]
+                        ),
                         "0x"
                     );
                 });
@@ -1568,163 +1588,135 @@ describe("Superfluid Host Contract", function () {
                     const app2 = await SuperAppMock2.new(superfluid.address);
 
                     console.debug("callAppBeforeAgreementCreatedCallback");
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppBeforeAgreementCreatedCallback(
-                                    app2.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementCreatedCallback",
+                                [app2.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_CTX_IS_MALFORMATED
                     );
 
                     console.debug("callAppAfterAgreementCreatedCallback");
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app2.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app2.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_CTX_IS_MALFORMATED
                     );
 
                     console.debug("callAppAfterAgreementCreatedCallback");
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address
                     );
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
-                            agreement.contract.methods
-                                .callAppAfterAgreementCreatedCallback(
-                                    app3.address,
-                                    "0x"
-                                )
-                                .encodeABI(),
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementCreatedCallback",
+                                [app3.address, "0x"]
+                            ),
                             "0x"
                         ),
-                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_CTX_IS_MALFORMATED
                     );
                 });
 
                 it("#6.41 should jail the app in termination callbacks", async () => {
                     let app2;
-                    let tx;
 
                     app2 = await SuperAppMock2.new(superfluid.address);
-                    tx = await web3tx(
-                        superfluid.callAgreement,
-                        "callAppBeforeAgreementTerminatedCallback"
-                    )(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppBeforeAgreementTerminatedCallback(
-                                app2.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppBeforeAgreementTerminatedCallback",
+                                [app2.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app2.address, 22); // APP_RULE_CTX_IS_MALFORMATED
                     assert.isTrue(await superfluid.isAppJailed(app2.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app2.address,
-                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
-                        }
-                    );
 
                     app2 = await SuperAppMock2.new(superfluid.address);
-                    tx = await web3tx(
-                        superfluid.callAgreement,
-                        "callAppAfterAgreementTerminatedCallback"
-                    )(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementTerminatedCallback(
-                                app2.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementTerminatedCallback",
+                                [app2.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app2.address, 22); // APP_RULE_CTX_IS_MALFORMATED
                     assert.isTrue(await superfluid.isAppJailed(app2.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app2.address,
-                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
-                        }
-                    );
 
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address
                     );
-                    tx = await web3tx(
-                        superfluid.callAgreement,
-                        "callAppAfterAgreementTerminatedCallback"
-                    )(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementTerminatedCallback(
-                                app3.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    );
-                    assert.isTrue(await superfluid.isAppJailed(app2.address));
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        superfluid.contract,
-                        "Jail",
-                        {
-                            app: app3.address,
-                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
-                        }
-                    );
+
+                    await expect(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreementMockInterface.encodeFunctionData(
+                                "callAppAfterAgreementTerminatedCallback",
+                                [app3.address, "0x"]
+                            ),
+                            "0x"
+                        )
+                    )
+                        .to.emit(superfluid, "Jail")
+                        .withArgs(app3.address, 22); // APP_RULE_CTX_IS_MALFORMATED
+                    assert.isTrue(await superfluid.isAppJailed(app3.address));
                 });
             });
         });
 
         describe("#7 callAgreement", () => {
             it("#7.1 only listed agreement allowed", async () => {
-                const reason = "SF: only listed agreement allowed";
+                const reason = "ONLY_LISTED_AGREEMENT";
                 // call to an non agreement
-                await expectRevertedWith(
-                    superfluid.callAgreement(alice, "0x", "0x"),
-                    "revert"
-                );
+                await expect(superfluid.callAgreement(alice, "0x", "0x")).to.be
+                    .reverted;
                 // call to an unregistered mock agreement
                 let mock = await createAgreementMock(
                     web3.utils.sha3("typeA"),
                     0
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAgreement(mock.address, "0x", "0x"),
-                    reason
+                    superfluid,
+                    reason,
+                    t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                 );
                 // call to an in personating mock agreement
                 mock = await createAgreementMock(
-                    await t.contracts.cfa.agreementType.call(),
+                    await t.contracts.cfa.agreementType(),
                     0
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAgreement(mock.address, "0x", "0x"),
-                    reason
+                    superfluid,
+                    reason,
+                    t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
                 );
             });
 
@@ -1755,17 +1747,15 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     agreement.address
                 );
-                agreement = await AgreementMock.at(
+                agreement = await ethers.getContractAt(
+                    "AgreementMock",
                     await superfluid.getAgreementClass(
                         web3.utils.sha3("MockAgreement")
                     )
                 );
 
-                app = await SuperAppMock.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    false
-                );
+                app = await ethers.getContractFactory("SuperAppMock");
+                app = await app.deploy(superfluid.address, 1, false);
 
                 await t.pushEvmSnapshot();
             });
@@ -1775,172 +1765,189 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#8.1 only super app can be called", async () => {
-                const reason = "SF: not a super app";
+                const reason = "HOST_NOT_A_SUPER_APP";
                 // call to an non agreement
-                await expectRevertedWith(
-                    superfluid.callAppAction(alice, "0x"),
-                    "revert"
-                );
+                await expect(superfluid.callAppAction(alice, "0x")).to.be
+                    .reverted;
                 // call to an unregistered mock agreement
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(governance.address, "0x"),
+                    superfluid,
                     reason
                 );
             });
 
             it("#8.2 actionNoop", async () => {
-                const tx = await superfluid.callAppAction(
-                    app.address,
-                    app.contract.methods.actionNoop("0x").encodeABI()
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    app.contract,
-                    "NoopEvent",
-                    {
-                        appLevel: "0",
-                        callType: "2" /* CALL_INFO_CALL_TYPE_APP_ACTION */,
-                        agreementSelector: "0x00000000",
-                    }
-                );
+                await expect(
+                    superfluid.callAppAction(
+                        app.address,
+                        superAppMockInterface.encodeFunctionData("actionNoop", [
+                            "0x",
+                        ])
+                    )
+                )
+                    .to.emit(app, "NoopEvent")
+                    .withArgs(
+                        0,
+                        2 /* CALL_INFO_CALL_TYPE_APP_ACTION */,
+                        "0x00000000"
+                    );
             });
 
             it("#8.3 callAppAction assert or revert", async () => {
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods.actionAssert("0x").encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionAssert",
+                            ["0x"]
+                        )
                     ),
                     "CallUtils: target panicked: 0x01"
                 );
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods.actionRevert("0x").encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionRevert",
+                            ["0x"]
+                        )
                     ),
                     "CallUtils: target revert()"
                 );
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionRevertWithReason("error 42", "0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionRevertWithReason",
+                            ["error 42", "0x"]
+                        )
                     ),
                     "error 42"
                 );
             });
 
             it("#8.4 app action should not callAgreement or callAppAction without ctx", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallAgreementWithoutCtx("0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallAgreementWithoutCtx",
+                            ["0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_NOT_CLEAN"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_NOT_CLEAN
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallAppActionWithoutCtx("0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallAppActionWithoutCtx",
+                            ["0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_NOT_CLEAN"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_NOT_CLEAN
                 );
             });
 
             it("#8.5 app callAgreementWithContext which doPing", async () => {
-                const tx = await superfluid.callAppAction(
-                    app.address,
-                    app.contract.methods
-                        .actionPingAgreement(agreement.address, 42, "0x")
-                        .encodeABI()
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    agreement.contract,
-                    "Pong",
-                    {
-                        ping: "42",
-                    }
-                );
+                await expect(
+                    superfluid.callAppAction(
+                        app.address,
+                        superAppMockInterface.encodeFunctionData(
+                            "actionPingAgreement",
+                            [agreement.address, 42, "0x"]
+                        )
+                    )
+                )
+                    .to.emit(agreement, "Pong")
+                    .withArgs(42);
             });
 
             it("#8.6 app callAgreementWithContext which reverts", async () => {
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionAgreementRevert(
-                                agreement.address,
-                                "error 42",
-                                "0x"
-                            )
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionAgreementRevert",
+                            [agreement.address, "error 42", "0x"]
+                        )
                     ),
                     "error 42"
                 );
             });
 
             it("#8.7 app callAppActionWithContext which noop", async () => {
-                const tx = await superfluid.callAppAction(
-                    app.address,
-                    app.contract.methods.actionCallActionNoop("0x").encodeABI()
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    app.contract,
-                    "NoopEvent"
-                );
+                await expect(
+                    superfluid.callAppAction(
+                        app.address,
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallActionNoop",
+                            ["0x"]
+                        )
+                    )
+                ).to.emit(app, "NoopEvent");
             });
 
             it("#8.8 app callAppActionWithContext which reverts", async () => {
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallActionRevert("error 42", "0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallActionRevert",
+                            ["error 42", "0x"]
+                        )
                     ),
                     "error 42"
                 );
             });
 
             it("#8.9 app action should not alter ctx", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods.actionAlteringCtx("0x").encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionAlteringCtx",
+                            ["0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_READONLY"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_READONLY
                 );
             });
 
             it("#8.10 should not be able call jailed app", async () => {
-                await superfluid.jailApp(app.address);
-                await expectRevertedWith(
+                await superfluid["jailApp(address)"](app.address);
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallActionNoop("0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallActionNoop",
+                            ["0x"]
+                        )
                     ),
-                    "SF: app is jailed"
+                    superfluid,
+                    "HOST_SUPER_APP_IS_JAILED"
                 );
             });
 
             it("#8.11 should give explicit error message when empty ctx returned by the action", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionReturnEmptyCtx("0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionReturnEmptyCtx",
+                            ["0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_EMPTY"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_MALFORMATED
                 );
             });
 
@@ -1954,11 +1961,17 @@ describe("Superfluid Host Contract", function () {
                         "beforeAgreementTerminated",
                         "afterAgreementTerminated",
                     ].map(async (cbname) => {
-                        const sel = app.abi.filter((i) => i.name == cbname)[0]
-                            .signature;
-                        await expectRevertedWith(
-                            superfluid.callAppAction(app.address, sel),
-                            "SF: agreement callback is not action"
+                        const sel = Object.entries(
+                            app.interface.functions
+                        ).filter((i) => i[1].name === cbname)[0][0];
+                        const signatureHash = app.interface.getSighash(sel);
+                        await expectCustomError(
+                            superfluid.callAppAction(
+                                app.address,
+                                signatureHash
+                            ),
+                            superfluid,
+                            "HOST_AGREEMENT_CALLBACK_IS_NOT_ACTION"
                         );
                     })
                 );
@@ -1980,17 +1993,15 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     agreement.address
                 );
-                agreement = await AgreementMock.at(
+                agreement = await ethers.getContractAt(
+                    "AgreementMock",
                     await superfluid.getAgreementClass(
                         web3.utils.sha3("MockAgreement")
                     )
                 );
 
-                app = await SuperAppMock.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    false
-                );
+                app = await ethers.getContractFactory("SuperAppMock");
+                app = await app.deploy(superfluid.address, 1, false);
 
                 await t.pushEvmSnapshot();
             });
@@ -2000,160 +2011,150 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#9.1 must call with valid ctx", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallAgreementWithInvalidCtx(
-                                agreement.address,
-                                "0x"
-                            )
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallAgreementWithInvalidCtx",
+                            [agreement.address, "0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_NOT_VALID"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_READONLY
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallActionWithInvalidCtx(
-                                agreement.address,
-                                "0x"
-                            )
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallActionWithInvalidCtx",
+                            [agreement.address, "0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_NOT_VALID"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_READONLY
                 );
             });
 
             it("#9.2 app action should not alter ctx", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallBadAction("0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallBadAction",
+                            ["0x"]
+                        )
                     ),
-                    "SF: APP_RULE_CTX_IS_READONLY"
+                    superfluid,
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_READONLY
                 );
             });
 
             it("#9.3 callAgreementWithContext should from the same app", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionPingAgreementThroughAux(
-                                agreement.address,
-                                42,
-                                "0x"
-                            )
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionPingAgreementThroughAux",
+                            [agreement.address, 42, "0x"]
+                        )
                     ),
-                    "SF: callAgreementWithContext from wrong address"
+                    superfluid,
+                    "HOST_CALL_AGREEMENT_WITH_CTX_FROM_WRONG_ADDRESS"
                 );
             });
 
             it("#9.4 callAppActionWithContext should from the same app", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods
-                            .actionCallActionNoopThroughAux("0x")
-                            .encodeABI()
+                        superAppMockInterface.encodeFunctionData(
+                            "actionCallActionNoopThroughAux",
+                            ["0x"]
+                        )
                     ),
-                    "SF: callAppActionWithContext from wrong address"
+                    superfluid,
+                    "HOST_CALL_APP_ACTION_WITH_CTX_FROM_WRONG_ADDRESS"
                 );
             });
         });
 
         describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
-                const superToken = t.sf.tokens.TESTx;
+                let superToken = t.sf.tokens.TESTx;
 
-                await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
-                    toWad("10"),
-                    {
-                        from: alice,
-                    }
-                );
+                console.log("Alice upgrades 10 tokens");
+                await superToken.upgrade(toWad("10"), {from: alice});
 
-                await web3tx(
-                    superToken.approve,
-                    "SuperToken.approve - from alice to admin"
-                )(admin, toWad("3"), {
-                    from: alice,
-                });
+                console.log("SuperToken.approve - from alice to admin");
+                await superToken.approve(admin, toWad("3"), {from: alice});
                 assert.equal(
-                    (await superToken.allowance.call(alice, admin)).toString(),
+                    (await superToken.allowance(alice, admin)).toString(),
                     toWad("3").toString()
                 );
 
-                await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                await superfluid.batchCall([
                     [
-                        [
-                            101, // upgrade
-                            superToken.address,
-                            web3.eth.abi.encodeParameters(
-                                ["uint256"],
-                                [toWad("10").toString()]
-                            ),
-                        ],
-                        [
-                            1, // approve
-                            superToken.address,
-                            web3.eth.abi.encodeParameters(
-                                ["address", "uint256"],
-                                [bob, toWad("1").toString()]
-                            ),
-                        ],
-                        [
-                            2, // transferFrom own funds
-                            superToken.address,
-                            web3.eth.abi.encodeParameters(
-                                ["address", "address", "uint256"],
-                                [admin, bob, toWad("2").toString()]
-                            ),
-                        ],
-                        [
-                            2, // transferFrom other's funds
-                            superToken.address,
-                            web3.eth.abi.encodeParameters(
-                                ["address", "address", "uint256"],
-                                [alice, bob, toWad("3").toString()]
-                            ),
-                        ],
-                        [
-                            102, // downgrade
-                            superToken.address,
-                            web3.eth.abi.encodeParameters(
-                                ["uint256"],
-                                [toWad("5").toString()]
-                            ),
-                        ],
+                        101, // upgrade
+                        superToken.address,
+                        web3.eth.abi.encodeParameters(
+                            ["uint256"],
+                            [toWad("10").toString()]
+                        ),
                     ],
-                    {
-                        from: admin,
-                    }
-                );
+                    [
+                        1, // approve
+                        superToken.address,
+                        web3.eth.abi.encodeParameters(
+                            ["address", "uint256"],
+                            [bob, toWad("1").toString()]
+                        ),
+                    ],
+                    [
+                        2, // transferFrom own funds
+                        superToken.address,
+                        web3.eth.abi.encodeParameters(
+                            ["address", "address", "uint256"],
+                            [admin, bob, toWad("2").toString()]
+                        ),
+                    ],
+                    [
+                        2, // transferFrom other's funds
+                        superToken.address,
+                        web3.eth.abi.encodeParameters(
+                            ["address", "address", "uint256"],
+                            [alice, bob, toWad("3").toString()]
+                        ),
+                    ],
+                    [
+                        102, // downgrade
+                        superToken.address,
+                        web3.eth.abi.encodeParameters(
+                            ["uint256"],
+                            [toWad("5").toString()]
+                        ),
+                    ],
+                ]);
                 assert.equal(
-                    (await superToken.balanceOf.call(admin)).toString(),
+                    (await superToken.balanceOf(admin)).toString(),
                     toWad("3").toString()
                 );
                 assert.equal(
-                    (await superToken.allowance.call(alice, admin)).toString(),
+                    (await superToken.allowance(alice, admin)).toString(),
                     toWad("0").toString()
                 );
                 assert.equal(
-                    (await superToken.balanceOf.call(alice)).toString(),
+                    (await superToken.balanceOf(alice)).toString(),
                     toWad("7").toString()
                 );
                 assert.equal(
-                    (await superToken.allowance.call(admin, bob)).toString(),
+                    (await superToken.allowance(admin, bob)).toString(),
                     toWad("1").toString()
                 );
                 assert.equal(
-                    (await superToken.balanceOf.call(bob)).toString(),
+                    (await superToken.balanceOf(bob)).toString(),
                     toWad("5").toString()
                 );
 
@@ -2165,30 +2166,30 @@ describe("Superfluid Host Contract", function () {
                     web3.utils.sha3("MockAgreement"),
                     0
                 );
-                await web3tx(
-                    governance.registerAgreementClass,
-                    "Registering mock agreement"
-                )(superfluid.address, agreement.address);
-                agreement = await AgreementMock.at(
+                console.log("Registering mock agreement");
+                await governance.registerAgreementClass(
+                    superfluid.address,
+                    agreement.address
+                );
+                agreement = await ethers.getContractAt(
+                    "AgreementMock",
                     await superfluid.getAgreementClass(
                         web3.utils.sha3("MockAgreement")
                     )
                 );
 
-                const tx = await web3tx(
-                    superfluid.batchCall,
-                    "Superfluid.batchCall"
-                )(
-                    [
+                await expect(
+                    superfluid.batchCall([
                         [
                             201, // call agreement
                             agreement.address,
                             web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 [
-                                    agreement.contract.methods
-                                        .pingMe(admin, 42, "0x")
-                                        .encodeABI(),
+                                    agreementMockInterface.encodeFunctionData(
+                                        "pingMe",
+                                        [admin, 42, "0x"]
+                                    ),
                                     "0x", // user data
                                 ]
                             ),
@@ -2199,34 +2200,20 @@ describe("Superfluid Host Contract", function () {
                             web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 [
-                                    agreement.contract.methods
-                                        .pingMe(admin, 43, "0x")
-                                        .encodeABI(),
+                                    agreementMockInterface.encodeFunctionData(
+                                        "pingMe",
+                                        [admin, 43, "0x"]
+                                    ),
                                     "0x", // user data
                                 ]
                             ),
                         ],
-                    ],
-                    {
-                        from: admin,
-                    }
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    agreement.contract,
-                    "Pong",
-                    {
-                        ping: "42",
-                    }
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    agreement.contract,
-                    "Pong",
-                    {
-                        ping: "43",
-                    }
-                );
+                    ])
+                )
+                    .to.emit(agreement, "Pong")
+                    .withArgs(42)
+                    .and.to.emit(agreement, "Pong")
+                    .withArgs(43);
             });
 
             it("#10.3 batchCall call app action", async () => {
@@ -2234,35 +2221,32 @@ describe("Superfluid Host Contract", function () {
                     web3.utils.sha3("MockAgreement"),
                     0
                 );
-                await web3tx(
-                    governance.registerAgreementClass,
-                    "Registering mock agreement"
-                )(superfluid.address, agreement.address);
-                agreement = await AgreementMock.at(
+                console.log("Registering mock agreement");
+                await governance.registerAgreementClass(
+                    superfluid.address,
+                    agreement.address
+                );
+                agreement = await ethers.getContractAt(
+                    "AgreementMock",
                     await superfluid.getAgreementClass(
                         web3.utils.sha3("MockAgreement")
                     )
                 );
-                const app = await SuperAppMock.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    false
-                );
+                let app = await ethers.getContractFactory("SuperAppMock");
+                app = await app.deploy(superfluid.address, 1, false);
 
-                const tx = await web3tx(
-                    superfluid.batchCall,
-                    "Superfluid.batchCall"
-                )(
-                    [
+                await expect(
+                    superfluid.batchCall([
                         [
                             201, // call agreement
                             agreement.address,
                             web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 [
-                                    agreement.contract.methods
-                                        .pingMe(admin, 42, "0x")
-                                        .encodeABI(),
+                                    agreementMockInterface.encodeFunctionData(
+                                        "pingMe",
+                                        [admin, 42, "0x"]
+                                    ),
                                     "0x", // user data
                                 ]
                             ),
@@ -2270,81 +2254,64 @@ describe("Superfluid Host Contract", function () {
                         [
                             202, // call app action
                             app.address,
-                            app.contract.methods.actionNoop("0x").encodeABI(),
+                            superAppMockInterface.encodeFunctionData(
+                                "actionNoop",
+                                ["0x"]
+                            ),
                         ],
-                    ],
-                    {
-                        from: admin,
-                    }
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    agreement.contract,
-                    "Pong",
-                    {
-                        ping: "42",
-                    }
-                );
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    app.contract,
-                    "NoopEvent"
-                );
+                    ])
+                )
+                    .to.emit(agreement, "Pong")
+                    .withArgs(42)
+                    .and.to.emit(app, "NoopEvent");
             });
 
             it("#10.4 batchCall one fail revert all", async () => {
-                const app = await SuperAppMock.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    false
-                );
+                let app = await ethers.getContractFactory("SuperAppMock");
+                app = await app.deploy(superfluid.address, 1, false);
 
                 await expectRevertedWith(
-                    web3tx(superfluid.batchCall, "Superfluid.batchCall")(
-                        [
+                    superfluid
+                        .connect(await ethers.getSigner(admin))
+                        .batchCall([
                             [
                                 202, // call app action
                                 app.address,
-                                app.contract.methods
-                                    .actionCallActionNoop("0x")
-                                    .encodeABI(),
+                                superAppMockInterface.encodeFunctionData(
+                                    "actionCallActionNoop",
+                                    ["0x"]
+                                ),
                             ],
                             [
                                 202, // call app action
                                 app.address,
-                                app.contract.methods
-                                    .actionCallActionRevert("error 42", "0x")
-                                    .encodeABI(),
+                                superAppMockInterface.encodeFunctionData(
+                                    "actionCallActionRevert",
+                                    ["error 42", "0x"]
+                                ),
                             ],
-                        ],
-                        {
-                            from: admin,
-                        }
-                    ),
+                        ]),
                     "error 42"
                 );
             });
 
             it("#10.5 batchCall invalid operation type", async () => {
-                await expectRevertedWith(
-                    web3tx(superfluid.batchCall, "Superfluid.batchCall")(
-                        [[8888, ZERO_ADDRESS, "0x"]],
-                        {
-                            from: admin,
-                        }
-                    ),
-                    "SF: unknown batch call operation type"
+                await expectCustomError(
+                    superfluid.batchCall([[8888, ZERO_ADDRESS, "0x"]]),
+                    superfluid,
+                    "HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE"
                 );
             });
         });
 
         describe("#11 forwardBatchCall", () => {
-            const ForwarderMock = artifacts.require("ForwarderMock");
-
             let forwarder;
 
             beforeEach(async () => {
-                forwarder = await ForwarderMock.new();
+                const ForwarderMockFactory = await ethers.getContractFactory(
+                    "ForwarderMock"
+                );
+                forwarder = await ForwarderMockFactory.deploy();
             });
 
             it("#11.1 forwardBatchCall with mocked transaction signer", async () => {
@@ -2358,27 +2325,27 @@ describe("Superfluid Host Contract", function () {
                 );
                 const superToken = t.sf.tokens.TESTx;
                 await t.upgradeBalance("alice", toWad(1));
-                await web3tx(forwarder.execute, "forwarder.execute")(
-                    {
-                        from: alice, // mocked transaction signer
-                        to: superfluid.address,
-                        value: "0",
-                        gas: "5000000",
-                        data: superfluid.contract.methods
-                            .forwardBatchCall([
-                                [
-                                    2, // OPERATION_TYPE_ERC20_TRANSFER_FROM
-                                    superToken.address,
-                                    web3.eth.abi.encodeParameters(
+                await forwarder.execute({
+                    from: alice, // mocked transaction signer
+                    to: superfluid.address,
+                    value: "0",
+                    gas: "5000000",
+                    data: t.agreementHelper.hostInterface.encodeFunctionData(
+                        "forwardBatchCall",
+                        [
+                            [
+                                {
+                                    operationType: 2,
+                                    target: superToken.address,
+                                    data: web3.eth.abi.encodeParameters(
                                         ["address", "address", "uint256"],
                                         [alice, bob, toWad(1).toString()]
                                     ),
-                                ],
-                            ])
-                            .encodeABI(),
-                    },
-                    {from: admin}
-                );
+                                },
+                            ],
+                        ]
+                    ),
+                });
                 assert.equal(
                     (await superToken.balanceOf(bob)).toString(),
                     toWad(1).toString()
@@ -2395,28 +2362,25 @@ describe("Superfluid Host Contract", function () {
                     }
                 );
                 await expectRevertedWith(
-                    web3tx(forwarder.execute, "forwarder.execute")(
-                        {
-                            from: alice,
-                            to: superfluid.address,
-                            value: "0",
-                            gas: "5000000",
-                            data: superfluid.contract.methods
-                                .forwardBatchCall([])
-                                .encodeABI(),
-                        },
-                        {from: admin}
-                    ),
+                    forwarder.execute({
+                        from: alice,
+                        to: superfluid.address,
+                        value: "0",
+                        gas: "5000000",
+                        data: t.agreementHelper.hostInterface.encodeFunctionData(
+                            "forwardBatchCall",
+                            [[]]
+                        ),
+                    }),
                     "Not trusted forwarder"
                 );
             });
 
             it("#11.3 forwarder with malformatted message", async () => {
                 await expectRevertedWith(
-                    web3tx(superfluid.forwardBatchCall, "forwarder.execute")(
-                        [],
-                        {from: admin}
-                    ),
+                    superfluid
+                        .connect(await ethers.getSigner(admin))
+                        .forwardBatchCall([]),
                     "Not trusted forwarder"
                 );
             });
@@ -2425,32 +2389,32 @@ describe("Superfluid Host Contract", function () {
         describe("#20 Governance", () => {
             it("#20.1 getGovernance", async () => {
                 assert.equal(
-                    await superfluid.getGovernance.call(),
+                    await superfluid.getGovernance(),
                     t.contracts.governance.address
                 );
             });
 
             it("#20.2 only governance can replace itself", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.updateCode(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     superfluid.replaceGovernance(ZERO_ADDRESS),
-                    "SF: only governance allowed"
+                    superfluid,
+                    "HOST_ONLY_GOVERNANCE"
                 );
             });
 
             it("#20.3 replace with new governance", async () => {
-                const newGov = await TestGovernance.new();
-                await web3tx(
-                    governance.replaceGovernance,
-                    "governance.replaceGovernance"
-                )(superfluid.address, newGov.address);
-                assert.equal(
-                    await superfluid.getGovernance.call(),
+                let newGov = await ethers.getContractFactory("TestGovernance");
+                newGov = await newGov.deploy();
+                await governance.replaceGovernance(
+                    superfluid.address,
                     newGov.address
                 );
+                assert.equal(await superfluid.getGovernance(), newGov.address);
             });
         });
     });
@@ -2490,14 +2454,15 @@ describe("Superfluid Host Contract", function () {
 
         describe("#30 non-upgradability", () => {
             it("#30.1 agreement is not upgradable", async () => {
-                await expectRevertedWith(
+                await expectCustomError(
                     governance.updateContracts(
                         superfluid.address,
                         ZERO_ADDRESS,
                         [t.contracts.ida.address],
                         ZERO_ADDRESS
                     ),
-                    "SF: non upgradable"
+                    superfluid,
+                    "HOST_NON_UPGRADEABLE"
                 );
             });
 
@@ -2506,45 +2471,52 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
-                const helper = await SuperTokenFactoryHelper.new();
-                const factory2Logic = await SuperTokenFactory.new(
-                    superfluid.address,
-                    helper.address
+                let superTokenFactoryHelper = await ethers.getContractFactory(
+                    "SuperTokenFactoryHelper"
                 );
-                await expectRevertedWith(
+                superTokenFactoryHelper =
+                    await superTokenFactoryHelper.deploy();
+                let factory2Logic = await ethers.getContractFactory(
+                    "SuperTokenFactory"
+                );
+                factory2Logic = await factory2Logic.deploy(
+                    superfluid.address,
+                    superTokenFactoryHelper.address
+                );
+                await expectCustomError(
                     governance.updateContracts(
                         superfluid.address,
                         ZERO_ADDRESS,
                         [],
                         factory2Logic.address
                     ),
-                    "SF: non upgradable"
+                    superfluid,
+                    "HOST_NON_UPGRADEABLE"
                 );
             });
 
             it("#30.3 host is not upgradable", async () => {
-                const mock1 = await SuperfluidMock.new(
+                let mock1 = await ethers.getContractFactory("SuperfluidMock");
+                mock1 = await mock1.deploy(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
                 );
-                await expectRevertedWith(
+                await expectCustomError(
                     governance.updateContracts(
                         superfluid.address,
                         mock1.address,
                         [],
                         ZERO_ADDRESS
                     ),
-                    "SF: non upgradable"
+                    superfluid,
+                    "HOST_NON_UPGRADEABLE"
                 );
             });
         });
     });
 
     context("App whitelisting deployment", () => {
-        const SuperAppMockWithRegistrationkey = artifacts.require(
-            "SuperAppMockWithRegistrationkey"
-        );
-
+        let superAppMockWithRegistrationKeyFactory;
         let superfluid;
         let governance;
 
@@ -2569,6 +2541,11 @@ describe("Superfluid Host Contract", function () {
                 tokens: [],
             });
 
+            superAppMockWithRegistrationKeyFactory =
+                await ethers.getContractFactory(
+                    "SuperAppMockWithRegistrationKey"
+                );
+
             ({admin, alice, bob} = t.aliases);
             ({superfluid, governance} = t.contracts);
         });
@@ -2579,24 +2556,26 @@ describe("Superfluid Host Contract", function () {
 
         context("#40.x register app with key", () => {
             it("#40.1 app registration without key should fail", async () => {
-                await expectRevertedWith(
-                    SuperAppMock.new(
+                await expectCustomError(
+                    superAppMockFactory.deploy(
                         superfluid.address,
                         1 /* APP_TYPE_FINAL_LEVEL */,
                         false
                     ),
-                    "SF: invalid or expired registration key"
+                    superfluid,
+                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
                 );
             });
 
             it("#40.2 app registration with invalid key should fail", async () => {
-                await expectRevertedWith(
-                    SuperAppMockWithRegistrationkey.new(
+                await expectCustomError(
+                    superAppMockWithRegistrationKeyFactory.deploy(
                         superfluid.address,
                         1 /* APP_TYPE_FINAL_LEVEL */,
                         "bad microsoft registration key"
                     ),
-                    "SF: invalid or expired registration key"
+                    superfluid,
+                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
                 );
             });
 
@@ -2610,14 +2589,14 @@ describe("Superfluid Host Contract", function () {
                     regKey,
                     expirationTs
                 );
-                const app = await SuperAppMockWithRegistrationkey.new(
-                    superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
-                    "hello world",
-                    {
-                        from: bob,
-                    }
-                );
+                const bobSigner = await ethers.getSigner(bob);
+                const app = await superAppMockWithRegistrationKeyFactory
+                    .connect(bobSigner)
+                    .deploy(
+                        superfluid.address,
+                        1 /* APP_TYPE_FINAL_LEVEL */,
+                        "hello world"
+                    );
                 assert.isTrue(await superfluid.isApp(app.address));
             });
 
@@ -2631,16 +2610,14 @@ describe("Superfluid Host Contract", function () {
                     regKey,
                     expirationTs
                 );
-                await expectRevertedWith(
-                    SuperAppMockWithRegistrationkey.new(
+                await expectCustomError(
+                    superAppMockWithRegistrationKeyFactory.deploy(
                         superfluid.address,
                         1 /* APP_TYPE_FINAL_LEVEL */,
-                        "hello world",
-                        {
-                            from: alice,
-                        }
+                        "hello world"
                     ),
-                    "SF: invalid or expired registration key"
+                    superfluid,
+                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
                 );
             });
 
@@ -2653,42 +2630,48 @@ describe("Superfluid Host Contract", function () {
                     regKey,
                     expirationTs
                 );
-                await expectRevertedWith(
-                    SuperAppMockWithRegistrationkey.new(
+                await expectCustomError(
+                    superAppMockWithRegistrationKeyFactory.deploy(
                         superfluid.address,
                         1 /* APP_TYPE_FINAL_LEVEL */,
-                        "hello world again",
-                        {
-                            from: bob,
-                        }
+                        "hello world again"
                     ),
-                    "SF: invalid or expired registration key"
+                    superfluid,
+                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
                 );
             });
         });
 
         context("#41.x register app by factory", () => {
             it("#41.1 app registration by unauthorized factory should fail", async () => {
-                const appFactory = await SuperAppFactoryMock.new();
+                const superAppFactoryMockFactory =
+                    await ethers.getContractFactory("SuperAppFactoryMock");
+                const appFactory = await superAppFactoryMockFactory.deploy();
                 // governance.authorizeAppFactory NOT done
-                const app = await SuperAppMockNotSelfRegistering.new();
-                await expectRevertedWith(
+                let app = await ethers.getContractFactory(
+                    "SuperAppMockNotSelfRegistering"
+                );
+                app = await app.deploy();
+                await expectCustomError(
                     appFactory.registerAppWithHost(
                         superfluid.address,
                         app.address,
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
-                    "SF: authorized factory required"
+                    superfluid,
+                    "HOST_UNAUTHORIZED_SUPER_APP_FACTORY"
                 );
             });
 
             it("#41.2 app registration by authorized factory", async () => {
-                const appFactory = await SuperAppFactoryMock.new();
+                const superAppFactoryMockFactory =
+                    await ethers.getContractFactory("SuperAppFactoryMock");
+                const appFactory = await superAppFactoryMockFactory.deploy();
                 await governance.authorizeAppFactory(
                     superfluid.address,
                     appFactory.address
                 );
-                const app = await SuperAppMockNotSelfRegistering.new();
+                const app = await superAppFactoryMockFactory.deploy();
                 assert.isFalse(await superfluid.isApp(app.address));
                 await appFactory.registerAppWithHost(
                     superfluid.address,
@@ -2698,7 +2681,7 @@ describe("Superfluid Host Contract", function () {
                 assert.isTrue(await superfluid.isApp(app.address));
 
                 // works for more than once app...
-                const app2 = await SuperAppMockNotSelfRegistering.new();
+                const app2 = await superAppFactoryMockFactory.deploy();
                 assert.isFalse(await superfluid.isApp(app2.address));
                 await appFactory.registerAppWithHost(
                     superfluid.address,
@@ -2713,27 +2696,33 @@ describe("Superfluid Host Contract", function () {
                     appFactory.address
                 );
 
-                const app3 = await SuperAppMockNotSelfRegistering.new();
+                const app3 = await superAppFactoryMockFactory.deploy();
                 assert.isFalse(await superfluid.isApp(app3.address));
-                await expectRevertedWith(
+                await expectCustomError(
                     appFactory.registerAppWithHost(
                         superfluid.address,
                         app3.address,
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
-                    "SF: authorized factory required"
+                    superfluid,
+                    "HOST_UNAUTHORIZED_SUPER_APP_FACTORY"
                 );
             });
         });
 
         context("#42.x (deprecated) register app", () => {
             it("#42.1 app registration without key should fail", async () => {
-                await expectRevertedWith(
-                    SuperAppMockUsingDeprecatedRegisterApp.new(
+                const superAppMockUsingDeprecatedRegisterAppFactory =
+                    await ethers.getContractFactory(
+                        "SuperAppMockUsingDeprecatedRegisterApp"
+                    );
+                await expectCustomError(
+                    superAppMockUsingDeprecatedRegisterAppFactory.deploy(
                         superfluid.address,
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
-                    "SF: app registration requires permission"
+                    superfluid,
+                    "HOST_NO_APP_REGISTRATION_PERMISSIONS"
                 );
             });
         });

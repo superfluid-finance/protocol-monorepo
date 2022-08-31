@@ -24,8 +24,8 @@
     },
     "devDependencies": {
         "@ethersproject/providers": "^5.6.8",
+        "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
         "@nomiclabs/hardhat-ethers": "^2.0.6",
-        "@nomiclabs/hardhat-waffle": "^2.0.3",
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/test-helpers": "^0.5.15",
         "@truffle/hdwallet-provider": "^2.0.10",
@@ -47,7 +47,6 @@
         "eslint-plugin-eslint-comments": "^3.2.0",
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-prettier": "^4.2.1",
-        "ethereum-waffle": "^3.4.4",
         "hardhat": "^2.9.9",
         "husky": "^8.0.1",
         "lerna": "^5.1.6",

@@ -1,7 +1,8 @@
 const TestEnvironment = require("../../TestEnvironment");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectCustomError} = require("../../utils/expectRevert");
 
-const {toBN, toWad, wad4human} = require("@decentral.ee/web3-helpers");
+const {wad4human} = require("@decentral.ee/web3-helpers");
+const {toBN, toWad} = require("../utils/helpers");
 
 const {
     shouldCreateFlow,
@@ -16,6 +17,7 @@ const {
     shouldUpdateSubscription,
     shouldDeleteSubscription,
 } = require("../agreements/InstantDistributionAgreementV1.behaviour.js");
+const {ethers} = require("hardhat");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -89,7 +91,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: FLOW_RATE1.mul(toBN(-1)),
+                value: FLOW_RATE1.mul(toBN(0).sub(toBN(1))),
             });
             await expectNetFlow({
                 testenv: t,
@@ -126,8 +128,8 @@ describe("Superfluid scenarios", function () {
             //   ^---------------|
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-            const flowRateBC = FLOW_RATE1.muln(2).divn(3);
-            const flowRateCA = FLOW_RATE1.divn(3);
+            const flowRateBC = FLOW_RATE1.mul(2).div(3);
+            const flowRateCA = FLOW_RATE1.div(3);
 
             await shouldCreateFlow({
                 testenv: t,
@@ -212,10 +214,10 @@ describe("Superfluid scenarios", function () {
         });
 
         it("#1.3 a slight complex flow map", async () => {
-            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.muln(2));
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.mul(2));
 
-            const flowRateBD = FLOW_RATE1.muln(2).divn(3);
-            const flowRateDC = FLOW_RATE1.divn(3);
+            const flowRateBD = FLOW_RATE1.mul(2).div(3);
+            const flowRateDC = FLOW_RATE1.div(3);
             //const flowRate;
 
             await shouldCreateFlow({
@@ -236,7 +238,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: toBN(0).sub(FLOW_RATE1.muln(2)),
+                value: toBN(0).sub(FLOW_RATE1.mul(2)),
             });
             await expectNetFlow({
                 testenv: t,
@@ -269,7 +271,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: toBN(0).sub(FLOW_RATE1.muln(2)),
+                value: toBN(0).sub(FLOW_RATE1.mul(2)),
             });
             await expectNetFlow({
                 testenv: t,
@@ -302,7 +304,7 @@ describe("Superfluid scenarios", function () {
                 testenv: t,
                 superToken,
                 account: "alice",
-                value: toBN(0).sub(FLOW_RATE1.muln(2)),
+                value: toBN(0).sub(FLOW_RATE1.mul(2)),
             });
             await expectNetFlow({
                 testenv: t,
@@ -445,7 +447,7 @@ describe("Superfluid scenarios", function () {
             await t.upgradeBalance("alice", INIT_BALANCE);
             await t.upgradeBalance("bob", INIT_BALANCE);
 
-            // alice and bob create indeces and dan subscribes to them
+            // alice and bob create indices and dan subscribes to them
             const publishers = [
                 [alice, toWad("0.0001"), true],
                 [bob, toWad("0.0002"), false],
@@ -589,15 +591,20 @@ describe("Superfluid scenarios", function () {
 
             await t.timeTravelOnce();
 
-            await expectRevertedWith(
-                shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(75).toString(),
+            await expectCustomError(
+                t.agreementHelper.callAgreement({
+                    agreementAddress: t.contracts.ida.address,
+                    callData: t.agreementHelper.getIDACallData("distribute", [
+                        superToken.address,
+                        DEFAULT_INDEX_ID,
+                        toWad(75).toString(),
+                        "0x",
+                    ]),
+                    signer: await ethers.getSigner(alice),
                 }),
-                "IDA: E_LOW_BALANCE"
+                t.contracts.ida,
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.IDA_INSUFFICIENT_BALANCE
             );
         });
 
@@ -715,15 +722,20 @@ describe("Superfluid scenarios", function () {
                 units: toWad("0.001").toString(),
             });
 
-            await expectRevertedWith(
-                shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(24).toString(),
+            await expectCustomError(
+                t.agreementHelper.callAgreement({
+                    agreementAddress: t.contracts.ida.address,
+                    callData: t.agreementHelper.getIDACallData("distribute", [
+                        superToken.address,
+                        DEFAULT_INDEX_ID,
+                        toWad(24).toString(),
+                        "0x",
+                    ]),
+                    signer: await ethers.getSigner(alice),
                 }),
-                "IDA: E_LOW_BALANCE"
+                t.contracts.ida,
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.IDA_INSUFFICIENT_BALANCE
             );
 
             await t.sf.cfa.createFlow({

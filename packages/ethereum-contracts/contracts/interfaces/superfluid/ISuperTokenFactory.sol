@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperToken } from "./ISuperToken.sol";
 
@@ -7,13 +7,13 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../tokens/ERC20WithTokenInfo.sol";
+import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
  * @title Super token factory interface
  * @author Superfluid
  */
 interface ISuperTokenFactory {
-
     /**
      * @dev Get superfluid host contract address
      */

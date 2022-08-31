@@ -8,6 +8,7 @@ import {
     ISuperToken,
     ISuperTokenFactory,
     ISuperfluidGovernance,
+    SuperfluidErrors,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
@@ -98,7 +99,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperToken[] calldata tokens,
         uint256[] calldata minimumDeposits
     ) external {
-        require(tokens.length == minimumDeposits.length, "SFGov: arrays are not the same length");
+        if (tokens.length != minimumDeposits.length) revert SF_GOV_ARRAYS_NOT_SAME_LENGTH();
         for (uint i = 0; i < minimumDeposits.length; ++i) {
             setSuperTokenMinimumDeposit(
                 host,
@@ -304,11 +305,12 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     )
         public
     {
-        require(liquidationPeriod > patricianPeriod
-            && liquidationPeriod < type(uint32).max
-            && patricianPeriod < type(uint32).max,
-            "SFGov: Invalid liquidationPeriod or patricianPeriod"
-        );
+        if (liquidationPeriod <= patricianPeriod
+            || liquidationPeriod >= type(uint32).max
+            || patricianPeriod >= type(uint32).max
+        ) {
+            revert SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD();
+        }
         uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
         _setConfig(
             host,
@@ -513,7 +515,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(factory) }
-            require(cs > 0, "SFGov: factory must be a contract");
+            if (cs == 0) revert SuperfluidErrors.MUST_BE_CONTRACT(SuperfluidErrors.SF_GOV_MUST_BE_CONTRACT);
         }
         _setConfig(
             host, ISuperfluidToken(address(0)),
@@ -538,7 +540,6 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         emit AppFactoryAuthorizationChanged(host, factory, false);
     }
 
-    // TODO: would like to use virtual modifier, but solhint doesn't like it atm
     modifier onlyAuthorized(ISuperfluid host) {
         _requireAuthorised(host);
         _;

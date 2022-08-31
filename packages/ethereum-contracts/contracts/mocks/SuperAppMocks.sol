@@ -597,7 +597,7 @@ contract SuperAppMock2ndLevel {
 }
 
 // An Super App that uses registerAppWithKey
-contract SuperAppMockWithRegistrationkey {
+contract SuperAppMockWithRegistrationKey {
     constructor(ISuperfluid host, uint256 configWord, string memory registrationKey) {
         host.registerAppWithKey(configWord, registrationKey);
     }

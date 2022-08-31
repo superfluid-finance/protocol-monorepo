@@ -20,3 +20,6 @@ require("../test/contracts/utils/Resolver.test.js");
 require("../test/contracts/utils/SuperUpgrader.test.js");
 require("../test/contracts/utils/BatchLiquidator.test.js");
 require("../test/contracts/utils/TOGA.test");
+
+// Agreement forwarders
+require("../test/contracts/agreements/CFAv1Forwarder.test.js");

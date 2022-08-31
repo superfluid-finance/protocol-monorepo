@@ -3,7 +3,9 @@ const {expectRevertedWith} = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
 const SuperUpgrader = artifacts.require("SuperUpgrader");
 
-const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
+const {web3tx} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("hardhat");
+const {toWad} = require("./helpers");
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -57,13 +59,16 @@ describe("Superfluid Super Upgrader Contract", function () {
         it("#1.2 Should revert without owner address", async () => {
             const backendWithZero = [...backend];
             backendWithZero.push(ZERO_ADDRESS);
+            const superUpgraderFactory = await ethers.getContractFactory(
+                "SuperUpgrader"
+            );
             await expectRevertedWith(
-                SuperUpgrader.new(ZERO_ADDRESS, new Array()),
+                superUpgraderFactory.deploy(ZERO_ADDRESS, new Array()),
                 "adminRole is empty"
             );
 
             await expectRevertedWith(
-                SuperUpgrader.new(admin, backendWithZero),
+                superUpgraderFactory.deploy(admin, backendWithZero),
                 "backend can't be zero"
             );
         });
@@ -81,17 +86,19 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     describe("#2 Upgrades to SuperToken", async () => {
         it("#2.1 Should revert if not in role", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            let upgrader = await ethers.getContractFactory("SuperUpgrader");
+            upgrader = await upgrader.deploy(admin, backend);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to admin"
             )(upgrader.address, toWad("3"), {
                 from: alice,
             });
+            const eveSigner = await ethers.getSigner(eve);
             await expectRevertedWith(
-                upgrader.upgrade(superToken.address, alice, toWad("3"), {
-                    from: eve,
-                }),
+                upgrader
+                    .connect(eveSigner)
+                    .upgrade(superToken.address, alice, toWad("3")),
                 "operation not allowed"
             );
         });
@@ -183,23 +190,23 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.5 Should revert without approval", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            let upgrader = await ethers.getContractFactory("SuperUpgrader");
+            upgrader = await upgrader.deploy(admin, backend);
+            const backendSigner = await ethers.getSigner(backend[0]);
 
+            console.log("upgrader.upgrade");
             await expectRevertedWith(
-                web3tx(upgrader.upgrade, "upgrader.upgrade")(
-                    superToken.address,
-                    alice,
-                    1,
-                    {
-                        from: backend[0],
-                    }
-                ),
+                upgrader
+                    .connect(backendSigner)
+                    .upgrade(superToken.address, alice, 1),
                 "ERC20: insufficient allowance"
             );
         });
 
         it("#2.6 Should revert approval is less than need it", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            let upgrader = await ethers.getContractFactory("SuperUpgrader");
+            upgrader = await upgrader.deploy(admin, backend);
+            const backendSigner = await ethers.getSigner(backend[0]);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to backend"
@@ -208,14 +215,9 @@ describe("Superfluid Super Upgrader Contract", function () {
             });
 
             await expectRevertedWith(
-                web3tx(upgrader.upgrade, "upgrader.upgrade")(
-                    superToken.address,
-                    alice,
-                    "1000000000000000001",
-                    {
-                        from: backend[0],
-                    }
-                ),
+                upgrader
+                    .connect(backendSigner)
+                    .upgrade(superToken.address, alice, "1000000000000000001"),
                 "ERC20: insufficient allowance"
             );
         });
@@ -247,42 +249,35 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.8 Owner should define optout/optin blocking backend upgrade", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            let upgrader = await ethers.getContractFactory("SuperUpgrader");
+            upgrader = await upgrader.deploy(admin, backend);
+            const backendSigner = await ethers.getSigner(backend[0]);
+            const aliceSigner = await ethers.getSigner(alice);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to backend"
             )(upgrader.address, toWad("1000000"), {
                 from: alice,
             });
+            console.log("Alice opt-out");
 
-            await web3tx(
-                upgrader.optoutAutoUpgrades,
-                "Alice opt-out"
-            )({from: alice});
+            await upgrader.connect(aliceSigner).optoutAutoUpgrades();
 
             await expectRevertedWith(
-                upgrader.upgrade(superToken.address, alice, toWad("3"), {
-                    from: backend[0],
-                }),
+                upgrader
+                    .connect(backendSigner)
+                    .upgrade(superToken.address, alice, toWad("3")),
                 "operation not allowed"
             );
 
-            await web3tx(
-                upgrader.optinAutoUpgrades,
-                "Alice opt-in"
-            )({from: alice});
+            console.log("Alice opt-in");
+            await upgrader.connect(aliceSigner).optinAutoUpgrades();
 
-            await web3tx(upgrader.upgrade, "Backend upgrade alice tokens")(
-                superToken.address,
-                alice,
-                toWad("100"),
-                {
-                    from: backend[0],
-                }
-            );
-            const aliceSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
+            console.log("Backend upgrade alice tokens");
+            await upgrader
+                .connect(backendSigner)
+                .upgrade(superToken.address, alice, toWad("100"));
+            const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
                 toWad("100"),
@@ -293,7 +288,10 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     describe("#3 Control list of roles", async () => {
         it("#3.1 Admin should add/remove backend accounts", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            let upgrader = await ethers.getContractFactory("SuperUpgrader");
+            upgrader = await upgrader.deploy(admin, backend);
+            const adminSigner = await ethers.getSigner(admin);
+            const eveSigner = await ethers.getSigner(eve);
 
             for (let i = 0; i < backend.length; i++) {
                 assert.isOk(
@@ -302,24 +300,16 @@ describe("Superfluid Super Upgrader Contract", function () {
                 );
             }
 
-            await web3tx(
-                upgrader.revokeBackendAgent,
-                "admin revoke backend account"
-            )(backend[0], {
-                from: admin,
-            });
+            console.log("admin revoke backend account");
+            await upgrader.connect(adminSigner).revokeBackendAgent(backend[0]);
 
             assert.isOk(
                 !(await upgrader.isBackendAgent(backend[0])),
                 "address should not be in backend role"
             );
 
-            await web3tx(
-                upgrader.grantBackendAgent,
-                "admin grant backend account"
-            )(backend[0], {
-                from: admin,
-            });
+            console.log("admin grant backend account");
+            await upgrader.connect(adminSigner).grantBackendAgent(backend[0]);
 
             assert.isOk(
                 await upgrader.isBackendAgent(backend[0]),
@@ -327,17 +317,17 @@ describe("Superfluid Super Upgrader Contract", function () {
             );
 
             await expectRevertedWith(
-                upgrader.grantBackendAgent(ZERO_ADDRESS, {from: admin}),
+                upgrader.connect(adminSigner).grantBackendAgent(ZERO_ADDRESS),
                 "operation not allowed"
             );
 
             await expectRevertedWith(
-                upgrader.grantBackendAgent(eve, {from: eve}),
+                upgrader.connect(eveSigner).grantBackendAgent(eve),
                 `AccessControl: account ${eve.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
             );
 
             await expectRevertedWith(
-                upgrader.revokeBackendAgent(backend[1], {from: eve}),
+                upgrader.connect(eveSigner).revokeBackendAgent(backend[1]),
                 `AccessControl: account ${eve.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
             );
         });

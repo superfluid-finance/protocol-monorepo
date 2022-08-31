@@ -3,25 +3,21 @@ const fs = require("fs");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const traveler = require("ganache-time-traveler");
+const {ethers} = require("hardhat");
 
 const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
-const IERC1820Registry = artifacts.require("IERC1820Registry");
-const SuperfluidMock = artifacts.require("SuperfluidMock");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
-const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
-const InstantDistributionAgreementV1 = artifacts.require(
-    "InstantDistributionAgreementV1"
-);
-const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
 
-const {BN} = require("@openzeppelin/test-helpers");
-const {web3tx, toWad, wad4human, toBN} = require("@decentral.ee/web3-helpers");
+const {toBN, toWad, max} = require("./contracts/utils/helpers");
+const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
+const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data.js");
+const {AgreementHelper} = require("./contracts/agreements/AgreementHelper");
 
 let _singleton;
 
@@ -70,6 +66,61 @@ module.exports = class TestEnvironment {
         this.plotData = {};
         this._evmSnapshots = [];
 
+        this.customErrorCode = {
+            APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR: 1,
+            APP_RULE_NO_REGISTRATION_FOR_EOA: 2,
+            APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK: 10,
+            APP_RULE_NO_CRITICAL_SENDER_ACCOUNT: 11,
+            APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT: 12,
+            APP_RULE_CTX_IS_READONLY: 20,
+            APP_RULE_CTX_IS_NOT_CLEAN: 21,
+            APP_RULE_CTX_IS_MALFORMATED: 22,
+            APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED: 30,
+            APP_RULE_COMPOSITE_APP_IS_JAILED: 31,
+            APP_RULE_MAX_APP_LEVEL_REACHED: 40,
+
+            CFA_FLOW_ALREADY_EXISTS: 1000,
+            CFA_FLOW_DOES_NOT_EXIST: 1001,
+            CFA_INSUFFICIENT_BALANCE: 1100,
+            CFA_ZERO_ADDRESS_SENDER: 1500,
+            CFA_ZERO_ADDRESS_RECEIVER: 1501,
+
+            IDA_INDEX_ALREADY_EXISTS: 2000,
+            IDA_INDEX_DOES_NOT_EXIST: 2001,
+            IDA_SUBSCRIPTION_DOES_NOT_EXIST: 2002,
+            IDA_SUBSCRIPTION_ALREADY_APPROVED: 2003,
+            IDA_SUBSCRIPTION_IS_NOT_APPROVED: 2004,
+            IDA_INSUFFICIENT_BALANCE: 2100,
+            IDA_ZERO_ADDRESS_SUBSCRIBER: 2500,
+
+            HOST_AGREEMENT_ALREADY_REGISTERED: 3000,
+            HOST_AGREEMENT_IS_NOT_REGISTERED: 3001,
+            HOST_SUPER_APP_ALREADY_REGISTERED: 3002,
+            HOST_MUST_BE_CONTRACT: 3200,
+            HOST_ONLY_LISTED_AGREEMENT: 3300,
+
+            SF_GOV_MUST_BE_CONTRACT: 4200,
+
+            SF_TOKEN_AGREEMENT_ALREADY_EXISTS: 5000,
+            SF_TOKEN_AGREEMENT_DOES_NOT_EXIST: 5001,
+            SF_TOKEN_BURN_INSUFFICIENT_BALANCE: 5100,
+            SF_TOKEN_MOVE_INSUFFICIENT_BALANCE: 5101,
+            SF_TOKEN_ONLY_LISTED_AGREEMENT: 5300,
+            SF_TOKEN_ONLY_HOST: 5400,
+
+            SUPER_TOKEN_ONLY_HOST: 6400,
+            SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS: 6500,
+            SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS: 6501,
+            SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS: 6502,
+            SUPER_TOKEN_MINT_TO_ZERO_ADDRESS: 6503,
+            SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS: 6504,
+            SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS: 6505,
+            SUPER_TOKEN_FACTORY_ONLY_HOST: 7400,
+            SUPER_TOKEN_FACTORY_ZERO_ADDRESS: 7500,
+
+            AGREEMENT_BASE_ONLY_HOST: 8400,
+        };
+
         this.configs = {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(0),
@@ -80,10 +131,12 @@ module.exports = class TestEnvironment {
         };
 
         this.constants = {
-            ...Object.assign(
-                {},
-                require("@openzeppelin/test-helpers").constants
-            ),
+            ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
+            ZERO_BYTES32:
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+            MAX_UINT256: toBN("2").pow(toBN("256")).sub(toBN("1")),
+            MAX_INT256: toBN("2").pow(toBN("255")).sub(toBN("1")),
+            MIN_INT256: toBN("2").pow(toBN("255")).mul(toBN("-1")),
             MAXIMUM_FLOW_RATE: toBN(2).pow(toBN(95)).sub(toBN(1)),
             APP_LEVEL_FINAL: 1 << 0,
             APP_LEVEL_SECOND: 1 << 1,
@@ -261,29 +314,46 @@ module.exports = class TestEnvironment {
         });
         await this.sf.initialize();
 
+        const signer = await ethers.getSigner(this.accounts[0]);
+
         // load contracts with testing/mocking interfaces
         this.contracts = {};
         await Promise.all([
             // load singletons
-            (this.contracts.erc1820 = await IERC1820Registry.at(
+            (this.contracts.erc1820 = await ethers.getContractAt(
+                "IERC1820Registry",
                 "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
             )),
             // load host contract
-            (this.contracts.superfluid = await SuperfluidMock.at(
+            (this.contracts.superfluid = await ethers.getContractAt(
+                "SuperfluidMock",
                 this.sf.host.address
             )),
             // load agreement contracts
-            (this.contracts.cfa = await ConstantFlowAgreementV1.at(
+            (this.contracts.cfa = await ethers.getContractAt(
+                "ConstantFlowAgreementV1",
                 this.sf.agreements.cfa.address
             )),
-            (this.contracts.ida = await InstantDistributionAgreementV1.at(
+            (this.contracts.ida = await ethers.getContractAt(
+                "InstantDistributionAgreementV1",
                 this.sf.agreements.ida.address
             )),
             // load governance contract
-            (this.contracts.governance = await TestGovernance.at(
+            (this.contracts.governance = await ethers.getContractAt(
+                "TestGovernance",
                 await this.sf.host.getGovernance()
             )),
+            (this.contracts.ISuperToken = new ethers.Contract(
+                "ISuperToken",
+                ISuperTokenArtifact.abi,
+                signer
+            )),
+            (this.contracts.resolver = await ethers.getContractAt(
+                "Resolver",
+                this.sf.resolver.address
+            )),
         ]);
+        this.agreementHelper = new AgreementHelper(this);
     }
 
     /*
@@ -299,7 +369,7 @@ module.exports = class TestEnvironment {
         // plot data can be persisted over a test case here
         this.plotData = {};
 
-        // reset governace parameters
+        // reset governance parameters
         await Promise.all([
             await web3tx(
                 this.contracts.governance.setPPPConfig,
@@ -324,7 +394,7 @@ module.exports = class TestEnvironment {
             )(
                 this.sf.host.address,
                 this.constants.ZERO_ADDRESS,
-                this.configs.MINIMUM_DEPOSIT
+                this.configs.MINIMUM_DEPOSIT.toString()
             ),
         ]);
     }
@@ -561,7 +631,7 @@ module.exports = class TestEnvironment {
     updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
-        assert.isDefined(balanceSnapshot.timestamp);
+        assert.isDefined(balanceSnapshot.timestamp.toString());
         _.merge(this.data, {
             tokens: {
                 [superToken]: {
@@ -610,7 +680,7 @@ module.exports = class TestEnvironment {
         expectedBalanceDelta
     ) {
         assert.isDefined(account);
-        assert.isDefined(expectedBalanceDelta);
+        assert.isDefined(expectedBalanceDelta.toString());
         _.merge(this.data, {
             tokens: {
                 [superToken]: {
@@ -801,10 +871,12 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     realtimeBalance(balance) {
-        return toBN(balance.availableBalance).add(
-            BN.max(
+        return toBN(balance.availableBalance.toString()).add(
+            max(
                 toBN(0),
-                toBN(balance.deposit).sub(toBN(balance.owedDeposit))
+                toBN(balance.deposit.toString()).sub(
+                    toBN(balance.owedDeposit.toString())
+                )
             )
         );
     }
@@ -968,7 +1040,9 @@ module.exports = class TestEnvironment {
                     );
                 }
 
-                rtBalanceSum = rtBalanceSum.add(realtimeBalance);
+                rtBalanceSum = rtBalanceSum.add(
+                    toBN(realtimeBalance.toString())
+                );
             })
         );
 
@@ -977,7 +1051,9 @@ module.exports = class TestEnvironment {
             rtBalanceSum
         );
 
-        const aum = await testToken.balanceOf.call(superToken.address);
+        const aum = toBN(
+            (await testToken.balanceOf.call(superToken.address)).toString()
+        );
         this.printSingleBalance("AUM of super tokens", aum);
 
         const totalSupply = await superToken.totalSupply.call();

@@ -1,6 +1,5 @@
 const _ = require("lodash");
-const {toBN} = require("@decentral.ee/web3-helpers");
-const {BN} = require("@openzeppelin/test-helpers");
+const {toBN, max, min} = require("../utils/helpers");
 
 /**
  * @dev CFA Data Model which contains the relevant CFA state,
@@ -208,9 +207,9 @@ module.exports = class CFADataModel {
             `wrong netflow delta of ${role}`
         );
 
-        const depositDelta = toBN(this.getBalancesAfter(role).deposit).sub(
-            toBN(this.getBalancesBefore(role).deposit)
-        );
+        const depositDelta = toBN(
+            this.getBalancesAfter(role).deposit.toString()
+        ).sub(toBN(this.getBalancesBefore(role).deposit.toString()));
         assert.equal(
             depositDelta.toString(),
             expectedDepositDelta.toString(),
@@ -218,8 +217,8 @@ module.exports = class CFADataModel {
         );
 
         const owedDepositDelta = toBN(
-            this.getBalancesAfter(role).owedDeposit
-        ).sub(toBN(this.getBalancesBefore(role).owedDeposit));
+            this.getBalancesAfter(role).owedDeposit.toString()
+        ).sub(toBN(this.getBalancesBefore(role).owedDeposit.toString()));
         assert.equal(
             owedDepositDelta.toString(),
             expectedOwedDepositDelta.toString(),
@@ -349,10 +348,10 @@ module.exports = class CFADataModel {
         let actualNetFlow = toBN(0);
 
         inFlows.forEach((flowInfo) => {
-            actualNetFlow.iadd(toBN(flowInfo.flowRate));
+            actualNetFlow = actualNetFlow.add(toBN(flowInfo.flowRate));
         });
         outFlows.forEach((flowInfo) => {
-            actualNetFlow.isub(toBN(flowInfo.flowRate));
+            actualNetFlow = actualNetFlow.sub(toBN(flowInfo.flowRate));
         });
 
         const accountFlowInfo = this.getAccountFlowInfo({
@@ -387,8 +386,10 @@ module.exports = class CFADataModel {
                     account
                 );
             const expectedBalanceDelta2 = expectedBalanceDelta1.add(
-                toBN(accountFlowInfo.flowRate).mul(
-                    toBN(timestamp).sub(toBN(balanceSnapshot.timestamp))
+                toBN(accountFlowInfo.flowRate.toString()).mul(
+                    toBN(timestamp.toString()).sub(
+                        toBN(balanceSnapshot.timestamp.toString())
+                    )
                 )
             );
             this.testenv.updateAccountExpectedBalanceDelta(
@@ -416,15 +417,11 @@ module.exports = class CFADataModel {
             : deposit.and(toBN(0xffffffff)).isZero()
             ? 0
             : 1;
-        return deposit.shrn(32).addn(rounding).shln(32);
+        return deposit.shr(32).add(rounding).shl(32);
     }
 
-    static adjustNewAppAllowanceUsed(
-        appAllowance,
-        appAllowanceWanted,
-        newAppAllowanceUsed
-    ) {
-        //return BN.max(toBN(0), BN.min(appAllowance, BN.max(newAppAllowanceUsed, appAllowanceUsed)));
-        return BN.max(toBN(0), BN.min(appAllowance, newAppAllowanceUsed));
+    static adjustNewAppCreditUsed(appCreditGranted, appCreditUsed) {
+        // [appCreditUsed...appCreditGranted];
+        return max(toBN(0), min(appCreditGranted, appCreditUsed));
     }
 };

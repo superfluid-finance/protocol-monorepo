@@ -27,8 +27,8 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         assembly { slot:= _inactiveAgreementBitmap.slot offset := _inactiveAgreementBitmap.offset }
         require (slot == 1 && offset == 0, "_inactiveAgreementBitmap changed location");
 
-        assembly { slot:= _balances.slot offset := _balances.offset }
-        require (slot == 2 && offset == 0, "_balances changed location");
+        assembly { slot:= _sharedSettledBalances.slot offset := _sharedSettledBalances.offset }
+        require (slot == 2 && offset == 0, "_sharedSettledBalances changed location");
 
         assembly { slot:= _totalSupply.slot offset := _totalSupply.offset }
         require (slot == 3 && offset == 0, "_totalSupply changed location");

@@ -23,6 +23,9 @@
   <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>
+  <a href="https://www.codetriage.com/superfluid-finance/protocol-monorepo">
+      <img src="https://www.codetriage.com/superfluid-finance/protocol-monorepo/badges/users.svg">
+  </a>
 </p>
 
 > Contracts and resources for the Superfluid Protocol
@@ -120,17 +123,6 @@ SDK-Core is an application framework for interacting with the Superfluid Protoco
 
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
-#### [`@superfluid-finance/hardhat-deployer`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hardhat-deployer)
-
-<p>
-  <a href="https://www.npmjs.com/package/@superfluid-finance/hardhat-deployer" target="_blank">
-    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/hardhat-deployer.svg">
-  </a>
-  <a href="#" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-  </a>
-</p>
-
 #### [`@superfluid-finance/hot-fuzz`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hot-fuzz)
 
 <p>
@@ -147,7 +139,7 @@ Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/pa
 
 ## Examples
 
-See [examples/](examples/) for some Superfluid app examples.
+See our [examples repo](https://github.com/superfluid-finance/super-examples) for some Superfluid app examples.
 
 ## Contributing
 

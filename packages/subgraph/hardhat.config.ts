@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-chai-matchers";
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
@@ -50,25 +50,9 @@ const config: HardhatUserConfig = {
             url: process.env.BSC_MAINNET_PROVIDER_URL || "",
             chainId: 56,
         },
-        ropsten: {
-            url: process.env.ROPSTEN_PROVIDER_URL || "",
-            chainId: 3,
-        },
-        rinkeby: {
-            url: process.env.RINKEBY_PROVIDER_URL || "",
-            chainId: 4,
-        },
         goerli: {
             url: process.env.GOERLI_PROVIDER_URL || "",
             chainId: 5,
-        },
-        kovan: {
-            url: process.env.KOVAN_PROVIDER_URL || "",
-            chainId: 42,
-        },
-        opkovan: {
-            url: process.env.OPKOVAN_PROVIDER_URL || "",
-            chainId: 69,
         },
         avafuji: {
             url: process.env.AVAFUJI_PROVIDER_URL || "",
@@ -77,10 +61,6 @@ const config: HardhatUserConfig = {
         mumbai: {
             url: process.env.MUMBAI_PROVIDER_URL || "",
             chainId: 80001,
-        },
-        arbrinkeby: {
-            url: process.env.ARBRINKEBY_PROVIDER_URL || "",
-            chainId: 421611,
         },
     },
     mocha: {

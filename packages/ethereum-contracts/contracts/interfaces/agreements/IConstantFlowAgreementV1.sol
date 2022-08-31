@@ -1,15 +1,34 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-
+import { SuperfluidErrors } from "../superfluid/Definitions.sol";
 
 /**
  * @title Constant Flow Agreement interface
  * @author Superfluid
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error CFA_ACL_NO_SENDER_CREATE();
+    error CFA_ACL_NO_SENDER_UPDATE();
+    error CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS();
+    error CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS();
+    error CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS();
+    error CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED();
+    error CFA_ACL_UNCLEAN_PERMISSIONS();
+    error CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+    error CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+
+    error CFA_DEPOSIT_TOO_BIG();
+    error CFA_FLOW_RATE_TOO_BIG();
+    error CFA_NON_CRITICAL_SENDER();
+    error CFA_INVALID_FLOW_RATE();
+    error CFA_NO_SELF_FLOW();
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {

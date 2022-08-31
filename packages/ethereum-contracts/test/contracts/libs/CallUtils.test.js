@@ -1,8 +1,6 @@
+const {ethers} = require("hardhat");
 const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
-
-const CallUtilsMock = artifacts.require("CallUtilsMock");
-const CallUtilsTester = artifacts.require("CallUtilsTester");
 
 describe("CallUtils", function () {
     const t = TestEnvironment.getSingleton();
@@ -15,8 +13,11 @@ describe("CallUtils", function () {
             isTruffle: true,
             nAccounts: 5,
         });
-        callUtilsMock = await CallUtilsMock.new();
-        callUtilsTester = await CallUtilsTester.new();
+        callUtilsMock = await ethers.getContractFactory("CallUtilsMock");
+        callUtilsMock = await callUtilsMock.deploy();
+
+        callUtilsTester = await ethers.getContractFactory("CallUtilsTester");
+        callUtilsTester = await callUtilsTester.deploy();
     });
 
     it("CallUtils.revertFromReturnedData", async () => {

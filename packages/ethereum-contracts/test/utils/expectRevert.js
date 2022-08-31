@@ -1,10 +1,22 @@
-const {chaiModule} = require("./chai-setup");
+const {expect} = require("chai");
 const expectRevertedWith = async (func, errMsg) => {
-    await chaiModule.expect(func).to.be.revertedWith(errMsg);
+    await expect(func).to.be.revertedWith(errMsg);
 };
-const expectReverted = async (func) => chaiModule.expect(func).to.be.reverted;
+const expectReverted = async (func) => expect(func).to.be.reverted;
+
+const expectCustomError = async (func, contract, customErrorString, args) => {
+    args
+        ? await expect(func)
+              .to.be.revertedWithCustomError(contract, customErrorString)
+              .withArgs(args)
+        : await expect(func).to.be.revertedWithCustomError(
+              contract,
+              customErrorString
+          );
+};
 
 module.exports = {
     expectRevertedWith,
     expectReverted,
+    expectCustomError,
 };

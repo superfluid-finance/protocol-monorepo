@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluidToken  } from "./ISuperfluidToken.sol";
 import { ISuperfluid } from "./ISuperfluid.sol";
+import { SuperfluidErrors } from "./Definitions.sol";
 
 
 /**
@@ -12,6 +13,12 @@ import { ISuperfluid } from "./ISuperfluid.sol";
  * @author Superfluid
  */
 interface ISuperfluidGovernance {
+    
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SF_GOV_ARRAYS_NOT_SAME_LENGTH();
+    error SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD();
 
     /**
      * @dev Replace the current governance with a new governance

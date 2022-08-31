@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -9,73 +9,85 @@
 module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
 
 import           Data.Default
-import           Data.Kind                                                         (Type)
 import           Data.Proxy
+import           Data.Type.Any
+import           GHC.Generics
 import           Lens.Internal
 
-import           Money.Systems.Superfluid.Concepts
+import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
-import qualified Money.Systems.Superfluid.Agreements.MonetaryUnitData.DecayingFlow as DFMUD
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency           as BBS
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow as DFMUD
+
 
 -- * Monetary data lenses
 --
-instance SuperfluidTypes sft => DFMUD.MonetaryUnitLenses (UniversalData sft) sft where
-    decayingFactor = readOnlyLens (\_ -> dfa_default_lambda (Proxy @sft))
-    settledAt      = $(field 'dfa_settledAt)
-    αVal           = $(field 'dfa_αVal)
-    εVal           = $(field 'dfa_εVal)
-    settledBuffer  = $(field 'dfa_settledBuffer)
-type MonetaryUnitData sft = DFMUD.MonetaryUnitData (UniversalData sft) sft
 
--- * Operation
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { settled_at :: SFT_TS sft
+    , α_val      :: SFT_FLOAT sft
+    , ε_val      :: SFT_FLOAT sft
+    } deriving (Generic)
+deriving instance SuperfluidSystemTypes sft => Default (MonetaryUnitLenses sft)
+
+type MonetaryUnitData sft = DFMUD.MonetaryUnitData (MonetaryUnitLenses sft) sft
+instance SuperfluidSystemTypes sft => SemigroupMonetaryUnitData (MonetaryUnitData sft) sft
+
+instance SuperfluidSystemTypes sft => DFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    decayingFactor = readOnlyLens (\_ -> dfa_default_lambda (Proxy @sft))
+    settledAt      = $(field 'settled_at)
+    αVal           = $(field 'α_val)
+    εVal           = $(field 'ε_val)
+
+-- * Contract
 
 type DistributionLimit sft = SFT_MVAL sft
 
-data Operation sft =
-    --                 θ/distributionLimit     newFlowBuffer
-    UpdateDecayingFlow (DistributionLimit sft) (BBS.BufferValue (SFT_MVAL sft))
+data ContractData sft = ContractData
+    { flow_last_updated_at :: SFT_TS sft
+    , distribution_limit   :: SFT_MVAL sft
+    } deriving (Generic)
+deriving instance SuperfluidSystemTypes sft => Default (ContractData sft)
 
-instance SuperfluidTypes sft => AgreementOperation (Operation sft) sft where
-    data AgreementOperationData (Operation sft) = ContractData
-        { flow_last_updated_at :: SFT_TS sft
-        , distribution_limit   :: SFT_MVAL sft
-        , flow_buffer          :: BBS.BufferValue (SFT_MVAL sft)
-        }
-    data AgreementOperationResultF (Operation sft) elem = OperationPartiesF
-        { decayingFlowSender   :: elem
-        , decayingFlowReceiver :: elem
-        } deriving stock (Functor, Foldable, Traversable)
-    type AgreementMonetaryUnitDataInOperation (Operation sft) = MonetaryUnitData sft
+instance SuperfluidSystemTypes sft => MonetaryUnitDataClass (ContractData sft) sft
 
+-- * Operation
+
+instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft where
     -- | Create data of agreement parties from the changes of the contract.
     --
     -- Formula:
-    --   aad_mempty_update_with_acd(aad, θ_Δ, t_u) = AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
-    applyAgreementOperation (UpdateDecayingFlow θ newFlowBuffer) acd t' = let
-        acd'  = ContractData { distribution_limit   = θ
-                             , flow_buffer          = newFlowBuffer
-                             , flow_last_updated_at = t'
-                             }
-        aorsΔ = OperationPartiesF
-                    (def & set DFMUD.settledAt      t'
-                         & set DFMUD.αVal           θ_Δ
-                         & set DFMUD.εVal          (-θ_Δ)
-                         & set DFMUD.settledBuffer flowBufferDelta
-                    )
-                    (def & set DFMUD.settledAt      t'
-                         & set DFMUD.αVal          (-θ_Δ)
-                         & set DFMUD.εVal           θ_Δ
-                    )
-        in (acd', fmap DFMUD.MkMonetaryUnitData aorsΔ)
-        where
-            θ_Δ             = fromIntegral (θ - distribution_limit acd)
-            flowBufferDelta = newFlowBuffer - flow_buffer acd
+    --   aad_mempty_update_with_ac(aad, θ_Δ, t_u) = AAD { t_s = t_u , α = θ_Δ , ε = -θ_Δ }
+    applyAgreementOperation ac (UpdateDecayingFlow θ) t' = let
+        θ_Δ = fromIntegral (θ - distribution_limit ac)
 
-type ContractData :: Type -> Type
-type ContractData sft = AgreementOperationData (Operation sft)
+        ac' = ContractData { distribution_limit   = θ
+                            , flow_last_updated_at = t'
+                            }
+        mudsΔ = OperationOutputF
+                (def & set DFMUD.settledAt    t'
+                     & set DFMUD.αVal        θ_Δ
+                     & set DFMUD.εVal      (-θ_Δ))
+                (def & set DFMUD.settledAt    t'
+                     & set DFMUD.αVal      (-θ_Δ)
+                     & set DFMUD.εVal        θ_Δ)
 
--- NOTE: Unavoidable boilerplate due to the mysterious "No family instance for"
-instance SuperfluidTypes sft => Default (ContractData sft) where
-    def = ContractData { flow_last_updated_at = def, distribution_limit = def, flow_buffer = def }
+        in (ac', fmap DFMUD.MkMonetaryUnitData mudsΔ)
+
+    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
+        OperationOutputF (a <> a') (b <> b')
+
+    functorizeAgreementOperationOutput p = fmap (mkAny p)
+
+    data AgreementOperation (ContractData sft) =
+        UpdateDecayingFlow (DistributionLimit sft)
+
+    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
+
+    data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
+        { flow_sender   :: elem
+        , flow_receiver :: elem
+        } deriving stock (Functor, Foldable, Traversable, Generic)
+
+type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+
+instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)

@@ -77,7 +77,7 @@ contract MultiFlowTesterApp is SuperAppBase {
         ISuperToken superToken,
         bytes4 selector,
         int96 flowRate,
-        uint256 appAllowanceGranted,
+        uint256 appCreditGranted,
         bytes calldata ctx
     )
         private
@@ -87,21 +87,22 @@ contract MultiFlowTesterApp is SuperAppBase {
 
         newCtx = ctx;
 
-        // in case of mfa, we underutlize the app allowance for simplicity
-        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(superToken, appAllowanceGranted - 1);
-        appAllowanceGranted = _cfa.getDepositRequiredForFlowRate(superToken, safeFlowRate);
+        // in case of mfa, we underutlize the app credit for simplicity
+        uint256 flowRateDeposit = _cfa.getDepositRequiredForFlowRate(superToken, flowRate);
+        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(superToken, flowRateDeposit - 1);
+        appCreditGranted = _cfa.getDepositRequiredForFlowRate(superToken, safeFlowRate);
 
-        // scale the flow rate and app allowance numbers
-        appAllowanceGranted = appAllowanceGranted * configuration.ratioPct / 100;
+        // scale the flow rate and app credit numbers
+        appCreditGranted = appCreditGranted * configuration.ratioPct / 100;
         // NOTE casting to int96 is okay here because ratioPct is uint8
         flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
 
         for (uint256 i; i < configuration.receivers.length; ++i) {
             ReceiverData memory receiverData = configuration.receivers[i];
-            uint256 targetAllowance = appAllowanceGranted * receiverData.proportion / sum;
+            uint256 targetCredit = appCreditGranted * receiverData.proportion / sum;
             int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
                 superToken,
-                targetAllowance
+                targetCredit
             );
             flowRate -= targetFlowRate;
             bytes memory callData = abi.encodeWithSelector(
@@ -179,7 +180,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
             assert(vars.flowSender == vars.context.msgSender);
             assert(vars.flowReceiver == address(this));
-            assert(vars.context.appAllowanceGranted != 0);
+            assert(vars.context.appCreditGranted != 0);
         }
         int96 flowRate;
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
@@ -188,7 +189,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             superToken,
             _cfa.createFlow.selector,
             flowRate,
-            vars.context.appAllowanceGranted,
+            vars.context.appCreditGranted,
             ctx);
     }
 
@@ -231,7 +232,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
             assert(vars.flowSender == vars.context.msgSender);
             assert(vars.flowReceiver == address(this));
-            assert(vars.context.appAllowanceGranted != 0);
+            assert(vars.context.appCreditGranted != 0);
         }
         int96 flowRate;
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
@@ -240,7 +241,7 @@ contract MultiFlowTesterApp is SuperAppBase {
             superToken,
             _cfa.updateFlow.selector,
             flowRate,
-            vars.context.appAllowanceGranted,
+            vars.context.appCreditGranted,
             ctx);
     }
 

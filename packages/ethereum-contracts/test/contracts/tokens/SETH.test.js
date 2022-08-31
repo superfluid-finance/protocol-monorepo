@@ -1,12 +1,14 @@
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectCustomError} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 const TestEnvironment = require("../../TestEnvironment");
 const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
 
 const {web3tx, toBN, toWad} = require("@decentral.ee/web3-helpers");
+const {ethers} = require("hardhat");
 
 describe("Super ETH (SETH) Contract", function () {
     this.timeout(300e3);
@@ -105,26 +107,33 @@ describe("Super ETH (SETH) Contract", function () {
     });
 
     it("#1.4 downgradeToETH", async () => {
+        const ethersSETH = await ethers.getContractAt("ISETH", seth.address);
+        const aliceSigner = await ethers.getSigner(alice);
         await web3tx(
-            seth.upgradeByETH,
+            ethersSETH.connect(aliceSigner).upgradeByETH,
             "seth.upgradeByETH by alice"
         )({
-            value: toWad(1),
-            from: alice,
+            value: toWad(1).toString(),
         });
-
-        await expectRevertedWith(
-            seth.downgradeToETH(toWad(1).addn(1), {from: alice}),
-            "SuperfluidToken: burn amount exceeds balance"
+        const superTokenContract = new ethers.Contract(
+            "SuperToken",
+            SuperTokenArtifact.abi,
+            aliceSigner
+        );
+        await expectCustomError(
+            ethersSETH
+                .connect(aliceSigner)
+                .downgradeToETH(toWad(1).addn(1).toString()),
+            superTokenContract,
+            "INSUFFICIENT_BALANCE",
+            t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
         );
 
         const aliceBalance1 = await web3.eth.getBalance(alice);
         const tx = await web3tx(
             seth.downgradeToETH,
             "seth.downgradeToETH by alice"
-        )(toWad(1), {
-            from: alice,
-        });
+        )(toWad(1).toString(), {from: alice});
         const aliceBalance2 = await web3.eth.getBalance(alice);
         await expectEvent.inTransaction(
             tx.tx,

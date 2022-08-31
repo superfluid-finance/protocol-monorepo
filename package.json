@@ -9,7 +9,8 @@
     "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
-        "first-time-after-git-clone": "yarn install && yarn build && git submodule update --init --recursive",
+        "prepare": "tasks/git-submodule-init.sh lib/forge-std",
+        "git:submodule:cleanup": "git submodule deinit --all --force",
         "lint": "yarn workspaces run lint",
         "build": "yarn build-essentials #synonym of build-essentials",
         "build-essentials": "set -e;for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
@@ -23,8 +24,8 @@
     },
     "devDependencies": {
         "@ethersproject/providers": "^5.6.8",
+        "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
         "@nomiclabs/hardhat-ethers": "^2.0.6",
-        "@nomiclabs/hardhat-waffle": "^2.0.3",
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/test-helpers": "^0.5.15",
         "@truffle/hdwallet-provider": "^2.0.10",
@@ -46,7 +47,6 @@
         "eslint-plugin-eslint-comments": "^3.2.0",
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-prettier": "^4.2.1",
-        "ethereum-waffle": "^3.4.4",
         "hardhat": "^2.9.9",
         "husky": "^8.0.1",
         "lerna": "^5.1.6",
@@ -70,7 +70,6 @@
             "packages/js-sdk",
             "packages/sdk-core",
             "packages/sdk-redux",
-            "packages/hardhat-deployer",
             "packages/subgraph",
             "packages/hot-fuzz"
         ],

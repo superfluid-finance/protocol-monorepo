@@ -433,7 +433,7 @@ contract Superfluid is
         if (getAppCallbackLevel(sourceApp) <= getAppCallbackLevel(targetApp)) {
             revert HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();
         } 
-        _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
+        _compositeApps[sourceApp][targetApp] = true;
     }
 
     function isCompositeAppAllowed(

@@ -955,9 +955,12 @@ contract Superfluid is
         callData = _replacePlaceholderCtx(callData, ctx);
 
         // STEP 2: Call external with replaced context
-        // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
         (success, returnedData) = target.call(callData);
+        // if target is not a contract or some arbitrary address,
+        // success will be true and returnedData will be 0x (length = 0)
+        // this leads to unintended behaviors, so we want to check to ensure
+        // that the length of returnedData is greater than 0
 
         if (success) {
             if (returnedData.length == 0) {

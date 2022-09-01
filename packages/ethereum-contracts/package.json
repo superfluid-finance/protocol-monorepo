@@ -62,7 +62,6 @@
         "@truffle/contract": "4.5.23",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.5",
-        "hardhat": "^2.10.2",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {

@@ -1,4 +1,3 @@
-import { Signer } from "@ethersproject/abstract-signer";
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { ethers } from "ethers";
 import Web3 from "web3";
@@ -223,7 +222,7 @@ export default class Framework {
      * @param options.signer a signer object (e.g. ethers.Wallet instance)
      * @returns `ethers.Signer` object
      */
-    createSigner = (options: ISignerConstructorOptions): Signer => {
+    createSigner = (options: ISignerConstructorOptions): ethers.Signer => {
         if (
             !options.privateKey &&
             !options.provider &&
